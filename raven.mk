@@ -53,9 +53,9 @@ all:: RAVEN
 
 RAVEN: $(RAVEN_APP)
 
-$(RAVEN_APP): $(moose_LIB) $(elk_LIB) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects)
+$(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects)
 	@echo "Linking "$@"..."
-	@$(libmesh_CXX) $(libmesh_CXXFLAGS) $(RAVEN_app_objects) -o $@ $(RAVEN_LIB) $(r7_LIB) $(elk_LIB) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS)
+	@$(libmesh_CXX) $(libmesh_CXXFLAGS) $(RAVEN_app_objects) -o $@ $(RAVEN_LIB) $(r7_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS)
 
 -include $(RAVEN_DIR)/src/*.d
 endif

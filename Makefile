@@ -35,6 +35,11 @@ APPLICATION_NAME := RAVEN
 DEP_APPS    ?= $(shell $(MOOSE_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 #ADDITIONAL_LIBS  += -lgsl
 
+################################## ELK MODULES ################################
+ALL_ELK_MODULES := yes
+###############################################################################
+
+
 include $(MOOSE_DIR)/build.mk
 # deps
 include $(MOOSE_DIR)/moose.mk
