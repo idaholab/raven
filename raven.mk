@@ -64,6 +64,12 @@ endif
 clean::
 	@rm -fr $(RAVEN_APP)
 	@rm -fr $(RAVEN_LIB)
+	@find . \( -name "*~" -or -name "*.o" -or -name "*.d" -or -name "*.pyc" \) -exec rm '{}' \;
+	@rm -fr *.mod
+
+clobber::
+	@rm -fr $(RAVEN_APP)
+	@rm -fr $(RAVEN_LIB)
 	@find . \( -name "*~" -or -name "*.o" -or -name "*.d" -or -name "*.pyc" \
                 -or -name "*.gcda" -or -name "*.gcno" -or -name "*.gcov" \) -exec rm '{}' \;
 	@rm -fr *.mod
