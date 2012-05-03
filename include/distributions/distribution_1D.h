@@ -20,7 +20,6 @@
 #ifndef DISTRIBUTION_1D_H_
 #define DISTRIBUTION_1D_H_
 
-
 using namespace std;
 
 class distribution_1D{
@@ -51,11 +50,12 @@ class distribution_1D{
 		double getParamater1();	// return _parameter1
 		double getParameter2(); // return _parameter1
 
-		void changeParameter1(double newParameter2);	// to change on the fly paramter1
-		void changeParameter2(double newParameter1);	// to change on the fly paramter1
+		void changeParameter1(double newParameter1);	// to change on the fly paramter1
+		void changeParameter2(double newParameter2);	// to change on the fly paramter1
 
 		double pdfCalc(double x);	// return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
 		double cdfCalc(double x);	// return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
+        double randGen();   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
 	protected:
 
@@ -75,7 +75,9 @@ class distribution_1D{
 		double betaCdf (double x);			// beta CDF
 		double exponentialCdf (double x);	// exponential CDF
 		double gammaCdf(double x);			// gamma CDF
-		double customCdf(double x);          // custom CDF
+		double customCdf(double x);         // custom CDF
+
+		double NormalRandNumberGenerator();		//random normal generator
 };
 
 

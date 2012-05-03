@@ -19,7 +19,7 @@
 
 using namespace std;
 
-void LoadData(double** data, int dimensionality, int cardinality, string filename) {
+static void LoadData(double** data, int dimensionality, int cardinality, string filename) {
   int x, y;
 
   ifstream in(filename.c_str());

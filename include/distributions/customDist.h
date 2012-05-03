@@ -13,7 +13,7 @@
 #define CUSTOMDIST_H_
 
 
-double calculateCustomPdf(double position, double fitting, double** dataSet, int numberSamples){
+static double calculateCustomPdf(double position, double fitting, double** dataSet, int numberSamples){
 	double value=-1;
 	double min;
 	double max;
@@ -35,7 +35,7 @@ double calculateCustomPdf(double position, double fitting, double** dataSet, int
 	return value;
 }
 
-double calculateCustomCDF(double position, double fitting, double** dataSet, int numberSamples){
+static double calculateCustomCDF(double position, double fitting, double** dataSet, int numberSamples){
 	double value=-1;
 	double min;
 	double max;

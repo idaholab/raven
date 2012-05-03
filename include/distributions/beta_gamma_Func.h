@@ -28,19 +28,19 @@ using namespace std;
 // Code for inverse gamma function
 // source: Numerical Recipes in c++
 
-void nrerror(const char error_text[]){					// added const to avoid "warning: deprecated conversion from string constant to ‘char*’"
+static void nrerror2(const char error_text[]){					// added const to avoid "warning: deprecated conversion from string constant to ‘char*’"
 /* Numerical Recipes standard error handler */
 	fprintf(stderr,"Numerical Recipes run-time error...\n");
 	fprintf(stderr,"%s\n",error_text);
 	fprintf(stderr,"...now exiting to system...\n");
 }
 
-double gammp(double a, double x){
+static double gammp(double a, double x){
 /* high level function for incomplete gamma function */
    void gcf(double *gammcf,double a,double x,double *gln);
    void gser(double *gamser,double a,double x,double *gln);
    double gamser,gammcf,gln;
-   if(x < 0.0 || a <= 0.0) nrerror("Invalid arg in gammp");
+   if(x < 0.0 || a <= 0.0) nrerror2("Invalid arg in gammp");
    if(x < (a+1.0)){
 /* here I change routine so that it returns \gamma(a,x)
    or P(a,x)-just take out comments to get P(a,x) vs \gamma(a,x)-
@@ -56,7 +56,7 @@ double gammp(double a, double x){
    }
 }
 
-double loggam(double xx)
+static double loggam(double xx)
 {
    double x,y,tmp,ser;
    static double cof[6]={76.18009172947146, -86.50532032941677,
@@ -74,12 +74,12 @@ double loggam(double xx)
 #define ITMAX 100
 #define EPSW 3.0e-7
 
-void gser(double *gamser,double a,double x,double *gln){
+static void gser(double *gamser,double a,double x,double *gln){
    int n;
    double sum,del,ap;
    *gln=loggam(a);
    if(x <= 0.0){
-	  if(x < 0.0) nrerror("x less than 0 in routine gser");
+	  if(x < 0.0) nrerror2("x less than 0 in routine gser");
 	  *gamser=0.0;
 	  return;
    }
@@ -95,7 +95,7 @@ void gser(double *gamser,double a,double x,double *gln){
 			return;
 		 }
 	  }
-	  nrerror("a too large, ITMAX too small in routine gser");
+	  nrerror2("a too large, ITMAX too small in routine gser");
 	  return;
    }
 }
@@ -103,7 +103,7 @@ void gser(double *gamser,double a,double x,double *gln){
 
 #define FPMIN 1.0e-30
 
-void gcf(double *gammcf,double a,double x,double *gln){
+static void gcf(double *gammcf,double a,double x,double *gln){
    int i;
    double an,b,c,d,del,h;
    *gln=loggam(a);
@@ -123,13 +123,13 @@ void gcf(double *gammcf,double a,double x,double *gln){
 	  h *= del;
 	  if(fabs(del-1.0) < EPSW) break;
    }
-   if(i > ITMAX) nrerror("a too large, ITMAX too small in gcf");
+   if(i > ITMAX) nrerror2("a too large, ITMAX too small in gcf");
    *gammcf=exp(-x+a*log(x)-(*gln))*h;
 }
 
 // Gamma function
 // source http://www.crbond.com/math.htm
-double gammaFunc(double x){
+static double gammaFunc(double x){
 	int i,k,m;
 	double ga,gr,r,z;
 
@@ -198,14 +198,14 @@ double gammaFunc(double x){
 
 
 // Beta function
-double betaFunc(double alpha, double beta){
+static double betaFunc(double alpha, double beta){
 	double value=gammaFunc(alpha)*gammaFunc(beta)/gammaFunc(alpha+beta);
 	return value;
 }
 
 
 // log gamma using the Lanczos approximation
-double logGamma(double x) {
+static double logGamma(double x) {
 const double c[8] = { 676.5203681218851, -1259.1392167224028,
 		 771.32342877765313, -176.61502916214059,
 		 12.507343278686905, -0.13857109526572012,
@@ -220,7 +220,7 @@ return log(sqrt(2*3.14159) * sum / x) - (x + 7.5) + (x + 0.5) * log(x + 7.5);
 // helper function for incomplete beta
 // computes continued fraction
 
-double betaContFrac(double a, double b, double x) {
+static double betaContFrac(double a, double b, double x) {
 	const int MAXIT = 1000;
 	const double EPS = 3e-7;
 	double qab = a + b;
@@ -259,7 +259,7 @@ double betaContFrac(double a, double b, double x) {
 
 // incomplete beta function
 // must have 0 <= x <= 1
-double betaInc(double a, double b, double x) {
+static double betaInc(double a, double b, double x) {
   if (x == 0)
 	return 0;
   else if (x == 1)
