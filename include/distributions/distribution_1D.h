@@ -55,7 +55,7 @@ class distribution_1D{
 
 		double pdfCalc(double x);	// return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
 		double cdfCalc(double x);	// return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
-        double randGen();   // return a random number distributed accordingly to the distribution given a random number [0,1]
+        double randGen() { return 1/0;};   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
 	protected:
 
