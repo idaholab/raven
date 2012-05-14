@@ -35,10 +35,11 @@ static void nrerror2(const char error_text[]){					// added const to avoid "warn
 	fprintf(stderr,"...now exiting to system...\n");
 }
 
+static void gcf(double *gammcf,double a,double x,double *gln);
+static void gser(double *gamser,double a,double x,double *gln);
+
 static double gammp(double a, double x){
 /* high level function for incomplete gamma function */
-   void gcf(double *gammcf,double a,double x,double *gln);
-   void gser(double *gamser,double a,double x,double *gln);
    double gamser,gammcf,gln;
    if(x < 0.0 || a <= 0.0) nrerror2("Invalid arg in gammp");
    if(x < (a+1.0)){
