@@ -1,5 +1,16 @@
 RAVEN_SRC_DIRS := $(RAVEN_DIR)/src/*/*
 
+PYTHON3_HELLO = $(shell python3 -c "print('HELLO')")
+
+ifeq ($(PYTHON3_HELLO),HELLO)
+	PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include)
+	PYTHON_LIB = $(shell $(RAVEN_DIR)/scripts/find_flags.py library)
+else
+#Python3 not found.
+	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
+	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
+endif
+
 RAVEN_INC_DIRS := $(shell find $(RAVEN_DIR)/include -type d -not -path "*/.svn*")
 RAVEN_INCLUDE  := $(foreach i, $(RAVEN_INC_DIRS), -I$(i))
 
@@ -51,11 +62,15 @@ endif
 ifeq ($(APPLICATION_NAME),RAVEN)
 all:: RAVEN
 
+$(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/executioners/PythonControl.C
+	@echo "Override PythonControl Compile"
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -MMD -MF $@.d $(libmesh_INCLUDE) -c $< -o $@ 
+
 RAVEN: $(RAVEN_APP)
 
 $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects)
 	@echo "Linking "$@"..."
-	@$(libmesh_CXX) $(libmesh_CXXFLAGS) $(RAVEN_app_objects) -o $@ $(RAVEN_LIB) $(r7_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS)
+	@$(libmesh_CXX) $(libmesh_CXXFLAGS) $(RAVEN_app_objects) -o $@ $(RAVEN_LIB) $(r7_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS) $(PYTHON_LIB)
 
 -include $(RAVEN_DIR)/src/*.d
 endif
