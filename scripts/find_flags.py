@@ -12,11 +12,19 @@ if "include" in sys.argv:
 if "library" in sys.argv:
     lib_dir = distutils.sysconfig.get_config_var('LIBDIR')
     library_name = distutils.sysconfig.get_config_var('LDLIBRARY')
+    static = False
     if library_name.startswith("lib"):
         library_name = library_name[3:]
     if library_name.endswith(".so"):
         library_name = library_name[:-3]
-    print("-L",lib_dir," -l",library_name,sep='',end=' ')
+    if library_name.endswith(".a"):
+        library_name = library_name[:-2]
+        static = True
+    extra = ""
+    if static:
+        extra = " "+distutils.sysconfig.get_config_var('LIBS')+\
+            " "+distutils.sysconfig.get_config_var('SYSLIBS')
+    print("-L",lib_dir," -l",library_name,extra,sep='',end=' ')
 
 
 #Note how to do this was basically found by looking at the code that was 
