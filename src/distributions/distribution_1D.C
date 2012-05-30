@@ -16,12 +16,12 @@
  */
 
 #include "distribution_1D.h"
-#include "dynamicArray.h"
-#include "inputFile.h"
-#include "customDist.h"
 #include <math.h>
 #include <cmath>					// needed to use erfc error function
-#include "beta_gamma_Func.h"		// this file contains auxiliary functions for the beta and gamma distributions
+#include <string>
+#include "dynamicArray.h"
+#include <ctime>
+
 
 #define _USE_MATH_DEFINES	// needed in order to use M_PI = 3.14159
 
@@ -31,6 +31,7 @@
 		_xMax=1;
 		_parameter1=1;
 		_parameter2=1;
+		srand ( time(NULL) );
 	}
 
 	distribution_1D::~distribution_1D (){
@@ -42,13 +43,15 @@
 		_xMax=max;
 		_parameter1=param1;
 		_parameter2=param2;
+		srand ( time(NULL) );
 	}
 
-	distribution_1D::distribution_1D (int type, double min, double max, double param1, double param2, string fileName){
+	distribution_1D::distribution_1D (int type, double min, double max, double param1, double param2, std::string fileName){
 		_type=type;
 		_xMin=min;
 		_xMax=max;
 		_filename=fileName;
+		srand ( time(NULL) );
 	}
 
 
@@ -106,6 +109,9 @@
 				  case 8:  // custom
 					  pdfValue=customPdf(x);
 					break;
+				  case 9:	// triangular
+					  pdfValue=triangPdf(x);
+					break;
 				  default:	// otherwise return error pdfvalue =-1;
 					  pdfValue=-1;
 					break;
@@ -113,11 +119,10 @@
 			else
 				pdfValue=-1;
 
-
 			return pdfValue;
 		}
 
-		// return pdf coordinate
+		// return cdf coordinate
 			double distribution_1D::cdfCalc(double x){
 				double pdfValue;
 
@@ -147,6 +152,9 @@
 					  case 8:  // Custom
 						  pdfValue=customCdf(x);
 						break;
+					  case 9:	// triangular
+						  pdfValue=triangCdf(x);
+						break;
 					  default:	// otherwise return error pdfvalue =-1;
 						  pdfValue=-1;
 						break;
@@ -154,9 +162,47 @@
 				else
 					pdfValue=-1;
 
-
 				return pdfValue;
 			}
+
+	// return random number distributed accordingly to that distribution
+		double distribution_1D::randGen(){
+			double RandomNumberValue;
+
+			for(int i=0; i<5; i++){
+				switch (_type) {
+				  case 1:  // Uniform
+					  RandomNumberValue=uniformRandNumberGenerator();
+					break;
+				  case 2:  // Normal
+					  RandomNumberValue=normalRandNumberGenerator();
+					break;
+				  case 3:  // Log-normal
+					  RandomNumberValue=logNormalRandNumberGenerator();
+					break;
+				  case 4:  // Weibull
+					  RandomNumberValue=weibullRandNumberGenerator();
+					break;
+				  case 5:  // Exponential
+					  RandomNumberValue=exponentialRandNumberGenerator();
+					break;
+				  case 6:  // Gamma
+					  RandomNumberValue=gammaRandNumberGenerator();
+					break;
+				  case 7:  // Beta
+					  RandomNumberValue=betaRandNumberGenerator();
+					break;
+				  case 9:  // Triangular
+					  RandomNumberValue=triangularRandNumberGenerator();
+					  break;
+				  default:	// otherwise return error pdfvalue =-1;
+					  RandomNumberValue=-1;
+					break;
+				}
+			}
+
+			return RandomNumberValue;
+		}
 
 	// Uniform pdf
 		double distribution_1D::uniformPdf (double x){
@@ -180,12 +226,12 @@
 	// Normal pdf
 		double distribution_1D::normalPdf (double x){
 			// parameter1=mu
-			// parameter2=sigma^2	>0
+			// parameter2=sigma	>0
 
 			double value;
 
 			if (_parameter2 > 0)
-				value = 1/(sqrt(2.0*M_PI*_parameter2))*exp(-(x-_parameter1)*(x-_parameter1)/(2.0*_parameter2));
+				value = 1/(sqrt(2.0*M_PI*_parameter2*_parameter2))*exp(-(x-_parameter1)*(x-_parameter1)/(2.0*_parameter2*_parameter2));
 			else
 				value=-1;
 
@@ -194,12 +240,12 @@
 
 		double distribution_1D::normalCdf (double x){
 			// parameter1=mu
-			// parameter2=sigma^2	>0
+			// parameter2=sigma	>0
 
 			double value;
 
 			if (_parameter2 > 0)
-				value = 1/2 + erf((x-_parameter1)/sqrt(2*_parameter2));
+				value = 1/2 + erf((x-_parameter1)/sqrt(2*_parameter2*_parameter2));
 			else
 				value=-1;
 
@@ -209,7 +255,7 @@
 	// Log-Normal pdf
 		double distribution_1D::logNormalPdf (double x){
 			// parameter1=mu
-			// parameter2=sigma^2  >0
+			// parameter2=sigma  >0
 
 			double value;
 
@@ -217,7 +263,7 @@
 				if (x == 0)
 					value = 0;
 				else
-				value= 1/(x*sqrt(2*M_PI*_parameter2))*exp(-(log(x)-_parameter1)*(log(x)-_parameter1)/(2*_parameter2));
+				value= 1/(x*sqrt(2*M_PI*_parameter2*_parameter2))*exp(-(log(x)-_parameter1)*(log(x)-_parameter1)/(2*_parameter2*_parameter2));
 			}
 			else
 				value=-1;
@@ -227,12 +273,12 @@
 
 		double distribution_1D::logNormalCdf (double x){
 			// parameter1=mu
-			// parameter2=sigma^2  >0
+			// parameter2=sigma  >0
 
 			double value;
 
 			if (_parameter2 > 0)
-				value = 0.5 + 0.5 * erf((log(x)-_parameter1)/sqrt(2.0*_parameter2));
+				value = 0.5 + 0.5 * erf((log(x)-_parameter1)/sqrt(2.0*_parameter2*_parameter2));
 			else
 				value=-1;
 
@@ -395,5 +441,92 @@
 			// calculate value
 			value=calculateCustomCDF(x,_parameter2, dataSet,(int)round(_parameter1));
 
+			return value;
+		}
+
+	// triangular pdf
+		double distribution_1D::triangPdf(double x){
+			// parameter1= peak coordinate
+			// parameter2 not used
+
+			double value;
+
+			if ((_parameter1>_xMin)&&(_parameter1<_xMax)){
+				if (x<=_parameter1)
+					value=2*(x-_xMin)/(_xMax-_xMin)/(_parameter1-_xMin);
+				else
+					value=2*(_xMax-x)/(_xMax-_xMin)/(_xMax-_parameter1);
+			}
+			else
+				value=-1;
+
+			return value;
+		}
+
+
+		double distribution_1D::triangCdf(double x){
+			// parameter1= peak coordinate
+			// parameter2 not used
+
+			double value;
+
+			if ((_parameter1>_xMin)&&(_parameter1<_xMax)){
+				if (x<=_parameter1)
+					value=(x-_xMin)*(x-_xMin)/(_xMax-_xMin)/(_parameter1-_xMin);
+				else
+					value=1-(_xMax-x)*(_xMax-x)/(_xMax-_xMin)/(_xMax-_parameter1);
+			}
+			else
+				value=-1;
+
+			return value;
+		}
+		
+
+		double distribution_1D::uniformRandNumberGenerator(){
+			double value;
+			double RNG=rand()/double(RAND_MAX);
+			return value=_xMin+RNG*(_xMax-_xMin);
+		}
+
+		double distribution_1D::normalRandNumberGenerator(){
+			double value=normRNG(_parameter1, _parameter2);
+			return value;
+		}
+
+		double distribution_1D::logNormalRandNumberGenerator(){
+			double value;
+			return value=exp(normRNG(_parameter1, _parameter2));
+		}
+
+		double distribution_1D::exponentialRandNumberGenerator(){
+			double value=-1/_parameter1 * log(1.0 - rand()/double(RAND_MAX));
+			return value;
+		}
+
+		double distribution_1D::weibullRandNumberGenerator(){
+			double value=-_parameter2 * pow(log(1.0 - rand()/double(RAND_MAX)),1/_parameter2);
+			return value;
+		}
+
+		double distribution_1D::gammaRandNumberGenerator(){
+			double value=gammaRNG(_parameter1,_parameter2);
+			return value;
+		}
+
+		double distribution_1D::betaRandNumberGenerator(){
+			double value=betaRNG(_parameter1,_parameter2);
+			return value;
+		}
+
+		double distribution_1D::triangularRandNumberGenerator(){
+			double value;
+			double RNG = rand()/double(RAND_MAX);
+			double referenceValue=(_parameter1-_xMin)/(_xMax-_xMin);
+
+			if (RNG<referenceValue)
+				value= _xMin+sqrt(RNG*(_parameter1-_xMin)*(_xMax-_xMin));
+			else
+				value=_xMax-sqrt((1-RNG)*(_xMax-_parameter1)*(_xMax-_xMin));
 			return value;
 		}
