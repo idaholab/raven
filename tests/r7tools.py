@@ -30,8 +30,8 @@ class R7TestHarness(TestHarness):
   # R7 Extended the TestHarness by adding the "simulation" flag
   # The createCommand function is the only function that needs to be overriden
   def createCommand(self, test):
-    if test[MINPARALLEL] > 1:
-      return 'mpiexec -n ' + test[MINPARALLEL] + ' ' + self.executable + ' -i ' + test[INPUT] + ' ' +  ' '.join(test[CLI_ARGS])
+    if test[MIN_PARALLEL] > 1:
+      return 'mpiexec -n ' + test[MIN_PARALLEL] + ' ' + self.executable + ' -i ' + test[INPUT] + ' ' +  ' '.join(test[CLI_ARGS])
     elif test[SIMUL]:
       return self.executable + ' -s ' + test[SIMUL] + ' ' + ' '.join(test[CLI_ARGS])
     else:

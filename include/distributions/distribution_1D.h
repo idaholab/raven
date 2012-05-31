@@ -87,28 +87,29 @@
 	};
 
 
-	double gammaFunc(double x);
-	double betaInc(double a, double b, double x);
-	double gammaFunc(double x);
-	double gammp(double a, double x);
-	double betaFunc(double alpha, double beta);
-	void LoadData(double** data, int dimensionality, int cardinality, std::string filename);
+//  double gammaFunc(double x);
+//	double betaInc(double a, double b, double x);
+//	double gammaFunc(double x);
+//	double gammp(double a, double x);
+//	double betaFunc(double alpha, double beta);
+//	void LoadData(double** data, int dimensionality, int cardinality, std::string filename);
 	double calculateCustomCDF(double position, double fitting, double** dataSet, int numberSamples);
 	double calculateCustomPdf(double position, double fitting, double** dataSet, int numberSamples);
-	double normRNG(double mu, double sigma);
-	double gammaRNG(double shape, double scale);
-	double betaRNG(double alpha, double beta);
+//	double normRNG(double mu, double sigma);
+//	double gammaRNG(double shape, double scale);
+//	double betaRNG(double alpha, double beta);
 	double STDgammaRNG(double shape);
 	double rk_gauss();
 
-	distribution_1D test1=distribution_1D(1, -3.0, 2.0,  1.0, 1.0);
-	distribution_1D test2=distribution_1D(2, -4.0, 4.0, -1.0, 0.5);
-	distribution_1D test3=distribution_1D(3,  0.0, 4.0, 10.0, 1.0);
-	distribution_1D test4=distribution_1D(4, -4.0, 4.0,  1.5, 1.0);
-	distribution_1D test5=distribution_1D(5, -4.0, 4.0,  1.5, 1.0);
-	distribution_1D test9=distribution_1D(9, -4.0, 4.0, -2.0, 1.0);
-
 //	***Example:****
+
+//	distribution_1D test1=distribution_1D(1, -3.0, 2.0,  1.0, 1.0);
+//	distribution_1D test2=distribution_1D(2, -4.0, 4.0, -1.0, 0.5);
+//	distribution_1D test3=distribution_1D(3,  0.0, 4.0, 10.0, 1.0);
+//	distribution_1D test4=distribution_1D(4, -4.0, 4.0,  1.5, 1.0);
+//	distribution_1D test5=distribution_1D(5, -4.0, 4.0,  1.5, 1.0);
+//	distribution_1D test9=distribution_1D(9, -4.0, 4.0, -2.0, 1.0);
+
 //	ofstream outdata;
 //	outdata.open("test.txt"); // opens the file
 //

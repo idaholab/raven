@@ -21,6 +21,7 @@
 #include <string>
 #include "dynamicArray.h"
 #include <ctime>
+#include <cstdlib>
 
 
 #define _USE_MATH_DEFINES	// needed in order to use M_PI = 3.14159
@@ -324,9 +325,9 @@
 
 			double value;
 
-			if ((x > 0)&&(x < 1)&&(_parameter1 > 0)&&(_parameter2 > 0))
-				value = 1/betaFunc(_parameter1,_parameter2)*pow(x,_parameter1-1)*pow(1-x,_parameter2-1);
-			else
+			/*if ((x > 0)&&(x < 1)&&(_parameter1 > 0)&&(_parameter2 > 0))
+              value = 1/betaFunc(_parameter1,_parameter2)*pow(x,_parameter1-1)*pow(1-x,_parameter2-1);
+              else */
 				value=-1;
 
 			return value;
@@ -339,9 +340,9 @@
 
 			double value;
 
-			if ((x > 0)&&(x < 1)&&(_parameter1 > 0)&&(_parameter2 > 0))
+			/*if ((x > 0)&&(x < 1)&&(_parameter1 > 0)&&(_parameter2 > 0))
 				value = betaInc(_parameter1,_parameter2 ,x);
-			else
+                else */
 				value=-1;
 
 			return value;
@@ -386,9 +387,9 @@
 
 			double value;
 
-			if ((x >= 0)&&(_parameter1 > 0)&&(_parameter2 > 0))
+			/* if ((x >= 0)&&(_parameter1 > 0)&&(_parameter2 > 0))
 				value=1/gammaFunc(_parameter1)/pow(_parameter2,_parameter1)*pow(x,_parameter1-1)*exp(-x/_parameter2);
-			else
+                else */
 				value=1;
 
 			return value;
@@ -401,9 +402,9 @@
 
 			double value;
 
-			if ((x >= 0)&&(_parameter1 > 0)&&(_parameter2 > 0))
-				value= gammp(_parameter1,x/_parameter2);
-			else
+			/* if ((x >= 0)&&(_parameter1 > 0)&&(_parameter2 > 0))
+              value= gammp(_parameter1,x/_parameter2);
+              else */
 				value=1;
 
 			return value;
@@ -419,7 +420,7 @@
 			double **dataSet = AllocateDynamicArray<double>((int)round(_parameter1),2);
 
 			// retrieve data from file
-			LoadData(dataSet, 2, (int)round(_parameter1), _filename);
+			//LoadData(dataSet, 2, (int)round(_parameter1), _filename);
 
 			// calculate value
 			value=calculateCustomPdf(x,_parameter2, dataSet,(int)round(_parameter1));
@@ -436,7 +437,7 @@
 			double **dataSet = AllocateDynamicArray<double>((int)round(_parameter1),2);
 
 			// retrieve data from file
-			LoadData(dataSet, 2, (int)round(_parameter1), _filename);
+			//LoadData(dataSet, 2, (int)round(_parameter1), _filename);
 
 			// calculate value
 			value=calculateCustomCDF(x,_parameter2, dataSet,(int)round(_parameter1));
@@ -490,13 +491,13 @@
 		}
 
 		double distribution_1D::normalRandNumberGenerator(){
-			double value=normRNG(_parameter1, _parameter2);
+          double value=-1;//normRNG(_parameter1, _parameter2);
 			return value;
 		}
 
 		double distribution_1D::logNormalRandNumberGenerator(){
 			double value;
-			return value=exp(normRNG(_parameter1, _parameter2));
+			return value=-1;//exp(normRNG(_parameter1, _parameter2));
 		}
 
 		double distribution_1D::exponentialRandNumberGenerator(){
@@ -510,12 +511,12 @@
 		}
 
 		double distribution_1D::gammaRandNumberGenerator(){
-			double value=gammaRNG(_parameter1,_parameter2);
+          double value=-1;//gammaRNG(_parameter1,_parameter2);
 			return value;
 		}
 
 		double distribution_1D::betaRandNumberGenerator(){
-			double value=betaRNG(_parameter1,_parameter2);
+          double value=-1;//betaRNG(_parameter1,_parameter2);
 			return value;
 		}
 
