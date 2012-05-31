@@ -20,6 +20,10 @@ if "library" in sys.argv:
     if library_name.endswith(".a"):
         library_name = library_name[:-2]
         static = True
+    if library_name.startswith("Python.framework"):
+        #This must be a mac
+        version = library_name.split("/")[2]
+        library_name = "python"+version
     extra = ""
     if static:
         extra = " "+distutils.sysconfig.get_config_var('LIBS')+\
