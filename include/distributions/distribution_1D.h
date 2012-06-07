@@ -41,7 +41,7 @@
 			distribution_1D (int type, double min, double max, double param1, double param2, std::string fileName); // constructor 2
 			~distribution_1D ();																// destructor
 
-			int getType ();			// return type of distribution _type
+			int getType () {return _type;};			// return type of distribution _type
 			double getMin ();		// return limits of the interval over which the distribution is defined
 			double getMax();
 			double getParamater1();	// return _parameter1
@@ -98,8 +98,8 @@
 //	double normRNG(double mu, double sigma);
 //	double gammaRNG(double shape, double scale);
 //	double betaRNG(double alpha, double beta);
-	double STDgammaRNG(double shape);
-	double rk_gauss();
+//	double STDgammaRNG(double shape);
+//	double rk_gauss();
 
 //	***Example:****
 
