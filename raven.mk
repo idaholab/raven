@@ -2,13 +2,23 @@ RAVEN_SRC_DIRS := $(RAVEN_DIR)/src/*/*
 
 PYTHON3_HELLO = $(shell python3 -c "print('HELLO')")
 
+SWIG_VERSION = $(shell swig -version)
+
+
 ifeq ($(PYTHON3_HELLO),HELLO)
 	PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include)
 	PYTHON_LIB = $(shell $(RAVEN_DIR)/scripts/find_flags.py library)
+ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
+	PYTHON_MODULES = 
+else
+	PYTHON_MODULES = $(RAVEN_DIR)/python_modules/_distribution1D.so
+endif
+
 else
 #Python3 not found.
 	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
+	PYTHON_MODULES = 
 endif
 
 RAVEN_INC_DIRS := $(shell find $(RAVEN_DIR)/include -type d -not -path "*/.svn*")
@@ -66,7 +76,11 @@ $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/exec
 	@echo "Override PythonControl Compile"
 	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -MMD -MF $@.d $(libmesh_INCLUDE) -c $< -o $@ 
 
-RAVEN: $(RAVEN_APP)
+$(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/distribution1D.i $(RAVEN_DIR)/src/distributions/customDist.C $(RAVEN_DIR)/src/distributions/distribution_1D.C
+	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/distributions/ $(RAVEN_DIR)/python_modules/distribution1D.i
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC -I$(RAVEN_DIR)/include/distributions/  $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/src/distributions/*.C -shared -o $(RAVEN_DIR)/python_modules/_distribution1D.so
+
+RAVEN: $(RAVEN_APP) $(PYTHON_MODULES)
 
 $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects)
 	@echo "Linking "$@"..."
@@ -81,6 +95,7 @@ clean::
 	@rm -fr $(RAVEN_LIB)
 	@find . \( -name "*~" -or -name "*.o" -or -name "*.d" -or -name "*.pyc" \) -exec rm '{}' \;
 	@rm -fr *.mod
+	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/python_modules/distribution1D.py
 
 clobber::
 	@rm -fr $(RAVEN_APP)
