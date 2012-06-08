@@ -27,7 +27,8 @@ if "library" in sys.argv:
     extra = ""
     if static:
         extra = " "+distutils.sysconfig.get_config_var('LIBS')+\
-            " "+distutils.sysconfig.get_config_var('SYSLIBS')
+            " "+distutils.sysconfig.get_config_var('SYSLIBS')+\
+            " -Xlinker -export-dynamic"
     print("-L",lib_dir," -l",library_name,extra,sep='',end=' ')
 
 
