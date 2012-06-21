@@ -1,5 +1,5 @@
 from GetPot import GetPot
-import math, re, vtk, global_vars
+import sys, math, re, vtk, global_vars
 
 VTK_LINE = 3
 
@@ -38,7 +38,10 @@ class Raven_GUI_Entity(object):
 	"""Represents one R7 system component.  All descend from here.
 	"""
 	def __init__(self, node):
-		self.name = node.name
+		if node == None:
+			self.name = ''
+		else:
+			self.name = node.name
 		self.node = node
 		self.color = 1.0, 1.0, 1.0
 		self.actor_list = [ ]
@@ -71,7 +74,7 @@ class Raven_GUI_Entity(object):
 	def ReportActors(self):
 		return self.actor_list
 
-	def RenderCaptionAt(self, location):
+	def RenderCaptionAt(self, location, vertical_offset = 0.0):
 		ca = vtk.vtkCaptionActor2D()
 		ca.SetCaption(self.name)
 		ca.SetAttachmentPoint(location)
@@ -80,6 +83,10 @@ class Raven_GUI_Entity(object):
 		ca.GetCaptionTextProperty().ItalicOff()
 		ca.GetCaptionTextProperty().ShadowOff()
 		ca.GetCaptionTextProperty().SetVerticalJustificationToCentered()
+
+		pos = ca.GetPosition()
+		ca.SetPosition(pos[0] + vertical_offset, pos[1] + vertical_offset)
+
 		ca.SetWidth(0.10)
 		ca.SetHeight(0.025)
 		ca.ThreeDimensionalLeaderOff()
@@ -92,7 +99,25 @@ class RGE_Pipe(Raven_GUI_Entity):
 	"""
 	def __init__(self, node):
 		# Call the base class constructor
+		self.radius = 0.0 
+		self.caption_offset = 0.0
 		Raven_GUI_Entity.__init__(self, node)
+		if node != None:
+			self.InitFromNode(node)
+
+		# Create the VTK stuff
+		self.poly_data = vtk.vtkPolyData()
+		self.cells = vtk.vtkCellArray()
+		self.tube_filter = vtk.vtkTubeFilter()
+		self.tube_filter.SetInput(self.poly_data)
+		self.tube_filter.SetNumberOfSides(10)
+		self.tube_filter.SetRadius(self.radius)
+		self.points = vtk.vtkPoints()
+		self.scalars = vtk.vtkFloatArray()
+		self.lut = vtk.vtkLookupTable()
+		self.main_mapper = vtk.vtkPolyDataMapper()
+
+	def InitFromNode(self, node):
 		# Load up the parameters needed for a pipe
 		self.position = StringToFloatTuple(GetParameter(node, 'position'))
 		self.orientation = StringToFloatTuple(GetParameter(node, 'orientation'))
@@ -107,20 +132,9 @@ class RGE_Pipe(Raven_GUI_Entity):
 		self.radius = 0.1
 		self.length = float(GetParameter(node, 'length'))
 		self.n_elems = int(GetParameter(node, 'n_elems'))
-
-		# Create the VTK stuff
-		self.poly_data = vtk.vtkPolyData()
-		self.cells = vtk.vtkCellArray()
-		self.tube_filter = vtk.vtkTubeFilter()
-		self.tube_filter.SetInput(self.poly_data)
-		self.tube_filter.SetNumberOfSides(10)
-		self.tube_filter.SetRadius(self.radius)
-		self.points = vtk.vtkPoints()
-		self.scalars = vtk.vtkFloatArray()
-		self.lut = vtk.vtkLookupTable()
-		self.main_mapper = vtk.vtkPolyDataMapper()
 		
 	def ComputeGeometry(self):
+		print "ComputeGeometry " + self.name
 		if self.n_elems < 1:
 			self.n_elems = 1
 
@@ -194,7 +208,7 @@ class RGE_Pipe(Raven_GUI_Entity):
 		self.actor_list.append(new_actor)
 		
 	def RenderName(self):
-		self.RenderCaptionAt(self.center_location)
+		self.RenderCaptionAt(self.center_location, self.caption_offset)
 		return
 		import global_vars
 		labelText = vtk.vtkVectorText()
@@ -279,11 +293,34 @@ class RGE_HeatExchanger(RGE_Pipe):
 				except:
 					pass
 		# Did we find them both?  If so, create the secondary
-		if self.sec_outlet_location == None or self.sec_inlet_location == None:
-			pass
-
-		print self.sec_inlet_location
-		print self.sec_outlet_location
+		if self.sec_outlet_location != None and self.sec_inlet_location != None:
+			print self.sec_inlet_location
+			print self.sec_outlet_location
+			# Modeled internally as another pipe
+			self.secondary = RGE_Pipe(None)
+			self.secondary.position = self.sec_inlet_location 
+			# Compute the orientation
+			#self.secondary.orientation = self.sec_outlet_location - self.sec_inlet_location
+			self.secondary.orientation = tuple([ o - i for o, i in \
+					zip(self.sec_outlet_location, self.sec_inlet_location)])
+			# Make sure the orientation is a unit vector 
+			#   (Must convert to list because item assignment is needed)
+			l = list(self.secondary.orientation)
+			vtk.vtkMath.Normalize(l);
+			self.secondary.orientation = tuple(l)
+			print self.secondary.position
+			print self.secondary.orientation
+			cross_section_area = float(GetParameter(self.node, 'A_secondary'))
+			self.secondary.radius = math.sqrt(cross_section_area / math.pi)
+			self.secondary.radius = 0.1
+			self.secondary.tube_filter.SetRadius(self.secondary.radius)
+			self.secondary.length = self.length
+			self.secondary.n_elems = self.n_elems
+			self.secondary.name = self.name + " (Secondary)"
+			self.secondary.caption_offset = 25.0
+			self.secondary.ComputeGeometry()
+			self.secondary.Render()
+			self.secondary.RenderName()
 
 	def GetPortLocation(self, port_name):
 		# print "GetPortLocation(HX) " + self.name + " " + port_name
@@ -296,6 +333,9 @@ class RGE_HeatExchanger(RGE_Pipe):
 			return self.outlet_location + (self.radius,)
 		else:
 			return None
+
+	def ReportActors(self):
+		return self.actor_list + self.secondary.actor_list
 
 #############################################################################
 class RGE_Junction(Raven_GUI_Entity):

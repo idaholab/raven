@@ -3,6 +3,7 @@ import RG
 from GetPot import GetPot
 import math, re, vtk, global_vars
 from vtk.qt4.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor 
+from Raven_GUI_Entity import *
 
 
 #############################################################################
@@ -26,19 +27,27 @@ class QtRG_Main(QVTKRenderWindowInteractor):
       self.renderer.AddActor(self.axes_actor)
       global_vars.component_list = RG.CreateComponentsFromNode(node)
       
-   	# Compute the geometry--this is a separate step because some stuff needs 
-	   #   to be ready before rendering
+      # Compute the geometry--this is a separate step because some stuff needs 
+      #   to be ready before rendering
       for c in global_vars.component_list:
          c.ComputeGeometry()
-      
-   	# Add on the actors from the components
+
+      # Add on the actors from the components
       for c in global_vars.component_list:
          c.Render()
          c.RenderName()
+
+      # Process heat exchangers (which require junctions to be computed)
+      for c in global_vars.component_list:
+         if isinstance(c, RGE_HeatExchanger):
+            c.CreateSecondary()
+      
+      # Draw the actors
+      for c in global_vars.component_list:
          for a in c.ReportActors():
             self.renderer.AddActor(a)
 
-   	# Put the camera on the positive X-Axis, with up being the positive Z-Axis
+      # Put the camera on the positive X-Axis, with up being the positive Z-Axis
       self.renderer.GetActiveCamera().SetPosition(1.0, 0.0, 0.0);
       self.renderer.GetActiveCamera().SetViewUp(0.0, 0.0, 1.0);
       self.renderer.ResetCamera();

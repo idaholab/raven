@@ -1,6 +1,5 @@
 from readInputFile import readInputFile, GPNode
 from Raven_GUI_Entity import *
-import vtk
 
 
 #############################################################################
