@@ -72,9 +72,11 @@ endif
 ifeq ($(APPLICATION_NAME),RAVEN)
 all:: RAVEN
 
+RAVEN_MODULES = $(RAVEN_DIR)/python_modules
+
 $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/executioners/PythonControl.C
 	@echo "Override PythonControl Compile"
-	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -MMD -MF $@.d $(libmesh_INCLUDE) -c $< -o $@ 
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' -MMD -MF $@.d $(libmesh_INCLUDE) -c $< -o $@ 
 
 $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/distribution1D.i $(RAVEN_DIR)/src/distributions/customDist.C $(RAVEN_DIR)/src/distributions/distribution_1D.C
 	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/distributions/ $(RAVEN_DIR)/python_modules/distribution1D.i
