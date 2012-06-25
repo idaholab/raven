@@ -33,7 +33,7 @@ class R7TestHarness(TestHarness):
     if test[MIN_PARALLEL] > 1:
       return 'mpiexec -n ' + test[MIN_PARALLEL] + ' ' + self.executable + ' -i ' + test[INPUT] + ' ' +  ' '.join(test[CLI_ARGS])
     elif test[SIMUL]:
-      return self.executable + ' -s ' + test[SIMUL] + ' ' + ' '.join(test[CLI_ARGS])
+      return self.executable + ' -i ' + test[SIMUL] + ' ' + ' '.join(test[CLI_ARGS])
     else:
-      return self.executable + ' -i ' + test[INPUT] + ' ' + ' '.join(test[CLI_ARGS])
+      return self.executable + ' -s ' + test[INPUT] + ' ' + ' '.join(test[CLI_ARGS])
 
