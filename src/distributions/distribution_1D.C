@@ -27,7 +27,7 @@
 #define _USE_MATH_DEFINES	// needed in order to use M_PI = 3.14159
 
 	distribution_1D::distribution_1D (){
-		_type=1;	// Default: uniform distribution
+		_type=UNIFORM_DISTRIBUTION;	// Default: uniform distribution
 		_xMin=0;
 		_xMax=1;
 		_parameter1=1;
@@ -38,7 +38,7 @@
 	distribution_1D::~distribution_1D (){
 	}
 
-	distribution_1D::distribution_1D (int type, double min, double max, double param1, double param2){
+	distribution_1D::distribution_1D (distribution_type type, double min, double max, double param1, double param2){
 		_type=type;
 		_xMin=min;
 		_xMax=max;
@@ -47,7 +47,7 @@
 		srand ( time(NULL) );
 	}
 
-	distribution_1D::distribution_1D (int type, double min, double max, double param1, double param2, std::string fileName){
+	distribution_1D::distribution_1D (distribution_type type, double min, double max, double param1, double param2, std::string fileName){
 		_type=type;
 		_xMin=min;
 		_xMax=max;
@@ -86,31 +86,31 @@
 
 			if ((x >= _xMin)&&(x <= _xMax))
 				switch (_type) {
-				  case 1:  // Uniform
+				  case UNIFORM_DISTRIBUTION:  // Uniform
 					  pdfValue=uniformPdf(x);
 					break;
-				  case 2:  // Normal
+				  case NORMAL_DISTRIBUTION:  // Normal
 					  pdfValue=normalPdf(x);
 					break;
-				  case 3:  // Lognormal
+				  case LOG_NORMAL_DISTRIBUTION:  // Lognormal
 					  pdfValue=logNormalPdf(x);
 					break;
-				  case 4:  // Weibull
+				  case WEIBULL_DISTRIBUTION:  // Weibull
 					  pdfValue=weibullPdf(x);
 					break;
-				  case 5:  // Exponential
+				  case EXPONENTIAL_DISTRIBUTION:  // Exponential
 					  pdfValue=exponentialPdf(x);
 					break;
-				  case 6:  // Gamma
+				  case GAMMA_DISTRIBUTION:  // Gamma
 					  pdfValue=gammaPdf(x);
 					break;
-				  case 7:  // Beta
+				  case BETA_DISTRIBUTION:  // Beta
 					  pdfValue=betaPdf(x);
 					break;
-				  case 8:  // custom
+				  case CUSTOM_DISTRIBUTION:  // custom
 					  pdfValue=customPdf(x);
 					break;
-				  case 9:	// triangular
+				  case TRIANGULAR_DISTRIBUTION:	// triangular
 					  pdfValue=triangPdf(x);
 					break;
 				  default:	// otherwise return error pdfvalue =-1;
@@ -129,31 +129,31 @@
 
 				if ((x >= _xMin)&&(x <= _xMax))
 					switch (_type) {
-					  case 1:  // Uniform
+					  case UNIFORM_DISTRIBUTION:  // Uniform
 						  pdfValue=uniformCdf(x);
 						break;
-					  case 2:  // Normal
+					  case NORMAL_DISTRIBUTION:  // Normal
 						  pdfValue=normalCdf(x);
 						break;
-					  case 3:  // Lognormal
+					  case LOG_NORMAL_DISTRIBUTION:  // Lognormal
 						  pdfValue=logNormalCdf(x);
 						break;
-					  case 4:  // Weibull
+					  case WEIBULL_DISTRIBUTION:  // Weibull
 						  pdfValue=weibullCdf(x);
 						break;
-					  case 5:  // Exponential
+					  case EXPONENTIAL_DISTRIBUTION:  // Exponential
 						  pdfValue=exponentialCdf(x);
 						break;
-					  case 6:  // Gamma
+					  case GAMMA_DISTRIBUTION:  // Gamma
 						  pdfValue=gammaCdf(x);
 						break;
-					  case 7:  // Beta
+					  case BETA_DISTRIBUTION:  // Beta
 						  pdfValue=betaCdf(x);
 						break;
-					  case 8:  // Custom
+					  case CUSTOM_DISTRIBUTION:  // Custom
 						  pdfValue=customCdf(x);
 						break;
-					  case 9:	// triangular
+					  case TRIANGULAR_DISTRIBUTION:	// triangular
 						  pdfValue=triangCdf(x);
 						break;
 					  default:	// otherwise return error pdfvalue =-1;

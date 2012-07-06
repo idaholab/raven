@@ -19,72 +19,74 @@
 
 #include <string>
 
-	class distribution_1D{
-																															//    _____ overload exists: a problem for SWIG?
-		private:																											//    |
-																															//    V
-			int _type;	// type of distribution: 1-uniform, 2-normal, 3-log-normal, 4-Weibull, 5-exponential, 6-gamma, 7-beta, 8-custom, 9-triangular
-						// if type >9 return -1
+enum distribution_type { UNIFORM_DISTRIBUTION=1, NORMAL_DISTRIBUTION=2,  LOG_NORMAL_DISTRIBUTION=3, WEIBULL_DISTRIBUTION=4, EXPONENTIAL_DISTRIBUTION=5, GAMMA_DISTRIBUTION=6, BETA_DISTRIBUTION=7, CUSTOM_DISTRIBUTION=8, TRIANGULAR_DISTRIBUTION=9 };
 
-			double _xMin;	// the distribution is defined over the interval [_xMin , xMax]
-			double _xMax;	// i did it to speed the sampling process
+class distribution_1D{
+  //    _____ overload exists: a problem for SWIG?
+private:																											//    |
+  //    V
+  distribution_type _type;	// type of distribution: 1-uniform, 2-normal, 3-log-normal, 4-Weibull, 5-exponential, 6-gamma, 7-beta, 8-custom, 9-triangular
+  // if type >9 return -1
 
-			double _parameter1;		// generic parameters that correspond to specific parameters for each distributions
-			double _parameter2;
+  double _xMin;	// the distribution is defined over the interval [_xMin , xMax]
+  double _xMax;	// i did it to speed the sampling process
 
-			std::string _filename;
+  double _parameter1;		// generic parameters that correspond to specific parameters for each distributions
+  double _parameter2;
 
-		public:
+  std::string _filename;
 
-			distribution_1D ();																	// constructor (default: uniform within [0,1])
-			distribution_1D (int type, double min, double max, double param1, double param2);	// constructor 1
-			distribution_1D (int type, double min, double max, double param1, double param2, std::string fileName); // constructor 2
-			~distribution_1D ();																// destructor
+public:
 
-			int getType () {return _type;};			// return type of distribution _type
-			double getMin ();		// return limits of the interval over which the distribution is defined
-			double getMax();
-			double getParamater1();	// return _parameter1
-			double getParameter2(); // return _parameter1
+  distribution_1D ();																	// constructor (default: uniform within [0,1])
+  distribution_1D (distribution_type type, double min, double max, double param1, double param2);	// constructor 1
+  distribution_1D (distribution_type type, double min, double max, double param1, double param2, std::string fileName); // constructor 2
+  ~distribution_1D ();																// destructor
 
-			void changeParameter1(double newParameter1);	// to change on the fly paramter1
-			void changeParameter2(double newParameter2);	// to change on the fly paramter1
+  distribution_type getType () {return _type;};			// return type of distribution _type
+  double getMin ();		// return limits of the interval over which the distribution is defined
+  double getMax();
+  double getParamater1();	// return _parameter1
+  double getParameter2(); // return _parameter1
 
-			double pdfCalc(double x);	// return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
-			double cdfCalc(double x);	// return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
-			double randGen();   // return a random number distributed accordingly to the distribution given a random number [0,1]
+  void changeParameter1(double newParameter1);	// to change on the fly paramter1
+  void changeParameter2(double newParameter2);	// to change on the fly paramter1
 
-		protected:
+  double pdfCalc(double x);	// return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
+  double cdfCalc(double x);	// return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
+  double randGen();   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
-			double uniformPdf (double x);		// Uniform pdf
-			double normalPdf (double x);		// Normal pdf
-			double logNormalPdf (double x);		// Log-Normal pdf
-			double weibullPdf (double x);		// Weibull pdf
-			double betaPdf (double x);			// Beta pdf
-			double exponentialPdf (double x);	// Exponential pdf
-			double gammaPdf(double x);			// Gamma pdf
-			double customPdf(double x);			// custom pdf
-			double triangPdf(double x);			// Triangular pdf
+protected:
 
-			double uniformCdf(double x);		// uniform CDF
-			double normalCdf (double x);		// normal CDF
-			double logNormalCdf (double x);		// lognormal CDF
-			double weibullCdf (double x);		// weibull CDF
-			double betaCdf (double x);			// beta CDF
-			double exponentialCdf (double x);	// exponential CDF
-			double gammaCdf(double x);			// gamma CDF
-			double customCdf(double x);         // custom CDF
-			double triangCdf(double x);			// Triangular CDF
+  double uniformPdf (double x);		// Uniform pdf
+  double normalPdf (double x);		// Normal pdf
+  double logNormalPdf (double x);		// Log-Normal pdf
+  double weibullPdf (double x);		// Weibull pdf
+  double betaPdf (double x);			// Beta pdf
+  double exponentialPdf (double x);	// Exponential pdf
+  double gammaPdf(double x);			// Gamma pdf
+  double customPdf(double x);			// custom pdf
+  double triangPdf(double x);			// Triangular pdf
 
-			double uniformRandNumberGenerator();		// uniform random number generator
-			double normalRandNumberGenerator();			// normal random number generator
-			double logNormalRandNumberGenerator();		// log-normal random number generator
-			double weibullRandNumberGenerator();		// weibull random number generator
-			double exponentialRandNumberGenerator();	// exponential random number generator
-			double triangularRandNumberGenerator();		// triangular random number generator
-			double gammaRandNumberGenerator();			// gamma random number generator
-			double betaRandNumberGenerator();			// beta random number generator
-	};
+  double uniformCdf(double x);		// uniform CDF
+  double normalCdf (double x);		// normal CDF
+  double logNormalCdf (double x);		// lognormal CDF
+  double weibullCdf (double x);		// weibull CDF
+  double betaCdf (double x);			// beta CDF
+  double exponentialCdf (double x);	// exponential CDF
+  double gammaCdf(double x);			// gamma CDF
+  double customCdf(double x);         // custom CDF
+  double triangCdf(double x);			// Triangular CDF
+
+  double uniformRandNumberGenerator();		// uniform random number generator
+  double normalRandNumberGenerator();			// normal random number generator
+  double logNormalRandNumberGenerator();		// log-normal random number generator
+  double weibullRandNumberGenerator();		// weibull random number generator
+  double exponentialRandNumberGenerator();	// exponential random number generator
+  double triangularRandNumberGenerator();		// triangular random number generator
+  double gammaRandNumberGenerator();			// gamma random number generator
+  double betaRandNumberGenerator();			// beta random number generator
+};
 
 
 //  double gammaFunc(double x);
@@ -93,13 +95,13 @@
 //	double gammp(double a, double x);
 //	double betaFunc(double alpha, double beta);
 //	void LoadData(double** data, int dimensionality, int cardinality, std::string filename);
-	double calculateCustomCDF(double position, double fitting, double** dataSet, int numberSamples);
-	double calculateCustomPdf(double position, double fitting, double** dataSet, int numberSamples);
-	double normRNG(double mu, double sigma);
+double calculateCustomCDF(double position, double fitting, double** dataSet, int numberSamples);
+double calculateCustomPdf(double position, double fitting, double** dataSet, int numberSamples);
+double normRNG(double mu, double sigma);
 //	double gammaRNG(double shape, double scale);
 //	double betaRNG(double alpha, double beta);
-	double STDgammaRNG(double shape);
-	double rk_gauss();
+double STDgammaRNG(double shape);
+double rk_gauss();
 
 //	***Example:****
 

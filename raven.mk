@@ -78,7 +78,7 @@ $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/exec
 	@echo "Override PythonControl Compile"
 	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' -MMD -MF $@.d $(libmesh_INCLUDE) -c $< -o $@ 
 
-$(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/distribution1D.i $(RAVEN_DIR)/src/distributions/customDist.C $(RAVEN_DIR)/src/distributions/distribution_1D.C
+$(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/distribution1D.i  $(RAVEN_DIR)/src/distributions/distribution_1D.C
 	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/distributions/ $(RAVEN_DIR)/python_modules/distribution1D.i
 	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC -I$(RAVEN_DIR)/include/distributions/  $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/src/distributions/*.C -shared -o $(RAVEN_DIR)/python_modules/_distribution1D.so $(PYTHON_LIB)
 
