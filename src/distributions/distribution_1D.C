@@ -491,7 +491,7 @@
 		}
 
 		double distribution_1D::normalRandNumberGenerator(){
-          double value=-1;//normRNG(_parameter1, _parameter2);
+          double value=normRNG(_parameter1, _parameter2);
 			return value;
 		}
 

@@ -95,11 +95,11 @@
 //	void LoadData(double** data, int dimensionality, int cardinality, std::string filename);
 	double calculateCustomCDF(double position, double fitting, double** dataSet, int numberSamples);
 	double calculateCustomPdf(double position, double fitting, double** dataSet, int numberSamples);
-//	double normRNG(double mu, double sigma);
+	double normRNG(double mu, double sigma);
 //	double gammaRNG(double shape, double scale);
 //	double betaRNG(double alpha, double beta);
-//	double STDgammaRNG(double shape);
-//	double rk_gauss();
+	double STDgammaRNG(double shape);
+	double rk_gauss();
 
 //	***Example:****
 
