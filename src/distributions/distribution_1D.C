@@ -51,7 +51,7 @@
 		_type=type;
 		_xMin=x_coordinates[0];
 		_xMax=x_coordinates[x_coordinates.size()-1];
-		_fitType=type;
+		_fitType=fitting_type;
 		_xCoordinates=x_coordinates;
 		_yCoordinates=y_coordinates;
 		srand ( time(NULL) );
