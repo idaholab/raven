@@ -20,12 +20,12 @@
 #include <string>
 
 enum distribution_type { UNIFORM_DISTRIBUTION=1, NORMAL_DISTRIBUTION=2,  LOG_NORMAL_DISTRIBUTION=3, WEIBULL_DISTRIBUTION=4, EXPONENTIAL_DISTRIBUTION=5, GAMMA_DISTRIBUTION=6, BETA_DISTRIBUTION=7, CUSTOM_DISTRIBUTION=8, TRIANGULAR_DISTRIBUTION=9 , DISTRIBUTION_ERROR=-1};
-enum custom_dist_fit_type {LINEAR=1, STEP=2 };
+enum custom_dist_fit_type {STEP=1,LINEAR=2,QUADRATIC=3,SPLINE=4};
 
 class distribution_1D{
-  //    _____ overload exists: a problem for SWIG?
-private:																											//    |
-  //    V
+
+private:
+
   distribution_type _type;	// type of distribution: 1-uniform, 2-normal, 3-log-normal, 4-Weibull, 5-exponential, 6-gamma, 7-beta, 8-custom, 9-triangular
   // if type >9 return -1
 
@@ -35,13 +35,16 @@ private:																											//    |
   double _parameter1;		// generic parameters that correspond to specific parameters for each distributions
   double _parameter2;
 
-  std::string _filename;
+  custom_dist_fit_type _fitType;
+  std::vector <double> _xCoordinates;
+  std::vector <double> _yCoordinates;
+
 
 public:
 
   distribution_1D ();																	// constructor (default: uniform within [0,1])
   distribution_1D (distribution_type type, double min, double max, double param1, double param2);	// constructor 1
-  distribution_1D (distribution_type type, double min, double max, double param1, double param2, std::string fileName); // constructor 2
+  distribution_1D (distribution_type type, std::vector<double> x_coordinates, std::vector<double> y_coordinates, custom_dist_fit_type fitting_type); // constructor 2
   ~distribution_1D ();																// destructor
 
   distribution_type getType () {return _type;};			// return type of distribution _type

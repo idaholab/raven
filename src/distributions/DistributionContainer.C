@@ -26,10 +26,8 @@ DistributionContainer::constructDistributionContainer(std::string DistAlias, dis
 void
 DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, custom_dist_fit_type fit_type){
 
-//  comment out when the constructor has been implemented
-
-//	_distribution_cont.push_back(distribution_1D(type, dist_x, dist_y, fit_type));
-//	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
+	_distribution_cont.push_back(distribution_1D(type, dist_x, dist_y, fit_type));
+	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
 }
 
 distribution_type

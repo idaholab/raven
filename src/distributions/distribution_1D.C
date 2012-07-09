@@ -47,11 +47,13 @@
 		srand ( time(NULL) );
 	}
 
-	distribution_1D::distribution_1D (distribution_type type, double min, double max, double param1, double param2, std::string fileName){
+	distribution_1D::distribution_1D (distribution_type type, std::vector<double> x_coordinates, std::vector<double> y_coordinates, custom_dist_fit_type fitting_type){
 		_type=type;
-		_xMin=min;
-		_xMax=max;
-		_filename=fileName;
+		_xMin=x_coordinates[0];
+		_xMax=x_coordinates[x_coordinates.size()-1];
+		_fitType=type;
+		_xCoordinates=x_coordinates;
+		_yCoordinates=y_coordinates;
 		srand ( time(NULL) );
 	}
 
