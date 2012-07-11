@@ -1,10 +1,11 @@
 %module distribution1D
 %{
 #include "distribution_1D.h"
+#include "DistributionContainer.h"
 %}
 
 %include "distribution_1D.h"
-
+%include "DistributionContainer.h"
 
  /*
 swig -c++ -python -py3 -Iinclude/distributions/ python_modules/distribution1D.i 
