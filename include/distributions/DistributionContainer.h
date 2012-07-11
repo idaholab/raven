@@ -18,14 +18,7 @@ class DistributionContainer;
 
 class DistributionContainer{
      public:
-	 /*
-	  * Constructor(empty)
-	  */
-	 DistributionContainer();
-	 /*
-	  * Destructor
-	  */
-	 virtual ~DistributionContainer();
+     static DistributionContainer & Instance();
      /*
       * Function to construct on the fly this class through the action system
       * @
@@ -97,6 +90,13 @@ class DistributionContainer{
       */
      double randGen(std::string DistAlias);   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
+     /*
+      * Function to get a random number distributed accordingly to the distribution
+      * given a random number [0,1]
+      * @ DistAlias, alias of the distribution from which retrieving the parameter
+      */
+     double randGen(char * DistAlias);   // return a random number distributed accordingly to the distribution given a random number [0,1]
+
      protected:
      std::map < std::string, int > _vector_pos_map;
      std::vector < distribution_1D > _distribution_cont;
@@ -106,7 +106,18 @@ class DistributionContainer{
       */
      int getPosition(std::string DistAlias);
 
+     /*
+      * Constructor(empty)
+      */
+     DistributionContainer();
+     /*
+      * Destructor
+      */
+     virtual ~DistributionContainer();
+     static DistributionContainer * _instance; // = NULL 
 };
 
+std::string * str_to_string_p(char *s);
+void free_string_p(std::string * s);
 
 #endif /* DISTRIBUTIONCONTAINER_H_ */

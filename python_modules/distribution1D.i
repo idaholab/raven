@@ -17,5 +17,10 @@ PYTHONPATH=python_modules/ python3
 import distribution1D
 test1 = distribution1D.distribution_1D(1, -3.0, 2.0,  1.0, 1.0)
 test1.randGen()
+
+distcont = distribution1D.DistributionContainer.Instance()
+distcont.constructDistributionContainer(distribution1D.str_to_string_p("a_dist"),distribution1D.NORMAL_DISTRIBUTION,-1.0,1.0,0.0,1.0)
+distcont.randGen(distribution1D.str_to_string_p("a_dist"))
+
 #rm -f *.o *.so distribution1D.py
   */

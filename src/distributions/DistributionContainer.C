@@ -173,6 +173,11 @@ DistributionContainer::cdfCalc(std::string DistAlias, double x){
 }
 
 double
+DistributionContainer::randGen(char * DistAlias){
+  return randGen(std::string(DistAlias));
+}
+
+double
 DistributionContainer::randGen(std::string DistAlias){
     int position;
 
@@ -201,8 +206,24 @@ int DistributionContainer::getPosition(std::string DistAlias){
 }
 
 
+DistributionContainer & DistributionContainer::Instance() {
+  if(_instance == NULL){
+    _instance = new DistributionContainer();
+  }
+  return *_instance;
+}
 
+DistributionContainer * DistributionContainer::_instance;
 
+/* the str_to_string_p and free_string_p are for python use */
+
+std::string * str_to_string_p(char *s) {
+  return new std::string(s);
+}
+
+void free_string_p(std::string * s) {
+  delete s;
+}
 
 
 
