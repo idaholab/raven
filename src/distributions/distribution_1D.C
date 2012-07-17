@@ -47,13 +47,15 @@
 		srand ( time(NULL) );
 	}
 
-	distribution_1D::distribution_1D (distribution_type type, std::vector<double> x_coordinates, std::vector<double> y_coordinates, custom_dist_fit_type fitting_type){
-		_type=type;
+	distribution_1D::distribution_1D (std::vector<double> x_coordinates, std::vector<double> y_coordinates, int numberPoints, custom_dist_fit_type fitting_type){
+		_type=CUSTOM_DISTRIBUTION;
 		_xMin=x_coordinates[0];
 		_xMax=x_coordinates[x_coordinates.size()-1];
-		_fitType=fitting_type;
-		_xCoordinates=x_coordinates;
-		_yCoordinates=y_coordinates;
+
+		_numberOfPoints= numberPoints;
+
+		_interpolation=Interpolation_Functions(x_coordinates, y_coordinates, numberPoints, fitting_type);
+
 		srand ( time(NULL) );
 	}
 
@@ -414,36 +416,12 @@
 
 	// Custom pdf
 		double distribution_1D::customPdf(double x){
-			// parameter1= number of samples
-			// parameter2= type of interpolation (0- constant, 1-linear)
-
-			double value;
-
-			double **dataSet = AllocateDynamicArray<double>((int)round(_parameter1),2);
-
-			// retrieve data from file
-			//LoadData(dataSet, 2, (int)round(_parameter1), _filename);
-
-			// calculate value
-			value=calculateCustomPdf(x,_parameter2, dataSet,(int)round(_parameter1));
-
+			double value=-1;
 			return value;
 		}
 
 		double distribution_1D::customCdf(double x){
-			// parameter1= number of samples
-			// parameter2= type of interpolation (0- constant, 1-linear)
-
-			double value;
-
-			double **dataSet = AllocateDynamicArray<double>((int)round(_parameter1),2);
-
-			// retrieve data from file
-			//LoadData(dataSet, 2, (int)round(_parameter1), _filename);
-
-			// calculate value
-			value=calculateCustomCDF(x,_parameter2, dataSet,(int)round(_parameter1));
-
+			double value=-1;
 			return value;
 		}
 

@@ -30,7 +30,7 @@ class DistributionContainer{
       * @
       * @
       */
-     void constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector < double > dist_x, std::vector< double > dist_y, custom_dist_fit_type fit_type);
+     void constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, int numPoints, custom_dist_fit_type fit_type);
 
      /*
       * Function to get the enum of the distribution called DistAlias

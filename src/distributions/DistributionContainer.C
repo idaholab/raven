@@ -24,9 +24,9 @@ DistributionContainer::constructDistributionContainer(std::string DistAlias, dis
 	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
 }
 void
-DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, custom_dist_fit_type fit_type){
+DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, int numPoints, custom_dist_fit_type fit_type){
 
-	_distribution_cont.push_back(distribution_1D(type, dist_x, dist_y, fit_type));
+	_distribution_cont.push_back(distribution_1D(dist_x, dist_y, numPoints, fit_type));
 	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
 }
 
