@@ -36,7 +36,12 @@ DEP_APPS    ?= $(shell $(MOOSE_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME)
 #ADDITIONAL_LIBS  += -lgsl
 
 ################################## ELK MODULES ################################
-ALL_ELK_MODULES := yes
+SOLID_MECHANICS   := yes
+LINEAR_ELASTICITY := yes
+CONTACT           := yes
+HEAT_CONDUCTION   := yes
+WATER_STEAM_EOS   := yes
+MISC              := yes
 ###############################################################################
 
 
