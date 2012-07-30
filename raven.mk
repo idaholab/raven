@@ -98,3 +98,6 @@ clean::
 
 clobber::
 	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/python_modules/distribution1D.py
+
+cleanall:: 
+	make -C $(RAVEN_DIR) clean 
