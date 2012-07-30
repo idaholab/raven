@@ -91,20 +91,10 @@ $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_obj
 -include $(RAVEN_DIR)/src/*.d
 endif
 
+delete_list := $(RAVEN_APP) $(RAVEN_LIB)
 
 clean::
-	@rm -fr $(RAVEN_APP)
-	@rm -fr $(RAVEN_LIB)
-	@find . \( -name "*~" -or -name "*.o" -or -name "*.d" -or -name "*.pyc" \) -exec rm '{}' \;
-	@rm -fr *.mod
 	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/python_modules/distribution1D.py
 
 clobber::
-	@rm -fr $(RAVEN_APP)
-	@rm -fr $(RAVEN_LIB)
-	@find . \( -name "*~" -or -name "*.o" -or -name "*.d" -or -name "*.pyc" \
-                -or -name "*.gcda" -or -name "*.gcno" -or -name "*.gcov" \) -exec rm '{}' \;
-	@rm -fr *.mod
-
-cleanall::
-	make -C $(RAVEN_DIR) clean
+	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/python_modules/distribution1D.py
