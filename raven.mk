@@ -43,12 +43,24 @@ RAVEN_objects += $(patsubst %.f90, %.$(obj-suffix), $(RAVEN_f90srcfiles))
 
 RAVEN_app_objects := $(patsubst %.C, %.$(obj-suffix), $(RAVEN_DIR)/src/main.C)
 
+# plugin files
+RAVEN_plugfiles   := $(shell find $(RAVEN_DIR)/plugins/ -name *.C 2>/dev/null)
+RAVEN_cplugfiles  := $(shell find $(RAVEN_DIR)/plugins/ -name *.c 2>/dev/null)
+RAVEN_fplugfiles  := $(shell find $(RAVEN_DIR)/plugins/ -name *.f 2>/dev/null)
+RAVEN_f90plugfiles:= $(shell find $(RAVEN_DIR)/plugins/ -name *.f90 2>/dev/null)
+
+# plugins
+RAVEN_plugins     := $(patsubst %.C, %-$(METHOD).plugin, $(RAVEN_plugfiles))
+RAVEN_plugins     += $(patsubst %.c, %-$(METHOD).plugin, $(RAVEN_cplugfiles))
+RAVEN_plugins     += $(patsubst %.f, %-$(METHOD).plugin, $(RAVEN_fplugfiles))
+RAVEN_plugins     += $(patsubst %.f90, %-$(METHOD).plugin, $(RAVEN_f90plugfiles))
+
 all:: $(RAVEN_LIB)
 
 # build rule for lib RAVEN
 ifeq ($(enable-shared),yes)
 # Build dynamic library
-$(RAVEN_LIB): $(RAVEN_objects)
+$(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugins)
 	@echo "Linking "$@"..."
 	@$(libmesh_CC) $(libmesh_CXXSHAREDFLAG) -o $@ $(RAVEN_objects) $(libmesh_LDFLAGS)
 else
