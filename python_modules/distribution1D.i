@@ -23,4 +23,9 @@ distcont.constructDistributionContainer(distribution1D.str_to_string_p("a_dist")
 distcont.randGen(distribution1D.str_to_string_p("a_dist"))
 
 #rm -f *.o *.so distribution1D.py
+
+swig -c++ -python -py3 -Iinclude/tools python_modules/raventools.i
+g++ -fPIC -c src/tools/*.C python_modules/raventools_wrap.cxx -Iinclude/tools/ -I/usr/include/python3.2mu/ -Iinclude/utilities
+g++ -shared *.o -o python_modules/_raventools.so
+
   */
