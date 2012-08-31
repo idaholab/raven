@@ -1,35 +1,57 @@
-# End preconditioning block
-
-[GlobalParams]
+[GlobalParams]  
   # 2=2 eqn, 1D isothermal flow
   # 3=3 eqn, 1D non-isothermal flow
   # 7=7 eqn, 1D 2-phase flow
   model_type = 3
+
   global_init_P = 15.17e6
-  global_init_V = 0.1
+  global_init_V = 0.
   global_init_T = 564.15
+
+#  scaling_factor_var = '1. 1.e-6 1.e-7'
   scaling_factor_var = '1.e-1 1.e-5 1.e-8'
-  gravity = '0,        0,     -9.8'
-  scaling_factor_beta = '1 1 1'
-  scaling_factor_alpha = '1 1 1'
-  scaling_factors = '1 1 1 1'
+
+#  supg = false
+  initial_RP = 2.77199979e9
 []
 
 [EoS]
+
   [./eos]
     type = NonIsothermalEquationOfState
-    p_0 = 15.17e6 # Pa
-    rho_0 = 738.350 # kg/m^3
-    a2 = 1.e7 # m^2/s^2
-    mu_0 = 1.e-3 # viscosity, Pa-s, saturated liquid water at 20C    
-    beta = .46e-3 # K^{-1}
-    cv = 5.832e3 # J/kg-K
-    e_0 = 3290122.80 # J/kg
-    T_0 = 564.15 # K
+    p_0 = 15.17e6     	# Pa
+    rho_0 = 738.350   	# kg/m^3
+    a2 = 1.e7      	# m^2/s^2
+    beta = .46e-3	# K^{-1}
+    cv = 5.832e3    	# J/kg-K
+    e_0 = 3290122.80  	# J/kg
+    T_0 = 564.15      	# K
   [../]
-[]
+  
+[] # close Functions section
 
 [Components]
+  active = '	CH1 CH2 CH3 bypass_pipe LowerPlenum UpperPlenum
+		DownComer-A
+		pipe1-HL-A pipe2-HL-A
+		HX-A				
+		pipe1-CL-A pipe2-CL-A 		
+		Pump-A		
+		pipe1-SC-A pipe2-SC-A		
+        PressureOutlet-SC-A	
+		Branch1-A Branch2-A Branch3-A Branch4-A Branch5-A Branch6-A
+		pipe-to-Pressurizer Pressurizer
+		DownComer-B
+		pipe1-HL-B pipe2-HL-B
+		HX-B				
+		pipe1-CL-B pipe2-CL-B
+		Pump-B		
+		pipe1-SC-B pipe2-SC-B
+        PressureOutlet-SC-B
+		Branch1-B Branch2-B Branch3-B Branch4-B Branch5-B Branch6-B high_pressure_seconday_A high_pressure_seconday_B
+		'	
+
+  #Core region components ########################################################################################################################
   [./CH1]
     type = CoreChannel
     eos = eos
@@ -39,10 +61,12 @@
     Dh = 0.01332254
     length = 3.6576
     n_elems = 8
+
     f = 0.01
     Hw = 5.33e4
     aw = 276.5737513
     Ts_init = 564.15
+
     n_heatstruct = 3
     name_of_hs = 'FUEL GAP CLAD'
     fuel_type = cylinder
@@ -51,8 +75,10 @@
     k_hs = '3.65 1.084498 16.48672'
     Cp_hs = '288.734 1.0 321.384'
     rho_hs = '1.0412e2 1.0 6.6e1'
-    peak_power = '6.127004e8 0. 0.'
+    #peak_power = '6.127004e8 0. 0.'
+    power_fraction = '3.33672612e-1 0 0'
   [../]
+
   [./CH2]
     type = CoreChannel
     eos = eos
@@ -62,10 +88,12 @@
     Dh = 0.01332254
     length = 3.6576
     n_elems = 8
+
     f = 0.01
     Hw = 5.33e4
     aw = 276.5737513
     Ts_init = 564.15
+
     n_heatstruct = 3
     name_of_hs = 'FUEL GAP CLAD'
     fuel_type = cylinder
@@ -74,9 +102,10 @@
     k_hs = '3.65  1.084498  16.48672'
     Cp_hs = '288.734  1.0  321.384'
     rho_hs = '1.0412e2 1. 6.6e1'
-    peak_power = '5.094461e8 0. 0.'
-    offset = '0 0 0'
+    #peak_power = '5.094461e8 0. 0.'
+    power_fraction = '3.69921461e-1 0 0'
   [../]
+
   [./CH3]
     type = CoreChannel
     eos = eos
@@ -86,10 +115,12 @@
     Dh = 0.01332254
     length = 3.6576
     n_elems = 8
+
     f = 0.01
     Hw = 5.33e4
     aw = 276.5737513
     Ts_init = 564.15
+
     n_heatstruct = 3
     name_of_hs = 'FUEL GAP CLAD'
     fuel_type = cylinder
@@ -98,8 +129,10 @@
     k_hs = '3.65  1.084498  16.48672'
     Cp_hs = '288.734  1.0  6.6e3'
     rho_hs = '1.0412e2  1.0  6.6e1'
-    peak_power = '3.401687e8 0. 0.'
+    #peak_power = '3.401687e8 0. 0.'
+    power_fraction = '2.96405926e-1 0 0'
   [../]
+
   [./bypass_pipe]
     type = Pipe
     eos = eos
@@ -109,9 +142,11 @@
     Dh = 1.42264
     length = 3.6576
     n_elems = 5
+
     f = 0.001
     Hw = 0.0
   [../]
+
   [./LowerPlenum]
     type = ErgBranch
     eos = eos
@@ -121,6 +156,7 @@
     Area = 3.618573408
     Initial_pressure = 151.7e5
   [../]
+
   [./UpperPlenum]
     type = ErgBranch
     eos = eos
@@ -130,6 +166,9 @@
     Area = 7.562307456
     Initial_pressure = 151.7e5
   [../]
+  ################################################################################################################################################
+
+  #Loop A components #############################################################################################################################
   [./DownComer-A]
     type = Pipe
     eos = eos
@@ -139,81 +178,95 @@
     Dh = 1.74724302
     length = 4
     n_elems = 3
+
     f = 0.001
     Hw = 0.
-  [../]
+  [../]  
+
   [./pipe1-HL-A]
     type = Pipe
     eos = eos
     position = '0 0.5 4.0'
     orientation = '0 0 1'
     A = 7.562307456
-    Dh = 3.103003207
+    Dh = 3.103003207 
     length = 4.
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../]  
+
   [./pipe2-HL-A]
     type = Pipe
     eos = eos
     position = '0 0.5 8.0'
     orientation = '0 1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 3.5
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../]  
+
   [./pipe1-CL-A]
     type = Pipe
     eos = eos
     position = '0 3.0 4.0'
     orientation = '0 -1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 1.
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../] 
+
   [./pipe2-CL-A]
     type = Pipe
     eos = eos
     position = '0 4 4.0'
     orientation = '0 -1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 0.8
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../] 
+
   [./pipe1-SC-A]
     type = Pipe
     eos = eos
     position = '0 5.2 4.0'
     orientation = '0 -1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 1.
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../] 
+
   [./pipe2-SC-A]
     type = Pipe
     eos = eos
     position = '0 4.2 8.0'
     orientation = '0 1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 1.
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../] 
+
   [./Branch1-A]
     type = ErgBranch
     eos = eos
@@ -223,6 +276,7 @@
     Area = 7.562307456
     Initial_pressure = 151.7e5
   [../]
+
   [./Branch2-A]
     type = ErgBranch
     eos = eos
@@ -232,6 +286,7 @@
     Area = 3.6185734
     Initial_pressure = 151.7e5
   [../]
+
   [./Branch3-A]
     type = ErgBranch
     eos = eos
@@ -241,19 +296,23 @@
     Area = 2.624474
     Initial_pressure = 151.7e5
   [../]
+
   [./Pump-A]
-    type = Pump
-    eos = eos
-    Area = 2.624474
-    Initial_pressure = 151.7e5
-    Head = 9.9
-    K_reverse = 1000
-    outlet = 'pipe2-CL-A(in)'
-    inlet = 'pipe1-CL-A(out)'
+ type = Pump
+ eos = eos
+ Area = 2.624474
+ Initial_pressure = 151.7e5
+ Head = 9.9
+ K_reverse = 1000
+ outlet = 'pipe2-CL-A(in)'
+ inlet = 'pipe1-CL-A(out)'
   [../]
+
+
   [./HX-A]
     type = HeatExchanger
     eos = eos
+    eos_secondary = eos
     position = '0 4. 8.'
     orientation = '0 0 -1'
     A = 5.
@@ -262,12 +321,16 @@
     Dh_secondary = 0.01
     length = 4.
     n_elems = 10
+
     Hw = 1.e4
     Hw_secondary = 1.e4
+
     aw = 539.02
     aw_secondary = 539.02
+
     f = 0.01
     f_secondary = 0.01
+
     Twall_init = 564.15
     wall_thickness = 0.001
     k_wall = 100.0
@@ -275,6 +338,7 @@
     Cp_wall = 100.0
     n_wall_elems = 2
   [../]
+
   [./Branch4-A]
     type = ErgBranch
     eos = eos
@@ -284,6 +348,7 @@
     Area = 2.624474e2
     Initial_pressure = 151.7e5
   [../]
+
   [./Branch5-A]
     type = ErgBranch
     eos = eos
@@ -293,6 +358,7 @@
     Area = 2.624474e2
     Initial_pressure = 151.7e5
   [../]
+
   [./Branch6-A]
     type = ErgBranch
     eos = eos
@@ -302,13 +368,24 @@
     Area = 2.624474e2
     Initial_pressure = 151.7e5
   [../]
+
+#  [./MassFlowRateIn-SC-A]
+#	type = TDM
+#  	input = 'pipe1-SC-A(in)'
+#	massflowrate_bc = 8801.1
+#	T_bc = 537.15
+#	eos = eos
+#  [../]
   [./PressureOutlet-SC-A]
-    type = TimeDependentVolume
-    input = 'pipe2-SC-A(out)'
-    p_bc = '151.7e5'
-    T_bc = 564.15
-    eos = eos
+  	type = TimeDependentVolume
+  	input = 'pipe2-SC-A(out)'
+  	p_bc = '151.7e5'
+	T_bc = 564.15
+	eos = eos
   [../]
+  ################################################################################################################################################
+
+  #Loop B components #############################################################################################################################
   [./DownComer-B]
     type = Pipe
     eos = eos
@@ -318,81 +395,95 @@
     Dh = 1.74724302
     length = 4
     n_elems = 3
+
     f = 0.001
     Hw = 0.
-  [../]
+  [../]  
+
   [./pipe1-HL-B]
     type = Pipe
     eos = eos
     position = '0 -0.5 4.0'
     orientation = '0 0 1'
     A = 7.562307456
-    Dh = 3.103003207
+    Dh = 3.103003207 
     length = 4.
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../]  
+
   [./pipe2-HL-B]
     type = Pipe
     eos = eos
     position = '0 -0.5 8.0'
     orientation = '0 -1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 3.5
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../]  
+
   [./pipe1-CL-B]
     type = Pipe
     eos = eos
     position = '0 -3.0 4.0'
     orientation = '0 1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 1.
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../] 
+
   [./pipe2-CL-B]
     type = Pipe
     eos = eos
     position = '0 -4.0 4.0'
     orientation = '0 1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 0.8
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../] 
+
   [./pipe1-SC-B]
     type = Pipe
     eos = eos
     position = '0 -5.2 4.0'
     orientation = '0 1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 1.
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../] 
+
   [./pipe2-SC-B]
     type = Pipe
     eos = eos
     position = '0 -4.2 8.0'
     orientation = '0 -1 0'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 1.
     n_elems = 3
+
     f = 0.001
     Hw = 0.0
-  [../]
+  [../] 
+
   [./Branch1-B]
     type = ErgBranch
     eos = eos
@@ -402,6 +493,7 @@
     Area = 7.562307456
     Initial_pressure = 151.7e5
   [../]
+
   [./Branch2-B]
     type = ErgBranch
     eos = eos
@@ -411,6 +503,7 @@
     Area = 3.6185734
     Initial_pressure = 151.7e5
   [../]
+
   [./Branch3-B]
     type = ErgBranch
     eos = eos
@@ -420,19 +513,22 @@
     Area = 2.624474
     Initial_pressure = 151.7e5
   [../]
+
   [./Pump-B]
-    type = Pump
-    eos = eos
-    Area = 2.624474
-    Initial_pressure = 151.7e5
-    Head = 9.9
-    K_reverse = 1000
-    outlet = 'pipe2-CL-B(in)'
-    inlet = 'pipe1-CL-B(out)'
+ type = Pump
+ eos = eos
+ Area = 2.624474
+ Initial_pressure = 151.7e5
+ Head = 9.9
+ K_reverse = 1000
+ outlet = 'pipe2-CL-B(in)'
+ inlet = 'pipe1-CL-B(out)'
   [../]
+
   [./HX-B]
     type = HeatExchanger
     eos = eos
+    eos_secondary = eos
     position = '0 -4. 8.'
     orientation = '0 0 -1'
     A = 5.
@@ -441,20 +537,26 @@
     Dh_secondary = 0.01
     length = 4.
     n_elems = 10
+
     Hw = 1.e4
     Hw_secondary = 1.e4
+
     aw = 539.02
     aw_secondary = 539.02
+
     f = 0.01
     f_secondary = 0.01
+
     Twall_init = 564.15
     wall_thickness = 0.001
     k_wall = 100.0
     rho_wall = 100.0
     Cp_wall = 100.0
     n_wall_elems = 2
+
     disp_mode = -1.0
   [../]
+
   [./Branch4-B]
     type = ErgBranch
     eos = eos
@@ -464,6 +566,7 @@
     Area = 2.624474e2
     Initial_pressure = 151.7e5
   [../]
+
   [./Branch5-B]
     type = ErgBranch
     eos = eos
@@ -473,6 +576,7 @@
     Area = 2.624474e2
     Initial_pressure = 151.7e5
   [../]
+
   [./Branch6-B]
     type = ErgBranch
     eos = eos
@@ -482,257 +586,294 @@
     Area = 2.624474e2
     Initial_pressure = 151.7e5
   [../]
+
+#  [./MassFlowRateIn-SC-B]
+#	type = TDM
+#  	input = 'pipe1-SC-B(in)'
+#	massflowrate_bc = 8801.1
+#	T_bc = 537.15
+#	eos = eos
+#  [../]
   [./PressureOutlet-SC-B]
-    type = TimeDependentVolume
-    input = 'pipe2-SC-B(out)'
-    p_bc = '151.7e5'
-    T_bc = 564.15
-    eos = eos
+  	type = TimeDependentVolume
+  	input = 'pipe2-SC-B(out)'
+  	p_bc = '151.7e5'
+	T_bc = 564.15
+	eos = eos
   [../]
+  ################################################################################################################################################
+
+
+  # Pressurizer ##################################################################################################################################
   [./pipe-to-Pressurizer]
     type = Pipe
     eos = eos
     position = '0 0.5 8.0'
     orientation = '0 0 1'
     A = 2.624474
-    Dh = 1.828
+    Dh = 1.828 
     length = 0.5
     n_elems = 3
+
     f = 10.
     Hw = 0.0
   [../]
+
   [./Pressurizer]
-    type = TimeDependentVolume
-    input = 'pipe-to-Pressurizer(out)'
-    p_bc = '151.7e5'
-    T_bc = 564.15
-    eos = eos
+  	type = TimeDependentVolume
+  	input = 'pipe-to-Pressurizer(out)'
+  	p_bc = '151.7e5'
+	T_bc = 564.15
+	eos = eos
   [../]
-  [./high_pressure_seconday_A]
-    T_bc = 537.15
-    p_bc = '152.19e5'
-    eos = eos
-    input = 'pipe1-SC-A(in)'
-    type = TimeDependentVolume
-  [../]
-  [./high_pressure_seconday_B]
-    T_bc = 537.15
-    p_bc = '152.19e5'
-    eos = eos
-    input = 'pipe1-SC-B(in)'
-    type = TimeDependentVolume
-  [../]
+ [./high_pressure_seconday_A]
+ T_bc = 537.15
+ p_bc = '152.19e5'
+ eos = eos
+ input = 'pipe1-SC-A(in)'
+ type = TimeDependentVolume
+ [../]
+ [./high_pressure_seconday_B]
+ T_bc = 537.15
+ p_bc = '152.19e5'
+ eos = eos
+ input = 'pipe1-SC-B(in)'
+ type = TimeDependentVolume
+ [../]
+  ################################################################################################################################################
 []
 
+
+
 [Preconditioning]
-  active = 'FDP_PJFNK'
+   active = 'FDP_PJFNK'
+  #active = 'FDP_Newton'
+
   [./FDP_PJFNK]
     type = FDP
     full = true
     petsc_options = '-snes_mf_operator -pc_factor_shift_nonzero'
-    petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    petsc_options_value = '1.e-10 ds'
+
+    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
+    # But using either option alone appears to be OK.
+#    petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
+#    petsc_options_value = '1.e-10               ds'
+
+    petsc_options_iname = '-mat_fd_coloring_err'
+    petsc_options_value = '1.e-10'
+    petsc_options_iname = '-mat_fd_type'
+    petsc_options_value = 'ds'
   [../]
+
   [./FDP_Newton]
     type = FDP
     full = true
     petsc_options = '-snes'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
+
+    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
+    # But using either option alone appears to be OK.
+    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
+    # petsc_options_value = '1.e-10               ds'
+
+    petsc_options_iname = '-mat_fd_coloring_err'
+    petsc_options_value = '1.e-10'
     petsc_options_iname = '-mat_fd_type'
     petsc_options_value = 'ds'
   [../]
-[]
+[] # End preconditioning block
 
 [Executioner]
-  type = RavenExecutioner
-  dt = 5e-2
-  time_t = '0         3.0         5.01       9.5     9.75    14      17    5e2'
-  time_dt = '1.e-2  1.0    1.1   2.5e-1    2.5e-1  2.5e-1      2.5e-1    2.5e-1'
-  dtmax = 9999
-  e_tol = 10.0
-  e_max = 99999.
-  max_increase = 2
-  perf_log = true
-  petsc_options_iname = '-ksp_gmres_restart'
-  petsc_options_value = '300' # '300'
-  nl_rel_tol = 1e-3
-  nl_abs_tol = 1e-10
-  nl_max_its = 100
-  l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
-  l_max_its = 100 # Number of linear iterations for each Krylov solve
-  start_time = 0.0
-  end_time = 10
-  ss_check_tol = 1e-05
-  nl_rel_step_tol = 1e-3
-  [./Quadrature]
-    type = TRAP
-    order = FIRST
-  [../]
-[]
+ type = RavenExecutioner
+ dt = 5e-2
+ time_t = '0         3.0         5.01       9.5     9.75    14      17    5e2'
+ time_dt = '1.e-2  1.0    1.1   2.5e-1    2.5e-1  2.5e-1      2.5e-1    2.5e-1'
+ dtmax = 9999
+ e_tol = 10.0
+ e_max = 99999.
+ max_increase = 2
+ perf_log = true
+ petsc_options_iname = '-ksp_gmres_restart'
+ petsc_options_value = '300' # '300'
+ nl_rel_tol = 1e-3
+ nl_abs_tol = 1e-10
+ nl_max_its = 100
+ l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
+ l_max_its = 100 # Number of linear iterations for each Krylov solve
+ start_time = 0.0
+ end_time = 10
+ ss_check_tol = 1e-05
+ nl_rel_step_tol = 1e-3
+ [./Quadrature]
+ type = TRAP
+ order = FIRST
+ [../]
+ []
 
 [Output]
-  file_base = TMI_demo_PRA
-  exodus = true
-  output_initial = true
-  perf_log = true
-[]
+	file_base = TMI_2loop_out
+	exodus = true
+	output_initial = true
+	perf_log = true
+	#xda = true
 
-[Controlled]
-  control_logic_input = TMI_control_logic
-  [./power_CH1]
-    print_csv = true
-    property_name = peak_power_scaling
-    data_type = double
-    component_name = CH1
-  [../]
-  [./power_CH2]
-    property_name = peak_power_scaling
-    data_type = double
-    component_name = CH2
-  [../]
-  [./power_CH3]
-    property_name = peak_power_scaling
-    data_type = double
-    component_name = CH3
-  [../]
-  [./high_pressure_secondary_A]
-    property_name = p_in
-    data_type = double
-    component_name = high_pressure_seconday_A
-  [../]
-  [./high_pressure_seconday_B]
-    property_name = p_in
-    data_type = double
-    component_name = high_pressure_seconday_B
-  [../]
-  [./head_PumpB]
-    property_name = Head
-    data_type = double
-    component_name = Pump-B
-  [../]
-  [./head_PumpA]
-    property_name = Head
-    data_type = double
-    component_name = Pump-A
-  [../]
+	num_restart_files = 1
 []
-
+ [Controlled]
+ control_logic_input = TMI_test_PRA_control
+#  [./power_CH1]
+#    print_csv = true
+#    property_name = peak_power_scaling
+#    data_type = double
+#    component_name = CH1
+#  [../]
+#  [./power_CH2]
+#    property_name = peak_power_scaling
+#    data_type = double
+#    component_name = CH2
+#  [../]
+#  [./power_CH3]
+#    property_name = peak_power_scaling
+#    data_type = double
+#    component_name = CH3
+#  [../]
+ [./high_pressure_secondary_A]
+ property_name = p_in
+ data_type = double
+ component_name = high_pressure_seconday_A
+ [../]
+ [./high_pressure_seconday_B]
+ property_name = p_in
+ data_type = double
+ component_name = high_pressure_seconday_B
+ [../]
+ [./head_PumpB]
+ property_name = Head
+ data_type = double
+ component_name = Pump-B
+ [../]
+ [./head_PumpA]
+ property_name = Head
+ data_type = double
+ component_name = Pump-A
+ [../]
+ []
+ 
 [Monitored]
-  [./max_temp_clad_CH1]
-    operator = NodalMaxValue
-    path = CLAD:TEMPERATURE
-    data_type = double
-    component_name = CH1
-  [../]
-  [./max_temp_clad_CH2]
-    operator = NodalMaxValue
-    path = CLAD:TEMPERATURE
-    data_type = double
-    component_name = CH2 # tests temperature monitoring in a core channel (ElementAverageValue operator)
-  [../]
-  [./max_temp_clad_CH3]
-    # tests pressure monitoring in a pipe (ElementAverageValue operator)
-    operator = NodalMaxValue
-    path = CLAD:TEMPERATURE
-    data_type = double
-    component_name = CH3
-  [../]
-  [./Max_Fluid_Vel_H_L-A]
-    # tests velocity monitoring in a pipe (ElementAverageValue operator)
-    operator = NodalMaxValue
-    path = VELOCITY
-    data_type = double
-    component_name = pipe1-HL-A
-  [../]
-  [./Max_Fluid_Vel_C_L_A]
-    operator = NodalMaxValue
-    path = VELOCITY
-    data_type = double
-    component_name = DownComer-A
-  [../]
-  [./out_temp_sec_A]
-    operator = ElementAverageValue
-    path = TEMPERATURE
-    data_type = double
-    component_name = pipe2-SC-A
-  [../]
-  [./DownStreamSpeed]
-    operator = ElementAverageValue
-    path = VELOCITY
-    data_type = double
-    component_name = pipe1-CL-B
-  [../]
-  [./UpstreamSpeed]
-    operator = ElementAverageValue
-    path = VELOCITY
-    data_type = double
-    component_name = pipe1-CL-B
-  [../]
-[]
-
+ [./max_temp_clad_CH1]
+ operator = NodalMaxValue
+ path = CLAD:TEMPERATURE
+ data_type = double
+ component_name = CH1
+ [../]
+ [./max_temp_clad_CH2]
+ operator = NodalMaxValue
+ path = CLAD:TEMPERATURE
+ data_type = double
+ component_name = CH2 # tests temperature monitoring in a core channel (ElementAverageValue operator)
+ [../]
+ [./max_temp_clad_CH3]
+# tests pressure monitoring in a pipe (ElementAverageValue operator)
+ operator = NodalMaxValue
+ path = CLAD:TEMPERATURE
+ data_type = double
+ component_name = CH3
+ [../]
+ [./Max_Fluid_Vel_H_L-A]
+# tests velocity monitoring in a pipe (ElementAverageValue operator)
+ operator = NodalMaxValue
+ path = VELOCITY
+ data_type = double
+ component_name = pipe1-HL-A
+ [../]
+ [./Max_Fluid_Vel_C_L_A]
+ operator = NodalMaxValue
+ path = VELOCITY
+ data_type = double
+ component_name = DownComer-A
+ [../]
+ [./out_temp_sec_A]
+ operator = ElementAverageValue
+ path = TEMPERATURE
+ data_type = double
+ component_name = pipe2-SC-A
+ [../]
+ [./DownStreamSpeed]
+ operator = ElementAverageValue
+ path = VELOCITY
+ data_type = double
+ component_name = pipe1-CL-B
+ [../]
+ [./UpstreamSpeed]
+ operator = ElementAverageValue
+ path = VELOCITY
+ data_type = double
+ component_name = pipe1-CL-B
+ [../]
+ []
+ 
 [PredefinedDistributions]
-  [./trip_dist]
-    parameter1 = 1
-    parameter2 = 0.1
-    x_max = 2
-    x_min = 0
-    type = NORMAL
-  [../]
-  [./1%_gauss]
-    parameter1 = 1
-    parameter2 = 0.01
-    x_max = 2
-    x_min = 1
-    type = NORMAL
-  [../]
-[]
-
+ [./trip_dist]
+ parameter1 = 1
+ parameter2 = 0.1
+ x_max = 2
+ x_min = 0
+ type = NORMAL
+ [../]
+ [./1%_gauss]
+ parameter1 = 1
+ parameter2 = 0.01
+ x_max = 2
+ x_min = 1
+ type = NORMAL
+ [../]
+ []
+ 
 [RavenAuxiliary]
-  [./scram_start_time]
-    data_type = double
-    initial_value = 100000000
-  [../]
-  [./auxiliary_system_time_on]
-    data_type = double
-    initial_value = 10
-    print_csv = true
-  [../]
-  [./InitialHeadPrimary]
-    data_type = double
-    initial_value = 0
-  [../]
-  [./InitialPowerCH1]
-    data_type = double
-    initial_value = 0
-  [../]
-  [./InitialPowerCH2]
-    data_type = double
-    initial_value = 0
-  [../]
-  [./InitialPowerCH3]
-    data_type = double
-    initial_value = 0
-  [../]
-  [./initialInletSecPress]
-    data_type = double
-    initial_value = 0
-  [../]
-  [./CladDamaged]
-    data_type = bool
-    initial_value = False
-  [../]
-  [./CladTemTreshold]
-    data_type = double
-    initial_value = 600
-  [../]
-  [./DeltaTimeScramToAux]
-    data_type = double
-    initial_value = 10
-  [../]
-  [./InitialOutletSecPress]
-    data_type = double
-    initial_value = 0
-  [../]
-[]
+ [./scram_start_time]
+ data_type = double
+ initial_value = 100000000
+ [../]
+ [./auxiliary_system_time_on]
+ data_type = double
+ initial_value = 10
+ print_csv = true
+ [../]
+ [./InitialHeadPrimary]
+ data_type = double
+ initial_value = 0
+ [../]
+ [./InitialPowerCH1]
+ data_type = double
+ initial_value = 0
+ [../]
+ [./InitialPowerCH2]
+ data_type = double
+ initial_value = 0
+ [../]
+ [./InitialPowerCH3]
+ data_type = double
+ initial_value = 0
+ [../]
+ [./initialInletSecPress]
+ data_type = double
+ initial_value = 0
+ [../]
+ [./CladDamaged]
+ data_type = bool
+ initial_value = False
+ [../]
+ [./CladTemTreshold]
+ data_type = double
+ initial_value = 600
+ [../]
+ [./DeltaTimeScramToAux]
+ data_type = double
+ initial_value = 10
+ [../]
+ [./InitialOutletSecPress]
+ data_type = double
+ initial_value = 0
+ [../]
+ []
+ 
 

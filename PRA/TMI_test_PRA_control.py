@@ -9,7 +9,7 @@ PumpCoastDown              = raventools.pumpCoastdown(1,1)
 def initial_function(monitored, controlled, auxiliary):
 
     
-    auxiliary.scram_start_time               = 1     #it depends if we are restarting otherwise it should be the steady state reached point
+    auxiliary.scram_start_time               = 20     #it depends if we are restarting otherwise it should be the steady state reached point
 
 #Status variable
     #plant
