@@ -710,7 +710,7 @@
  []
 
 [Output]
-	file_base = TMI_2loop_out
+	file_base = TMI_test_PRA_out
 	exodus = true
 	output_initial = true
 	perf_log = true
