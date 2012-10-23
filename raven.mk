@@ -6,7 +6,7 @@ SWIG_VERSION = $(shell swig -version)
 
 
 ifeq ($(PYTHON3_HELLO),HELLO)
-	PYTHON_INCLUDE = $(shell python3-config --includes) #-DPy_LIMITED_API
+	PYTHON_INCLUDE = $(shell python3-config --cflags) #-DPy_LIMITED_API
 	PYTHON_LIB = $(shell python3-config --ldflags) #-DPy_LIMITED_API
 ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
 	PYTHON_MODULES = 
