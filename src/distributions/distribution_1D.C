@@ -32,22 +32,22 @@
 		_xMax=1;
 		_parameter1=1;
 		_parameter2=1;
-		srand ( time(NULL) );
+		srand ( 1256955321 );
 	}
 
 	distribution_1D::~distribution_1D (){
 	}
 
-	distribution_1D::distribution_1D (distribution_type type, double min, double max, double param1, double param2){
+	distribution_1D::distribution_1D (distribution_type type, double min, double max, double param1, double param2, unsigned int seed){
 		_type=type;
 		_xMin=min;
 		_xMax=max;
 		_parameter1=param1;
 		_parameter2=param2;
-		srand ( time(NULL) );
+		srand ( seed );
 	}
 
-	distribution_1D::distribution_1D (std::vector<double> x_coordinates, std::vector<double> y_coordinates, int numberPoints, custom_dist_fit_type fitting_type){
+	distribution_1D::distribution_1D (std::vector<double> x_coordinates, std::vector<double> y_coordinates, int numberPoints, custom_dist_fit_type fitting_type, unsigned int seed){
 		_type=CUSTOM_DISTRIBUTION;
 		_xMin=x_coordinates[0];
 		_xMax=x_coordinates[x_coordinates.size()-1];
@@ -56,7 +56,7 @@
 
 		_interpolation=Interpolation_Functions(x_coordinates, y_coordinates, numberPoints, fitting_type);
 
-		srand ( time(NULL) );
+		srand ( seed );
 	}
 
 

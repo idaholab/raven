@@ -45,8 +45,8 @@ private:
 public:
 
   distribution_1D ();																	// constructor (default: uniform within [0,1])
-  distribution_1D (distribution_type type, double min, double max, double param1, double param2);	// constructor 1
-  distribution_1D (std::vector<double> x_coordinates, std::vector<double> y_coordinates, int numberPoints, custom_dist_fit_type fitting_type); // constructor 2
+  distribution_1D (distribution_type type, double min, double max, double param1, double param2, unsigned int seed);	// constructor 1
+  distribution_1D (std::vector<double> x_coordinates, std::vector<double> y_coordinates, int numberPoints, custom_dist_fit_type fitting_type, unsigned int seed); // constructor 2
   ~distribution_1D ();																// destructor
 
   distribution_type getType () {return _type;};			// return type of distribution _type

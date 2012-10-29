@@ -19,14 +19,14 @@ DistributionContainer::~DistributionContainer()
 {
 }
 void
-DistributionContainer::constructDistributionContainer(std::string DistAlias, distribution_type type, double xmin, double xmax, double param1, double param2){
-	_distribution_cont.push_back(distribution_1D(type, xmin, xmax, param1, param2));
+DistributionContainer::constructDistributionContainer(std::string DistAlias, distribution_type type, double xmin, double xmax, double param1, double param2, unsigned int seed){
+	_distribution_cont.push_back(distribution_1D(type, xmin, xmax, param1, param2, seed));
 	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
 }
 void
-DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, int numPoints, custom_dist_fit_type fit_type){
+DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, int numPoints, custom_dist_fit_type fit_type, unsigned int seed){
 
-	_distribution_cont.push_back(distribution_1D(dist_x, dist_y, numPoints, fit_type));
+	_distribution_cont.push_back(distribution_1D(dist_x, dist_y, numPoints, fit_type, seed));
 	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
 }
 
