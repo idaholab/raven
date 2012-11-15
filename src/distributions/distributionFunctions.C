@@ -395,10 +395,14 @@ using namespace std;
 		return value;
 	}
 
+        double STDgammaRNG(double shape);
+
 	double gammaRNG(double shape, double scale){
 		double value=scale * STDgammaRNG(shape);
 		return value;
 	}
+
+        double rk_gauss();
 
 	double STDgammaRNG(double shape)
 	{

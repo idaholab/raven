@@ -92,7 +92,7 @@ $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/exec
 
 $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/distribution1D.i  $(RAVEN_DIR)/src/distributions/distribution_1D.C $(RAVEN_DIR)/src/distributions/DistributionContainer.C $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C
 	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/distribution1D.i
-	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/src/distributions/*.C $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C -shared -o $(RAVEN_DIR)/python_modules/_distribution1D.so $(PYTHON_LIB)
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/src/distributions/DistributionContainer.C $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C -shared -o $(RAVEN_DIR)/python_modules/_distribution1D.so $(PYTHON_LIB)
 
 
 $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/raventools.i  $(RAVEN_DIR)/src/tools/batteries.C $(RAVEN_DIR)/src/tools/dieselGenerator.C $(RAVEN_DIR)/src/tools/pumpCoastdown.C $(RAVEN_DIR)/src/tools/decayHeat.C $(RAVEN_DIR)/src/tools/powerGrid.C $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C
@@ -112,7 +112,7 @@ endif
 delete_list := $(RAVEN_APP) $(RAVEN_LIB)
 
 clean::
-	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/python_modules/distribution1D.py
+	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/_raventools.so $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/python_modules/raventools_wrap.cxx $(RAVEN_DIR)/python_modules/distribution1D.py
 
 clobber::
 	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/python_modules/distribution1D.py

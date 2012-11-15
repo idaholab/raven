@@ -5,10 +5,21 @@
  *      Author: alfoa
  */
 #include "DistributionContainer.h"
-
-#include "distribution_1D.h"
+//#include "Factory.h"
+//#include "distribution_1D.h"
+#include "distribution_min.h"
 #include <iostream>
+#include <math.h>
+#include <cmath>
+#include <cstdlib>
+#include <stdlib.h>
+#include <vector>
+#include <map>
 using namespace std;
+
+#ifndef mooseError
+#define mooseError(msg) { std::cerr << "\n\n" << msg << "\n\n"; }
+#endif
 
 class DistributionContainer;
 
@@ -18,157 +29,215 @@ DistributionContainer::DistributionContainer()
 DistributionContainer::~DistributionContainer()
 {
 }
-void
-DistributionContainer::constructDistributionContainer(std::string DistAlias, distribution_type type, double xmin, double xmax, double param1, double param2, unsigned int seed){
-	_distribution_cont.push_back(distribution_1D(type, xmin, xmax, param1, param2, seed));
-	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
-}
-void
-DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, int numPoints, custom_dist_fit_type fit_type, unsigned int seed){
+/*void
+DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params){
+   // create the distribution type
+   distribution * dist = dynamic_cast<distribution *>(Factory::instance()->create(type, name, params));
+   if (_dist_by_name.find(name) == _dist_by_name.end())
+    _dist_by_name[name] = dist;
+   else
+     mooseError("Distribution with name " << name << " already exists");
 
-	_distribution_cont.push_back(distribution_1D(dist_x, dist_y, numPoints, fit_type, seed));
-	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
+   _dist_by_type[type].push_back(dist);
+
+   }*/
+void
+DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist){
+   // create the distribution type
+   if (_dist_by_name.find(name) == _dist_by_name.end())
+    _dist_by_name[name] = dist;
+   else
+     mooseError("Distribution with name " << name << " already exists");
+
+   _dist_by_type[type].push_back(dist);
+
 }
+//void
+//DistributionContainer::constructDistributionContainer(std::string DistAlias, distribution_type type, double xmin, double xmax, double param1, double param2, unsigned int seed){
+//	_distribution_cont.push_back(distribution(type, xmin, xmax, param1, param2, seed));
+//	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
+//}
+//void
+//DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, int numPoints, custom_dist_fit_type fit_type, unsigned int seed){
+//
+//	_distribution_cont.push_back(distribution(dist_x, dist_y, numPoints, fit_type, seed));
+//	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
+//}
 
 distribution_type
 DistributionContainer::getType(std::string DistAlias){
     int position;
 
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	return _distribution_cont[position].getType();
+    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
+       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       distribution_type type = getDistributionType(*dist);
+       if(type == DISTRIBUTION_ERROR){
+         mooseError("Type for distribution " << DistAlias << " not found");
+       }
+       return type;
     }
     else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    	return DISTRIBUTION_ERROR;
-    }
-
-}
-
-double
-DistributionContainer::getMin(std::string DistAlias){
-    int position;
-
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	return _distribution_cont[position].getMin();
-    }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    	return DISTRIBUTION_ERROR;
-    }
-
-}
-
-double
-DistributionContainer::getMax(std::string DistAlias){
-    int position;
-
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	return _distribution_cont[position].getMax();
-    }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    	return DISTRIBUTION_ERROR;
-    }
-
-}
-
-double
-DistributionContainer::getParamater1(std::string DistAlias){
-    int position;
-
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	return _distribution_cont[position].getParamater1();
-    }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    	return DISTRIBUTION_ERROR;
-    }
-
-}
-
-double
-DistributionContainer::getParameter2(std::string DistAlias){
-    int position;
-
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	return _distribution_cont[position].getParameter2();
-    }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    	return DISTRIBUTION_ERROR;
+       mooseError("Distribution " << DistAlias << " not found in distribution container");
+       return DISTRIBUTION_ERROR;
     }
 
 }
 
 void
-DistributionContainer::changeParameter1(std::string DistAlias,double newParameter1){
-    int position;
+DistributionContainer::seedRandom(unsigned int seed){
+//   srand( seed );
+}
+double
+DistributionContainer::random(){
+//   return rand();
+   return -1.0;
+}
 
-    position = getPosition(DistAlias);
+// to be implemented
+bool DistributionContainer::checkCdf(double probability, std::vector<double> values){
+   return false;
+}
 
-    if(position != -1){
-    	_distribution_cont[position].changeParameter1(newParameter1);
+bool DistributionContainer::checkCdf(double probability, double value){
+   return false;
+}
+// end to be implemented
+
+
+double
+DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
+    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
+       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       return getDistributionVariable(*dist,paramName);
     }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    }
-
+    mooseError("Distribution " << DistAlias << " not found in distribution container");
+    return -1;
 }
 
 void
-DistributionContainer::changeParameter2(std::string DistAlias,double newParameter2){
-    int position;
-
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	_distribution_cont[position].changeParameter2(newParameter2);
+DistributionContainer::updateVariable(std::string paramName,double newValue,std::string DistAlias){
+    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
+       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       DistributionUpdateVariable(*dist,paramName,newValue);
     }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    }
+    mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+}
 
+
+//double
+//DistributionContainer::getMin(std::string DistAlias){
+//    int position;
+//
+//    position = getPosition(DistAlias);
+//
+//    if(position != -1){
+//    	return _distribution_cont[position].getMin();
+//    }
+//    else{
+//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//    	return DISTRIBUTION_ERROR;
+//    }
+//
+//}
+//
+//double
+//DistributionContainer::getMax(std::string DistAlias){
+//    int position;
+//
+//    position = getPosition(DistAlias);
+//
+//    if(position != -1){
+//    	return _distribution_cont[position].getMax();
+//    }
+//    else{
+//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//    	return DISTRIBUTION_ERROR;
+//    }
+//
+//}
+//
+//double
+//DistributionContainer::getParamater1(std::string DistAlias){
+//    int position;
+//
+//    position = getPosition(DistAlias);
+//
+//    if(position != -1){
+//    	return _distribution_cont[position].getParamater1();
+//    }
+//    else{
+//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//    	return DISTRIBUTION_ERROR;
+//    }
+//
+//}
+//
+//double
+//DistributionContainer::getParameter2(std::string DistAlias){
+//    int position;
+//
+//    position = getPosition(DistAlias);
+//
+//    if(position != -1){
+//    	return _distribution_cont[position].getParameter2();
+//    }
+//    else{
+//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//    	return DISTRIBUTION_ERROR;
+//    }
+//
+//}
+//
+//void
+//DistributionContainer::changeParameter1(std::string DistAlias,double newParameter1){
+//    int position;
+//
+//    position = getPosition(DistAlias);
+//
+//    if(position != -1){
+//    	_distribution_cont[position].changeParameter1(newParameter1);
+//    }
+//    else{
+//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//    }
+//
+//}
+//
+//void
+//DistributionContainer::changeParameter2(std::string DistAlias,double newParameter2){
+//    int position;
+//
+//    position = getPosition(DistAlias);
+//
+//    if(position != -1){
+//    	_distribution_cont[position].changeParameter2(newParameter2);
+//    }
+//    else{
+//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//    }
+//
+//}
+
+double
+DistributionContainer::Pdf(std::string DistAlias, double x){
+
+    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
+       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       return DistributionPdf(*dist,x);
+    }
+    mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+    return -1.0;
 }
 
 double
-DistributionContainer::pdfCalc(std::string DistAlias, double x){
-    int position;
+DistributionContainer::Cdf(std::string DistAlias, double x){
 
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	return _distribution_cont[position].pdfCalc(x);
+   if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
+       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       return DistributionCdf(*dist,x);
     }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    	return DISTRIBUTION_ERROR;
-    }
-
-}
-
-double
-DistributionContainer::cdfCalc(std::string DistAlias, double x){
-    int position;
-
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	return _distribution_cont[position].cdfCalc(x);
-    }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    	return DISTRIBUTION_ERROR;
-    }
+    mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+    return -1.0;
 
 }
 
@@ -179,31 +248,27 @@ DistributionContainer::randGen(char * DistAlias){
 
 double
 DistributionContainer::randGen(std::string DistAlias){
-    int position;
 
-    position = getPosition(DistAlias);
-
-    if(position != -1){
-    	return _distribution_cont[position].randGen();
-    }
-    else{
-    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-    	return DISTRIBUTION_ERROR;
-    }
+    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
+        distribution * dist = _dist_by_name.find(DistAlias)->second;
+        return DistributionRandomNumberGenerator(*dist);
+     }
+     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+     return -1.0;
 
 }
 
-int DistributionContainer::getPosition(std::string DistAlias){
-	std::map <std::string, int>::iterator p;
-
-	p = _vector_pos_map.find(DistAlias);
-	if(p != _vector_pos_map.end()){
-       return (p->second);
-	}
-	else{
-		return -1;
-	}
-}
+//int DistributionContainer::getPosition(std::string DistAlias){
+//	std::map <std::string, int>::iterator p;
+//
+//	p = _vector_pos_map.find(DistAlias);
+//	if(p != _vector_pos_map.end()){
+//       return (p->second);
+//	}
+//	else{
+//		return -1;
+//	}
+//}
 
 
 DistributionContainer & DistributionContainer::Instance() {
