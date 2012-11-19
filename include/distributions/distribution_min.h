@@ -11,7 +11,7 @@ void DistributionUpdateVariable(distribution & dist, std::string & variableName,
 double DistributionPdf(distribution & dist,double & x);
 double DistributionCdf(distribution & dist,double & x);
 double DistributionRandomNumberGenerator(distribution & dist);
-distribution_type getDistributionType(distribution & dist);
+std::string getDistributionType(distribution & dist);
 
 
 #endif /* DISTRIBUTION_MIN_H_ */

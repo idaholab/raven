@@ -64,6 +64,25 @@ public:
 protected:
 };
 
+/*
+ * CLASS LOG NORMAL DISTRIBUTION
+ */
+class LogNormalDistribution;
+
+template<>
+InputParameters validParams<LogNormalDistribution>();
+
+class LogNormalDistribution : public distribution {
+public:
+   LogNormalDistribution(const std::string & name, InputParameters parameters);
+   virtual ~LogNormalDistribution();
+
+   double  Pdf(double & x);                ///< Pdf function at coordinate x
+   double  Cdf(double & x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator();        ///< RNG
+
+protected:
+};
 
 //
 //class distribution_1D{

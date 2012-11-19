@@ -5,9 +5,8 @@
  *      Author: alfoa
  */
 #include "DistributionContainer.h"
-//#include "Factory.h"
-//#include "distribution_1D.h"
-#include "distribution_min.h"
+#include "Factory.h"
+#include "distribution_1D.h"
 #include <iostream>
 #include <math.h>
 #include <cmath>
@@ -42,8 +41,9 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
 
    }*/
 void
-DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist){
+DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params){
    // create the distribution type
+   distribution * dist = dynamic_cast<distribution *>(Factory::instance()->create(type, name, params));
    if (_dist_by_name.find(name) == _dist_by_name.end())
     _dist_by_name[name] = dist;
    else
@@ -64,51 +64,49 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
 //	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
 //}
 
-distribution_type
+std::string
 DistributionContainer::getType(std::string DistAlias){
-    int position;
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
        distribution * dist = _dist_by_name.find(DistAlias)->second;
-       distribution_type type = getDistributionType(*dist);
-       if(type == DISTRIBUTION_ERROR){
+       if(dist->getType() == "DistributionError"){
          mooseError("Type for distribution " << DistAlias << " not found");
        }
-       return type;
+       return dist->getType();
     }
     else{
        mooseError("Distribution " << DistAlias << " not found in distribution container");
-       return DISTRIBUTION_ERROR;
+       return "DistributionError";
     }
 
 }
 
 void
 DistributionContainer::seedRandom(unsigned int seed){
-//   srand( seed );
+   srand( seed );
 }
 double
 DistributionContainer::random(){
-//   return rand();
-   return -1.0;
+   return rand();
+//   return -1.0;
 }
 
 // to be implemented
 bool DistributionContainer::checkCdf(double probability, std::vector<double> values){
    return false;
 }
-
+// end to be implemented
+// to be implemented
 bool DistributionContainer::checkCdf(double probability, double value){
    return false;
 }
 // end to be implemented
 
-
 double
 DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
        distribution * dist = _dist_by_name.find(DistAlias)->second;
-       return getDistributionVariable(*dist,paramName);
+       return dist->getVariable(paramName);
     }
     mooseError("Distribution " << DistAlias << " not found in distribution container");
     return -1;
@@ -118,7 +116,7 @@ void
 DistributionContainer::updateVariable(std::string paramName,double newValue,std::string DistAlias){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
        distribution * dist = _dist_by_name.find(DistAlias)->second;
-       DistributionUpdateVariable(*dist,paramName,newValue);
+       dist->updateVariable(paramName,newValue);
     }
     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
 }
@@ -223,7 +221,7 @@ DistributionContainer::Pdf(std::string DistAlias, double x){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
        distribution * dist = _dist_by_name.find(DistAlias)->second;
-       return DistributionPdf(*dist,x);
+       return dist->Pdf(x);
     }
     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
     return -1.0;
@@ -234,7 +232,7 @@ DistributionContainer::Cdf(std::string DistAlias, double x){
 
    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
        distribution * dist = _dist_by_name.find(DistAlias)->second;
-       return DistributionCdf(*dist,x);
+       return dist->Cdf(x);
     }
     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
     return -1.0;
@@ -251,7 +249,7 @@ DistributionContainer::randGen(std::string DistAlias){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
         distribution * dist = _dist_by_name.find(DistAlias)->second;
-        return DistributionRandomNumberGenerator(*dist);
+        return dist->RandomNumberGenerator();
      }
      mooseError("Distribution " + DistAlias + " was not found in distribution container.");
      return -1.0;

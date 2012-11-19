@@ -5,21 +5,21 @@ PYTHON3_HELLO = $(shell python3 -c "print('HELLO')")
 SWIG_VERSION = $(shell swig -version)
 
 
-ifeq ($(PYTHON3_HELLO),HELLO)
-	PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include) #-DPy_LIMITED_API
-	PYTHON_LIB = $(shell $(RAVEN_DIR)/scripts/find_flags.py library) #-DPy_LIMITED_API
-ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
-	PYTHON_MODULES = 
-else
-	PYTHON_MODULES = $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/_raventools.so
-endif
-
-else
+#ifeq ($(PYTHON3_HELLO),HELLO)
+#	PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include) #-DPy_LIMITED_API
+#	PYTHON_LIB = $(shell $(RAVEN_DIR)/scripts/find_flags.py library) #-DPy_LIMITED_API
+#ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
+#	PYTHON_MODULES = 
+#else
+#	PYTHON_MODULES = $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/_raventools.so
+#endif
+#
+#else
 #Python3 not found.
 	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
 	PYTHON_MODULES = 
-endif
+#endif
 
 RAVEN_INC_DIRS := $(shell find $(RAVEN_DIR)/include -type d -not -path "*/.svn*")
 RAVEN_INCLUDE  := $(foreach i, $(RAVEN_INC_DIRS), -I$(i))
@@ -91,8 +91,8 @@ $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/exec
 	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' -MMD -MF $@.d $(libmesh_INCLUDE) -c $< -o $@ 
 
 $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/distribution1D.i  $(RAVEN_DIR)/src/distributions/distribution_1D.C $(RAVEN_DIR)/src/distributions/DistributionContainer.C $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C
-	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/distribution1D.i
-	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/src/distributions/DistributionContainer.C $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C -shared -o $(RAVEN_DIR)/python_modules/_distribution1D.so $(PYTHON_LIB)
+	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/ $(libmesh_INCLUDE) -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ $(RAVEN_DIR)/python_modules/distribution1D.i
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC $(libmesh_INCLUDE) -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ -I$(RAVEN_DIR)/../moose/include/base/ -I$(RAVEN_DIR)/../moose/include/utils/ $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx $(RAVEN_DIR)/src/distributions/*.C $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_DIR)/../moose/src/base/MooseObject.C -shared -o $(RAVEN_DIR)/python_modules/_distribution1D.so $(PYTHON_LIB)
 
 
 $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/raventools.i  $(RAVEN_DIR)/src/tools/batteries.C $(RAVEN_DIR)/src/tools/dieselGenerator.C $(RAVEN_DIR)/src/tools/pumpCoastdown.C $(RAVEN_DIR)/src/tools/decayHeat.C $(RAVEN_DIR)/src/tools/powerGrid.C $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C

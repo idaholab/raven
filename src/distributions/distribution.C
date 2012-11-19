@@ -15,7 +15,7 @@ InputParameters validParams<distribution>(){
    params.addRequiredParam<double>("xMin", "Minimum coordinate");
    params.addRequiredParam<double>("xMax", "Max coordinate");
    params.addParam<unsigned int>("seed", _defaultSeed ,"RNG seed");
-   params.addRequiredParam<distribution_type>("type","distribution type");
+   params.addRequiredParam<std::string>("type","distribution type");
    params.addPrivateParam<std::string>("built_by_action", "add_distribution");
    return params;
 }
@@ -38,10 +38,10 @@ class distribution;
 distribution::distribution(const std::string & name, InputParameters parameters):
       RavenObject(name,parameters)
 {
-   _type=getParam<distribution_type>("type");
-   if(_type != CUSTOM_DISTRIBUTION){
-      _dis_parameters["xMin"] = getParam<distribution_type>("xMin");
-      _dis_parameters["xMax"] = getParam<distribution_type>("xMax");
+   _type=getParam<std::string>("type");
+   if(_type != "CustomDistribution"){
+      _dis_parameters["xMin"] = getParam<double>("xMin");
+      _dis_parameters["xMax"] = getParam<double>("xMax");
    }
    else
    {
@@ -92,7 +92,8 @@ distribution::updateVariable(std::string & variableName, double & newValue){
      mooseError("Parameter " << variableName << " was not found in distribution type " << _type << ".");
    }
 }
-distribution_type distribution::getType(){
+std::string &
+distribution::getType(){
    return _type;
 }
 
@@ -117,6 +118,6 @@ double DistributionRandomNumberGenerator(distribution & dist){
   return dist.RandomNumberGenerator();
 }
 
-distribution_type getDistributionType(distribution & dist) {
+std::string getDistributionType(distribution & dist) {
   return dist.getType();
 }

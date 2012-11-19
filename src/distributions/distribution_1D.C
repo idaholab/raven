@@ -136,7 +136,70 @@ NormalDistribution::RandomNumberGenerator(){
    return value;
 }
 
+/*
+ * CLASS LOG NORMAL DISTRIBUTION
+ */
 
+template<>
+InputParameters validParams<LogNormalDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("mu", "Mean");
+   params.addRequiredParam<double>("sigma", "Standard deviation");
+   return params;
+}
+
+class LogNormalDistribution;
+
+LogNormalDistribution::LogNormalDistribution(const std::string & name, InputParameters parameters):
+   distribution(name,parameters)
+{
+   _dis_parameters["mu"] = getParam<double>("mu");
+   _dis_parameters["sigma"] = getParam<double>("sigma");
+}
+LogNormalDistribution::~LogNormalDistribution()
+{
+}
+
+double
+LogNormalDistribution::Pdf(double & x){
+   double value;
+
+   if ((_dis_parameters.find("sigma") ->second) > 0)
+      if(x == 0.0)
+           value = 0.0;
+      else
+           value = 1.0/(x*sqrt(2*M_PI*(_dis_parameters.find("sigma") ->second)*
+                   (_dis_parameters.find("sigma") ->second)))*
+                   exp(-(log(x)-(_dis_parameters.find("mu") ->second))*
+                   (log(x)-(_dis_parameters.find("mu") ->second))/
+                   (2.0*(_dis_parameters.find("sigma") ->second)*
+                   (_dis_parameters.find("sigma") ->second)));
+   else
+      value=-1.0;
+   return value;
+}
+
+double
+LogNormalDistribution::Cdf(double & x){
+   double value;
+   if ((_dis_parameters.find("sigma") ->second) > 0)
+      value = 0.5 + 0.5 * erf((log(x)-(_dis_parameters.find("mu") ->second))/
+              sqrt(2.0*(_dis_parameters.find("sigma") ->second)*
+              (_dis_parameters.find("sigma") ->second)));
+   else
+      value=-1;
+   return value;
+
+}
+
+double
+LogNormalDistribution::RandomNumberGenerator(){
+   double value=normRNG((_dis_parameters.find("mu") ->second),
+                        (_dis_parameters.find("sigma") ->second));
+   return value;
+}
 
 //
 //

@@ -11,7 +11,7 @@
 //#include "InputParameters.h"
 #include "Interpolation_Functions.h"
 #include "RavenObject.h"
-#include "distribution_type.h"
+//#include "distribution_type.h"
 #include "distribution_min.h"
 const int _defaultSeed = 1256955321;
 //double    ErrReturn = -1.0;
@@ -38,11 +38,11 @@ public:
    virtual double  Pdf(double & x) = 0;                                   ///< Pdf function at coordinate x
    virtual double  Cdf(double & x) = 0;                                   ///< Cdf function at coordinate x
    virtual double  RandomNumberGenerator() = 0;                           ///< RNG
-   distribution_type getType();                                       ///< Get distribution type
+   std::string & getType();                                       ///< Get distribution type
    unsigned int & getSeed();                                          ///< Get seed
 
 protected:
-   distribution_type _type;                       ///< Distribution type
+   std::string _type;                       ///< Distribution type
    std::map <std::string,double> _dis_parameters; ///< Distribution parameters
    Interpolation_Functions _interpolation;        ///< Interpolation class
    unsigned int _seed;                            ///< seed

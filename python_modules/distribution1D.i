@@ -1,8 +1,44 @@
 %module distribution1D
 %{
 #include "DistributionContainer.h"
+#include "distribution_1D.h"
 %}
-%include "DistributionContainer.h"
+#%ignore DistributionContainer;
+#%ignore NormalDistribution;
+#%ignore UniformDistribution;
+#%ignore validParams;
+#%ignore InputParameters;
+#%ignore ~InputParameters;
+#%ignore RavenObject;
+#include "InputParameters.h"
+#include "RavenObject.h"
+#include "distribution.h"
+
+
+#%include "InputParameters.h"
+#%include "RavenObject.h"
+#%include "distribution.h"
+#%include "distribution_1D.h"
+#%include "DistributionContainer.h"
+#%include "Interpolation_Functions.h"
+%nodefault;
+
+class DistributionContainer{
+    public:
+    static DistributionContainer & Instance();
+    void seedRandom(unsigned int seed);
+    distribution_type getType (std::string DistAlias);
+    double getVariable(std::string paramName,std::string DistAlias);
+    void updateVariable(std::string paramName,double newValue,std::string DistAlias);
+    double Pdf(std::string DistAlias, double x);     
+    double Cdf(std::string DistAlias, double x);     
+    double randGen(std::string DistAlias);       
+    double randGen(char * DistAlias);       
+    double random(); 
+    bool checkCdf(double probability, std::vector<double> values);
+    bool checkCdf(double probability, double value);
+};
+
 
  /*
 swig -c++ -python -py3 -Iinclude/distributions/ -I../moose/include/utils/ python_modules/distribution1D.i 

@@ -16,6 +16,8 @@
 
 using namespace std;
 
+
+
 class DistributionContainer;
 
 class distribution;
@@ -30,8 +32,7 @@ class DistributionContainer{
       * @
       * @
       */
-     //void addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params);
-     void addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist);
+     void addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params);
 
      void seedRandom(unsigned int seed);
 
@@ -57,7 +58,7 @@ class DistributionContainer{
       * Function to get the enum of the distribution called DistAlias
       * @ DistAlias, alias of the distribution from which retrieving the parameter
       */
-     distribution_type getType (std::string DistAlias);
+     std::string  getType (std::string DistAlias);
 
 
      double getVariable(std::string paramName,std::string DistAlias);
