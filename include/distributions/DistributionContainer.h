@@ -32,7 +32,8 @@ class DistributionContainer{
       * @
       * @
       */
-     void addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params);
+     //void addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params);
+     void addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist); 
 
      void seedRandom(unsigned int seed);
 

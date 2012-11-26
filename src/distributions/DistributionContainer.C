@@ -41,9 +41,9 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
 
    }*/
 void
-DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params){
+DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist){
    // create the distribution type
-   distribution * dist = dynamic_cast<distribution *>(Factory::instance()->create(type, name, params));
+  //distribution * dist = dynamic_cast<distribution *>(Factory::instance()->create(type, name, params));
    if (_dist_by_name.find(name) == _dist_by_name.end())
     _dist_by_name[name] = dist;
    else
