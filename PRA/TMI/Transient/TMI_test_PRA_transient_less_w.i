@@ -1,4 +1,4 @@
-[GlobalParams]
+f[GlobalParams]
   # 2=2 eqn, 1D isothermal flow
   # 3=3 eqn, 1D non-isothermal flow
   # 7=7 eqn, 1D 2-phase flow
@@ -779,26 +779,27 @@ component_name = pipe2-CL-A
 #  [../]
 []
 
-[PredefinedDistributions]
+[Distributions]
   [./trip_dist]
-    parameter1 = 1
-    parameter2 = 0.1
-    x_max = 2
-    x_min = 0
-    type = NORMAL
+    type = NormalDistribution
+    mu = 1
+    sigma = 0.1
+    xMax = 2
+    xMin = 0
   [../]
   [./1%_gauss]
-    parameter1 = 1
-    parameter2 = 0.01
-    x_max = 0.8
-    x_min = 0
-    type = NORMAL
+    type = NormalDistribution
+    mu = 1
+    sigma = 0.01
+    xMax = 0.8
+    xMin = 0
   [../]
   [./CladFailureDist]
-    x_min = 1255.3722 # Lower bound (PRA succes criteria)
-    type = TRIANGULAR
-    parameter1 = 1477.59
-    x_max = 1699.8167 # Upper bound (Urbanic-Heidrick Transition Temperature)
+    type = NormalDistribution
+    xMin = 1255.3722 # Lower bound (PRA succes criteria)
+    mu = 1477.59
+    sigma = 222.22
+    xMax = 1699.8167 # Upper bound (Urbanic-Heidrick Transition Temperature)
   [../]
 []
 

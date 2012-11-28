@@ -712,29 +712,6 @@
   [../]
 []
 
-[PredefinedDistributions]
-  [./trip_dist]
-    parameter1 = 1
-    parameter2 = 0.1
-    x_max = 2
-    x_min = 0
-    type = NORMAL
-  [../]
-  [./1%_gauss]
-    parameter1 = 1
-    parameter2 = 0.01
-    x_max = 0.8
-    x_min = 0
-    type = NORMAL
-  [../]
-  [./CladFailureDist]
-    x_min = 1255.3722 # Lower bound (PRA succes criteria)
-    type = TRIANGULAR
-    parameter1 = 1477.59
-    x_max = 1699.8167 # Upper bound (Urbanic-Heidrick Transition Temperature)
-  [../]
-[]
-
 [RavenAuxiliary]
   [./scram_start_time]
     data_type = double
