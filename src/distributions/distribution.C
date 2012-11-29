@@ -12,10 +12,11 @@ InputParameters validParams<distribution>(){
 
   InputParameters params = validParams<RavenObject>();
 
-   params.addRequiredParam<double>("xMin", "Minimum coordinate");
-   params.addRequiredParam<double>("xMax", "Max coordinate");
+   	   params.addParam<double>("xMin", "Lower bound");
+   	   params.addParam<double>("xMax", "Upper bound");
    params.addParam<unsigned int>("seed", _defaultSeed ,"RNG seed");
    params.addRequiredParam<std::string>("type","distribution type");
+   	   params.addRequiredParam<int>("truncation","Type of truncation");
    params.addPrivateParam<std::string>("built_by_action", "add_distribution");
    return params;
 }
@@ -23,18 +24,6 @@ InputParameters validParams<distribution>(){
 
 class distribution;
 
-//distribution::distribution(){
-//   _type = NORMAL_DISTRIBUTION;
-//   _dis_parameters["xMin"] = 0.0;
-//   _dis_parameters["xMax"] = 1.0;
-//   _seed=_defaultSeed;
-//}
-//distribution::distribution(double xMin, double xMax, distribution_type type, unsigned int seed){
-//   _type = type;
-//   _dis_parameters["xMin"] = xMin;
-//   _dis_parameters["xMax"] = xMax;
-//   _seed = seed;
-//}
 distribution::distribution(const std::string & name, InputParameters parameters):
       RavenObject(name,parameters)
 {
@@ -114,8 +103,8 @@ double DistributionCdf(distribution & dist, double & x){
   return dist.Cdf(x);
 }
 
-double DistributionRandomNumberGenerator(distribution & dist){
-  return dist.RandomNumberGenerator();
+double DistributionRandomNumberGenerator(distribution & dist, double & RNG){
+  return dist.RandomNumberGenerator(RNG);
 }
 
 std::string getDistributionType(distribution & dist) {

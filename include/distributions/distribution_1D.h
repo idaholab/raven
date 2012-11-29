@@ -21,6 +21,7 @@
 #include <vector>
 #include "Interpolation_Functions.h"
 #include "distribution.h"
+#include "distributionFunctions.h"
 
 
 //enum custom_dist_fit_type {STEP=1,LINEAR=2,QUADRATIC=3,SPLINE=4};
@@ -39,7 +40,7 @@ public:
    virtual ~UniformDistribution();
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator();        ///< RNG
+   double  RandomNumberGenerator(double & RNG);        ///< RNG
 protected:
    // No parameters
 };
@@ -59,7 +60,7 @@ public:
 
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator();        ///< RNG
+   double  RandomNumberGenerator(double & RNG);        ///< RNG
 
 protected:
 };
@@ -79,10 +80,98 @@ public:
 
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator();        ///< RNG
+   double  RandomNumberGenerator(double & RNG);        ///< RNG
 
 protected:
 };
+
+/*
+ * CLASS TRIANGULAR DISTRIBUTION
+ */
+
+class TriangularDistribution;
+
+template<>
+InputParameters validParams<TriangularDistribution>();
+
+class TriangularDistribution : public distribution {
+public:
+   TriangularDistribution(const std::string & name, InputParameters parameters);
+   virtual ~TriangularDistribution();
+
+   double  Pdf(double & x);                ///< Pdf function at coordinate x
+   double  Cdf(double & x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double & RNG);        ///< RNG
+
+protected:
+};
+
+
+/*
+ * CLASS EXPONENTIAL DISTRIBUTION
+ */
+
+class ExponentialDistribution;
+
+template<>
+InputParameters validParams<ExponentialDistribution>();
+
+class ExponentialDistribution : public distribution {
+public:
+	ExponentialDistribution(const std::string & name, InputParameters parameters);
+   virtual ~ExponentialDistribution();
+
+   double  Pdf(double & x);                ///< Pdf function at coordinate x
+   double  Cdf(double & x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double & RNG);        ///< RNG
+
+protected:
+};
+
+
+/*
+ * CLASS WEIBULL DISTRIBUTION
+ */
+
+class WeibullDistribution;
+
+template<>
+InputParameters validParams<WeibullDistribution>();
+
+class WeibullDistribution : public distribution {
+public:
+   WeibullDistribution(const std::string & name, InputParameters parameters);
+   virtual ~WeibullDistribution();
+
+   double  Pdf(double & x);                ///< Pdf function at coordinate x
+   double  Cdf(double & x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double & RNG);        ///< RNG
+
+protected:
+};
+
+
+///*
+// * CLASS CUSTOM DISTRIBUTION
+// */
+//
+//class CustomDistribution;
+//
+//template<>
+//InputParameters validParams<CustomDistribution>();
+//
+//class CustomDistribution : public distribution {
+//public:
+//   CustomDistribution(const std::string & name, InputParameters parameters);
+//   virtual ~CustomDistribution();
+//
+//   double  Pdf(double & x);                ///< Pdf function at coordinate x
+//   double  Cdf(double & x);                ///< Cdf function at coordinate x
+//   double  RandomNumberGenerator(double & RNG);        ///< RNG
+//
+//protected:
+//};
+
 
 //
 //class distribution_1D{

@@ -13,6 +13,8 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include "distribution.h"
+#include "Interpolation_Functions.h"
 
 using namespace std;
 
@@ -20,7 +22,7 @@ using namespace std;
 
 class DistributionContainer;
 
-class distribution;
+//class distribution;
 
 class InputParameters;
 
@@ -117,14 +119,14 @@ class DistributionContainer{
       * given a random number [0,1]
       * @ DistAlias, alias of the distribution from which retrieving the parameter
       */
-     double randGen(std::string DistAlias);   // return a random number distributed accordingly to the distribution given a random number [0,1]
+     double randGen(std::string DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
      /*
       * Function to get a random number distributed accordingly to the distribution
       * given a random number [0,1]
       * @ DistAlias, alias of the distribution from which retrieving the parameter
       */
-     double randGen(char * DistAlias);   // return a random number distributed accordingly to the distribution given a random number [0,1]
+     double randGen(char * DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
      double random(); // return a random number
 

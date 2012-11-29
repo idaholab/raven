@@ -7,13 +7,6 @@
  *      References:
  *      1- G. Cassella, R.G. Berger, "Statistical Inference", 2nd ed. Pacific Grove, CA: Duxbury Press (2001).
  *
- *      Tests      : None for the custom
- *
- *      Problems   : None
- *      Issues      : None
- *      Complaints   : None
- *      Compliments   : None
- *
  */
 
 #include "distribution_1D.h"
@@ -24,6 +17,8 @@
 #include "dynamicArray.h"
 #include <ctime>
 #include <cstdlib>
+#include "Interpolation_Functions.h"
+#include <string>
 
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
@@ -43,7 +38,6 @@ InputParameters validParams<UniformDistribution>(){
 
 class UniformDistribution;
 
-//UniformDistribution::UniformDistribution(double xMin, double xMax, unsigned int seed):
 UniformDistribution::UniformDistribution(const std::string & name, InputParameters parameters):
    distribution(name,parameters)
 {
@@ -67,9 +61,8 @@ UniformDistribution::Cdf(double & x){
    return value;
 }
 double
-UniformDistribution::RandomNumberGenerator(){
+UniformDistribution::RandomNumberGenerator(double & RNG){
    double value;
-   double RNG=rand()/double(RAND_MAX);
    return value=(_dis_parameters.find("xMin") ->second)+RNG*
                  ((_dis_parameters.find("xMax") ->second)-
                   (_dis_parameters.find("xMin") ->second));
@@ -130,9 +123,10 @@ NormalDistribution::Cdf(double & x){
 
 }
 double
-NormalDistribution::RandomNumberGenerator(){
-   double value=normRNG((_dis_parameters.find("mu") ->second),
-                        (_dis_parameters.find("sigma") ->second));
+NormalDistribution::RandomNumberGenerator(double & RNG){
+   double test = RNG;
+   double valueNorm=InvNormCdf(test);
+   double value = (_dis_parameters.find("mu") ->second) + valueNorm * (_dis_parameters.find("sigma") ->second);
    return value;
 }
 
@@ -195,11 +189,269 @@ LogNormalDistribution::Cdf(double & x){
 }
 
 double
-LogNormalDistribution::RandomNumberGenerator(){
+LogNormalDistribution::RandomNumberGenerator(double & RNG){
    double value=normRNG((_dis_parameters.find("mu") ->second),
-                        (_dis_parameters.find("sigma") ->second));
+                        (_dis_parameters.find("sigma") ->second), RNG);
    return value;
 }
+
+
+/*
+ * CLASS TRIANGULAR DISTRIBUTION
+ */
+
+
+template<>
+InputParameters validParams<TriangularDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("xPeak", "Maximum coordinate");
+   return params;
+}
+
+class TriangularDistribution;
+
+TriangularDistribution::TriangularDistribution(const std::string & name, InputParameters parameters):
+   distribution(name,parameters)
+{
+   _dis_parameters["xPeak"] = getParam<double>("xPeak");
+}
+TriangularDistribution::~TriangularDistribution()
+{
+}
+
+double
+TriangularDistribution::Pdf(double & x){
+   double value=0;
+
+   if ((x>(_dis_parameters.find("xMin") ->second))&(x<(_dis_parameters.find("xMax") ->second)))
+	   if (x<=(_dis_parameters.find("xPeak") ->second))
+		  value=2*(x-(_dis_parameters.find("xMin") ->second))/((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xMin") ->second))/
+		  ((_dis_parameters.find("xPeak") ->second)-(_dis_parameters.find("xMin") ->second));
+	   else
+		  value=2*((_dis_parameters.find("xMax") ->second)-x)/((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xMin") ->second))
+		  /((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xPeak") ->second));
+
+   return value;
+}
+
+double
+TriangularDistribution::Cdf(double & x){
+   double value=0;
+
+   if((x>(_dis_parameters.find("xMin") ->second))&(x<(_dis_parameters.find("xPeak") ->second)))
+	   value=(x-(_dis_parameters.find("xMin") ->second))*(x-(_dis_parameters.find("xMin") ->second))/
+	   ((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xMin") ->second))/((_dis_parameters.find("xPeak") ->second)-(_dis_parameters.find("xMin") ->second));
+   else if((x>(_dis_parameters.find("xPeak") ->second))&(x<(_dis_parameters.find("xMax") ->second)))
+	   value=1-((_dis_parameters.find("xMax") ->second)-x)*((_dis_parameters.find("xMax") ->second)-x)/
+	   ((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xMin") ->second))/((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xPeak") ->second));
+   else
+	   value=1;
+
+   return value;
+}
+
+double
+TriangularDistribution::RandomNumberGenerator(double & RNG){
+	double value;
+
+	double referenceValue = ((_dis_parameters.find("xPeak") ->second)-(_dis_parameters.find("xMin") ->second))/
+			((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xMin") ->second));
+
+	if (RNG<referenceValue)
+		value= (_dis_parameters.find("xMin") ->second)+
+		sqrt(RNG*((_dis_parameters.find("xPeak") ->second)-(_dis_parameters.find("xMin") ->second))*((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xMin") ->second)));
+	else
+		value= (_dis_parameters.find("xMax") ->second)-
+		sqrt((1-RNG)*((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xPeak") ->second))*((_dis_parameters.find("xMax") ->second)-(_dis_parameters.find("xMin") ->second)));
+	return value;
+}
+
+
+
+/*
+ * CLASS EXPONENTIAL DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<ExponentialDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("lambda", "lambda");
+   return params;
+}
+
+class ExponentialDistribution;
+
+ExponentialDistribution::ExponentialDistribution(const std::string & name, InputParameters parameters):
+   distribution(name,parameters)
+{
+   _dis_parameters["lambda"] = getParam<double>("lambda");
+}
+ExponentialDistribution::~ExponentialDistribution()
+{
+}
+
+double
+ExponentialDistribution::Pdf(double & x){
+   double value;
+
+   if (x >= 0.0)
+	   value = (_dis_parameters.find("lambda") ->second)*exp(-x*(_dis_parameters.find("lambda") ->second));
+   else
+	   mooseError("Exponential distribution (pdf calculation): parameter " << x << " not valid (x>0).");
+
+   return value;
+}
+
+double
+ExponentialDistribution::Cdf(double & x){
+   double value;
+   if (x >= 0)
+	   value = 1-exp(-x*(_dis_parameters.find("lambda") ->second));
+   else
+	   mooseError("Exponential distribution (Cdf calculation): parameter " << x << " not valid (x>0).");
+
+   return value;
+}
+
+double
+ExponentialDistribution::RandomNumberGenerator(double & RNG){
+	double value=-log(1-RNG)/(_dis_parameters.find("lambda") ->second);
+	return value;
+}
+
+/*
+ * CLASS WEIBULL DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<WeibullDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("k", "shape parameter");
+   params.addRequiredParam<double>("lambda", "scale parameter");
+   return params;
+}
+
+class WeibullDistribution;
+
+WeibullDistribution::WeibullDistribution(const std::string & name, InputParameters parameters):
+   distribution(name,parameters)
+{
+   _dis_parameters["k"] = getParam<double>("k");
+   _dis_parameters["lambda"] = getParam<double>("lambda");
+}
+
+WeibullDistribution::~WeibullDistribution()
+{
+}
+
+double
+WeibullDistribution::Pdf(double & x){
+   double value;
+
+   if (x >= 0)
+	   value = (_dis_parameters.find("k") ->second)/(_dis_parameters.find("lambda") ->second)*
+	   pow(x/(_dis_parameters.find("lambda") ->second),(_dis_parameters.find("k") ->second)-1)*
+	   exp(-pow(x/(_dis_parameters.find("lambda") ->second), (_dis_parameters.find("k") ->second)));
+   else
+	   mooseError("Weibull distribution (pdf calculation): parameter " << x << " not valid (x>0).");
+
+   return value;
+}
+
+double
+WeibullDistribution::Cdf(double & x){
+   double value;
+
+   if (x >= 0)
+	   value = value = 1-exp(-pow(x/(_dis_parameters.find("lambda") ->second), (_dis_parameters.find("k") ->second)));
+	else
+	   mooseError("Weibull distribution (cdf calculation): parameter " << x << " not valid (x>0).");
+
+	   return value;
+}
+
+double
+WeibullDistribution::RandomNumberGenerator(double & RNG){
+	double value = - (_dis_parameters.find("lambda") ->second) * pow(log(1.0 - RNG),1/(_dis_parameters.find("k") ->second));
+	return value;
+}
+
+
+///*
+// * CLASS CUSTOM DISTRIBUTION
+// */
+//
+//template<>
+//InputParameters validParams<CustomDistribution>(){
+//
+//   InputParameters params = validParams<distribution>();
+//
+//   params.addRequiredParam< vector<double> >("x_coordinates", "coordinates along x");
+//   params.addRequiredParam< vector<double> >("y_coordinates", "coordinates along y");
+//   params.addRequiredParam<custom_dist_fit_type>("fitting_type", "type of fitting");
+//   params.addParam<int>("n_points",3,"Number of fitting point (for spline only)");
+//   return params;
+//}
+//
+//class CustomDistribution;
+//
+//CustomDistribution::CustomDistribution(const std::string & name, InputParameters parameters):
+//   distribution(name,parameters)
+//{
+//   _dis_parameters["x_coordinates"] = getParam<double>("x_coordinates");
+//   _dis_parameters["y_coordinates"] = getParam<double>("y_coordinates");
+//   _dis_parameters["fitting_type"] = getParam<double>("fitting_type");
+//   _dis_parameters["n_points"] = getParam<double>("n_points");
+//}
+//
+//CustomDistribution::~CustomDistribution()
+//{
+//}
+//
+//double
+//CustomDistribution::Pdf(double & x){
+//   double value;
+//
+//   Interpolation_Functions fitting = Interpolation_Functions((_dis_parameters.find("x_coordinates") ->second), (_dis_parameters.find("y_coordinates") ->second), (_dis_parameters.find("n_points") ->second), (_dis_parameters.find("fitting_type") ->second));
+//
+//
+//   if((_dis_parameters.find("fitting_type") ->second)=="interpolation_Step_Left"){
+//
+//   }
+//
+//   if((_dis_parameters.find("fitting_type") ->second)=="interpolation_Step_Right"){
+//
+//   }
+//
+//   if((_dis_parameters.find("fitting_type") ->second)=="interpolation_Linear"){
+//
+//   }
+//
+//   if((_dis_parameters.find("fitting_type") ->second)=="interpolation_Spline"){
+//
+//   }
+//
+//   return value;
+//}
+//
+//double
+//CustomDistribution::Cdf(double & x){
+//   double value;
+//
+//   return value;
+//}
+//
+//double
+//CustomDistribution::RandomNumberGenerator(double & RNG){
+//	double value;
+//	return value;
+//}
 
 //
 //

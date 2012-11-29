@@ -32,20 +32,20 @@ public:
 //   distribution(std::vector<double> x_coordinates, std::vector<double> y_coordinates, int numberPoints, custom_dist_fit_type fitting_type, unsigned int seed);
    virtual ~distribution();
 
-   double  getVariable(std::string & variableName);                   ///< getVariable from mapping
-   void updateVariable(std::string & variableName, double & newValue); ///< update variable into the mapping
+   double  getVariable(std::string & variableName);                   	///< getVariable from mapping
+   void updateVariable(std::string & variableName, double & newValue); 	///< update variable into the mapping
 
-   virtual double  Pdf(double & x) = 0;                                   ///< Pdf function at coordinate x
-   virtual double  Cdf(double & x) = 0;                                   ///< Cdf function at coordinate x
-   virtual double  RandomNumberGenerator() = 0;                           ///< RNG
-   std::string & getType();                                       ///< Get distribution type
-   unsigned int & getSeed();                                          ///< Get seed
+   virtual double  Pdf(double & x) = 0;                           		///< Pdf function at coordinate x
+   virtual double  Cdf(double & x) = 0;                               	///< Cdf function at coordinate x
+   virtual double  RandomNumberGenerator(double & RNG) = 0;             ///< RNG
+   std::string & getType();                                       		///< Get distribution type
+   unsigned int & getSeed();                                      		///< Get seed
 
 protected:
-   std::string _type;                       ///< Distribution type
-   std::map <std::string,double> _dis_parameters; ///< Distribution parameters
-   Interpolation_Functions _interpolation;        ///< Interpolation class
-   unsigned int _seed;                            ///< seed
+   std::string _type;                       		///< Distribution type
+   std::map <std::string,double> _dis_parameters; 	///< Distribution parameters
+   Interpolation_Functions _interpolation;        	///< Interpolation class
+   unsigned int _seed;                            	///< seed
 };
 
 

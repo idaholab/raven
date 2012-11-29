@@ -30,6 +30,7 @@
 
 
 #include "distribution_1D.h"
+#include "distributionFunctions.h"
 
 using namespace std;
 
@@ -279,7 +280,7 @@ using namespace std;
 	  }
 	}
 
-	double normRNG(double mu, double sigma) {
+	double normRNG(double mu, double sigma, double RNG) {
 		static bool deviateAvailable=false;        		   //        flag
 		static float storedDeviate;                        //        deviate from previous calculation
 		double polar, rsquared, var1, var2;
@@ -295,8 +296,8 @@ using namespace std;
 			//        choose pairs of uniformly distributed deviates, discarding those
 			//        that don't fall within the unit circle
 			do {
-				var1=2.0*( double(rand())/double(RAND_MAX) ) - 1.0;
-				var2=2.0*( double(rand())/double(RAND_MAX) ) - 1.0;
+				var1 = 2.0*( RNG ) - 1.0;
+				var2 = 2.0*( RNG ) - 1.0;
 
 				//var1=2.0*( ran.doub() ) - 1.0;
 				//var2=2.0*( ran.doub() ) - 1.0;
@@ -481,6 +482,46 @@ using namespace std;
 		// To be updated
 		double value=0;
 		return value;
+	}
+
+	double ModifiedLogFunction(double x){
+	    if (x <= -1.0)
+	    {
+	        std::stringstream os;
+	        os << "Invalid input argument (" << x << "); must be greater than -1.0";
+	        throw std::invalid_argument( os.str() );
+	    }
+
+	    if (fabs(x) > 1e-4)
+	        return log(1.0 + x);
+	    else
+	    	return (-0.5*x + 1.0)*x;
+	}
+
+	double AbramStegunApproximation(double t)
+	{
+	    // Abramowitz and Stegun formula
+
+	    double c[] = {2.515517, 0.802853, 0.010328};
+	    double d[] = {1.432788, 0.189269, 0.001308};
+	    return t - ((c[2]*t + c[1])*t + c[0]) /
+	               (((d[2]*t + d[1])*t + d[0])*t + 1.0);
+	}
+
+
+	double InvNormCdf(double & p){
+	    if (p <= 0.0 || p >= 1.0)
+	    {
+	        std::stringstream os;
+	        os << "Invalid input argument (" << p
+	           << "); must be larger than 0 but less than 1.";
+	        throw std::invalid_argument( os.str() );
+	    }
+
+	    if (p < 0.5)
+	        return -AbramStegunApproximation( sqrt(-2.0*log(p)) );
+	    else
+	        return AbramStegunApproximation( sqrt(-2.0*log(1-p)) );
 	}
 
 

@@ -29,6 +29,7 @@ DistributionContainer::DistributionContainer()
 DistributionContainer::~DistributionContainer()
 {
 }
+
 /*void
 DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params){
    // create the distribution type
@@ -41,6 +42,7 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
    _dist_by_type[type].push_back(dist);
 
    }*/
+
 void
 DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist){
    // create the distribution type
@@ -53,6 +55,7 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
    _dist_by_type[type].push_back(dist);
 
 }
+
 //void
 //DistributionContainer::constructDistributionContainer(std::string DistAlias, distribution_type type, double xmin, double xmax, double param1, double param2, unsigned int seed){
 //	_distribution_cont.push_back(distribution(type, xmin, xmax, param1, param2, seed));
@@ -242,16 +245,16 @@ DistributionContainer::Cdf(std::string DistAlias, double x){
 }
 
 double
-DistributionContainer::randGen(char * DistAlias){
-  return randGen(std::string(DistAlias));
+DistributionContainer::randGen(char * DistAlias, double RNG){
+  return randGen(std::string(DistAlias), RNG);
 }
 
 double
-DistributionContainer::randGen(std::string DistAlias){
+DistributionContainer::randGen(std::string DistAlias, double RNG){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
         distribution * dist = _dist_by_name.find(DistAlias)->second;
-        return DistributionRandomNumberGenerator(*dist);
+        return dist->RandomNumberGenerator(RNG);
      }
      mooseError("Distribution " + DistAlias + " was not found in distribution container.");
      return -1.0;

@@ -294,7 +294,7 @@ double betaInc(double a, double b, double x);
    /*   } */
    /* } */
 
-double normRNG(double mu, double sigma);
+double normRNG(double mu, double sigma, double RNG);
    /* double normRNG(double mu, double sigma) { */
    /*    static bool deviateAvailable=false;                 //        flag */
    /*    static float storedDeviate;                        //        deviate from previous calculation */
@@ -499,6 +499,14 @@ double betaRNG(double alpha, double beta);
    /*    double value=0; */
    /*    return value; */
    /* } */
+
+
+double ModifiedLogFunction(double x);
+
+double AbramStegunApproximation(double t);
+
+double InvNormCdf(double p);
+
 
 
 
