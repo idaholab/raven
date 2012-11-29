@@ -124,8 +124,7 @@ NormalDistribution::Cdf(double & x){
 }
 double
 NormalDistribution::RandomNumberGenerator(double & RNG){
-   double test = RNG;
-   double valueNorm=InvNormCdf(test);
+   double valueNorm=InvNormCdf(RNG);
    double value = (_dis_parameters.find("mu") ->second) + valueNorm * (_dis_parameters.find("sigma") ->second);
    return value;
 }

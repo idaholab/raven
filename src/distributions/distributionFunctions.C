@@ -509,7 +509,7 @@ using namespace std;
 	}
 
 
-	double InvNormCdf(double & p){
+	double InvNormCdf(double p){
 	    if (p <= 0.0 || p >= 1.0)
 	    {
 	        std::stringstream os;
