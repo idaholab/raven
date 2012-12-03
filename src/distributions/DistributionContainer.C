@@ -92,7 +92,8 @@ DistributionContainer::seedRandom(unsigned int seed){
 }
 double
 DistributionContainer::random(){
-   return (rand()/RAND_MAX);
+   return (static_cast<double>(rand())/
+           static_cast<double>(RAND_MAX));
 //   return -1.0;
 }
 
