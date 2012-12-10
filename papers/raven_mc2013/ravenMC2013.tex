@@ -1,0 +1,145 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  This is a sample LaTeX input file for your contribution to 
+%  the MC2013 conference. Modified by R.C. Martineau at INL from A. 
+%  Sood at LANL, from J. Wagner ORNL who obtained the original class 
+%  file by Jim Warsa, LANL, 16 July 2002}
+%
+%  Please use it as a template for your full paper 
+%    Accompanying/related file(s) include: 
+%       1. Document class/format file: mc2013.cls
+%       2. Sample Postscript Figure:   figure.eps
+%       3. A PDF file showing the desired appearance: template.pdf 
+%    Direct questions about these files to: richard.martinea@inl.gov
+%
+%    Notes: 
+%      (1) You can use the "dvips" utility to convert .dvi 
+%          files to PostScript.  Then, use either Acrobat 
+%          Distiller or "ps2pdf" to convert to PDF format. 
+%      (2) Different versions of LaTeX have been observed to 
+%          shift the page down, causing improper margins.
+%          If this occurs, adjust the "topmargin" value in the
+%          mc2013.cls file to achieve the proper margins. 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{mc2013}
+%
+%  various packages that you may wish to activate for usage 
+\usepackage{graphicx}
+\usepackage{tabls}
+\usepackage{afterpage}
+\usepackage{cites}
+%\usepackage{epsf}
+%
+%
+% Insert authors' names and short version of title in lines below
+%
+\newcommand{\authorHead}      % Author's names here
+   {Authors' names, use et al. if more than 3}  
+\newcommand{\shortTitle}      % Short title here
+   {Short version of title as entered by author on web page}  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   BEGIN DOCUMENT
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+%
+%      Headers and Footers
+\afterpage{%
+\fancyhf{}%
+\fancyhead[CE]{              
+{\scriptsize \authorHead}}                                                
+\fancyhead[CO]{               
+{\scriptsize \shortTitle}}                  
+%\lfoot{\scriptsize{
+%International Conference on Mathematics and Computational Methods
+%Applied to Nuclear Science \& Engineering (M\&C 2013), 
+%\\ Sun Valley, Idaho, USA, May 5-9, 2013.}}%
+\rfoot{\thepage/\totalpages{}}%
+
+\pagestyle{fancy}
+%\setlength{\topmargin}{-20pt}
+}
+ 
+\normalsize
+
+\setlength{\baselineskip}{16.8pt}
+\vspace{-3pt}
+
+% 
+% TITLE
+%
+
+\begin{center}
+\textbf{\large \\%
+TITLE OF THE PAPER 
+}
+% 
+% FIRST AUTHORS 
+%
+\\
+\setlength{\baselineskip}{14pt}
+\textbf{Author A and Author B}\footnote{Footnote, if necessary, in Times 
+  New Roman font and font size 9} \\
+Name of Institute  \\
+Corresponding Address \\
+A@institute.gov; B@institute.gov \\
+
+\end{center}
+
+%
+% SET RAGGED RIGHT MARGIN
+%
+\raggedright
+
+
+\section*{ABSTRACT} 
+\begin{quote}
+\begin{small}
+[]
+
+\emph{Key Words}: List of at most five key words
+\end{small} 
+\end{quote}
+
+\setlength{\baselineskip}{14pt}
+\normalsize
+
+\Section{INTRODUCTION} 
+
+[]
+
+\Section{SECOND OR SUBSEQUENT MAJOR HEADING} 
+\label{sec:first}
+
+[]
+
+
+\Section{CONCLUSIONS}
+
+[]
+
+
+%\Section*{REFERENCES}
+\setlength{\baselineskip}{12pt}
+\begin{thebibliography}{300}
+\bibitem{journal} B. Author(s), ``Title,'' {\it Journal Name in Italic}, 
+          {\bf Volume in Bold}, pp. 34-89 (19xx).
+\bibitem{proc_paper} C. D. Author(s), ``Article Title,'' {\it Proceedings of
+          Meeting in Italic}, Location, Dates of Meeting, Vol. n, pp. 134-156 
+          (19xx).
+\bibitem{book} E. F. Author, {\it Book Title in Italic}, Publisher, City \&
+          Country (19xx). 
+\bibitem{website} ``Spallation Neutron Source: The next-generation 
+          neutron-scattering facility in the United States,'' 
+          http://www.sns.gov/documentation/sns\_brochure.pdf (2002).
+\end{thebibliography}
+
+\end{document}
+
+
