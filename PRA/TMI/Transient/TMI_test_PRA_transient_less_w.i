@@ -1,4 +1,4 @@
-f[GlobalParams]
+[GlobalParams]
   # 2=2 eqn, 1D isothermal flow
   # 3=3 eqn, 1D non-isothermal flow
   # 7=7 eqn, 1D 2-phase flow
