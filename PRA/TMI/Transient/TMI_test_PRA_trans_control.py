@@ -12,13 +12,13 @@ def initial_function(monitored, controlled, auxiliary):
 #Nominal/initial values
     auxiliary.InitialHead                      = controlled.Head_PumpB
     auxiliary.initialInletSecPress             = controlled.high_pressure_secondary_A
-    return
+    return/Users/mandd/Desktop/BWR_SBO.py
 
 def control_function(monitored, controlled, auxiliary):
 
     #auxiliary.initialInletSecPress             = controlled.high_pressure_secondary_A
 #    if monitored.time_step == 1:
-#        controlled.rho_clad_CH1 =  controlled.rho_clad_CH1*100
+#        controlled.rho_clad_CH1 =  controlled.rho_clad_CH1*100/Users/mandd/Desktop/BWR_SBO.py
 #        controlled.rho_clad_CH2 =  controlled.rho_clad_CH1
 #        controlled.rho_clad_CH3 =  controlled.rho_clad_CH1
 #        controlled.rho_fuel_CH1 =  controlled.rho_fuel_CH1*100

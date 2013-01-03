@@ -32,6 +32,8 @@
 #include "distribution_1D.h"
 #include "distributionFunctions.h"
 
+#define _USE_MATH_DEFINES
+
 using namespace std;
 
 	void nrerror(const char error_text[]){					// added const to avoid "warning: deprecated conversion from string constant to *char
@@ -509,19 +511,7 @@ using namespace std;
 	}
 
 
-	double InvNormCdf(double p){
-	    if (p <= 0.0 || p >= 1.0)
-	    {
-	        std::stringstream os;
-	        os << "Invalid input argument (" << p
-	           << "); must be larger than 0 but less than 1.";
-	        throw std::invalid_argument( os.str() );
-	    }
 
-	    if (p < 0.5)
-	        return -AbramStegunApproximation( sqrt(-2.0*log(p)) );
-	    else
-	        return AbramStegunApproximation( sqrt(-2.0*log(1-p)) );
-	}
+
 
 

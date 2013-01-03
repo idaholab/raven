@@ -5,6 +5,7 @@
  *      Author: alfoa
  */
 #include "distribution.h"
+
 using namespace std;
 
 template<>
@@ -12,11 +13,11 @@ InputParameters validParams<distribution>(){
 
   InputParameters params = validParams<RavenObject>();
 
-   	   params.addParam<double>("xMin", "Lower bound");
-   	   params.addParam<double>("xMax", "Upper bound");
+   params.addParam<double>("xMin", -numeric_limits<double>::max( ),"Lower bound");
+   params.addParam<double>("xMax", numeric_limits<double>::max( ),"Upper bound");
    params.addParam<unsigned int>("seed", _defaultSeed ,"RNG seed");
    params.addRequiredParam<std::string>("type","distribution type");
-   	   params.addRequiredParam<int>("truncation","Type of truncation");
+   params.addParam<std::string>("truncation", "Type of truncation");		// Truncation types: 1) pdf_prime(x) = pdf(x)*c   2) [to do] pdf_prime(x) = pdf(x)+c
    params.addPrivateParam<std::string>("built_by_action", "add_distribution");
    return params;
 }
@@ -34,7 +35,7 @@ distribution::distribution(const std::string & name, InputParameters parameters)
    }
    else
    {
-      std::vector<double> x_coordinates = getParam<std::vector<double> >("x_coordinates");
+     std::vector<double> x_coordinates = getParam<std::vector<double> >("x_coordinates");
      _dis_parameters["xMin"] = x_coordinates[0];
      _dis_parameters["xMax"] = x_coordinates[x_coordinates.size()-1];
      std::vector<double> y_cordinates = getParam<std::vector<double> >("y_coordinates");
@@ -48,13 +49,6 @@ distribution::distribution(const std::string & name, InputParameters parameters)
    }
       _seed = getParam<unsigned int>("seed");
 }
-//distribution::distribution(std::vector<double> x_coordinates, std::vector<double> y_coordinates, int numberPoints, custom_dist_fit_type fitting_type, unsigned int seed){
-//   _type = CUSTOM_DISTRIBUTION;
-//   _dis_parameters["xMin"] = x_coordinates[0];
-//   _dis_parameters["xMax"] = x_coordinates[x_coordinates.size()-1];
-//   _seed = seed;
-//   _interpolation=Interpolation_Functions(x_coordinates, y_coordinates, numberPoints, fitting_type);
-//}
 
 distribution::~distribution(){
 }
@@ -81,6 +75,7 @@ distribution::updateVariable(std::string & variableName, double & newValue){
      mooseError("Parameter " << variableName << " was not found in distribution type " << _type << ".");
    }
 }
+
 std::string &
 distribution::getType(){
    return _type;
@@ -89,7 +84,6 @@ distribution::getType(){
 double getDistributionVariable(distribution & dist, std::string & variableName){
   return dist.getVariable(variableName);
 }
-
 
 void DistributionUpdateVariable(distribution & dist, std::string & variableName, double & newValue){
   dist.updateVariable(variableName, newValue);
@@ -105,6 +99,18 @@ double DistributionCdf(distribution & dist, double & x){
 
 double DistributionRandomNumberGenerator(distribution & dist, double & RNG){
   return dist.RandomNumberGenerator(RNG);
+}
+
+double untrDistributionPdf(distribution & dist, double & x){
+  return dist.untrPdf(x);
+}
+
+double untrDistributionCdf(distribution & dist, double & x){
+  return dist.untrCdf(x);
+}
+
+double untrDistributionRandomNumberGenerator(distribution & dist, double & RNG){
+  return dist.untrRandomNumberGenerator(RNG);
 }
 
 std::string getDistributionType(distribution & dist) {
