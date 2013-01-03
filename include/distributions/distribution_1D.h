@@ -192,10 +192,6 @@ public:
    double  Cdf(double & x);                ///< Cdf function at coordinate x
    double  RandomNumberGenerator(double & RNG);        ///< RNG
 
-   double  untrPdf(double & x);
-   double  untrCdf(double & x);
-   double  untrRandomNumberGenerator(double & RNG);
-
 protected:
 };
 

@@ -684,16 +684,16 @@ CustomDistribution::Pdf(double & x){
 
 double
 CustomDistribution::Cdf(double & x){
-   double value;
+   double value=-1;
 
    return value;
 }
 
-//double
-//CustomDistribution::RandomNumberGenerator(double & RNG){
-//	double value;
-//	return value;
-//}
+double
+CustomDistribution::RandomNumberGenerator(double & RNG){
+	double value=-1;
+	return value;
+}
 
 //
 //   // Beta pdf
