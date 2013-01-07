@@ -82,7 +82,7 @@ class ProcessQueue(object):
 
 
 def morgifyInputFile(old_filename,new_filename,morgify_function = None):
-    MOOSE_DIR = pathname  + '/../../../moose'
+    MOOSE_DIR = pathname  + '/../../moose'
     if "MOOSE_DIR" in os.environ:
       MOOSE_DIR = os.environ['MOOSE_DIR']
     elif "MOOSE_DEV" in os.environ:
@@ -188,6 +188,7 @@ if __name__ == "__main__":
                                ["batch-size=","runs=","input-file=","input-prefix=","no-modify","mode="])
     print sys.argv
     raven_runner_dir =  os.path.dirname(os.path.abspath(sys.argv[0]))
+    raven_dir = os.path.split(raven_runner_dir)[0]
     runs = 1
     batch_size = 1
     input_filename = None
@@ -215,6 +216,10 @@ if __name__ == "__main__":
                 print "UNSUPPORTED Mode",mode
         else:
             assert False,"unhandled option"
+    for j in range(len(args)):
+        arg = args[j]
+        arg = arg.replace("%RAVEN_DIR%",raven_dir)
+        args[j] = arg
     runBatches(runs,batch_size,input_filename,input_prefix,args,modify_input)
 
 
