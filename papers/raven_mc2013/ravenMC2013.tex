@@ -224,55 +224,100 @@ RAVEN is, thus, using this approach. Therefore Eq.~\ref{eq:generalSystemEquation
 \label{eq:generalSystemEquationwithControlSplitting}
 \end{equation}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Subsection{The auxiliary plant and component status variables.} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\label{sec:auxiliary}
+So far it has been assumed that all information needed are contained in $\bar{x}$ and $\bar{v}$. Even if, as previously shown, these information are sufficient for the calculation of the system status in every point in time, it is not a practical and efficient way to implement the control system.
+In order to facilitate the implementation of the control logic, it's been implemented a system of auxiliary variables.
+The auxiliary variables are those that in statistical analysis are artificially added to non-Markovian system into the space phase to obtain back a Markovian behavior, so that only the previous time step information are needed to determine the future status of the system
+These variables can be classified into two types: 
+\begin{itemize}
+\item Global status auxiliary control variables: scram signal, time at which scram event begins, hot shut down, time at which hot shut down event begins, cold shut down, etc.;
+\item Component status auxiliary variables like: correct operating status, time from abnormal event, etc.
+\end{itemize}
+Thus, the introduction of the auxiliary system into the mathematical framework leads to the following formulation of the Eq.~\ref{eq:generalSystemEquationwithControlSplitting}:
+\begin{equation}
+\begin{cases} 
+\dfrac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t) \\
+\bar{C} = \bar{G}(\bar{x},t) \\ 
+\dfrac{\partial \bar{a}}{\partial t} = \bar{A}(\bar{x},\bar{C},\bar{a},\bar{v}_{t_{i}-1},t) \\
+\dfrac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) 
+\end{cases}
+\label{eq:generalSystemEquationwithControlSplittingAndAux}
+\end{equation}
 %%%%%%%%%%%%%%%%%%%%%%%%
 \Section{SOFTWARE STRUCTURE} 
 %%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:softwareStructure}
-
+RAVEN is a C++/Python software, coded in an high modular and object-oriented way and based on two software sections:
+\begin{itemize}
+\item MOOSE(\textbf{M}ultiphysics \textbf{O}bject-\textbf{O}riented \textbf{S}imulation \textbf{E}nviroment);
+\item RELAP-7.
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Subsection{MOOSE/RELAP-7.} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+MOOSE is a computer simulation framework,  developed at Idaho National Laboratory (INL), that simplifies the process for predicting the behavior of complex systems and developing non-linear, multiphysics simulation tools. As opposed to traditional data-flow oriented computational frameworks, MOOSE is founded on the mathematical principle of Jacobian-free Newton-Krylov (JFNK) solution methods. Utilizing the mathematical structure present in JFNK, physics are modularized into “Kernels” allowing for rapid production of new simulation tools. In addition, systems are solved fully coupled and fully implicit employing physics based preconditioning which allows for great flexibility even with large variance in time scales. In addition to provide the algorithms for the solution of the differential equation, MOOSE also provides all the manipulation tools for the C++ classes containing the solution vector. This framework has been used to construct and develop the Thermo-Hydraylic code RELAP-7, giving a enormous flexibility in the coupling procedure with RAVEN.
+RELAP-7 is the next generation nuclear reactor system safety analysis. It will become the main reactor systems simulation toolkit for RISMC (\textbf{R}isk \textbf{I}nformed \textbf{S}afety \textbf{M}argin \textbf{C}haracterization) and the next generation tool in the RELAP reactor safety/systems analysis application series (the replacement for RELAP5). The key to the success of RELAP-7 is the simultaneous advancement of physical models, numerical methods, and software design while maintaining a solid user perspective. Physical models include both PDEs (Partial Differential Equations) and ODEs (Ordinary Differential Equations) and experimental based closure models. RELAP-7 will eventually utilize well posed governing equations for multiphase flow, which can be strictly verified.RELAP-7 uses modern numerical methods, which allow implicit time integration, higher order schemes in both time and space, and strongly coupled multi-physics simulations.
 RELAP-7 is the solver for the plant system except for the control system. From the mathematical
-formulation presented so far, RELAP-7 will solve 
+formulation presented so far, RELAP-7 solves 
 $\frac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t)$.
-
-\begin{figure}[h] \label{fig:ControlSoftwareLayout}
+\begin{figure}[h] 
   \centering
      \includegraphics[width=0.5\textwidth]{figures/ControlSystemSoftwareLayout.pdf}
   \caption{Control System Software Layout.}
+   \label{fig:ControlSoftwareLayout}
 \end{figure}
+The nuclear power plant is represented and modeled by a set of components (Pipes, Valves, Branches, etc.) and each component type corresponds to a C++ class.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Subsection{RAVEN .} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+As briefly mentioned, RAVEN has been coded in high modular and pluggable way in order to make easier the integration of different program languages (C++, Python) and coupling with other applications based on MOOSE and not. The code is constituted by two modules:
+\begin{itemize}
+\item RAVEN/RELAP-7 interface;
+\item Python Control Logic.
+\end{itemize}
+The RAVEN/RELAP-7 interface represents the container of all the tools needed to interact with RELAP-7/MOOSE 
 
-RELAP-7 will be based on the middleware software MOOSE, that, in addition to provide the algorithms for the solution of the differential equation, will also provide all the manipulation tools for the C++ classes containing the solution vector. More in detail the plant is represented by a set of components and each component type corresponds to a C++ class.
 
-At each time step RELAP-7/MOOSE will update the information within the classes with the current solution  $\bar{x}$, then RAVEN will ask MOOSE to perform the needed manipulation to construct the monitored quantities $\bar{C}$. Once $\bar{C}$ is constructed, the information is reduced to a vector of
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Subsection{Software layout and calculation flow.} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+At each time step RELAP-7/MOOSE updates the information within the classes with the current solution  $\bar{x}$, then RAVEN will ask MOOSE to perform the needed manipulation to construct the monitored quantities $\bar{C}$. Once $\bar{C}$ is constructed, the information is reduced to a vector of
 numbers understandable by the control system. 
-
 The equation 
 $\frac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) $
 is solved and the set of control parameters for the next time step $v_{t_{i}}$ is obtained. 
-Up to know no situations where the complexity of the equation 
-$\frac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) $
-is solved and the set of control parameters for the next time step $v_{t_{i}}$ required a numerical solution therefore for the moment RAVEN remains numerical integration free. 
-
-Note that once the information is transferred to $C$, the way through which the plant
+Up to now no situations required a numerical solution of the equation 
+$\frac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) $, therefore for the moment RAVEN remains numerical integration free. 
+Once the information is transferred to $C$, the way through which the plant
 solution $x$ is computed or stored is irrelevant. The last statement highlights the capability of RAVEN to
 represent an easily generalizable tool. This functional scheme is represented in Figure~\ref{fig:ControlSoftwareLayout}.
-To be more specific, in reality MOOSE is made aware of the need to compute at the end of each time step the $C$ as a consequence this is immediately available at the end of each time step. As a consequence scheme in Figure ?? is more accurate in terms of software implementation. In the following of the discussion depending of which aspect will be more relevant either scheme in Figure~\ref{fig:ControlSoftwareLayout} or ?? will be referred.
+To be more specific, in reality MOOSE is made aware of the need to compute at the end of each time step the $C$ as a consequence this is immediately available at the end of each time step. As a consequence scheme in Figure ?? is more accurate in terms of software implementation. In the following of the discussion depending of which aspect will be more relevant either scheme in Figure~\ref{fig:ControlSoftwareLayout}, Figure~\ref{fig:CalcFlow1} or Figure~\ref{fig:CalcFlow2} will be referred.
 
-\begin{figure}[h] \label{fig:CalcFlow1}
+\begin{figure}[h] 
   \centering
      \includegraphics[width=0.8\textwidth]{figures/CalculationFlow_part_1.PNG}
   \caption{Control System Software Layout.}
+  \label{fig:CalcFlow1}
 \end{figure}
 
-\begin{figure}[h] \label{fig:CalcFlow2}
+\begin{figure}[h] 
   \centering
      \includegraphics[width=0.8\textwidth]{figures/CalculationFlow_part_2.PNG}
   \caption{Control System Software Layout.}
+  \label{fig:CalcFlow2}
 \end{figure}
 
 
 %%%%%%%%%%%%%%%%%
 \Section{CONCLUSIONS}
 %%%%%%%%%%%%%%%%%
-[]
+Fin!
 
 
 %\Section*{REFERENCES}

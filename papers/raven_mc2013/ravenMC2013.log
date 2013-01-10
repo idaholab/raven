@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  8 JAN 2013 16:00
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  10 JAN 2013 11:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -258,14 +258,13 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 83.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 83.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 118.
-
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 92.
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 118.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 92.
 
 
 Package Fancyhdr Warning: \headheight is too small (14.0pt): 
@@ -276,61 +275,71 @@ Package Fancyhdr Warning: \headheight is too small (14.0pt):
 [1{/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 ]
-LaTeX Font Info:    Try loading font information for U+msa on input line 158.
+LaTeX Font Info:    Try loading font information for U+msa on input line 159.
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 158.
+LaTeX Font Info:    Try loading font information for U+msb on input line 159.
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
-) [2]
-<figures/ControlSystemSoftwareLayout.pdf, id=18, 722.7pt x 542.025pt>
+) [2] [3]
+Missing character: There is no ‚ in font ptmr7t!
+Missing character: There is no Ä in font ptmr7t!
+Missing character: There is no ú in font ptmr7t!
+Missing character: There is no ‚ in font ptmr7t!
+Missing character: There is no Ä in font ptmr7t!
+Missing character: There is no ù in font ptmr7t!
+
+<figures/ControlSystemSoftwareLayout.pdf, id=23, 722.7pt x 542.025pt>
 File: figures/ControlSystemSoftwareLayout.pdf Graphic file (type pdf)
 
 <use figures/ControlSystemSoftwareLayout.pdf>
-<figures/CalculationFlow_part_1.PNG, id=19, 1092.08pt x 1233.60875pt>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[4] <figures/CalculationFlow_part_1.PNG, id=27, 1092.08pt x 1233.60875pt>
 File: figures/CalculationFlow_part_1.PNG Graphic file (type png)
 
 <use figures/CalculationFlow_part_1.PNG>
-<figures/CalculationFlow_part_2.PNG, id=20, 1026.83624pt x 872.25874pt>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<figures/CalculationFlow_part_2.PNG, id=28, 1026.83624pt x 872.25874pt>
 File: figures/CalculationFlow_part_2.PNG Graphic file (type png)
 
-<use figures/CalculationFlow_part_2.PNG> [3 <./figures/ControlSystemSoftwareLay
-out.pdf>]
+<use figures/CalculationFlow_part_2.PNG>
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[4] [5 <./figures/CalculationFlow_part_1.PNG (PNG copy)>] [6 <./figures/Calcula
-tionFlow_part_2.PNG (PNG copy)>] (./ravenMC2013.aux) ) 
+[5 <./figures/ControlSystemSoftwareLayout.pdf>] [6 <./figures/CalculationFlow_p
+art_1.PNG (PNG copy)>] [7 <./figures/CalculationFlow_part_2.PNG (PNG copy)>]
+(./ravenMC2013.aux) ) 
 Here is how much of TeX's memory you used:
- 2554 strings out of 493747
- 33990 string characters out of 3143546
- 92271 words of memory out of 3000000
- 5780 multiletter control sequences out of 15000+200000
+ 2559 strings out of 493747
+ 34115 string characters out of 3143546
+ 91297 words of memory out of 3000000
+ 5785 multiletter control sequences out of 15000+200000
  21347 words of font info for 48 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 38i,10n,49p,488b,270s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/local/texlive/2010/
-texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2010/texmf-dist/font
-s/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fonts
-/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2010/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2010/texmf-dist/fonts/ty
-pe1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/
-public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/pub
-lic/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/ti
-mes/utmb8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmr8a
-.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ravenMC2013.pdf (6 pages, 848171 bytes).
+ 38i,11n,49p,1087b,282s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/local/texlive/2010/texmf-dist/fonts/enc/dvips/base/8
+r.enc}</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10
+.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.
+pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pf
+b></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb>
+</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></
+usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr
+/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/
+local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/lo
+cal/texlive/2010/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texliv
+e/2010/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2010/tex
+mf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on ravenMC2013.pdf (7 pages, 853103 bytes).
 PDF statistics:
- 537 PDF objects out of 1000 (max. 8388607)
- 351 compressed objects within 4 object streams
+ 542 PDF objects out of 1000 (max. 8388607)
+ 355 compressed objects within 4 object streams
  0 named destinations out of 1000 (max. 500000)
  16 words of extra memory for PDF output out of 10000 (max. 10000000)
 
