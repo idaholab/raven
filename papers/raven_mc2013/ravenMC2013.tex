@@ -34,6 +34,7 @@
 \usepackage{cites}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{listings}
 %\usepackage{epsf}
 %
 %
@@ -273,19 +274,178 @@ The nuclear power plant is represented and modeled by a set of components (Pipes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{RAVEN .} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As briefly mentioned, RAVEN has been coded in high modular and pluggable way in order to make easier the integration of different program languages (C++, Python) and coupling with other applications based on MOOSE and not. The code is constituted by two modules:
+As briefly mentioned, RAVEN has been coded in high modular and pluggable way in order to make easier the integration of different program languages (C++, Python) and coupling with other applications based on MOOSE and not. The code is constituted by four modules:
 \begin{itemize}
 \item RAVEN/RELAP-7 interface;
-\item Python Control Logic.
+\item Python Control Logic;
+\item Python Calculation Driver;
+\item Graphical User Interface (optional).
 \end{itemize}
-The RAVEN/RELAP-7 interface represents the container of all the tools needed to interact with RELAP-7/MOOSE 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Subsubsection{RAVEN/RELAP-7 interface.} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The RAVEN/RELAP-7 interface, coded in C++, is the container of all the tools needed to interact with RELAP-7/MOOSE. It has been designed in order to be general and pluggable with differen solvers simultaneosly in order to allow an easier and faster development of the control logic/PRA capabilities for multi-physics applications.The interface provides all the capabilities to control, monitor, and process the parameters/quantities in order to drive the RELAP-7/MOOSE calculation. In addiction, it contains the tools to comunicate to the general MOOSE input parser which information, i.e. input syntax, must be inputted in order to run a RAVEN driven calculation. It includes four main sections so far:
+\begin{itemize}
+\item RavenMonitored class;
+\item RavenControlled class;
+\item RavenAuxiliary class;
+\item RavenDistributions class.
+\end{itemize}
+%%%
+% Monitored
+%%%
+The RavenMonitored class provides the connection with the calculation framework in order to retrieve the post-processed quantities from the simulation (i.e. average fuel temperature, average fluid pressure in a component, etc.). The typical input structure for a Monitored parameter in RAVEN is as following:
+\begin{lstlisting}
+[Monitored]
+  [./MaxTempCladCH1]
+    component_name = CH1
+    operator = NodalMaxValue
+    path = CLAD:TEMPERATURE
+    data_type = double
+  [../]
+  [./MaxTempCladCH2]
+    component_name = CH2
+    operator = NodalMaxValue
+    path = CLAD:TEMPERATURE
+    data_type = double
+  [../]
 
+  ...
+
+[]
+\end{lstlisting}
+Whithin the block identified by the keyword \textbf{Monitored}, the user can specify the monitored quantities must be processed during the calculation. Each monitored variable is identified through a \textbf{Raven Alias} (i.e. MaxTempCladCH1), the name that is used in the control logic python input in order to refer to the parameter contained in the simulation.
+The user has to provide different information in order to build a monitored variable:
+\begin{itemize}
+  \item \textbf{component\_name}, the name of the RELAP-7 component that contains the variable the code must act on;
+  \item \textbf{operator}, the post-processor oparation that must be performed on the variable;
+  \item \textbf{path}, the variable name and its location within the calculation framework (RELAP-7/MOOSE variable name);
+  \item \textbf{data\_type}, data type (i.e. double, float, int, bool).
+\end{itemize}
+RAVEN can use all the post-processor operators that are available in MOOSE [reference] (i.e. ElementAverageValue, NodalMaxValue, etc.). Depending on which component it's acting on, some operations may be disabled (i.e. ElementAverageValue is not available in 0-D components).
+%%%
+% Controlled
+%%%
+\\The RavenControlled class provides the link between RAVEN and RELAP-7/MOOSE in order to retrieve and/or change properties within the simulation (i.e. fuel thermal conductivity, pump mass flow, etc.). The typical input structure for a Controlled parameter in RAVEN is as following:
+\begin{lstlisting}
+[Controlled]
+  control_logic_input = control_logic_input_file_name
+  [./power_fraction_CH1]
+    property_name = FUEL:power_fraction
+    data_type = double
+    component_name = CH1
+  [../]
+  [./power_fraction_CH2]
+    property_name = FUEL:power_fraction
+    data_type = double
+    component_name = CH2
+  [../]
+
+  ...
+
+[]
+\end{lstlisting}
+Inwardly the block identified by the keyword \textbf{Controlled}, the user can specify the properties that, during the calculation, will be controlled through the Python control logic. The name and path of the control logic input file are provided by the parameter  \textbf{control\_logic\_input} (not specifying the ".py" extension). Each controlled variable is identified through a \textbf{Raven Alias} (i.e. power\_fraction\_CH1), the name that is used in the control logic python input in order to refer to the parameter contained in the simulation.
+The user has to provide different information in order to build a controlled variable:
+\begin{itemize}
+  \item \textbf{component\_name}, the name of the RELAP-7 component that contains the variable the code must act on;
+  \item \textbf{property\_name}, the variable name and its location within the calculation framework (RELAP-7/MOOSE variable name);
+  \item \textbf{data\_type}, data type (i.e. double, float, int, bool).
+\end{itemize}
+Through this class, RAVEN is able to retrieve property values and, in case of changes, push the new values back into the simulation. 
+%%%
+% Auxiliary
+%%%
+\\The RavenAuxiliary class is the container of auxiliary variables. The Raven Auxiliary system is not connected with RELAP-7/MOOSE enviroment. The typical input structure for a auxiliary parameter in RAVEN is as following:
+\begin{lstlisting}
+[RavenAuxiliary]
+  [./scram_start_time]
+    data_type     = double
+    initial_value = 61.0
+  [../]
+  [./CladDamaged]
+    data_type     = bool
+    initial_value = False
+  [../]
+  
+  ...
+
+[]
+\end{lstlisting}
+Each auxiliary variable is identified through a \textbf{Raven Alias} (i.e. CladDamaged), the name that is used in the control logic python input in order to refer to the parameter contained in the RAVEN interface.
+The user has to provide different information in order to build a auxiliary variable:
+\begin{itemize}
+  \item \textbf{initial\_value}, initialization value;
+  \item \textbf{data\_type}, data type (i.e. double, float, int, bool).
+\end{itemize}
+As previously mentioned, these variables are needed to ensure that system remains Markovian, so that only the previous time step information are necessary to determine the future status of the plant. 
+%%%
+% Distributions
+%%%
+// The RavenDistributions class contains the algorithms, structures and interfaces for several predifined probability distributions. It is only available in the python control logic, since it is not needed a direct interaction with RAVEN/RELAP-7/MOOSE enviroment. The user can actually choose among nine different types of distribution (i.e. Normal, Triangular, Uniform, Exponential, etc.), each of them, in order to be intialized, requires a different set of parameters.
+The following input, for example, builds a Normal and a Triangular distribution:
+\begin{lstlisting}
+[Distributions]
+  [./ExampleNormalDis]
+    type =  NormalDistribution
+    mu = 1
+    sigma = 0.01
+    xMax = 0.8
+    xMin = 0
+  [../]
+  [./ExampleTriangularDis]
+    type   = TriangularDistribution
+    xMin  = 1255.3722 
+    xPeak = 1477.59
+    xMax  = 1699.8167 
+  [../]
+  ...
+[]
+\end{lstlisting}
+The class RavenDistributions is the base of the Monte-Carlo and Dynamic Event Tree capabilities present in RAVEN. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Subsubsection{Python Control Logic.} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The control logic module is used to drive a RAVEN/RELAP-7 calculation. Up to now it is implemented by the user via Python scripting. The reason of this choice is to try to preserve generality of the approach in the initial phases of the project so that further specialization would be possible and less expensive.  The form through which the RAVEN variables can be called is the following:
+\begin{itemize}
+  \item Auxiliary.RavenAlias;
+  \item Controlled.RavenAlias;
+  \item Monitored.RavenAlias.
+\end{itemize}
+Regarding the RavenDistributions mentioned in the previous section, they are also available for the control logic in a similar form to the other variable ( distributions.RavenAlias(allowable list of arguments) ).
+The implementation of the control logic via python is rater convenient and flexible. The user only needs to know few python syntax rules in order to build an input. Although this extreme simplicity, it will be part of the GUI task to automatize the construction of the control logic scripting in order to minimize user effort. 
+\\ A small example of a control logic input is reported below:
+the thermal conductivity of the gap (thermalConductGap) is set equal to the thermal conductivity of the fuel when the fuel temperature (averageFuelTemperature) is greater than 910 K.
+\lstset{
+   language=Python,
+   showstringspaces=false,
+   formfeed=\newpage,
+   tabsize=4,
+   commentstyle=\itshape
+}
+\begin{lstlisting}
+import sys
+def control_function(monitored, controlled,auxiliary):
+    if monitored.averageFuelTemperature > 910:
+        controlled.thermalConductGap = controlled.thermalConductFuel
+    return 
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Subsubsection{Python Calculation Driver} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Subsection{Software layout and calculation flow.} 
+\Subsubsection{Graphical User Interface} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Subsection{Software layout and calculation flow} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 At each time step RELAP-7/MOOSE updates the information within the classes with the current solution  $\bar{x}$, then RAVEN will ask MOOSE to perform the needed manipulation to construct the monitored quantities $\bar{C}$. Once $\bar{C}$ is constructed, the information is reduced to a vector of
 numbers understandable by the control system. 
