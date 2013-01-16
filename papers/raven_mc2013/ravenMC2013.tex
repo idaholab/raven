@@ -35,6 +35,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{listings}
+\usepackage{float}
 %\usepackage{epsf}
 %
 %
@@ -423,16 +424,51 @@ def control_function(monitored, controlled,auxiliary):
 \Subsection{Python Calculation Driver} 
 \label{sec:pyhtonCalcDriver}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
+Analysis of stochastic systems can be extremely challenging due to the complexity and high dimensionality of the system solving equations. An analytical solution is only available for rather simple cases. When an analytical solution is not available, numerical methods are often employed. In order to solve the system governing equations, two main approaches can be followed:
+\begin{itemize}
+\item Determine approximate solutions of the exact problems;
+\item Determine the exact solution for the approximate models.
+\end{itemize}
+Due to the very large complexity and the high dimensionality of the system considered, RAVEN uses the first approach by employing a Monte-Carlo based algorithm. 
+The main idea is to run a set of simulations having different dynamic and static uncertainty of physical parameters, present of noise and initial conditions and terminate them when one of the following stopping conditions are reached:
+\begin{itemize}
+\item Mission time (i.e., an user specified end time);
+\item Main event (i.e., maximum temperature of the clad or core damage).
+\end{itemize}
+These algorithms have been implemented in the python module called “Raven Runner”. It consists in a python driver which calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
+The multiple calculations, required by the employment of these algorithms, can be run in parallel, using queues/sub-process/PBS systems.  
+\begin{figure}[ht] 
+\centering
+\includegraphics[width=0.4\textwidth]{figures/sampling_mc.PNG}
+\caption{Monte-Carlo sampling scheme.}
+\label{fig:MCsampling}
+\end{figure}
+\\ The analysis of dynamic stochastic systems through Monte-Carlo algorithm can schematized (Figure~\ref{fig:MCsampling}) as following:
+\begin{enumerate}
+\item Initial Sampling of:
+       \begin{enumerate}
+       \item Static and dynamic uncertainty values of physical parameters;  
+       \item Initial conditions; 
+       \item Transition conditions, i.e. time in which transition events occur (time in which a reactor scram occurs, time delta to recover power grid, etc.).
+    \end{enumerate}
+\item Run the system simulator using the values previously sampled and eventually applying a random noise to some parameters at each time step.;
+\item Stop the simulation when a transition condition occurs, and move from the actual status of the system   to the new one;
+\item Run the simulation as performed in step 3 starting from the new coordinates and stop when a new transition condition occurs;
+\item Repeat steps 3 and 4 until a stopping condition is reached;
+\item Repeat 1 through 4 for a large number of calculations (user input);
+\end{enumerate}
+In the Figure~\ref{fig:MCsampling} is reported a scheme of  the interaction between the code and the RAVEN runner in case of Monte-Carlo calculations. The runner basically perform a different seeding of the random number generator and interact, through RAVEN, with the python control logic input in order to sample the variables specified by the user.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Graphical User Interface} 
 \label{sec:GUI}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
+As previously mentioned, a \textbf{G}raphical \textbf{U}ser \textbf{I}nterface is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a Python interface for a C++ based library (Qt) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. 
+\begin{figure}[H]
+   \centering
+    \includegraphics[width=0.6\textwidth]{figures/RavenGUI.PNG}
+    \caption{Input/plan Visualization GUI Window.}
+    \label{fig:RavenGUI}
+\end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Software layout and calculation flow} 
 \label{sec:swLayoutCalcFlow}
@@ -449,14 +485,14 @@ solution $x$ is computed or stored is irrelevant. The last statement highlights 
 represent an easily generalizable tool. This functional scheme is represented in Figure~\ref{fig:ControlSoftwareLayout}.
 To be more specific, in reality MOOSE is made aware of the need to compute at the end of each time step the $C$ as a consequence this is immediately available at the end of each time step. As a consequence scheme in Figure ?? is more accurate in terms of software implementation. In the following of the discussion depending of which aspect will be more relevant either scheme in Figure~\ref{fig:ControlSoftwareLayout}, Figure~\ref{fig:CalcFlow1} or Figure~\ref{fig:CalcFlow2} will be referred.
 
-\begin{figure}[h] 
+\begin{figure}[H] 
   \centering
      \includegraphics[width=0.8\textwidth]{figures/CalculationFlow_part_1.PNG}
   \caption{Control System Software Layout.}
   \label{fig:CalcFlow1}
 \end{figure}
 
-\begin{figure}[h] 
+\begin{figure}[H] 
   \centering
      \includegraphics[width=0.8\textwidth]{figures/CalculationFlow_part_2.PNG}
   \caption{Control System Software Layout.}

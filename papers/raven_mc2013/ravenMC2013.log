@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  14 JAN 2013 17:30
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  16 JAN 2013 15:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -201,38 +201,46 @@ File: listings.cfg 2007/02/22 1.4 listings configuration
 ))
 Package: listings 2007/02/22 1.4 (Carsten Heinz)
 
+(/usr/local/texlive/2010/texmf-dist/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count113
+\float@exts=\toks22
+\float@box=\box33
+\@float@everytoks=\toks23
+\@floatcapt=\box34
+)
 (./ravenMC2013.aux)
 \openout1 = `ravenMC2013.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 52.
-LaTeX Font Info:    ... okay on input line 52.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 52.
-LaTeX Font Info:    ... okay on input line 52.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 52.
-LaTeX Font Info:    ... okay on input line 52.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 52.
-LaTeX Font Info:    ... okay on input line 52.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 52.
-LaTeX Font Info:    ... okay on input line 52.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 52.
-LaTeX Font Info:    ... okay on input line 52.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 52.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 53.
+LaTeX Font Info:    ... okay on input line 53.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 53.
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 (/usr/local/texlive/2010/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count113
+\scratchcounter=\count114
 \scratchdimen=\dimen124
-\scratchbox=\box33
-\nofMPsegments=\count114
-\nofMParguments=\count115
-\everyMPshowfont=\toks22
-\MPscratchCnt=\count116
+\scratchbox=\box35
+\nofMPsegments=\count115
+\nofMParguments=\count116
+\everyMPshowfont=\toks24
+\MPscratchCnt=\count117
 \MPscratchDim=\dimen125
-\MPnumerator=\count117
-\everyMPtoPDFconversion=\toks23
+\MPnumerator=\count118
+\everyMPtoPDFconversion=\toks25
 ) (/usr/local/texlive/2010/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
 Package: pdftexcmds 2010/04/01 v0.9 Utility functions of pdfTeX for LuaTeX (HO)
 
@@ -279,18 +287,18 @@ G,.JBIG2,.JB2,.eps]
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-\c@lstlisting=\count118
+\c@lstlisting=\count119
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 84.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 85.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 84.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 93.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 85.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 95.
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 93.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 95.
 
 
 Package Fancyhdr Warning: \headheight is too small (14.0pt): 
@@ -301,16 +309,16 @@ Package Fancyhdr Warning: \headheight is too small (14.0pt):
 [1{/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 ]
-LaTeX Font Info:    Try loading font information for U+msa on input line 160.
+LaTeX Font Info:    Try loading font information for U+msa on input line 158.
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 160.
+LaTeX Font Info:    Try loading font information for U+msb on input line 158.
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
-) [2] [3]
+) [2]
 Missing character: There is no ‚ in font ptmr7t!
 Missing character: There is no Ä in font ptmr7t!
 Missing character: There is no ú in font ptmr7t!
@@ -318,66 +326,73 @@ Missing character: There is no ‚ in font ptmr7t!
 Missing character: There is no Ä in font ptmr7t!
 Missing character: There is no ù in font ptmr7t!
 
-<figures/ControlSystemSoftwareLayout.pdf, id=23, 722.7pt x 542.025pt>
+<figures/ControlSystemSoftwareLayout.pdf, id=16, 722.7pt x 542.025pt>
 File: figures/ControlSystemSoftwareLayout.pdf Graphic file (type pdf)
 
-<use figures/ControlSystemSoftwareLayout.pdf>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[4] [5 <./figures/ControlSystemSoftwareLayout.pdf>] [6] [7]
+<use figures/ControlSystemSoftwareLayout.pdf> [3] [4 <./figures/ControlSystemSo
+ftwareLayout.pdf>] [5] [6] [7]
 (/usr/local/texlive/2010/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2004/09/05 1.3 listings language file
 )
-LaTeX Font Info:    Try loading font information for OML+ptm on input line 430.
+LaTeX Font Info:    Try loading font information for OML+ptm on input line 418.
 
 
 (/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/omlptm.fd
 File: omlptm.fd 
 )
 LaTeX Font Info:    Font shape `OML/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OML/cmm/m/it' tried instead on input line 430.
- [8]
-<figures/CalculationFlow_part_1.PNG, id=506, 1092.08pt x 1233.60875pt>
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 418.
+Missing character: There is no ‚ in font ptmr7t!
+Missing character: There is no Ä in font ptmr7t!
+Missing character: There is no ú in font ptmr7t!
+Missing character: There is no ‚ in font ptmr7t!
+Missing character: There is no Ä in font ptmr7t!
+Missing character: There is no ù in font ptmr7t!
+
+<figures/sampling_mc.PNG, id=503, 432.61626pt x 594.22pt>
+File: figures/sampling_mc.PNG Graphic file (type png)
+
+<use figures/sampling_mc.PNG> [8] [9 <./figures/sampling_mc.PNG (PNG copy)>]
+<figures/RavenGUI.PNG, id=510, 1280.785pt x 727.71875pt>
+File: figures/RavenGUI.PNG Graphic file (type png)
+
+<use figures/RavenGUI.PNG> [10 <./figures/RavenGUI.PNG>]
+<figures/CalculationFlow_part_1.PNG, id=516, 1092.08pt x 1233.60875pt>
 File: figures/CalculationFlow_part_1.PNG Graphic file (type png)
 
 <use figures/CalculationFlow_part_1.PNG>
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-<figures/CalculationFlow_part_2.PNG, id=507, 1026.83624pt x 872.25874pt>
+<figures/CalculationFlow_part_2.PNG, id=517, 1026.83624pt x 872.25874pt>
 File: figures/CalculationFlow_part_2.PNG Graphic file (type png)
 
 <use figures/CalculationFlow_part_2.PNG>
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[9] [10 <./figures/CalculationFlow_part_1.PNG (PNG copy)>] [11 <./figures/Calcu
-lationFlow_part_2.PNG (PNG copy)>] (./ravenMC2013.aux) ) 
+ [11 <./figures/CalculationFlow_part_1.PNG (PNG copy)>] [12 <./figures/Calculat
+ionFlow_part_2.PNG (PNG copy)>] (./ravenMC2013.aux) ) 
 Here is how much of TeX's memory you used:
- 3845 strings out of 493747
- 53059 string characters out of 3143546
- 138554 words of memory out of 3000000
- 7052 multiletter control sequences out of 15000+200000
+ 3918 strings out of 493747
+ 54156 string characters out of 3143546
+ 142492 words of memory out of 3000000
+ 7119 multiletter control sequences out of 15000+200000
  21347 words of font info for 48 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 38i,11n,49p,1087b,1558s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/local/texlive/201
-0/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2010/texmf-dist/fo
-nts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2010/texmf-dist/font
-s/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2010/texmf-dist/fonts/
-type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2010/texmf-dist/fonts/ty
-pe1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type
-1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/p
-ublic/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/pu
-blic/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/
-times/utmb8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmr
-8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ravenMC2013.pdf (11 pages, 862491 bytes).
+ 38i,11n,49p,1087b,1502s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/local/texlive/2010/t
+exmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2010/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fonts/
+type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2010/texmf-dist/fonts/t
+ype1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2010/texmf-dist/fonts/typ
+e1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmr8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/publ
+ic/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/tim
+es/utmb8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmr8a.
+pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on ravenMC2013.pdf (12 pages, 985894 bytes).
 PDF statistics:
- 554 PDF objects out of 1000 (max. 8388607)
- 363 compressed objects within 4 object streams
+ 561 PDF objects out of 1000 (max. 8388607)
+ 366 compressed objects within 4 object streams
  0 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 26 words of extra memory for PDF output out of 10000 (max. 10000000)
 
