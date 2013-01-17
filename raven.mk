@@ -1,6 +1,7 @@
 RAVEN_SRC_DIRS := $(RAVEN_DIR)/src/*/*
 
 PYTHON3_HELLO = $(shell python3 -c "print('HELLO')")
+PYTHON2_HELLO = $(shell python -c "print 'HELLO'")
 
 SWIG_VERSION = $(shell swig -version)
 
@@ -16,11 +17,20 @@ else
 endif
 
 else
+ifeq ($(PYTHON2_HELLO),HELLO)
+	PYTHON_INCLUDE=$(shell python2-config --includes)
+	PYTHON_LIB=$(shell python2-config --libs)
+	PYTHON_MODULES=
+#PYTHON_MODULES=$(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/_raventools.so
+else
 #Python3 not found.
 	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
 	PYTHON_MODULES = 
 endif
+endif
+
+
 
 ifeq ($(UNAME),Darwin)
 	EXTRA_MOOSE_LIBS = $(moose_LIB) $(libmesh_LIBS)
