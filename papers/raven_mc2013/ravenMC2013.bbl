@@ -1,0 +1,20 @@
+\begin{thebibliography}{1}
+
+\bibitem{ravenFY12}
+C.~Rabiti, A.~Alfonsi, J.~Cogliati, D.~Mandelli, and R.~Kinoshita, ``Reactor
+  analysis and virtual control environment (raven) fy12 report,'' Tech. Rep.
+  INL/EXT-12-27351, Idaho National Laboratory (INL), 2012.
+
+\bibitem{mandelliANS2012}
+C.~Rabiti, A.~Alfonsi, D.~Mandelli, J.~Cogliati, and R.~Martineau, ``Raven as
+  control logic and probabilistic risk assessment driver for relap-7,'' in {\em
+  Proceeding of American Nuclear Society (ANS), San Diego (CA)}, vol.~107,
+  pp.~333--335, 2012.
+
+\bibitem{mandelliANS_RISMC}
+D.~Mandelli and C.~Smith, ``Integrating safety assessment methods using the
+  risk informed safety margins characterization (rismc) approach,'' in {\em
+  Proceeding of American Nuclear Society (ANS), San Diego (CA)}, vol.~107,
+  pp.~883--885, 2012.
+
+\end{thebibliography}
