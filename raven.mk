@@ -1,10 +1,10 @@
 RAVEN_SRC_DIRS := $(RAVEN_DIR)/src/*/*
 
-PYTHON3_HELLO := $(shell python3 -c "print('HELLO')")
-PYTHON2_HELLO := $(shell python -c "print 'HELLO'")
+PYTHON3_HELLO := $(shell python3 -c "print('HELLO')" 2>/dev/null)
+PYTHON2_HELLO := $(shell python -c "print 'HELLO'" 2>/dev/null)
 
-SWIG_VERSION := $(shell swig -version)
-PYTHON_CONFIG_WHICH := $(shell which python-config)
+SWIG_VERSION := $(shell swig -version 2>/dev/null)
+PYTHON_CONFIG_WHICH := $(shell which python-config 2>/dev/null)
 
 UNAME := $(shell uname)
 
