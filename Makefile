@@ -24,7 +24,7 @@ ifeq ($(MOOSE_DEV),true)
 else
 	MOOSE_DIR ?= $(ROOT_DIR)/moose
 endif
-LIBMESH_DIR ?= $(ROOT_DIR)/libmesh
+LIBMESH_DIR ?= $(ROOT_DIR)/libmesh/installed
 
 ELK_DIR     ?= $(ROOT_DIR)/elk
 R7_DIR     ?= $(ROOT_DIR)/r7_moose
