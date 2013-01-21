@@ -39,11 +39,11 @@ endif
 
 
 
-ifeq ($(UNAME),Darwin)
-	EXTRA_MOOSE_LIBS = $(moose_LIB) $(libmesh_LIBS)
-else
-	EXTRA_MOOSE_LIBS = 
-endif
+#ifeq ($(UNAME),Darwin)
+EXTRA_MOOSE_LIBS = -L$(MOOSE_DIR) -lmoose-$(METHOD) -L$(RAVEN_DIR) -lRAVEN-$(METHOD) $(libmesh_LIBS)
+#else
+#	EXTRA_MOOSE_LIBS = 
+#endif
 
 
 RAVEN_INC_DIRS := $(shell find $(RAVEN_DIR)/include -type d -not -path "*/.svn*")
