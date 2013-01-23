@@ -56,7 +56,7 @@
 \newcommand{\authorHead}      % Author's names here
    {A. Alfonsi, C. Rabiti, D. Mandelli, J.J. Cogliati, R.A. Kinoshita}  
 \newcommand{\shortTitle}      % Short title here
-   {Short version of title as entered by author on web page}  
+   {RAVEN as a tool for Probabilistc Risk Assessment: Software Overview}  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %   BEGIN DOCUMENT
@@ -131,30 +131,8 @@ Idaho National Laboratory  \\
 %%%%%%%%%%%%%%%%%%%
 
 
-RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software tool that acts as the control logic driver for the newly developed Thermo-Hydraylic code RELAP-7. The goal of this paper is to highlight the software structure of the code and its utilization in conjunction with RELAP-7. RAVEN is a software framework that allows dispatching the following functionalities:
-\begin{itemize}
-\item Derive and actuate the control logic required to:
-\begin{itemize}
-\item Simulate the plant control system;
-\item Simulate the operator actions (guided procedures);
-\item Perform Monte-Carlo sampling of random distributed events;
-\item Perform event tree based analysis.
-\end{itemize}
-\item Provide a Graphical User Interface (GUI) to:
-\begin{itemize}
-\item Input a plant description to RELAP-7(components, controlled variables, controlled
-parameters);
-\item Concurrent monitoring of Controlled Parameters;
-\item Concurrent alteration of Controlled Parameters.
-\end{itemize}
-\item Provide a post-processing data mining capability based on:
-\end{itemize}
-The paper is divided in three main sections:
-\begin{itemize}
-\item RAVEN mathematical framework;
-\item RAVEN software structure;
-\item Demonstration of a Station Black Out (SBO) analysis of a simplified Pressurized Water Reactor (PWR) model.
-\end{itemize}
+RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software tool that acts as the control logic driver for the newly developed Thermo-Hydraylic code RELAP-7. The goal of this paper is to highlight the software structure of the code and its utilization in conjunction with RELAP-7. RAVEN is a multi-purpose PRA (\textbf{P}robabilistic \textbf{R}isk \textbf{A}ssement) software framework that allows dispatching different functionalities. It is designed to derive and actuate the control logic, required to simulate the plant control system, the operator actions (guided procedures), to perform Monte-Carlo sampling of random distributed events and event tree based analysis. In order to facilitate the input/output handling, a Graphical User Interface (GUI) and a post-processing data mining module, based on dimensionality and cardinality reduction, are available.
+\\ This paper wants to provide an overview of the software, highlighting the mathematical framework from which its structure is derived and showing a demo of a Station Black Out (SBO) analysis of a simplified Pressurized Water Reactor (PWR) mode.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{MATHEMATICAL FRAMEWORK}
@@ -431,7 +409,19 @@ def control_function(monitored, controlled,auxiliary):
         controlled.thermalConductGap = controlled.thermalConductFuel
     return 
 \end{lstlisting}
+\begin{figure}[H] 
+  \centering
+     \includegraphics[width=0.7\textwidth]{figures/CalculationFlow_part_1.PNG}
+  \caption{RAVEN Calculation Flow - Initialization.}
+  \label{fig:CalcFlow1}
+\end{figure}
 
+\begin{figure}[H] 
+  \centering
+     \includegraphics[width=0.7\textwidth]{figures/CalculationFlow_part_2.PNG}
+  \caption{RAVEN Calculation Flow - Run.}
+  \label{fig:CalcFlow2}
+\end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Python Calculation Driver} 
 \label{sec:pyhtonCalcDriver}
@@ -477,7 +467,7 @@ In the Figure~\ref{fig:MCsampling} is reported a scheme of  the interaction betw
 As previously mentioned, a \textbf{G}raphical \textbf{U}ser \textbf{I}nterface is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a Python interface for a C++ based library (Qt) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. 
 \begin{figure}[H]
    \centering
-    \includegraphics[width=0.6\textwidth]{figures/RavenGUI.PNG}
+    \includegraphics[width=0.9\textwidth]{figures/RavenGUI.PNG}
     \caption{Input/plan Visualization GUI Window.}
     \label{fig:RavenGUI}
 \end{figure}
@@ -485,31 +475,18 @@ As previously mentioned, a \textbf{G}raphical \textbf{U}ser \textbf{I}nterface i
 \Section{SOFTWARE LAYOUT AND CALCULATION FLOW} 
 \label{sec:swLayoutCalcFlow}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-At each time step RELAP-7/MOOSE updates the information within the classes with the current solution  $\bar{x}$, then RAVEN will ask MOOSE to perform the needed manipulation to construct the monitored quantities $\bar{C}$. Once $\bar{C}$ is constructed, the information is reduced to a vector of
-numbers understandable by the control system. 
-The equation 
+Figures~\ref{fig:CalcFlow1} and \ref{fig:CalcFlow2} show the calculation flow employed by RAVEN/RELAP-7/MOOSE software. 
+A typical RAVEN calculation can be summarized in the following logic steps:
+\begin{enumerate}
+   \item Perform Initialization
+   \item RELAP-7/MOOSE updates the information contained in each component class with the actual solution $\bar{x}$
+   \item RAVEN requests MOOSE to perform the post-processing manipulation in order to construct $\bar{C}$ 
+   \item Equation 
 $\frac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) $
-is solved and the set of control parameters for the next time step $v_{t_{i}}$ is obtained. 
-Up to now no situations required a numerical solution of the equation 
-$\frac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) $, therefore for the moment RAVEN remains numerical integration free. 
-Once the information is transferred to $C$, the way through which the plant
-solution $x$ is computed or stored is irrelevant. The last statement highlights the capability of RAVEN to
-represent an easily generalizable tool. This functional scheme is represented in Figure~\ref{fig:ControlSoftwareLayout}.
-To be more specific, in reality MOOSE is made aware of the need to compute at the end of each time step the $C$ as a consequence this is immediately available at the end of each time step. As a consequence scheme in Figure ?? is more accurate in terms of software implementation. In the following of the discussion depending of which aspect will be more relevant either scheme in Figure~\ref{fig:ControlSoftwareLayout}, Figure~\ref{fig:CalcFlow1} or Figure~\ref{fig:CalcFlow2} is referred.
-
-\begin{figure}[H] 
-  \centering
-     \includegraphics[width=0.8\textwidth]{figures/CalculationFlow_part_1.PNG}
-  \caption{Control System Software Layout.}
-  \label{fig:CalcFlow1}
-\end{figure}
-
-\begin{figure}[H] 
-  \centering
-     \includegraphics[width=0.8\textwidth]{figures/CalculationFlow_part_2.PNG}
-  \caption{Control System Software Layout.}
-  \label{fig:CalcFlow2}
-\end{figure}
+is solved and the set of control parameters for the next time step $v_{t_{i}}$ is determined
+  \item RAVEN asks RELAP-7/MOOSE to compute the solution $\bar{x}$ for the following time step
+  \item Repeat from 2 to 5 until the end of the calculation or an exit condition is reached (e.g., clad failure)
+\end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 \Section{EXAMPLE OF PRA} 
