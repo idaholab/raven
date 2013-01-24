@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  21 JAN 2013 15:09
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  23 JAN 2013 15:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -381,33 +381,37 @@ y)>] [10 <./figures/sampling_mc.PNG (PNG copy)>]
 <figures/RavenGUI.PNG, id=516, 1280.785pt x 727.71875pt>
 File: figures/RavenGUI.PNG Graphic file (type png)
 
-<use figures/RavenGUI.PNG> [11 <./figures/RavenGUI.PNG>] (./ravenMC2013.bbl)
-[12] (./ravenMC2013.aux) ) 
+<use figures/RavenGUI.PNG> [11 <./figures/RavenGUI.PNG>]
+<figures/PWR_TMI_SCHEME.PNG, id=522, 936.49875pt x 629.35126pt>
+File: figures/PWR_TMI_SCHEME.PNG Graphic file (type png)
+
+<use figures/PWR_TMI_SCHEME.PNG> (./ravenMC2013.bbl [12 <./figures/PWR_TMI_SCHE
+ME.PNG (PNG copy)>]) [13] (./ravenMC2013.aux) ) 
 Here is how much of TeX's memory you used:
- 4413 strings out of 493747
- 60125 string characters out of 3143546
- 152395 words of memory out of 3000000
- 7598 multiletter control sequences out of 15000+200000
+ 4419 strings out of 493747
+ 60280 string characters out of 3143546
+ 152404 words of memory out of 3000000
+ 7603 multiletter control sequences out of 15000+200000
  24916 words of font info for 53 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  36i,12n,45p,1087b,1545s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/local/texlive/2010/texmf-dist/fonts/enc/dvips/b
-ase/8r.enc}</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/c
-mex10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-mi10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmm
-i6.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8
-.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.p
-fb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb
-></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></
-usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></u
-sr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr
-/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/tex
-live/2010/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2010/
-texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ravenMC2013.pdf (12 pages, 991496 bytes).
+{/usr/local/texlive/2010/texmf-d
+ist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2010/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/
+public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/p
+ublic/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/pub
+lic/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/publi
+c/amsfonts/cm/cmmi9.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmr10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/am
+sfonts/cm/cmr8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmsy10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfon
+ts/cm/cmsy8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmb8
+a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></us
+r/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on ravenMC2013.pdf (13 pages, 1140597 bytes).
 PDF statistics:
- 565 PDF objects out of 1000 (max. 8388607)
- 369 compressed objects within 4 object streams
+ 570 PDF objects out of 1000 (max. 8388607)
+ 372 compressed objects within 4 object streams
  0 named destinations out of 1000 (max. 500000)
- 26 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 31 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -489,11 +489,20 @@ is solved and the set of control parameters for the next time step $v_{t_{i}}$ i
 \end{enumerate}
 
 %%%%%%%%%%%%%%%%%%%%%%%%
-\Section{EXAMPLE OF PRA} 
+\Section{DEMO FOR A PWR PRA ANALYSIS} 
 %%%%%%%%%%%%%%%%%%%%%%%%
-
+In order to show the capabilities of RAVEN coupled with RELAP-7/MOOSE, a simplified PWR PRA analysis has been employed.
+\begin{figure}[H]
+   \centering
+    \includegraphics[width=0.5\textwidth]{figures/PWR_TMI_SCHEME.PNG}
+    \caption{PWR model scheme.}
+    \label{fig:PWRmodel}
+\end{figure}
+Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the Downcomers, the Lower Plenum, the Reactor Core Model and the Upper Plenum. Core channels (flow channels with heat structure attached to each of them) were used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. 
+%The hot core channel represents the inner hottest zone of the reactor core. The average core channel represents the mid zone of the core and the cold core channel represents the outer zone of the core, respectively. 
+There are two primary loops, i.e., loop A and loop B. Each loop consists of the Hot Leg, a Heat Exchanger and its secondary side pipes, the Cold Leg and a primary Pump. A Pressurizer is attached to the Loop A piping system to control the system pressure. A Time Dependent Volume (pressure boundary conditions) component is used to represent the Pressurizer. Since the RELAP-7 code does not have the two-phase flow capability yet, single-phase counter-current heat exchanger models are implemented to mimic the function of steam generators in order to transfer heat from the primary to the secondary.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Subsection{PWR loop station black out} 
+\Subsection{Station Black Out (SBO) analysis} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -507,8 +516,6 @@ Fin!
 
 \bibliographystyle{ieeetr}
 \bibliography{bibl}
-
-
 
 
 \end{document}
