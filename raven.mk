@@ -40,7 +40,7 @@ endif
 
 
 #ifeq ($(UNAME),Darwin)
-EXTRA_MOOSE_LIBS = -L$(MOOSE_DIR) -lmoose-$(METHOD) -L$(RAVEN_DIR) -lRAVEN-$(METHOD) $(libmesh_LIBS)
+EXTRA_MOOSE_LIBS = -L$(MOOSE_DIR) -lmoose-$(METHOD) -L$(RAVEN_DIR) -lRAVEN-$(METHOD) -L$(R7_DIR) -lr7_moose-$(METHOD) -L$(ELK_DIR)/lib -lelk-$(METHOD) -lphase_field-$(METHOD) -lnavier_stokes-$(METHOD) -lheat_conduction-$(METHOD) -lsolid_mechanics-$(METHOD) -ltensor_mechanics-$(METHOD) -llinear_elasticity-$(METHOD) -lchemical_reactions-$(METHOD) -lfluid_mass_energy_balance-$(METHOD) -lmisc-$(METHOD) -lcontact-$(METHOD) $(libmesh_LIBS)
 #else
 #	EXTRA_MOOSE_LIBS = 
 #endif
