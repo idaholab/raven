@@ -38,6 +38,7 @@
 \usepackage{float}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{verbatim}
 
 \usepackage{tgheros}
 \usepackage{xcolor}
@@ -58,7 +59,7 @@
 \newcommand{\authorHead}      % Author's names here
    {A. Alfonsi, C. Rabiti, D. Mandelli, J.J. Cogliati, R.A. Kinoshita}  
 \newcommand{\shortTitle}      % Short title here
-   {RAVEN as a tool for Probabilistc Risk Assessment: Software Overview}  
+   {RAVEN as a tool for Probabilistic Risk Assessment: Software Overview}  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %   BEGIN DOCUMENT
@@ -113,13 +114,15 @@ Idaho National Laboratory  \\
 %
 % SET RAGGED RIGHT MARGIN
 %
-\raggedright
+%\raggedright
 
 
 \section*{ABSTRACT} 
 \begin{quote}
 \begin{small}
-RAVEN is a software tool under development at the Idaho National Laboratory (INL), that acts as the control logic driver and post-processing framework for the newly developed Thermo-Hydraylic code RELAP-7. The aim of this paper is to show the software structure of the code and its utilization in connection with RELAP-7, presenting a short overview of the mathematical framework behind the code and tis main capabilities (e.g. on-line controlling and monitoring, Monte-Carlo sampling, etc.).A demo of a Station Black Out PRA analysis of a simplified Pressurized Water Reactor (PWR) model is shown, in order to demonstrate the Monte-Carlo and clustering capabilities.
+RAVEN is a software tool under development at the Idaho National Laboratory (INL) that acts as the control logic driver and post-processing tool for the newly developed Thermo-Hydraylic code RELAP-7. 
+The scope of this paper is to show the software structure of RAVEN and its utilization in connection with RELAP-7. A short overview of the mathematical framework behind the code is presented along with its main capabilities such as on-line controlling/monitoring and Monte-Carlo sampling.
+A demo of a Station Black Out PRA analysis of a simplified Pressurized Water Reactor (PWR) model is shown in order to demonstrate the Monte-Carlo and clustering capabilities.
 
 \emph{Key Words}: Reactor Simulation, Probabilistic Risk Assessment, Dynamic PRA, Monte-Carlo, RELAP-7 %, Three Miles Island, 
 \end{small} 
@@ -133,21 +136,22 @@ RAVEN is a software tool under development at the Idaho National Laboratory (INL
 %%%%%%%%%%%%%%%%%%%
 
 
-RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software tool that acts as the control logic driver for the newly developed Thermo-Hydraylic code RELAP-7. The goal of this paper is to highlight the software structure of the code and its utilization in conjunction with RELAP-7. RAVEN is a multi-purpose PRA (\textbf{P}robabilistic \textbf{R}isk \textbf{A}ssement) software framework that allows dispatching different functionalities. It is designed to derive and actuate the control logic, required to simulate the plant control system, the operator actions (guided procedures), to perform Monte-Carlo sampling of random distributed events and event tree based analysis. In order to facilitate the input/output handling, a Graphical User Interface (GUI) and a post-processing data mining module, based on dimensionality and cardinality reduction, are available.
-\\ This paper wants to provide an overview of the software, highlighting the mathematical framework from which its structure is derived and showing a demo of a Station Black Out (SBO) analysis of a simplified Pressurized Water Reactor (PWR) model.
+RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software tool that acts as the control logic driver for the newly developed Thermo-Hydraylic code RELAP-7. The goal of this paper is to highlight the software structure of the code and its utilization in conjunction with RELAP-7. RAVEN is a multi-purpose Probabilistic Risk Assement (PRA) software framework that allows dispatching different functionalities. 
+It is designed to derive and actuate the control logic required to simulate the plant control system and operator actions (guided procedures) and to perform both Monte-Carlo sampling of random distributed events and event tree based analysis. 
+In order to facilitate the input/output handling, a Graphical User Interface (GUI) and a post-processing data mining module, based on dimensionality and cardinality reduction, are available.
+This paper wants to provide an overview of the software, highlighting the mathematical framework from which its structure is derived and showing a demo of a Station Black Out (SBO) analysis of a simplified Pressurized Water Reactor (PWR) model.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{MATHEMATICAL FRAMEWORK}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:mathFramework}
 
-In this section the mathematical framework is briefly described, analyzing the set of the
-equations needed to model the control system in a nuclear power plant.
+In this section the mathematical framework is briefly described by analyzing the set of the equations needed to model the control system in a nuclear power plant.
 
 \Subsection{Plant and Control System Model} 
 \label{sec:PlantControlModel}
 The first step is the derivation of the mathematical model representing, at a high level of abstraction, both 
-the plant and the control system models. Let be $\bar{\theta}(t)$ a vector describing the plant status in the phase space, and the governing equation:
+the plant and the control system models. In this respect, let be $\bar{\theta}(t)$ a vector describing the plant status in the phase space; the dynamic of both plant and control system can be summarized by the following equation:
 \begin{equation}
 \frac{\partial \bar{\theta}}{\partial t} = \bar{H}(\theta(t),t)
 \label{eq:SystemDynamics}
@@ -186,13 +190,13 @@ representing the control system, does not depend on the knowledge of the complet
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:operatorSplitting}
 
-The system of equations~\ref{eq:generalSystemEquationwithControl} is fully coupled and in the past it has always been solved with an operator splitting approach. The reasons for this choice are several:
+The system of equations in Eq.~\ref{eq:generalSystemEquationwithControl} is fully coupled and in the past it has always been solved with an operator splitting approach. The reasons for this choice are several:
 \begin{itemize}
 \item Control system reacts with an intrinsic delay
 \item The reaction of the control system might move the system between two different discrete states and
 therefore numerical errors will be always of first order unless the discontinuity is treated explicitly.
 \end{itemize}
-RAVEN as well is using this approach to solve Eq.~\ref{eq:generalSystemEquationwithControl} which becomes:
+RAVEN as well is using this approach to solve Eq.~\ref{eq:generalSystemEquationwithControl} which it becomes:
 \begin{equation}
 \begin{cases} 
 \dfrac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t) \\
@@ -207,7 +211,7 @@ RAVEN as well is using this approach to solve Eq.~\ref{eq:generalSystemEquationw
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:auxiliary}
 So far it has been assumed that all information needed is contained in $\bar{x}$ and $\bar{v}$. Even if this information is sufficient for the calculation of the system status in every point in time, it is not a practical and efficient way to implement the control system.
-In order to facilitate the implementation of the control logic, a system of auxiliary variables has been implemented .
+In order to facilitate the implementation of the control logic, a system of auxiliary variables has been introduced .
 The auxiliary variables are those that in statistical analysis are artificially added to non-Markovian systems into the space phase to obtain back a Markovian behavior, so that only the information contained in the previous time step is needed to determine the future status of the system.
 These variables can be classified into two types: 
 \begin{itemize}
@@ -240,12 +244,13 @@ Thus, the introduction of the auxiliary system into the mathematical framework l
 \Section{RELAP-7 AND MOOSE} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:MOOSE/RELAP-7}
-MOOSE is a computer simulation framework,  developed at Idaho National Laboratory (INL), that simplifies the process for predicting the behavior of complex systems and developing non-linear, multi-physics simulation tools. As opposed to traditional data-flow oriented computational frameworks, MOOSE is founded on the mathematical principle of Jacobian-Free Newton-Krylov (JFNK) solution methods. Utilizing the mathematical structure present in JFNK, physics are modularized into “Kernels” allowing for rapid production of new simulation tools. In addition, systems are solved fully coupled and fully implicit employing physics based preconditioning which allows for great flexibility even with large variance in time scales. Other than providing the algorithms for the solution of the differential equation, MOOSE also provides all the manipulation tools for the C++ classes containing the solution vector. This framework has been used to construct and develop the Thermo-Hydraulic code RELAP-7, giving an enormous flexibility in the coupling procedure with RAVEN.
+MOOSE~\cite{MOOSE} is a computer simulation framework,  developed at Idaho National Laboratory (INL), that simplifies the process for predicting the behavior of complex systems and developing non-linear, multi-physics simulation tools. As opposed to traditional data-flow oriented computational frameworks, MOOSE is based on the mathematical principle of Jacobian-Free Newton-Krylov (JFNK) solution methods. Utilizing the mathematical structure present in JFNK, physics are modularized into “Kernels” allowing for rapid production of new simulation tools. In addition, systems are solved fully coupled and fully implicit by employing physics based preconditioning which allows for great flexibility even with large variance in time scales. 
+Other than providing the algorithms for the solution of the differential equation, MOOSE also provides all the manipulation tools for the C++ classes containing the solution vector. This framework has been used to construct and develop the Thermo-Hydraulic code RELAP-7, giving an enormous flexibility in the coupling procedure with RAVEN.
 
 RELAP-7 is the next generation nuclear reactor system safety analysis. It will become the main reactor systems simulation toolkit for RISMC (\textbf{R}isk \textbf{I}nformed \textbf{S}afety \textbf{M}argin \textbf{C}haracterization)~\cite{mandelliANS_RISMC} project and the next generation tool in the RELAP reactor safety/systems analysis application series (the replacement for RELAP5). The key to the success of RELAP-7 is the simultaneous advancement of physical models, numerical methods, and software design while maintaining a solid user perspective. 
 Physical models include both PDEs (Partial Differential Equations), ODEs (Ordinary Differential Equations) and experimental based closure models. RELAP-7 will eventually utilize well posed governing equations for multiphase flow, which can be strictly verified. RELAP-7 uses modern numerical methods which allow implicit time integration, higher order schemes in both time and space and strongly coupled multi-physics simulations.
 RELAP-7 is the solver for the plant system except for the control system. From the mathematical
-formulation presented so far, RELAP-7 solves 
+formulation presented Section 2, RELAP-7 solves 
 $\frac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t)$.
 \begin{figure}[h] 
   \centering
@@ -253,12 +258,13 @@ $\frac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t)$.
   \caption{Control System Software Layout.}
    \label{fig:ControlSoftwareLayout}
 \end{figure}
-The nuclear power plant is represented and modeled by a set of components (Pipes, Valves, Branches, etc.) and each component type corresponds to a C++ class.
+
+%The nuclear power plant is represented and modeled by a set of components (Pipes, Valves, Branches, etc.) and each component type corresponds to a C++ class.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{RAVEN} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-RAVEN has been developed in a high modular and pluggable way in order to enable easy integration of different programming languages (i.e., C++, Python) and coupling with other applications based on MOOSE and not. The code consists of four modules:
+RAVEN has been developed in a high modular and pluggable way in order to enable easy integration of different programming languages (i.e., \verb!C++!, \verb!Python!) and coupling with other applications including the ones based on MOOSE. The code consists of four modules:
 \begin{itemize}
 \item RAVEN/RELAP-7 interface (see Section~\ref{sec:interface})
 \item Python Control Logic (see Section~\ref{sec:pythonControlLogic})
@@ -270,17 +276,18 @@ RAVEN has been developed in a high modular and pluggable way in order to enable 
 \Subsection{RAVEN/RELAP-7 interface} 
 \label{sec:interface}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The RAVEN/RELAP-7 interface, coded in C++, is the container of all the tools needed to interact with RELAP-7/MOOSE. It has been designed in order to be general and pluggable with differen solvers simultaneosly in order to allow an easier and faster development of the control logic/PRA capabilities for multi-physics applications.The interface provides all the capabilities to control, monitor, and process the parameters/quantities in order to drive the RELAP-7/MOOSE calculation. In addiction, it contains the tools to comunicate to the general MOOSE input parser which information, i.e. input syntax, must be inputted in order to run a RAVEN driven calculation. It includes four main sections so far:
+The RAVEN/RELAP-7 interface, coded in \verb!C++!, is the container of all the tools needed to interact with RELAP-7/MOOSE. It has been designed in order to be general and pluggable with different solvers simultaneously in order to allow an easier and faster development of the control logic/PRA capabilities for multi-physics applications.
+The interface provides all the capabilities to control, monitor, and process the parameters/quantities in order to drive the RELAP-7/MOOSE calculation. In addition, it contains the tools to communicate to the MOOSE input parser whose information, i.e. input syntax, must be received as input in order to run a RAVEN  calculation. So far, the input file includes four main sections.:
 \begin{itemize}
-\item RavenMonitored class;
-\item RavenControlled class;
-\item RavenAuxiliary class;
-\item RavenDistributions class.
+\item \emph{RavenMonitored} class;
+\item \emph{RavenControlled} class;
+\item \emph{RavenAuxiliary} class;
+\item \emph{RavenDistributions} class.
 \end{itemize}
 %%%
 % Monitored
 %%%
-The RavenMonitored class provides the connection with the calculation framework in order to retrieve the post-processed quantities from the simulation (i.e., average fuel temperature, average fluid pressure in a component, etc.). The typical input structure for a Monitored parameter in RAVEN is as following:
+The \emph{RavenMonitored} class provides the connection with the calculation framework in order to retrieve the post-processed quantities from the simulation (e.g., average fuel temperature, average fluid pressure in a component). The typical input structure for a Monitored parameter in RAVEN is as following:
 \begin{lstlisting}
 [Monitored]
   [./MaxTempCladCH1]
@@ -298,19 +305,20 @@ The RavenMonitored class provides the connection with the calculation framework 
   ...
 []
 \end{lstlisting}
-Whithin the block identified by the keyword \textbf{Monitored}, the user can specify the monitored quantities must be processed during the calculation. Each monitored variable is identified through a \textbf{Raven Alias} (i.e., MaxTempCladCH1), the name that is used in the control logic python input in order to refer to the parameter contained in the simulation.
-The user has to provide different information in order to build a monitored variable:
+Within the block identified by the keyword \textbf{Monitored}, the user can specify the monitored quantities that need to be processed during the calculation. Each monitored variable is identified through a \textbf{Raven Alias} (i.e., MaxTempCladCH1), the name that is used in the control logic python input in order to refer to the parameter contained in the simulation.
+The user has to provide the following information in order to build a monitored variable:
 \begin{itemize}
   \item \textbf{component\_name}, the name of the RELAP-7 component that contains the variable the code must act on;
-  \item \textbf{operator}, the post-processor oparation that must be performed on the variable;
+  \item \textbf{operator}, the post-processor operation that must be performed on the variable;
   \item \textbf{path}, the variable name and its location within the calculation framework (RELAP-7/MOOSE variable name);
-  \item \textbf{data\_type}, data type (i.e., double, float, int, bool).
+  \item \textbf{data\_type}, data type (i.e., double, float, int, boolean).
 \end{itemize}
-RAVEN can use all the post-processor operators that are available in MOOSE [reference] (i.e. ElementAverageValue, NodalMaxValue, etc.). Depending on which component it's acting on, some operations may be disabled (i.e., ElementAverageValue is not available in 0-D components).
+RAVEN can use all the post-processor operators that are available in MOOSE (e.g., ElementAverageValue, NodalMaxValue, etc.). Depending on which component it's acting on, some operations may be disabled (for example,  ElementAverageValue is not available in 0-D components).
 %%%
 % Controlled
 %%%
-\\The RavenControlled class provides the link between RAVEN and RELAP-7/MOOSE in order to retrieve and/or change properties within the simulation (i.e., fuel thermal conductivity, pump mass flow, etc.). The typical input structure for a Controlled parameter in RAVEN is as following:
+
+The \emph{RavenControlled} class provides the link between RAVEN and RELAP-7/MOOSE in order to retrieve and/or change properties within the simulation (e.g., fuel thermal conductivity, pump mass flow). The typical input structure for a controlled parameter in RAVEN is as follows:
 \begin{lstlisting}
 [Controlled]
   control_logic_input = control_logic_input_file_name
@@ -327,18 +335,19 @@ RAVEN can use all the post-processor operators that are available in MOOSE [refe
   ...
 []
 \end{lstlisting}
-Inwardly the block identified by the keyword \textbf{Controlled}, the user can specify the properties that, during the calculation, will be controlled through the Python control logic. The name and path of the control logic input file are provided by the parameter  \textbf{control\_logic\_input} (not specifying the ".py" extension). Each controlled variable is identified through a \textbf{Raven Alias} (i.e., power\_fraction\_CH1), the name that is used in the control logic python input in order to refer to the parameter contained in the simulation.
+Within the block identified by the keyword \textbf{Controlled}, the user can specify the properties that, during the calculation, will be controlled through the \verb!Python! control logic. The name and path of the control logic input file are provided by the parameter  \textbf{control\_logic\_input} (not specifying the ".py" extension). Each controlled variable is identified through a \textbf{Raven Alias} (e.g., power\_fraction\_CH1): the name that is used in the control logic python input in order to refer to the parameter contained in the simulation.
 The user has to provide different information in order to build a controlled variable:
 \begin{itemize}
   \item \textbf{component\_name}, the name of the RELAP-7 component that contains the variable the code must act on;
   \item \textbf{property\_name}, the variable name and its location within the calculation framework (RELAP-7/MOOSE variable name);
-  \item \textbf{data\_type}, data type (i.e., double, float, int, bool).
+  \item \textbf{data\_type}, data type (i.e., double, float, int, boolean).
 \end{itemize}
 Through this class, RAVEN is able to retrieve property values and, in case of changes, push the new values back into the simulation. 
 %%%
 % Auxiliary
 %%%
-\\The RavenAuxiliary class is the container of auxiliary variables. The Raven Auxiliary system is not connected with RELAP-7/MOOSE enviroment. The typical input structure for a auxiliary parameter in RAVEN is as following:
+
+The \emph{RavenAuxiliary} class is the container of auxiliary variables. The Raven Auxiliary system is not connected with RELAP-7/MOOSE environment. The typical input structure for a auxiliary parameter in RAVEN is as follows:
 \begin{lstlisting}
 [RavenAuxiliary]
   [./scram_start_time]
@@ -352,7 +361,7 @@ Through this class, RAVEN is able to retrieve property values and, in case of ch
   ...
 []
 \end{lstlisting}
-Each auxiliary variable is identified through a \textbf{Raven Alias} (i.e. CladDamaged), the name that is used in the control logic python input in order to refer to the parameter contained in the RAVEN interface.
+Each auxiliary variable is identified through a \textbf{Raven Alias} (e.g., CladDamaged): the name that is used in the control logic \verb!Python! input in order to refer to the parameter contained in the RAVEN interface.
 The user has to provide different information in order to build a auxiliary variable:
 \begin{itemize}
   \item \textbf{initial\_value}, initialization value;
@@ -362,8 +371,9 @@ As previously mentioned, these variables are needed to ensure that system remain
 %%%
 % Distributions
 %%%
-// The RavenDistributions class contains the algorithms, structures and interfaces for several predefined probability distributions. It is only available in the python control logic, since it is not needed a direct interaction with RAVEN/RELAP-7/MOOSE environment. The user can actually choose among nine different types of distribution (i.e., Normal, Triangular, Uniform, Exponential, etc.), each of them, in order to be initialized, requires a different set of parameters.
-The following input, for example, builds a Normal and a Triangular distribution:
+
+The \emph{RavenDistributions} class contains the algorithms, structures and interfaces for several predefined probability distributions. It is only available in the \verb!Python! control logic, since it is not needed a direct interaction with RAVEN/RELAP-7/MOOSE environment. The user can actually choose among nine different types of distribution (e.g., Normal, Triangular, Uniform, Exponential); each of them, in order to be initialized, requires a different set of parameters depending on the type of distribution.
+An an example, the following input create a Normal and a Triangular distribution:
 \begin{lstlisting}
 [Distributions]
   [./ExampleNormalDis]
@@ -387,16 +397,16 @@ The class RavenDistributions is the base of the Monte-Carlo and Dynamic Event Tr
 \Subsection{Python Control Logic}
 \label{sec:pythonControlLogic} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The control logic module is used to drive a RAVEN/RELAP-7 calculation. Up to now it is implemented by the user via Python scripting. The reason of this choice is to try to preserve generality of the approach in the initial phases of the project so that further specialization would be possible and less expensive.  The form through which the RAVEN variables can be called is the following:
+The control logic module is used to drive a RAVEN/RELAP-7 calculation. Up to now it is implemented by the user via \verb!Python! scripting. The reason of this choice is to try to preserve generality of the approach in the initial phases of the project so that further specialization is possible and  inexpensive.  
+The form through which the RAVEN variables can be called is the following:
 \begin{itemize}
   \item Auxiliary.RavenAlias;
   \item Controlled.RavenAlias;
   \item Monitored.RavenAlias.
 \end{itemize}
-Regarding the RavenDistributions mentioned in the previous section, they are also available for the control logic in a similar form to the other variable ( distributions.RavenAlias(allowable list of arguments) ).
+Regarding the RavenDistributions mentioned in Section 4.1, they are also available for the control logic in a similar form to the other variable (distributions.RavenAlias(allowable list of arguments) ).
 The implementation of the control logic via python is rater convenient and flexible. The user only needs to know few python syntax rules in order to build an input. Although this extreme simplicity, it will be part of the GUI task to automatize the construction of the control logic scripting in order to minimize user effort. 
-\\ A small example of a control logic input is reported below:
-the thermal conductivity of the gap (thermalConductGap) is set equal to the thermal conductivity of the fuel when the fuel temperature (averageFuelTemperature) is greater than 910 K.
+\\A small example of a control logic input is reported below: the thermal conductivity of the gap (thermalConductGap) is set equal to the thermal conductivity of the fuel when the fuel temperature (averageFuelTemperature) is greater than 910 K.
 \lstset{
    language=Python,
    showstringspaces=false,
@@ -411,14 +421,14 @@ def control_function(monitored, controlled,auxiliary):
         controlled.thermalConductGap = controlled.thermalConductFuel
     return 
 \end{lstlisting}
-\begin{figure}[H] 
+\begin{figure}
   \centering
      \includegraphics[width=0.7\textwidth]{figures/CalculationFlow_part_1.PNG}
   \caption{RAVEN Calculation Flow - Initialization.}
   \label{fig:CalcFlow1}
 \end{figure}
 
-\begin{figure}[H] 
+\begin{figure} 
   \centering
      \includegraphics[width=0.7\textwidth]{figures/CalculationFlow_part_2.PNG}
   \caption{RAVEN Calculation Flow - Run.}
@@ -428,7 +438,7 @@ def control_function(monitored, controlled,auxiliary):
 \Subsection{Python Calculation Driver} 
 \label{sec:pyhtonCalcDriver}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Analysis of stochastic systems can be extremely challenging due to the complexity and high dimensionality of the system solving equations. An analytical solution is only available for rather simple cases. When an analytical solution is not available, numerical methods are often employed. In order to solve the system governing equations, two main approaches can be followed:
+Analysis of dynamic stochastic systems can be extremely challenging due to the complexity and high dimensionality of the system solving equations. An analytical solution is only available for rather simple cases. When an analytical solution is not available, numerical methods are often employed. In order to solve the system governing equations, two main approaches can be followed:
 \begin{itemize}
 \item Determine approximate solutions of the exact problems;
 \item Determine the exact solution for the approximate models.
@@ -439,35 +449,37 @@ The main idea is to run a set of simulations having different dynamic and static
 \item Mission time (i.e., an user specified end time);
 \item Main event (i.e., maximum temperature of the clad or core damage).
 \end{itemize}
-These algorithms have been implemented in the python module called ``Raven Runner''. It consists in a python driver which calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
-The multiple calculations, required by the employment of these algorithms, can be run in parallel, using queues/sub-process/PBS systems.  
-\begin{figure}[ht] 
+These algorithms have been implemented in the \verb!Python! module called ``Raven Runner''. It consists in a python driver which calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
+The multiple calculations, required by the employment of these algorithms, can be run in parallel, using queues/sub-process/\verb!Python! systems.  
+
+\begin{figure}
 \centering
 \includegraphics[width=0.4\textwidth]{figures/sampling_mc.PNG}
 \caption{Monte-Carlo sampling scheme.}
 \label{fig:MCsampling}
 \end{figure}
-\\ The analysis of dynamic stochastic systems through Monte-Carlo algorithm can be summarized (Figure~\ref{fig:MCsampling}) as follows:
+
+The analysis of dynamic stochastic systems through Monte-Carlo algorithm can be summarized (Figure~\ref{fig:MCsampling}) as follows:
 \begin{enumerate}
 \item Initial Sampling of:
        \begin{enumerate}
-       \item Static and dynamic uncertainty values of physical parameters;  
-       \item Initial conditions; 
-       \item Transition conditions, i.e. time in which transition events occur (time in which a reactor scram occurs, time delta to recover power grid, etc.).
+       \item Static and dynamic uncertainty values of physical parameters
+       \item Initial conditions
+       \item Transition conditions, i.e. time instant in which transition events occur (e.g., time in which a reactor scram occurs, time delta to recover power grid)
     \end{enumerate}
-\item Run the system simulator using the values previously sampled and eventually applying a random noise to some parameters at each time step.;
-\item Stop the simulation when a transition condition occurs, and move from the actual status of the system   to the new one;
+\item Run the system simulator using the values previously sampled and eventually applying a random noise to some parameters at each time step
+\item Stop the simulation when a transition condition occurs, and move from the actual status of the system   to the new one
 \item Run the simulation as performed in step 3 starting from the new coordinates and stop when a new transition condition occurs;
-\item Repeat steps 3 and 4 until a stopping condition is reached;
-\item Repeat 1 through 4 for a large number of calculations (user input);
+\item Repeat steps 3 and 4 until a stopping condition is reached
+\item Repeat 1 through 4 for a large number of calculations (user input)
 \end{enumerate}
-In the Figure~\ref{fig:MCsampling} is reported a scheme of  the interaction between the code and the RAVEN runner in case of Monte-Carlo calculations. The runner basically perform a different seeding of the random number generator and interact, through RAVEN, with the python control logic input in order to sample the variables specified by the user.
+Figure~\ref{fig:MCsampling} shows a scheme of the interaction between the code and the RAVEN runner in case of Monte-Carlo calculations. The runner basically perform a different seeding of the random number generator and interact, through RAVEN, with the \verb!Python! control logic input in order to sample the variables specified by the user.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Graphical User Interface} 
 \label{sec:GUI}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As previously mentioned, a \textbf{G}raphical \textbf{U}ser \textbf{I}nterface is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a Python interface for a C++ based library (Qt) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. 
-\begin{figure}[H]
+As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a Python interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. 
+\begin{figure}
    \centering
     \includegraphics[width=0.9\textwidth]{figures/RavenGUI.PNG}
     \caption{Input/plan Visualization GUI Window.}
@@ -494,13 +506,13 @@ is solved and the set of control parameters for the next time step $v_{t_{i}}$ i
 \Section{DEMO FOR A PWR PRA ANALYSIS} 
 %%%%%%%%%%%%%%%%%%%%%%%%
 In order to show the capabilities of RAVEN coupled with RELAP-7/MOOSE, a simplified PWR PRA analysis has been employed.
-\begin{figure}[H]
+\begin{figure}
    \centering
     \includegraphics[width=0.5\textwidth]{figures/PWR_TMI_SCHEME.PNG}
     \caption{PWR model scheme.}
     \label{fig:PWRmodel}
 \end{figure}
-Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the Downcomers, the Lower Plenum, the Reactor Core Model and the Upper Plenum. Core channels (flow channels with heat structure attached to each of them) were used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. 
+Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the Down-comers, the Lower Plenum, the Reactor Core Model and the Upper Plenum. Core channels (flow channels with heat structure attached to each of them) were used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. 
 %The hot core channel represents the inner hottest zone of the reactor core. The average core channel represents the mid zone of the core and the cold core channel represents the outer zone of the core, respectively. 
 There are two primary loops, i.e., loop A and loop B. Each loop consists of the Hot Leg, a Heat Exchanger and its secondary side pipes, the Cold Leg and a primary Pump. A Pressurizer is attached to the Loop A piping system to control the system pressure. A Time Dependent Volume (pressure boundary conditions) component is used to represent the Pressurizer. Since the RELAP-7 code does not have the two-phase flow capability yet, single-phase counter-current heat exchanger models are implemented to mimic the function of steam generators in order to transfer heat from the primary to the secondary.
 In order to perform a PRA analysis on this simplified model, it has been necessary to control unconventional parameters (i.e. inlet/outlet friction factors), since RELAP-7 still has limitations for the component controllable parameters and models. In the following paragraph, the PRA station black out sequence of events is reported. 
@@ -524,13 +536,13 @@ The SBO transient is based on the following sequence of events (starting from a 
    \item $t_{1}$, recovery of the diesel generators
    \item $t_{2}$, end of transient either for clad failure or 300 seconds of simulation (PRA success)
 \end{itemize}
-Since the aim of this demo is showing the capabilities contained in RAVEN and the RELAP-7 CPU time is still an issue, the transient has been accelerated in order to simulate a maximum of 300 seconds. 
+Since the scope of this demo is to show the capabilities contained in RAVEN and RELAP-7 capabilities are not optimized for long simulation times, the transient has been accelerated in order to simulate a maximum of 300 seconds. 
 In the following paragraph, the simulations results are shown and explained.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Results} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{figure}[H]
+\begin{figure}
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
@@ -547,7 +559,7 @@ In the following paragraph, the simulations results are shown and explained.
 \caption{PRA resutls. Give a title here}
 \label{fig:test}
 \end{figure}
-\begin{figure}[H]
+\begin{figure}
    \centering
     \includegraphics[width=0.8\textwidth]{figures/PRA_limitSurface.PNG}
     \caption{Limit Surface Monte-Carlo sampling.}
