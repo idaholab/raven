@@ -282,7 +282,7 @@ DistributionContainer & DistributionContainer::Instance() {
   return *_instance;
 }
 
-DistributionContainer * DistributionContainer::_instance;
+DistributionContainer * DistributionContainer::_instance = NULL;
 
 /* the str_to_string_p and free_string_p are for python use */
 
