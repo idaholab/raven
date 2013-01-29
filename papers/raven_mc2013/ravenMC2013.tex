@@ -59,7 +59,7 @@
 \newcommand{\authorHead}      % Author's names here
    {A. Alfonsi, C. Rabiti, D. Mandelli, J.J. Cogliati, R.A. Kinoshita}  
 \newcommand{\shortTitle}      % Short title here
-   {RAVEN as a tool for Probabilistic Risk Assessment: Software Overview}  
+   {RAVEN as a tool for Dynamic Probabilistic Risk Assessment: Software Overview}  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %   BEGIN DOCUMENT
@@ -96,7 +96,7 @@
 
 \begin{center}
 \textbf{\large \\%
-RAVEN AS A TOOL FOR PROBABILISTIC RISK ASSESSMENT: SOFTWARE OVERVIEW 
+RAVEN AS A TOOL FOR DYNAMIC PROBABILISTIC RISK ASSESSMENT: SOFTWARE OVERVIEW 
 }
 % 
 % FIRST AUTHORS 
@@ -267,8 +267,8 @@ $\frac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t)$.
 RAVEN has been developed in a high modular and pluggable way in order to enable easy integration of different programming languages (i.e., \verb!C++!, \verb!Python!) and coupling with other applications including the ones based on MOOSE. The code consists of four modules:
 \begin{itemize}
 \item RAVEN/RELAP-7 interface (see Section~\ref{sec:interface})
-\item Python Control Logic (see Section~\ref{sec:pythonControlLogic})
-\item Python Calculation Driver (see Section~\ref{sec:pyhtonCalcDriver})
+\item \verb!Python! Control Logic (see Section~\ref{sec:pythonControlLogic})
+\item \verb!Python! Calculation Driver (see Section~\ref{sec:pyhtonCalcDriver})
 \item Graphical User Interface (see Section~\ref{sec:GUI})
 \end{itemize}
 
@@ -305,7 +305,7 @@ The \emph{RavenMonitored} class provides the connection with the calculation fra
   ...
 []
 \end{lstlisting}
-Within the block identified by the keyword \textbf{Monitored}, the user can specify the monitored quantities that need to be processed during the calculation. Each monitored variable is identified through a \textbf{Raven Alias} (i.e., MaxTempCladCH1), the name that is used in the control logic python input in order to refer to the parameter contained in the simulation.
+Within the block identified by the keyword \textbf{Monitored}, the user can specify the monitored quantities that need to be processed during the calculation. Each monitored variable is identified through a \textbf{Raven Alias} (i.e., MaxTempCladCH1), the name that is used in the control logic \verb!Python! input in order to refer to the parameter contained in the simulation.
 The user has to provide the following information in order to build a monitored variable:
 \begin{itemize}
   \item \textbf{component\_name}, the name of the RELAP-7 component that contains the variable the code must act on;
@@ -335,7 +335,7 @@ The \emph{RavenControlled} class provides the link between RAVEN and RELAP-7/MOO
   ...
 []
 \end{lstlisting}
-Within the block identified by the keyword \textbf{Controlled}, the user can specify the properties that, during the calculation, will be controlled through the \verb!Python! control logic. The name and path of the control logic input file are provided by the parameter  \textbf{control\_logic\_input} (not specifying the ".py" extension). Each controlled variable is identified through a \textbf{Raven Alias} (e.g., power\_fraction\_CH1): the name that is used in the control logic python input in order to refer to the parameter contained in the simulation.
+Within the block identified by the keyword \textbf{Controlled}, the user can specify the properties that, during the calculation, will be controlled through the \verb!Python! control logic. The name and path of the control logic input file are provided by the parameter  \textbf{control\_logic\_input} (not specifying the ".py" extension). Each controlled variable is identified through a \textbf{Raven Alias} (e.g., power\_fraction\_CH1): the name that is used in the control logic \verb!Python! input in order to refer to the parameter contained in the simulation.
 The user has to provide different information in order to build a controlled variable:
 \begin{itemize}
   \item \textbf{component\_name}, the name of the RELAP-7 component that contains the variable the code must act on;
@@ -405,7 +405,7 @@ The form through which the RAVEN variables can be called is the following:
   \item Monitored.RavenAlias.
 \end{itemize}
 Regarding the RavenDistributions mentioned in Section 4.1, they are also available for the control logic in a similar form to the other variable (distributions.RavenAlias(allowable list of arguments) ).
-The implementation of the control logic via python is rater convenient and flexible. The user only needs to know few python syntax rules in order to build an input. Although this extreme simplicity, it will be part of the GUI task to automatize the construction of the control logic scripting in order to minimize user effort. 
+The implementation of the control logic via \verb!Python! is rater convenient and flexible. The user only needs to know few \verb!Python! syntax rules in order to build an input. Although this extreme simplicity, it will be part of the GUI task to automatize the construction of the control logic scripting in order to minimize user effort. 
 \\A small example of a control logic input is reported below: the thermal conductivity of the gap (thermalConductGap) is set equal to the thermal conductivity of the fuel when the fuel temperature (averageFuelTemperature) is greater than 910 K.
 \lstset{
    language=Python,
@@ -449,7 +449,7 @@ The main idea is to run a set of simulations having different dynamic and static
 \item Mission time (i.e., an user specified end time);
 \item Main event (i.e., maximum temperature of the clad or core damage).
 \end{itemize}
-These algorithms have been implemented in the \verb!Python! module called ``Raven Runner''. It consists in a python driver which calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
+These algorithms have been implemented in the \verb!Python! module called ``Raven Runner''. It consists in a \verb!Python! driver which calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
 The multiple calculations, required by the employment of these algorithms, can be run in parallel, using queues/sub-process/\verb!Python! systems.  
 
 \begin{figure}
@@ -478,7 +478,7 @@ Figure~\ref{fig:MCsampling} shows a scheme of the interaction between the code a
 \Subsection{Graphical User Interface} 
 \label{sec:GUI}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a Python interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. 
+As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. 
 \begin{figure}
    \centering
     \includegraphics[width=0.9\textwidth]{figures/RavenGUI.PNG}
@@ -543,7 +543,7 @@ In the following paragraph, the simulations results are shown and explained.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Figure~\ref{fig:distributionResults} shows the distribution of the maximum temperature reached by the clad in the core channels (blue histogram) and compares it with the distribution of clad failure temperature (red histogram).
-Although there is large overlapping of the two distributions, which indicates a high failure probability of the system considered, the scope of the analysis was just to show  RAVEN capabilities to perform stochastic analysis of ralativly complex systems.
+Although there is large overlapping of the two distributions, which indicates a high failure probability of the system considered, the scope of the analysis was just to show  RAVEN capabilities to perform stochastic analysis of relatively complex systems.
 \begin{figure} [H]
 \centering
 \begin{subfigure}{.5\textwidth}
@@ -556,15 +556,18 @@ Although there is large overlapping of the two distributions, which indicates a 
   \includegraphics[width=1\linewidth]{figures/PRA_dist2.png}
   \label{fig:pdf_temp}
 \end{subfigure}
-\caption{Comparison between max reached clad temperature and clad failure temperature distributions.}
+\caption{Comparison between max reached clad temperature and clad failure temperature distributions: binning results (left) and associated probability distribution functions (right)}
 \label{fig:distributionResults}
 \end{figure}
-In addition, Fig.~\ref{fig:limit_surface_rng_temp_and_dg} shows the limit surface, i.e. the boundaries between system faliure (red points) and system success (green points), obtained by the 400 Monte-Carlo simulations. Since only two uncertain paramters have been considerded (i.e., DG recovery time and clad fail temperature), this boundary lies in a 2-dimensional space.
-The slope of the limit surface pictured in Fig.~\ref{fig:limit_surface_rng_temp_and_dg} also shows, in this particular demo, how the DG recovery time has a greater impact on the system dynamics then the failure clad temperature.
+In addition, Fig.~\ref{fig:limit_surface_rng_temp_and_dg} shows the limit surface, i.e. the boundaries between system failure (red points) and system success (green points), obtained by the 400 Monte-Carlo simulations. Since only two uncertain parameters have been considered (i.e., DG recovery time and clad fail temperature), this boundary lies in a 2-dimensional space.
+The slope of the limit surface pictured in Fig.~\ref{fig:limit_surface_rng_temp_and_dg} also shows, in this particular demo, how the DG recovery time has a greater impact on the system dynamics then the clad failure temperature.
+
+We also performed a new set of 400 Monte-Carlo simulations in which now the clad fail temperature is fixed at a predefined value $T_{Fail}=1477.59$ (i.e., there is no triangular distribution associated to it). As expected, the probability of core damage was slightly different among thee two set of simulations. This fact shows how modeling of uncertainties can impact risk evaluation.
+
 \begin{figure}
    \centering
     \includegraphics[width=0.6\textwidth]{figures/PRA_limitSurface.png}
-    \caption{Limit Surface.}
+    \caption{Limit Surface for the SBO analysis of a simplified PWR model}
     \label{fig:limit_surface_rng_temp_and_dg}
 \end{figure}
 %%%%%%%%%%%%%%%%%
@@ -572,8 +575,8 @@ The slope of the limit surface pictured in Fig.~\ref{fig:limit_surface_rng_temp_
 %%%%%%%%%%%%%%%%%
 In this paper it has been presented RAVEN as a tool to perform dynamic PRA through Monte-Carlo sampling. In particular, the software structure and all the components that are involved in the computation have been presented, including system simulator (i.e., RELAP-7) and the control logic, characterized by monitor system dynamics and on-line control of selected parameters.
 An example of PRA analysis has been also presented for a SBO-like case for a simplified PWR loop. 
-The description of the implementation for such case demonstrates how the flexilbility of the software framework provides the basic tools to perform Dynam PRA, uncertainty quantificiation and plant control. 
-Next capabilities, to be implemented to RAVEN and that are currently under development, include dynamic event tree generation, adaptive sampling and more advanced data mining algorithms. 
+The description of the implementation for such case demonstrates how the flexibility of the software framework provides the basic tools to perform Dynamic PRA, uncertainty quantification and plant control. 
+Next capabilities, to be implemented to RAVEN and that are currently under development, include dynamic event tree generation~\cite{ADAPTHakobyan}, adaptive sampling~\cite{mandelliSVMANS} and more advanced data mining algorithms~\cite{mandelliEsrel2011}. 
 
 \bibliographystyle{ieeetr}
 \bibliography{bibl}
