@@ -159,6 +159,7 @@ class DistributionContainer{
 };
 
 std::string * str_to_string_p(char *s);
+const char * string_p_to_str(const std::string * s);
 void free_string_p(std::string * s);
 
 #endif /* DISTRIBUTIONCONTAINER_H_ */

@@ -290,6 +290,10 @@ std::string * str_to_string_p(char *s) {
   return new std::string(s);
 }
 
+const char * string_p_to_str(const std::string * s) {
+  return s->c_str();
+}
+
 void free_string_p(std::string * s) {
   delete s;
 }
