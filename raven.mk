@@ -122,7 +122,7 @@ $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/exec
 $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/distribution1D.i \
                                                  $(RAVEN_DIR)/src/distributions/distribution_1D.C \
                                                  $(RAVEN_DIR)/src/distributions/DistributionContainer.C \
-                                                 $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C
+                                                 $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_LIB)
 # Swig
 	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/ $(libmesh_INCLUDE) \
           -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/distributions/ \
@@ -145,7 +145,7 @@ $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/ravento
                                              $(RAVEN_DIR)/src/tools/pumpCoastdown.C \
                                              $(RAVEN_DIR)/src/tools/decayHeat.C \
                                              $(RAVEN_DIR)/src/tools/powerGrid.C \
-                                             $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C
+                                             $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_LIB)
 # Swig
 	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/tools/  -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/raventools.i
 # Compile
