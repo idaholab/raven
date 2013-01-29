@@ -1,22 +1,23 @@
-This is pdfTeX, Version 3.1415926-2.4-1.40.13 (MiKTeX 2.9) (preloaded format=pdflatex 2013.1.27)  27 JAN 2013 17:00
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  29 JAN 2013 12:21
 entering extended mode
-**C:/Users/Andrea/Desktop/raven_mc2013/ravenMC2013.tex
-(C:/Users/Andrea/Desktop/raven_mc2013/ravenMC2013.tex
-LaTeX2e <2011/06/27>
-Babel <v3.8m> and hyphenation patterns for english, afrikaans, ancientgreek, ar
-abic, armenian, assamese, basque, bengali, bokmal, bulgarian, catalan, coptic, 
-croatian, czech, danish, dutch, esperanto, estonian, farsi, finnish, french, ga
-lician, german, german-x-2012-05-30, greek, gujarati, hindi, hungarian, iceland
-ic, indonesian, interlingua, irish, italian, kannada, kurmanji, latin, latvian,
- lithuanian, malayalam, marathi, mongolian, mongolianlmc, monogreek, ngerman, n
-german-x-2012-05-30, nynorsk, oriya, panjabi, pinyin, polish, portuguese, roman
-ian, russian, sanskrit, serbian, slovak, slovenian, spanish, swedish, swissgerm
-an, tamil, telugu, turkish, turkmen, ukenglish, ukrainian, uppersorbian, usengl
-ishmax, welsh, loaded.
-(C:\Users\Andrea\Desktop\raven_mc2013\mc2013.cls
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\base\article.cls"
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**ravenMC2013.tex
+(./ravenMC2013.tex
+LaTeX2e <2009/09/24>
+Babel <v3.8l> and hyphenation patterns for english, dumylang, nohyphenation, ge
+rman-x-2009-06-19, ngerman-x-2009-06-19, ancientgreek, ibycus, arabic, armenian
+, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danish, dutch, u
+kenglish, usenglishmax, esperanto, estonian, farsi, finnish, french, galician, 
+german, ngerman, swissgerman, monogreek, greek, hungarian, icelandic, assamese,
+ bengali, gujarati, hindi, kannada, malayalam, marathi, oriya, panjabi, tamil, 
+telugu, indonesian, interlingua, irish, italian, kurmanji, lao, latin, latvian,
+ lithuanian, mongolian, mongolianlmc, bokmal, nynorsk, polish, portuguese, roma
+nian, russian, sanskrit, serbian, slovak, slovenian, spanish, swedish, turkish,
+ turkmen, ukrainian, uppersorbian, welsh, loaded.
+(./mc2013.cls (/usr/local/texlive/2010/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\base\size11.clo"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/base/size11.clo
 File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count79
@@ -34,18 +35,19 @@ File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 Loading MC2013 document class: includes [11pt,twoside]{article}
 adapted by R.C. Martineau at INL from A. Sood at LANL, from J. Wagner (ORNL) wh
 o obtained the original class file by Jim Warsa, LANL, 16 July 2002
-(C:\Users\Andrea\Desktop\raven_mc2013\citesort.sty
+(./citesort.sty
 \@minsofar=\count87
 \@min=\count88
 \@cite@temp=\count89
 )
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\setspace\setspace.sty
-Package: setspace 2011/12/19 v6.7a set line spacing
-)
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\tools\indentfirst.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/setspace/setspace.sty
+Package: setspace 2000/12/01 6.7 Contributed and Supported LaTeX2e package
+
+Package: `setspace' 6.7 <2000/12/01>
+) (/usr/local/texlive/2010/texmf-dist/tex/latex/tools/indentfirst.sty
 Package: indentfirst 1995/11/23 v1.03 Indent first paragraph (DPC)
 )
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\fancyhdr\fancyhdr.sty
+(/usr/local/texlive/2010/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty
 \fancy@headwidth=\skip43
 \f@ncyO@elh=\skip44
 \f@ncyO@erh=\skip45
@@ -56,13 +58,13 @@ Package: indentfirst 1995/11/23 v1.03 Indent first paragraph (DPC)
 \f@ncyO@olf=\skip50
 \f@ncyO@orf=\skip51
 )
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\tools\afterpage.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/tools/afterpage.sty
 Package: afterpage 1995/10/27 v1.08 After-Page Package (DPC)
 \AP@output=\toks14
 \AP@partial=\box26
 \AP@footins=\box27
 )
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\times.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/times.sty
 Package: times 2005/04/12 PSNFSS-v9.2a (SPQR) 
 )
 \c@l@stpage=\count90
@@ -71,67 +73,59 @@ Package: caption v1.4b <1995/04/05> (Harald Sommerfeldt)
 \captionmargin=\skip52
 \as@captionbox=\box28
 \as@captionwidth=\skip53
-) ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\graphicx.sty"
+) (/usr/local/texlive/2010/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\keyval.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 \KV@toks@=\toks15
 )
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\graphics.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\trig.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/graphics/trig.sty
 Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
 )
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\00miktex\graphics.cfg"
-File: graphics.cfg 2007/01/18 v1.5 graphics configuration of teTeX/TeXLive
+(/usr/local/texlive/2010/texmf-dist/tex/latex/latexconfig/graphics.cfg
+File: graphics.cfg 2010/04/23 v1.9 graphics configuration of TeX Live
 )
 Package graphics Info: Driver file: pdftex.def on input line 91.
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\pdftex-def\pdftex.def"
-File: pdftex.def 2011/05/27 v0.06d Graphics/color for pdfTeX
-
-("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\infwarerr.sty"
-Package: infwarerr 2010/04/08 v1.3 Providing info/warning/error messages (HO)
-)
-("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\ltxcmds.sty"
-Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
-)
+(/usr/local/texlive/2010/texmf-dist/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2010/02/14 v0.04n Graphics/color for pdfTeX
 \Gread@gobject=\count91
 ))
 \Gin@req@height=\dimen103
 \Gin@req@width=\dimen104
 )
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\tabls\tabls.sty
+(/usr/local/texlive/2010/texmf-dist/tex/latex/tabls/tabls.sty
 \tablinesep=\dimen105
 \arraylinesep=\dimen106
 \extrarulesep=\dimen107
 \@arstdepth=\dimen108
 \@arstheight=\dimen109
 \@skip@bove=\dimen110
-)
-(C:\Users\Andrea\Desktop\raven_mc2013\cites.sty
+) (./cites.sty
 Document Substyle `CITES' modified by MPI FKF, Version 1.1, 06.04.89
 \@tempcntc=\count92
-) ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\ams\math\amsmath.sty"
+) (/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2000/07/18 v2.13 AMS math features
 \@mathmargin=\skip54
 
 For additional information on amsmath, use the `?' option.
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\ams\math\amstext.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amstext.sty
 Package: amstext 2000/06/29 v2.01
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\ams\math\amsgen.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0
 \@emptytoks=\toks16
 \ex@=\dimen111
 ))
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\ams\math\amsbsy.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d
 \pmbraise@=\dimen112
 )
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\ams\math\amsopn.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 1999/12/14 v2.01 operator names
 )
 \inf@bad=\count93
@@ -172,17 +166,17 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 568.
 LaTeX Info: Redefining \[ on input line 2666.
 LaTeX Info: Redefining \] on input line 2667.
 )
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\amsfonts\amssymb.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/amssymb.sty
 Package: amssymb 2009/06/22 v3.00
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\amsfonts\amsfonts.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/amsfonts.sty
 Package: amsfonts 2009/06/22 v3.00 Basic AMSFonts support
 \symAMSa=\mathgroup4
 \symAMSb=\mathgroup5
 LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 (Font)                  U/euf/m/n --> U/euf/b/n on input line 96.
 ))
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\listings\listings.sty
+(/usr/local/texlive/2010/texmf-dist/tex/latex/listings/listings.sty
 \lst@mode=\count105
 \lst@gtempboxa=\box31
 \lst@token=\toks21
@@ -196,18 +190,18 @@ LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 \lst@lineno=\count110
 \lst@maxwidth=\dimen123
 
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\listings\lstmisc.sty
+(/usr/local/texlive/2010/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2007/02/22 1.4 (Carsten Heinz)
 \c@lstnumber=\count111
 \lst@skipnumbers=\count112
 \lst@framebox=\box32
 )
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\listings\listings.cfg
+(/usr/local/texlive/2010/texmf-dist/tex/latex/listings/listings.cfg
 File: listings.cfg 2007/02/22 1.4 listings configuration
 ))
 Package: listings 2007/02/22 1.4 (Carsten Heinz)
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\float\float.sty"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/float/float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \c@float@type=\count113
 \float@exts=\toks22
@@ -215,20 +209,19 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \@float@everytoks=\toks23
 \@floatcapt=\box34
 )
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\caption\caption.sty
-Package: caption 2013/01/06 v3.3 Customizing captions (AR)
+(/usr/local/texlive/2010/texmf-dist/tex/latex/caption/caption.sty
+Package: caption 2010/01/09 v3.1m Customizing captions (AR)
 
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\caption\caption3.sty
-Package: caption3 2013/01/06 v1.5 caption3 kernel (AR)
+(/usr/local/texlive/2010/texmf-dist/tex/latex/caption/caption3.sty
+Package: caption3 2010/01/14 v3.1m caption3 kernel (AR)
 \captionmargin=\dimen124
 \captionmargin@=\dimen125
 \captionwidth=\dimen126
-\caption@tempdima=\dimen127
-\caption@indent=\dimen128
-\caption@parindent=\dimen129
-\caption@hangindent=\dimen130
+\caption@indent=\dimen127
+\caption@parindent=\dimen128
+\caption@hangindent=\dimen129
 Package caption Info: Unknown document class (or package),
-(caption)             standard defaults will be used.
+(caption)             standard defaults will be used on input line 1084.
 )
 
 Package caption Warning: Unsupported document class (or package) detected,
@@ -241,35 +234,40 @@ lowcaptionskip .
 \c@ContinuedFloat=\count114
 Package caption Info: float package is loaded.
 Package caption Info: listings package is loaded.
-) (C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\caption\subcaption.sty
-Package: subcaption 2012/04/09 v1.1f Sub-captions (AR)
+) (/usr/local/texlive/2010/texmf-dist/tex/latex/caption/subcaption.sty
+Package: subcaption 2008/08/31 v1.0b Adding subcaptions (AR)
 \c@subfigure=\count115
 \c@subtable=\count116
-) (C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\tex-gyre\tgheros.sty
+)
+(/usr/local/texlive/2010/texmf-dist/tex/latex/tools/verbatim.sty
+Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks24
+\verbatim@line=\toks25
+\verbatim@in@stream=\read1
+)
+(/usr/local/texlive/2010/texmf-dist/tex/latex/tex-gyre/tgheros.sty
 Package: tgheros 2009/09/27 v1.2 TeX Gyre Heros as default sans serif family
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\oberdiek\kvoptions.sty"
-Package: kvoptions 2011/06/30 v3.11 Key value format for package options (HO)
+(/usr/local/texlive/2010/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+Package: kvoptions 2010/02/22 v3.7 Keyval support for LaTeX options (HO)
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\kvsetkeys.sty"
-Package: kvsetkeys 2012/04/25 v1.16 Key value parser (HO)
+(/usr/local/texlive/2010/texmf-dist/tex/generic/oberdiek/kvsetkeys.sty
+Package: kvsetkeys 2010/03/01 v1.9 Key value parser (HO)
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\etexcmds.sty"
-Package: etexcmds 2011/02/16 v1.5 Avoid name clashes with e-TeX commands (HO)
-
-("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\ifluatex.sty"
-Package: ifluatex 2010/03/01 v1.3 Provides the ifluatex switch (HO)
-Package ifluatex Info: LuaTeX not detected.
+(/usr/local/texlive/2010/texmf-dist/tex/generic/oberdiek/infwarerr.sty
+Package: infwarerr 2010/04/08 v1.3 Providing info/warning/message (HO)
 )
+(/usr/local/texlive/2010/texmf-dist/tex/generic/oberdiek/etexcmds.sty
+Package: etexcmds 2010/01/28 v1.3 Prefix for e-TeX command names (HO)
 Package etexcmds Info: Could not find \expanded.
 (etexcmds)             That can mean that you are not using pdfTeX 1.50 or
 (etexcmds)             that some package has redefined \expanded.
 (etexcmds)             In the latter case, load this package earlier.
 ))))
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\xcolor\xcolor.sty
+(/usr/local/texlive/2010/texmf-dist/tex/latex/xcolor/xcolor.sty
 Package: xcolor 2007/01/21 v2.11 LaTeX color extensions (UK)
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\00miktex\color.cfg"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/latexconfig/color.cfg
 File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
 )
 Package xcolor Info: Driver file: pdftex.def on input line 225.
@@ -283,56 +281,87 @@ Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1358.
 Package xcolor Info: Model `Gray' substituted by `gray' on input line 1359.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1360.
 )
-(C:\Users\Andrea\Desktop\raven_mc2013\ravenMC2013.aux)
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 67.
-LaTeX Font Info:    ... okay on input line 67.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 67.
-LaTeX Font Info:    ... okay on input line 67.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 67.
-LaTeX Font Info:    ... okay on input line 67.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 67.
-LaTeX Font Info:    ... okay on input line 67.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 67.
-LaTeX Font Info:    ... okay on input line 67.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 67.
-LaTeX Font Info:    ... okay on input line 67.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 67.
+(./ravenMC2013.aux)
+\openout1 = `ravenMC2013.aux'.
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\ot1ptm.fd"
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 68.
+LaTeX Font Info:    ... okay on input line 68.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 68.
+LaTeX Font Info:    ... okay on input line 68.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 68.
+LaTeX Font Info:    ... okay on input line 68.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 68.
+LaTeX Font Info:    ... okay on input line 68.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 68.
+LaTeX Font Info:    ... okay on input line 68.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 68.
+LaTeX Font Info:    ... okay on input line 68.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 68.
+
+(/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\context\base\supp-pdf.mkii
+(/usr/local/texlive/2010/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count117
-\scratchdimen=\dimen131
+\scratchdimen=\dimen130
 \scratchbox=\box35
 \nofMPsegments=\count118
 \nofMParguments=\count119
-\everyMPshowfont=\toks24
+\everyMPshowfont=\toks26
 \MPscratchCnt=\count120
-\MPscratchDim=\dimen132
+\MPscratchDim=\dimen131
 \MPnumerator=\count121
-\makeMPintoPDFobject=\count122
-\everyMPtoPDFconversion=\toks25
+\everyMPtoPDFconversion=\toks27
+) (/usr/local/texlive/2010/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
+Package: pdftexcmds 2010/04/01 v0.9 Utility functions of pdfTeX for LuaTeX (HO)
+
+
+(/usr/local/texlive/2010/texmf-dist/tex/generic/oberdiek/ifluatex.sty
+Package: ifluatex 2010/03/01 v1.3 Provides the ifluatex switch (HO)
+Package ifluatex Info: LuaTeX not detected.
 )
-\c@lstlisting=\count123
+(/usr/local/texlive/2010/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+Package: ltxcmds 2010/04/26 v1.7 LaTeX kernel commands for general use (HO)
+)
+Package pdftexcmds Info: LuaTeX not detected.
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+)
+(/usr/local/texlive/2010/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+Package: epstopdf-base 2010/02/09 v2.5 Base part for package epstopdf
+
+(/usr/local/texlive/2010/texmf-dist/tex/latex/oberdiek/grfext.sty
+Package: grfext 2007/09/30 v1.0 Managing graphics extensions (HO)
+)
+Package grfext Info: Graphics extension search list:
+(grfext)             [.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 436.
+
+(/usr/local/texlive/2010/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
+\c@lstlisting=\count122
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: End \AtBeginDocument code.
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 109.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 110.
 
- ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\omsptm.fd"
+
+(/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 109.
-LaTeX Font Info:    Try loading font information for U+msa on input line 150.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 110.
+LaTeX Font Info:    Try loading font information for U+msa on input line 154.
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\amsfonts\umsa.fd"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 150.
+LaTeX Font Info:    Try loading font information for U+msb on input line 154.
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\amsfonts\umsb.fd"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 )
 
@@ -341,136 +370,109 @@ Package Fancyhdr Warning: \headheight is too small (14.0pt):
  We now make it that large for the rest of the document.
  This may cause the page layout to be inconsistent, however.
 
-[1{C:/Users/Andrea/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}
+[1{/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
-] [2]
+]
+[2]
+
+LaTeX Warning: Citation `MOOSE' on page 3 undefined on input line 247.
+
 Missing character: There is no ‚ in font ptmr7t!
 Missing character: There is no Ä in font ptmr7t!
 Missing character: There is no ú in font ptmr7t!
 Missing character: There is no ‚ in font ptmr7t!
 Missing character: There is no Ä in font ptmr7t!
 Missing character: There is no ù in font ptmr7t!
-
-<figures/ControlSystemSoftwareLayout.pdf, id=19, 722.7pt x 542.025pt>
+<figures/ControlSystemSoftwareLayout.pdf, id=20, 722.7pt x 542.025pt>
 File: figures/ControlSystemSoftwareLayout.pdf Graphic file (type pdf)
 
 <use figures/ControlSystemSoftwareLayout.pdf>
-Package pdftex.def Info: figures/ControlSystemSoftwareLayout.pdf used on input 
-line 252.
-(pdftex.def)             Requested size: 234.87749pt x 176.15604pt.
-
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[3] [4 <C:/Users/Andrea/Desktop/raven_mc2013/figures/ControlSystemSoftwareLayou
-t.pdf>] [5] [6]
-(C:\Users\Andrea\AppData\Roaming\MiKTeX\2.9\tex\latex\listings\lstlang1.sty
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 267.
+
+(/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/ot1pcr.fd
+File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
+) [3] [4 <./figures/ControlSystemSoftwareLayout.pdf>] [5]
+Overfull \hbox (13.44159pt too wide) in paragraph at lines 342--343
+[]\OT1/ptm/b/n/10.95 property[]name\OT1/ptm/m/n/10.95 , the vari-able name and 
+its lo-ca-tion within the cal-cu-la-tion frame-work (RELAP-7/MOOSE
+ []
+
+[6] (/usr/local/texlive/2010/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2004/09/05 1.3 listings language file
 )
-LaTeX Font Info:    Try loading font information for OML+ptm on input line 410.
+LaTeX Font Info:    Try loading font information for OML+ptm on input line 420.
 
 
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\psnfss\omlptm.fd"
+(/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/omlptm.fd
 File: omlptm.fd 
 )
 LaTeX Font Info:    Font shape `OML/ptm/m/n' in size <9> not available
-(Font)              Font shape `OML/cmm/m/it' tried instead on input line 410.
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 420.
 
-<figures/CalculationFlow_part_1.PNG, id=495, 1092.08pt x 1233.60875pt>
+<figures/CalculationFlow_part_1.PNG, id=500, 1092.08pt x 1233.60875pt>
 File: figures/CalculationFlow_part_1.PNG Graphic file (type png)
 
 <use figures/CalculationFlow_part_1.PNG>
-Package pdftex.def Info: figures/CalculationFlow_part_1.PNG used on input line 
-416.
-(pdftex.def)             Requested size: 328.82706pt x 371.44077pt.
- [7]
 <figures/CalculationFlow_part_2.PNG, id=501, 1026.83624pt x 872.25874pt>
 File: figures/CalculationFlow_part_2.PNG Graphic file (type png)
 
-<use figures/CalculationFlow_part_2.PNG>
-Package pdftex.def Info: figures/CalculationFlow_part_2.PNG used on input line 
-423.
-(pdftex.def)             Requested size: 328.82706pt x 279.32814pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [8 <C:/Users/Andrea/Desktop/raven_mc2013/figures/CalculationFlow_part_1.PNG>]
-<figures/sampling_mc.PNG, id=505, 432.61626pt x 594.22pt>
+<use figures/CalculationFlow_part_2.PNG> [7] [8 <./figures/CalculationFlow_part
+_1.PNG (PNG copy)>] <figures/sampling_mc.PNG, id=510, 432.61626pt x 594.22pt>
 File: figures/sampling_mc.PNG Graphic file (type png)
 
-<use figures/sampling_mc.PNG>
-Package pdftex.def Info: figures/sampling_mc.PNG used on input line 446.
-(pdftex.def)             Requested size: 187.89912pt x 258.08466pt.
- [9 <C:/Users/Andrea/Desktop/raven_mc2013/figures/CalculationFlow_part_2.PNG>] 
-[10 <C:/Users/Andrea/Desktop/raven_mc2013/figures/sampling_mc.PNG>] <figures/Ra
-venGUI.PNG, id=512, 1280.785pt x 727.71875pt>
+<use figures/sampling_mc.PNG> [9 <./figures/CalculationFlow_part_2.PNG (PNG cop
+y)>] [10 <./figures/sampling_mc.PNG (PNG copy)>]
+<figures/RavenGUI.PNG, id=517, 1280.785pt x 727.71875pt>
 File: figures/RavenGUI.PNG Graphic file (type png)
 
-<use figures/RavenGUI.PNG>
-Package pdftex.def Info: figures/RavenGUI.PNG used on input line 472.
-(pdftex.def)             Requested size: 422.77661pt x 240.20345pt.
- [11 <C:/Users/Andrea/Desktop/raven_mc2013/figures/RavenGUI.PNG>] <figures/PWR_
-TMI_SCHEME.PNG, id=518, 936.49875pt x 629.35126pt>
+<use figures/RavenGUI.PNG> [11 <./figures/RavenGUI.PNG>]
+<figures/PWR_TMI_SCHEME.PNG, id=523, 936.49875pt x 629.35126pt>
 File: figures/PWR_TMI_SCHEME.PNG Graphic file (type png)
 
-<use figures/PWR_TMI_SCHEME.PNG>
-Package pdftex.def Info: figures/PWR_TMI_SCHEME.PNG used on input line 499.
-(pdftex.def)             Requested size: 234.87749pt x 157.83678pt.
- [12 <C:/Users/Andrea/Desktop/raven_mc2013/figures/PWR_TMI_SCHEME.PNG>]
-<figures/PRA_dist1.PNG, id=522, 421.575pt x 316.18124pt>
-File: figures/PRA_dist1.PNG Graphic file (type png)
+<use figures/PWR_TMI_SCHEME.PNG> [12 <./figures/PWR_TMI_SCHEME.PNG (PNG copy)>]
+<figures/PRA_dist1.png, id=527, 421.575pt x 316.18124pt>
+File: figures/PRA_dist1.png Graphic file (type png)
 
-<use figures/PRA_dist1.PNG>
-Package pdftex.def Info: figures/PRA_dist1.PNG used on input line 537.
-(pdftex.def)             Requested size: 234.87749pt x 176.1581pt.
+<use figures/PRA_dist1.png>
+<figures/PRA_dist2.png, id=528, 421.575pt x 316.18124pt>
+File: figures/PRA_dist2.png Graphic file (type png)
 
-Underfull \hbox (badness 1412) in paragraph at lines 538--538
-[]\OT1/ptm/m/n/10 (a) |Prob-a-bilis-tic dis-tri-bu-tion func-tion for Monte-Car
-lo
- []
+<use figures/PRA_dist2.png>
+<figures/PRA_limitSurface.png, id=529, 421.575pt x 316.18124pt>
+File: figures/PRA_limitSurface.png Graphic file (type png)
 
-<figures/PRA_dist2.PNG, id=523, 421.575pt x 316.18124pt>
-File: figures/PRA_dist2.PNG Graphic file (type png)
-
-<use figures/PRA_dist2.PNG>
-Package pdftex.def Info: figures/PRA_dist2.PNG used on input line 543.
-(pdftex.def)             Requested size: 234.87749pt x 176.1581pt.
-
-<figures/PRA_limitSurface.PNG, id=524, 421.575pt x 316.18124pt>
-File: figures/PRA_limitSurface.PNG Graphic file (type png)
-
-<use figures/PRA_limitSurface.PNG>
-Package pdftex.def Info: figures/PRA_limitSurface.PNG used on input line 552.
-(pdftex.def)             Requested size: 375.80542pt x 281.85875pt.
- [13 <C:/Users/Andrea/Desktop/raven_mc2013/figures/PRA_dist1.PNG (PNG copy)> <C
-:/Users/Andrea/Desktop/raven_mc2013/figures/PRA_dist2.PNG (PNG copy)>] (C:\User
-s\Andrea\Desktop\raven_mc2013\ravenMC2013.bbl) [14 <C:/Users/Andrea/Desktop/rav
-en_mc2013/figures/PRA_limitSurface.PNG>]
-(C:\Users\Andrea\Desktop\raven_mc2013\ravenMC2013.aux) ) 
+<use figures/PRA_limitSurface.png> [13 <./figures/PRA_dist1.png (PNG copy)> <./
+figures/PRA_dist2.png (PNG copy)>] (./ravenMC2013.bbl [14 <./figures/PRA_limitS
+urface.png>]) [15] (./ravenMC2013.aux) ) 
 Here is how much of TeX's memory you used:
- 5508 strings out of 493921
- 80227 string characters out of 3144873
- 163889 words of memory out of 3000000
- 8695 multiletter control sequences out of 15000+200000
- 24916 words of font info for 53 fonts, out of 3000000 for 9000
- 841 hyphenation exceptions out of 8191
- 37i,12n,45p,1125b,1536s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Program Files (x86)
-/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc}<C:/Program Files (x86)/MiKTeX 2.9/
-fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fo
-nts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Program Files (x86)/MiKTeX 2.9/font
-s/type1/public/amsfonts/cm/cmmi6.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/t
-ype1/public/amsfonts/cm/cmmi8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type
-1/public/amsfonts/cm/cmmi9.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/p
-ublic/amsfonts/cm/cmr10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/publ
-ic/amsfonts/cm/cmr8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/a
-msfonts/cm/cmsy10.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/ams
-fonts/cm/cmsy8.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utm
-b8a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><C:
-/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ravenMC2013.pdf (14 pages, 1110476 bytes).
+ 5480 strings out of 493747
+ 79395 string characters out of 3143546
+ 165149 words of memory out of 3000000
+ 8645 multiletter control sequences out of 15000+200000
+ 25431 words of font info for 55 fonts, out of 3000000 for 9000
+ 714 hyphenation exceptions out of 8191
+ 36i,12n,45p,779b,1541s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/local/texlive/2010/texmf-dist/fon
+ts/enc/dvips/base/8r.enc}</usr/local/texlive/2010/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/
+amsfonts/cm/cmmi10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/a
+msfonts/cm/cmmi6.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/ams
+fonts/cm/cmmi8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmmi9.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfont
+s/cm/cmr10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/
+cm/cmr8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmsy10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/c
+msy8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb
+></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/loc
+al/texlive/2010/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive
+/2010/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on ravenMC2013.pdf (15 pages, 1174640 bytes).
 PDF statistics:
- 572 PDF objects out of 1000 (max. 8388607)
+ 584 PDF objects out of 1000 (max. 8388607)
+ 379 compressed objects within 4 object streams
  0 named destinations out of 1000 (max. 500000)
  46 words of extra memory for PDF output out of 10000 (max. 10000000)
 

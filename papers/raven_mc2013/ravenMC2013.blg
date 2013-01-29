@@ -1,3 +1,48 @@
-This is BibTeX, Version 0.99dThe top-level auxiliary file: ravenMC2013.aux
+This is BibTeX, Version 0.99d (TeX Live 2010)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: ravenMC2013.aux
 The style file: ieeetr.bst
 Database file #1: bibl.bib
+Warning--I didn't find a database entry for "MOOSE"
+You've used 4 entries,
+            1876 wiz_defined-function locations,
+            503 strings with 4412 characters,
+and the built_in function-call counts, 1142 in all, are:
+= -- 94
+> -- 68
+< -- 2
++ -- 24
+- -- 20
+* -- 91
+:= -- 181
+add.period$ -- 4
+call.type$ -- 4
+change.case$ -- 4
+chr.to.int$ -- 0
+cite$ -- 4
+duplicate$ -- 54
+empty$ -- 99
+format.name$ -- 20
+if$ -- 265
+int.to.chr$ -- 0
+int.to.str$ -- 4
+missing$ -- 2
+newline$ -- 15
+num.names$ -- 4
+pop$ -- 16
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 35
+stack$ -- 0
+substring$ -- 56
+swap$ -- 20
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 8
+width$ -- 5
+write$ -- 40
+(There was 1 warning)
