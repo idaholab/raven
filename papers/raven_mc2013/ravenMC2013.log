@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  29 JAN 2013 12:21
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  30 JAN 2013 09:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -374,16 +374,13 @@ Package Fancyhdr Warning: \headheight is too small (14.0pt):
 
 ]
 [2]
-
-LaTeX Warning: Citation `MOOSE' on page 3 undefined on input line 247.
-
 Missing character: There is no ‚ in font ptmr7t!
 Missing character: There is no Ä in font ptmr7t!
 Missing character: There is no ú in font ptmr7t!
 Missing character: There is no ‚ in font ptmr7t!
 Missing character: There is no Ä in font ptmr7t!
 Missing character: There is no ù in font ptmr7t!
-<figures/ControlSystemSoftwareLayout.pdf, id=20, 722.7pt x 542.025pt>
+ <figures/ControlSystemSoftwareLayout.pdf, id=20, 722.7pt x 542.025pt>
 File: figures/ControlSystemSoftwareLayout.pdf Graphic file (type pdf)
 
 <use figures/ControlSystemSoftwareLayout.pdf>
@@ -440,21 +437,21 @@ File: figures/PRA_dist1.png Graphic file (type png)
 <figures/PRA_dist2.png, id=528, 421.575pt x 316.18124pt>
 File: figures/PRA_dist2.png Graphic file (type png)
 
-<use figures/PRA_dist2.png>
-<figures/PRA_limitSurface.png, id=529, 421.575pt x 316.18124pt>
+<use figures/PRA_dist2.png> [13 <./figures/PRA_dist1.png (PNG copy)> <./figures
+/PRA_dist2.png (PNG copy)>]
+<figures/PRA_limitSurface.png, id=533, 421.575pt x 316.18124pt>
 File: figures/PRA_limitSurface.png Graphic file (type png)
 
-<use figures/PRA_limitSurface.png> [13 <./figures/PRA_dist1.png (PNG copy)> <./
-figures/PRA_dist2.png (PNG copy)>] (./ravenMC2013.bbl [14 <./figures/PRA_limitS
+<use figures/PRA_limitSurface.png> (./ravenMC2013.bbl [14 <./figures/PRA_limitS
 urface.png>]) [15] (./ravenMC2013.aux) ) 
 Here is how much of TeX's memory you used:
- 5480 strings out of 493747
- 79395 string characters out of 3143546
- 165149 words of memory out of 3000000
- 8645 multiletter control sequences out of 15000+200000
+ 5483 strings out of 493747
+ 79445 string characters out of 3143546
+ 165169 words of memory out of 3000000
+ 8648 multiletter control sequences out of 15000+200000
  25431 words of font info for 55 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 36i,12n,45p,779b,1541s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 36i,12n,45p,769b,1541s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/local/texlive/2010/texmf-dist/fon
 ts/enc/dvips/base/8r.enc}</usr/local/texlive/2010/texmf-dist/fonts/type1/public
 /amsfonts/cm/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/
@@ -469,7 +466,7 @@ msy8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb
 ></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/loc
 al/texlive/2010/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive
 /2010/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on ravenMC2013.pdf (15 pages, 1174640 bytes).
+Output written on ravenMC2013.pdf (15 pages, 1179111 bytes).
 PDF statistics:
  584 PDF objects out of 1000 (max. 8388607)
  379 compressed objects within 4 object streams
