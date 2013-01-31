@@ -32,12 +32,6 @@
   Demonstration of a Steady State Single Phase PWR Simulation with RELAP-7,}
   Tech. Rep. INL/EXT-12-25924, Idaho National Laboratory (INL) (2012).
 
-\bibitem{mandelliANS_RISMC}
-\MakeUppercase{D.~Mandelli} and \MakeUppercase{C.~Smith}, \enquote{Integrating
-  Safety Assessment Methods Using the Risk Informed Safety Margins
-  Characterization (RISMC) Approach,} in \enquote{Proceeding of American
-  Nuclear Society (ANS), San Diego (CA),}  (2012), vol. 107, pp. 883--885.
-
 \bibitem{ADAPTHakobyan}
 \MakeUppercase{A.~Hakobyan}, \MakeUppercase{T.~Aldemir},
   \MakeUppercase{R.~Denning}, \MakeUppercase{S.~Dunagan},
@@ -46,15 +40,21 @@
   progression event trees,} \emph{Nuclear Engineering and Design},
   \textbf{238}, 12, 3457 -- 3467 (2008).
 
-\bibitem{mandelliSVMANS}
-\MakeUppercase{D.~Mandelli} and \MakeUppercase{C.~Smith}, \enquote{Adaptive
-  Sampling Using Support Vector Machines,} in \enquote{Proceeding of American
-  Nuclear Society (ANS), San Diego (CA),}  (2012), vol. 107, pp. 736--738.
-
 \bibitem{mandelliEsrel2011}
 \MakeUppercase{D.~Mandelli}, \MakeUppercase{A.~Yilmaz}, and
   \MakeUppercase{T.~Aldemir}, \enquote{Scenario Analysis and PRA: Overview and
   Lessons Learned,} in \enquote{Proceedings of European Safety and Reliability
   Conference (ESREL 2011), Troyes (France),}  (2011).
+
+\bibitem{mandelliANS_RISMC}
+\MakeUppercase{D.~Mandelli} and \MakeUppercase{C.~Smith}, \enquote{Integrating
+  Safety Assessment Methods Using the Risk Informed Safety Margins
+  Characterization (RISMC) Approach,} in \enquote{Proceeding of American
+  Nuclear Society (ANS), San Diego (CA),}  (2012), vol. 107, pp. 883--885.
+
+\bibitem{mandelliSVMANS}
+\MakeUppercase{D.~Mandelli} and \MakeUppercase{C.~Smith}, \enquote{Adaptive
+  Sampling Using Support Vector Machines,} in \enquote{Proceeding of American
+  Nuclear Society (ANS), San Diego (CA),}  (2012), vol. 107, pp. 736--738.
 
 \end{thebibliography}

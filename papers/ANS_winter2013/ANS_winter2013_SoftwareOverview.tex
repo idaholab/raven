@@ -13,6 +13,8 @@
 \usepackage{amsmath}
 % \usepackage{fmtcount}
 
+\usepackage[none]{hyphenat}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{RAVEN: A TOOL FOR PROBABILISTIC RISK ASSESSMENT}
 \author{A. Alfonsi \and  C. Rabiti \and D. Mandelli \and J.J. Cogliati \and R.A. Kinoshita}
@@ -47,8 +49,8 @@ Idaho National Laboratory
 \section{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software framework that acts as the control logic driver for the Thermo-Hydraylic code RELAP-7, a newly developed software at Idaho National Laboratory. The aim of this paper is to provide an overview of the software structure and its utilization in conjunction with RELAP-7/MOOSE~\cite{MOOSE,relap7FY12}. RAVEN is a multi-purpose Probabilistic Risk Assement (PRA) code that allows dispatching different functionalities. 
-It is designed to derive and actuate the control logic required to simulate the plant control system and operator actions (guided procedures) and to perform both Monte-Carlo sampling of random distributed events and event tree based analysis. 
-In order to assist the user in the input/output handling, a Graphical User Interface (GUI) and a post-processing data mining module, based on dimensionality and cardinality reduction, are available.
+It is designed to derive and actuate the control logic required to simulate the plant control system and operator actions (guided procedures) and to perform both Monte-Carlo sampling of random distributed events and dynamic event tree based analysis~\cite{ADAPTHakobyan}. 
+In order to assist the user in the input/output handling, a Graphical User Interface (GUI) and a post-processing data mining module, based on dimensionality and cardinality reduction~\cite{mandelliEsrel2011}, are available.
 This paper wants to point up the link between the software layout and the mathematical framework from which its structure is derived. In order to show some capabilities, a demo of a Station Black Out (SBO) analysis of a simplified Pressurized Water Reactor (PWR) model is reported.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{MATHEMATICAL FRAMEWORK}
@@ -64,6 +66,7 @@ In the above equation it is assumed the time differentiability in the phase spac
 \bar{\theta}=\binom{\bar{x}}{\bar{v}}
 \label{eq:firstDecomposition}
 \end{equation}
+
 The decomposition is made in such a way that $\bar{x}$ represents the unknowns solved by RELAP-7, while $\bar{v}$ are the variables directly controlled by the control system (i.e., RAVEN). Equation~\ref{eq:SystemDynamics} can now be rewritten as follows:
 \begin{equation}
 \begin{cases} 
@@ -98,6 +101,7 @@ Thus, RAVEN is using this approach to solve Eq.~\ref{eq:generalSystemEquationwit
 \label{eq:generalSystemEquationwithControlSplitting}
 \end{equation}
 Even if all information needed is contained in $\bar{x}$ and $\bar{v}$, it is not a practical and efficient way to implement the control system. Hence, a system of auxiliary variables has been introduced.
+
 The auxiliary variables are those that in statistical analysis are artificially added to non-Markovian systems into the space phase to obtain a Markovian behavior back, so that only the information of the previous time step is needed to determine the future status of the system.
 These variables can be classified into two types: 
 \begin{itemize}
@@ -121,12 +125,13 @@ Thus, the introduction of the auxiliary system into the mathematical framework l
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
 \centering
-\includegraphics[width=0.4\textwidth]{figures/ControlSystemSoftwareLayout.pdf}
+\includegraphics[width=0.35\textwidth]{figures/ControlSystemSoftwareLayout.pdf}
 \caption{Monte-Carlo sampling scheme.}
 \label{fig:ControlSoftwareLayout}
 \end{figure}
 RAVEN, is plugged with the software enviroment MOOSE~\cite{MOOSE}. MOOSE is a computer simulation framework,  developed at Idaho National Laboratory (INL), that simplifies the process for predicting the behavior of complex systems and developing non-linear, multi-physics simulation tools.Other than providing the algorithms for the solution of the differential equation, MOOSE also provides all the manipulation tools for the C++ classes containing the solution vector. This framework has been used to construct and develop the Thermo-Hydraulic code RELAP-7, giving an enormous flexibility in the coupling procedure with RAVEN. 
-\\ RELAP-7 is the next generation nuclear reactor system safety analysis. It will become the main reactor systems simulation toolkit for RISMC (\textbf{R}isk \textbf{I}nformed \textbf{S}afety \textbf{M}argin \textbf{C}haracterization)~\cite{mandelliANS_RISMC} project and the next generation tool in the RELAP reactor safety/systems analysis application series. 
+
+RELAP-7 is the next generation nuclear reactor system safety analysis. It will become the main reactor systems simulation toolkit for RISMC (\textbf{R}isk \textbf{I}nformed \textbf{S}afety \textbf{M}argin \textbf{C}haracterization)~\cite{mandelliANS_RISMC} project and the next generation tool in the RELAP reactor safety/systems analysis application series. 
 RAVEN has been developed in a high modular and pluggable way in order to enable easy integration of different programming languages (i.e., \verb!C++!, \verb!Python!) and coupling with other applications including the ones based on MOOSE. The code consists of four main modules:
 \begin{itemize}
 \item RAVEN/RELAP-7 interface
@@ -134,10 +139,12 @@ RAVEN has been developed in a high modular and pluggable way in order to enable 
 \item \verb!Python! Calculation Driver
 \item Graphical User Interface 
 \end{itemize}
+
 The RAVEN/RELAP-7 interface, coded in \verb!C++!, is the container of all the tools needed to interact with RELAP-7/MOOSE. It has been designed in order to be general and pluggable with different solvers simultaneously in order to allow an easier and faster development of the control logic/PRA capabilities for multi-physics applications.
 The interface provides all the capabilities to control, monitor, and process the parameters/quantities in order to drive the RELAP-7/MOOSE calculation. In addition, it contains the tools to communicate to the MOOSE input parser whose information, i.e. input syntax, must be received as input in order to run a RAVEN  calculation.\\The control logic module is used to drive a RAVEN/RELAP-7 calculation. Up to now it is implemented by the user via \verb!Python! scripting. The reason of this choice is to try to preserve generality of the approach in the initial phases of the project so that further specialization is possible and  inexpensive. The implementation of the control logic via \verb!Python! is rater convenient and flexible. The user only needs to know few \verb!Python! syntax rules in order to build an input. Although this extreme simplicity, it will be part of the GUI task to automatize the construction of the control logic scripting in order to minimize user effort. 
-\\ The core of PRA analysis is contained in the module called "Raven Runner". It consists in a \verb!Python! driver in which Monte-Carlo based algorithm has been implemented. It calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
-The multiple calculations, required by the employment of these algorithms, can be run in parallel, using queues/sub-process/\verb!Python! systems. The analysis of dynamic stochastic systems through Monte-Carlo algorithm can be summarized (Figure~\ref{fig:MCsampling}) as follows:
+
+The core of PRA analysis is contained in the module called "Raven Runner". It consists in a \verb!Python! driver in which Monte-Carlo based algorithm has been implemented. It calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
+The multiple calculations, required by the employment of these algorithms, can be run in parallel, using queues/sub-process/\verb!Python! systems. The analysis of dynamic stochastic systems through Monte-Carlo algorithm can be summarized as follows:
 \begin{enumerate}
 \item Initial Sampling of:
        \begin{enumerate}
@@ -152,7 +159,8 @@ The multiple calculations, required by the employment of these algorithms, can b
 \item Repeat 1 through 4 for a large number of calculations (user input)
 \end{enumerate}
 The "runner" basically performs a different seeding of the random number generator and interact, through RAVEN, with the \verb!Python! control logic input in order to sample the variables specified by the user.
-\\As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and is in continuous evolution.
+
+As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and is in continuous evolution.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{DEMO FOR A PWR PRA ANALYSIS}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -167,19 +175,21 @@ In order to show the capabilities of RAVEN coupled with RELAP-7/MOOSE, a PRA ana
 \begin{figure} [H]
 \centering
   \centering
-  \includegraphics[width=0.4\textwidth]{figures/PRA_dist2.png}
+  \includegraphics[width=0.35\textwidth]{figures/PRA_dist2.png}
   \label{fig:pdf_temp}
    \caption{Comparison between max reached clad temperature and clad failure temperature distributions: Probability distribution functions.}
 \label{fig:distributionResults}
 \end{figure}
-The Probabilist Risk Assessment analysis has been performed simulating a Station Black Out accident, running Monte-Carlo samplings (400 simulations) on the recovery time of the diesel generators $t_{1}$ (Normal distribution, mu = 120 s, sigma = 20 s) and the clad failure temperature $TC{f}$(Triangular distribution, xPeak = 1477.59 K, xMin~ =~1255.37 K, xMax = 1699.82 K). Since the scope of this demo is to show the functionalities contained in RAVEN and RELAP-7 capabilities are not optimized for long simulation times, the transient has been accelerated in order to simulate a maximum of 300 seconds. 
-\\Figure~\ref{fig:distributionResults} shows the distribution of the maximum temperature reached by the clad in the core channels (blue histogram) and compares it with the distribution of clad failure temperature (red histogram).
+
+The Probabilistic Risk Assessment analysis has been performed simulating a Station Black Out accident, running Monte-Carlo samplings (400 simulations) on the recovery time of the diesel generators $t_{1}$ (Normal distribution, mu = 120 s, sigma = 20 s) and the clad failure temperature $TC{f}$(Triangular distribution, xPeak = 1477.59 K, xMin~ =~1255.37 K, xMax = 1699.82 K). Since the scope of this demo is to show the functionalities contained in RAVEN and RELAP-7 capabilities are not optimized for long simulation times, the transient has been accelerated in order to simulate a maximum of 300 seconds. 
+Figure~\ref{fig:distributionResults} shows the distribution of the maximum temperature reached by the clad in the core channels (blue histogram) and compares it with the distribution of clad failure temperature (red histogram).
 As already mentioned, the transient has been accelerated, since the scope of the analysis was just to show RAVEN capabilities to perform stochastic analysis of relatively complex systems. That can explain the large overlapping of the two distributions, which indicates a high failure probability of the system considered.                               
-In addition, Fig.~\ref{fig:limit_surface_rng_temp_and_dg} shows the limit surface, i.e. the boundaries between system failure (red points) and system success (green points), obtained by the 400 Monte-Carlo simulations. Since only two uncertain parameters have been considered (i.e., DG recovery time and clad fail temperature), this boundary lies in a 2-dimensional space.
+
+Figure~\ref{fig:limit_surface_rng_temp_and_dg} shows the limit surface, i.e. the boundaries between system failure (red points) and system success (green points), obtained by the 400 Monte-Carlo simulations. Since only two uncertain parameters have been considered (i.e., DG recovery time and clad fail temperature), this boundary lies in a 2-dimensional space.
 The slope of the limit surface pictured in Fig.~\ref{fig:limit_surface_rng_temp_and_dg} also shows, in this particular demo, how the DG recovery time has a greater impact on the system dynamics then the clad failure temperature.
 \begin{figure}
    \centering
-    \includegraphics[width=0.5\textwidth]{figures/PRA_limitSurface.png}
+    \includegraphics[width=0.45\textwidth]{figures/PRA_limitSurface.png}
     \caption{Limit Surface for the SBO analysis of a simplified PWR model}
     \label{fig:limit_surface_rng_temp_and_dg}
 \end{figure}
