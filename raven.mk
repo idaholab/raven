@@ -37,6 +37,11 @@ else
 endif
 endif
 
+ifeq ($(UNAME),Darwin)
+	LIBTOOL_DISTRIBUTION_LIB = libdistribution1D.0.dylib
+else
+	LIBTOOL_DISTRIBUTION_LIB = libdistribution1D.so
+endif
 
 
 #ifeq ($(UNAME),Darwin)
@@ -127,16 +132,16 @@ $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/dis
 	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/ $(libmesh_INCLUDE) \
           -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/distributions/ \
           -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ \
-          $(RAVEN_DIR)/python_modules/distribution1D.i
+          $(RAVEN_MODULES)/distribution1D.i
 # Compile
-	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC \
-          $(libmesh_INCLUDE) -I$(RAVEN_DIR)/include/distributions/ \
-          -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ \
-          -I$(RAVEN_DIR)/../moose/include/base/ -I$(RAVEN_DIR)/../moose/include/utils/ \
-          $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx \
-          $(RAVEN_DIR)/src/distributions/*.C \
-          $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C \
-          $(RAVEN_DIR)/../moose/src/base/MooseObject.C -shared -o $(RAVEN_DIR)/python_modules/_distribution1D.so $(EXTRA_MOOSE_LIBS) $(PYTHON_LIB)
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
+	$(libmesh_CXX) $(libmeh_CPPFLAGS) $(PYTHON_INCLUDE) $(libmesh_INCLUDE) \
+	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/python_modules/distribution1D_wrap.lo
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
+	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
+	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(RAVEN_LIB) $(PYTHON_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo -rpath $(RAVEN_MODULES)
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1D.la  $(RAVEN_MODULES)/libdistribution1D.la 
+	ln -s $(LIBTOOL_DISTRIBUTION_LIB) $(RAVEN_MODULES)/_distribution1D.so
 
 
 $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/raventools.i \
@@ -172,7 +177,8 @@ clean::
           $(RAVEN_DIR)/python_modules/_raventools.so \
           $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx \
           $(RAVEN_DIR)/python_modules/raventools_wrap.cxx \
-          $(RAVEN_DIR)/python_modules/distribution1D.py
+          $(RAVEN_DIR)/python_modules/distribution1D.py \
+          $(RAVEN_DIR)/python_modules/libdistribution1D.*
 
 clobber::
 	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so \
