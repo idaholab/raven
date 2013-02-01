@@ -37,10 +37,10 @@ else
 endif
 endif
 
-ifeq ($(UNAME),Darwin)
-	LIBTOOL_DISTRIBUTION_LIB = libdistribution1D.0.dylib
+ifeq  ($(UNAME),Darwin)
+raven_shared_ext := dylib
 else
-	LIBTOOL_DISTRIBUTION_LIB = libdistribution1D.so
+raven_shared_ext := so
 endif
 
 
@@ -141,7 +141,7 @@ $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/dis
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
 	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(RAVEN_LIB) $(PYTHON_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo -rpath $(RAVEN_MODULES)
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1D.la  $(RAVEN_MODULES)/libdistribution1D.la 
-	ln -s $(LIBTOOL_DISTRIBUTION_LIB) $(RAVEN_MODULES)/_distribution1D.so
+	ln -s libdistribution1D.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1D.so
 
 
 $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/raventools.i \
