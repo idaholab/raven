@@ -135,11 +135,11 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
 //    position = getPosition(DistAlias);
 //
 //    if(position != -1){
-//    	return _distribution_cont[position].getMin();
+//      return _distribution_cont[position].getMin();
 //    }
 //    else{
-//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//    	return DISTRIBUTION_ERROR;
+//      std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//      return DISTRIBUTION_ERROR;
 //    }
 //
 //}
@@ -151,11 +151,11 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
 //    position = getPosition(DistAlias);
 //
 //    if(position != -1){
-//    	return _distribution_cont[position].getMax();
+//      return _distribution_cont[position].getMax();
 //    }
 //    else{
-//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//    	return DISTRIBUTION_ERROR;
+//      std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//      return DISTRIBUTION_ERROR;
 //    }
 //
 //}
@@ -167,11 +167,11 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
 //    position = getPosition(DistAlias);
 //
 //    if(position != -1){
-//    	return _distribution_cont[position].getParamater1();
+//      return _distribution_cont[position].getParamater1();
 //    }
 //    else{
-//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//    	return DISTRIBUTION_ERROR;
+//      std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
+//      return DISTRIBUTION_ERROR;
 //    }
 //
 //}

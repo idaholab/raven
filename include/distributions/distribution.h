@@ -43,10 +43,15 @@ public:
    unsigned int & getSeed();                                      		///< Get seed
 
 protected:
-   std::string _type;                       		///< Distribution type
-   std::map <std::string,double> _dis_parameters; 	///< Distribution parameters
-   Interpolation_Functions _interpolation;        	///< Interpolation class
-   unsigned int _seed;                            	///< seed
+   std::string _type;                              ///< Distribution type
+   std::map <std::string,double> _dis_parameters;  ///< Distribution parameters
+   Interpolation_Functions _interpolation;         ///< Interpolation class
+   unsigned int _seed;                             ///< seed
+   unsigned int _force_dist;                       ///< if 0 => dist works as it is supposed to do
+                                                   ///! force distribution to be evaluated at :
+                                                   ///! (1) => xMin
+                                                   ///! (2) => Mean
+                                                   ///! (3) => xMax
 };
 
 

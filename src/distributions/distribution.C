@@ -17,8 +17,9 @@ InputParameters validParams<distribution>(){
    params.addParam<double>("xMax", numeric_limits<double>::max( ),"Upper bound");
    params.addParam<unsigned int>("seed", _defaultSeed ,"RNG seed");
    params.addRequiredParam<std::string>("type","distribution type");
-   params.addParam<std::string>("truncation", "Type of truncation");		// Truncation types: 1) pdf_prime(x) = pdf(x)*c   2) [to do] pdf_prime(x) = pdf(x)+c
+   params.addParam<std::string>("truncation", "Type of truncation"); // Truncation types: 1) pdf_prime(x) = pdf(x)*c   2) [to do] pdf_prime(x) = pdf(x)+c
    params.addPrivateParam<std::string>("built_by_action", "add_distribution");
+   params.addParam<unsigned int>("force_distribution", 0 ,"force distribution to be evaluated at: if (0) Don't force distribution, (1) xMin, (2) Mean, (3) xMax");
    return params;
 }
 
@@ -48,6 +49,7 @@ distribution::distribution(const std::string & name, InputParameters parameters)
                                             fitting_type);
    }
       _seed = getParam<unsigned int>("seed");
+      _force_dist = getParam<unsigned int>("force_distribution");
 }
 
 distribution::~distribution(){
