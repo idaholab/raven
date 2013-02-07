@@ -61,24 +61,39 @@ UniformDistribution::Cdf(double & x){
 double
 UniformDistribution::RandomNumberGenerator(double & RNG){
    double value;
-   return value=(_dis_parameters.find("xMin") ->second)+RNG*
-                 ((_dis_parameters.find("xMax") ->second)-
-                  (_dis_parameters.find("xMin") ->second));
+   if(_force_dist == 0){
+     value = (_dis_parameters.find("xMin") ->second)+RNG*
+               ((_dis_parameters.find("xMax") ->second)-
+                (_dis_parameters.find("xMin") ->second));
+   }
+   else if(_force_dist == 1){
+     value = (_dis_parameters.find("xMin") ->second);
+   }
+   else if(_force_dist == 2){
+     value = ((_dis_parameters.find("xMax") ->second) - (_dis_parameters.find("xMin") ->second))/2.0;
+   }
+   else if(_force_dist == 3){
+     value = (_dis_parameters.find("xMax") ->second);
+   }
+   else{
+     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
+   return value;
 }
 
 double  UniformDistribution::untrPdf(double & x){
-	double value=UniformDistribution::Pdf(x);
-	return value;
+   double value=UniformDistribution::Pdf(x);
+   return value;
 }
 
 double  UniformDistribution::untrCdf(double & x){
-	double value=UniformDistribution::Cdf(x);
-	return value;
+   double value=UniformDistribution::Cdf(x);
+   return value;
 }
 
 double  UniformDistribution::untrRandomNumberGenerator(double & RNG){
-	double value=UniformDistribution::RandomNumberGenerator(RNG);
-	return value;
+   double value=UniformDistribution::RandomNumberGenerator(RNG);
+   return value;
 }
 
 
@@ -107,34 +122,34 @@ NormalDistribution::~NormalDistribution(){
 
 double
 NormalDistribution::untrPdf(double & x){
-	double mu=_dis_parameters.find("mu") ->second;
-	double sigma=_dis_parameters.find("sigma") ->second;
+   double mu=_dis_parameters.find("mu") ->second;
+   double sigma=_dis_parameters.find("sigma") ->second;
 
-	double value=1/(sqrt(2.0*M_PI*sigma*sigma))*exp(-(x-mu)*(x-mu)/(2*sigma*sigma));
-	return value;
+   double value=1/(sqrt(2.0*M_PI*sigma*sigma))*exp(-(x-mu)*(x-mu)/(2*sigma*sigma));
+   return value;
 }
 
 double
 NormalDistribution::untrCdf(double & x){
-	double mu=_dis_parameters.find("mu") ->second;
-	double sigma=_dis_parameters.find("sigma") ->second;
+   double mu=_dis_parameters.find("mu") ->second;
+   double sigma=_dis_parameters.find("sigma") ->second;
 
-	double value=0.5*(1+erf((x-mu)/(sqrt(2*sigma*sigma))));
-	return value;
+   double value=0.5*(1+erf((x-mu)/(sqrt(2*sigma*sigma))));
+   return value;
 }
 
 double
 NormalDistribution::untrRandomNumberGenerator(double & RNG){
-	double stdNorm;
-	double value;
+   double stdNorm;
+   double value;
 
-	double mu=_dis_parameters.find("mu") ->second;
-	double sigma=_dis_parameters.find("sigma") ->second;
+   double mu=_dis_parameters.find("mu") ->second;
+   double sigma=_dis_parameters.find("sigma") ->second;
 
     if (RNG < 0.5)
         stdNorm = -AbramStegunApproximation( sqrt(-2.0*log(RNG)) );
     else
-    	stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-RNG)) );
+       stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-RNG)) );
 
     value = mu + sigma * stdNorm;
 
@@ -143,45 +158,57 @@ NormalDistribution::untrRandomNumberGenerator(double & RNG){
 
 double
 NormalDistribution::Pdf(double & x){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(NormalDistribution::untrCdf(xMax) - NormalDistribution::untrCdf(xMin)) * NormalDistribution::untrPdf(x);
+      value = 1/(NormalDistribution::untrCdf(xMax) - NormalDistribution::untrCdf(xMin)) * NormalDistribution::untrPdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
 }
 
 double
 NormalDistribution::Cdf(double & x){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(NormalDistribution::untrCdf(xMax) - NormalDistribution::untrCdf(xMin)) * NormalDistribution::untrCdf(x);
+      value = 1/(NormalDistribution::untrCdf(xMax) - NormalDistribution::untrCdf(xMin)) * NormalDistribution::untrCdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
 }
 
 double
 NormalDistribution::RandomNumberGenerator(double & RNG){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
-
-   if (_dis_parameters.find("truncation") ->second == 1){
-	   double temp=NormalDistribution::untrCdf(xMin)+RNG*(NormalDistribution::untrCdf(xMax)-NormalDistribution::untrCdf(xMin));
-	   value=NormalDistribution::untrRandomNumberGenerator(temp);
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
+   if(_force_dist == 0){
+     if (_dis_parameters.find("truncation") ->second == 1){
+       double temp=NormalDistribution::untrCdf(xMin)+RNG*(NormalDistribution::untrCdf(xMax)-NormalDistribution::untrCdf(xMin));
+       value=NormalDistribution::untrRandomNumberGenerator(temp);
+     }
+     else
+       value=-1;
    }
-   else
-		value=-1;
-
+   else if(_force_dist == 1){
+     value = xMin;
+   }
+   else if(_force_dist == 2){
+     value = _dis_parameters.find("mu") ->second;
+   }
+   else if(_force_dist == 3){
+     value = xMax;
+   }
+   else{
+     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
    return value;
 }
 
@@ -214,91 +241,104 @@ LogNormalDistribution::~LogNormalDistribution()
 
 double
 LogNormalDistribution::untrPdf(double & x){
-	double value;
-	double mu=_dis_parameters.find("mu") ->second;
-	double sigma=_dis_parameters.find("sigma") ->second;
+   double value;
+   double mu=_dis_parameters.find("mu") ->second;
+   double sigma=_dis_parameters.find("sigma") ->second;
 
-	if (x<=0)
-		mooseError("Error: Lognormal pdf evaluated for x<=0");
-	else
-		value=1/(sqrt(x*2.0*M_PI*sigma*sigma))*exp(-(log(x)-mu)*(log(x)-mu)/(2*sigma*sigma));
+   if (x<=0)
+      mooseError("Error: Lognormal pdf evaluated for x<=0");
+   else
+      value=1/(sqrt(x*2.0*M_PI*sigma*sigma))*exp(-(log(x)-mu)*(log(x)-mu)/(2*sigma*sigma));
 
-	return value;
+   return value;
 }
 
 double
 LogNormalDistribution::untrCdf(double & x){
-	double value;
-	double mu=_dis_parameters.find("mu") ->second;
-	double sigma=_dis_parameters.find("sigma") ->second;
+   double value;
+   double mu=_dis_parameters.find("mu") ->second;
+   double sigma=_dis_parameters.find("sigma") ->second;
 
-	if (x<=0)
-		mooseError("Error: Lognormal pdf evaluated for x<=0");
-	else
-		value=0.5*(1+erf((log(x)-mu)/(sqrt(2*sigma*sigma))));
+   if (x<=0)
+      mooseError("Error: Lognormal pdf evaluated for x<=0");
+   else
+      value=0.5*(1+erf((log(x)-mu)/(sqrt(2*sigma*sigma))));
 
-	return value;
+   return value;
 }
 
 double
 LogNormalDistribution::untrRandomNumberGenerator(double & RNG){
-	double stdNorm;
-	double value;
+   double stdNorm;
+   double value;
 
-	double mu=_dis_parameters.find("mu") ->second;
-	double sigma=_dis_parameters.find("sigma") ->second;
+   double mu=_dis_parameters.find("mu") ->second;
+   double sigma=_dis_parameters.find("sigma") ->second;
 
     if (RNG < 0.5)
         stdNorm = -AbramStegunApproximation( sqrt(-2.0*log(RNG)) );
     else
-    	stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-RNG)) );
+       stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-RNG)) );
 
-	value=exp(mu + sigma * stdNorm);
+   value=exp(mu + sigma * stdNorm);
 
-	return value;
+   return value;
 }
 
 double
 LogNormalDistribution::Pdf(double & x){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(LogNormalDistribution::untrCdf(xMax) - LogNormalDistribution::untrCdf(xMin)) * LogNormalDistribution::untrPdf(x);
+      value = 1/(LogNormalDistribution::untrCdf(xMax) - LogNormalDistribution::untrCdf(xMin)) * LogNormalDistribution::untrPdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
 }
 
 double
 LogNormalDistribution::Cdf(double & x){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(LogNormalDistribution::untrCdf(xMax) - LogNormalDistribution::untrCdf(xMin)) * LogNormalDistribution::untrCdf(x);
+      value = 1/(LogNormalDistribution::untrCdf(xMax) - LogNormalDistribution::untrCdf(xMin)) * LogNormalDistribution::untrCdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
 }
 
 double
 LogNormalDistribution::RandomNumberGenerator(double & RNG){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+  double value;
+  double xMin = _dis_parameters.find("xMin") ->second;
+  double xMax = _dis_parameters.find("xMax") ->second;
 
-   if (_dis_parameters.find("truncation") ->second == 1){
-	   double temp=LogNormalDistribution::untrCdf(xMin) + RNG * (LogNormalDistribution::untrCdf(xMax)-LogNormalDistribution::untrCdf(xMin));
-	   value=LogNormalDistribution::untrRandomNumberGenerator(temp);
+   if(_force_dist == 0){
+     if (_dis_parameters.find("truncation") ->second == 1){
+       double temp=LogNormalDistribution::untrCdf(xMin) + RNG * (LogNormalDistribution::untrCdf(xMax)-LogNormalDistribution::untrCdf(xMin));
+       value=LogNormalDistribution::untrRandomNumberGenerator(temp);
+     }
+     else
+       value=-1.0;
    }
-   else
-		value=-1;
-
+   else if(_force_dist == 1){
+     value = xMin;
+   }
+   else if(_force_dist == 2){
+     value = _dis_parameters.find("mu") ->second;
+   }
+   else if(_force_dist == 3){
+     value = xMax;
+   }
+   else{
+     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
    return value;
 }
 
@@ -331,99 +371,111 @@ TriangularDistribution::~TriangularDistribution()
 
 double
 TriangularDistribution::untrPdf(double & x){
-	double value;
-	double lb = _dis_parameters.find("lowerBound") ->second;
-	double ub = _dis_parameters.find("upperBound") ->second;
-	double peak = _dis_parameters.find("xPeak") ->second;
+   double value;
+   double lb = _dis_parameters.find("lowerBound") ->second;
+   double ub = _dis_parameters.find("upperBound") ->second;
+   double peak = _dis_parameters.find("xPeak") ->second;
 
-	if (x<lb)
-		value=0;
-	if ((x>lb)&(x<peak))
-		value=2*(x-lb)/(ub-lb)/(peak-lb);
-	if ((x>peak)&(x<ub))
-		value=2*(ub-x)/(ub-lb)/(ub-peak);
-	if (x>ub)
-		value=1;
+   if (x<lb)
+      value=0;
+   if ((x>lb)&(x<peak))
+      value=2*(x-lb)/(ub-lb)/(peak-lb);
+   if ((x>peak)&(x<ub))
+      value=2*(ub-x)/(ub-lb)/(ub-peak);
+   if (x>ub)
+      value=1;
 
-	return value;
+   return value;
 }
 
 double  TriangularDistribution::untrCdf(double & x){
-	double value;
-	double lb = _dis_parameters.find("lowerBound") ->second;
-	double ub = _dis_parameters.find("upperBound") ->second;
-	double peak = _dis_parameters.find("xPeak") ->second;
+   double value;
+   double lb = _dis_parameters.find("lowerBound") ->second;
+   double ub = _dis_parameters.find("upperBound") ->second;
+   double peak = _dis_parameters.find("xPeak") ->second;
 
-	if (x<lb)
-		value=0;
-	if ((x>lb)&(x<peak))
-		value=(x-lb)*(x-lb)/(ub-lb)/(peak-lb);
-	if ((x>peak)&(x<ub))
-		value=1-(ub-x)*(ub-x)/(ub-lb)/(ub-peak);
-	if (x>ub)
-		value=0;
+   if (x<lb)
+      value=0;
+   if ((x>lb)&(x<peak))
+      value=(x-lb)*(x-lb)/(ub-lb)/(peak-lb);
+   if ((x>peak)&(x<ub))
+      value=1-(ub-x)*(ub-x)/(ub-lb)/(ub-peak);
+   if (x>ub)
+      value=0;
 
-	return value;
+   return value;
 }
 
 double
 TriangularDistribution::untrRandomNumberGenerator(double & RNG){
-	double value;
-	double lb = _dis_parameters.find("lowerBound") ->second;
-	double ub = _dis_parameters.find("upperBound") ->second;
-	double peak = _dis_parameters.find("xPeak") ->second;
+   double value;
+   double lb = _dis_parameters.find("lowerBound") ->second;
+   double ub = _dis_parameters.find("upperBound") ->second;
+   double peak = _dis_parameters.find("xPeak") ->second;
 
-	double threshold = (peak-lb)/(ub-lb);
+   double threshold = (peak-lb)/(ub-lb);
 
-	if (RNG<threshold)
-		value=lb+sqrt(RNG*(peak-lb)/(ub-lb));
-	else
-		value=ub-sqrt((1-RNG)*(ub-peak)/(ub-lb));
+   if (RNG<threshold)
+      value=lb+sqrt(RNG*(peak-lb)/(ub-lb));
+   else
+      value=ub-sqrt((1-RNG)*(ub-peak)/(ub-lb));
 
-	return value;
+   return value;
 }
 
 double
 TriangularDistribution::Pdf(double & x){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * TriangularDistribution::untrPdf(x);
+      value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * TriangularDistribution::untrPdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
 }
 
 double
 TriangularDistribution::Cdf(double & x){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * TriangularDistribution::untrCdf(x);
+      value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * TriangularDistribution::untrCdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
-	}
+   }
 
 double
 TriangularDistribution::RandomNumberGenerator(double & RNG){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
-
-   if (_dis_parameters.find("truncation") ->second == 1){
-	   double temp=TriangularDistribution::untrCdf(xMin)+RNG*(TriangularDistribution::untrCdf(xMax)-TriangularDistribution::untrCdf(xMin));
-	   value=TriangularDistribution::untrRandomNumberGenerator(temp);
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
+   if(_force_dist == 0){
+     if (_dis_parameters.find("truncation") ->second == 1){
+       double temp=TriangularDistribution::untrCdf(xMin)+RNG*(TriangularDistribution::untrCdf(xMax)-TriangularDistribution::untrCdf(xMin));
+       value=TriangularDistribution::untrRandomNumberGenerator(temp);
+     }
+     else
+       value=-1;
    }
-   else
-		value=-1;
-
+   else if(_force_dist == 1){
+     value = xMin;
+   }
+   else if(_force_dist == 2){
+     value = -1.0;
+   }
+   else if(_force_dist == 3){
+     value = xMax;
+   }
+   else{
+     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
    return value;
 }
 
@@ -459,9 +511,9 @@ ExponentialDistribution::untrPdf(double & x){
    double lambda=_dis_parameters.find("lambda") ->second;
 
    if (x >= 0.0)
-	   value = lambda*exp(-x*lambda);
+      value = lambda*exp(-x*lambda);
    else
-	   mooseError("Exponential distribution (pdf calculation): parameter x not valid (x>0).");
+      mooseError("Exponential distribution (pdf calculation): parameter x not valid (x>0).");
 
    return value;
 }
@@ -472,63 +524,87 @@ ExponentialDistribution::untrCdf(double & x){
    double lambda=_dis_parameters.find("lambda") ->second;
 
    if (x >= 0.0)
-	   value = 1-exp(-x*lambda);
+      value = 1-exp(-x*lambda);
    else
-	   mooseError("Exponential distribution (Cdf calculation): parameter x not valid (x>0).");
+      mooseError("Exponential distribution (Cdf calculation): parameter x not valid (x>0).");
 
    return value;
 }
 
 double
 ExponentialDistribution::untrRandomNumberGenerator(double & RNG){
-	double lambda=_dis_parameters.find("lambda") ->second;
-	double value=-log(1-RNG)/(lambda);
-	return value;
+   double lambda=_dis_parameters.find("lambda") ->second;
+   double value=-log(1-RNG)/(lambda);
+   return value;
 }
 
 double
 ExponentialDistribution::Pdf(double & x){
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
-	double value;
-
+   double value;
+   if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * ExponentialDistribution::untrPdf(x);
+      value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * ExponentialDistribution::untrPdf(x);
    else
-		value=-1;
-
+      value=-1;
+   }
+   else if(_force_dist == 1){
+     value = xMin;
+   }
+   else if(_force_dist == 2){
+     value = -1.0;
+   }
+   else if(_force_dist == 3){
+     value = xMax;
+   }
+   else{
+     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
    return value;
 }
 
 double
 ExponentialDistribution::Cdf(double & x){
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
-	double value;
+   double value;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * ExponentialDistribution::untrCdf(x);
+      value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * ExponentialDistribution::untrCdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
 }
 
 double
 ExponentialDistribution::RandomNumberGenerator(double & RNG){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
-
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
+   if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-	   double temp = ExponentialDistribution::untrCdf(xMin)+RNG*(ExponentialDistribution::untrCdf(xMax)-ExponentialDistribution::untrCdf(xMin));
-	   value=ExponentialDistribution::untrRandomNumberGenerator(temp);
+      double temp = ExponentialDistribution::untrCdf(xMin)+RNG*(ExponentialDistribution::untrCdf(xMax)-ExponentialDistribution::untrCdf(xMin));
+      value=ExponentialDistribution::untrRandomNumberGenerator(temp);
    }
    else
-		value=-1;
-
+      value=-1;
+   }
+   else if(_force_dist == 1){
+     value = xMin;
+   }
+   else if(_force_dist == 2){
+     value = -1.0;
+   }
+   else if(_force_dist == 3){
+     value = xMax;
+   }
+   else{
+     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
    return value;
 }
 
@@ -562,84 +638,96 @@ WeibullDistribution::~WeibullDistribution()
 
 double
 WeibullDistribution::untrPdf(double & x){
-	double lambda = _dis_parameters.find("lambda") ->second;
-	double k = _dis_parameters.find("k") ->second;
-	double value;
+   double lambda = _dis_parameters.find("lambda") ->second;
+   double k = _dis_parameters.find("k") ->second;
+   double value;
 
    if (x >= 0)
-	   value = k/lambda * pow(x/lambda,k-1) * exp(-pow(x/lambda,k));
+      value = k/lambda * pow(x/lambda,k-1) * exp(-pow(x/lambda,k));
    else
-	   value=0;
+      value=0;
 
    return value;
 }
 
 double
 WeibullDistribution::untrCdf(double & x){
-	double lambda = _dis_parameters.find("lambda") ->second;
-	double k = _dis_parameters.find("k") ->second;
-	double value;
+   double lambda = _dis_parameters.find("lambda") ->second;
+   double k = _dis_parameters.find("k") ->second;
+   double value;
 
    if (x >= 0)
-	   value = 1.0 - exp(-pow(x/lambda,k));
-	else
-	   value=0;
+      value = 1.0 - exp(-pow(x/lambda,k));
+   else
+      value=0;
 
-	   return value;
+      return value;
 }
 
 double
 WeibullDistribution::untrRandomNumberGenerator(double & RNG){
-	double lambda = _dis_parameters.find("lambda") ->second;
-	double k = _dis_parameters.find("k") ->second;
+   double lambda = _dis_parameters.find("lambda") ->second;
+   double k = _dis_parameters.find("k") ->second;
 
-	double value = - lambda * pow(log(1.0 - RNG),1/k);
-	return value;
+   double value = - lambda * pow(log(1.0 - RNG),1/k);
+   return value;
 }
 
 double
 WeibullDistribution::Pdf(double & x){
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
-	double value;
+   double value;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrPdf(x);
+      value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrPdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
 }
 
 double
 WeibullDistribution::Cdf(double & x){
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
 
-	double value;
+   double value;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	   value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrCdf(x);
+      value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrCdf(x);
    else
-		value=-1;
+      value=-1;
 
    return value;
 }
 
 double
 WeibullDistribution::RandomNumberGenerator(double & RNG){
-	double value;
-	double xMin = _dis_parameters.find("xMin") ->second;
-	double xMax = _dis_parameters.find("xMax") ->second;
-
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
+   if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-	   double temp = WeibullDistribution::untrCdf(xMin) + RNG * (WeibullDistribution::untrCdf(xMax)-WeibullDistribution::untrCdf(xMin));
-	   value=WeibullDistribution::untrRandomNumberGenerator(temp);
+      double temp = WeibullDistribution::untrCdf(xMin) + RNG * (WeibullDistribution::untrCdf(xMax)-WeibullDistribution::untrCdf(xMin));
+      value=WeibullDistribution::untrRandomNumberGenerator(temp);
    }
    else
-		value=-1;
-
+      value=-1;
+   }
+   else if(_force_dist == 1){
+     value = xMin;
+   }
+   else if(_force_dist == 2){
+     value = -1.0;
+   }
+   else if(_force_dist == 3){
+     value = xMax;
+   }
+   else{
+     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
    return value;
 }
 
@@ -677,7 +765,7 @@ CustomDistribution::~CustomDistribution()
 
 double
 CustomDistribution::Pdf(double & x){
-	double value=_interpolation.interpolation(x);
+   double value=_interpolation.interpolation(x);
 
    return value;
 }
@@ -691,8 +779,8 @@ CustomDistribution::Cdf(double & x){
 
 double
 CustomDistribution::RandomNumberGenerator(double & RNG){
-	double value=-1;
-	return value;
+   double value=-1;
+   return value;
 }
 
 //
