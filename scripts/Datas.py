@@ -8,10 +8,10 @@ class TimePoint:
       self.name = name
     else:
       self.name = None
-    self.inpParametersValues = {}  #input parameters as keys, corresponding values (time is placed here eventually as a parameter)
-    self.outVariableValues   = {}  #output variables as keys, corresponding values
+    self.inpParametersValues = {}  # input parameters as keys, corresponding values (time is placed here eventually as a parameter)
+    self.outVariableValues   = {}  # output variables as keys, corresponding values
     
-  def load(self,filein,time):
+  def load(self,filein,time,paramList=None):
     if time == 'end':
       return #get the ending state
     else:
@@ -85,7 +85,7 @@ class Histories:
       self.name = name
     else:
       self.name = None
-    self.container = {} #key are the name of the recorded variable, they correspond to matrices of values (simulation numbers)x(time step)
+    self.container = {} # key are the name of the recorded variable, they correspond to matrices of values (simulation numbers)x(time step)
     
   def load(self,fileNameRoot,numberSimulation=None,TrajectorySetTimefilter=None):
     '''
