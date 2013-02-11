@@ -27,7 +27,28 @@
 []
 
 [Components]
-  # Core region components 
+  # Core region components ########################################################################################################################
+  # ###############################################################################################################################################
+  # Loop A components #############################################################################################################################
+  # [./MassFlowRateIn-SC-A]
+  # type = TDM
+  # input = 'pipe1-SC-A(in)'
+  # massflowrate_bc = 8801.1
+  # T_bc = 537.15
+  # eos = eos
+  # [../]
+  # ###############################################################################################################################################
+  # Loop B components #############################################################################################################################
+  # [./MassFlowRateIn-SC-B]
+  # type = TDM
+  # input = 'pipe1-SC-B(in)'
+  # massflowrate_bc = 8801.1
+  # T_bc = 537.15
+  # eos = eos
+  # [../]
+  # ###############################################################################################################################################
+  # Pressurizer ##################################################################################################################################
+  # ###############################################################################################################################################
   [./CH1]
     # peak_power = '6.127004e8 0. 0.'
     type = CoreChannel
@@ -195,8 +216,8 @@
     eos = eos
     position = '0 5.2 4.0'
     orientation = '0 -1 0'
-    A = 1.3122 # 2.624474
-    Dh = 0.914 # 1.828
+    A = 2.624474
+    Dh = 1.828
     length = 1.
     n_elems = 3
     f = 0.001
@@ -207,8 +228,8 @@
     eos = eos
     position = '0 4.2 8.0'
     orientation = '0 1 0'
-    A = 1.3122 # 2.624474
-    Dh = 0.914
+    A = 2.624474
+    Dh = 1.828
     length = 1.
     n_elems = 3
     f = 0.001
@@ -247,7 +268,7 @@
     Area = 2.624474
     Initial_pressure = 151.7e5
     Head = 9.9
-    K_reverse = 1000
+    K_reverse = 0
     outlet = 'pipe1-CL-A(in)'
     inlet = 'pipe2-CL-A(out)'
   [../]
@@ -258,7 +279,7 @@
     position = '0 4. 8.'
     orientation = '0 0 -1'
     A = 5.
-    A_secondary = 2.5 # 5
+    A_secondary = 5.
     Dh = 0.01
     Dh_secondary = 0.01
     length = 4.
@@ -279,8 +300,8 @@
   [./Branch4-A]
     type = ErgBranch
     eos = eos
-    inputs = pipe1-SC-A(out)
-    outputs = HX-A(secondary_in)
+    inputs = 'pipe1-SC-A(out)'
+    outputs = 'HX-A(secondary_in)'
     K = '0.5 0.7'
     Area = 2.624474e2
     Initial_pressure = 151.7e5
@@ -375,8 +396,8 @@
     eos = eos
     position = '0 -5.2 4.0'
     orientation = '0 1 0'
-    A = 1.3122 # 2.624474
-    Dh = 0.914 # 1.828
+    A = 2.624474
+    Dh = 1.828
     length = 1.
     n_elems = 3
     f = 0.001
@@ -387,8 +408,8 @@
     eos = eos
     position = '0 -4.2 8.0'
     orientation = '0 -1 0'
-    A = 1.3122 # 2.624474
-    Dh = 0.914 # 1.828
+    A = 2.624474
+    Dh = 1.828
     length = 1.
     n_elems = 3
     f = 0.001
@@ -427,7 +448,7 @@
     Area = 2.624474
     Initial_pressure = 151.7e5
     Head = 9.9
-    K_reverse = 1000
+    K_reverse = 0
     outlet = 'pipe1-CL-B(in)'
     inlet = 'pipe2-CL-B(out)'
   [../]
@@ -438,7 +459,7 @@
     position = '0 -4. 8.'
     orientation = '0 0 -1'
     A = 5.
-    A_secondary = 2.5 # 5.
+    A_secondary = 5.
     Dh = 0.01
     Dh_secondary = 0.01
     length = 4.
@@ -529,12 +550,7 @@
 [Preconditioning]
   # active = 'FDP_Newton'
   # End preconditioning block
-  active = 'SMP'
-  [./SMP]
-    type = SMP
-    full = true
-    petsc_options = '-snes_mf_operator'
-  [../]
+  active = 'FDP_PJFNK'
   [./FDP_PJFNK]
     # These options **together** cause a zero pivot in this problem, even without SUPG terms.
     # But using either option alone appears to be OK.
@@ -566,27 +582,25 @@
 [Executioner]
   # restart_file_base = TMI_test_PRA_out_restart_0194
   type = RavenExecutioner
-  restart_file_base = TMI_test_PRA_steady_state_restart_27559
   dt = 5e-2
-  time_t = '0         3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
-  time_dt = '1.e-3  0.005         0.01       2.5e-2    2.5e-2  2.5e-2      2.5e-2    2.5e-2   1.5e-2   10.0e-2  1.0e-1'
+  time_t = '0         1.0   3.0       5.01       9.5     9.75    14      17    5e1'
+  time_dt = '1.e-3  0.1    0.1   2.5e-1    2.5e-1  2.5e-1      2.5e-1    2.5e-1'
   dtmax = 9999
   e_tol = 10.0
   e_max = 99999.
-  max_increase = 3
+  max_increase = 2
   perf_log = true
-  petsc_options_iname = '-ksp_gmres_restart -pc_type'
-  petsc_options_value = '300 lu' # '300'
-  nl_rel_tol = 1e-6
+  petsc_options_iname = '-ksp_gmres_restart'
+  petsc_options_value = '300' # '300'
+  nl_rel_tol = 1e-3
   nl_abs_tol = 1e-10
   nl_max_its = 100
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
   l_max_its = 100 # Number of linear iterations for each Krylov solve
-  start_time = 60.0
-  end_time = 300.0
+  start_time = 0.0
+  end_time = 50
   ss_check_tol = 1e-05
   nl_rel_step_tol = 1e-3
-  predictor_scale = 0.6
   [./Quadrature]
     type = TRAP
     order = FIRST
@@ -595,42 +609,51 @@
 
 [Output]
   # xda = true
-  file_base = test_of_control_logic_for_MC
-  exodus = false
+  file_base = TMI_test_PRA_steady_state
+  exodus = true
   output_initial = true
   perf_log = true
   num_restart_files = 1
   postprocessor_csv = true
 []
-
 [Controlled]
-  control_logic_input = TMI_test_PRA_trans_MC_control
+  # [./head_PumpB]
+  # property_name = Head
+  # data_type = double
+  # component_name = Pump-B
+  # [../]
+  # [./head_PumpA]
+  # property_name = Head
+  # data_type = double
+  # component_name = Pump-A
+  # [../]
+  control_logic_input = TMI_test_PRA_control
   [./power_CH1]
     print_csv = true
-    property_name = FUEL:power_fraction
+    property_name = total_power_scaling
     data_type = double
     component_name = CH1
   [../]
   [./power_CH2]
-    property_name = FUEL:power_fraction
+    property_name = total_power_scaling
     print_csv = true
     data_type = double
     component_name = CH2
   [../]
   [./power_CH3]
-    property_name = FUEL:power_fraction
+    property_name = total_power_scaling
     print_csv = true
     data_type = double
     component_name = CH3
   [../]
   [./high_pressure_secondary_A]
-    property_name = p_bc
+    property_name = p_in
     print_csv = true
     data_type = double
     component_name = high_pressure_seconday_A
   [../]
   [./high_pressure_secondary_B]
-    property_name = p_bc
+    property_name = p_in
     print_csv = true
     data_type = double
     component_name = high_pressure_seconday_B
@@ -642,62 +665,33 @@
     component_name = Pump-B
   [../]
   [./Head_PumpA]
-    property_name = Head
+    property_name = Head    
     data_type = double
     print_csv = true
     component_name = Pump-A
   [../]
-  [./friction1_SC_A]
-    print_csv = true
-    property_name = friction
-    data_type = double
-    component_name = pipe1-SC-A
-  [../]
-[./friction2_SC_A]
-print_csv = true
-property_name = friction
-data_type = double
-component_name = pipe2-SC-A
-[../]
-[./friction1_SC_B]
-print_csv = true
-property_name = friction
-data_type = double
-component_name = pipe1-SC-B
-[../]
-[./friction2_SC_B]
-print_csv = true
-property_name = friction
-data_type = double
-component_name = pipe2-SC-B
-[../]
-[./friction1_CL_B]
-print_csv = true
-property_name = friction
-data_type = double
-component_name = pipe1-CL-B
-[../]
-[./friction2_CL_B]
-print_csv = true
-property_name = friction
-data_type = double
-component_name = pipe2-CL-B
-[../]
-[./friction1_CL_A]
-print_csv = true
-property_name = friction
-data_type = double
-component_name = pipe1-CL-A
-[../]
-[./friction2_CL_A]
-print_csv = true
-property_name = friction
-data_type = double
-component_name = pipe2-CL-A
-[../]
 []
 
 [Monitored]
+  [./avg_temp_clad_CH1]
+    operator = ElementAverageValue
+    path = CLAD:TEMPERATURE
+    data_type = double
+    component_name = CH1
+  [../]
+  [./avg_temp_clad_CH2]
+    operator = ElementAverageValue
+    path = CLAD:TEMPERATURE
+    data_type = double
+    component_name = CH2 # tests temperature monitoring in a core channel (ElementAverageValue operator)
+  [../]
+  [./avg_temp_clad_CH3]
+    # tests pressure monitoring in a pipe (ElementAverageValue operator)
+    operator = ElementAverageValue
+    path = CLAD:TEMPERATURE
+    data_type = double
+    component_name = CH3
+  [../]
   [./max_temp_clad_CH1]
     operator = ElementAverageValue
     path = CLAD:TEMPERATURE
@@ -705,10 +699,10 @@ component_name = pipe2-CL-A
     component_name = CH1
   [../]
   [./max_temp_clad_CH2]
-    operator = ElementAverageValue    
-     path = CLAD:TEMPERATURE
+    operator = ElementAverageValue
+    path = CLAD:TEMPERATURE
     data_type = double
-    component_name = CH2
+    component_name = CH2 # tests temperature monitoring in a core channel (ElementAverageValue operator)
   [../]
   [./max_temp_clad_CH3]
     # tests pressure monitoring in a pipe (ElementAverageValue operator)
@@ -766,18 +760,6 @@ component_name = pipe2-CL-A
     data_type = double
     component_name = CH3
   [../]
-  [./sec_inlet_velocity]
-    operator = ElementAverageValue
-    path = VELOCITY
-    data_type = double
-    component_name = pipe1-SC-A
-  [../]
-#  [./sec_inlet_density]
-#    operator = ElementAverageValue
-#    path = 
-#    data_type = double
-#    component_name = pipe1-SC-A
-#  [../]
 []
 
 [Distributions]
@@ -802,37 +784,36 @@ component_name = pipe2-CL-A
 []
 
 [RavenAuxiliary]
-  [./init_exp_frict]
-    data_type = bool
-    print_csv = true
-    initial_value = True
-  [../]
-[./frict_m]
-data_type = double
-initial_value = -505.56
-print_csv = true
-[../]
-[./frict_q]
-data_type = double
-initial_value = 5005.1
-print_csv = true
-[../]
+  # [./InitialHeadPrimary]
+  # data_type = double
+  # initial_value = 0
+  # [../]
   [./scram_start_time]
     data_type = double
-    initial_value = 61.0
-    print_csv = true
-  [../]
-  [./friction_time_start_exp]
-    data_type = double
-    initial_value = 0.0
+    initial_value = 1
     print_csv = true
   [../]
   [./auxiliary_system_time_on]
     data_type = double
-    initial_value = 5
+    initial_value = 10
     print_csv = true
   [../]
-  [./InitialMassFlowPrimary]
+  [./InitialHeadPrimary]
+    data_type = double
+    initial_value = 0
+    print_csv = true
+  [../]
+  [./InitialPowerCH1]
+    data_type = double
+    initial_value = 0
+    print_csv = true
+  [../]
+  [./InitialPowerCH2]
+    data_type = double
+    initial_value = 0
+    print_csv = true
+  [../]
+  [./InitialPowerCH3]
     data_type = double
     initial_value = 0
     print_csv = true
@@ -840,7 +821,7 @@ print_csv = true
   [./initialInletSecPress]
     data_type = double
     print_csv = true
-    initial_value = 15219000
+    initial_value = 0
   [../]
   [./CladDamaged]
     data_type = bool
@@ -859,18 +840,18 @@ print_csv = true
   [../]
   [./DeltaTimeScramToAux]
     data_type = double
-    initial_value = 20.0
+    initial_value = 10
     print_csv = true
   [../]
   [./InitialOutletSecPress]
     data_type = double
     print_csv = true
-    initial_value = 151.7e5  #15170000
+    initial_value = 0
   [../]
   [./AuxDieselRecoveryTime]
     data_type = double
     print_csv = true
-    initial_value = 180
+    initial_value = 0
   [../]
   [./PrimaryPump]
     data_type = double
@@ -900,27 +881,7 @@ print_csv = true
   [./CladTempTreshold]
     data_type = double
     print_csv = true
-    initial_value = 1477.59
+    initial_value = 2000
   [../]
-  [./ScramStatus]
-    print_csv = true
-    data_type = bool
-    initial_value = false
-  [../]
-  [./init_Power_Fraction_CH1]
-    print_csv = true
-    data_type = double
-    initial_value = 3.33672612e-1 
-  [../]
-  [./init_Power_Fraction_CH2]
-    print_csv = true
-    data_type = double
-    initial_value = 3.69921461e-1
-  [../]
-  [./init_Power_Fraction_CH3]
-    print_csv = true
-    data_type = double
-    initial_value = 2.96405926e-1 
-  [../]  
-  
 []
+
