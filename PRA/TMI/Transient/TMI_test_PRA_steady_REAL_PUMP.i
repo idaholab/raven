@@ -548,59 +548,65 @@
 []
 
 [Preconditioning]
-  # active = 'FDP_Newton'
-  # End preconditioning block
-  active = 'FDP_PJFNK'
-  [./FDP_PJFNK]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
-    type = FDP
-    full = true
-    petsc_options = '-snes_mf_operator -pc_factor_shift_nonzero'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
-  [../]
-  [./FDP_Newton]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
-    type = FDP
-    full = true
-    petsc_options = '-snes'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
-  [../]
+# active = 'FDP_Newton'
+# End preconditioning block
+active = 'SMP'
+[./SMP]
+type = SMP
+full = true
+petsc_options = '-snes_mf_operator'
+[../]
+[./FDP_PJFNK]
+# These options **together** cause a zero pivot in this problem, even without SUPG terms.
+# But using either option alone appears to be OK.
+# petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
+# petsc_options_value = '1.e-10               ds'
+type = FDP
+full = true
+petsc_options = '-snes_mf_operator -pc_factor_shift_nonzero'
+petsc_options_iname = '-mat_fd_type'
+petsc_options_value = 'ds'
+petsc_options_iname = '-mat_fd_type'
+petsc_options_value = 'ds'
+[../]
+[./FDP_Newton]
+# These options **together** cause a zero pivot in this problem, even without SUPG terms.
+# But using either option alone appears to be OK.
+# petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
+# petsc_options_value = '1.e-10               ds'
+type = FDP
+full = true
+petsc_options = '-snes'
+petsc_options_iname = '-mat_fd_type'
+petsc_options_value = 'ds'
+petsc_options_iname = '-mat_fd_type'
+petsc_options_value = 'ds'
+[../]
 []
 
 [Executioner]
   # restart_file_base = TMI_test_PRA_out_restart_0194
   type = RavenExecutioner
   dt = 5e-2
-  time_t = '0         1.0   3.0       5.01       9.5     9.75    14      17    5e1'
-  time_dt = '1.e-3  0.1    0.1   2.5e-1    2.5e-1  2.5e-1      2.5e-1    2.5e-1'
+  time_t = '0         1.0   3.0       5.01       9.5     9.75    14      17    7e1'
+  time_dt = '1.e-3  0.025    0.026   2.5e-2    2.5e-2  2.5e-2      3.5e-2    4.5e-1'
   dtmax = 9999
   e_tol = 10.0
   e_max = 99999.
-  max_increase = 2
+  max_increase = 3
   perf_log = true
-  petsc_options_iname = '-ksp_gmres_restart'
-  petsc_options_value = '300' # '300'
-  nl_rel_tol = 1e-3
+  petsc_options_iname = '-ksp_gmres_restart -pc_type'
+  petsc_options_value = '300 lu' # '300'
+  nl_rel_tol = 1e-6
   nl_abs_tol = 1e-10
   nl_max_its = 100
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
   l_max_its = 100 # Number of linear iterations for each Krylov solve
   start_time = 0.0
-  end_time = 50
+  end_time = 60.0
   ss_check_tol = 1e-05
   nl_rel_step_tol = 1e-3
+  predictor_scale = 0.6
   [./Quadrature]
     type = TRAP
     order = FIRST
@@ -630,30 +636,30 @@
   control_logic_input = TMI_test_PRA_control
   [./power_CH1]
     print_csv = true
-    property_name = total_power_scaling
+    property_name = FUEL:power_fraction
     data_type = double
     component_name = CH1
   [../]
   [./power_CH2]
-    property_name = total_power_scaling
+    property_name = FUEL:power_fraction
     print_csv = true
     data_type = double
     component_name = CH2
   [../]
   [./power_CH3]
-    property_name = total_power_scaling
+    property_name = FUEL:power_fraction
     print_csv = true
     data_type = double
     component_name = CH3
   [../]
   [./high_pressure_secondary_A]
-    property_name = p_in
+    property_name = p_bc
     print_csv = true
     data_type = double
     component_name = high_pressure_seconday_A
   [../]
   [./high_pressure_secondary_B]
-    property_name = p_in
+    property_name = p_bc
     print_csv = true
     data_type = double
     component_name = high_pressure_seconday_B
@@ -884,4 +890,3 @@
     initial_value = 2000
   [../]
 []
-
