@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import subprocess, os, sys, getopt, random, time, shutil
+import subprocess, os, sys, getopt, random, time, shutil, signal
 import Queue as queue
 
 pathname = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -28,6 +28,11 @@ class Runner(object):
         else:
             stdout = None
         self.process = subprocess.Popen(self.args,stdout=stdout,stderr=subprocess.STDOUT)
+
+    def kill(self):
+        #In python 2.6 this could be self.process.terminate()
+        print "Terminating ",self.process.pid,self.args
+        os.kill(self.process.pid,signal.SIGTERM)
 
 # test = Runner(["cat","foo"],"This is data\nHello World\n","foo","bar")
 # test.isDone()
@@ -77,6 +82,13 @@ class ProcessQueue(object):
                                          item["input_data_name"],
                                          item["output_data_name"])
                 self.next_id += 1
+        
+    def terminateAll(self):
+        #clear out the queue
+        while not self.queue.empty():
+            self.queue.get()
+        for i in range(len(self.running)):
+            self.running[i].kill()
 
         
 
@@ -147,6 +159,11 @@ def generateSeed():
 def runBatches(runs,batch_size,input_filename,input_prefix,base_args,modify_input):
     print runs,batch_size,input_filename
     running_queue = ProcessQueue(batch_size)
+    def sigterm_handler(signal,frame):
+        running_queue.terminateAll()
+        return
+    
+    signal.signal(signal.SIGTERM,sigterm_handler)
     #initialize fibonacci
     fibo_1 = 0
     #fibo_2 = 1
