@@ -29,7 +29,7 @@ class TimePoint:
 
 class TimePointSet:
   '''
-  a set of n dimensional point (in the output space)
+  a set of n dimensional points (in the output space)
   characterized by its input values in the m-dimensional space (and might be time value)
   '''
   def __init__(self,name=None):
@@ -40,7 +40,7 @@ class TimePointSet:
     self.inpParametersValues = {}  #input parameters as keys, corresponding a vector of values (time is eventually placed here as a parameter)
     self.outVariableValues   = {}  #output variables as keys, corresponding values vectors
     
-  def load(self,filein,time,number):
+  def load(self,filein,time,number,paramList=None):
     if time == 'end':
       return #get the ending state
     else:
@@ -78,7 +78,7 @@ class History:
 
 class Histories:
   '''
-  class used to store time history of one n-dimensional trajectory in the phase space 
+  class used to store time histories of one n-dimensional trajectory in the phase space 
   '''
   def __init__(self,name=None):
     if name:
