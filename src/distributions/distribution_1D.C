@@ -190,12 +190,14 @@ NormalDistribution::RandomNumberGenerator(double & RNG){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
+     std::cerr << "TRUNCATION IS " << _dis_parameters.find("truncation") ->second << std::endl;
      if (_dis_parameters.find("truncation") ->second == 1){
        double temp=NormalDistribution::untrCdf(xMin)+RNG*(NormalDistribution::untrCdf(xMax)-NormalDistribution::untrCdf(xMin));
        value=NormalDistribution::untrRandomNumberGenerator(temp);
      }
-     else
+     else{
        value=-1;
+     }
    }
    else if(_force_dist == 1){
      value = xMin;
