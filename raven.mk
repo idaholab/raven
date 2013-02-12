@@ -43,6 +43,14 @@ else
 raven_shared_ext := so
 endif
 
+HAS_DYNAMIC := $(shell PYTHONPATH=$(RAVEN_DIR)/../moose/tests/ python -c 'import util; print "DYNAMIC" in util.getSharedOption("../libmesh/installed")')
+
+ifeq ($(HAS_DYNAMIC),False)  
+ifdef PYTHON_MODULES
+$(error RAVEN modules must be compiled with shared libmesh libraries)
+endif
+endif
+
 
 #ifeq ($(UNAME),Darwin)
 EXTRA_MOOSE_LIBS = -L$(MOOSE_DIR) -lmoose-$(METHOD) -L$(RAVEN_DIR) -lRAVEN-$(METHOD) -L$(R7_DIR) -lr7_moose-$(METHOD) -L$(ELK_DIR)/lib -lelk-$(METHOD) -lphase_field-$(METHOD) -lnavier_stokes-$(METHOD) -lheat_conduction-$(METHOD) -lsolid_mechanics-$(METHOD) -ltensor_mechanics-$(METHOD) -llinear_elasticity-$(METHOD) -lchemical_reactions-$(METHOD) -lfluid_mass_energy_balance-$(METHOD) -lmisc-$(METHOD) -lcontact-$(METHOD) $(libmesh_LIBS)
