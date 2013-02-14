@@ -1,3 +1,5 @@
+import CsvLoader as loader 
+
 class TimePoint:
   '''
   one dimensional point (in the output space)
@@ -11,12 +13,12 @@ class TimePoint:
     self.inpParametersValues = {}  # input parameters as keys, corresponding values (time is placed here eventually as a parameter)
     self.outVariableValues   = {}  # output variables as keys, corresponding values
     
-  def load(self,filein,time,paramList=None):
-    if time == 'end':
-      return #get the ending state
-    else:
-      #read the time point with linear interpolation
-      return
+  def load(self,filein,time,inpParamsDict,outParamsDict):
+    
+    self.inpParametersValues = inpParamsDict
+    self.outVariableValues = outParamsDict
+    
+    loader.csvLoaderForTimePoint(filein,time,self.inpParametersValues,self.outVariableValues)
     
   def takePointfromHistories(self):
     return
@@ -40,12 +42,19 @@ class TimePointSet:
     self.inpParametersValues = {}  #input parameters as keys, corresponding a vector of values (time is eventually placed here as a parameter)
     self.outVariableValues   = {}  #output variables as keys, corresponding values vectors
     
-  def load(self,filein,time,number,paramList=None):
-    if time == 'end':
-      return #get the ending state
-    else:
-      #read the time point with linear interpolation
-      return
+  def load(self,fileNameRoot,numberSimulation,time,inpParamsDict,outParamsDict):
+    
+    self.inpParametersValues = inpParamsDict
+    self.outVariableValues = outParamsDict
+    
+    # we construct the list of files from which the data must be collected
+    files = []
+    for iSims in numberSimulation:
+      files[iSims] = fileNameRoot + '_' + str(iSims)  + '.csv'   
+      
+    loader.csvLoaderForTimePointSet(files,time,self.inpParametersValues,self.outVariableValues)
+    
+    return
   def takePointSetfromHistories(self):
     return
   def generatePointSetfromPoints(self):
@@ -61,19 +70,21 @@ class History:
       self.name = name
     else:
       self.name = None
-
-    self.container = {} #keys are the name of the recorded variable, they correspond to vectors of values
-    self.input     = {} #keys are the name of the input parameters, they correspond to the input values
+      
+    self.outVariableValues   = {} #keys are the name of the recorded variable, they correspond to vectors of values
+    self.inpParametersValues = {} #keys are the name of the input parameters, they correspond to the input values
     
-  def load(self,fileName,oneTrajectoryTimefilter=None):
+  def load(self,fileName,inpParamsDict,outParamsDict,oneTrajectoryTimefilter=None):
     '''
     open and read the file
     filter the data if present oneTrajectoryTimefilter
     allocate numpy arrays and store the info
     place the keys and the arrays in the dictionary
     '''
-    if filter:
-      return
+    
+    self.inpParametersValues = inpParamsDict
+    self.outVariableValues = outParamsDict
+    loader.csvLoaderForHistory(filein,oneTrajectoryTimefilter,self.inpParametersValues,self.outVariableValues)
     return 
 
 class Histories:
@@ -85,13 +96,22 @@ class Histories:
       self.name = name
     else:
       self.name = None
-    self.container = {} # key are the name of the recorded variable, they correspond to matrices of values (simulation numbers)x(time step)
+    self.containerOut = {} # key are the name of the recorded variable, they correspond to matrices of values (simulation numbers)x(time step)
+    self.containerIn  = {}
     
-  def load(self,fileNameRoot,numberSimulation=None,TrajectorySetTimefilter=None):
+  def load(self,fileNameRoot,numberSimulation,inpParamsDict,outParamsDict,TrajectorySetTimefilter=None):
     '''
     '''
-    if filter:
-      return
+    self.inpParametersValues = inpParamsDict
+    self.outVariableValues = outParamsDict
+    
+    # we construct the list of files from which the data must be collected
+    files = []
+    for iSims in numberSimulation:
+      files[iSims] = fileNameRoot + '_' + str(iSims)  + '.csv'   
+      
+    loader.csvLoaderForHistories(files,time,self.inpParametersValues,self.outVariableValues)
+    
     return 
  
 class DataInterface:
