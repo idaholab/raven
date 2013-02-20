@@ -69,10 +69,10 @@ RAVEN_LIB := $(RAVEN_DIR)/libRAVEN-$(METHOD).la
 RAVEN_APP := $(RAVEN_DIR)/RAVEN-$(METHOD)
 
 # source files
-RAVEN_srcfiles    := $(shell find $(RAVEN_SRC_DIRS) -name *.C)
-RAVEN_csrcfiles   := $(shell find $(RAVEN_SRC_DIRS) -name *.c)
-RAVEN_fsrcfiles   := $(shell find $(RAVEN_SRC_DIRS) -name *.f)
-RAVEN_f90srcfiles := $(shell find $(RAVEN_SRC_DIRS) -name *.f90)
+RAVEN_srcfiles    := $(shell find $(RAVEN_SRC_DIRS) -name "*.C")
+RAVEN_csrcfiles   := $(shell find $(RAVEN_SRC_DIRS) -name "*.c")
+RAVEN_fsrcfiles   := $(shell find $(RAVEN_SRC_DIRS) -name "*.f")
+RAVEN_f90srcfiles := $(shell find $(RAVEN_SRC_DIRS) -name "*.f90")
 
 # object files
 RAVEN_objects	:= $(patsubst %.C, %.$(obj-suffix), $(RAVEN_srcfiles))
@@ -81,10 +81,10 @@ RAVEN_objects += $(patsubst %.f, %.$(obj-suffix), $(RAVEN_fsrcfiles))
 RAVEN_objects += $(patsubst %.f90, %.$(obj-suffix), $(RAVEN_f90srcfiles))
 
 # plugin files
-RAVEN_plugfiles   := $(shell find $(RAVEN_DIR)/plugins/ -name *.C 2>/dev/null)
-RAVEN_cplugfiles  := $(shell find $(RAVEN_DIR)/plugins/ -name *.c 2>/dev/null)
-RAVEN_fplugfiles  := $(shell find $(RAVEN_DIR)/plugins/ -name *.f 2>/dev/null)
-RAVEN_f90plugfiles:= $(shell find $(RAVEN_DIR)/plugins/ -name *.f90 2>/dev/null)
+RAVEN_plugfiles   := $(shell find $(RAVEN_DIR)/plugins/ -name "*.C" 2>/dev/null)
+RAVEN_cplugfiles  := $(shell find $(RAVEN_DIR)/plugins/ -name "*.c" 2>/dev/null)
+RAVEN_fplugfiles  := $(shell find $(RAVEN_DIR)/plugins/ -name "*.f" 2>/dev/null)
+RAVEN_f90plugfiles:= $(shell find $(RAVEN_DIR)/plugins/ -name "*.f90" 2>/dev/null)
 
 # plugins
 RAVEN_plugins     := $(patsubst %.C, %-$(METHOD).plugin, $(RAVEN_plugfiles))
