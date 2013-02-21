@@ -43,8 +43,7 @@ class Data:
       self.inpParametersValues[key] = None
     for key in self.outputs:
       self.outParametersValues[key] = None    
-    
-  
+
 class TimePoint(Data):
   '''
   one dimensional point (in the output space)
@@ -108,7 +107,6 @@ class TimePointSet(Data):
   def generatePointSetfromPoints(self):
     return
 
-      
 class History(Data):
   '''
   class used to store one time history of one n-dimensional trajectory in the phase space 
@@ -185,4 +183,3 @@ def generateDataClass(xmlNode):
   
   return dataTypeDictionary[xmlNode.tag](xmlNode)
 
-         
