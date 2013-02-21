@@ -13,11 +13,11 @@ if __name__ == '__main__':
     try:
       inputFile = sys.argv[1]
     except:
-      raise IOError 'incorrect input file provided ' + sys.argv[1]
+      raise IOError ('incorrect input file provided ' + sys.argv[1])
     try:
       tree = ET.parse(inputFile)
     except:
-      raise IOError 'not able to parse' + inputFile
+      raise IOError ('not able to parse' + inputFile)
     #generate all the components of the simulation
     simulation = Simulation()
     root = tree.getroot()

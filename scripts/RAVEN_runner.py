@@ -27,6 +27,9 @@ class Runner(object):
             stdout = output_file
         else:
             stdout = None
+        
+        print(self.args)
+#        self.process = subprocess.Popen(self.args)
         self.process = subprocess.Popen(self.args,stdout=stdout,stderr=subprocess.STDOUT)
 
     def kill(self):
@@ -178,6 +181,7 @@ def runBatches(runs,batch_size,input_filename,input_prefix,base_args,modify_inpu
         fibo_1 = fibo_1 + 1
         #fibo_1 = fibo_2
         #fibo_2 = increment
+        print('i '+str(i))
         if modify_input:
             morgifyInputFile(input_filename,new_input,
                              createInputChanger(increment,output_file))
@@ -188,6 +192,7 @@ def runBatches(runs,batch_size,input_filename,input_prefix,base_args,modify_inpu
         else:
             args = base_args+[new_input]
         running_queue.addItem(args,input_data_name=new_input,output_data_name=output_file)
+        print('item added')
     while not running_queue.isFinished():
         time.sleep(1.0)
         running_queue.processEntries()
@@ -237,6 +242,8 @@ if __name__ == "__main__":
         arg = args[j]
         arg = arg.replace("%RAVEN_DIR%",raven_dir)
         args[j] = arg
+    print('input_filename '+input_filename)
+    print('input_prefix '+input_prefix)
     runBatches(runs,batch_size,input_filename,input_prefix,args,modify_input)
 
 
