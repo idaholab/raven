@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/RAVEN" xmlns:tns="http://www.example.org/RAVEN" elementFormDefault="qualified">
+
+    <include schemaLocation=""></include>
+    <include schemaLocation=""></include>
+    <element name="Simulation" type="tns:Simulation"/>
+
+
+
+<!-- starting from here the types describing first the overall input structure (Simulation) -->
+<!-- then the different blocks (SimulationStep,DataList,SemplerList,ModelsList,RunInfo)     -->
+
+<!-- ************************************************************************* -->
+<!-- this is the type collecting the information for all types and runs needed -->
+    <complexType name="Simulation">
+    <!-- this is the outermost container -->
+      <sequence>
+        <element name="SimulationStep" type="tns:Steps"    maxOccurs="1" minOccurs="1"/>
+        <element name="DataList"       type="tns:Datas"    maxOccurs="1" minOccurs="1"/>
+        <element name="SemplerList"    type="tns:Samplers" maxOccurs="1" minOccurs="1"/>
+        <element name="ModelsList"     type="tns:Models"   maxOccurs="1" minOccurs="1"/>
+        <element name="TesterList"     type="tns:Testers"  maxOccurs="1" minOccurs="0"/>
+        <element name="RunInfo"        type="tns:RunInfo"  maxOccurs="1" minOccurs="1"/>
+      </sequence>
+      <attribute name="Name" type="string" use="required"/>
+    </complexType>
+<!-- ************************************************************************* -->
+
+<!-- this is the type collecting the information to run the case sub type are enlisted in the following -->
+    <complexType name="RunInfo">
+      <sequence>
+        <element name="WorkingDir"    type="string"        maxOccurs="1" minOccurs="1"/>
+        <element name="QuequingInfo"  type="tns:Quequing"  maxOccurs="1" minOccurs="0"/>
+        <element name="ParallelInfo"  type="tns:Parallel"  maxOccurs="1" minOccurs="0"/>
+        <element name="ThreadingInfo" type="tns:Threading" maxOccurs="1" minOccurs="0"/>
+      </sequence>
+    </complexType>
+
+    <!-- this is the type collecting the information to run the case in batches for the sampling-->
+    <complexType name="Quequing">
+      <simpleContent>
+        <extension base="string">
+          <attribute name="num" type="string" use="optional"/>
+          <attribute name="batchSize"        type="int"    use="required"/>
+        </extension>
+      </simpleContent>
+    </complexType>
+
+    <!-- this is the type collecting the information to run each simulation in parallel -->
+    <complexType name="Parallel">
+      <simpleContent>
+        <extension base="string">
+          <attribute name="processor" type="int" use="required"/>
+        </extension>
+      </simpleContent>
+    </complexType>
+
+    <!-- this is the type collecting the information to run each simulation multi threaded -->
+    <complexType name="Threading">
+      <simpleContent>
+        <extension base="string">
+          <attribute name="processor" type="int" use="required"/>
+        </extension>
+      </simpleContent>
+    </complexType>
+<!-- ends the type description needed for  RunInfo -->
+
+
+
+    <complexType name="Steps">
+      <sequence>
+        <element name="Input"   type="tns:StepInfo" maxOccurs="unbounded" minOccurs="1"/>
+        <element name="Output"  type="tns:StepInfo" maxOccurs="unbounded" minOccurs="1"/>
+        <element name="Model"   type="tns:StepInfo" maxOccurs="1" minOccurs="1"/>
+        <element name="Sampler" type="tns:StepInfo" maxOccurs="1" minOccurs="0"/>
+        <element name="Tester"  type="tns:StepInfo" maxOccurs="1" minOccurs="0"/>
+      </sequence>
+      <attribute name="Type" type="tns:StepType" use="required"/><!-- allowed type are  -->
+    </complexType>
+
+  <simpleType name="StepType">
+    <restriction base="string">
+      <enumeration value="produceData" />
+      <enumeration value="GenerateROM" />
+      <enumeration value="Compute" />
+    </restriction>
+  </simpleType>
+
+    <complexType name="StepInfo">
+      <simpleContent>
+        <extension base="string">
+          <attribute name="type" type="string" use="required" />
+          <!-- the name -->
+        </extension>
+      </simpleContent>
+    </complexType>
+
+
+<!-- start the data container and the subsequent specialized data types -->
+    <complexType name="Datas">
+      <sequence>
+        <element name="TimePoint"    type="tns:TimePoint" maxOccurs="unbounded" minOccurs="0"/>
+        <element name="TimePointSet" type="tns:TimePoint" maxOccurs="unbounded" minOccurs="0"/>
+        <element name="History"      type="tns:Data_base" maxOccurs="unbounded" minOccurs="0"/>
+        <element name="Histories"    type="tns:Data_base" maxOccurs="unbounded" minOccurs="0"/>
+      </sequence>
+    </complexType>
+    
+    <!-- a base type for data container -->
+    <complexType name="Data_base">
+      <sequence>
+        <element name="Input"  type="string" maxOccurs="1" minOccurs="0"/><!-- list of the input  parameters to follow -->
+        <element name="Output" type="string" maxOccurs="1" minOccurs="0"/><!-- list of the output parameters to follow -->
+      </sequence>
+      <attribute name="Name" type="string" use="required"/>
+    </complexType>
+
+    <!-- TimePoint container -->
+    <complexType name="TimePoint">
+      <complexContent>
+        <extension base="tns:Data_base">
+          <attribute name="Time" type="string" use="required" />
+        </extension>
+      </complexContent>
+    </complexType>
+    
+<!-- end the data container and the subsequent specialized data types -->    
+
+<!-- Starts the data container for Samplers and the subsequent specialized data types -->    
+    <complexType name="Samplers">
+      <sequence>
+        <element name="MonteCarlo"     type="tns:MonteCarlo"     maxOccurs="unbounded" minOccurs="0"/>
+        <element name="LatinHyperCube" type="tns:LatinHyperCube" maxOccurs="unbounded" minOccurs="0"/>
+        <element name="Dakota"         type="tns:Dakota"         maxOccurs="unbounded" minOccurs="0"/>
+      </sequence>    
+    </complexType>
+
+    <!-- Dakota as a Sampler description -->
+    <complexType name="Dakota">
+    </complexType>
+
+    <!-- LatinHyperCube Sampler description -->
+    <complexType name="LatinHyperCube">
+      <simpleContent>
+        <extension base="string">
+          <attribute name="Name"      type="string" use="required" />
+          <attribute name="intervals" type="int"    use="required" />
+          <!-- list of the input parameters to sample -->
+        </extension>
+      </simpleContent>
+    </complexType>
+
+    <!-- MonteCarlo Sampler description -->
+    <complexType name="MonteCarlo">
+      <simpleContent>
+        <extension base="string">
+          <attribute name="Name"   type="string" use="required" />
+          <attribute name="MaxRun" type="int"    use="required" />
+          <!-- list of the input parameters to sample -->
+        </extension>
+      </simpleContent>
+    </complexType>
+<!-- Ends the data container for Models and the subsequent specialized data types -->
+
+
+    <complexType name="Models">
+      <sequence>
+        <element name="RAVEN"          type="string"             maxOccurs="unbounded" minOccurs="0"/>
+        <element name="SVMsClassifier" type="tns:SVMsClassifier" maxOccurs="unbounded" minOccurs="0"/>
+      </sequence>        
+    </complexType>
+    
+    <complexType name="SVMsClassifier">
+      <simpleContent>
+        <extension base="string">
+        </extension>
+      </simpleContent>
+    </complexType>
+    
+
+</schema>
