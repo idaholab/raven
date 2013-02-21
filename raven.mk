@@ -1,3 +1,5 @@
+RAVEN_SRC_DIRS := $(RAVEN_DIR)/src/*/*
+
 PYTHON3_HELLO := $(shell python3 -c "print('HELLO')" 2>/dev/null)
 PYTHON2_HELLO := $(shell python -c "print 'HELLO'" 2>/dev/null)
 
@@ -67,10 +69,10 @@ RAVEN_LIB := $(RAVEN_DIR)/libRAVEN-$(METHOD).la
 RAVEN_APP := $(RAVEN_DIR)/RAVEN-$(METHOD)
 
 # source files
-RAVEN_srcfiles    := $(shell find $(RAVEN_DIR)/src -name "*.C")
-RAVEN_csrcfiles   := $(shell find $(RAVEN_DIR)/src -name "*.c")
-RAVEN_fsrcfiles   := $(shell find $(RAVEN_DIR)/src -name "*.f")
-RAVEN_f90srcfiles := $(shell find $(RAVEN_DIR)/src -name "*.f90")
+RAVEN_srcfiles    := $(shell find $(RAVEN_SRC_DIRS) -name "*.C")
+RAVEN_csrcfiles   := $(shell find $(RAVEN_SRC_DIRS) -name "*.c")
+RAVEN_fsrcfiles   := $(shell find $(RAVEN_SRC_DIRS) -name "*.f")
+RAVEN_f90srcfiles := $(shell find $(RAVEN_SRC_DIRS) -name "*.f90")
 
 # object files
 RAVEN_objects	:= $(patsubst %.C, %.$(obj-suffix), $(RAVEN_srcfiles))
