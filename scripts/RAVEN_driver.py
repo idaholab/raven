@@ -151,19 +151,19 @@ def createInputChanger(increment,output_base,changerType=None):
     '''
     this changer force all the distribution to return their lower bound
     '''
-    data.children["Distributions"].params["force_distribution"] = data.children["Distributions"].params.get("force_distribution",1)
+    data.children["Distributions"].params["force_distribution"] = 1
    
   def input_changerFixDistAvg(data):
     '''
     this changer force all the distribution to return their average value
     '''
-    data.children["Distributions"].params["force_distribution"] = data.children["Distributions"].params.get("force_distribution",2)
+    data.children["Distributions"].params["force_distribution"] = 2
    
   def input_changerFixDistMax(data):
     '''
     this changer force all the distribution to return their upper bound
     '''
-    data.children["Distributions"].params["force_distribution"] = data.children["Distributions"].params.get("force_distribution",3)
+    data.children["Distributions"].params["force_distribution"] = 3
       
   def input_changerNone(data):
     '''
