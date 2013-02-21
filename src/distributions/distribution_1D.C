@@ -31,6 +31,10 @@ template<>
 InputParameters validParams<UniformDistribution>(){
 
    InputParameters params = validParams<distribution>();
+    
+   params.addRequiredParam<double>("xMin", "Upper bound");
+   params.addRequiredParam<double>("xMax", "Lower bound");
+
    return params;
 }
 
@@ -39,28 +43,51 @@ class UniformDistribution;
 UniformDistribution::UniformDistribution(const std::string & name, InputParameters parameters):
    distribution(name,parameters)
 {
+    _dis_parameters["xMin"] = getParam<double>("xMin");
+    _dis_parameters["xMax"] = getParam<double>("xMax");
+    
+    
+    if (getParam<double>("xMin")>getParam<double>("xMax"))
+        mooseError("ERROR: bounds for uniform distribution are incorrect");  
 }
+
 UniformDistribution::~UniformDistribution()
 {
 }
 double
 UniformDistribution::Pdf(double & x){
    double value;
-   value = 1.0/((_dis_parameters.find("xMax") ->second) -
-              (_dis_parameters.find("xMin") ->second));
+   if (x<_dis_parameters.find("xMin") ->second)
+      value=0;
+   else if (x>_dis_parameters.find("xMax") ->second)
+      value=0;
+   else
+	   value = 1.0/((_dis_parameters.find("xMax") ->second) - (_dis_parameters.find("xMin") ->second));
    return value;
 }
 double
 UniformDistribution::Cdf(double & x){
    double value;
-   value = 1.0/(((_dis_parameters.find("xMax") ->second) -
-              (_dis_parameters.find("xMin") ->second))*
-              (x - (_dis_parameters.find("xMin") ->second)));
+
+   double xMax = _dis_parameters.find("xMax") ->second;
+   double xMin = _dis_parameters.find("xMin") ->second;
+
+   if (x<xMin)
+	   value=0;
+   else if (x>xMax)
+	   value =1;
+   else
+	   value = (x-xMin)/(xMax-xMin);
+
    return value;
 }
 double
 UniformDistribution::RandomNumberGenerator(double & RNG){
    double value;
+    
+   if ((RNG<0)&&(RNG>1))
+      mooseError("ERROR: in the evaluation of RNG for uniform distribution");   
+    
    if(_force_dist == 0){
      value = (_dis_parameters.find("xMin") ->second)+RNG*
                ((_dis_parameters.find("xMax") ->second)-
@@ -117,6 +144,7 @@ NormalDistribution::NormalDistribution(const std::string & name, InputParameters
    _dis_parameters["mu"] = getParam<double>("mu");
    _dis_parameters["sigma"] = getParam<double>("sigma");
 }
+
 NormalDistribution::~NormalDistribution(){
 }
 
@@ -177,7 +205,7 @@ NormalDistribution::Cdf(double & x){
    double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(NormalDistribution::untrCdf(xMax) - NormalDistribution::untrCdf(xMin)) * NormalDistribution::untrCdf(x);
+      value = 1/(NormalDistribution::untrCdf(xMax) - NormalDistribution::untrCdf(xMin)) * (NormalDistribution::untrCdf(x) - NormalDistribution::untrCdf(xMin));
    else
       value=-1;
 
@@ -190,7 +218,6 @@ NormalDistribution::RandomNumberGenerator(double & RNG){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
-     std::cerr << "TRUNCATION IS " << _dis_parameters.find("truncation") ->second << std::endl;
      if (_dis_parameters.find("truncation") ->second == 1){
        double temp=NormalDistribution::untrCdf(xMin)+RNG*(NormalDistribution::untrCdf(xMax)-NormalDistribution::untrCdf(xMin));
        value=NormalDistribution::untrRandomNumberGenerator(temp);
@@ -225,6 +252,7 @@ InputParameters validParams<LogNormalDistribution>(){
 
    params.addRequiredParam<double>("mu", "Mean");
    params.addRequiredParam<double>("sigma", "Standard deviation");
+    
    return params;
 }
 
@@ -235,6 +263,9 @@ LogNormalDistribution::LogNormalDistribution(const std::string & name, InputPara
 {
    _dis_parameters["mu"] = getParam<double>("mu");
    _dis_parameters["sigma"] = getParam<double>("sigma");
+    
+    if (getParam<double>("mu")<0)
+        mooseError("ERROR: incorrect value of mu for lognormaldistribution");  
 }
 
 LogNormalDistribution::~LogNormalDistribution()
@@ -248,9 +279,9 @@ LogNormalDistribution::untrPdf(double & x){
    double sigma=_dis_parameters.find("sigma") ->second;
 
    if (x<=0)
-      mooseError("Error: Lognormal pdf evaluated for x<=0");
+      value=0;
    else
-      value=1/(sqrt(x*2.0*M_PI*sigma*sigma))*exp(-(log(x)-mu)*(log(x)-mu)/(2*sigma*sigma));
+      value=1/(sqrt(x*x*2.0*M_PI*sigma*sigma))*exp(-(log(x)-mu)*(log(x)-mu)/(2*sigma*sigma));
 
    return value;
 }
@@ -262,7 +293,7 @@ LogNormalDistribution::untrCdf(double & x){
    double sigma=_dis_parameters.find("sigma") ->second;
 
    if (x<=0)
-      mooseError("Error: Lognormal pdf evaluated for x<=0");
+	   value=0;
    else
       value=0.5*(1+erf((log(x)-mu)/(sqrt(2*sigma*sigma))));
 
@@ -308,7 +339,7 @@ LogNormalDistribution::Cdf(double & x){
    double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(LogNormalDistribution::untrCdf(xMax) - LogNormalDistribution::untrCdf(xMin)) * LogNormalDistribution::untrCdf(x);
+      value = 1/(LogNormalDistribution::untrCdf(xMax) - LogNormalDistribution::untrCdf(xMin)) * (LogNormalDistribution::untrCdf(x)- LogNormalDistribution::untrCdf(xMin));
    else
       value=-1;
 
@@ -366,6 +397,12 @@ TriangularDistribution::TriangularDistribution(const std::string & name, InputPa
    distribution(name,parameters)
 {
    _dis_parameters["xPeak"] = getParam<double>("xPeak");
+   _dis_parameters["lowerBound"] = getParam<double>("lowerBound");
+   _dis_parameters["upperBound"] = getParam<double>("upperBound");
+    
+    
+    if (getParam<double>("upperBound")<getParam<double>("lowerBound"))
+        mooseError("ERROR: bounds for triangular distribution are incorrect");  
 }
 TriangularDistribution::~TriangularDistribution()
 {
@@ -385,7 +422,7 @@ TriangularDistribution::untrPdf(double & x){
    if ((x>peak)&(x<ub))
       value=2*(ub-x)/(ub-lb)/(ub-peak);
    if (x>ub)
-      value=1;
+      value=0;
 
    return value;
 }
@@ -403,7 +440,7 @@ double  TriangularDistribution::untrCdf(double & x){
    if ((x>peak)&(x<ub))
       value=1-(ub-x)*(ub-x)/(ub-lb)/(ub-peak);
    if (x>ub)
-      value=0;
+      value=1;
 
    return value;
 }
@@ -418,9 +455,9 @@ TriangularDistribution::untrRandomNumberGenerator(double & RNG){
    double threshold = (peak-lb)/(ub-lb);
 
    if (RNG<threshold)
-      value=lb+sqrt(RNG*(peak-lb)/(ub-lb));
+      value=lb+sqrt(RNG*(peak-lb)*(ub-lb));
    else
-      value=ub-sqrt((1-RNG)*(ub-peak)/(ub-lb));
+      value=ub-sqrt((1-RNG)*(ub-peak)*(ub-lb));
 
    return value;
 }
@@ -432,7 +469,10 @@ TriangularDistribution::Pdf(double & x){
    double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * TriangularDistribution::untrPdf(x);
+	   if ((x<xMin)||(x>xMax))
+		   value=0;
+	   else
+		   value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * TriangularDistribution::untrPdf(x);
    else
       value=-1;
 
@@ -446,7 +486,12 @@ TriangularDistribution::Cdf(double & x){
    double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * TriangularDistribution::untrCdf(x);
+	  if (x<xMin)
+		  value=0;
+	  else if (x>xMax)
+		  value=1;
+	  else
+		  value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * (TriangularDistribution::untrCdf(x)- TriangularDistribution::untrCdf(xMin));
    else
       value=-1;
 
@@ -502,6 +547,9 @@ ExponentialDistribution::ExponentialDistribution(const std::string & name, Input
    distribution(name,parameters)
 {
    _dis_parameters["lambda"] = getParam<double>("lambda");
+    
+    if (getParam<double>("lambda")<0)
+        mooseError("ERROR: incorrect value of lambda for exponential distribution"); 
 }
 ExponentialDistribution::~ExponentialDistribution()
 {
@@ -515,7 +563,7 @@ ExponentialDistribution::untrPdf(double & x){
    if (x >= 0.0)
       value = lambda*exp(-x*lambda);
    else
-      mooseError("Exponential distribution (pdf calculation): parameter x not valid (x>0).");
+	   value=0.0;
 
    return value;
 }
@@ -528,7 +576,7 @@ ExponentialDistribution::untrCdf(double & x){
    if (x >= 0.0)
       value = 1-exp(-x*lambda);
    else
-      mooseError("Exponential distribution (Cdf calculation): parameter x not valid (x>0).");
+      value=0.0;
 
    return value;
 }
@@ -548,7 +596,12 @@ ExponentialDistribution::Pdf(double & x){
    double value;
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * ExponentialDistribution::untrPdf(x);
+	  if (x<xMin)
+		  value =0;
+	  else if (x>xMax)
+		  value =0;
+	  else
+		  value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * ExponentialDistribution::untrPdf(x);
    else
       value=-1;
    }
@@ -575,7 +628,12 @@ ExponentialDistribution::Cdf(double & x){
    double value;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * ExponentialDistribution::untrCdf(x);
+	  if (x<xMin)
+		  value =0;
+	  else if (x>xMax)
+		  value =1;
+	  else
+		  value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * (ExponentialDistribution::untrCdf(x)- ExponentialDistribution::untrCdf(xMin));
    else
       value=-1;
 
@@ -632,6 +690,9 @@ WeibullDistribution::WeibullDistribution(const std::string & name, InputParamete
 {
    _dis_parameters["k"] = getParam<double>("k");
    _dis_parameters["lambda"] = getParam<double>("lambda");
+
+    if ((getParam<double>("lambda")<0) || (getParam<double>("k")<0))
+        mooseError("ERROR: incorrect value of k or lambda for weibull distribution"); 
 }
 
 WeibullDistribution::~WeibullDistribution()
@@ -661,7 +722,7 @@ WeibullDistribution::untrCdf(double & x){
    if (x >= 0)
       value = 1.0 - exp(-pow(x/lambda,k));
    else
-      value=0;
+	   value=0.0;
 
       return value;
 }
@@ -671,7 +732,7 @@ WeibullDistribution::untrRandomNumberGenerator(double & RNG){
    double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
 
-   double value = - lambda * pow(log(1.0 - RNG),1/k);
+   double value = lambda * pow(-log(1.0 - RNG),1/k);
    return value;
 }
 
@@ -683,7 +744,12 @@ WeibullDistribution::Pdf(double & x){
    double value;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrPdf(x);
+	  if (x<xMin)
+		  value=0;
+	  else if (x>xMax)
+		  value=0;
+	  else
+		  value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrPdf(x);
    else
       value=-1;
 
@@ -698,7 +764,12 @@ WeibullDistribution::Cdf(double & x){
    double value;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrCdf(x);
+	  if (x<xMin)
+		  value=0;
+	  else if (x>xMax)
+		  value=1;
+	  else
+		  value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrCdf(x);
    else
       value=-1;
 

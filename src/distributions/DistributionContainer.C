@@ -69,6 +69,11 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
 //}
 
 std::string
+DistributionContainer::getType(char *  DistAlias){
+  return getType(std::string(DistAlias));
+}
+
+std::string
 DistributionContainer::getType(std::string DistAlias){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
@@ -109,6 +114,11 @@ bool DistributionContainer::checkCdf(double probability, double value){
 // end to be implemented
 
 double
+DistributionContainer::getVariable(char * paramName,char *DistAlias){
+	return getVariable(std::string(paramName),std::string(DistAlias));
+}
+
+double
 DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
        distribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -116,6 +126,11 @@ DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
     }
     mooseError("Distribution " << DistAlias << " not found in distribution container");
     return -1;
+}
+
+void
+DistributionContainer::updateVariable(char * paramName,double newValue,char *DistAlias){
+	updateVariable(std::string(paramName),newValue,std::string(DistAlias));
 }
 
 void
@@ -127,100 +142,10 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
 }
 
-
-//double
-//DistributionContainer::getMin(std::string DistAlias){
-//    int position;
-//
-//    position = getPosition(DistAlias);
-//
-//    if(position != -1){
-//      return _distribution_cont[position].getMin();
-//    }
-//    else{
-//      std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//      return DISTRIBUTION_ERROR;
-//    }
-//
-//}
-//
-//double
-//DistributionContainer::getMax(std::string DistAlias){
-//    int position;
-//
-//    position = getPosition(DistAlias);
-//
-//    if(position != -1){
-//      return _distribution_cont[position].getMax();
-//    }
-//    else{
-//      std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//      return DISTRIBUTION_ERROR;
-//    }
-//
-//}
-//
-//double
-//DistributionContainer::getParamater1(std::string DistAlias){
-//    int position;
-//
-//    position = getPosition(DistAlias);
-//
-//    if(position != -1){
-//      return _distribution_cont[position].getParamater1();
-//    }
-//    else{
-//      std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//      return DISTRIBUTION_ERROR;
-//    }
-//
-//}
-//
-//double
-//DistributionContainer::getParameter2(std::string DistAlias){
-//    int position;
-//
-//    position = getPosition(DistAlias);
-//
-//    if(position != -1){
-//    	return _distribution_cont[position].getParameter2();
-//    }
-//    else{
-//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//    	return DISTRIBUTION_ERROR;
-//    }
-//
-//}
-//
-//void
-//DistributionContainer::changeParameter1(std::string DistAlias,double newParameter1){
-//    int position;
-//
-//    position = getPosition(DistAlias);
-//
-//    if(position != -1){
-//    	_distribution_cont[position].changeParameter1(newParameter1);
-//    }
-//    else{
-//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//    }
-//
-//}
-//
-//void
-//DistributionContainer::changeParameter2(std::string DistAlias,double newParameter2){
-//    int position;
-//
-//    position = getPosition(DistAlias);
-//
-//    if(position != -1){
-//    	_distribution_cont[position].changeParameter2(newParameter2);
-//    }
-//    else{
-//    	std::cerr << " ERROR: distribution " << DistAlias << "not present in the mapping";
-//    }
-//
-//}
+double
+DistributionContainer::Pdf(char * DistAlias, double x){
+   return Pdf(std::string(DistAlias),x);
+}
 
 double
 DistributionContainer::Pdf(std::string DistAlias, double x){
@@ -231,6 +156,11 @@ DistributionContainer::Pdf(std::string DistAlias, double x){
     }
     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
     return -1.0;
+}
+
+double
+DistributionContainer::Cdf(char * DistAlias, double x){
+   return Cdf(std::string(DistAlias),x);
 }
 
 double
@@ -261,18 +191,6 @@ DistributionContainer::randGen(std::string DistAlias, double RNG){
      return -1.0;
 
 }
-
-//int DistributionContainer::getPosition(std::string DistAlias){
-//	std::map <std::string, int>::iterator p;
-//
-//	p = _vector_pos_map.find(DistAlias);
-//	if(p != _vector_pos_map.end()){
-//       return (p->second);
-//	}
-//	else{
-//		return -1;
-//	}
-//}
 
 
 DistributionContainer & DistributionContainer::Instance() {
