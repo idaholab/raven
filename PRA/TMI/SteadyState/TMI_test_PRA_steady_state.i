@@ -9,7 +9,6 @@
   global_init_V = 0.
   global_init_T = 564.15
   scaling_factor_var = '1.e-1 1.e-5 1.e-8'
-  initial_RP = 2.77199979e9
 []
 
 [EoS]
@@ -27,6 +26,11 @@
 []
 
 [Components]
+  [./reactor]
+    type = Reactor
+    initial_power = 2.77199979e9
+  [../]
+
   # Core region components 
   [./CH1]
     # peak_power = '6.127004e8 0. 0.'
