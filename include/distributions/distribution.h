@@ -29,6 +29,7 @@ public:
    virtual ~distribution();
 
    double  getVariable(std::string & variableName);                   	///< getVariable from mapping
+   std::vector<double>  getVariableVector(std::string  variableName);
    void updateVariable(std::string & variableName, double & newValue); 	///< update variable into the mapping
 
    virtual double  Pdf(double & x) = 0;                           		///< Pdf function at coordinate x
@@ -42,9 +43,12 @@ public:
    std::string & getType();                                       		///< Get distribution type
    unsigned int & getSeed();                                      		///< Get seed
 
+   //virtual double windowProcessing(distribution & dist, double & RNG);
+
 protected:
    std::string _type;                              ///< Distribution type
    std::map <std::string,double> _dis_parameters;  ///< Distribution parameters
+   std::map <std::string,std::vector<double> > _dis_vectorParameters;
    Interpolation_Functions _interpolation;         ///< Interpolation class
    unsigned int _seed;                             ///< seed
    unsigned int _force_dist;                       ///< if 0 => dist works as it is supposed to do
@@ -52,6 +56,8 @@ protected:
                                                    ///! (1) => xMin
                                                    ///! (2) => Mean
                                                    ///! (3) => xMax
+   std::vector<double> _PBwindow;
+   std::vector<double> _Vwindow;
 };
 
 
