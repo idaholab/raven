@@ -15,6 +15,10 @@ InputParameters validParams<distribution>(){
 
    params.addParam<double>("xMin", -numeric_limits<double>::max( ),"Lower bound");
    params.addParam<double>("xMax", numeric_limits<double>::max( ),"Upper bound");
+
+   	   params.addParam< std::vector<double> >("PBwindow", "Probability window");
+   	   params.addParam< std::vector<double> >("Vwindow" , "Value window");
+
    params.addParam<unsigned int>("seed", _defaultSeed ,"RNG seed");
    params.addRequiredParam<std::string>("type","distribution type");
    params.addParam<unsigned int>("truncation", 1 , "Type of truncation"); // Truncation types: 1) pdf_prime(x) = pdf(x)*c   2) [to do] pdf_prime(x) = pdf(x)+c
@@ -51,6 +55,9 @@ distribution::distribution(const std::string & name, InputParameters parameters)
       _seed = getParam<unsigned int>("seed");
       _force_dist = getParam<unsigned int>("force_distribution");
       _dis_parameters["truncation"] = double(getParam<unsigned int>("truncation"));
+
+      _PBwindow = getParam<std::vector<double> >("PBwindow");
+      _Vwindow = getParam<std::vector<double> >("Vwindow");
 }
 
 distribution::~distribution(){
@@ -67,6 +74,20 @@ distribution::getVariable(std::string & variableName){
      return -1;
    }
 }
+
+std::vector<double>
+distribution::getVariableVector(std::string  variableName){
+	std::vector<double> lupo;
+   if(_dis_parameters.find(variableName) != _dis_parameters.end()){
+     //return _dis_parameters.find(variableName) ->second;
+	   return lupo ;
+   }
+   else{
+     //mooseError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
+     return lupo ;
+   }
+}
+
 void
 distribution::updateVariable(std::string & variableName, double & newValue){
    if(_dis_parameters.find(variableName) != _dis_parameters.end()){
@@ -100,8 +121,35 @@ double DistributionCdf(distribution & dist, double & x){
   return dist.Cdf(x);
 }
 
+double windowProcessing(distribution & dist, double & RNG){
+	double value;
+
+	if (dist.getVariableVector(std::string("PBwindow")).size()==1) // value Pb window
+		value=dist.RandomNumberGenerator(RNG);
+	else if(dist.getVariableVector(std::string("PBwindow")).size()==2){	// interval Pb window
+		double pbLOW = dist.getVariableVector(std::string("PBwindow"))[0];
+		double pbUP  = dist.getVariableVector(std::string("PBwindow"))[1];
+		double pb=pbLOW+(pbUP-pbLOW)*RNG;
+		value=dist.RandomNumberGenerator(pb);
+	}
+	else if(dist.getVariableVector(std::string("Vwindow")).size()==1)	// value V window
+		value=RNG;
+	else if(dist.getVariableVector(std::string("Vwindow")).size()==2){	// interval V window
+		double valLOW = dist.getVariableVector(std::string("Vwindow"))[0];
+		double valUP  = dist.getVariableVector(std::string("Vwindow"))[1];
+		value=valLOW+(valUP-valLOW)*RNG;
+	}
+	else	// DEFAULT
+		value = dist.RandomNumberGenerator(RNG);
+
+	return value;
+}
+
 double DistributionRandomNumberGenerator(distribution & dist, double & RNG){
-  return dist.RandomNumberGenerator(RNG);
+  //double standardRNG = dist.RandomNumberGenerator(RNG);
+  double windowedRNG = windowProcessing(dist, RNG);
+
+  return windowedRNG;
 }
 
 double untrDistributionPdf(distribution & dist, double & x){
@@ -119,3 +167,6 @@ double untrDistributionRandomNumberGenerator(distribution & dist, double & RNG){
 std::string getDistributionType(distribution & dist) {
   return dist.getType();
 }
+
+
+

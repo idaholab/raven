@@ -511,7 +511,31 @@ using namespace std;
 	}
 
 
+	double PBwindowRNG(double Lwindow, double Uwindow, double x){
+		double value;
 
+		return value;
+	}
 
+	double VARwindowRNG(double Lwindow, double Uwindow, double x){
+		double value;
 
+		return value;
+	}
+
+	double PBvalueRNG(double PBvalue){
+		double value;
+
+		return value;
+	}
+
+	double VARvalueRNG(double VARvalue){
+		return VARvalue;
+	}
+
+	double windowRNG(double Lwindow, double Uwindow, double x){
+		double value;
+
+		return value;
+	}
 

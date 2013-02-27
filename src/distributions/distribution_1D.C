@@ -32,8 +32,8 @@ InputParameters validParams<UniformDistribution>(){
 
    InputParameters params = validParams<distribution>();
     
-   params.addRequiredParam<double>("xMin", "Upper bound");
-   params.addRequiredParam<double>("xMax", "Lower bound");
+   params.addRequiredParam<double>("xMin", "Distribution lower bound");
+   params.addRequiredParam<double>("xMax", "Distribution upper bound");
 
    return params;
 }
@@ -855,6 +855,8 @@ CustomDistribution::RandomNumberGenerator(double & RNG){
    double value=-1;
    return value;
 }
+
+
 
 //
 //   // Beta pdf
