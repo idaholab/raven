@@ -252,8 +252,8 @@
     Initial_pressure = 151.7e5
     Head = 9.9
     K_reverse = 1000
-    outlet = 'pipe1-CL-A(in)'
-    inlet = 'pipe2-CL-A(out)'
+    outputs = 'pipe1-CL-A(in)'
+    inputs = 'pipe2-CL-A(out)'
   [../]
   [./HX-A]
     type = HeatExchanger
@@ -432,8 +432,8 @@
     Initial_pressure = 151.7e5
     Head = 9.9
     K_reverse = 1000
-    outlet = 'pipe1-CL-B(in)'
-    inlet = 'pipe2-CL-B(out)'
+    outputs = 'pipe1-CL-B(in)'
+    inputs = 'pipe2-CL-B(out)'
   [../]
   [./HX-B]
     type = HeatExchanger

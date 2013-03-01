@@ -274,7 +274,7 @@
     Head = 9.9
     K_reverse = 0
     outlet = 'pipe1-CL-A(in)'
-    inlet = 'pipe2-CL-A(out)'
+    inputs = 'pipe2-CL-A(out)'
   [../]
   [./HX-A]
     type = HeatExchanger
@@ -454,7 +454,7 @@
     Head = 9.9
     K_reverse = 0
     outlet = 'pipe1-CL-B(in)'
-    inlet = 'pipe2-CL-B(out)'
+    inputs = 'pipe2-CL-B(out)'
   [../]
   [./HX-B]
     type = HeatExchanger
