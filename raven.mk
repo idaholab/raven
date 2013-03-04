@@ -1,5 +1,3 @@
-RAVEN_SRC_DIRS := $(RAVEN_DIR)/src/*/*
-
 PYTHON3_HELLO := $(shell python3 -c "print('HELLO')" 2>/dev/null)
 PYTHON2_HELLO := $(shell python -c "print 'HELLO'" 2>/dev/null)
 
@@ -69,28 +67,28 @@ RAVEN_LIB := $(RAVEN_DIR)/libRAVEN-$(METHOD).la
 RAVEN_APP := $(RAVEN_DIR)/RAVEN-$(METHOD)
 
 # source files
-RAVEN_srcfiles    := $(shell find $(RAVEN_SRC_DIRS) -name "*.C")
-RAVEN_csrcfiles   := $(shell find $(RAVEN_SRC_DIRS) -name "*.c")
-RAVEN_fsrcfiles   := $(shell find $(RAVEN_SRC_DIRS) -name "*.f")
-RAVEN_f90srcfiles := $(shell find $(RAVEN_SRC_DIRS) -name "*.f90")
+RAVEN_srcfiles    := $(shell find $(RAVEN_DIR)/src -name "*.C" -not -name main.C)
+RAVEN_csrcfiles   := $(shell find $(RAVEN_DIR)/src -name "*.c")
+RAVEN_fsrcfiles   := $(shell find $(RAVEN_DIR)/src -name "*.f")
+RAVEN_f90srcfiles := $(shell find $(RAVEN_DIR)/src -name "*.f90")
 
 # object files
-RAVEN_objects	:= $(patsubst %.C, %.$(obj-suffix), $(RAVEN_srcfiles))
-RAVEN_objects	+= $(patsubst %.c, %.$(obj-suffix), $(RAVEN_csrcfiles))
+RAVEN_objects := $(patsubst %.C, %.$(obj-suffix), $(RAVEN_srcfiles))
+RAVEN_objects += $(patsubst %.c, %.$(obj-suffix), $(RAVEN_csrcfiles))
 RAVEN_objects += $(patsubst %.f, %.$(obj-suffix), $(RAVEN_fsrcfiles))
 RAVEN_objects += $(patsubst %.f90, %.$(obj-suffix), $(RAVEN_f90srcfiles))
 
 # plugin files
-RAVEN_plugfiles   := $(shell find $(RAVEN_DIR)/plugins/ -name "*.C" 2>/dev/null)
-RAVEN_cplugfiles  := $(shell find $(RAVEN_DIR)/plugins/ -name "*.c" 2>/dev/null)
-RAVEN_fplugfiles  := $(shell find $(RAVEN_DIR)/plugins/ -name "*.f" 2>/dev/null)
-RAVEN_f90plugfiles:= $(shell find $(RAVEN_DIR)/plugins/ -name "*.f90" 2>/dev/null)
+RAVEN_plugfiles    := $(shell find $(RAVEN_DIR)/plugins/ -name "*.C" 2>/dev/null)
+RAVEN_cplugfiles   := $(shell find $(RAVEN_DIR)/plugins/ -name "*.c" 2>/dev/null)
+RAVEN_fplugfiles   := $(shell find $(RAVEN_DIR)/plugins/ -name "*.f" 2>/dev/null)
+RAVEN_f90plugfiles := $(shell find $(RAVEN_DIR)/plugins/ -name "*.f90" 2>/dev/null)
 
 # plugins
-RAVEN_plugins     := $(patsubst %.C, %-$(METHOD).plugin, $(RAVEN_plugfiles))
-RAVEN_plugins     += $(patsubst %.c, %-$(METHOD).plugin, $(RAVEN_cplugfiles))
-RAVEN_plugins     += $(patsubst %.f, %-$(METHOD).plugin, $(RAVEN_fplugfiles))
-RAVEN_plugins     += $(patsubst %.f90, %-$(METHOD).plugin, $(RAVEN_f90plugfiles))
+RAVEN_plugins := $(patsubst %.C, %-$(METHOD).plugin, $(RAVEN_plugfiles))
+RAVEN_plugins += $(patsubst %.c, %-$(METHOD).plugin, $(RAVEN_cplugfiles))
+RAVEN_plugins += $(patsubst %.f, %-$(METHOD).plugin, $(RAVEN_fplugfiles))
+RAVEN_plugins += $(patsubst %.f90, %-$(METHOD).plugin, $(RAVEN_f90plugfiles))
 
 # RAVEN main
 RAVEN_main_src    := $(RAVEN_DIR)/src/main.C
