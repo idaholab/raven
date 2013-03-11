@@ -165,7 +165,7 @@ $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/ravento
           -I$(RAVEN_DIR)/include/tools/ -I$(RAVEN_DIR)/include/utilities/ \
           $(RAVEN_DIR)/python_modules/raventools_wrap.cxx \
           $(RAVEN_DIR)/src/tools/*.C \
-          $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C -o $(RAVEN_DIR)/python_modules/_raventools.so $(PYTHON_LIB)
+          $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C -shared -o $(RAVEN_DIR)/python_modules/_raventools.so $(PYTHON_LIB)
 
 
 RAVEN: $(RAVEN_APP) $(PYTHON_MODULES)
