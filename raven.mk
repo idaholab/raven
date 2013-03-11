@@ -145,7 +145,7 @@ $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/dis
 	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/python_modules/distribution1D_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
-	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(RAVEN_LIB) $(PYTHON_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo -rpath $(RAVEN_MODULES)
+	-o $(RAVEN_MODULES)/libdistribution1D.la $(RAVEN_LIB) $(PYTHON_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo -rpath $(RAVEN_MODULES)
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1D.la  $(RAVEN_MODULES)/libdistribution1D.la 
 	rm -f $(RAVEN_MODULES)/_distribution1D.so
 	ln -s libdistribution1D.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1D.so
