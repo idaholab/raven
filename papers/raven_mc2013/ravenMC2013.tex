@@ -120,7 +120,7 @@ Idaho National Laboratory  \\
 \section*{ABSTRACT} 
 \begin{quote}
 \begin{small}
-RAVEN is a software tool under development at the Idaho National Laboratory (INL) that acts as the control logic driver and post-processing tool for the newly developed Thermo-Hydraylic code RELAP-7. 
+RAVEN is a software tool under development at the Idaho National Laboratory (INL) that acts as the control logic driver and post-processing tool for the newly developed Thermal-Hydraulic code RELAP-7. 
 The scope of this paper is to show the software structure of RAVEN and its utilization in connection with RELAP-7. A short overview of the mathematical framework behind the code is presented along with its main capabilities such as on-line controlling/monitoring and Monte-Carlo sampling.
 A demo of a Station Black Out PRA analysis of a simplified Pressurized Water Reactor (PWR) model is shown in order to demonstrate the Monte-Carlo and clustering capabilities.
 
@@ -136,7 +136,7 @@ A demo of a Station Black Out PRA analysis of a simplified Pressurized Water Rea
 %%%%%%%%%%%%%%%%%%%
 
 
-RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software tool that acts as the control logic driver for the newly developed Thermo-Hydraylic code RELAP-7. The goal of this paper is to highlight the software structure of the code and its utilization in conjunction with RELAP-7. RAVEN is a multi-purpose Probabilistic Risk Assement (PRA) software framework that allows dispatching different functionalities. 
+RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software tool that acts as the control logic driver for the newly developed Thermal-Hydraulic code RELAP-7. The goal of this paper is to highlight the software structure of the code and its utilization in conjunction with RELAP-7. RAVEN is a multi-purpose Probabilistic Risk Assessment (PRA) software framework that allows dispatching different functionalities. 
 It is designed to derive and actuate the control logic required to simulate the plant control system and operator actions (guided procedures) and to perform both Monte-Carlo sampling of random distributed events and event tree based analysis. 
 In order to facilitate the input/output handling, a Graphical User Interface (GUI) and a post-processing data mining module, based on dimensionality and cardinality reduction, are available.
 This paper wants to provide an overview of the software, highlighting the mathematical framework from which its structure is derived and showing a demo of a Station Black Out (SBO) analysis of a simplified Pressurized Water Reactor (PWR) model.
@@ -190,41 +190,46 @@ representing the control system, does not depend on the knowledge of the complet
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:operatorSplitting}
 
-The system of equations in Eq.~\ref{eq:generalSystemEquationwithControl} is fully coupled and in the past it has always been solved with an operator splitting approach. The reasons for this choice are several:
+The system of equations in Eq.~\ref{eq:generalSystemEquationwithControl} is fully coupled and in the past it has commonly been solved with an operator splitting approach. The reasons for this choice are several:
 \begin{itemize}
 \item Control system reacts with an intrinsic delay
 \item The reaction of the control system might move the system between two different discrete states and
 therefore numerical errors will be always of first order unless the discontinuity is treated explicitly.
 \end{itemize}
-RAVEN as well is using this approach to solve Eq.~\ref{eq:generalSystemEquationwithControl} which it becomes:
+RAVEN as well is using this approach (Fig.~\ref{fig:ControlSoftwareLayout}) to solve Eq.~\ref{eq:generalSystemEquationwithControl} which it becomes:
 \begin{equation}
 \begin{cases} 
-\dfrac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t) \\
-\bar{C} = \bar{G}(\bar{x},t) \\ 
-\dfrac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) 
+\dfrac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i-1}},t) \\
+\bar{C} = \bar{G}(\bar{x},t) & t_{i-1}\leq t\leq t_{i} = t_{i-1} + \Delta t_{i} \\ 
+\dfrac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i-1}},t) 
 \end{cases}
 \label{eq:generalSystemEquationwithControlSplitting}
 \end{equation}
-
+\begin{figure}[h] 
+  \centering
+     \includegraphics[width=0.5\textwidth]{figures/ControlSystemSoftwareLayout.pdf}
+  \caption{Control System Software Layout.}
+   \label{fig:ControlSoftwareLayout}
+\end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{The auxiliary plant and component status variables} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:auxiliary}
 So far it has been assumed that all information needed is contained in $\bar{x}$ and $\bar{v}$. Even if this information is sufficient for the calculation of the system status in every point in time, it is not a practical and efficient way to implement the control system.
 In order to facilitate the implementation of the control logic, a system of auxiliary variables has been introduced .
-The auxiliary variables are those that in statistical analysis are artificially added to non-Markovian systems into the space phase to obtain back a Markovian behavior, so that only the information contained in the previous time step is needed to determine the future status of the system.
-These variables can be classified into two types: 
-\begin{itemize}
-\item Global status auxiliary control variables (e.g., SCRAM status, time at which scram event begins, time at which hot shut down event begins)
-\item Component status auxiliary variables (e.g., correct operating status, time from abnormal event)
-\end{itemize}
+The auxiliary variables are those that in statistical analysis are artificially added, when possible, to non-Markovian systems into the phase space to obtain back a Markovian behavior, so that only the information contained in the previous time step is needed to determine the future status of the system.
+%These variables can be classified into two types: 
+%\begin{itemize}
+%\item Global status auxiliary control variables (e.g., SCRAM status, time at which scram event %begins, time at which hot shut down event begins)
+%\item Component status auxiliary variables (e.g., correct operating status, time from abnormal %event)
+%\end{itemize}
 Thus, the introduction of the auxiliary system into the mathematical framework leads to the following formulation of the Eq.~\ref{eq:generalSystemEquationwithControlSplitting}:
 \begin{equation}
 \begin{cases} 
-\dfrac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t) \\
-\bar{C} = \bar{G}(\bar{x},t) \\ 
-\dfrac{\partial \bar{a}}{\partial t} = \bar{A}(\bar{x},\bar{C},\bar{a},\bar{v}_{t_{i}-1},t) \\
-\dfrac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) 
+\dfrac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i-1}},t) \\
+\bar{C} = \bar{G}(\bar{x},t) & t_{i-1}\leq t\leq t_{i} = t_{i-1} + \Delta t_{i} \\ 
+\dfrac{\partial \bar{a}}{\partial t} = \bar{A}(\bar{x},\bar{C},\bar{a}_{t_{i-1}},\bar{v}_{t_{i-1}},t) \\
+\dfrac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i-1}},\bar{a},t) 
 \end{cases}
 \label{eq:generalSystemEquationwithControlSplittingAndAux}
 \end{equation}
@@ -236,7 +241,7 @@ Thus, the introduction of the auxiliary system into the mathematical framework l
 %\label{sec:softwareStructure}
 %RAVEN is a C++/Python software, coded in an high modular and object-oriented way and based on two software sections:
 %\begin{itemize}
-%\item MOOSE(\textbf{M}ultiphysics \textbf{O}bject-\textbf{O}riented \textbf{S}imulation \textbf{E}nviroment);
+%\item MOOSE(\textbf{M}ultiphysics \textbf{O}bject-\textbf{O}riented \textbf{S}imulation \textbf{E}nvironment);
 %\item RELAP-7.
 %\end{itemize}
 
@@ -251,13 +256,7 @@ RELAP-7 is the next generation nuclear reactor system safety analysis. It will b
 Physical models include both PDEs (Partial Differential Equations), ODEs (Ordinary Differential Equations) and experimental based closure models. RELAP-7 will eventually utilize well posed governing equations for multiphase flow, which can be strictly verified. RELAP-7 uses modern numerical methods which allow implicit time integration, higher order schemes in both time and space and strongly coupled multi-physics simulations.
 RELAP-7 is the solver for the plant system except for the control system. From the mathematical
 formulation presented Section 2, RELAP-7 solves 
-$\frac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i}-1},t)$.
-\begin{figure}[h] 
-  \centering
-     \includegraphics[width=0.5\textwidth]{figures/ControlSystemSoftwareLayout.pdf}
-  \caption{Control System Software Layout.}
-   \label{fig:ControlSoftwareLayout}
-\end{figure}
+$\frac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i-1}},t)$.
 
 %The nuclear power plant is represented and modeled by a set of components (Pipes, Valves, Branches, etc.) and each component type corresponds to a C++ class.
 
@@ -421,35 +420,25 @@ def control_function(monitored, controlled,auxiliary):
         controlled.thermalConductGap = controlled.thermalConductFuel
     return 
 \end{lstlisting}
-\begin{figure}
-  \centering
-     \includegraphics[width=1.0\textwidth]{figures/CalculationFlow_part_1.PNG}
-  \caption{RAVEN Calculation Flow - Initialization.}
-  \label{fig:CalcFlow1}
-\end{figure}
 
-\begin{figure} 
-  \centering
-     \includegraphics[width=0.7\textwidth]{figures/CalculationFlow_part_2.PNG}
-  \caption{RAVEN Calculation Flow - Run.}
-  \label{fig:CalcFlow2}
-\end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Python Calculation Driver} 
 \label{sec:pyhtonCalcDriver}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Analysis of dynamic stochastic systems can be extremely challenging due to the complexity and high dimensionality of the system solving equations. An analytical solution is only available for rather simple cases. When an analytical solution is not available, numerical methods are often employed. In order to solve the system governing equations, two main approaches can be followed:
-\begin{itemize}
-\item Determine approximate solutions of the exact problems;
-\item Determine the exact solution for the approximate models.
-\end{itemize}
-Due to the very large complexity and the high dimensionality of the system considered, RAVEN uses the first approach by employing a Monte-Carlo based algorithm. 
-The main idea is to run a set of simulations having different dynamic and static uncertainty of physical parameters, present of noise and initial conditions and terminate them when one of the following stopping conditions are reached:
+Analysis of dynamic stochastic systems can be extremely challenging due to the complexity and high dimensionality of the system solving equations. An analytical solution is only available for rather simple cases. When an analytical solution is not available, numerical methods are often employed. 
+%In order to solve the system governing equations, two main approaches can be followed:
+%\begin{itemize}
+%\item Determine approximate solutions of the exact problems;
+%\item Determine the exact solution for the approximate models.
+%\end{itemize}
+%Due to the very large complexity and the high dimensionality of the systems considered, 
+Hence, RAVEN employs a Monte-Carlo based algorithm. 
+The main idea is to run a set of simulations having different dynamic and static uncertainty of physical parameters, presence of noise and initial conditions and terminate them when one of the following stopping conditions are reached:
 \begin{itemize}
 \item Mission time (i.e., an user specified end time);
 \item Main event (i.e., maximum temperature of the clad or core damage).
 \end{itemize}
-These algorithms have been implemented in the \verb!Python! module called ``Raven Runner''. It consists in a \verb!Python! driver which calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
+These algorithms have been implemented in the \verb!Python! module called "Raven Runner''. It consists in a \verb!Python! driver which calls RAVEN multiple times, changes initial conditions and seeds the random generator for the distributions.
 The multiple calculations, required by the employment of these algorithms, can be run in parallel, using queues/sub-process/\verb!Python! systems.  
 
 \begin{figure}
@@ -463,22 +452,19 @@ The analysis of dynamic stochastic systems through Monte-Carlo algorithm can be 
 \begin{enumerate}
 \item Initial Sampling of:
        \begin{enumerate}
-       \item Static and dynamic uncertainty values of physical parameters
+       \item Physical parameters
        \item Initial conditions
        \item Transition conditions, i.e. time instant in which transition events occur (e.g., time in which a reactor scram occurs, time delta to recover power grid)
     \end{enumerate}
 \item Run the system simulator using the values previously sampled and eventually applying a random noise to some parameters at each time step
-\item Stop the simulation when a transition condition occurs, and move from the actual status of the system   to the new one
-\item Run the simulation as performed in step 3 starting from the new coordinates and stop when a new transition condition occurs;
-\item Repeat steps 3 and 4 until a stopping condition is reached
-\item Repeat 1 through 4 for a large number of calculations (user input)
+\item Repeat for a large number of calculations (user input)
 \end{enumerate}
 Figure~\ref{fig:MCsampling} shows a scheme of the interaction between the code and the RAVEN runner in case of Monte-Carlo calculations. The runner basically perform a different seeding of the random number generator and interact, through RAVEN, with the \verb!Python! control logic input in order to sample the variables specified by the user.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Graphical User Interface} 
 \label{sec:GUI}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. 
+As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. Figure ~\ref{fig:RavenGUI} shows the input tab of the RAVEN GUI. Through the box on the left the user is able to construct the RAVEN/RELAP-7 input or modify parameters/components already inputted. On the right side, the 3D layout of the plant is drawn. 
 \begin{figure}
    \centering
     \includegraphics[width=0.9\textwidth]{figures/RavenGUI.PNG}
@@ -489,6 +475,19 @@ As previously mentioned, a Graphical User Interface (GUI) is not required to run
 \Section{SOFTWARE LAYOUT AND CALCULATION FLOW} 
 \label{sec:swLayoutCalcFlow}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}
+  \centering
+     \includegraphics[width=1.0\textwidth]{figures/CalculationFlow_part_1.PNG}
+  \caption{RAVEN Calculation Flow - Initialization.}
+  \label{fig:CalcFlow1}
+\end{figure}
+
+\begin{figure} 
+  \centering
+     \includegraphics[width=1.0\textwidth]{figures/CalculationFlow_part_2.PNG}
+  \caption{RAVEN Calculation Flow - Run.}
+  \label{fig:CalcFlow2}
+\end{figure}
 Figures~\ref{fig:CalcFlow1} and \ref{fig:CalcFlow2} show the calculation flow employed by RAVEN/RELAP-7/MOOSE software. 
 A typical RAVEN calculation can be summarized in the following logic steps:
 \begin{enumerate}
@@ -496,7 +495,7 @@ A typical RAVEN calculation can be summarized in the following logic steps:
    \item RELAP-7/MOOSE updates the information contained in each component class with the actual solution $\bar{x}$
    \item RAVEN requests MOOSE to perform the post-processing manipulation in order to construct $\bar{C}$ 
    \item Equation 
-$\frac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i}-1},t) $
+$\frac{\partial \bar{v}}{\partial t} = \bar{V}(\bar{x},\bar{v}_{t_{i-1}},t) $
 is solved and the set of control parameters for the next time step $v_{t_{i}}$ is determined
   \item RAVEN asks RELAP-7/MOOSE to compute the solution $\bar{x}$ for the following time step
   \item Repeat from 2 to 5 until the end of the calculation or an exit condition is reached (e.g., clad failure)
@@ -506,7 +505,7 @@ is solved and the set of control parameters for the next time step $v_{t_{i}}$ i
 \Section{DEMO FOR A PWR PRA ANALYSIS} 
 %%%%%%%%%%%%%%%%%%%%%%%%
 In order to show the capabilities of RAVEN coupled with RELAP-7/MOOSE, a simplified PWR PRA analysis has been employed.
-\begin{figure}
+\begin{figure}[h]
    \centering
     \includegraphics[width=0.5\textwidth]{figures/PWR_TMI_SCHEME.PNG}
     \caption{PWR model scheme.}
