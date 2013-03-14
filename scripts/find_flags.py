@@ -17,6 +17,8 @@ if "library" in sys.argv:
         library_name = library_name[3:]
     if library_name.endswith(".so"):
         library_name = library_name[:-3]
+    if library_name.endswith(".dylib"):
+        library_name = library_name[:-6]
     if library_name.endswith(".a"):
         library_name = library_name[:-2]
         static = True
