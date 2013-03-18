@@ -136,10 +136,10 @@ A demo of a Station Black Out PRA analysis of a simplified Pressurized Water Rea
 %%%%%%%%%%%%%%%%%%%
 
 
-RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software tool that acts as the control logic driver for the newly developed Thermal-Hydraulic code RELAP-7. The goal of this paper is to highlight the software structure of the code and its utilization in conjunction with RELAP-7. RAVEN is a multi-purpose Probabilistic Risk Assessment (PRA) software framework that allows dispatching different functionalities. 
+RAVEN (\textbf{R}eactor \textbf{A}nalysis and \textbf{V}irtual control \textbf{EN}viroment)~\cite{ravenFY12,mandelliANS2012} is a software tool that acts as the control logic driver for the newly developed Thermal-Hydraulic code RELAP-7  (\textbf{R}eactor \textbf{E}xcursion and \textbf{L}eak \textbf{A}nalysis \textbf{P}rogram). The goal of this paper is to highlight the software structure of the code and its utilization in conjunction with RELAP-7. RAVEN is a multi-purpose \textbf{P}robabilistic \textbf{R}isk \textbf{A}ssessment (PRA) software framework that allows dispatching different functionalities. 
 It is designed to derive and actuate the control logic required to simulate the plant control system and operator actions (guided procedures) and to perform both Monte-Carlo sampling of random distributed events and event tree based analysis. 
-In order to facilitate the input/output handling, a Graphical User Interface (GUI) and a post-processing data mining module, based on dimensionality and cardinality reduction, are available.
-This paper wants to provide an overview of the software, highlighting the mathematical framework from which its structure is derived and showing a demo of a Station Black Out (SBO) analysis of a simplified Pressurized Water Reactor (PWR) model.
+In order to facilitate the input/output handling, a \textbf{G}raphical \textbf{U}ser \textbf{I}nterface (GUI) and a post-processing data mining module, based on dimensionality and cardinality reduction, are available.
+This paper wants to provide an overview of the software, highlighting the mathematical framework from which its structure is derived and showing a demo of a \textbf{S}tation \textbf{B}lack \textbf{O}ut (SBO) analysis of a simplified \textbf{P}ressurized \textbf{W}ater \textbf{R}eactor (PWR) model.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{MATHEMATICAL FRAMEWORK}
@@ -254,8 +254,7 @@ Other than providing the algorithms for the solution of the differential equatio
 
 RELAP-7 is the next generation nuclear reactor system safety analysis. It will become the main reactor systems simulation toolkit for RISMC (\textbf{R}isk \textbf{I}nformed \textbf{S}afety \textbf{M}argin \textbf{C}haracterization)~\cite{mandelliANS_RISMC} project and the next generation tool in the RELAP reactor safety/systems analysis application series (the replacement for RELAP5). The key to the success of RELAP-7 is the simultaneous advancement of physical models, numerical methods, and software design while maintaining a solid user perspective. 
 Physical models include both PDEs (Partial Differential Equations), ODEs (Ordinary Differential Equations) and experimental based closure models. RELAP-7 will eventually utilize well posed governing equations for multiphase flow, which can be strictly verified. RELAP-7 uses modern numerical methods which allow implicit time integration, higher order schemes in both time and space and strongly coupled multi-physics simulations.
-RELAP-7 is the solver for the plant system except for the control system. From the mathematical
-formulation presented Section 2, RELAP-7 solves 
+RELAP-7 is the solver for the plant system except for the control system. Referring to the mathematical formulation, RELAP-7 solves 
 $\frac{\partial \bar{x}}{\partial t} = \bar{F}(\bar{x},\bar{v}_{t_{i-1}},t)$.
 
 %The nuclear power plant is represented and modeled by a set of components (Pipes, Valves, Branches, etc.) and each component type corresponds to a C++ class.
@@ -466,7 +465,7 @@ Figure~\ref{fig:MCsampling} shows a scheme of the interaction between the code a
 \Subsection{Graphical User Interface} 
 \label{sec:GUI}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library  for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. Figure ~\ref{fig:RavenGUI} shows the input tab of the RAVEN GUI. Through the box on the left the user is able to construct the RAVEN/RELAP-7 input or modify parameters/components already inputted. On the right side, the 3D layout of the plant is drawn. 
+As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. Figure ~\ref{fig:RavenGUI} shows the input tab of the RAVEN GUI. Through the box on the left the user is able to construct the RAVEN/RELAP-7 input or modify parameters/components already inputted. On the right side, the 3D layout of the plant is drawn. 
 \begin{figure}[h]
    \centering
     \includegraphics[width=0.8\textwidth]{figures/RavenGUI.PNG}
@@ -544,7 +543,9 @@ In the following paragraph, the simulations results are shown and explained.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Figure~\ref{fig:distributionResults} shows the distribution of the maximum temperature reached by the clad in the core channels (blue histogram) and compares it with the distribution of clad failure temperature (red histogram).
-Although there is large overlapping of the two distributions, which indicates a high failure probability of the system considered, the scope of the analysis was just to show  RAVEN capabilities to perform stochastic analysis of relatively complex systems.
+%Although there is large overlapping of the two distributions, which indicates a high failure probability of the system considered, the scope of the analysis was just to show  RAVEN capabilities to perform stochastic analysis of relatively complex systems.
+The distribution of the clad temperature already accounts for the simulations that have been stopped for having reached the corresponding failure temperature. Therefore, the overlapping of the two distributions is not representative of the total failure rate. Instead, the total failure rate could be inferred from the steep decrease on the higher temperature side of the number of counts with respect the lower temperature one. The probability of failure is artificially elevated with respect a real case in order to keep the effort bounded while illustrating the full RAVEN capabilities.
+
 \begin{figure} [H]
 \centering
 \begin{subfigure}{.5\textwidth}
@@ -560,11 +561,8 @@ Although there is large overlapping of the two distributions, which indicates a 
 \caption{Comparison between max reached clad temperature and clad failure temperature distributions: binning results (left) and associated probability distribution functions (right)}
 \label{fig:distributionResults}
 \end{figure}
-In addition, Fig.~\ref{fig:limit_surface_rng_temp_and_dg} shows the limit surface, i.e. the boundaries between system failure (red points) and system success (green points), obtained by the 400 Monte-Carlo simulations. Since only two uncertain parameters have been considered (i.e., DG recovery time and clad fail temperature), this boundary lies in a 2-dimensional space.
-The slope of the limit surface pictured in Fig.~\ref{fig:limit_surface_rng_temp_and_dg} also shows, in this particular demo, how the DG recovery time has a greater impact on the system dynamics then the clad failure temperature.
-
-It has also been performed a new set of 400 Monte-Carlo simulations in which, now, the clad failure temperature is fixed at a predefined value $T_{Fail}=1477.59$ (i.e., there is no triangular distribution associated to it). As expected, the number of simulations that led to system failure was slightly different among these two sets of simulations: $203$ for the first case and $224$ for this last one.
- This fact shows how modeling of uncertainties can impact risk evaluation.
+In addition, Fig.~\ref{fig:limit_surface_rng_temp_and_dg} shows the limit surface, i.e. the boundaries between system failure (red points) and system success (green points), obtained by the $400$ Monte-Carlo simulations. Since only two uncertain parameters have been considered (i.e., DG recovery time and clad fail temperature), this boundary lies in a 2-dimensional space.
+The slope of the limit surface pictured in Fig.~\ref{fig:limit_surface_rng_temp_and_dg} also shows, in this particular demo, how the DG recovery time has a greater impact on the system dynamics then the clad failure temperature (this is confirmed also when rescaling the Fig.~\ref{fig:limit_surface_rng_temp_and_dg} in term of relative deviation from the average values).
 
 \begin{figure}[h]
    \centering
@@ -572,6 +570,9 @@ It has also been performed a new set of 400 Monte-Carlo simulations in which, no
     \caption{Limit Surface for the SBO analysis of a simplified PWR model}
     \label{fig:limit_surface_rng_temp_and_dg}
 \end{figure}
+
+It has also been performed a new set of $400$ Monte-Carlo simulations in which, now, the clad failure temperature is fixed at a predefined value $T_{Fail}=1477.59$ (i.e., there is no triangular distribution associated to it). As expected, the numberof simulations that let to system failure was slightly different among these two sets of simulations: $203$ for the first case and $224$ for this last one.This fact shows how modeling of uncertainties can impact risk evaluation.
+
 %%%%%%%%%%%%%%%%%
 \section{CONCLUSIONS}
 %%%%%%%%%%%%%%%%%
@@ -580,7 +581,7 @@ An example of PRA analysis has been also presented for a SBO-like case for a sim
 The description of the implementation for such case demonstrates how the flexibility of the software framework provides the basic tools to perform Dynamic PRA, uncertainty quantification and plant control. 
 Next capabilities, to be implemented to RAVEN and that are currently under development, include dynamic event tree generation~\cite{ADAPTHakobyan}, adaptive sampling~\cite{mandelliSVMANS} and more advanced data mining algorithms~\cite{mandelliEsrel2011}. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section*{ACKNOWLEDGMENTS}
+\section*{ACKNOWLEDGMENT}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 This work is supported by the U.S. Department of Energy, under DOE Idaho Operations Office Contract DE-AC07-05ID14517. Accordingly, the U.S. Government retains a nonexclusive, royalty-free license to publish or reproduce the published form of this contribution, or allow others to do so, for U.S. Government purposes.
 
