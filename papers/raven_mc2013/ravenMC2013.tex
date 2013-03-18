@@ -466,7 +466,7 @@ Figure~\ref{fig:MCsampling} shows a scheme of the interaction between the code a
 \Subsection{Graphical User Interface} 
 \label{sec:GUI}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. Figure ~\ref{fig:RavenGUI} shows the input tab of the RAVEN GUI. Through the box on the left the user is able to construct the RAVEN/RELAP-7 input or modify parameters/components already inputted. On the right side, the 3D layout of the plant is drawn. 
+As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN (control logic, Monte-Carlo, etc.).  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library  for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and it is in continuous evolution. Figure ~\ref{fig:RavenGUI} shows the input tab of the RAVEN GUI. Through the box on the left the user is able to construct the RAVEN/RELAP-7 input or modify parameters/components already inputted. On the right side, the 3D layout of the plant is drawn. 
 \begin{figure}[h]
    \centering
     \includegraphics[width=0.8\textwidth]{figures/RavenGUI.PNG}
@@ -563,7 +563,9 @@ Although there is large overlapping of the two distributions, which indicates a 
 In addition, Fig.~\ref{fig:limit_surface_rng_temp_and_dg} shows the limit surface, i.e. the boundaries between system failure (red points) and system success (green points), obtained by the 400 Monte-Carlo simulations. Since only two uncertain parameters have been considered (i.e., DG recovery time and clad fail temperature), this boundary lies in a 2-dimensional space.
 The slope of the limit surface pictured in Fig.~\ref{fig:limit_surface_rng_temp_and_dg} also shows, in this particular demo, how the DG recovery time has a greater impact on the system dynamics then the clad failure temperature.
 
-It has also been performed a new set of 400 Monte-Carlo simulations in which, now, the clad failure temperature is fixed at a predefined value $T_{Fail}=1477.59$ (i.e., there is no triangular distribution associated to it). As expected, the probability of core damage was slightly different among thee two set of simulations. This fact shows how modeling of uncertainties can impact risk evaluation.
+It has also been performed a new set of 400 Monte-Carlo simulations in which, now, the clad failure temperature is fixed at a predefined value $T_{Fail}=1477.59$ (i.e., there is no triangular distribution associated to it). As expected, the number of simulations that led to system failure was slightly different among these two sets of simulations: $203$ for the first case and $224$ for this last one.
+ This fact shows how modeling of uncertainties can impact risk evaluation.
+
 \begin{figure}[h]
    \centering
     \includegraphics[width=0.6\textwidth]{figures/PRA_limitSurface.png}
@@ -578,7 +580,7 @@ An example of PRA analysis has been also presented for a SBO-like case for a sim
 The description of the implementation for such case demonstrates how the flexibility of the software framework provides the basic tools to perform Dynamic PRA, uncertainty quantification and plant control. 
 Next capabilities, to be implemented to RAVEN and that are currently under development, include dynamic event tree generation~\cite{ADAPTHakobyan}, adaptive sampling~\cite{mandelliSVMANS} and more advanced data mining algorithms~\cite{mandelliEsrel2011}. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section*{ENDNOTES}
+\section*{ACKNOWLEDGMENTS}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 This work is supported by the U.S. Department of Energy, under DOE Idaho Operations Office Contract DE-AC07-05ID14517. Accordingly, the U.S. Government retains a nonexclusive, royalty-free license to publish or reproduce the published form of this contribution, or allow others to do so, for U.S. Government purposes.
 
