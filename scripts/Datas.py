@@ -1,3 +1,8 @@
+'''
+Created on Feb 16, 2013
+
+@author: alfoa
+'''
 import CsvLoader as loader 
 import xml.etree.ElementTree as ET
 
@@ -19,7 +24,6 @@ class Data:
     '''
   def readXml(self,xmlNode):
     
-    xmlNode = ET.parse("lupo.xml")
     root = xmlNode.getroot()
     
     self.name = root.get("name")
@@ -64,13 +68,6 @@ class TimePoint(Data):
     
     loader.csvLoaderForTimePoint(filein,self.time_filter,self.inpParametersValues,self.outParametersValues)
     
-  def takePointfromHistories(self):
-    return
-  
-  def takePointfromHistory(self):
-    return
-  
-  def takePointfromPointSet(self):
     return
 
 class TimePointSet(Data):
@@ -101,10 +98,6 @@ class TimePointSet(Data):
       files[iSims] = fileNameRoot + '_' + str(iSims)  + '.csv'   
       
     loader.csvLoaderForTimePointSet(files,self.time_filter,self.inpParametersValues,self.outParametersValues)
-    return
-  def takePointSetfromHistories(self):
-    return
-  def generatePointSetfromPoints(self):
     return
 
 class History(Data):

@@ -23,12 +23,6 @@ class Step:
   def run(self):
     return
   
-
-
-
-
-
-
 def returnStepClass(dataType,xmlNode):
   '''
   provide an interface generate a Step class of type dataType

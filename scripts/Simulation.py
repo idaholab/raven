@@ -10,8 +10,6 @@ import Models
 import Tests
 import RunInfo
 
-
-
 class Simulation:
   '''
   This is a class that contain all the object needed to run the simulation
@@ -90,10 +88,4 @@ class Simulation:
         self.testsDict[child.attr['name']] = Tests.returnTestClass(child)
       except:
         raise IOError('not found name attribute for one of the Tests')
-
-
-
-
-
-
 

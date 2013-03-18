@@ -253,7 +253,30 @@
 <!--End Samplers ***********************************************************************-->
 
 
-
+    <complexType name="Filters">
+      <sequence>
+        <element name="TimeFilter"     type="string"             maxOccurs="unbounded" minOccurs="0"/>
+      </sequence>     
+    </complexType>
+    
+    <!-- a base type for filter container -->
+    <complexType name="Filter_base">
+      <sequence>
+        <element name="Input"  type="string" maxOccurs="1" minOccurs="1"/><!-- list of the input  to this filter -->
+        <element name="Output" type="string" maxOccurs="1" minOccurs="1"/><!-- list of the output to this filter -->
+      </sequence>
+      <attribute name="name"   type="string" use="required" />
+    </complexType>  
+      
+    <complexType name="TimeFilter">
+      <simpleContent>
+        <extension base="Filter_base">
+          <sequence>
+            <element name="Time"   type="string" maxOccurs="1" minOccurs="1"/>
+          <sequence>
+        </extension>
+      </simpleContent>
+    </complexType>    
 <!--Start Models ***********************************************************************-->
   <complexType name="Models">
     <sequence>
