@@ -16,7 +16,7 @@ class SVMclassifier():
     self.samples = samples
     self.features = features
     self.outcomes = outcomes
-    self.discretizationPoints = discretizationPoints     # number of points for each future equqlly spaced 
+    self.discretizationPoints = discretizationPoints     # number of points for each feature equally spaced 
   
   def train(self):
     classifier = svm.SVC(self.kernel)

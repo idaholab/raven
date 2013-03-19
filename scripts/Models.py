@@ -3,84 +3,101 @@ Created on Feb 19, 2013
 
 @author: crisr
 '''
-import subprocess, sys, os
+import os
 import Datas
+from BaseType import BaseType
 
-class Model:
-  def __init__(self,xmlNode):
-    '''
-    Constructor for the template class
-    '''
-    self.counter +=1
-    self.paramters = self.getparamters()
-    self.readXml()
 
-  def iniCounter(self):
-    self.counter = 0
- 
-  def getparamters(self):
-    return None
 
-  def readXml(self,xmlNode):
-    
-
-  def evaluate(self):
-    self.counter +=1
-    
+class Model(BaseType):
+  ''' 
+      a model is something that given an input will return an output reproducing some phisical model
+      it could as complex as a stand alone code or a reduced order model trained somehow
+  '''
+  def __init__(self):
+    BaseType.__init__(self)
+    self.subType = ''
+  def readMoreXML(self,xmlNode):
+    try: self.subType = xmlNode.attrib['type']
+    except: raise 'missed type for the model'+self.name
+  def addInitParams(self,tempDict):
+    tempDict['subType'] = self.subType
   
-  def generateData(self,sampler,data):
-    self.sampler.generaInput()
-    self.evaluate(self.args, self.stdout)
-    data.load()
-
-
-
-
-class RAVEN(Model):
-  '''
-  This is a model that use RAVEN to perform in-->out
-  '''
-  def __init__(self,xmlNode):
-    '''
-    Constructor
-    '''
-
-  def evaluate(self):
-    subprocess.Popen(self.args,stdout=self.stdout,stderr=subprocess.STDOUT)
-      
-  def generateData(self,data):
-    self.evaluate(self.args, self.stdout)
-        
-
-class SVMsClassifier(Model):
-  '''
-  This is a model that use a SVM classifier to perform in-->out
-  '''
-  def __init__(self,xmlNode):
-    '''
-    Constructor
-    '''
-  
-  def evaluate(self):
+  def reSet(self,stepName):
+    print('Model'+self.name+' has been reset by '+stepName)
     return
-    
-  
-  def generateData(self,sampler,data):
-    self.evaluate(self.args, self.stdout)
-     
+
+  def train(self,trainingSet,stepName):
+    print('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
+    return
+
+  def run(self):
+    #
+    #collect data
+    return
+
+
+class Code(Model):
+  def __init__(self):
+    Model.__init__(self)
+    self.executable = ''
+  def readMoreXML(self,xmlNode):
+    Model.readMoreXML(self, xmlNode)
+    try: self.executable = os.path.abspath(xmlNode.text)
+    except: raise IOError('not found executable '+xmlNode.text)
+  def addInitParams(self,tempDict):
+    Model.addInitParams(self, tempDict)
+    tempDict['executable']=self.executable
+  def run(self,inputFile,outputData,jobHandler):
+    print(outputData)
+    self.outputfile = os.path.join(jobHandler.runInfoDict['tempWorkingDir'],outputData.name)
+    executeCommand = self.executable+' -i '+inputFile+' -o '+ self.outputfile
+    self.process = jobHandler.submitDict['External'](executeCommand,outputData,self.outputfile,jobHandler.runInfoDict['tempWorkingDir'])
+    #take out the job from the queue only when data are recovered
+    return self.process
+
+
+
+
+class ROM(Model):
+  '''
+  ROM stands for Reduced Order Models. All the models here, first learn than predict the outcome
+  '''
+  def __init__(self):
+    Model.__init__(self)
+    self.initializzationOptionDict = {}
+  def readMoreXML(self,xmlNode):
+    Model.readMoreXML(self, xmlNode)
+    import scikitLearnInterface
+    for child in xmlNode:
+      try: self.initializzationOptionDict[child.tag] = int(child.text)
+      except:
+        try: self.initializzationOptionDict[child.tag] = float(child.text)
+        except: self.initializzationOptionDict[child.tag] = child.text
+    self.importedROM = scikitLearnInterface.classDictionary[self.subType](**self.initializzationOptionDict) #create an instance of the ROM
+  def addCurrentSetting(self,originalDict):
+    ROMdict = self.importedROM.get_params()
+    for key in ROMdict.keys():
+      originalDict[key] = ROMdict[key]
+  def reSet(self):
+    pass
+
+
+
 
 #function used to generate a Model class
-def returnModelClass(self,modelType,xmlNode):
-  '''
-  Constructor
-  '''
-  modelInterfaceDict = {}
-  modelInterfaceDict['RAVEN'] = RAVEN
-  modelInterfaceDict['SVMsClassifier'] = SVMsClassifier
-  try:
-    if modelType in modelInterfaceDict.keys():
-      return modelInterfaceDict[modelType](xmlNode)
-  except:
-    raise NameError('not known model type'+modelType)
+def returnInstance(Type):
+  base = 'model'
+  InterfaceDict = {}
+  InterfaceDict['ROM' ] = ROM
+  InterfaceDict['Code'] = Code
+  try: return InterfaceDict[Type]()
+  except: raise NameError('not known '+base+' type '+Type)
   
-    
+  
+
+  
+  
+  
+  
+  
