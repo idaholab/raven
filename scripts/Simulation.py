@@ -75,7 +75,6 @@ class Simulation:
     self.whichDict['RunInfo'      ] = self.runInfoDict
     self.whichDict['Files'        ] = self.filesDict
     self.whichDict['Distributions'] = self.DistributionsDict
-    #initialize the job handler (it should become a demon)
     self.jobHandler = JobHandler()
  
   def XMLread(self,xmlNode):
