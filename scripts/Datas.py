@@ -26,22 +26,21 @@ class Data(BaseType):
         except:self.time = float(time.split(','))
     except:self.time = 'end'
     # set keys into dictionaries of values
-    for key in self.inputs:
-      self.inpParametersValues[key] = None
-    for key in self.outputs:
-      self.outParametersValues[key] = None    
+    for key in self.inputs:  self.inpParametersValues[key] = None
+    for key in self.outputs: self.outParametersValues[key] = None    
   def addInitParams(self,tempDict):
     counter = 0
     for key in self.inpParametersValues.keys(): 
-      tempDict['Input'+str(counter)] = key
+      tempDict['Input_'+str(counter)] = key
       counter += 1
     counter = 0
     for key in self.outParametersValues.keys(): 
-      tempDict['Output'+str(counter)] = key
+      tempDict['Output_'+str(counter)] = key
       counter += 1
     tempDict['Time'] = self.time
-
   def load(self):
+    return #.loaderDictionary(self.type)
+  def add(self):
     return #.loaderDictionary(self.type)
 
 class TimePoint(Data):

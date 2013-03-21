@@ -4,10 +4,28 @@ Created on Feb 19, 2013
 @author: crisr
 '''
 import os
+import shutil
 import Datas
 from BaseType import BaseType
 
+class RavenInterface:
+  def generateCommand(self,inputFiles,executable):
+    if inputFiles[0].endswith('.i'):
+      outputfile = 'outFrom'+os.path.split(inputFiles[0])[1].split('.')[0]
+      executeCommand = (executable+' -i '+os.path.split(inputFiles[0])[1]+' Output/postprocessor_csv=true' + 
+      ' Output/file_base='+ outputfile)
+    else: 
+      outputfile = 'outFrom'+os.path.split(inputFiles[1])[1].split('.')[0]
+      executeCommand = (executable+' -i '+os.path.split(inputFiles[1])[1]+' Output/postprocessor_csv=true' + 
+      ' Output/file_base='+ outputfile)
+    return executeCommand, outputfile
 
+def returnCodeInterface(Type):
+  base = 'Code'
+  codeInterfaceDict = {}
+  codeInterfaceDict['RAVEN'] = RavenInterface
+  try: return codeInterfaceDict[Type]()
+  except: raise NameError('not known '+base+' type '+Type)
 
 class Model(BaseType):
   ''' 
@@ -45,19 +63,27 @@ class Code(Model):
     Model.readMoreXML(self, xmlNode)
     try: self.executable = os.path.abspath(xmlNode.text)
     except: raise IOError('not found executable '+xmlNode.text)
+    self.interface = returnCodeInterface(self.subType)
+    print(type(self.interface))
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
     tempDict['executable']=self.executable
-  def run(self,inputFile,outputData,jobHandler):
-    print(outputData)
-    self.outputfile = os.path.join(jobHandler.runInfoDict['tempWorkingDir'],outputData.name)
-    executeCommand = self.executable+' -i '+inputFile+' -o '+ self.outputfile
-    self.process = jobHandler.submitDict['External'](executeCommand,outputData,self.outputfile,jobHandler.runInfoDict['tempWorkingDir'])
-    #take out the job from the queue only when data are recovered
+  def setUpWorkingDir(self,runInfoDict,inputFiles):
+    '''generate and fill a new working directory'''
+    #start checking the existence and/or creating the working directory
+    runInfoDict['TempWorkingDir'] = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName'])
+    print(runInfoDict['TempWorkingDir'])
+    try: os.mkdir(runInfoDict['TempWorkingDir'])
+    except: pass
+    for inputFile in inputFiles:
+      shutil.copy(inputFile,runInfoDict['TempWorkingDir'])
+      inputFile
+  def run(self,inputFiles,outputDatas,jobHandler):
+    self.setUpWorkingDir(jobHandler.runInfoDict, inputFiles)
+    executeCommand, outputfile = self.interface.generateCommand(inputFiles,self.executable)
+    print(executeCommand)
+    self.process = jobHandler.submitDict['External'](executeCommand,outputDatas,outputfile,jobHandler.runInfoDict['TempWorkingDir'])
     return self.process
-
-
-
 
 class ROM(Model):
   '''
@@ -90,6 +116,7 @@ def returnInstance(Type):
   base = 'model'
   InterfaceDict = {}
   InterfaceDict['ROM' ] = ROM
+  InterfaceDict['Code'] = Code
   InterfaceDict['Code'] = Code
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)

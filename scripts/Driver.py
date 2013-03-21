@@ -32,4 +32,3 @@ if __name__ == '__main__':
   simulation = Simulation(inputFile)
   simulation.XMLread(root)
   simulation.run()
-      

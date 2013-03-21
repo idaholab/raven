@@ -6,7 +6,9 @@ Created on Mar 5, 2013
 import Queue as queue
 import subprocess
 import os
+import time
 import Datas
+import copy
 
 class ExternalRunner:
   def __init__(self,command,workingDir,outputFile=None):
@@ -24,12 +26,17 @@ class ExternalRunner:
   
   def start(self):
     print(self.command)
+    print(os.getcwd())
+    print(self.workingDir)
+    oldDir = os.getcwd()
     os.chdir(self.workingDir)
-    self.process = subprocess.Popen(self.command,stderr=subprocess.STDOUT)
+    localenv = dict(os.environ)
+    localenv['PYTHONPATH'] = ''
+    outFile = open(self.outputFile,'w')
+    self.process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.workingDir,env=localenv)
+    os.chdir(oldDir)
+    time.sleep(1)
     
-
-
-
 class JobHandler:
   def __init__(self):
     self.runInfoDict       = {}
@@ -55,7 +62,12 @@ class JobHandler:
 
   def addExternal(self,executeCommand,outputData,outputFile,workingDir):
     #probably something more for the PBS
-    command = self.mpiCommand+' '+self.threadingCommand+' '+executeCommand
+    command = ''
+    if self.mpiCommand !='':
+      command += self.mpiCommand+' '
+    if self.threadingCommand !='':
+      command +=self.threadingCommand+' '
+    command += executeCommand
     print (command)
     return ExternalRunner(command,workingDir,outputFile)
 

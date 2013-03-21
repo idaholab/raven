@@ -39,6 +39,7 @@ class Simulation:
     self.runInfoDict['procByNode'        ] = 1
     self.runInfoDict['numProcByRun'      ] = 1
     self.runInfoDict['totNumbCores'      ] = 1
+    self.runInfoDict['stepName'          ] = 1
 
     #the step to run the simulation in sequence
     self.stepSequenceList = []
@@ -158,13 +159,25 @@ class Simulation:
     run the simulation
     '''
     print(self.runInfoDict['ParallelProcNumb'])
-    for stepName in self.stepSequenceList:
-      stepInstance = self.stepsDict[stepName]
-      print('starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name)
-      inputDict = {}
-      for [a,b,c,d] in stepInstance.parList:
-        print(a+' is of type: '+b+', subtype: '+c+', and has name: '+d)
-        inputDict[a] = self.whichDict[b][d]
+    for stepName in self.stepSequenceList:                #loop over the the steps
+      stepInstance = self.stepsDict[stepName]             #retrieve the instance of the step
+      self.runInfoDict['stepName'] = stepName             #provide the name of the step to runInfoDict
+      print('starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
+      inputDict = {}                    #initialize the input dictionary
+      inputDict['Input' ] = []          #set the Input to an empty list
+      inputDict['Output'] = []          #set the Input to an empty list
+      for [a,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
+#        print(a+' is a: '+b+', of type: '+c+', and has name: '+d)
+        print(a+' is:')
+        if a == 'Input':
+          inputDict[a].append(self.whichDict[b][d])
+          print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
+        elif a == 'Output':
+          inputDict[a].append(self.whichDict[b][d])
+          self.whichDict[b][d].printMe()
+        else:
+          inputDict[a] = self.whichDict[b][d]
+          self.whichDict[b][d].printMe()
       inputDict['jobHandler'] = self.jobHandler
       if 'Sampler' in inputDict.keys():
         inputDict['Sampler'].fillDistribution(self.DistributionsDict)

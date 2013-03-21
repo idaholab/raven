@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulatio>
 <Models>
-    <Code name='MyRAVEN' type='RAVEN'>../RAVEN-Opt</Code>
+    <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
     <ROM name='MySVM' type='SVM'>
       <C>3.0</C>
       <cache_size>4000</cache_size>
@@ -64,9 +64,10 @@
 </Tests>
 <Steps>
     <SimpleRun name='second'>
-        <Input   type='Files'    subtype=''          >Mult_CoreChannels_test.i</Input>
-        <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
-        <Output  type='Datas'    subtype='History'   >1story</Output>
+        <Input   type='Files'    subtype=''       >Dt_controlling_test.i</Input>
+        <Input   type='Files'    subtype=''       >Dt_controlling_control_logic.py</Input>
+        <Model   type='Models'   subtype='Code'   >MyRAVEN</Model>
+        <Output  type='Datas'    subtype='History'>1story</Output>
     </SimpleRun>
     <MultiRun name='FirstMRun' directory='pluto'>
         <Input   type='Files'    subtype=''          >inp.i</Input>
@@ -91,7 +92,7 @@
 </Steps>
 <RunInfo>
     <WorkingDir>/Users/crisr/projects/trunk/raven/testDriver</WorkingDir>
-    <Files>Mult_CoreChannels_test.i,sss.i</Files>
+    <Files>Dt_controlling_test.i,Dt_controlling_control_logic.py,sss.i</Files>
     <Sequence>second,FirstMRun,MyAdaptiveROM,MyAdaptiveNoROM</Sequence>
     <!--<ParallelCommand></ParallelCommand>
     <ParallelProcNumb></ParallelProcNumb>

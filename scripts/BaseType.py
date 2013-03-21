@@ -39,18 +39,18 @@ class BaseType:
     pass
   def printMe(self):
     tempDict = self.whoAreYou()
-    print('\nClass:'+str(tempDict['class type']))
+    print('Class:'+str(tempDict['class type']))
     print('Type:'+tempDict['type'])
     print('name:'+tempDict['name'])
     tempDict = self.myInitializzationParams()
-    print('\nInitialization Parameters:')
+    print('Initialization Parameters:')
     for key in tempDict.keys():
       print(key+': '+str(tempDict[key]))
     tempDict = self.myCurrentSetting()
-    print('\nCurrent Setting:')
+    print('Current Setting:')
     for key in tempDict.keys():
       print(key+': '+str(tempDict[key]))
-    
+    print('\n')
     
     
   
