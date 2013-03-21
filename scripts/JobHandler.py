@@ -11,9 +11,9 @@ import Datas
 import copy
 
 class ExternalRunner:
-  def __init__(self,command,workingDir,outputFile=None):
+  def __init__(self,command,workingDir,output=None):
     self.command    = command
-    self.outputFile = outputFile
+    self.output     = output
     self.workingDir = workingDir
     self.start()
     
@@ -32,7 +32,7 @@ class ExternalRunner:
     os.chdir(self.workingDir)
     localenv = dict(os.environ)
     localenv['PYTHONPATH'] = ''
-    outFile = open(self.outputFile,'w')
+    outFile = open(self.output,'w')
     self.process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.workingDir,env=localenv)
     os.chdir(oldDir)
     time.sleep(1)

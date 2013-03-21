@@ -60,7 +60,11 @@ class Step(BaseType):
         finisishedjob = runningList.pop(i)
         for output in inDictionary['Output']:
           print(output)
-          output.add(finisishedjob.output)
+          inDictionary['Model'].collectFrom(finisishedjob.output,output)
+          
+          
+          
+          
         counter += counter
         if 'ROM' in inDictionary.keys: inDictionary['ROM'].trainROM(    inDictionary['Output']) #train      the ROM for a new run
         if 'Tester' in inDictionary.keys:

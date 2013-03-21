@@ -53,6 +53,11 @@ class Model(BaseType):
     #
     #collect data
     return
+  def collectFrom(self,collectFrom,storeTo):
+    print('collecting from')
+    print(collectFrom)
+    print('storing to')
+    print(storeTo)
 
 
 class Code(Model):
@@ -84,7 +89,7 @@ class Code(Model):
     print(executeCommand)
     self.process = jobHandler.submitDict['External'](executeCommand,outputDatas,outputfile,jobHandler.runInfoDict['TempWorkingDir'])
     return self.process
-
+    
 class ROM(Model):
   '''
   ROM stands for Reduced Order Models. All the models here, first learn than predict the outcome
