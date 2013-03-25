@@ -23,7 +23,7 @@ ifeq ($(PYTHON_CONFIG_WHICH),)
 	PYTHON_MODULES = 
 else
 	PYTHON_INCLUDE=$(shell python-config --includes)
-	PYTHON_LIB=$(shell python-config --libs)
+	PYTHON_LIB=$(shell python-config --ldflags)
 	PYTHON_MODULES=
 #PYTHON_MODULES=$(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/_raventools.so
 endif
