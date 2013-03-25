@@ -38,7 +38,7 @@ class Data(BaseType):
       tempDict['Output_'+str(counter)] = key
       counter += 1
     tempDict['Time'] = self.time
-  def load(self):
+  def load(self,source):
     return #.loaderDictionary(self.type)
   def add(self):
     return #.loaderDictionary(self.type)

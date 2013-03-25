@@ -92,7 +92,6 @@ class Simulation:
               self.whichDict[Type][name] = self.addWhatDict[Type](childChild.tag)
               self.whichDict[Type][name].readXML(childChild)
               self.whichDict[Type][name].printMe()
-              print('end')
             else:
                 raise IOError('not found name attribute for one '+Type)
         else:
@@ -127,13 +126,10 @@ class Simulation:
           self.filesDict[fileName] = fileName
       elif element.tag == 'WorkingDir':
         self.runInfoDict['WorkingDir'] = element.text
-        print(element.text)
 
     self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
     for key in self.filesDict.keys():
-      print ('qui '+key)
-      print(os.path.split(key))
       if os.path.split(key)[0] == '':
         self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
       elif not os.path.isabs(key):
@@ -158,7 +154,6 @@ class Simulation:
     '''
     run the simulation
     '''
-    print(self.runInfoDict['ParallelProcNumb'])
     for stepName in self.stepSequenceList:                #loop over the the steps
       stepInstance = self.stepsDict[stepName]             #retrieve the instance of the step
       self.runInfoDict['stepName'] = stepName             #provide the name of the step to runInfoDict
@@ -167,7 +162,6 @@ class Simulation:
       inputDict['Input' ] = []          #set the Input to an empty list
       inputDict['Output'] = []          #set the Input to an empty list
       for [a,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
-#        print(a+' is a: '+b+', of type: '+c+', and has name: '+d)
         print(a+' is:')
         if a == 'Input':
           inputDict[a].append(self.whichDict[b][d])

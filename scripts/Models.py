@@ -19,6 +19,13 @@ class RavenInterface:
       executeCommand = (executable+' -i '+os.path.split(inputFiles[1])[1]+' Output/postprocessor_csv=true' + 
       ' Output/file_base='+ outputfile)
     return executeCommand, outputfile
+  def findOutputFile(self,command):
+    strinList = command.split(' ')
+    for string in strinList:
+      if 'Output/file_base=' in string:
+        string = string.replace('Output/file_base=','')
+        return string
+
 
 def returnCodeInterface(Type):
   base = 'Code'
@@ -54,42 +61,47 @@ class Model(BaseType):
     #collect data
     return
   def collectFrom(self,collectFrom,storeTo):
-    print('collecting from')
-    print(collectFrom)
-    print('storing to')
-    print(storeTo)
+    print('collecting from: '+str(collectFrom))
+    print('storing to: '+str(storeTo))
 
 
 class Code(Model):
   def __init__(self):
     Model.__init__(self)
     self.executable = ''
+    
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
     try: self.executable = os.path.abspath(xmlNode.text)
     except: raise IOError('not found executable '+xmlNode.text)
     self.interface = returnCodeInterface(self.subType)
-    print(type(self.interface))
+    
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
     tempDict['executable']=self.executable
+    
   def setUpWorkingDir(self,runInfoDict,inputFiles):
     '''generate and fill a new working directory'''
     #start checking the existence and/or creating the working directory
     runInfoDict['TempWorkingDir'] = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName'])
-    print(runInfoDict['TempWorkingDir'])
     try: os.mkdir(runInfoDict['TempWorkingDir'])
     except: pass
     for inputFile in inputFiles:
       shutil.copy(inputFile,runInfoDict['TempWorkingDir'])
-      inputFile
+    
   def run(self,inputFiles,outputDatas,jobHandler):
+    '''return an instance of external runner'''
     self.setUpWorkingDir(jobHandler.runInfoDict, inputFiles)
     executeCommand, outputfile = self.interface.generateCommand(inputFiles,self.executable)
-    print(executeCommand)
     self.process = jobHandler.submitDict['External'](executeCommand,outputDatas,outputfile,jobHandler.runInfoDict['TempWorkingDir'])
     return self.process
     
+  def collectOutput(self,finisishedjob,output):
+    '''collect the output file in the output object'''
+    print(os.path.join(finisishedjob.workingDir,self.interface.findOutputFile(finisishedjob.command)))
+    output.load(os.path.join(finisishedjob.workingDir,self.interface.findOutputFile(finisishedjob.command)))
+  
+  
 class ROM(Model):
   '''
   ROM stands for Reduced Order Models. All the models here, first learn than predict the outcome
@@ -127,7 +139,6 @@ def returnInstance(Type):
   except: raise NameError('not known '+base+' type '+Type)
   
   
-
   
   
   

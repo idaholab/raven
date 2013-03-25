@@ -20,14 +20,12 @@ class ExternalRunner:
   def isDone(self):
     self.process.poll()
     if self.process.returncode != None:
+      
       return True
     else:
       return False
   
   def start(self):
-    print(self.command)
-    print(os.getcwd())
-    print(self.workingDir)
     oldDir = os.getcwd()
     os.chdir(self.workingDir)
     localenv = dict(os.environ)
@@ -35,7 +33,6 @@ class ExternalRunner:
     outFile = open(self.output,'w')
     self.process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.workingDir,env=localenv)
     os.chdir(oldDir)
-    time.sleep(1)
     
 class JobHandler:
   def __init__(self):
@@ -68,7 +65,6 @@ class JobHandler:
     if self.threadingCommand !='':
       command +=self.threadingCommand+' '
     command += executeCommand
-    print (command)
     return ExternalRunner(command,workingDir,outputFile)
 
   def addInternal(self):

@@ -41,7 +41,7 @@
         <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
         <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
     </MonteCarlo>
-    <MonteCarlo name='MyMC2' limit='400'>
+    <MonteCarlo name='MyMC1' limit='400'>
         <Variable type ='Normal'     distName='Gaus1'>pippo</Variable>
         <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
         <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
@@ -70,10 +70,11 @@
         <Output  type='Datas'    subtype='History'>1story</Output>
     </SimpleRun>
     <MultiRun name='FirstMRun' directory='pluto'>
-        <Input   type='Files'    subtype=''          >inp.i</Input>
+        <Input   type='Files'    subtype=''       >Dt_controlling_test.i</Input>
+        <Input   type='Files'    subtype=''       >Dt_controlling_control_logic.py</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
-        <Sampler type='Samplers' subtype='MonteCarlo'>MyMC1</Sampler>
-        <Output  type='Datas'    subtype='Histories' >stories</Output>
+        <Sampler type='Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
+        <Output  type='Datas'    subtype='TimePointSet' >trainer</Output>
     </MultiRun >
     <MultiRun name='MyAdaptiveNoROM'>
         <Input   type='Files'     subtype=''            >inp.i</Input>
@@ -94,12 +95,12 @@
     <WorkingDir>/Users/crisr/projects/trunk/raven/testDriver</WorkingDir>
     <Files>Dt_controlling_test.i,Dt_controlling_control_logic.py,sss.i</Files>
     <Sequence>second,FirstMRun,MyAdaptiveROM,MyAdaptiveNoROM</Sequence>
+    <batchSize>3</batchSize>
     <!--<ParallelCommand></ParallelCommand>
     <ParallelProcNumb></ParallelProcNumb>
     <ThreadingCommand></ThreadingCommand>
     <ThreadingProcessor></ThreadingProcessor>
     <numNode></numNode>
-    <batchSize></batchSize>
     <quequingSoftware></quequingSoftware>
     <procByNode></procByNode>
     <numProcByRun></numProcByRun>

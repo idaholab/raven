@@ -41,10 +41,11 @@ class Sampler(BaseType):
 
 class MonteCarlo(Sampler):
   def sampleInput(self,model,Input,counter):
-      values = {}
-      for key in self.distDict:
-        values[key] = self.distDict[key].distribution.rvs()
-      return model.createNewInput(Input,values,counter,self.type)
+    print('so far so god')
+    values = {}
+    for key in self.distDict:
+      values[key] = self.distDict[key].distribution.rvs()
+    return model.createNewInput(Input,values,counter,self.type)
 
 class LatinHyperCube(Sampler):
   pass
