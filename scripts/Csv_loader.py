@@ -4,9 +4,6 @@ Created on Feb 7, 2013
 This python module performs the loading of 
 data from csv files
 '''
-import os
-import linecache
-import csv 
 import numpay as np
 
 class CsvLoader:
@@ -15,288 +12,30 @@ class CsvLoader:
     Constructor
     '''
     self.all_out_param      = False # all output parameters?
-    self.previous_list      = {}    # working dict
-    self.actual_list        = {}    # working dict
-    self.field_names        = []
+    self.field_names        = []    # 
+    self.all_field_names    = []
     
-  def csvLoaderForTimePoint(self,filein,time,inParamDict,outParamDict):
-    '''
-    filein = file name
-    time   = time
-    paramList = parameters to be picked up (optional)
-    '''
-  
-    if outParamDict['all']:
-      self.all_out_param  = True
-      outParamDict['all'] = None
-    else:
-      self.all_out_param = False
-    
-    if time == 'end':
-      time_end = True
-      time_float = -1.0
-    else:
-      # convert the time in float
-      time_end = False
-      time_float = [float(x) for x in time]
-      
-    inDict  = inParamDict
-    outDict = outParamDict       
-    
-    #we now load the csv file
-    with open(filein,'rb') as f:
-      reader = csv.DictReader(f)
-      reader.next
-      if(self.all_out_param):
-          self.field_names = reader.fieldnames
-      else:
-          self.field_names = outDict.keys()
-          self.field_names.insert(0, 'time')
-      
-      row = reader.next()
-      # Put the input params values into the inParamDict
-      for key, value in inDict.items():
-        try:
-          value = float(row[key])
-        except:
-          print("ERROR: the parameter " + key + " has not been found")
-      #loop over rows    
-      for row in reader:
-          self.previous_dict = self.actual_dict
-          self.actual_dict   = row  
-          if(float(row['time']) >= time_float and time_float >= 0.0):
-            # we have to interpolate from values in previous_list
-            # and actual_list
-            previous_time = float(previous_dict['time'])
-            actual_time   = float(actual_dict['time'])
-            # This loop add interpolated values into the outParamDict
-            if(not self.all_out_param):
-              for key, value in outDict.items():
-                try:
-                  actual_value = float(row[key])
-                  previous_value =  float(self.previous_dict[key])
-                  outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
-                except:
-                  raise("ERROR: the parameter "+ key +" has not been found")
-              break
-            else:
-              outDict = self.actual_dict        
-              break
-      #if time == end => we have to get the last row => it's in the actual_dict
-      if time_end:
-        if(not self.all_out_param):
-          for key, value in outDict.items():
-            try:
-              outDict[key] = float(self.actual_dict[key])
-            except:
-              raise("ERROR: the parameter "+ key +" has not been found")
-        else:
-          outDict = self.actual_dict
-          
-    for key in outDict:
-      outParamDict[key] = np.array(outDict[key], dtype=float)
-    for key in inDict:
-      inParamDict[key] = np.array(inDict[key], dtype=float)           
-    return
-  def csvLoaderForTimePointSet(self,filesin,time,inParamDict,outParamDict):
-    '''
-    filesin = file names
-    time   = time
-    inParamDict = parameters to be picked up 
-    outParamDict = parameters to be picked up    
-    '''
-    if outParamDict['all']:
-      self.all_out_param  = True
-      outParamDict['all'] = None
-    else:
-      self.all_out_param = False
-    
-    if time == 'end':
-      time_end = True
-      time_float = -1.0
-    else:
-      # convert the time in float
-      time_end = False
-      time_float = [float(x) for x in time]
-      
-    inDict  = inParamDict
-    outDict = outParamDict    
-    
-    for i in range(len(filesin)): 
-      #we now load the csv file
-      with open(filesin[i],'rb') as f:
-        reader = csv.DictReader(f)
-        reader.next
-        if(self.all_out_param):
-            self.field_names = reader.fieldnames
-        else:
-            self.field_names = outDict.keys()
-            self.field_names.insert(0, 'time')
-      
-        row = reader.next()
-        # Put the input params values into the inParamDict
-        for key, value in inDict.items():
-          try:
-            inDict[key].append(float(row[key]))
-          except:
-            print("ERROR: the parameter " + key + " has not been found")
-        #loop over rows    
-        for row in reader:
-            self.previous_dict = self.actual_dict
-            self.actual_dict   = row  
-            if(float(row['time']) >= time_float and time_float >= 0.0):
-              # we have to interpolate from values in previous_list
-              # and actual_list
-              previous_time = float(previous_dict['time'])
-              actual_time   = float(actual_dict['time'])
-              # This loop add interpolated values into the outParamDict
-              if(not self.all_out_param):
-                for key, value in outParamDict.items():
-                  try:
-                    actual_value = float(row[key])
-                    previous_value =  float(self.previous_dict[key])
-                    outDict[key].append(float((actual_value-previous_value)/(actual_time-previous_time)*
-                                                   (time_float-previous_time)))
-                  except:
-                    raise("ERROR: the parameter "+ key +" has not been found")
-                break
-              else:
-                for key in self.actual_dict.keys():
-                  outDict[key].append(self.actual_dict[key])        
-                break
-        #if time == end => we have to get the last row => it's in the actual_dict
-        if time_end:
-          if(not self.all_out_param):
-            for key, value in outDict.items():
-              try:
-                outDict[key].append(float(self.actual_dict[key]))
-              except:
-                raise("ERROR: the parameter "+ key +" has not been found")
-          else:
-            for key in self.actual_dict.keys():
-              outDict[key].append(float(self.actual_dict[key]))   
-    #convert the lists in working dicts into numpy arrays
-    for key in outDict:
-      outParamDict[key] = np.array(outDict[key], dtype=float)
-    for key in inDict:
-      inParamDict[key] = np.array(inDict[key], dtype=float)    
-    return
-  def csvLoaderForHistory(self,filein,time_filter=None,inParamDict,outParamDict):
-    '''
-    filein = file name
-    time_filter   = time_filter
-    inParamDict = parameters to be picked up (dictionary of values)
-    outParamDict = parameters to be picked up (dictionary of lists)   
-    '''
-    inDict  = inParamDict
-    outDict = outParamDict
-    
-    if(inDict['all']):
-      inDict['all'] = None
-    else:
-      inputParamN = len(inDict.keys())
-    if(outDict['all']):
-      self.all_out_param  = True
-      outParamDict['all'] = None            
-    else:
-      self.all_out_param  = False
+  def loadCsvFile(self,filein):
+    # open file
+    file = open (filein,'rb')
+    # read the field names
+    self.all_field_names = file.readline().split()
+    # load the table data (from the csv file) into a numpy nd array 
+    data = np.loadtxt(file,dtype='float',delimiter=',')
+    # close file
+    file.close()  
+    return data
 
-    if time_filter:
-      time_all = False
-      time_float = [float(x) for x in time_filter]
-    else:
-      # WE HAVE TO TAKE A DECISION REGARDING THE FILTERING
-      time_all = True
-      time_float = -1.0
-   
-    #we now load the csv file
-    with open(filein,'rb') as f:
-      reader = csv.DictReader(f)
-      reader.next
-      if(self.all_out_param):
-        self.field_names = reader.fieldnames
-      else:
-        self.field_names = outParamDict.keys()
-        self.field_names.insert(0, 'time')
-      
-      row = reader.next()
-      # Put the input params values into the inParamDict
-      for key, value in inDict.items():
-        try:
-          inDict[key]=(float(row[key]))
-        except:
-          print("ERROR: the parameter " + key + " has not been found")
-      #loop over rows    
-      for row in reader:
-          self.previous_dict = self.actual_dict
-          self.actual_dict   = row  
-          if(not self.all_out_param):
-            for key, value in outDict.items():
-              try:
-                outDict[key].append(float(row[key]))
-              except:
-                raise("ERROR: the parameter "+ key +" has not been found")
-            break
-          else:
-            for key in row.keys():
-              outDict[key].append(float(row[key]))        
-            break
-    #convert the lists in working dicts into numpy arrays
-    for key in outDict:
-      outParamDict[key] = np.array(outDict[key], dtype=float)
-    for key in inDict:
-      inParamDict[key] = np.array(inDict[key], dtype=float)        
-    return          
-  def csvLoaderForHistories(self,filesin,time_filters=None,inParamDict,outParamDict):
-    '''
-    filein = file name
-    time_filter   = time_filter
-    inParamDict = parameters to be picked up (dictionary of dictionaries of lists))
-    outParamDict = parameters to be picked up (dictionary of dictionaries of lists)   
-    '''
-    inDict  = {}
-    outDict = {}
-    # firstly we read the first file to grep information regarding the number of time-step
-    self.parseFilesToGrepDimensions(filesin, NtimeSteps, maxNumOfParams, NSamples)
+  # function to get actual field names (desired output parameter keywords)
+  def getFieldNames(self):
+    return self.field_names
 
-    inDict  = inParamDict
-    outDict = outParamDict
-    if(inDict['all']):
-      inputParamN = maxNumOfParams
-    else:
-      inputParamN = len(inDict.keys())
-    if(outDict['all']):
-      outputParamN = maxNumOfParams
-    else:
-      outputParamN = len(outDict.keys())  
-    # now we "allocate" the numpy matrix
-    data_work_in = np.zeros(shape=(inputParamN,NtimeSteps,NSamples))
-    data_work_out = np.zeros(shape=(outputParamN,NtimeSteps,NSamples))
-    
-    for i in range(NSamples):
-      self.csvLoaderForHistory(filein[i],time_filter,inDict,outDict)
-      index = 0
-      for key in inDict:
-        data_work_in[index,:,i] = float(inDict[key])
-        index = index + 1
-      index = 0  
-      for key in outDict:
-        data_work_out[index,:,i] = float(outDict[key])
-        index = index + 1    
-    #construct the output dictionaries
-    key_index = 0
-    for key in inDict:
-      if(str(key) != 'all'):
-        inParamDict[key] = data_work_in[key_index,:,:]
-        key_index = key_index + 1
-    key_index = 0    
-    for key in outDict:
-      if(str(key) != 'all'):
-        outParamDict[key] = data_work_out[key_index,:,:]
-        key_index = key_index + 1      
-    return
+  # function to get all field names found in the csv file
+  def getAllFieldNames(self):
+    return self.all_field_names
 
-  def parseFilesToGrepDimensions(self,filesin,NtimeSteps,maxNumOfParams,NSamples):      
+  # function to grep max dimensions in multiple csv files
+  def parseFilesToGrepDimensions(self,filesin):      
     '''
     filesin = file names
     NtimeSteps   = maxNumberOfTs
@@ -320,9 +59,325 @@ class CsvLoader:
         
         if(countTimeSteps>NtimeSteps):
           NtimeSteps = countTimeSteps
-    return      
-
-      
-      
-      
+    return (NtimeSteps,maxNumOfParams,NSamples)  
+ 
+  # loader for time point data type
+  def csvLoaderForTimePoint(self,filein,time,inParam,outParam):
+    '''
+    filein = file name
+    time   = time
+    paramList = parameters to be picked up (optional)
+    '''
+    #load the data into the numpy array
+    data = loadCsvFile(filein)
     
+    if 'all' in outParam:
+      self.all_out_param  = True
+    else:
+      self.all_out_param = False
+    
+    if time == 'end':
+      time_end = True
+      time_float = -1.0
+    else:
+      # convert the time in float
+      time_end = False
+      time_float = float(time)
+      
+    #inDict  = inParamDict
+    #outDict = outParamDict       
+    inDict  = {}
+    outDict = {} 
+    
+    if(self.all_out_param):
+      self.field_names = self.all_field_names
+    else:
+      self.field_names = outParam
+      self.field_names.insert(0, 'time') 
+    
+    #fill input param dictionary
+    for key in inParam:
+        if key in self.all_field_names:
+          index = self.all_field_names.index(key)
+          inDict[key] = data[0,index]
+        else
+          raise("ERROR: the parameter " + key + " has not been found")
+    
+    # fill output param dictionary
+    
+    # time end case
+    if time_end:
+      last_row = data[:,0].size - 1
+      if self.all_out_param:
+        for key in self.all_field_names:
+          outDict[key] = data[last_row,self.all_field_names.index(key)]
+      else:
+        for key in outParam:
+          if key in self.all_field_names:
+            outDict[key] = data[last_row,self.all_field_names.index(key)]        
+          else
+            raise("ERROR: the parameter " + key + " has not been found")
+    else:
+      
+      for i in data:
+        if data[i,0] >= time_float and time_float >= 0.0:
+          try:
+            previous_time = data[i-1,0]
+            actual_time   = data[i,0]
+          except:
+            previous_time = data[i,0]
+            actual_time   = data[i,0]          
+          if self.all_out_param:
+            for key in self.all_field_names:
+              if(actual_time == previous_time):
+                outDict[key] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
+              else
+                actual_value   = data[i,self.all_field_names.index(key)]
+                previous_value = data[i-1,self.all_field_names.index(key)] 
+                outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+          else:
+            for key in outParam:
+              if key in self.all_field_names:
+                if(actual_time == previous_time):
+                  outDict[key] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
+                else
+                  actual_value   = data[i,self.all_field_names.index(key)]
+                  previous_value = data[i-1,self.all_field_names.index(key)] 
+                  outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                         
+              else
+                raise("ERROR: the parameter " + key + " has not been found")
+    return (inDict,outDict)
+
+
+  # loader for time point set data type
+  def csvLoaderForTimePointSet(self,filesin,time,inParam,outParam):
+    '''
+    filesin = file names
+    time   = time
+    inParam = parameters to be picked up 
+    outParam = parameters to be picked up    
+    '''
+    if 'all' in outParam:
+      self.all_out_param  = True
+    else:
+      self.all_out_param = False
+    
+    if time == 'end':
+      time_end = True
+      time_float = -1.0
+    else:
+      # convert the time in float
+      time_end = False
+      time_float = float(time)
+      
+    inDict  = {}
+    outDict = {}    
+    
+    for i in range(len(filesin)): 
+      #load the data into the numpy array
+      data = loadCsvFile(filesin[i])
+      if i == 0:      
+        if(self.all_out_param):
+          self.field_names = self.all_field_names
+        else:
+          self.field_names = outParam
+          self.field_names.insert(0, 'time')       
+      #fill input param dictionary
+      for key in inParam:
+          if key in self.all_field_names:
+            index = self.all_field_names.index(key)
+            if i == 0:
+              #create numpy array
+              inDict[key] = np.zeros(shape(len(filesin)))
+            
+            inDict[key][i] = data[0,index]
+          else
+            raise("ERROR: the parameter " + key + " has not been found")
+      # time end case
+      if time_end:
+        last_row = data[:,0].size - 1
+        if self.all_out_param:
+          for key in self.all_field_names:
+            if i == 0:
+              #create numpy array
+              outDict[key] = np.zeros(shape(len(filesin)))  
+            
+            outDict[key][i] = data[last_row,self.all_field_names.index(key)]
+        else:
+          for key in outParam:
+            if key in self.all_field_names:
+              if i == 0:
+                #create numpy array
+                outDict[key] = np.zeros(shape(len(filesin)))                 
+              outDict[key] = data[last_row,self.all_field_names.index(key)]        
+            else
+              raise("ERROR: the parameter " + key + " has not been found")
+      else:
+        
+        for i in data:
+          if data[i,0] >= time_float and time_float >= 0.0:
+            try:
+              previous_time = data[i-1,0]
+              actual_time   = data[i,0]
+            except:
+              previous_time = data[i,0]
+              actual_time   = data[i,0]          
+            if self.all_out_param:
+              for key in self.all_field_names:
+                if(actual_time == previous_time):
+                  if i == 0:
+                    #create numpy array
+                    outDict[key] = np.zeros(shape(len(filesin)))           
+                              
+                  outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
+                else
+                  if i == 0:
+                    #create numpy array
+                    outDict[key] = np.zeros(shape(len(filesin))) 
+                                    
+                  actual_value   = data[i,self.all_field_names.index(key)]
+                  previous_value = data[i-1,self.all_field_names.index(key)] 
+                  outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+            else:
+              for key in outParam:
+                if key in self.all_field_names:
+                  if(actual_time == previous_time):
+                    if i == 0:
+                      #create numpy array
+                      outDict[key] = np.zeros(shape(len(filesin))) 
+                                            
+                    outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
+                  else
+                    if i == 0:
+                      #create numpy array
+                      outDict[key] = np.zeros(shape(len(filesin)))
+                    
+                    actual_value   = data[i,self.all_field_names.index(key)]
+                    previous_value = data[i-1,self.all_field_names.index(key)] 
+                    outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                else
+                  raise("ERROR: the parameter " + key + " has not been found")      
+      del data 
+    return (inDict,outDict)
+
+# loader for history data type
+  def csvLoaderForHistory(self,filein,time,inParam,outParam):
+    '''
+    filein = file name
+    time_filter   = time_filter
+    inParamDict = parameters to be picked up (dictionary of values)
+    outParamDict = parameters to be picked up (dictionary of lists)   
+    '''
+    time_float = []
+    
+    if 'all' in outParam:
+      self.all_out_param  = True
+    else:
+      self.all_out_param = False
+    
+    if time:
+      if 'all' in time:
+        time_all = True
+      else:
+        time_all = False
+        time_float = [float(x) for x in time]
+    else:
+      # WE HAVE TO TAKE A DECISION REGARDING THE FILTERING
+      
+      time_all = True
+      #time_float[0] = -1.0
+   
+    inDict  = {}
+    outDict = {}  
+
+    #load the data into the numpy array
+    data = loadCsvFile(filein)
+    
+    if(self.all_out_param):
+      self.field_names = self.all_field_names
+    else:
+      self.field_names = outParam
+      self.field_names.insert(0, 'time') 
+    
+    #fill input param dictionary
+    for key in inParam:
+        if key in self.all_field_names:
+          index = self.all_field_names.index(key)
+          inDict[key] = data[0,index]
+        else
+          raise("ERROR: the parameter " + key + " has not been found")
+    
+    # time all case
+    if time_all:
+      if self.all_out_param:
+        for key in self.all_field_names:
+          outDict[key] = data[:,self.all_field_names.index(key)]
+      else:
+        for key in outParam:
+          if key in self.all_field_names:
+            outDict[key] = data[:,self.all_field_names.index(key)]        
+          else
+            raise("ERROR: the parameter " + key + " has not been found")
+    else:
+      # it will be implemented when we decide a strategy about time filtering 
+      ## for now it is a copy paste of the time_all case
+      if self.all_out_param:
+        for key in self.all_field_names:
+          outDict[key] = data[:,self.all_field_names.index(key)]
+      else:
+        for key in outParam:
+          if key in self.all_field_names:
+            outDict[key] = data[:,self.all_field_names.index(key)]        
+          else
+            raise("ERROR: the parameter " + key + " has not been found")      
+    return (inDict,outDict)         
+#  def csvLoaderForHistories(self,filesin,time_filters=None,inParamDict,outParamDict):
+#    '''
+#    filein = file name
+#    time_filter   = time_filter
+#    inParamDict = parameters to be picked up (dictionary of dictionaries of lists))
+#    outParamDict = parameters to be picked up (dictionary of dictionaries of lists)   
+#    '''
+#    inDict  = {}
+#    outDict = {}
+#    # firstly we read the first file to grep information regarding the number of time-step
+#    self.parseFilesToGrepDimensions(filesin, NtimeSteps, maxNumOfParams, NSamples)
+#
+#    inDict  = inParamDict
+#    outDict = outParamDict
+#    if(inDict['all']):
+#      inputParamN = maxNumOfParams
+#    else:
+#      inputParamN = len(inDict.keys())
+#    if(outDict['all']):
+#      outputParamN = maxNumOfParams
+#    else:
+#      outputParamN = len(outDict.keys())  
+#    # now we "allocate" the numpy matrix
+#    data_work_in = np.zeros(shape=(inputParamN,NtimeSteps,NSamples))
+#    data_work_out = np.zeros(shape=(outputParamN,NtimeSteps,NSamples))
+#    
+#    for i in range(NSamples):
+#      self.csvLoaderForHistory(filein[i],time_filter,inDict,outDict)
+#      index = 0
+#      for key in inDict:
+#        data_work_in[index,:,i] = float(inDict[key])
+#        index = index + 1
+#      index = 0  
+#      for key in outDict:
+#        data_work_out[index,:,i] = float(outDict[key])
+#        index = index + 1    
+#    #construct the output dictionaries
+#    key_index = 0
+#    for key in inDict:
+#      if(str(key) != 'all'):
+#        inParamDict[key] = data_work_in[key_index,:,:]
+#        key_index = key_index + 1
+#    key_index = 0    
+#    for key in outDict:
+#      if(str(key) != 'all'):
+#        outParamDict[key] = data_work_out[key_index,:,:]
+#        key_index = key_index + 1      
+#    return
+
