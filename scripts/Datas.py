@@ -16,7 +16,7 @@ class Data(BaseType):
     self.outputs = []   # output parameters
     self.inpParametersValues   = {}  # input parameters as keys, corresponding values 
     self.outParametersValues   = {}  # output variables as keys, corresponding values
-    self.filenames = []
+    self.toLoadFromList = []
   def readMoreXML(self,xmlNode):
     self.inputs  = xmlNode.find('Input' ).text.split(',')
     self.outputs = xmlNode.find('Output').text.split(',')
@@ -38,11 +38,11 @@ class Data(BaseType):
     return tempDict
 
   def finalizeOutput(self):
-    return 
-  def addOutput(self,filename):
+    pass 
+  def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
-    self.filenames.append(filename)
+    self.toLoadFromList.append(toLoadFrom)
     
   def getInpParametersValues(self):
     return self.inpParametersValues  
@@ -52,36 +52,53 @@ class Data(BaseType):
 
 class TimePoint(Data):
   def finalizeOutput(self):
-    tuple = ld.csvLoaderForTimePoint(self.filenames[0],self.time,self.inputs,self.outputs)
-    self.inpParametersValues = tuple[0]
-    self.outParametersValues = tuple[1]
+    try:
+      type = toLoadFromList[0].type
+      #add here the specialization for loading from other source
+    except:
+      tuple = ld.csvLoaderForTimePoint(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
+      self.inpParametersValues = tuple[0]
+      self.outParametersValues = tuple[1]
     
 class TimePointSet(Data):
-  def finalizeOutput(self,fileNameRoot,numberSimulation):
-    tuple = ld.csvLoaderForTimePointSet(self.filenames,self.time,self.inputs,self.outputs)
-    self.inpParametersValues = tuple[0]
-    self.outParametersValues = tuple[1]
+  def finalizeOutput(self):
+    try:
+      types = []
+      types = toLoadFromList[:].type
+      #add here the specialization for loading from other source
+    except:      
+      tuple = ld.csvLoaderForTimePointSet(self.toLoadFromList,self.time,self.inputs,self.outputs)
+      self.inpParametersValues = tuple[0]
+      self.outParametersValues = tuple[1]
 
 class History(Data):
   def finalizeOutput(self):
-    tuple = ld.csvLoaderForHistory(self.filenames[0],self.time,self.inputs,self.outputs)
-    self.inpParametersValues = tuple[0]
-    self.outParametersValues = tuple[1]
+    try:
+      type = toLoadFromList[0].type
+      #add here the specialization for loading from other source
+    except:      
+      tuple = ld.csvLoaderForHistory(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
+      self.inpParametersValues = tuple[0]
+      self.outParametersValues = tuple[1]
 
 class Histories(Data):
   def __init__(self):
     Data.__init__(self)
 #    self.vectorOfHistory = []
   def finalizeOutput(self):
-    for ifiles in len(self.filenames):
-      tuple = ld.csvLoaderForHistory(self.filenames[ifiles],self.time,self.inputs,self.outputs)
-      self.vectorOfHistory.append(History())
-      # dictionary of dictionary key = i => ith history ParameterValues dictionary
-      self.inpParametersValues[ifiles] = tuple[0]
-      self.inpParametersValues[ifiles] = tuple[1]
-#      self.vectorOfHistory[ifiles].inpParametersValues = tuple[0]
-#      self.vectorOfHistory[ifiles].outParametersValues = tuple[1]
-      del tuple
+    try:
+      type = toLoadFromList[0].type
+      #add here the specialization for loading from other source
+    except:  
+      for index in len(self.toLoadFromList):
+        tuple = ld.csvLoaderForHistory(self.toLoadFromList[index],self.time,self.inputs,self.outputs)
+        self.vectorOfHistory.append(History())
+        # dictionary of dictionary key = i => ith history ParameterValues dictionary
+        self.inpParametersValues[index] = tuple[0]
+        self.inpParametersValues[index] = tuple[1]
+#        self.vectorOfHistory[index].inpParametersValues = tuple[0]
+#        self.vectorOfHistory[index].outParametersValues = tuple[1]
+        del tuple
 
 def returnInstance(Type):
   base = 'Data'
