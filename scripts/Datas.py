@@ -5,7 +5,7 @@ Created on Feb 16, 2013
 '''
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
-import CsvLoader as ld 
+from Csv_loader import CsvLoader 
 #import h5py as h5
 
 
@@ -49,6 +49,8 @@ class Data(BaseType):
 
   def getOutParametersValues(self):
     return self.outParametersValues 
+  
+  def getParam(self,type,):
 
 class TimePoint(Data):
   def finalizeOutput(self):

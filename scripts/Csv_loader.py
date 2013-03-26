@@ -100,7 +100,7 @@ class CsvLoader:
         if key in self.all_field_names:
           index = self.all_field_names.index(key)
           inDict[key] = data[0,index]
-        else
+        else:
           raise("ERROR: the parameter " + key + " has not been found")
     
     # fill output param dictionary
@@ -115,7 +115,7 @@ class CsvLoader:
         for key in outParam:
           if key in self.all_field_names:
             outDict[key] = data[last_row,self.all_field_names.index(key)]        
-          else
+          else:
             raise("ERROR: the parameter " + key + " has not been found")
     else:
       
@@ -131,7 +131,7 @@ class CsvLoader:
             for key in self.all_field_names:
               if(actual_time == previous_time):
                 outDict[key] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
-              else
+              else:
                 actual_value   = data[i,self.all_field_names.index(key)]
                 previous_value = data[i-1,self.all_field_names.index(key)] 
                 outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
@@ -140,12 +140,12 @@ class CsvLoader:
               if key in self.all_field_names:
                 if(actual_time == previous_time):
                   outDict[key] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
-                else
+                else:
                   actual_value   = data[i,self.all_field_names.index(key)]
                   previous_value = data[i-1,self.all_field_names.index(key)] 
                   outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
                          
-              else
+              else:
                 raise("ERROR: the parameter " + key + " has not been found")
     return (inDict,outDict)
 
@@ -192,7 +192,7 @@ class CsvLoader:
               inDict[key] = np.zeros(shape(len(filesin)))
             
             inDict[key][i] = data[0,index]
-          else
+          else:
             raise("ERROR: the parameter " + key + " has not been found")
       # time end case
       if time_end:
@@ -231,7 +231,7 @@ class CsvLoader:
                     outDict[key] = np.zeros(shape(len(filesin)))           
                               
                   outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
-                else
+                else:
                   if i == 0:
                     #create numpy array
                     outDict[key] = np.zeros(shape(len(filesin))) 
@@ -248,7 +248,7 @@ class CsvLoader:
                       outDict[key] = np.zeros(shape(len(filesin))) 
                                             
                     outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
-                  else
+                  else:
                     if i == 0:
                       #create numpy array
                       outDict[key] = np.zeros(shape(len(filesin)))
@@ -256,7 +256,7 @@ class CsvLoader:
                     actual_value   = data[i,self.all_field_names.index(key)]
                     previous_value = data[i-1,self.all_field_names.index(key)] 
                     outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
-                else
+                else:
                   raise("ERROR: the parameter " + key + " has not been found")      
       del data 
     return (inDict,outDict)
@@ -305,7 +305,7 @@ class CsvLoader:
         if key in self.all_field_names:
           index = self.all_field_names.index(key)
           inDict[key] = data[0,index]
-        else
+        else:
           raise("ERROR: the parameter " + key + " has not been found")
     
     # time all case
@@ -317,7 +317,7 @@ class CsvLoader:
         for key in outParam:
           if key in self.all_field_names:
             outDict[key] = data[:,self.all_field_names.index(key)]        
-          else
+          else:
             raise("ERROR: the parameter " + key + " has not been found")
     else:
       # it will be implemented when we decide a strategy about time filtering 
@@ -329,7 +329,7 @@ class CsvLoader:
         for key in outParam:
           if key in self.all_field_names:
             outDict[key] = data[:,self.all_field_names.index(key)]        
-          else
+          else:
             raise("ERROR: the parameter " + key + " has not been found")      
     return (inDict,outDict)         
 #  def csvLoaderForHistories(self,filesin,time_filters=None,inParamDict,outParamDict):
