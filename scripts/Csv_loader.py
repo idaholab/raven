@@ -5,6 +5,7 @@ This python module performs the loading of
 data from csv files
 '''
 import numpy as np
+import csv
 
 class CsvLoader:
   def __init__(self):
@@ -189,7 +190,7 @@ class CsvLoader:
             index = self.all_field_names.index(key)
             if i == 0:
               #create numpy array
-              inDict[key] = np.zeros(shape(len(filesin)))
+              inDict[key] = np.zeros(np.shape(len(filesin)))
             
             inDict[key][i] = data[0,index]
           else:
@@ -201,7 +202,7 @@ class CsvLoader:
           for key in self.all_field_names:
             if i == 0:
               #create numpy array
-              outDict[key] = np.zeros(shape(len(filesin)))  
+              outDict[key] = np.zeros(np.shape(len(filesin)))  
             
             outDict[key][i] = data[last_row,self.all_field_names.index(key)]
         else:
@@ -209,7 +210,7 @@ class CsvLoader:
             if key in self.all_field_names:
               if i == 0:
                 #create numpy array
-                outDict[key] = np.zeros(shape(len(filesin)))                 
+                outDict[key] = np.zeros(np.shape(len(filesin)))                 
               outDict[key] = data[last_row,self.all_field_names.index(key)]        
             else:
               raise("ERROR: the parameter " + key + " has not been found")
@@ -228,13 +229,13 @@ class CsvLoader:
                 if(actual_time == previous_time):
                   if i == 0:
                     #create numpy array
-                    outDict[key] = np.zeros(shape(len(filesin)))           
+                    outDict[key] = np.zeros(np.shape(len(filesin)))           
                               
                   outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
                 else:
                   if i == 0:
                     #create numpy array
-                    outDict[key] = np.zeros(shape(len(filesin))) 
+                    outDict[key] = np.zeros(np.shape(len(filesin))) 
                                     
                   actual_value   = data[i,self.all_field_names.index(key)]
                   previous_value = data[i-1,self.all_field_names.index(key)] 
@@ -245,13 +246,13 @@ class CsvLoader:
                   if(actual_time == previous_time):
                     if i == 0:
                       #create numpy array
-                      outDict[key] = np.zeros(shape(len(filesin))) 
+                      outDict[key] = np.zeros(np.shape(len(filesin))) 
                                             
                     outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
                   else:
                     if i == 0:
                       #create numpy array
-                      outDict[key] = np.zeros(shape(len(filesin)))
+                      outDict[key] = np.zeros(np.shape(len(filesin)))
                     
                     actual_value   = data[i,self.all_field_names.index(key)]
                     previous_value = data[i-1,self.all_field_names.index(key)] 
