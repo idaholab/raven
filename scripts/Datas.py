@@ -30,9 +30,9 @@ class Data(BaseType):
     except:self.time = None
 
   def addInitParams(self,tempDict):
-    for i in len(self.inputs): 
+    for i in range(len(self.inputs)): 
       tempDict['Input_'+str(i)] = self.inputs[i]
-    for i in len(self.outputs): 
+    for i in range(len(self.outputs)): 
       tempDict['Output_'+str(i)] = self.outputs[i]
     tempDict['Time'] = self.time
     return tempDict
@@ -42,6 +42,7 @@ class Data(BaseType):
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
+    print(toLoadFrom)
     self.toLoadFromList.append(toLoadFrom)
     
   def getInpParametersValues(self):
@@ -105,7 +106,7 @@ class Histories(Data):
       typeVar = self.toLoadFromList[0].type
       #add here the specialization for loading from other source
     except:  
-      for index in len(self.toLoadFromList):
+      for index in range(len(self.toLoadFromList)):
         tupleVar = ld.csvLoaderForHistory(self.toLoadFromList[index],self.time,self.inputs,self.outputs)
         self.vectorOfHistory.append(History())
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
