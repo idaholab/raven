@@ -211,7 +211,7 @@ class CsvLoader:
                 #create numpy array
                 outDict[key] = np.zeros(shape(len(filesin)))                 
               outDict[key] = data[last_row,self.all_field_names.index(key)]        
-            else
+            else:
               raise("ERROR: the parameter " + key + " has not been found")
       else:
         

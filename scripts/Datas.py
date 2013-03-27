@@ -50,8 +50,21 @@ class Data(BaseType):
   def getOutParametersValues(self):
     return self.outParametersValues 
   
-  def getParam(self,type,):
-
+  def getParam(self,type,keyword):
+    if type == "input":
+      if keyword in self.inpParametersValues.keys():
+        return self.inpParametersValues[keyword]
+      else:
+        raise("parameter " + keyword + 
+              " not found in inpParametersValues dictionary. Function: Data.getParam")    
+    elif type == "output":
+      if keyword in self.outParametersValues.keys():
+        return self.outParametersValues[keyword]    
+      else:
+        raise("parameter " + keyword + 
+              " not found in outParametersValues dictionary. Function: Data.getParam")
+    else:
+      raise("type " + type + " is not a valid type. Function: Data.getParam")
 class TimePoint(Data):
   def finalizeOutput(self):
     try:
