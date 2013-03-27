@@ -5,7 +5,7 @@ Created on Feb 16, 2013
 '''
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
-from Csv_loader import CsvLoader 
+from Csv_loader import CsvLoader as ld
 #import h5py as h5
 
 

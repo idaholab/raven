@@ -4,7 +4,7 @@ Created on Feb 7, 2013
 This python module performs the loading of 
 data from csv files
 '''
-import numpay as np
+import numpy as np
 
 class CsvLoader:
   def __init__(self):
