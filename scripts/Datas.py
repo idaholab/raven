@@ -50,51 +50,51 @@ class Data(BaseType):
   def getOutParametersValues(self):
     return self.outParametersValues 
   
-  def getParam(self,type,keyword):
-    if type == "input":
+  def getParam(self,typeVar,keyword):
+    if typeVar == "input":
       if keyword in self.inpParametersValues.keys():
         return self.inpParametersValues[keyword]
       else:
         raise("parameter " + keyword + 
               " not found in inpParametersValues dictionary. Function: Data.getParam")    
-    elif type == "output":
+    elif typeVar == "output":
       if keyword in self.outParametersValues.keys():
         return self.outParametersValues[keyword]    
       else:
         raise("parameter " + keyword + 
               " not found in outParametersValues dictionary. Function: Data.getParam")
     else:
-      raise("type " + type + " is not a valid type. Function: Data.getParam")
+      raise("type " + typeVar + " is not a valid type. Function: Data.getParam")
 class TimePoint(Data):
   def finalizeOutput(self):
     try:
-      type = toLoadFromList[0].type
+      typeVar = self.toLoadFromList[0].type
       #add here the specialization for loading from other source
     except:
-      tuple = ld.csvLoaderForTimePoint(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
-      self.inpParametersValues = tuple[0]
-      self.outParametersValues = tuple[1]
+      tupleVar = ld.csvLoaderForTimePoint(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
+      self.inpParametersValues = tupleVar[0]
+      self.outParametersValues = tupleVar[1]
     
 class TimePointSet(Data):
   def finalizeOutput(self):
     try:
       types = []
-      types = toLoadFromList[:].type
+      types = self.toLoadFromList[:].type
       #add here the specialization for loading from other source
     except:      
-      tuple = ld.csvLoaderForTimePointSet(self.toLoadFromList,self.time,self.inputs,self.outputs)
-      self.inpParametersValues = tuple[0]
-      self.outParametersValues = tuple[1]
+      tupleVar = ld.csvLoaderForTimePointSet(self.toLoadFromList,self.time,self.inputs,self.outputs)
+      self.inpParametersValues = tupleVar[0]
+      self.outParametersValues = tupleVar[1]
 
 class History(Data):
   def finalizeOutput(self):
     try:
-      type = toLoadFromList[0].type
+      typeVar = self.toLoadFromList[0].type
       #add here the specialization for loading from other source
     except:      
-      tuple = ld.csvLoaderForHistory(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
-      self.inpParametersValues = tuple[0]
-      self.outParametersValues = tuple[1]
+      tupleVar = ld.csvLoaderForHistory(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
+      self.inpParametersValues = tupleVar[0]
+      self.outParametersValues = tupleVar[1]
 
 class Histories(Data):
   def __init__(self):
@@ -102,18 +102,18 @@ class Histories(Data):
 #    self.vectorOfHistory = []
   def finalizeOutput(self):
     try:
-      type = toLoadFromList[0].type
+      typeVar = self.toLoadFromList[0].type
       #add here the specialization for loading from other source
     except:  
       for index in len(self.toLoadFromList):
-        tuple = ld.csvLoaderForHistory(self.toLoadFromList[index],self.time,self.inputs,self.outputs)
+        tupleVar = ld.csvLoaderForHistory(self.toLoadFromList[index],self.time,self.inputs,self.outputs)
         self.vectorOfHistory.append(History())
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
-        self.inpParametersValues[index] = tuple[0]
-        self.inpParametersValues[index] = tuple[1]
+        self.inpParametersValues[index] = tupleVar[0]
+        self.inpParametersValues[index] = tupleVar[1]
 #        self.vectorOfHistory[index].inpParametersValues = tuple[0]
 #        self.vectorOfHistory[index].outParametersValues = tuple[1]
-        del tuple
+        del tupleVar
 
 def returnInstance(Type):
   base = 'Data'

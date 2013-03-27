@@ -70,7 +70,7 @@ class CsvLoader:
     paramList = parameters to be picked up (optional)
     '''
     #load the data into the numpy array
-    data = loadCsvFile(filein)
+    data = self.loadCsvFile(filein)
     
     if 'all' in outParam:
       self.all_out_param  = True
@@ -177,7 +177,7 @@ class CsvLoader:
     
     for i in range(len(filesin)): 
       #load the data into the numpy array
-      data = loadCsvFile(filesin[i])
+      data = self.loadCsvFile(filesin[i])
       if i == 0:      
         if(self.all_out_param):
           self.field_names = self.all_field_names
@@ -293,7 +293,7 @@ class CsvLoader:
     outDict = {}  
 
     #load the data into the numpy array
-    data = loadCsvFile(filein)
+    data = self.loadCsvFile(filein)
     
     if(self.all_out_param):
       self.field_names = self.all_field_names
