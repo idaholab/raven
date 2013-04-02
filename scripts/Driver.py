@@ -7,9 +7,9 @@ import xml.etree.ElementTree as ET
 import os
 from Simulation import Simulation
 
+debug = True
 
 if __name__ == '__main__':
-  debug = True
   #open the XML
   try:
     inputFile = 'test.xml' #sys.argv[1]
@@ -18,7 +18,6 @@ if __name__ == '__main__':
   workingDir = os.getcwd()
   if not os.path.isabs(inputFile):
     inputFile = os.path.join(workingDir,inputFile)
-  print(inputFile)
   if not os.path.exists(inputFile):
     print('file not found '+inputFile)
   try:

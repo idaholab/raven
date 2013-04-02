@@ -6,7 +6,7 @@ Created on Feb 19, 2013
 import xml.etree.ElementTree as ET
 import os
 import copy
-#from Driver import debug
+#from Driver import self.debug
 import Steps
 import Datas
 import Samplers
@@ -15,15 +15,10 @@ import Tests
 import Distributions
 from JobHandler import JobHandler
 
-def prntDict(Dict):
-  for key in Dict:
-    print(key+'= '+str(Dict[key]))
-
 class Simulation:
-  '''
-  This is a class that contain all the object needed to run the simulation
-  '''
+  '''This is a class that contain all the object needed to run the simulation'''
   def __init__(self,inputfile):
+    self.debug=True
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
     self.runInfoDict['SimulationFile'    ] = inputfile
@@ -40,19 +35,18 @@ class Simulation:
     self.runInfoDict['numProcByRun'      ] = 1
     self.runInfoDict['totNumbCores'      ] = 1
     self.runInfoDict['stepName'          ] = 1
-
     #the step to run the simulation in sequence
     self.stepSequenceList = []
     #there is one dictionary for each type in the simulation
     #the keys in the dictionary are the user provided name for all the needed types
     #they point to an instance of the class
-    self.stepsDict    = {}
-    self.dataDict     = {}
-    self.samplersDict = {}
-    self.modelsDict   = {}
-    self.testsDict    = {}
+    self.stepsDict         = {}
+    self.dataDict          = {}
+    self.samplersDict      = {}
+    self.modelsDict        = {}
+    self.testsDict         = {}
     self.DistributionsDict = {}
-    self.filesDict    = {} #this is different return the absolute path of the file
+    self.filesDict         = {} #this is different, it just return the absolute path of the file
     #list of supported quequing software:
     self.knownQuequingSoftware = []
     self.knownQuequingSoftware.append('None')
@@ -60,13 +54,13 @@ class Simulation:
     #Class Dictionary
     #when a new function is added to the simulation this dictionary need to be expanded
     self.addWhatDict  = {}
-    self.addWhatDict['Steps'   ] = Steps.returnInstance
-    self.addWhatDict['Datas'   ] = Datas.returnInstance
-    self.addWhatDict['Samplers'] = Samplers.returnInstance
-    self.addWhatDict['Models'  ] = Models.returnInstance
-    self.addWhatDict['Tests'   ] = Tests.returnInstance
-    self.addWhatDict['Distributions'   ] = Distributions.returnInstance
-    #Mapping between a class type and the dictionary containing the istances for the simulation
+    self.addWhatDict['Steps'         ] = Steps.returnInstance
+    self.addWhatDict['Datas'         ] = Datas.returnInstance
+    self.addWhatDict['Samplers'      ] = Samplers.returnInstance
+    self.addWhatDict['Models'        ] = Models.returnInstance
+    self.addWhatDict['Tests'         ] = Tests.returnInstance
+    self.addWhatDict['Distributions' ] = Distributions.returnInstance
+    #Mapping between a class type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'        ] = self.stepsDict
     self.whichDict['Datas'        ] = self.dataDict
@@ -77,11 +71,8 @@ class Simulation:
     self.whichDict['Files'        ] = self.filesDict
     self.whichDict['Distributions'] = self.DistributionsDict
     self.jobHandler = JobHandler()
- 
   def XMLread(self,xmlNode):
-    '''
-    read the general input info to set up the calculation environment
-    '''
+    '''read the general input info to set up the calculation environment'''
     for child in xmlNode:
       if child.tag in self.whichDict.keys():
         Type = child.tag
@@ -91,55 +82,46 @@ class Simulation:
               name = childChild.attrib['name']
               self.whichDict[Type][name] = self.addWhatDict[Type](childChild.tag)
               self.whichDict[Type][name].readXML(childChild)
-              self.whichDict[Type][name].printMe()
-            else:
-                raise IOError('not found name attribute for one '+Type)
-        else:
-          self.addRunInfo(child)
-      else:
-        raise IOError('the '+child.tag+' is not among the known simulation components')
+#              if self.debug: self.whichDict[Type][name].printMe()
+            else: raise IOError('not found name attribute for one '+Type)
+        else: self.readRunInfo(child)
+      else: raise IOError('the '+child.tag+' is not among the known simulation components')
     os.chdir(self.runInfoDict['WorkingDir'])
-  
-  def addRunInfo(self,xmlNode):
+  def readRunInfo(self,xmlNode):
+    '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
-      if element.tag == 'ParallelInfo':
-        self.runInfoDict['ParallelCommand'] = element.text()
-        try: self.runInfoDict['ParallelProcNumb'] = element['processor']
-        except: raise IOError('to run in parallel i need the number of processors')
-      elif element.tag == 'ThreadingInfo':
-        self.runInfoDict['ThreadingCommand'] = element.text()
-        try:    self.runInfoDict['ThreadingProcessor'] = element['processor']
-        except: raise IOError('to run in threaded i need the number of processors')
-      elif element.tag == 'QuequingInfo':
-        self.runInfoDict['quequingSoftware'] = element['Software']
-        if self.runInfoDict['quequingSoftware'] in self.knownQuequingSoftware:
-          self.runInfoDict['numNode']    = element['numNode']
-          self.runInfoDict['procByNode'] = element['procByNode']
-          self.runInfoDict['batchSize'] = element['batchSize']
-        else:
-          raise IOError('not known Quequing software')
+      print(element.tag)
+      if   element.tag == 'WorkingDir'        : self.runInfoDict['WorkingDir'        ] = element.text
+      elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text
+      elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text
+      elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text
+      elif element.tag == 'ThreadingProcessor': self.runInfoDict['ThreadingProcessor'] = int(element.text)
+      elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
+      elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
+      elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text)
+      elif element.tag == 'totNumbCores'      : self.runInfoDict['totNumbCores'      ] = int(element.text)
+      elif element.tag == 'ParallelProcNumb'  : self.runInfoDict['ParallelProcNumb'  ] = int(element.text)
+      elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','):
           self.stepSequenceList.append(stepName)
       elif element.tag == 'Files':
         for fileName in element.text.split(','):
           self.filesDict[fileName] = fileName
-      elif element.tag == 'WorkingDir':
-        self.runInfoDict['WorkingDir'] = element.text
-
+      
     self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
     for key in self.filesDict.keys():
-      if os.path.split(key)[0] == '':
-        self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
-      elif not os.path.isabs(key):
-        self.filesDict[key] = os.path.abspath(key)
+      if os.path.split(key)[0] == '': self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
+      elif not os.path.isabs(key):self.filesDict[key] = os.path.abspath(key)
     #export to the job handler the environmental variables
     self.jobHandler.initialize(self.runInfoDict)
-
-      
-  
+    
   def printDicts(self):
+    '''utility function capable to print a summary of the dictionaries'''
+    def prntDict(Dict):
+      for key in Dict:
+        print(key+'= '+str(Dict[key]))
     prntDict(self.runInfoDict)
     prntDict(self.stepsDict)
     prntDict(self.dataDict)
@@ -149,33 +131,30 @@ class Simulation:
     prntDict(self.filesDict)
     prntDict(self.addWhatDict)
     prntDict(self.whichDict)
-
   def run(self):
-    '''
-    run the simulation
-    '''
+    '''run the simulation'''
+    if self.debug: print('entering in the run')
     for stepName in self.stepSequenceList:                #loop over the the steps
       stepInstance = self.stepsDict[stepName]             #retrieve the instance of the step
       self.runInfoDict['stepName'] = stepName             #provide the name of the step to runInfoDict
-      print('starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
+      if self.debug: print('starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
       inputDict = {}                    #initialize the input dictionary
       inputDict['Input' ] = []          #set the Input to an empty list
       inputDict['Output'] = []          #set the Input to an empty list
       for [a,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
-        print(a+' is:')
+#        if self.debug: print(a+' is:')
         if a == 'Input':
           inputDict[a].append(self.whichDict[b][d])
-          print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
+#          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
         elif a == 'Output':
           inputDict[a].append(self.whichDict[b][d])
-          self.whichDict[b][d].printMe()
+#          if self.debug: self.whichDict[b][d].printMe()
         else:
           inputDict[a] = self.whichDict[b][d]
-          self.whichDict[b][d].printMe()
+#          if self.debug: self.whichDict[b][d].printMe()
       inputDict['jobHandler'] = self.jobHandler
       if 'Sampler' in inputDict.keys():
         inputDict['Sampler'].fillDistribution(self.DistributionsDict)
-      print(inputDict)
       stepInstance.takeAstep(inputDict)
       
       

@@ -24,52 +24,26 @@ class Test(BaseType):
   def addInitParams(self,tempDict):
     tempDict['toBeTested'] = self.toBeTested
     tempDict['tolerance' ] = self.tolerance
+  def reset(self):
+    return
+  def checkConvergence(self,inDictionary):  #if a ROM present ???
+    return
+  def getROM(self,ROM):
+    return
+  def getOutput(self,ROM):
+    return
+  def testOutput(self):
+    return
 
 
 
 class Sigma(Test):
-  def seekConvergence(self,inDictionary):  #if a ROM present ??? 
-    if 'Sampler' in inDictionary.keys:
-      currentSigma = self.sigma*2.0
-      submitted = 0
-      done      = 0
-      while currentSigma>self.sigma or submitted<self.limit:
-        if inDictionary['jobHandler'].spaceAvailable:
-          newInput = inDictionary['Sampler'].sampleInput(inDictionary['Model'],inDictionary['Input'],submitted)
-          inDictionary['jobHandler'].addRunningList(inDictionary['Model'].evaluate(Input=newInput,Output=inDictionary['Output']),inDictionary['Output'])
-          submitted +=1
-          time.sleep(1.0)  #every sec check for space available
-          if done < inDictionary['jobHandler'].done:
-            done = inDictionary['jobHandler'].done
-            currentSigma = self.test(inDictionary['Output'])
-          
-      while inDictionary['jobHandler'].busy:
-        time.sleep(1.0) #every sec check if remaining job are done
-    else:
-      raise IOError('the probality test')
+  pass
+
 
 
 class Integral(Test):
-
-  def seekConvergence(self,inDictionary):
-    if 'Sampler' in inDictionary.keys:
-      currentError = self.error*2.0
-      submitted = 0
-      done      = 0
-      while currentError>self.error or submitted<self.limit:
-        if inDictionary['jobHandler'].spaceAvailable:
-          newInput = inDictionary['Sampler'].sampleInput(inDictionary['Model'],inDictionary['Input'],submitted)
-          inDictionary['jobHandler'].addRunningList(inDictionary['Model'].evaluate(Input=newInput,Output=inDictionary['Output']),inDictionary['Output'])
-          submitted +=1
-          time.sleep(1.0)  #every sec check for space available
-          if done < inDictionary['jobHandler'].done:
-            done = inDictionary['jobHandler'].done
-            currentSigma = self.test(inDictionary['Output'])
-          
-      while inDictionary['jobHandler'].busy:
-        time.sleep(1.0) #every sec check if remaining job are done
-
-      
+  pass
 
 
 #function used to generate a Model class

@@ -27,25 +27,32 @@ class Sampler(BaseType):
     tempDict['limit' ] = self.limit
     for value in self.toBeSampled.items():
       tempDict[value[0]] = value[1][0]+':'+value[1][1]
+  
   def addCurrentSetting(self,tempDict):
     tempDict['counter' ] = self.counter
   def initialize(self):
     self.counter = 0
-
+  
   def fillDistribution(self,availableDist):
     for key in self.toBeSampled.keys():
       self.distDict[key] = availableDist[self.toBeSampled[key][1]].inDistr()
     return
 
+  def generateInputBatch(self,myInput,model,batchSize):
+    if batchSize<=self.limit:newInputs = [None]*batchSize
+    else:newInputs = [None]*self.limit
+    for i in range(len(newInputs)):
+      newInputs[i]=self.generateInput(model,myInput)
+    return newInputs
 
 
 class MonteCarlo(Sampler):
-  def sampleInput(self,model,Input,counter):
-    print('so far so god')
-    values = {}
+  def generateInput(self,model,myInput):
+    self.counter += 1
+    values = {'counter':self.counter}
     for key in self.distDict:
       values[key] = self.distDict[key].distribution.rvs()
-    return model.createNewInput(Input,values,counter,self.type)
+    return model.createNewInput(myInput,self.type,**values)
 
 class LatinHyperCube(Sampler):
   pass

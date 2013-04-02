@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulatio>
+<RunInfo>
+    <WorkingDir>/Users/crisr/projects/trunk/raven/testDriver</WorkingDir>
+    <Files>second,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i</Files>
+    <Sequence>FirstMRun,second,FirstMRun,MyAdaptiveROM,MyAdaptiveNoROM</Sequence>
+    <batchSize>3</batchSize>
+    <!--<ParallelCommand></ParallelCommand>
+    <ParallelProcNumb></ParallelProcNumb>
+    <ThreadingCommand></ThreadingCommand>
+    <ThreadingProcessor></ThreadingProcessor>
+    <numNode></numNode>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
 <Models>
     <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
     <ROM name='MySVM' type='SVM'>
@@ -29,7 +45,7 @@
         <apex>1</apex>
         <min>-0.1</min>
         <max>3</max>
-<!--         <lowerBound>0</lowerBound>
+<!--         <lowerBound>0</lowerBound> This is not yet supported
         <upperBound>2</upperBound>
         <adjustement>up</adjustement>  -->
     </Triangular>
@@ -64,14 +80,14 @@
 </Tests>
 <Steps>
     <SimpleRun name='second'>
-        <Input   type='Files'    subtype=''       >Dt_controlling_test.i</Input>
-        <Input   type='Files'    subtype=''       >Dt_controlling_control_logic.py</Input>
+        <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.i</Input>
+        <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.py</Input>
         <Model   type='Models'   subtype='Code'   >MyRAVEN</Model>
         <Output  type='Datas'    subtype='History'>1story</Output>
     </SimpleRun>
-    <MultiRun name='FirstMRun' directory='pluto'>
-        <Input   type='Files'    subtype=''       >Dt_controlling_test.i</Input>
-        <Input   type='Files'    subtype=''       >Dt_controlling_control_logic.py</Input>
+    <MultiRun name='FirstMRun'>
+        <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.i</Input>
+        <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.py</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
         <Sampler type='Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
         <Output  type='Datas'    subtype='TimePointSet' >trainer</Output>
@@ -91,21 +107,6 @@
         <Output  type='Datas'    subtype='TimePointSet'>finalPbconverged</Output>
     </MultiRun>
 </Steps>
-<RunInfo>
-    <WorkingDir>/Users/crisr/projects/trunk/raven/testDriver</WorkingDir>
-    <Files>Dt_controlling_test.i,Dt_controlling_control_logic.py,sss.i</Files>
-    <Sequence>second,FirstMRun,MyAdaptiveROM,MyAdaptiveNoROM</Sequence>
-    <batchSize>3</batchSize>
-    <!--<ParallelCommand></ParallelCommand>
-    <ParallelProcNumb></ParallelProcNumb>
-    <ThreadingCommand></ThreadingCommand>
-    <ThreadingProcessor></ThreadingProcessor>
-    <numNode></numNode>
-    <quequingSoftware></quequingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totNumbCores></totNumbCores>-->
-</RunInfo>
 <Datas>
     <Histories name='stories'>
         <Input>pippo,pip,pluto</Input>
@@ -116,8 +117,8 @@
         <Output>cladFailure</Output>
     </History>
     <TimePointSet name='trainer'          time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>max_temp_clad_CH2,CladDamaged</Output>
     </TimePointSet>
     <TimePoint    name='form3stories'     time='0.001'>
         <Input>pippo,pip,pluto</Input>

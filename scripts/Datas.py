@@ -42,7 +42,7 @@ class Data(BaseType):
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
-    print(toLoadFrom)
+    print('toLoadFrom '+toLoadFrom)
     self.toLoadFromList.append(toLoadFrom)
     
   def getInpParametersValues(self):
@@ -72,7 +72,7 @@ class TimePoint(Data):
       typeVar = self.toLoadFromList[0].type
       #add here the specialization for loading from other source
     except:
-      tupleVar = ld.csvLoaderForTimePoint(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
+      tupleVar = ld().csvLoaderForTimePoint(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
       self.inpParametersValues = tupleVar[0]
       self.outParametersValues = tupleVar[1]
     
@@ -83,7 +83,7 @@ class TimePointSet(Data):
       types = self.toLoadFromList[:].type
       #add here the specialization for loading from other source
     except:      
-      tupleVar = ld.csvLoaderForTimePointSet(self.toLoadFromList,self.time,self.inputs,self.outputs)
+      tupleVar = ld().csvLoaderForTimePointSet(self.toLoadFromList,self.time,self.inputs,self.outputs)
       self.inpParametersValues = tupleVar[0]
       self.outParametersValues = tupleVar[1]
 
@@ -93,7 +93,7 @@ class History(Data):
       typeVar = self.toLoadFromList[0].type
       #add here the specialization for loading from other source
     except:      
-      tupleVar = ld.csvLoaderForHistory(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
+      tupleVar = ld().loader.csvLoaderForHistory(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
       self.inpParametersValues = tupleVar[0]
       self.outParametersValues = tupleVar[1]
 
@@ -106,8 +106,9 @@ class Histories(Data):
       typeVar = self.toLoadFromList[0].type
       #add here the specialization for loading from other source
     except:  
+      loader = ld()
       for index in range(len(self.toLoadFromList)):
-        tupleVar = ld.csvLoaderForHistory(self.toLoadFromList[index],self.time,self.inputs,self.outputs)
+        tupleVar = loader.csvLoaderForHistory(self.toLoadFromList[index],self.time,self.inputs,self.outputs)
         self.vectorOfHistory.append(History())
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         self.inpParametersValues[index] = tupleVar[0]

@@ -13,7 +13,8 @@ import copy
 class ExternalRunner:
   def __init__(self,command,workingDir,output=None):
     self.command    = command
-    self.output     = output
+    if    output!=None: self.output = output
+    else: os.path.join(workingDir,'generalOut')
     self.workingDir = workingDir
     self.start()
     
@@ -52,12 +53,9 @@ class JobHandler:
       self.mpiCommand = self.runInfoDict['ParallelCommand']+' '+self.runInfoDict['ParallelProcNumb']
     if self.runInfoDict['ThreadingProcessor'] !=1:
       self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+self.runInfoDict['ThreadingProcessor']
-    self.queue = queue.Queue(self.runInfoDict['batchSize'])
-    self.externalRunning        = [None]*self.runInfoDict['batchSize']
-    self.internalRunning        = [None]*self.runInfoDict['batchSize']
     #initialize PBS
 
-  def addExternal(self,executeCommand,outputData,outputFile,workingDir):
+  def addExternal(self,executeCommand,outputFile,workingDir):
     #probably something more for the PBS
     command = ''
     if self.mpiCommand !='':

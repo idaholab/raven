@@ -18,13 +18,13 @@ class CsvLoader:
     
   def loadCsvFile(self,filein):
     # open file
-    file = open (filein,'rb')
+    myFile = open (filein,'rb')
     # read the field names
-    self.all_field_names = file.readline().split()
+    self.all_field_names = myFile.readline().split(',')
     # load the table data (from the csv file) into a numpy nd array 
-    data = np.loadtxt(file,dtype='float',delimiter=',')
+    data = np.loadtxt(myFile,dtype='float',delimiter=',')
     # close file
-    file.close()  
+    myFile.close()  
     return data
 
   # function to get actual field names (desired output parameter keywords)
@@ -186,15 +186,17 @@ class CsvLoader:
           self.field_names.insert(0, 'time')       
       #fill input param dictionary
       for key in inParam:
-          if key in self.all_field_names:
-            index = self.all_field_names.index(key)
-            if i == 0:
-              #create numpy array
-              inDict[key] = np.zeros(np.shape(len(filesin)))
+        print(key)
+        print(self.all_field_names)
+        if key in self.all_field_names:
+          index = self.all_field_names.index(key)
+          if i == 0:
+            #create numpy array
+            inDict[key] = np.zeros(np.shape(len(filesin)))
             
-            inDict[key][i] = data[0,index]
-          else:
-            raise("ERROR: the parameter " + key + " has not been found")
+          inDict[key][i] = data[0,index]
+        else:
+          raise IOError("ERROR: the parameter " + key + " has not been found")
       # time end case
       if time_end:
         last_row = data[:,0].size - 1
