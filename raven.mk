@@ -7,8 +7,8 @@ PYTHON_CONFIG_WHICH := $(shell which python-config 2>/dev/null)
 UNAME := $(shell uname)
 
 ifeq ($(PYTHON3_HELLO),HELLO)
-	PYTHON_INCLUDE=$(shell python-config --includes)
-	PYTHON_LIB=$(shell python-config --ldflags)
+        PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include) #-DPy_LIMITED_API 
+        PYTHON_LIB = $(shell $(RAVEN_DIR)/scripts/find_flags.py library) #-DPy_LIMITED_API 
 ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
 	PYTHON_MODULES = 
 else
