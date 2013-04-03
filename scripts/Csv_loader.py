@@ -188,12 +188,16 @@ class CsvLoader:
       for key in inParam:
         print(key)
         print(self.all_field_names)
+        print(inParam)
+        print(filesin)
+        print(len(filesin))
+        
         if key in self.all_field_names:
           index = self.all_field_names.index(key)
           if i == 0:
             #create numpy array
-            inDict[key] = np.zeros(np.shape(len(filesin)))
-            
+            inDict[key] = np.zeros(len(filesin))
+            print(inDict[key].shape)
           inDict[key][i] = data[0,index]
         else:
           raise IOError("ERROR: the parameter " + key + " has not been found")

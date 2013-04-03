@@ -91,6 +91,7 @@
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
         <Sampler type='Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
         <Output  type='Datas'    subtype='TimePointSet' >trainer</Output>
+        <Output  type='Datas'    subtype='Histories'    >stories</Output>
     </MultiRun >
     <MultiRun name='MyAdaptiveNoROM'>
         <Input   type='Files'     subtype=''            >inp.i</Input>
@@ -109,9 +110,9 @@
 </Steps>
 <Datas>
     <Histories name='stories'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </Histories>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>max_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
     <History name='1story'>
         <Input>pippo,pip,pluto</Input>
         <Output>cladFailure</Output>
