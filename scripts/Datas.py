@@ -42,7 +42,7 @@ class Data(BaseType):
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
-    print('toLoadFrom '+toLoadFrom)
+    print('toLoadFrom '+ toLoadFrom)
     self.toLoadFromList.append(toLoadFrom)
     
   def getInpParametersValues(self):
@@ -100,7 +100,7 @@ class History(Data):
 class Histories(Data):
   def __init__(self):
     Data.__init__(self)
-#    self.vectorOfHistory = []
+
   def finalizeOutput(self):
     try:
       typeVar = self.toLoadFromList[0].type
@@ -109,12 +109,10 @@ class Histories(Data):
       loader = ld()
       for index in range(len(self.toLoadFromList)):
         tupleVar = loader.csvLoaderForHistory(self.toLoadFromList[index],self.time,self.inputs,self.outputs)
-        self.vectorOfHistory.append(History())
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         self.inpParametersValues[index] = tupleVar[0]
-        self.inpParametersValues[index] = tupleVar[1]
-#        self.vectorOfHistory[index].inpParametersValues = tuple[0]
-#        self.vectorOfHistory[index].outParametersValues = tuple[1]
+        self.outParametersValues[index] = tupleVar[1]
+        
         del tupleVar
 
 def returnInstance(Type):

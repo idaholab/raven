@@ -1,11 +1,12 @@
 import os
 from h5py_interface_creator import hdf5Database as h5Data
 
-
 if __name__ == '__main__':
   debug = True
   
-  #
+  #######################################
+  #           TEST DET TYPE             #   
+  #######################################
   h5d = h5Data("HDF5_dataset_test","DET")
   
   attributes = {}
@@ -19,7 +20,7 @@ if __name__ == '__main__':
   attributes["branch_param"] = "CH1averageFT"
   attributes["conditional_prb"] = 1
   
-  h5d.addRootGroup("test_1",attributes,source)
+  h5d.addGroup("test_1",attributes,source)
   
   source["name"] = 'test1_1.csv'
   
@@ -80,4 +81,43 @@ if __name__ == '__main__':
   tup2 = h5d.retrieveHistory("test_1.2.2",0)
   
   tup3 = h5d.retrieveHistory("test_1.2.2",1)
-       
+  
+  tup4 = h5d.retrieveHistory("test_1","whole") 
+  
+  tup5 = h5d.retrieveHistory("test_1") 
+  
+  back = h5d.computeBack("test_1","test_1.2.2")
+  
+  h5d.closeDataBaseW
+  
+  result4 = tup4[0]
+  
+  
+  #######################################
+  #       TEST MONTECARLO TYPE          #   
+  #######################################  
+
+  h5dMC = h5Data("HDF5_dataset_test","MC")
+  
+  attributes = {}
+  source     = {}
+  
+  source["type"] = 'csv'
+  source["name"] = 'test1.csv'
+  
+  attributes["parent"] = "/" 
+  attributes["input_file"] = "test1.i" 
+  
+  h5dMC.addGroup("test_1",attributes,source)
+  
+  h5dMC.addGroup("test_2",attributes,source)
+  
+  h5dMC.addGroup("test_3",attributes,source)  
+
+  tup6 = h5dMC.retrieveHistory("test_1")
+  
+  tup7 = h5dMC.retrieveHistory("test_2")
+  
+  tup8 = h5dMC.retrieveHistory("test_3")
+  
+  h5dMC.closeDataBaseW  

@@ -22,7 +22,7 @@ class CsvLoader:
     # read the field names
     self.all_field_names = myFile.readline().split(',')
     # load the table data (from the csv file) into a numpy nd array 
-    data = np.loadtxt(myFile,dtype='float',delimiter=',')
+    data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
     # close file
     myFile.close()  
     return data
@@ -99,8 +99,8 @@ class CsvLoader:
     #fill input param dictionary
     for key in inParam:
         if key in self.all_field_names:
-          index = self.all_field_names.index(key)
-          inDict[key] = data[0,index]
+          ix = self.all_field_names.index(key)
+          inDict[key] = data[0,ix]
         else:
           raise("ERROR: the parameter " + key + " has not been found")
     
@@ -178,7 +178,8 @@ class CsvLoader:
     for i in range(len(filesin)): 
       #load the data into the numpy array
       data = self.loadCsvFile(filesin[i])
-      if i == 0:      
+      print(data.shape)
+      if i == 0:
         if(self.all_out_param):
           self.field_names = self.all_field_names
         else:
@@ -188,19 +189,16 @@ class CsvLoader:
       for key in inParam:
         print(key)
         print(self.all_field_names)
-        print(inParam)
-        print(filesin)
-        print(len(filesin))
-        
         if key in self.all_field_names:
-          index = self.all_field_names.index(key)
+          ix = self.all_field_names.index(key)
           if i == 0:
             #create numpy array
             inDict[key] = np.zeros(len(filesin))
-            print(inDict[key].shape)
-          inDict[key][i] = data[0,index]
+            
+          inDict[key][i] = data[0,ix]
+          #inDict[key][i] = 1
         else:
-          raise IOError("ERROR: the parameter " + key + " has not been found")
+          raise("ERROR: the parameter " + str(key) + " has not been found")
       # time end case
       if time_end:
         last_row = data[:,0].size - 1
@@ -208,7 +206,7 @@ class CsvLoader:
           for key in self.all_field_names:
             if i == 0:
               #create numpy array
-              outDict[key] = np.zeros(np.shape(len(filesin)))  
+              outDict[key] = np.zeros(len(filesin))  
             
             outDict[key][i] = data[last_row,self.all_field_names.index(key)]
         else:
@@ -216,10 +214,10 @@ class CsvLoader:
             if key in self.all_field_names:
               if i == 0:
                 #create numpy array
-                outDict[key] = np.zeros(np.shape(len(filesin)))                 
-              outDict[key] = data[last_row,self.all_field_names.index(key)]        
+                outDict[key] = np.zeros(len(filesin))
+              outDict[key][i] = data[last_row,self.all_field_names.index(key)]
             else:
-              raise("ERROR: the parameter " + key + " has not been found")
+              raise("ERROR: the parameter " + str(key) + " has not been found")
       else:
         
         for i in data:
@@ -310,8 +308,8 @@ class CsvLoader:
     #fill input param dictionary
     for key in inParam:
         if key in self.all_field_names:
-          index = self.all_field_names.index(key)
-          inDict[key] = data[0,index]
+          ix = self.all_field_names.index(key)
+          inDict[key] = data[0,ix]
         else:
           raise("ERROR: the parameter " + key + " has not been found")
     

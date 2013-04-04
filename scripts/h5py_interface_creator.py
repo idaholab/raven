@@ -20,12 +20,24 @@ class hdf5Database:
       self.onDiskFile = name + "_" + type + ".h5"     # .h5 file name (to be created)
       # we can create a base empty database
       self.h5_file_w    = h5.File(self.onDiskFile,'w')
-      #self.h5_file_w.create_group(name)
       self.allGroupPaths = []
       self.allGroupPaths.append("/") # add the root as first group
-     
-      
-    def addRootGroup(self,gname,attributes,source):
+      self.firstRootGroup = False    # the first root group has been added (DET)
+    
+    def addGroup(self,gname,attributes,source):
+      if self.type == 'DET':
+        # TREE structure
+        if not self.firstRootGroup:
+          self.addGroupRootLevel(gname,attributes,source)
+          self.firstRootGroup = True
+        else:
+          self.addSubGroup(gname,attributes,source)
+      else:
+        # ROOT structure
+        self.addGroupRootLevel(gname,attributes,source)
+      return
+
+    def addGroupRootLevel(self,gname,attributes,source):
       if source['type'] == 'csv':
         f = open(source['name'],'rb')
         # take the header of the CSV file
@@ -73,7 +85,7 @@ class hdf5Database:
       else:
         self.allGroupPaths.append("/" + gname)    
 
-    def addGroup(self,gname,attributes,source):
+    def addSubGroup(self,gname,attributes,source):
       if source['type'] == 'csv':
         f = open(source['name'],'rb')
         # take the header of the CSV file
@@ -128,8 +140,34 @@ class hdf5Database:
         self.allGroupPaths.append(parent_group_name + "/" + gname)
       else:
         self.allGroupPaths.append("/" + gname)    
-
-
+      
+      return
+    
+    def computeBack(self,nameFrom,nameTo):
+      list_str_w = []
+      list_path  = []
+      path       = ''
+      found      = False
+      
+      for i in xrange(len(self.allGroupPaths)):
+        list_str_w = self.allGroupPaths[i].split("/")
+        if list_str_w[len(list_str_w)-1] == nameTo:
+          found = True
+          path  = self.allGroupPaths[i]
+          list_path = list_str_w
+          break      
+      if not found:
+        raise("ERROR: Group named " + nameTo + " not found in the HDF5 database" + self.onDiskFile)
+      else:
+        listGroups = path.split("/")
+      
+      fr = listGroups.index(nameFrom)
+      to = listGroups.index(nameTo)
+      
+      back = to - fr
+      
+      return back
+      
     def retrieveHistory(self,name,filter=None):
       # name => history name => It must correspond to a group name
       # filter => what must be retrieved: - 'whole' = whole history => all branches back from name to root
