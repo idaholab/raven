@@ -78,6 +78,8 @@ if __name__ == '__main__':
   
   tup1 = h5d.retrieveHistory("test_1.2.2","whole")
   
+  h5d.closeDataBaseW()
+  
   tup2 = h5d.retrieveHistory("test_1.2.2",0)
   
   tup3 = h5d.retrieveHistory("test_1.2.2",1)
@@ -88,10 +90,11 @@ if __name__ == '__main__':
   
   back = h5d.computeBack("test_1","test_1.2.2")
   
-  h5d.closeDataBaseW
-  
   result4 = tup4[0]
   
+  h5d2 = h5Data("HDF5_dataset_test","DET",True)
+  
+  tup9 = h5d.retrieveHistory("test_1","whole") 
   
   #######################################
   #       TEST MONTECARLO TYPE          #   

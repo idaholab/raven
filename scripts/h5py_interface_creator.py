@@ -10,47 +10,67 @@ class hdf5Database:
     '''
     class to create a h5py (hdf5) database
     '''
-    def __init__(self,name,type):
+    def __init__(self,name, type, exist=False):
       '''
       Constructor
       '''
-      
-      self.name       = name                           # data base name (i.e. arbitrary name)
-      self.type       = type                          # data base type (MC=MonteCarlo,DET=Dynamic Event Tree, etc.)
-      self.onDiskFile = name + "_" + type + ".h5"     # .h5 file name (to be created)
-      # we can create a base empty database
-      self.h5_file_w    = h5.File(self.onDiskFile,'w')
+      # data base name (i.e. arbitrary name)
+      self.name       = name                           
+      # data base type (MC=MonteCarlo,DET=Dynamic Event Tree, etc.)
+      self.type       = type
+      # .h5 file name (to be created)
+      self.onDiskFile = name + "_" + type + ".h5"
+      # is the file opened? 
+      self.fileOpen       = False
+      # paths of all groups into the data base
       self.allGroupPaths = []
-      self.allGroupPaths.append("/") # add the root as first group
-      self.firstRootGroup = False    # the first root group has been added (DET)
+      # old data set or a new one
+      self.fileExist     = exist
+      # we can create a base empty database or we open an existing one
+      if self.fileExist:
+        self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
+        self.createObjFromFile()
+        self.firstRootGroup = True
+      else:
+        self.h5_file_w = self.openDataBaseW(self.onDiskFile,'w')
+        # add the root as first group
+        self.allGroupPaths.append("/") 
+        # the first root group has been added (DET)
+        self.firstRootGroup = False
     
+    def createObjFromFile(self):
+      self.allGroupPaths = []
+      if not self.fileOpen:
+        self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
+      self.h5_file_w.visititems(self.isGroup)
+    
+    def isGroup(self,name,obj):
+      if isinstance(obj,h5.Group):
+        self.allGroupPaths.append(name)
+        
     def addGroup(self,gname,attributes,source):
       if self.type == 'DET':
         # TREE structure
         if not self.firstRootGroup:
-          self.addGroupRootLevel(gname,attributes,source)
+          self.__addGroupRootLevel(gname,attributes,source)
           self.firstRootGroup = True
         else:
-          self.addSubGroup(gname,attributes,source)
+          self.__addSubGroup(gname,attributes,source)
       else:
         # ROOT structure
-        self.addGroupRootLevel(gname,attributes,source)
+        self.__addGroupRootLevel(gname,attributes,source)
       return
 
-    def addGroupRootLevel(self,gname,attributes,source):
+    def __addGroupRootLevel(self,gname,attributes,source):
       if source['type'] == 'csv':
         f = open(source['name'],'rb')
         # take the header of the CSV file
         headers = f.readline().split()
         # load the csv into a numpy array(n time steps, n parameters)
-        data = np.loadtxt(f,dtype='float',delimiter=',')
+        data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
         
         parent_group_name = "/"
-        print(data.shape)
         grp = self.h5_file_w.create_group(gname)
-        # create group
-        print(gname)
-        print(self.h5_file_w.mode)
         # create data set in this new group
         dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
         
@@ -85,13 +105,13 @@ class hdf5Database:
       else:
         self.allGroupPaths.append("/" + gname)    
 
-    def addSubGroup(self,gname,attributes,source):
+    def __addSubGroup(self,gname,attributes,source):
       if source['type'] == 'csv':
         f = open(source['name'],'rb')
         # take the header of the CSV file
         headers = f.readline().split()
         # load the csv into a numpy array(n time steps, n parameters)
-        data = np.loadtxt(f,dtype='float',delimiter=',')
+        data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
         # check if the parent attribute is not null
         # in this case append a subgroup to the parent group
         # otherwise => it's the main group
@@ -167,7 +187,7 @@ class hdf5Database:
       back = to - fr
       
       return back
-      
+
     def retrieveHistory(self,name,filter=None):
       # name => history name => It must correspond to a group name
       # filter => what must be retrieved: - 'whole' = whole history => all branches back from name to root
@@ -180,6 +200,10 @@ class hdf5Database:
       found      = False
       result     = None
       attrs = {}
+      
+      #check if the h5 file is already open, if not, open it
+      if not self.fileOpen:
+        self.createObjFromFile()
       
       for i in xrange(len(self.allGroupPaths)):
         list_str_w = self.allGroupPaths[i].split("/")
@@ -205,6 +229,9 @@ class hdf5Database:
           where_list = []
           name_list  = []
           back = len(list_path)-1
+          if back <= 0:
+            back = 1
+            
           i=0
           try:
             list_path.remove("")
@@ -371,10 +398,15 @@ class hdf5Database:
       return(result,attrs)
 
     def closeDataBaseW(self):
-        self.h5_file_w.close()
-      
-      
-
+      self.h5_file_w.close()
+      self.fileOpen       = False
+      return
+  
+    def openDataBaseW(self,filename,mode='w'):
+      fh5 = h5.File(filename,mode)
+      self.fileOpen       = True
+      return fh5
+  
 def is_number(s):
   try:
     float(s)
