@@ -65,7 +65,8 @@ class hdf5Database:
       if source['type'] == 'csv':
         f = open(source['name'],'rb')
         # take the header of the CSV file
-        headers = f.readline().split()
+        firstRow = f.readline().translate(None,"\r\n")
+        headers = firstRow.split(",")
         # load the csv into a numpy array(n time steps, n parameters)
         data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
         
@@ -109,7 +110,7 @@ class hdf5Database:
       if source['type'] == 'csv':
         f = open(source['name'],'rb')
         # take the header of the CSV file
-        headers = f.readline().split()
+        headers = f.readline().split(",")
         # load the csv into a numpy array(n time steps, n parameters)
         data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
         # check if the parent attribute is not null
@@ -275,7 +276,8 @@ class hdf5Database:
             result[ts:ts+arr[:,0].size,:] = arr[:,:]
             ts = ts + arr[:,0].size
             # must be checked if overlapping of time (branching for example)
-          attrs["headers"]         = gb_attrs[0]["headers"]
+          
+          attrs["headers"]         = gb_attrs[0]["headers"].tolist()
           attrs["n_params"]        = gb_attrs[0]["n_params"]       
           attrs["parent"]          = where_list[0]
           attrs["start_time"]      = result[0,0]

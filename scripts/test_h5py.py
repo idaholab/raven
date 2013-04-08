@@ -1,5 +1,6 @@
 import os
 from h5py_interface_creator import hdf5Database as h5Data
+from hdf5_manager import hdf5Manager as h5Manager
 
 if __name__ == '__main__':
   debug = True
@@ -123,4 +124,39 @@ if __name__ == '__main__':
   
   tup8 = h5dMC.retrieveHistory("test_3")
   
-  h5dMC.closeDataBaseW  
+  h5dMC.closeDataBaseW()
+  
+  hMang = h5Manager()
+  
+  hMang.addDataBase("testManager","MC")
+  
+  attributes["group"] = "test_1_manager"
+  
+  hMang.addGroup("testManager",attributes,source)
+  
+  attributes["group"] = "test_2_manager"
+  
+  hMang.addGroup("testManager",attributes,source)
+  
+  attributes["type"] = "TimePoint"
+  attributes['outParam'] = 'all'
+  attributes['time'] = 'end'
+  attributes['inParam'] = []
+  attributes['inParam'].append("CH1averageFT")
+  attributes['d_name'] = "testManager"
+  attributes["history"] = "test_1_manager"
+  attributes["filter"]  =  "whole"
+  
+  time_point_tuple = hMang.retrieveData(attributes)
+  del time_point_tuple
+  attributes["history"] = "test_2_manager"
+  time_point_tuple = hMang.retrieveData(attributes)
+  
+  print(time_point_tuple)
+  
+  print("success")
+  
+  
+  
+  
+   
