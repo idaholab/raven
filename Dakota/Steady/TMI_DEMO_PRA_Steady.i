@@ -81,6 +81,7 @@
     rho_hs = '1.0412e2 1.0 6.6e1'
     power_fraction = '3.33672612e-1 0 0'
     material_hs = 'fuel-mat gap-mat clad-mat'
+    HT_geometry_code = 101
   [../]
   [./CH2]
     # peak_power = '5.094461e8 0. 0.'
@@ -106,6 +107,7 @@
     rho_hs = '1.0412e2 1. 6.6e1'
     power_fraction = '3.69921461e-1 0 0'
     material_hs = 'fuel-mat gap-mat clad-mat'
+    HT_geometry_code = 101
   [../]
   [./CH3]
     # peak_power = '3.401687e8 0. 0.'
@@ -131,6 +133,7 @@
     rho_hs = '1.0412e2  1.0  6.6e1'
     power_fraction = '2.96405926e-1 0 0'
     material_hs = 'fuel-mat gap-mat clad-mat'
+    HT_geometry_code = 101
   [../]
   [./bypass_pipe]
     type = Pipe
@@ -171,6 +174,7 @@
     Dh = 1.74724302
     length = 4
     n_elems = 3
+    HT_geometry_code = 101
     f = 0.001
     Hw = 0.
   [../]
@@ -183,6 +187,7 @@
     Dh = 3.103003207
     length = 4.
     n_elems = 3
+    HT_geometry_code = 101
     f = 0.001
     Hw = 0.0
   [../]
@@ -196,6 +201,7 @@
     length = 3.5
     n_elems = 3
     f = 0.001
+    HT_geometry_code = 101
     Hw = 0.0
   [../]
   [./pipe1-CL-A]
@@ -208,6 +214,7 @@
     length = 1.
     n_elems = 3
     f = 0.001
+    HT_geometry_code = 101
     Hw = 0.0
   [../]
   [./pipe2-CL-A]
@@ -220,6 +227,7 @@
     length = 0.8
     n_elems = 3
     f = 0.001
+    HT_geometry_code = 101
     Hw = 0.0
   [../]
   [./pipe1-SC-A]
@@ -232,6 +240,7 @@
     length = 1.
     n_elems = 3
     f = 0.001
+    HT_geometry_code = 101
     Hw = 0.0
   [../]
   [./pipe2-SC-A]
@@ -245,6 +254,7 @@
     n_elems = 3
     f = 0.001
     Hw = 0.0
+    HT_geometry_code = 101
   [../]
   [./Branch1-A]
     type = ErgBranch
@@ -309,6 +319,7 @@
     Cp_wall = 100.0
     n_wall_elems = 2
     material_wall = wall-mat
+    HT_geometry_code = 101
   [../]
   [./Branch4-A]
     type = ErgBranch
@@ -355,6 +366,7 @@
     n_elems = 3
     f = 0.001
     Hw = 0.
+    HT_geometry_code = 101
   [../]
   [./pipe1-HL-B]
     type = Pipe
@@ -367,6 +379,7 @@
     n_elems = 3
     f = 0.001
     Hw = 0.0
+    HT_geometry_code = 101
   [../]
   [./pipe2-HL-B]
     type = Pipe
@@ -379,6 +392,7 @@
     n_elems = 3
     f = 0.001
     Hw = 0.0
+    HT_geometry_code = 101
   [../]
   [./pipe1-CL-B]
     type = Pipe
@@ -390,6 +404,7 @@
     length = 1.
     n_elems = 3
     f = 0.001
+    HT_geometry_code = 101
     Hw = 0.0
   [../]
   [./pipe2-CL-B]
@@ -403,6 +418,7 @@
     n_elems = 3
     f = 0.001
     Hw = 0.0
+    HT_geometry_code = 101
   [../]
   [./pipe1-SC-B]
     type = Pipe
@@ -415,6 +431,7 @@
     n_elems = 3
     f = 0.001
     Hw = 0.0
+    HT_geometry_code = 101
   [../]
   [./pipe2-SC-B]
     type = Pipe
@@ -427,6 +444,7 @@
     n_elems = 3
     f = 0.001
     Hw = 0.0
+    HT_geometry_code = 101
   [../]
   [./Branch1-B]
     type = ErgBranch
@@ -491,6 +509,7 @@
     n_wall_elems = 2
     disp_mode = -1.0
     material_wall = wall-mat
+    HT_geometry_code = 101
   [../]
   [./Branch4-B]
     type = ErgBranch
