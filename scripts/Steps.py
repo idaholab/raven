@@ -59,20 +59,20 @@ class Step(BaseType):
         if self.debug: print('the tester '+self.inDictionary['Tester'].name+' have been target on the ROM '+self.inDictionary['ROM'].name)
       inDictionary['Tester'].getOutput(inDictionary['Output'])                                #initialize the output with the tester
       if self.debug: print('the tester '+self.inDictionary['Tester'].name+' have been initialized on the output '+self.inDictionary['Output'])
-                                                                              #we initialize a counter to be safe
+    
+    runningList =[]
+    submittedCounter = 0                               #we initialize a counter to be safe
     if 'Sampler' in inDictionary.keys():
-      inDictionary['Sampler'].initialize()                                                     #if a sampler is use it gets initialized
-      newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],            #if the sampler is used the new input is generated
-                  inDictionary['Model'],inDictionary['jobHandler'].runInfoDict['batchSize'])   #..continuation
+      inDictionary['Sampler'].initialize()              #if a sampler is use it gets initialized
+      for i in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
+        newInput = inDictionary['Sampler'].generateInput(inDictionary["Model"],inDictionary['Input'])
+        runningList.append(inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler']))
+        submittedCounter += 1
     else:
-      newInputs = [inDictionary['Input']]                                                      #no sampler the input is the original one (list of input for multiple input sets)
-    converged = False   
-    runningList = []                                                                         #this list is used to store running jobs
-    submittedCounter = 0
-    for newInput in newInputs:
-      runningList.append(inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])) #adding to the running job list
-      print('submitted '+ str(submittedCounter))
-      submittedCounter +=1
+      runningList.append(inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler']))
+      submittedCounter += 1
+    converged = False
+
     #since now the list is full up to the limit (batch size number)
     while len(runningList)>0:
       i=0
@@ -80,8 +80,15 @@ class Step(BaseType):
         #job in the list finished event
         if runningList[i].isDone():                                                                  #if the job is done
           finisishedjob = runningList.pop(i)                                                         #remove it from the list
+          if inDictionary['DataSet']:
+            inDictionary['Model'].addDataSetGroup(finisishedjob,inDictionary['DataSet'])
           for output in inDictionary['Output']:                                                      #for all expected outputs
-            inDictionary['Model'].collectOutput(finisishedjob,output)                                #the model is tasket to provide the needed info to harvest the output
+            loadingObj = None
+            if output.dname:
+              loadingObj = inDictionary['DataSet']
+              inDictionary['Model'].collectOutput(finisishedjob,loadingObj,output)
+            else:
+              inDictionary['Model'].collectOutput(finisishedjob,loadingObj,output)                                #the model is tasket to provide the needed info to harvest the output
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
           #the harvesting process is done moving forward with the convergence checks
           if 'Tester' in inDictionary.keys():

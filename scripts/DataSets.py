@@ -1,62 +1,102 @@
 '''
-Created on April 4, 2013
+Created on April 9, 2013
 
 @author: alfoa
 '''
 import numpy as np
+import xml.etree.ElementTree as ET
+from BaseType import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 
-class hdf5Manager:
+class DateSet(BaseType):
     '''
-    class to manage a or multiple h5py (hdf5) database/s,
-    to build them and to retrieve attributes and values in them
+    class to handle database,
+    to build and to retrieve attributes and values from it
     '''
     def __init__(self):
       '''
       Constructor
       '''
-      # container of data bases object
-      self.h5DataBases  = {}
-      # number of data based actually available
-      self.n_databases  = 0
-      # map<string,(bool)> ie. database name, built or not
-      self.areTheyBuilt = {}
-      # map<string,(bool)> ie. database name, database already exists???
-      self.doTheyAlreadyExist  = {}
+      BaseType.__init__(self)
 
-    def addDataBase(self,name,type,exist=False):
-      self.h5DataBases[name] = h5Data(name,type,exist)
-      self.n_databases = self.n_databases + 1
-      self.doTheyAlreadyExist[name] = exist
-      self.areTheyBuilt[name] = False
+    def readMoreXML(self,xmlNode):
+      pass
+    def addInitParams(self,tempDict):
+      return tempDict
+    def addGroup(self,attributes,loadFrom):
+      pass
+    def retrieveData(self,attributes):
+      pass
 
-    def removeDataBase(self,name):
+class HDF5(DateSet):
+    '''
+    class to handle h5py (hdf5) database,
+    to build and to retrieve attributes and values from it
+    '''
+    def __init__(self):
+      '''
+      Constructor
+      '''
+      DateSet.__init__(self)
+      self.subtype  = None
+      self.exist = False
+      self.built = False
+      
+    def readMoreXML(self,xmlNode):
       try:
-        del self.h5DataBases[name]
-        del self.doTheyAlreadyExist[name]
-        del self.areTheyBuilt[name]
-        self.n_databases = self.n_databases - 1
-      except:
-        pass
-    
-    def addGroup(self,name,attributes,loadFrom):
-      if name in self.h5DataBases.keys():
-        self.h5DataBases[name].addGroup(attributes["group"],attributes,loadFrom)
-        self.areTheyBuilt[name] = True
-      else:
-         raise("data set named " + name + "not found")  
-      return
-    
-    def __returnHistory(self,attributes):
-      if(attributes["d_name"] in self.h5DataBases.keys()):
-        if (not self.doTheyAlreadyExist[attributes["d_name"]]) and (not self.areTheyBuilt[attributes["d_name"]]):
-          raise("ERROR: Can not retrieve an History from" + attributes["d_name"] + ".It has not built yet.")
-        if attributes['filter']:
-          tupleVar = self.h5DataBases[attributes["d_name"]].retrieveHistory(attributes["history"],attributes['filter'])
+        subtype = xmlNode.attrib['type']
+        if subtype != "DET" and subtype != "MC":
+          raise IOError('type '+ subtype + 'for data set ' + self.name + 'unknown')
         else:
-          tupleVar = self.h5DataBases[attributes["d_name"]].retrieveHistory(attributes["history"])          
+          self.subtype = subtype
+      except:
+        raise IOError('attribute type ' + 'for data set ' + self.name + 'not found')
+      
+      # check if a filename has been provided
+      # if yes, we assume the user wants to load the data from there
+      # or update it
+      try:
+        file_name = xmlNode.attrib['filename']
+        self.dataset = h5Data(self.name,self.subtype,file_name)
+        self.exist   = True
+      except:
+        self.dataset = h5Data(self.name,self.subtype) 
+        self.exist   = False
+      
+    def addInitParams(self,tempDict):
+      tempDict = DateSet.addInitParams(tempDict)
+      tempDict['type']  = self.subtype
+      tempDict['exist'] = self.exist
+      return tempDict
+    
+    def addGroup(self,attributes,loadFrom):
+      if(self.subtype == "MC"):
+        if(loadFrom['type'] == 'csv'):
+          # We extrapolate the group name from the file name 
+          stringSplit = loadFrom['name'].split("/")
+          stringSplit = stringSplit[len(stringSplit)-1].split(".csv")
+          group_name = stringSplit[0]
+          #group_name = loadFrom['name'].split(",")[0]
+          attributes["group"] = group_name
+        else:
+          # TODO add other methods to retrieve the info needed to construct the HDF5 database
+          pass
       else:
-        raise("data set named " + attributes["d_name"] + "not found")
+        print("type " + str(self.subtype) + "not implemented yet")
+        return
+
+      self.dataset.addGroup(group_name,attributes,loadFrom)
+      self.built = True
+    # This function returns an history =>
+    # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
+    # MC  => The History named ["group"] (one run)
+    def __returnHistory(self,attributes):
+      if (not self.exist) and (not self.built):
+        raise("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
+      if attributes['filter']:
+        tupleVar = self.dataset.retrieveHistory(attributes["history"],attributes['filter'])
+      else:
+        tupleVar = self.dataset.retrieveHistory(attributes["history"])
       return tupleVar
     
     def __retrieveDataTimePoint(self,attributes):
@@ -261,14 +301,17 @@ class hdf5Manager:
         all_out_param  = True
       else:
         all_out_param = False
-      if attributes['time']:
-        if attributes['time'] == 'all':
-          time_all = True
+      try:
+        if attributes['time']:
+          if attributes['time'] == 'all':
+            time_all = True
+          else:
+            # convert the time in float
+            time_all = False
+            time_float = [float(x) for x in attributes['time']]
         else:
-          # convert the time in float
-          time_all = False
-          time_float = [float(x) for x in attributes['time']]
-      else:
+          time_all = True
+      except:
         time_all = True
                      
       inDict  = {}
@@ -329,6 +372,14 @@ class hdf5Manager:
       else:
         raise("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData") 
       return data
-      
-      
-       
+
+
+def returnInstance(Type):
+  base = 'DataSet'
+  InterfaceDict = {}
+  InterfaceDict['HDF5'   ] = HDF5
+  try:
+    if Type in InterfaceDict.keys():
+      return InterfaceDict[Type]()
+  except:
+    raise NameError(base +' of type' + Type + " unknown")

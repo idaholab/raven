@@ -5,7 +5,7 @@ Created on Mar 7, 2013
 '''
 import sys
 import xml.etree.ElementTree as ET
-import stats.distributions as dist
+import scipy.stats.distributions  as dist
 from BaseType import BaseType
 
 class Distribution(BaseType):

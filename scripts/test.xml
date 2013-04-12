@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulatio>
 <RunInfo>
-    <WorkingDir>/Users/crisr/projects/trunk/raven/testDriver</WorkingDir>
+    <WorkingDir>/Users/alfoa/projects/trunk/raven/te_stDriver</WorkingDir>
     <Files>second,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i</Files>
     <Sequence>FirstMRun,second,FirstMRun,MyAdaptiveROM,MyAdaptiveNoROM</Sequence>
     <batchSize>3</batchSize>
@@ -90,8 +90,8 @@
         <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.py</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
         <Sampler type='Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
-        <Output  type='Datas'    subtype='TimePointSet' >trainer</Output>
-        <Output  type='Datas'    subtype='Histories'    >stories</Output>
+        <DataSet type='DataSets' subtype=''            >testDataBase</DataSet>
+        <Output  type='Datas'    subtype='Histories' >stories</Output>
     </MultiRun >
     <MultiRun name='MyAdaptiveNoROM'>
         <Input   type='Files'     subtype=''            >inp.i</Input>
@@ -108,18 +108,17 @@
         <Output  type='Datas'    subtype='TimePointSet'>finalPbconverged</Output>
     </MultiRun>
 </Steps>
+<DataSets>
+    <HDF5 name="testDataBase" type="MC"/> 
+</DataSets>
 <Datas>
-    <Histories name='stories'>
+    <Histories name='stories' d_name= "testDataBase">
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>max_temp_clad_CH2,CladDamaged</Output>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
    </Histories>
-    <History name='1story'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </History>
     <TimePointSet name='trainer'          time='end'>
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>max_temp_clad_CH2,CladDamaged</Output>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
     </TimePointSet>
     <TimePoint    name='form3stories'     time='0.001'>
         <Input>pippo,pip,pluto</Input>

@@ -39,7 +39,7 @@ class Sampler(BaseType):
     return
 
   def generateInputBatch(self,myInput,model,batchSize):
-    if batchSize<=self.limit:newInputs = [None]*batchSize
+    if batchSize<=self.limit: newInputs = [None]*batchSize
     else:newInputs = [None]*self.limit
     for i in range(len(newInputs)):
       newInputs[i]=self.generateInput(model,myInput)

@@ -6,6 +6,8 @@ Created on Feb 16, 2013
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
 from Csv_loader import CsvLoader as ld
+import DataSets
+#from hdf5_manager import hdf5Manager as AAFManager
 #import h5py as h5
 
 
@@ -28,7 +30,12 @@ class Data(BaseType):
         try: self.time = float(time)
         except:self.time = float(time.split(','))
     except:self.time = None
-
+    
+    try:
+      self.dname = xmlNode.attrib['d_name']
+    except:
+      self.dname = None
+      
   def addInitParams(self,tempDict):
     for i in range(len(self.inputs)): 
       tempDict['Input_'+str(i)] = self.inputs[i]
@@ -42,9 +49,11 @@ class Data(BaseType):
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
-    print('toLoadFrom '+ toLoadFrom)
-    self.toLoadFromList.append(toLoadFrom)
+    print('toLoadFrom :')
+    print(toLoadFrom)
     
+    self.toLoadFromList.append(toLoadFrom)
+    return
   def getInpParametersValues(self):
     return self.inpParametersValues  
 
@@ -90,8 +99,20 @@ class TimePointSet(Data):
 class History(Data):
   def finalizeOutput(self):
     try:
-      typeVar = self.toLoadFromList[0].type
-      #add here the specialization for loading from other source
+      typeVar = self.toLoadFromList[0][0].type
+      if typeVar == "HDF5":
+        if self.toLoadFromList[0][0].subtype == "MC":
+          attributes = {}
+          attributes['type']     = "History"
+          attributes['outParam'] = self.outputs
+          attributes['inParam' ] = self.inputs
+          attributes['filter'  ] = "whole"
+          if self.time: attributes['time']  = self.time
+          stringSplit = self.toLoadFromList[index][1].split("/")
+          attributes['history'] = stringSplit[len(stringSplit)-1]
+          self.inpParametersValues[index] = self.toLoadFromList[0][0].retrieveData(attributes)[0]
+          self.inpParametersValues[index] = self.toLoadFromList[0][0].retrieveData(attributes)[1]
+          
     except:      
       tupleVar = ld().loader.csvLoaderForHistory(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
       self.inpParametersValues = tupleVar[0]
@@ -103,18 +124,36 @@ class Histories(Data):
 
   def finalizeOutput(self):
     try:
-      typeVar = self.toLoadFromList[0].type
-      #add here the specialization for loading from other source
+      typeVar = self.toLoadFromList[0][0].type
+      if typeVar == "HDF5":
+        if self.toLoadFromList[0][0].subtype == "MC":
+          attributes = {}
+          attributes['type']     = "History"
+          attributes['outParam'] = self.outputs
+          attributes['inParam' ] = self.inputs
+          attributes['filter'  ] = "whole"
+          if self.time: attributes['time']  = self.time
+            
+          for index in xrange(len(self.toLoadFromList)):
+            stringSplit = self.toLoadFromList[index][1].split("/")
+            attributes['history'] = stringSplit[len(stringSplit)-1]
+            #obj = self.toLoadFromList[index][0]
+            tupleVar = self.toLoadFromList[0][0].retrieveData(attributes)
+            self.inpParametersValues[index] = tupleVar[0]
+            self.inpParametersValues[index] = tupleVar[1]
+            del stringSplit
     except:  
       loader = ld()
-      for index in range(len(self.toLoadFromList)):
+      print(xrange(len(self.toLoadFromList)))
+      for index in xrange(len(self.toLoadFromList)):
         tupleVar = loader.csvLoaderForHistory(self.toLoadFromList[index],self.time,self.inputs,self.outputs)
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         self.inpParametersValues[index] = tupleVar[0]
         self.outParametersValues[index] = tupleVar[1]
         
         del tupleVar
-
+    return
+   
 def returnInstance(Type):
   base = 'Data'
   InterfaceDict = {}

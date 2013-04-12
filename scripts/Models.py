@@ -51,7 +51,7 @@ class RavenInterface:
     return modifDict
   
   def LatinHyperCubeForRAVEN(self,**Kwargs):
-    raise IOError('EquallySpacedForRAVEN not yet implemented')
+    raise IOError('LatinHyperCubeForRAVEN not yet implemented')
     modifDict = {}
     return modifDict
 
@@ -84,17 +84,20 @@ class Model(BaseType):
   def reset(self):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step'''
   def train(self,trainingSet,stepName):
-    '''This needs to be over written if the model require an initialization'''
+    '''This needs to be over loaded if the model requires an initialization'''
     print('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
     return
   def run(self):
-    '''This call should be over written and return a jobHandler.External/InternalRunner'''
+    '''This call should be over loaded and return a jobHandler.External/InternalRunner'''
     return
   def collectOutput(self,collectFrom,storeTo):
     storeTo.addOutput(collectFrom)
+  def collectOutput(self,collectFrom,obj,storeTo):
+    storeTo.addOutput(collectFrom)  
   def createNewInput(self,myInput,samplerType,**Kwargs):
     raise IOError('for this model the createNewInput has not yet being implemented')
-
+  def addDataSetGroup(self):
+    pass
 class Code(Model):
   def __init__(self):
     Model.__init__(self)
@@ -140,11 +143,27 @@ class Code(Model):
     self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
     print('job submitted')
     return self.process
-  
-  def collectOutput(self,finisishedjob,output):
+
+  def collectOutput(self,finisishedjob,loadingObj,output):
     '''collect the output file in the output object'''
-    output.addOutput(os.path.join(self.workingDir,self.outFileRoot+'.csv'))
-  
+    loadFrom = None
+    if loadingObj:
+      # move this check at initialization stage
+      if loadingObj.name != output.dname:
+        raise IOError('dataset.name != output.dname.' + dataset.name + "!=" + output.dname)
+      loadFrom = []
+      loadFrom.append(loadingObj)
+      loadFrom.append(os.path.join(self.workingDir,finisishedjob.output))
+    else:
+      loadFrom = os.path.join(self.workingDir,finisishedjob.output) + ".csv"
+    output.addOutput(loadFrom)      
+  def addDataSetGroup(self,finisishedjob,dataset):
+    attributes={}
+    attributes["input_file"] = self.currentInputFiles
+    attributes["type"] = "csv"
+    attributes["name"] = os.path.join(self.workingDir,finisishedjob.output+'.csv')
+    dataset.addGroup(attributes,attributes)
+      
 class ROM(Model):
   '''
   ROM stands for Reduced Order Models. All the models here, first learn than predict the outcome
@@ -177,7 +196,7 @@ def returnInstance(Type):
   InterfaceDict = {}
   InterfaceDict['ROM' ] = ROM
   InterfaceDict['Code'] = Code
-  InterfaceDict['Code'] = Code
+  #InterfaceDict['Code'] = Code
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   

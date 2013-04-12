@@ -10,7 +10,7 @@ class hdf5Database:
     '''
     class to create a h5py (hdf5) database
     '''
-    def __init__(self,name, type, exist=False):
+    def __init__(self,name, type, filename=None):
       '''
       Constructor
       '''
@@ -18,18 +18,21 @@ class hdf5Database:
       self.name       = name                           
       # data base type (MC=MonteCarlo,DET=Dynamic Event Tree, etc.)
       self.type       = type
-      # .h5 file name (to be created)
-      self.onDiskFile = name + "_" + type + ".h5"
+      # .h5 file name (to be created or read)
+      if filename:
+        self.onDiskFile = filename
+        self.fileExist  = True
+      else:
+        self.onDiskFile = name + "_" + str(self.type) + ".h5" 
+        self.fileExist  = False 
       # is the file opened? 
       self.fileOpen       = False
       # paths of all groups into the data base
       self.allGroupPaths = []
-      # old data set or a new one
-      self.fileExist     = exist
       # we can create a base empty database or we open an existing one
       if self.fileExist:
         self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
-        self.createObjFromFile()
+        self.__createObjFromFile()
         self.firstRootGroup = True
       else:
         self.h5_file_w = self.openDataBaseW(self.onDiskFile,'w')
@@ -38,7 +41,7 @@ class hdf5Database:
         # the first root group has been added (DET)
         self.firstRootGroup = False
     
-    def createObjFromFile(self):
+    def __createObjFromFile(self):
       self.allGroupPaths = []
       if not self.fileOpen:
         self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
@@ -62,6 +65,10 @@ class hdf5Database:
       return
 
     def __addGroupRootLevel(self,gname,attributes,source):
+      for index in xrange(len(self.allGroupPaths)):
+        comparisonName = self.allGroupPaths[index]
+        if gname in comparisonName:
+          raise IOError("Group named " + gname + " already present in database " + self.name)
       if source['type'] == 'csv':
         f = open(source['name'],'rb')
         # take the header of the CSV file
@@ -81,7 +88,10 @@ class hdf5Database:
         grp.attrs["start_time"] = data[0,0]
         grp.attrs["end_time"]   = data[data[:,0].size-1,0]
         grp.attrs["n_ts"]       = data[:,0].size
-        grp.attrs["input_file"] = attributes["input_file"]
+        try:
+          grp.attrs["input_file"] = attributes["input_file"]
+        except:
+          pass
         grp.attrs["source_type"] = source['type']
             
         if source['type'] == 'csv':
@@ -138,7 +148,10 @@ class hdf5Database:
         sgrp.attrs["start_time"] = data[0,0]
         sgrp.attrs["end_time"]   = data[data[:,0].size-1,0]
         sgrp.attrs["n_ts"]       = data[:,0].size
-        sgrp.attrs["input_file"] = attributes["input_file"]
+        try:
+          sgrp.attrs["input_file"] = attributes["input_file"]
+        except:
+          pass
         sgrp.attrs["source_type"] = source['type']
         if source['type'] == 'csv':
           sgrp.attrs["source_file"] = source['name']
@@ -204,7 +217,7 @@ class hdf5Database:
       
       #check if the h5 file is already open, if not, open it
       if not self.fileOpen:
-        self.createObjFromFile()
+        self.__createObjFromFile()
       
       for i in xrange(len(self.allGroupPaths)):
         list_str_w = self.allGroupPaths[i].split("/")
@@ -219,6 +232,7 @@ class hdf5Database:
         if not filter or filter == 0:
           # grep only History from group "name"
           grp = self.h5_file_w.require_group(path)
+          
           dataset = grp.require_dataset(name+"_data", (grp.attrs['n_ts'],grp.attrs['n_params']), dtype='float')          
 #          dataset = grp.require_dataset(name=name +'_data', (grp.attrs('n_params'),grp.attrs('n_ts')), dtype='float', exact=True)
           # get numpy array

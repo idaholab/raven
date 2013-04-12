@@ -93,7 +93,7 @@ if __name__ == '__main__':
   
   result4 = tup4[0]
   
-  h5d2 = h5Data("HDF5_dataset_test","DET",True)
+  h5d2 = h5Data("HDF5_dataset_test","DET","HDF5_dataset_test_DET.h5")
   
   tup9 = h5d.retrieveHistory("test_1","whole") 
   
@@ -125,6 +125,9 @@ if __name__ == '__main__':
   tup8 = h5dMC.retrieveHistory("test_3")
   
   h5dMC.closeDataBaseW()
+  ##########################
+  # TEST DATA BASE MANAGER #
+  ##########################
   
   hMang = h5Manager()
   
