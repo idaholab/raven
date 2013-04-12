@@ -30,12 +30,7 @@ class Data(BaseType):
         try: self.time = float(time)
         except:self.time = float(time.split(','))
     except:self.time = None
-    
-    try:
-      self.dname = xmlNode.attrib['d_name']
-    except:
-      self.dname = None
-      
+
   def addInitParams(self,tempDict):
     for i in range(len(self.inputs)): 
       tempDict['Input_'+str(i)] = self.inputs[i]
