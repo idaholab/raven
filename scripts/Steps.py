@@ -80,15 +80,8 @@ class Step(BaseType):
         #job in the list finished event
         if runningList[i].isDone():                                                                  #if the job is done
           finisishedjob = runningList.pop(i)                                                         #remove it from the list
-          if inDictionary['DataSet']:
-            inDictionary['Model'].addDataSetGroup(finisishedjob,inDictionary['DataSet'])
           for output in inDictionary['Output']:                                                      #for all expected outputs
-            loadingObj = None
-            if output.dname:
-              loadingObj = inDictionary['DataSet']
-              inDictionary['Model'].collectOutput(finisishedjob,loadingObj,output)
-            else:
-              inDictionary['Model'].collectOutput(finisishedjob,loadingObj,output)                                #the model is tasket to provide the needed info to harvest the output
+              inDictionary['Model'].collectOutput(finisishedjob,output)                                #the model is tasket to provide the needed info to harvest the output
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
           #the harvesting process is done moving forward with the convergence checks
           if 'Tester' in inDictionary.keys():
@@ -111,7 +104,7 @@ class Step(BaseType):
         i+=1
       time.sleep(0.3)
     for output in inDictionary['Output']:
-      output.finalizeOutput()
+      output.finalize()
       
     quit()
 

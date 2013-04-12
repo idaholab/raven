@@ -91,6 +91,7 @@
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
         <Sampler type='Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
         <DataSet type='DataSets' subtype=''            >testDataBase</DataSet>
+        <Output  type='DataSets' subtype='HDF5' >testDataBase</Output>
         <Output  type='Datas'    subtype='Histories' >stories</Output>
     </MultiRun >
     <MultiRun name='MyAdaptiveNoROM'>
@@ -112,7 +113,7 @@
     <HDF5 name="testDataBase" type="MC"/> 
 </DataSets>
 <Datas>
-    <Histories name='stories' d_name= "testDataBase">
+    <Histories name='stories'>
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
         <Output>avg_temp_clad_CH2,CladDamaged</Output>
    </Histories>

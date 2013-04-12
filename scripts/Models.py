@@ -144,20 +144,17 @@ class Code(Model):
     print('job submitted')
     return self.process
 
-  def collectOutput(self,finisishedjob,loadingObj,output):
+  def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
-    loadFrom = None
-    if loadingObj:
-      # move this check at initialization stage
-      if loadingObj.name != output.dname:
-        raise IOError('dataset.name != output.dname.' + dataset.name + "!=" + output.dname)
-      loadFrom = []
-      loadFrom.append(loadingObj)
-      loadFrom.append(os.path.join(self.workingDir,finisishedjob.output))
+    if output.type == "HDF5":
+      self.__addDataSetGroup(finisishedjob,output)
+      
     else:
-      loadFrom = os.path.join(self.workingDir,finisishedjob.output) + ".csv"
-    output.addOutput(loadFrom)      
-  def addDataSetGroup(self,finisishedjob,dataset):
+      output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
+    return
+  
+  def __addDataSetGroup(self,finisishedjob,dataset):
+    # add a group into the dataset
     attributes={}
     attributes["input_file"] = self.currentInputFiles
     attributes["type"] = "csv"

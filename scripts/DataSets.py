@@ -18,7 +18,7 @@ class DateSet(BaseType):
       Constructor
       '''
       BaseType.__init__(self)
-
+      self.dataset = None
     def readMoreXML(self,xmlNode):
       pass
     def addInitParams(self,tempDict):
@@ -27,6 +27,8 @@ class DateSet(BaseType):
       pass
     def retrieveData(self,attributes):
       pass
+    def finalize(self):
+      self.dataset.closeDataBaseW()
 
 class HDF5(DateSet):
     '''
