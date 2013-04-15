@@ -19,29 +19,30 @@ def initial_function(monitored, controlled, auxiliary):
 def control_function(monitored, controlled, auxiliary):
     if monitored.time_step == 1:
         # Random on following variables
-        auxiliary.scram_start_time = 60.01
+        auxiliary.scram_start_time = 120.01
         random_n_1 = distcont.random()
         auxiliary.DG1recoveryTime   = 10.0 + distcont.randGen('crew1DG1',random_n_1) 
         
         random_n_2 = distcont.random()
-        #auxiliary.DG2recoveryTime   = 10 + distcont.randGen('crew1DG2',random_n_2)
         auxiliary.DG2recoveryTime   = 10.0 + auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
      
         random_n_3 = distcont.random()
         auxiliary.SecPGrecoveryTime = 20.0 + distcont.randGen('crewSecPG',random_n_3) 
     
-    
-    
 
-    if monitored.time>=auxiliary.scram_start_time:
+    if monitored.time >= auxiliary.scram_start_time:
         auxiliary.ScramStatus = True
     else:
         auxiliary.ScramStatus = False
     
     
     auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime)
-    
-    
+
+    if monitored.time < (auxiliary.scram_start_time + auxiliary.DeltaTimeScramToAux):
+        auxiliary.PowerStatus = 0
+    else:
+        auxiliary.PowerStatus = 1
+     
     
     if auxiliary.ScramStatus: #we are in scram situation    
         #primary pump B

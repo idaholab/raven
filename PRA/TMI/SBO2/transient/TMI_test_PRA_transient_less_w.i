@@ -1,30 +1,29 @@
 [GlobalParams]
-  # 2=2 eqn, 1D isothermal flow
-  # 3=3 eqn, 1D non-isothermal flow
-  # 7=7 eqn, 1D 2-phase flow
-  # scaling_factor_var = '1. 1.e-6 1.e-7'
-  # supg = 'false'
-  model_type = 3
-  global_init_P = 15.17e6
-  global_init_V = 1.
-  global_init_T = 564.15
-  scaling_factor_var = '1.e-1 1.e-5 1.e-8'
-  temperature_sf = 1e-2 # solid temperature scaling
-[]
-
-[EoS]
-  [./eos]
-    type = NonIsothermalEquationOfState
-    p_0 = 15.17e6 # Pa
-    rho_0 = 738.350 # kg/m^3
-    a2 = 1.e7 # m^2/s^2
-    beta = .46e-3 # K^{-1}
-    cv = 5.832e3 # J/kg-K
-    e_0 = 3290122.80 # J/kg
-    T_0 = 564.15 # K
-  [../]
-[]
-
+ # 2=2 eqn, 1D isothermal flow
+ # 3=3 eqn, 1D non-isothermal flow
+ # 7=7 eqn, 1D 2-phase flow
+ # scaling_factor_var = '1. 1.e-6 1.e-7'
+ # supg = false
+ model_type = 3
+ global_init_P = 15.17e6
+ global_init_V = 0.
+ global_init_T = 564.15
+ scaling_factor_var = '1.e-1 1.e-5 1.e-8'
+ []
+ 
+ [EoS]
+ # close Functions section
+ [./eos]
+ type = NonIsothermalEquationOfState
+ p_0 = 15.17e6 # Pa
+ rho_0 = 738.350 # kg/m^3
+ a2 = 1.e7 # m^2/s^2
+ beta = .46e-3 # K^{-1}
+ cv = 5.832e3 # J/kg-K
+ e_0 = 3290122.80 # J/kg
+ T_0 = 564.15 # K
+ [../]
+ []
 [Materials]
   [./fuel-mat]
     type = SolidMaterialProperties
@@ -558,74 +557,72 @@
   [../]
 []
 
-[Preconditioning]
-  # active = 'SMP_Newton'
-  # active = 'FDP_PJFNK'
-  # active = 'FDP_Newton'
-  # The definitions of the above-named blocks follow.
-  # End preconditioning block
-  active = 'SMP_PJFNK'
-  [./SMP_PJFNK]
-    type = SMP
-    full = true
-    petsc_options = -snes_mf_operator
-    petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
-    petsc_options_value = 'ds             ds'
-  [../]
-  [./SMP_Newton]
-    type = SMP
-    full = true
-    petsc_options = -snes
-  [../]
-  [./FDP_PJFNK]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
-    type = FDP
-    full = true
-    petsc_options = -snes_mf_operator # '-pc_factor_shift_nonzero'
-    petsc_options_iname = -mat_fd_type
-    petsc_options_value = ds
-    petsc_options_iname = -mat_fd_type
-    petsc_options_value = ds
-  [../]
-  [./FDP_Newton]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
-    type = FDP
-    full = true
-    petsc_options = -snes
-    petsc_options_iname = -mat_fd_type
-    petsc_options_value = ds
-    petsc_options_iname = -mat_fd_type
-    petsc_options_value = ds
-  [../]
-[]
-
+ [Preconditioning]
+ # active = 'FDP_Newton'
+ # End preconditioning block
+ active = 'SMP_PJFNK'
+ [./SMP_PJFNK]
+ type = SMP
+ full = true
+ petsc_options = '-snes_mf_operator'
+ petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
+ petsc_options_value = 'ds             ds'
+ [../] 
+ [./SMP]
+ type = SMP
+ full = true
+ petsc_options = '-snes_mf_operator'
+ [../]
+ [./FDP_PJFNK]
+ # These options **together** cause a zero pivot in this problem, even without SUPG terms.
+ # But using either option alone appears to be OK.
+ # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
+ # petsc_options_value = '1.e-10               ds'
+ type = FDP
+ full = true
+ petsc_options = '-snes_mf_operator -pc_factor_shift_nonzero'
+ petsc_options_iname = '-mat_fd_type'
+ petsc_options_value = 'ds'
+ petsc_options_iname = '-mat_fd_type'
+ petsc_options_value = 'ds'
+ [../]
+ [./FDP_Newton]
+ # These options **together** cause a zero pivot in this problem, even without SUPG terms.
+ # But using either option alone appears to be OK.
+ # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
+ # petsc_options_value = '1.e-10               ds'
+ type = FDP
+ full = true
+ petsc_options = '-snes'
+ petsc_options_iname = '-mat_fd_type'
+ petsc_options_value = 'ds'
+ petsc_options_iname = '-mat_fd_type'
+ petsc_options_value = 'ds'
+ [../]
+ []
+ 
  [Executioner]
- # restart_file_base = TMI_test_PRA_out_restart_0194
  type = RavenExecutioner
- restart_file_base = TMI_test_PRA_transient_less_w_ss_out_restart_3783
+ restart_file_base = TMI_test_PRA_transient_less_w_ss_out_3783
  dt = 5e-2
- time_t = '0         3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
- time_dt = '1.e-3  0.005         0.01       2.5e-2    2.5e-2  2.5e-2      2.5e-2    2.5e-2   1.5e-2   10.0e-2  1.0e-1'
+ time_t = '0 1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
+ time_dt = '1.e-1  0.1 0.15         0.20       0.25    0.30  0.35      0.40    0.45   0.5   0.6  0.8'
  dtmax = 9999
  e_tol = 10.0
  e_max = 99999.
  max_increase = 3
  perf_log = true
- petsc_options_iname = '-ksp_gmres_restart -pc_type'
- petsc_options_value = '300 lu' # '300'
+ #  petsc_options_iname = '-ksp_gmres_restart -pc_type'
+ # petsc_options_value = '300 lu' # '300'
+ petsc_options_iname = '-pc_type'
+ petsc_options_value = 'lu' # '300'
  nl_rel_tol = 1e-6
  nl_abs_tol = 1e-10
  nl_max_its = 100
  l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
  l_max_its = 100 # Number of linear iterations for each Krylov solve
- start_time = 60.0
- end_time = 100.0
+ start_time = 100.0
+ end_time = 300.0
  ss_check_tol = 1e-05
  nl_rel_step_tol = 1e-3
  predictor_scale = 0.6
@@ -634,15 +631,14 @@
  order = FIRST
  [../]
  []
-
+ 
 [Output]
-  # xda = true
-  # num_restart_files = 1
-  output_initial = true
-  perf_log = true
-  output_displaced = true
+ # xda = true
+ exodus = true
+ output_initial = true
+ perf_log = true
+ #num_restart_files = 1
   file_base = TMI_test_PRA_transient_less_w_out
-  postprocessor_csv = true
 []
 
 [Controlled]
