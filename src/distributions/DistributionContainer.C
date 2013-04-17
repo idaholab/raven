@@ -102,14 +102,19 @@ DistributionContainer::random(){
 //   return -1.0;
 }
 
-// to be implemented
-bool DistributionContainer::checkCdf(double probability, std::vector<double> values){
-   return false;
+bool DistributionContainer::checkCdf(std::string DistAlias, double value){
+	bool result;
+	if (Cdf(std::string(DistAlias),value) >= getVariable(DistAlias,"ProbabilityThreshold"))
+		result=false;
+	else
+		result=true;
+	return result;
 }
-// end to be implemented
+
+
 // to be implemented
-bool DistributionContainer::checkCdf(double probability, double value){
-   return false;
+bool DistributionContainer::checkCdf(char * DistAlias, double value){
+	return checkCdf(std::string(DistAlias),value);
 }
 // end to be implemented
 

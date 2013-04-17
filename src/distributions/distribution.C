@@ -16,14 +16,17 @@ InputParameters validParams<distribution>(){
    params.addParam<double>("xMin", -numeric_limits<double>::max( ),"Lower bound");
    params.addParam<double>("xMax", numeric_limits<double>::max( ),"Upper bound");
 
-   	   params.addParam< std::vector<double> >("PBwindow", "Probability window");
-   	   params.addParam< std::vector<double> >("Vwindow" , "Value window");
+   params.addParam< std::vector<double> >("PBwindow", "Probability window");
+   params.addParam< std::vector<double> >("Vwindow" , "Value window");
+
+   params.addParam<double>("ProbabilityThreshold" , "Probability Threshold");
 
    params.addParam<unsigned int>("seed", _defaultSeed ,"RNG seed");
    params.addRequiredParam<std::string>("type","distribution type");
    params.addParam<unsigned int>("truncation", 1 , "Type of truncation"); // Truncation types: 1) pdf_prime(x) = pdf(x)*c   2) [to do] pdf_prime(x) = pdf(x)+c
    params.addPrivateParam<std::string>("built_by_action", "add_distribution");
    params.addParam<unsigned int>("force_distribution", 0 ,"force distribution to be evaluated at: if (0) Don't force distribution, (1) xMin, (2) Mean, (3) xMax");
+
    return params;
 }
 
@@ -56,36 +59,38 @@ distribution::distribution(const std::string & name, InputParameters parameters)
       _force_dist = getParam<unsigned int>("force_distribution");
       _dis_parameters["truncation"] = double(getParam<unsigned int>("truncation"));
 
-      _PBwindow = getParam<std::vector<double> >("PBwindow");
-      _Vwindow = getParam<std::vector<double> >("Vwindow");
+      _dis_vectorParameters["PBwindow"] = getParam<std::vector<double> >("PBwindow");
+      _dis_vectorParameters["Vwindow"] = getParam<std::vector<double> >("Vwindow");
+
+      _dis_parameters["ProbabilityThreshold"] = getParam<double>("ProbabilityThreshold");
 }
 
 distribution::~distribution(){
 }
 
+
 double
 distribution::getVariable(std::string & variableName){
-
+   double res;
    if(_dis_parameters.find(variableName) != _dis_parameters.end()){
-     return _dis_parameters.find(variableName) ->second;
+	  res = _dis_parameters.find(variableName) ->second;
    }
    else{
      mooseError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
-     return -1;
    }
+   return res;
 }
 
 std::vector<double>
 distribution::getVariableVector(std::string  variableName){
-	std::vector<double> lupo;
-   if(_dis_parameters.find(variableName) != _dis_parameters.end()){
-     //return _dis_parameters.find(variableName) ->second;
-	   return lupo ;
+	std::vector<double> res;
+   if(_dis_vectorParameters.find(variableName) != _dis_vectorParameters.end()){
+	 res = _dis_vectorParameters.find(variableName) ->second;
    }
    else{
-     //mooseError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
-     return lupo ;
+     mooseError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
    }
+   return res;
 }
 
 void

@@ -78,9 +78,9 @@ class DistributionContainer{
 
      double random(); // return a random number
 
-     bool checkCdf(double probability, std::vector<double> values);
+     bool checkCdf(std::string DistAlias, double value);
 
-     bool checkCdf(double probability, double value);
+     bool checkCdf(char * DistAlias, double value);
 
      protected:
      std::map < std::string, int > _vector_pos_map;

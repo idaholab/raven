@@ -43,6 +43,7 @@ public:
    std::string & getType();                                       		///< Get distribution type
    unsigned int & getSeed();                                      		///< Get seed
 
+
    //virtual double windowProcessing(distribution & dist, double & RNG);
 
 protected:
