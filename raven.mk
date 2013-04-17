@@ -41,7 +41,7 @@ else
 raven_shared_ext := so
 endif
 
-HAS_DYNAMIC := $(shell PYTHONPATH=$(RAVEN_DIR)/../moose/tests/ python -c 'import util; print "DYNAMIC" in util.getSharedOption("../libmesh/installed")')
+HAS_DYNAMIC := $(shell PYTHONPATH=$(RAVEN_DIR)/../moose/scripts/TestHarness python -c 'import util; print "DYNAMIC" in util.getSharedOption("../libmesh/installed")')
 
 ifeq ($(HAS_DYNAMIC),False)  
 ifdef PYTHON_MODULES
