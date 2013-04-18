@@ -111,8 +111,8 @@ bool DistributionContainer::checkCdf(std::string DistAlias, double value){
 	else{
 		result=false;
         _dist_by_trigger_status[DistAlias] = false;
-	return result;
 	}
+	return result;
 }
 
 
