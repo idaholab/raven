@@ -104,11 +104,15 @@ DistributionContainer::random(){
 
 bool DistributionContainer::checkCdf(std::string DistAlias, double value){
 	bool result;
-	if (Cdf(std::string(DistAlias),value) >= getVariable(DistAlias,"ProbabilityThreshold"))
-		result=false;
-	else
+	if (Cdf(std::string(DistAlias),value) >= getVariable(DistAlias,"ProbabilityThreshold")){
 		result=true;
+	    _dist_by_trigger_status[DistAlias] = true;
+	}
+	else{
+		result=false;
+        _dist_by_trigger_status[DistAlias] = false;
 	return result;
+	}
 }
 
 

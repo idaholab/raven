@@ -59,6 +59,8 @@ protected:
                                                    ///! (3) => xMax
    std::vector<double> _PBwindow;
    std::vector<double> _Vwindow;
+
+   bool _checkStatus;
 };
 
 

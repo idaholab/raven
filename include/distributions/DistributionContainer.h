@@ -89,6 +89,7 @@ class DistributionContainer{
      std::map<std::string, distribution *> _dist_by_name;
      /// "Buckets" of distribution based on their types
      std::map<std::string, std::vector<distribution *> > _dist_by_type;
+     std::map<std::string, bool> _dist_by_trigger_status;
 //     /*
 //      * Function to get the position in the internal mapping
 //      * @ DistAlias, alias of the distribution from which retrieving the parameter

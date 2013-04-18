@@ -63,6 +63,8 @@ distribution::distribution(const std::string & name, InputParameters parameters)
       _dis_vectorParameters["Vwindow"] = getParam<std::vector<double> >("Vwindow");
 
       _dis_parameters["ProbabilityThreshold"] = getParam<double>("ProbabilityThreshold");
+
+      _checkStatus = false;
 }
 
 distribution::~distribution(){
