@@ -115,7 +115,21 @@ bool DistributionContainer::checkCdf(std::string DistAlias, double value){
 	return result;
 }
 
-
+bool
+DistributionContainer::getTriggerStatus(std::string DistAlias){
+  bool st;
+  if(_dist_by_trigger_status.find(DistAlias) != _dist_by_trigger_status.end()){
+    st = _dist_by_trigger_status.find(DistAlias) -> second;
+  }
+  else{
+    mooseError("Distribution " + DistAlias + " not found in Triggering event.");
+  }
+  return st;
+}
+bool
+DistributionContainer::getTriggerStatus(char * DistAlias){
+  return getTriggerStatus(std::string(DistAlias));
+}
 // to be implemented
 bool DistributionContainer::checkCdf(char * DistAlias, double value){
 	return checkCdf(std::string(DistAlias),value);

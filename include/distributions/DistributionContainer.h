@@ -82,6 +82,10 @@ class DistributionContainer{
 
      bool checkCdf(char * DistAlias, double value);
 
+     bool getTriggerStatus(std::string DistAlias);
+
+     bool getTriggerStatus(char * DistAlias);
+
      protected:
      std::map < std::string, int > _vector_pos_map;
      std::vector < distribution * > _distribution_cont;
