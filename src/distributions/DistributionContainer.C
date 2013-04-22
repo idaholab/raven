@@ -25,6 +25,8 @@ class DistributionContainer;
 
 DistributionContainer::DistributionContainer()
 {
+  _at_least_a_dist_triggered = false;
+  _last_dist_triggered = "";
 }
 DistributionContainer::~DistributionContainer()
 {
@@ -58,14 +60,14 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
 
 //void
 //DistributionContainer::constructDistributionContainer(std::string DistAlias, distribution_type type, double xmin, double xmax, double param1, double param2, unsigned int seed){
-//	_distribution_cont.push_back(distribution(type, xmin, xmax, param1, param2, seed));
-//	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
+//  _distribution_cont.push_back(distribution(type, xmin, xmax, param1, param2, seed));
+//  _vector_pos_map[DistAlias]=_distribution_cont.size()-1;
 //}
 //void
 //DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, int numPoints, custom_dist_fit_type fit_type, unsigned int seed){
 //
-//	_distribution_cont.push_back(distribution(dist_x, dist_y, numPoints, fit_type, seed));
-//	_vector_pos_map[DistAlias]=_distribution_cont.size()-1;
+//  _distribution_cont.push_back(distribution(dist_x, dist_y, numPoints, fit_type, seed));
+//  _vector_pos_map[DistAlias]=_distribution_cont.size()-1;
 //}
 
 std::string
@@ -103,16 +105,18 @@ DistributionContainer::random(){
 }
 
 bool DistributionContainer::checkCdf(std::string DistAlias, double value){
-	bool result;
-	if (Cdf(std::string(DistAlias),value) >= getVariable(DistAlias,"ProbabilityThreshold")){
-		result=true;
-	    _dist_by_trigger_status[DistAlias] = true;
-	}
-	else{
-		result=false;
-        _dist_by_trigger_status[DistAlias] = false;
-	}
-	return result;
+  bool result;
+  if (Cdf(std::string(DistAlias),value) >= getVariable(DistAlias,"ProbabilityThreshold")){
+    result=true;
+    _dist_by_trigger_status[DistAlias] = true;
+    _last_dist_triggered = DistAlias;
+    _at_least_a_dist_triggered = true;
+  }
+  else{
+    result=false;
+    _dist_by_trigger_status[DistAlias] = false;
+  }
+  return result;
 }
 
 bool
@@ -132,13 +136,13 @@ DistributionContainer::getTriggerStatus(char * DistAlias){
 }
 // to be implemented
 bool DistributionContainer::checkCdf(char * DistAlias, double value){
-	return checkCdf(std::string(DistAlias),value);
+  return checkCdf(std::string(DistAlias),value);
 }
 // end to be implemented
 
 double
 DistributionContainer::getVariable(char * paramName,char *DistAlias){
-	return getVariable(std::string(paramName),std::string(DistAlias));
+  return getVariable(std::string(paramName),std::string(DistAlias));
 }
 
 double
@@ -153,7 +157,7 @@ DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
 
 void
 DistributionContainer::updateVariable(char * paramName,double newValue,char *DistAlias){
-	updateVariable(std::string(paramName),newValue,std::string(DistAlias));
+  updateVariable(std::string(paramName),newValue,std::string(DistAlias));
 }
 
 void

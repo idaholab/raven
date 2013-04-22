@@ -86,6 +86,19 @@ class DistributionContainer{
 
      bool getTriggerStatus(char * DistAlias);
 
+     // unfortunately there is no way (right now) to link a triggered distribution
+     // to the variables that have been changed in consequence of the trigger
+     // for now we assume to get the last one.
+     std::string lastDistributionTriggered(){
+       if(atLeastADistTriggered()){
+         return _last_dist_triggered;
+       }
+       else{
+         return std::string("");
+       }
+     };
+     bool atLeastADistTriggered(){return _at_least_a_dist_triggered;};
+
      protected:
      std::map < std::string, int > _vector_pos_map;
      std::vector < distribution * > _distribution_cont;
@@ -94,6 +107,8 @@ class DistributionContainer{
      /// "Buckets" of distribution based on their types
      std::map<std::string, std::vector<distribution *> > _dist_by_type;
      std::map<std::string, bool> _dist_by_trigger_status;
+     std::string _last_dist_triggered;
+     bool _at_least_a_dist_triggered;
 //     /*
 //      * Function to get the position in the internal mapping
 //      * @ DistAlias, alias of the distribution from which retrieving the parameter
