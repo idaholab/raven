@@ -106,7 +106,7 @@ DistributionContainer::random(){
 
 bool DistributionContainer::checkCdf(std::string DistAlias, double value){
   bool result;
-  if (Cdf(std::string(DistAlias),value) >= getVariable(DistAlias,"ProbabilityThreshold")){
+  if (Cdf(std::string(DistAlias),value) >= getVariable("ProbabilityThreshold",DistAlias)){
     result=true;
     _dist_by_trigger_status[DistAlias] = true;
     _last_dist_triggered = DistAlias;
