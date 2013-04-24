@@ -34,6 +34,13 @@
         <upperBound>2</upperBound>
         <adjustement>up</adjustement>
     </Normal>
+    <Normal name='auxBackUpTimeDist'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>    
     <Normal name='Gauss2'>
         <mean>1</mean>
         <sigma>0.4</sigma>
@@ -41,7 +48,7 @@
         <upperBound>2</upperBound>
         <adjustement>scaling</adjustement>
     </Normal>
-    <Triangular name='tri1'>
+    <Triangular name='CladFailureDist'>
         <apex>1</apex>
         <min>-0.1</min>
         <max>3</max>
@@ -71,8 +78,12 @@
     <MonteCarlo     name='RAVENmc50' limit='50'/>
     <LatinHyperCube name='MyLHC'     limit='50' start='10'></LatinHyperCube>
     <EquallySpaced  name='MyES'      limit='50' start='10'></EquallySpaced>
-    
-    
+    <DynamicEventTree name='testDET' limit='80'>
+      <BranchingSettings  CPcut = '1.0E-99'>
+        <Variable type='Normal' distName='auxBackUpTimeDist' BranchProbs='0.05 0.20 0.5 0.75'>auxBackUpTimeDist</Variable>
+        <Variable type='Triangular' distName='CladFailureDist' BranchProbs='0.05 0.20 0.5 0.75'>CladFailureDist</Variable>
+      </BranchingSettings>
+    </DynamicEventTree> 
 </Samplers>
 <Tests>
     <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
@@ -89,7 +100,7 @@
         <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.i</Input>
         <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.py</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
-        <Sampler type='Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
+        <Sampler type='Samplers' subtype='DynamicEventTree'>testDET</Sampler>
         <DataSet type='DataSets' subtype=''            >testDataBase</DataSet>
         <Output  type='DataSets' subtype='HDF5' >testDataBase</Output>
         <Output  type='Datas'    subtype='Histories' >stories</Output>

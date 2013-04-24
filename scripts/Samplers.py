@@ -3,9 +3,11 @@ Created on Mar 8, 2013
 
 @author: crisr
 '''
+import sys
 import time
 import Datas
 from BaseType import BaseType
+import xml.etree.ElementTree as ET
 
 class Sampler(BaseType):
   ''' 
@@ -13,23 +15,21 @@ class Sampler(BaseType):
   '''
   def __init__(self):
     BaseType.__init__(self)
-    self.limit       = 0        #maximum number of sampler it will perform every time it is used
-    self.counter     = 0
+    self.counter = 0
+    self.limit   = sys.maxint
     self.toBeSampled = {}  #key=feature to be sampled, value = ['type of distribution to be used', 'name of the distribution']
     self.distDict    = {}  #contain the instance of the distribution to be used, it is created every time the sampler is initialize
+  
   def readMoreXML(self,xmlNode):
-    try: self.limit = xmlNode.attrib['limit']
-    except: raise IOError('not found limit for the Sampler '+self.name)
     for child in xmlNode:
       self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']]
   
   def addInitParams(self,tempDict):
-    tempDict['limit' ] = self.limit
     for value in self.toBeSampled.items():
       tempDict[value[0]] = value[1][0]+':'+value[1][1]
   
   def addCurrentSetting(self,tempDict):
-    tempDict['counter' ] = self.counter
+    pass
   def initialize(self):
     self.counter = 0
   
@@ -39,34 +39,242 @@ class Sampler(BaseType):
     return
 
   def generateInputBatch(self,myInput,model,batchSize):
-    if batchSize<=self.limit: newInputs = [None]*batchSize
-    else:newInputs = [None]*self.limit
-    for i in range(len(newInputs)):
-      newInputs[i]=self.generateInput(model,myInput)
+    try:
+      if batchSize<=self.limit: newInputs = [None]*batchSize
+      else:newInputs = [None]*self.limit
+      for i in range(len(newInputs)):
+        newInputs[i]=self.generateInput(model,myInput)
+    except:
+      newInputs = [None]*batchSize
+      for i in range(len(newInputs)):
+        newInputs[i]=self.generateInput(model,myInput)          
     return newInputs
 
 
 class MonteCarlo(Sampler):
+  def __init__(self):
+    Sampler.__init__(self)
+    self.limit       = 0        #maximum number of sampler it will perform every time it is used
   def generateInput(self,model,myInput):
     self.counter += 1
-    values = {'counter':self.counter}
+    values = {'prefix':str(self.counter)}
     for key in self.distDict:
       values[key] = self.distDict[key].distribution.rvs()
     return model.createNewInput(myInput,self.type,**values)
-
+  def readMoreXML(self,xmlNode):
+    try: self.limit = xmlNode.attrib['limit']
+    except: raise IOError('not found limit for the Sampler '+self.name)
+    return
+  def addInitParams(self,tempDict):
+    tempDict['limit' ] = self.limit  
+  def addCurrentSetting(self,tempDict):
+    tempDict['counter' ] = self.counter    
 class LatinHyperCube(Sampler):
-  pass
-
+  def __init__(self):
+    Sampler.__init__(self)
+    self.limit       = 0        #maximum number of sampler it will perform every time it is used
+   
 class EquallySpaced(Sampler):
   pass
 
+class DynamicEventTree(Sampler):
+  def __init__(self):
+    Sampler.__init__(self)
+    #optional value... Conditional Probability Cut. If the Probability falls below this value the associated branch is terminated    
+    self.CP_cut       = None
+    self.maxSimulTime = None #(optional) if not present, the sampler will not change the relative keyword in the input file
+    self.branchProbabilities = {}
+    self.branchedLevel = {}
+    self.branchCountOnLevel = 0
+    # actual branch info
+    self.actualBranchInfo = {}
+    self.actual_end_time  = 0.0
+    self.actual_end_ts    = 0
+    # here we store all the info regarding the DET => we create the info for all the
+    # branchings and we store them
+    self.TreeInfo = None    
+    self.endInfo = {}
+    self.branchCountOnLevel = 0
+  def  computeConditionalProbability(self):
+    return
+  
+  def addEndedBranchInfo(self,parent_name):
+    # we read the info at the end of one branch
+    self.__readBranchInfo(self)
+    
+    # we collect the info in a multi-level dictionary
+    self.endInfo = {}
+    self.endInfo['end_time']               = self.actual_end_time
+    self.endInfo['end_ts']                 = self.actual_end_ts
+    self.endInfo['branch_dist']            = self.actualBranchInfo.keys()[0]
+    self.endInfo['branch_changed_params']  = self.actualBranchInfo[self.endInfo['branch_dist']]
+      
+    for key in self.endInfo['branch_changed_params']:
+      if(len(self.endInfo['branch_changed_params'][key]['actual_value']) > 1):
+        # multi-branch situation
+         unchanged_pb = 0.0
+         try:
+           for pb in xrange(len(self.endInfo['branch_changed_params'][key]['associated_pb'])):
+             unchanged_pb = unchanged_pb + pb 
+         except:
+          pass
+         if(unchanged_pb <= 1):
+           self.endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
+      
+      else:
+        # two way branch
+        pb = self.branchProbabilities[self.endInfo['branch_dist']][self.branchedLevel[self.endInfo['branch_dist']]]
+        self.endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0 - pb
+        self.endInfo['branch_changed_params'][key]['associated_pb'] = [pb]
+    
+    self.endInfo['parent_node'] = self.TreeInfo.find(parent_name)
+    self.branchCountOnLevel = 0
+    # set runEnded and running to true and false respectively   
+    self.TreeInfo.find(parent_name).set('runEnded',True)
+    self.TreeInfo.find(parent_name).set('running',False)
+    self.TreeInfo.find(parent_name).set('end_time',self.actual_end_time)
+    # add call to conditional probability calculation
+    self.computeConditionalProbability()
+    self.branchedLevel[self.endInfo['branch_dist']]       += 1
+  
+  def __readBranchInfo(self):
+    # function for reading Branch Info from xml file
+
+    # we remove all the elements from the info container
+    self.actualBranchInfo.clear()
+    filename = "actual_branch_info.xml"
+    workingDir = os.getcwd()
+    if not os.path.isabs(filename):
+      filename = os.path.join(workingDir,filename)
+    if not os.path.exists(filename):
+      print('file not found '+filename)    
+    try:
+      branch_info_tree = ET.parse(filename)
+    except:
+      branch_info_tree = ET.parse(filename)
+      raise IOError ('not able to parse ' + filename)
+    root = branch_info_tree.getroot()
+
+    try:
+      self.actual_end_time = float(root.attrib['end_time'])
+      self.actual_end_ts   = int(root.attrib['end_ts'])
+    except:
+      pass
+
+    for node in root:
+      if node.tag == "Distribution_trigger":
+        dist_name = node.attrib['name']
+        self.actualBranchInfo[dist_name] = {}
+        for child in node:
+          self.actualBranchInfo[dist_name][child.text]['varType'] = child.attrib['type']
+          self.actualBranchInfo[dist_name][child.text]['actual_value'].append(child.attrib['actual_value'])
+          self.actualBranchInfo[dist_name][child.text]['old_value'] = child.attrib['old_value']
+          try:
+            self.actualBranchInfo[dist_name][child.text]['associated_pb'].append(float(child.attrib['pb'])) 
+          except:
+            pass
+      # we exit the loop here, because only one trigger at the time can be handled     
+      break
+    # we remove the file
+    os.remove(filename)
+    return
+  
+  
+
+  def generateInput(self,model,myInput):
+    # the counter, in this case, indicates the number of simulations that have been or are going to
+    # be run. 
+    self.counter += 1
+    
+    if self.counter > 1:
+      self.branchCountOnLevel += 1
+      subGroup = ET.Element(self.endInfo['parent_node'].get('name') + ',' + str(self.branchCountOnLevel))
+      subGroup.set('parent', self.endInfo['parent_node'].get('name'))
+      rname = self.endInfo['parent_node'].get('name') + ',' + str(self.branchCountOnLevel)
+      subGroup.set('name', rname)
+      cnt = 1
+      for key in self.endInfo['branch_changed_params'].keys():
+        if(cnt == self.branchCountOnLevel):
+          subGroup.set('branch_changed_param',key)
+          if self.branchCountOnLevel != 1:
+            subGroup.set('branch_changed_param_value',self.endInfo['branch_changed_params'][key]['actual_value'][cnt-1])
+            subGroup.set('branch_changed_param_pb',self.endInfo['branch_changed_params'][key]['associated_pb'][cnt-1])
+          else:
+            subGroup.set('branch_changed_param_value',self.endInfo['branch_changed_params'][key]['old_value'])
+            subGroup.set('branch_changed_param_pb',self.endInfo['branch_changed_params'][key]['unchanged_pb'])            
+        cnt += 1
+      
+      subGroup.set('initiator_distribution',self.endInfo['branch_dist']) 
+      subGroup.set('start_time', self.endInfo['parent_node'].get('end_time'))
+      # we initialize the end_time to be equal to the start one... It will modified at the end of this branch
+      subGroup.set('end_time', self.endInfo['parent_node'].get('end_time'))
+      subGroup.set('runEnded',False)
+      subGroup.set('running',True)
+      subGroup.set('restartFileRoot',self.endInfo['restartRoot'])
+      self.endInfo['parent_node'].append(subGroup)
+  
+      end_ts_str = str(self.endInfo['end_ts'])
+      dec_places = len(end_ts_str)
+      if(self.endInfo['end_ts'] <= 9999):
+        n_zeros = 4 - dec_places
+        for i in xrange(len(n_zeros)-1):
+          end_ts_str = "0" + end_ts_str
+      
+      values = {'prefix':rname,'end_ts':self.endInfo['end_ts'],
+                'branch_changed_param':[subGroup.get('branch_changed_param')],
+                'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
+                'initiator_distribution':[self.endInfo['branch_dist']],
+                'start_time':self.endInfo['parent_node'].get('end_time'),
+                'PbThreshold':[self.branchProbabilities[self.endInfo['branch_dist']][self.branchedLevel[self.endInfo['branch_dist']]]]}
+    else:
+      rname = 'DET_1'
+      values = {'prefix':rname}
+      values['initiator_distribution'] = []
+      values['PbThreshold']            = []
+      for key in self.distDict.keys():
+        values['initiator_distribution'].append(key)
+      for key in self.branchProbabilities.keys():  
+        values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
+
+    if(self.maxSimulTime):
+      values['end_time'] = self.maxSimulTime    
+    #for key in self.distDict:
+    #  values[key] = self.distDict[key].distribution.rvs()
+    return model.createNewInput(myInput,self.type,**values)
+
+  def readMoreXML(self,xmlNode):
+    elm = ET.Element(xmlNode.attrib['name'])
+    #elm.set('parent', 'root')
+    elm.set('name', xmlNode.attrib['name'])
+    elm.set('start_time', 0.0)
+    # we initialize the end_time to be equal to the start one... 
+    # It will modified at the end of this branch
+    elm.set('end_time', 0.0)
+    elm.set('runEnded',False)
+    elm.set('running',True)
+    # here we store all the info regarding the DET => we create the info for all the
+    # branchings and we store them
+    self.TreeInfo = ET.ElementTree(elm)    
+    
+    childreen = xmlNode.find("BranchingSettings")
+    try: self.CP_cut = childreen.attrib['CPcut']
+    except: self.CP_cut = None
+    try: self.maxSimulTime = childreen.attrib['maxSimulationTime']
+    except: self.maxSimulTime = None
+    Sampler.readMoreXML(self,childreen)
+    for child in childreen:
+      bv = child.attrib['BranchProbs']
+      bvalues = [float(x) for x in bv.split()]
+      self.branchProbabilities[child.attrib['distName']] = bvalues
+      self.branchedLevel[child.attrib['distName']]       = 0
 #function used to generate a Model class
 def returnInstance(Type):
   base = 'Sampler'
   InterfaceDict = {}
-  InterfaceDict['MonteCarlo'    ] = MonteCarlo
-  InterfaceDict['LatinHyperCube'] = LatinHyperCube
-  InterfaceDict['EquallySpaced' ] = EquallySpaced
+  InterfaceDict['MonteCarlo'       ] = MonteCarlo
+  InterfaceDict['LatinHyperCube'   ] = LatinHyperCube
+  InterfaceDict['EquallySpaced'    ] = EquallySpaced
+  InterfaceDict['DynamicEventTree' ] = DynamicEventTree
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   

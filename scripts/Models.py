@@ -13,7 +13,7 @@ class RavenInterface:
   def generateCommand(self,inputFiles,executable):
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    outputfile = 'outFrom'+os.path.split(inputFiles[index])[1].split('.')[0]
+    outputfile = 'outFrom~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
     ' Output/file_base='+ outputfile)
     return executeCommand,outputfile
@@ -27,33 +27,90 @@ class RavenInterface:
     self.samplersDictionary['MonteCarlo']     = self.MonteCarloForRAVEN
     self.samplersDictionary['EquallySpaced']  = self.EquallySpacedForRAVEN
     self.samplersDictionary['LatinHyperCube'] = self.LatinHyperCubeForRAVEN
+    self.samplersDictionary['DynamicEventTree'] = self.DynamicEventTreeForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self.samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
-    currentInputFiles[index] = os.path.join(os.path.split(temp)[0],str(Kwargs['counter'])+os.path.split(temp)[1])
+    currentInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+os.path.split(temp)[1])
     parser.printInput(currentInputFiles[index])
     return currentInputFiles
 
   def MonteCarloForRAVEN(self,**Kwargs):
     try: counter = Kwargs['counter']
     except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
+    listDict = []
     modifDict = {}
     modifDict['name'] = ['Distributions']
     modifDict['RNG_seed'] = counter
-    return modifDict
+    listDict.append(modifDict)
+    return listDict
+  
+  def DynamicEventTreeForRAVEN(self,**Kwargs):
+    listDict = []
+    
+    for i in xrange(len(Kwargs['initiator_distribution'])):
+      modifDict = {}
+      modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
+      modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
+      listDict.append(modifDict)
+      del modifDict
+    if 'start_time' in Kwargs.keys():
+      modifDict = {}
+      st_time = Kwargs['start_time']
+      modifDict['name'] = ['Executioner']
+      modifDict['start_time'] = st_time
+      listDict.append(modifDict)
+      del modifDict
+      
+    if 'end_ts' in Kwargs.keys():
+      modifDict = {}
+      end_ts_str = str(Kwargs['end_ts'])
+      if(self.endInfo['end_ts'] <= 9999):
+        n_zeros = 4 - len(end_ts_str)
+        for i in xrange(len(n_zeros)-1):
+          end_ts_str = "0" + end_ts_str
+      restart_file_base = Kwargs['outfile'] + "_restart_" + end_ts_str      
+      modifDict['name'] = ['Executioner']
+      modifDict['restart_file_base'] = restart_file_base
+      listDict.append(modifDict)
+      del modifDict
+
+    if 'end_time' in Kwargs.keys():
+      modifDict = {}
+      end_time = Kwargs['end_time']
+      modifDict['name'] = ['Executioner']
+      modifDict['end_time'] = end_time
+      listDict.append(modifDict)
+      del modifDict
+      
+    modifDict = {}
+    modifDict['name'] = ['Output']
+    modifDict['num_restart_files'] = 1
+    listDict.append(modifDict)
+    del modifDict
+    
+    if 'branch_changed_param' in Kwargs.keys():
+      for i in xrange(len(Kwargs['branch_changed_param'])):
+        modifDict = {}
+        modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
+        modifDict['value'] = Kwargs['branch_changed_param_value'][i]
+        listDict.append(modifDict)
+        del modifDict
+
+    return listDict  
   
   def EquallySpacedForRAVEN(self,**Kwargs):
     raise IOError('EquallySpacedForRAVEN not yet implemented')
-    modifDict = {}
-    return modifDict
+    listDict = []
+    return listDict
   
   def LatinHyperCubeForRAVEN(self,**Kwargs):
     raise IOError('LatinHyperCubeForRAVEN not yet implemented')
-    modifDict = {}
-    return modifDict
+    listDict = []
+    return listDict
 
 
 class ExternalTest:
@@ -134,6 +191,9 @@ class Code(Model):
     self.outFileRoot              = None
     return #self.oriInputFiles
   def createNewInput(self,currentInput,samplerType,**Kwargs):
+    if currentInput[0].endswith('.i'): index = 0
+    else: index = 1
+    Kwargs['outfile'] = 'outFrom~'+os.path.split(currentInput[index])[1].split('.')[0]
     return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
   def run(self,inputFiles,outputDatas,jobHandler):
     '''return an instance of external runner'''
@@ -154,7 +214,7 @@ class Code(Model):
     return
   
   def __addDataSetGroup(self,finisishedjob,dataset):
-    # add a group into the dataset
+    # add a group into the database
     attributes={}
     attributes["input_file"] = self.currentInputFiles
     attributes["type"] = "csv"

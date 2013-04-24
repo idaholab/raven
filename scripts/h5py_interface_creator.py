@@ -45,9 +45,9 @@ class hdf5Database:
       self.allGroupPaths = []
       if not self.fileOpen:
         self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
-      self.h5_file_w.visititems(self.isGroup)
+      self.h5_file_w.visititems(self.__isGroup)
     
-    def isGroup(self,name,obj):
+    def __isGroup(self,name,obj):
       if isinstance(obj,h5.Group):
         self.allGroupPaths.append(name)
         
@@ -129,12 +129,12 @@ class hdf5Database:
         try:
           parent_group_name = attributes["parent"]
         except:
-          raise("NOT FOUND attribute <parent> into <attributes> dictionary")
+          raise IOError ("NOT FOUND attribute <parent> into <attributes> dictionary")
         # check if the parent exists... in that case... retrieve it and add the new sub group
         if parent_group_name in self.h5_file_w:
           grp = self.h5_file_w.require_group(parent_group_name)
         else:
-          raise("NOT FOUND group named " + parent_group_name)  
+          raise ValueError("NOT FOUND group named " + parent_group_name)  
         # create sub group
         print(gname)
         print(self.h5_file_w.mode)

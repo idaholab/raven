@@ -63,8 +63,12 @@ class Step(BaseType):
     runningList =[]
     submittedCounter = 0                               #we initialize a counter to be safe
     if 'Sampler' in inDictionary.keys():
+      if inDictionary['Sampler'].type == 'DynamicEventTree':
+        n_init_run = 1
+      else:
+        n_init_run = inDictionary['jobHandler'].runInfoDict['batchSize']
       inDictionary['Sampler'].initialize()              #if a sampler is use it gets initialized
-      for i in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
+      for i in range(n_init_run):
         newInput = inDictionary['Sampler'].generateInput(inDictionary["Model"],inDictionary['Input'])
         runningList.append(inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler']))
         submittedCounter += 1

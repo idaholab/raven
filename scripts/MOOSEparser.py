@@ -55,24 +55,25 @@ class MOOSEparser:
         except: pass
         IOfile.write('  [../]\n')
       IOfile.write('[]\n')
-  def modifyOrAdd(self,modiDictionary,save=True):
-    '''ModiDictionary is a dictionary of the required addition or modification'''
+  def modifyOrAdd(self,modiDictionaryList,save=True):
+    '''ModiDictionaryList is a list of dictionaries of the required addition or modification'''
     '''-name- key should return a ordered list of the name e.g. ['Components','Pipe']'''
     '''the other keywords possible are used as attribute names'''
     if save: returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else: returnElement = self.root                           #otherwise return the original modified
-    name = modiDictionary['name']
-    del modiDictionary['name']
-    if returnElement.find(name[0])!=None:   #if the first level name is present
-      child = returnElement.find(name[0])
-      if len(name)>1:
-        if child.find(name[1])!=None: child.find(name[1]).attrib.update(modiDictionary)
-        else: ET.SubElement(child,name[1],modiDictionary)
+    for i in xrange(len(modiDictionaryList)):
+      name = modiDictionaryList[i]['name']
+      del modiDictionaryList[i]['name']
+      if returnElement.find(name[0])!=None:   #if the first level name is present
+        child = returnElement.find(name[0])
+        if len(name)>1:
+          if child.find(name[1])!=None: child.find(name[1]).attrib.update(modiDictionaryList[i])
+          else: ET.SubElement(child,name[1],modiDictionaryList[i])
+        else:
+          child.attrib.update(modiDictionaryList[i])
       else:
-        child.attrib.update(modiDictionary)
-    else:
-      ET.SubElement(returnElement,name[0], modiDictionary)
-    if save: return returnElement
+        ET.SubElement(returnElement,name[0], modiDictionaryList[i])
+      if save: return returnElement
 
 
 
