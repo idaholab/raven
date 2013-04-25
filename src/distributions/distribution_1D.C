@@ -769,7 +769,7 @@ WeibullDistribution::Cdf(double & x){
 	  else if (x>xMax)
 		  value=1;
 	  else
-		  value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrCdf(x);
+		  value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * (WeibullDistribution::untrCdf(x) - WeibullDistribution::untrCdf(xMin));
    else
       value=-1;
 
