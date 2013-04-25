@@ -24,7 +24,6 @@ class ExternalRunner:
   def isDone(self):
     self.process.poll()
     if self.process.returncode != None:
-      
       return True
     else:
       return False

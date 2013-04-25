@@ -39,7 +39,7 @@ class RavenInterface:
     return currentInputFiles
 
   def MonteCarloForRAVEN(self,**Kwargs):
-    try: counter = Kwargs['counter']
+    try: counter = Kwargs['prefix']
     except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
     listDict = []
     modifDict = {}
@@ -68,9 +68,9 @@ class RavenInterface:
     if 'end_ts' in Kwargs.keys():
       modifDict = {}
       end_ts_str = str(Kwargs['end_ts'])
-      if(self.endInfo['end_ts'] <= 9999):
+      if(Kwargs['end_ts'] <= 9999):
         n_zeros = 4 - len(end_ts_str)
-        for i in xrange(len(n_zeros)-1):
+        for i in xrange(n_zeros):
           end_ts_str = "0" + end_ts_str
       restart_file_base = Kwargs['outfile'] + "_restart_" + end_ts_str      
       modifDict['name'] = ['Executioner']
@@ -132,7 +132,8 @@ class Model(BaseType):
       it could as complex as a stand alone code or a reduced order model trained somehow'''
   def __init__(self):
     BaseType.__init__(self)
-    self.subType = ''
+    self.subType  = ''
+    self.runQueue = []  
   def readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['type']
     except: raise 'missed type for the model'+self.name

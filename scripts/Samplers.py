@@ -97,7 +97,9 @@ class DynamicEventTree(Sampler):
     self.TreeInfo = None    
     self.endInfo = {}
     self.branchCountOnLevel = 0
-    self.workingDir = ""
+    # this list contains the inputs(i.e. the info to create them) are waiting to be run
+    self.RunQueue = []
+    
   def  computeConditionalProbability(self):
     return
   
@@ -114,6 +116,7 @@ class DynamicEventTree(Sampler):
     self.endInfo['branch_changed_params']  = self.actualBranchInfo[self.endInfo['branch_dist']]
       
     for key in self.endInfo['branch_changed_params']:
+      self.endInfo['n_branches'] = 1 + int(len(self.endInfo['branch_changed_params'][key]['actual_value']))
       if(len(self.endInfo['branch_changed_params'][key]['actual_value']) > 1):
         # multi-branch situation
          unchanged_pb = 0.0
@@ -130,13 +133,15 @@ class DynamicEventTree(Sampler):
         pb = self.branchProbabilities[self.endInfo['branch_dist']][self.branchedLevel[self.endInfo['branch_dist']]]
         self.endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0 - pb
         self.endInfo['branch_changed_params'][key]['associated_pb'] = [pb]
-    
-    self.endInfo['parent_node'] = self.TreeInfo.find(parent_name)
+    if(parent_name == self.TreeInfo.getroot().tag):
+      self.endInfo['parent_node'] = self.TreeInfo.getroot()
+    else:
+      self.endInfo['parent_node'] = self.TreeInfo.find(parent_name)
     self.branchCountOnLevel = 0
     # set runEnded and running to true and false respectively   
-    self.TreeInfo.find(parent_name).set('runEnded',True)
-    self.TreeInfo.find(parent_name).set('running',False)
-    self.TreeInfo.find(parent_name).set('end_time',self.actual_end_time)
+    self.endInfo['parent_node'].set('runEnded',True)
+    self.endInfo['parent_node'].set('running',False)
+    self.endInfo['parent_node'].set('end_time',self.actual_end_time)
     # add call to conditional probability calculation
     self.computeConditionalProbability()
     self.branchedLevel[self.endInfo['branch_dist']]       += 1
@@ -220,15 +225,15 @@ class DynamicEventTree(Sampler):
       subGroup.set('end_time', self.endInfo['parent_node'].get('end_time'))
       subGroup.set('runEnded',False)
       subGroup.set('running',True)
-      subGroup.set('restartFileRoot',self.endInfo['restartRoot'])
+#      subGroup.set('restartFileRoot',self.endInfo['restartRoot'])
       self.endInfo['parent_node'].append(subGroup)
   
-      end_ts_str = str(self.endInfo['end_ts'])
-      dec_places = len(end_ts_str)
-      if(self.endInfo['end_ts'] <= 9999):
-        n_zeros = 4 - dec_places
-        for i in xrange(len(n_zeros)-1):
-          end_ts_str = "0" + end_ts_str
+#      end_ts_str = str(self.endInfo['end_ts'])
+#      dec_places = len(end_ts_str)
+#      if(self.endInfo['end_ts'] <= 9999):
+#        n_zeros = 4 - dec_places
+#        for i in xrange(n_zeros):
+#          end_ts_str = "0" + end_ts_str
       
       values = {'prefix':rname,'end_ts':self.endInfo['end_ts'],
                 'branch_changed_param':[subGroup.get('branch_changed_param')],
@@ -237,7 +242,7 @@ class DynamicEventTree(Sampler):
                 'start_time':self.endInfo['parent_node'].get('end_time'),
                 'PbThreshold':[self.branchProbabilities[self.endInfo['branch_dist']][self.branchedLevel[self.endInfo['branch_dist']]]]}
     else:
-      rname = 'DET_1'
+      rname = self.TreeInfo.getroot().tag 
       values = {'prefix':rname}
       values['initiator_distribution'] = []
       values['PbThreshold']            = []
@@ -253,9 +258,9 @@ class DynamicEventTree(Sampler):
     return model.createNewInput(myInput,self.type,**values)
 
   def readMoreXML(self,xmlNode):
-    elm = ET.Element(xmlNode.attrib['name'])
+    elm = ET.Element(xmlNode.attrib['name'] + '_1')
     #elm.set('parent', 'root')
-    elm.set('name', xmlNode.attrib['name'])
+    elm.set('name', xmlNode.attrib['name'] + '_1')
     elm.set('start_time', 0.0)
     # we initialize the end_time to be equal to the start one... 
     # It will modified at the end of this branch
