@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulatio>
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk/raven/te_stDriver</WorkingDir>
+    <WorkingDir>../play/test_Driver</WorkingDir>
     <Files>second,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i</Files>
     <Sequence>FirstMRun,second,FirstMRun,MyAdaptiveROM,MyAdaptiveNoROM</Sequence>
     <batchSize>3</batchSize>
@@ -100,7 +100,7 @@
         <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.i</Input>
         <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.py</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
-        <Sampler type='Samplers' subtype='DynamicEventTree'>testDET</Sampler>
+        <Sampler type = 'Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
         <DataSet type='DataSets' subtype=''            >testDataBase</DataSet>
         <Output  type='DataSets' subtype='HDF5' >testDataBase</Output>
         <Output  type='Datas'    subtype='Histories' >stories</Output>

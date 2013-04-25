@@ -95,7 +95,12 @@ class Simulation:
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       print(element.tag)
-      if   element.tag == 'WorkingDir'        : self.runInfoDict['WorkingDir'        ] = element.text
+      if   element.tag == 'WorkingDir'        : 
+        temp_name = element.text
+        if os.path.isabs(temp_name):          
+          self.runInfoDict['WorkingDir'        ] = element.text
+        else:
+          self.runInfoDict['WorkingDir'        ] = os.path.abspath(element.text)
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text
       elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text
