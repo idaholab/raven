@@ -8,6 +8,7 @@ import time
 import Datas
 from BaseType import BaseType
 import xml.etree.ElementTree as ET
+import os
 
 class Sampler(BaseType):
   ''' 
@@ -17,6 +18,7 @@ class Sampler(BaseType):
     BaseType.__init__(self)
     self.counter = 0
     self.limit   = sys.maxint
+    self.workingDir = ""
     self.toBeSampled = {}  #key=feature to be sampled, value = ['type of distribution to be used', 'name of the distribution']
     self.distDict    = {}  #contain the instance of the distribution to be used, it is created every time the sampler is initialize
   
@@ -95,12 +97,14 @@ class DynamicEventTree(Sampler):
     self.TreeInfo = None    
     self.endInfo = {}
     self.branchCountOnLevel = 0
+    self.workingDir = ""
   def  computeConditionalProbability(self):
     return
   
-  def addEndedBranchInfo(self,parent_name):
+  def addEndedBranchInfo(self,parent_name,model):
     # we read the info at the end of one branch
-    self.__readBranchInfo(self)
+    self.workingDir = model.workingDir
+    self.__readBranchInfo()
     
     # we collect the info in a multi-level dictionary
     self.endInfo = {}
@@ -141,13 +145,15 @@ class DynamicEventTree(Sampler):
     # function for reading Branch Info from xml file
 
     # we remove all the elements from the info container
-    self.actualBranchInfo.clear()
+    del self.actualBranchInfo
+    self.actualBranchInfo = {}
     filename = "actual_branch_info.xml"
-    workingDir = os.getcwd()
+
     if not os.path.isabs(filename):
-      filename = os.path.join(workingDir,filename)
+      filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
-      print('file not found '+filename)    
+      print('branch info file' + filename +' has not been found. => No Branching.')
+      return
     try:
       branch_info_tree = ET.parse(filename)
     except:
@@ -163,14 +169,18 @@ class DynamicEventTree(Sampler):
 
     for node in root:
       if node.tag == "Distribution_trigger":
-        dist_name = node.attrib['name']
+        dist_name = node.attrib['name'].strip()
         self.actualBranchInfo[dist_name] = {}
         for child in node:
-          self.actualBranchInfo[dist_name][child.text]['varType'] = child.attrib['type']
-          self.actualBranchInfo[dist_name][child.text]['actual_value'].append(child.attrib['actual_value'])
-          self.actualBranchInfo[dist_name][child.text]['old_value'] = child.attrib['old_value']
+          self.actualBranchInfo[dist_name][child.text.strip()] = {}
+          self.actualBranchInfo[dist_name][child.text.strip()]['varType'] = child.attrib['type'].strip()
+          self.actualBranchInfo[dist_name][child.text.strip()]['actual_value'] = []
+          self.actualBranchInfo[dist_name][child.text.strip()]['actual_value'].append(child.attrib['actual_value'].strip())
+          self.actualBranchInfo[dist_name][child.text.strip()]['old_value'] = child.attrib['old_value'].strip()
           try:
-            self.actualBranchInfo[dist_name][child.text]['associated_pb'].append(float(child.attrib['pb'])) 
+            as_pb = child.attrib['pb'].strip()
+            self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'] = []
+            self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb)) 
           except:
             pass
       # we exit the loop here, because only one trigger at the time can be handled     

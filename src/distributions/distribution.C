@@ -19,7 +19,7 @@ InputParameters validParams<distribution>(){
    params.addParam< std::vector<double> >("PBwindow", "Probability window");
    params.addParam< std::vector<double> >("Vwindow" , "Value window");
 
-   params.addParam<double>("ProbabilityThreshold" , "Probability Threshold");
+   params.addParam<double>("ProbabilityThreshold", 1.0, "Probability Threshold");
 
    params.addParam<unsigned int>("seed", _defaultSeed ,"RNG seed");
    params.addRequiredParam<std::string>("type","distribution type");

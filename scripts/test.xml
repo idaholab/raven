@@ -78,7 +78,7 @@
     <MonteCarlo     name='RAVENmc50' limit='50'/>
     <LatinHyperCube name='MyLHC'     limit='50' start='10'></LatinHyperCube>
     <EquallySpaced  name='MyES'      limit='50' start='10'></EquallySpaced>
-    <DynamicEventTree name='testDET' limit='80'>
+    <DynamicEventTree name='testDET'>
       <BranchingSettings  CPcut = '1.0E-99'>
         <Variable type='Normal' distName='auxBackUpTimeDist' BranchProbs='0.05 0.20 0.5 0.75'>auxBackUpTimeDist</Variable>
         <Variable type='Triangular' distName='CladFailureDist' BranchProbs='0.05 0.20 0.5 0.75'>CladFailureDist</Variable>

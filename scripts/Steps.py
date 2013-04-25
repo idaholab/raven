@@ -84,6 +84,10 @@ class Step(BaseType):
         #job in the list finished event
         if runningList[i].isDone():                                                                  #if the job is done
           finisishedjob = runningList.pop(i)                                                         #remove it from the list
+          if 'Sampler' in inDictionary.keys():
+            if inDictionary['Sampler'].type == 'DynamicEventTree':
+              inDictionary['Sampler'].addEndedBranchInfo(finisishedjob.identifier,inDictionary['Model'])
+              
           for output in inDictionary['Output']:                                                      #for all expected outputs
               inDictionary['Model'].collectOutput(finisishedjob,output)                                #the model is tasket to provide the needed info to harvest the output
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run

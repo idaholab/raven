@@ -34,7 +34,7 @@ class RavenInterface:
     modifDict = self.samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
-    currentInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+os.path.split(temp)[1])
+    currentInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1])
     parser.printInput(currentInputFiles[index])
     return currentInputFiles
 

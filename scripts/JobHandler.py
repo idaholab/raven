@@ -13,8 +13,11 @@ import copy
 class ExternalRunner:
   def __init__(self,command,workingDir,output=None):
     self.command    = command
-    if    output!=None: self.output = output
-    else: os.path.join(workingDir,'generalOut')
+    if    output!=None: 
+      self.output = output
+      self.identifier =  str(output).split("~")[1]
+    else: 
+      os.path.join(workingDir,'generalOut')
     self.workingDir = workingDir
     self.start()
     
