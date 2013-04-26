@@ -54,9 +54,9 @@ class Step(BaseType):
       inDictionary['Tester'].reset()
       if 'ROM' in inDictionary.keys():
         inDictionary['Tester'].getROM(inDictionary['ROM'])     #make aware the tester (if present) of the presence of a ROM
-        if self.debug: print('the tester '+inDictionary['Tester'].name+' have been target on the ROM '+inDictionary['ROM'].name)
+        if self.debug: print('the tester '+ inDictionary['Tester'].name +' have been target on the ROM ' + self.inDictionary['ROM'].name)
       inDictionary['Tester'].getOutput(inDictionary['Output'])                                #initialize the output with the tester
-      if self.debug: print('the tester '+inDictionary['Tester'].name+' have been initialized on the output '+inDictionary['Output'])
+      if self.debug: print('the tester '+inDictionary['Tester'].name+' have been initialized on the output '+self.inDictionary['Output'])
     
     jobHandler = inDictionary['jobHandler']
     if 'Sampler' in inDictionary.keys():
@@ -75,13 +75,11 @@ class Step(BaseType):
     #since now the list is full up to the limit (batch size number)
     while True:
       finishedJobs = jobHandler.getFinished()
-      for finisishedjob in finishedJobs:
+      for finishedJob in finishedJobs:
         if 'Sampler' in inDictionary.keys():
-          if inDictionary['Sampler'].type == 'DynamicEventTree':
-            inDictionary['Sampler'].addEndedBranchInfo(finisishedjob.identifier,inDictionary['Model'])
-
+          inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
         for output in inDictionary['Output']:                                                      #for all expected outputs
-            inDictionary['Model'].collectOutput(finisishedjob,output)                                #the model is tasket to provide the needed info to harvest the output
+            inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
         if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
         #the harvesting process is done moving forward with the convergence checks
         if 'Tester' in inDictionary.keys():
@@ -90,7 +88,9 @@ class Step(BaseType):
           else:
             converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
         if not converged:
-          if jobHandler.getNumSubmitted() < int(self.maxNumberIteration):
+#          if int(submittedCounter) < int(self.maxNumberIteration):
+          if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and 
+             inDictionary['Sampler'].amIreadyToProvideAnInput():
             newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
             inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
         elif converged:
