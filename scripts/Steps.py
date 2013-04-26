@@ -5,8 +5,6 @@ Created on Feb 21, 2013
 '''
 import xml.etree.ElementTree as ET
 import time
-import os
-import copy
 from BaseType import BaseType
 
 class Step(BaseType):
@@ -56,12 +54,11 @@ class Step(BaseType):
       inDictionary['Tester'].reset()
       if 'ROM' in inDictionary.keys():
         inDictionary['Tester'].getROM(inDictionary['ROM'])     #make aware the tester (if present) of the presence of a ROM
-        if self.debug: print('the tester '+self.inDictionary['Tester'].name+' have been target on the ROM '+self.inDictionary['ROM'].name)
+        if self.debug: print('the tester '+inDictionary['Tester'].name+' have been target on the ROM '+inDictionary['ROM'].name)
       inDictionary['Tester'].getOutput(inDictionary['Output'])                                #initialize the output with the tester
-      if self.debug: print('the tester '+self.inDictionary['Tester'].name+' have been initialized on the output '+self.inDictionary['Output'])
+      if self.debug: print('the tester '+inDictionary['Tester'].name+' have been initialized on the output '+inDictionary['Output'])
     
-    runningList =[]
-    submittedCounter = 0                               #we initialize a counter to be safe
+    jobHandler = inDictionary['jobHandler']
     if 'Sampler' in inDictionary.keys():
       if inDictionary['Sampler'].type == 'DynamicEventTree':
         n_init_run = 1
@@ -70,46 +67,36 @@ class Step(BaseType):
       inDictionary['Sampler'].initialize()              #if a sampler is use it gets initialized
       for i in range(n_init_run):
         newInput = inDictionary['Sampler'].generateInput(inDictionary["Model"],inDictionary['Input'])
-        runningList.append(inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler']))
-        submittedCounter += 1
+        inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
     else:
-      runningList.append(inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler']))
-      submittedCounter += 1
+      inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler'])
     converged = False
 
     #since now the list is full up to the limit (batch size number)
-    while len(runningList)>0:
-      i=0
-      while i <=len(runningList)-1:                                                                  #check on all the job in list
-        #job in the list finished event
-        if runningList[i].isDone():                                                                  #if the job is done
-          finisishedjob = runningList.pop(i)                                                         #remove it from the list
-          if 'Sampler' in inDictionary.keys():
-            if inDictionary['Sampler'].type == 'DynamicEventTree':
-              inDictionary['Sampler'].addEndedBranchInfo(finisishedjob.identifier,inDictionary['Model'])
-              
-          for output in inDictionary['Output']:                                                      #for all expected outputs
-              inDictionary['Model'].collectOutput(finisishedjob,output)                                #the model is tasket to provide the needed info to harvest the output
-          if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-          #the harvesting process is done moving forward with the convergence checks
-          if 'Tester' in inDictionary.keys():
-            if 'ROM' in inDictionary.keys():
-              converged = inDictionary['Tester'].testROM(inDictionary['ROM'])                           #the check is performed on the information content of the ROM
-            else:
-              converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
-          if not converged:
-            if int(submittedCounter) < int(self.maxNumberIteration):
-              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-              runningList.append(inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler']))
-              submittedCounter = inDictionary['Sampler'].counter
-          elif converged:
-            j=0
-            while j <=len(runningList)-1:
-              runningList[j].kill()
-              runningList.pop(j)
-              j+=1
-            break
-        i+=1
+    while True:
+      for finisishedjob in jobHandler.getFinished():
+        if 'Sampler' in inDictionary.keys():
+          if inDictionary['Sampler'].type == 'DynamicEventTree':
+            inDictionary['Sampler'].addEndedBranchInfo(finisishedjob.identifier,inDictionary['Model'])
+
+        for output in inDictionary['Output']:                                                      #for all expected outputs
+            inDictionary['Model'].collectOutput(finisishedjob,output)                                #the model is tasket to provide the needed info to harvest the output
+        if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
+        #the harvesting process is done moving forward with the convergence checks
+        if 'Tester' in inDictionary.keys():
+          if 'ROM' in inDictionary.keys():
+            converged = inDictionary['Tester'].testROM(inDictionary['ROM'])                           #the check is performed on the information content of the ROM
+          else:
+            converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
+        if not converged:
+          if jobHandler.getNumSubmitted() < int(self.maxNumberIteration):
+            newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+            inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
+        elif converged:
+          jobHandler.terminateAll()
+          break
+      if jobHandler.isFinished():
+        break
       time.sleep(0.3)
     for output in inDictionary['Output']:
       output.finalize()

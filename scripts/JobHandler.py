@@ -6,9 +6,6 @@ Created on Mar 5, 2013
 import Queue as queue
 import subprocess
 import os
-import time
-import Datas
-import copy
 import signal
 
 class ExternalRunner:
@@ -20,7 +17,6 @@ class ExternalRunner:
     else: 
       os.path.join(workingDir,'generalOut')
     self.workingDir = workingDir
-    self.start()
     
   def isDone(self):
     self.process.poll()
@@ -54,6 +50,10 @@ class JobHandler:
     self.submitDict['Internal'] = self.addInternal
     self.externalRunning        = []
     self.internalRunning        = []
+    self.running = []
+    self.queue = queue.Queue()
+    self.next_id = 0
+    self.num_submitted = 0
     
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
@@ -62,6 +62,7 @@ class JobHandler:
     if self.runInfoDict['ThreadingProcessor'] !=1:
       self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+self.runInfoDict['ThreadingProcessor']
     #initialize PBS
+    self.running = [None]*self.runInfoDict['batchSize']
 
   def addExternal(self,executeCommand,outputFile,workingDir):
     #probably something more for the PBS
@@ -71,11 +72,50 @@ class JobHandler:
     if self.threadingCommand !='':
       command +=self.threadingCommand+' '
     command += executeCommand
-    return ExternalRunner(command,workingDir,outputFile)
+    self.queue.put(ExternalRunner(command,workingDir,outputFile))
+    self.num_submitted += 1
+
+  def isFinished(self):
+    if not self.queue.empty():
+      return False
+    for i in range(len(self.running)):
+      if self.running[i] and not self.running[i].isDone():
+        return False
+    return True
+
+  def getFinished(self):
+    #print("getFinished "+str(self.running)+" "+str(self.queue.qsize()))
+    finished = []
+    for i in range(len(self.running)):
+      if self.running[i] and self.running[i].isDone():
+        finished.append(self.running[i])
+        self.running[i] = None
+    if self.queue.empty():
+      return finished
+    for i in range(len(self.running)):
+      if self.running[i] == None and not self.queue.empty(): 
+        item = self.queue.get()          
+        command = item.command
+        command = command.replace("%INDEX%",str(i))
+        command = command.replace("%INDEX1%",str(i+1))
+        command = command.replace("%CURRENT_ID%",str(self.next_id))
+        self.running[i] = item
+        self.running[i].start()
+        self.next_id += 1
+
+    return finished
+
+  def getNumSubmitted(self):
+    return self.num_submitted
 
   def addInternal(self):
     return
-
-
+  
+  def terminateAll(self):
+    #clear out the queue
+    while not self.queue.empty():
+      self.queue.get()
+    for i in range(len(self.running)):
+      self.running[i].kill()
 
 
