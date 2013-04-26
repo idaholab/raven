@@ -9,6 +9,7 @@ import os
 import time
 import Datas
 import copy
+import signal
 
 class ExternalRunner:
   def __init__(self,command,workingDir,output=None):
@@ -39,7 +40,7 @@ class ExternalRunner:
   
   def kill(self):
     #In python 2.6 this could be self.process.terminate()
-    print "Terminating ",self.process.pid,self.args
+    print "Terminating ",self.process.pid,self.command
     os.kill(self.process.pid,signal.SIGTERM)    
 
 class JobHandler:
