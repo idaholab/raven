@@ -74,7 +74,8 @@ class Step(BaseType):
 
     #since now the list is full up to the limit (batch size number)
     while True:
-      for finisishedjob in jobHandler.getFinished():
+      finishedJobs = jobHandler.getFinished()
+      for finisishedjob in finishedJobs:
         if 'Sampler' in inDictionary.keys():
           if inDictionary['Sampler'].type == 'DynamicEventTree':
             inDictionary['Sampler'].addEndedBranchInfo(finisishedjob.identifier,inDictionary['Model'])
@@ -95,7 +96,7 @@ class Step(BaseType):
         elif converged:
           jobHandler.terminateAll()
           break
-      if jobHandler.isFinished():
+      if jobHandler.isFinished() and len(finishedJobs) == 0:
         break
       time.sleep(0.3)
     for output in inDictionary['Output']:
