@@ -36,7 +36,12 @@ class ExternalRunner:
     outFile = open(self.output,'w')
     self.process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.workingDir,env=localenv)
     os.chdir(oldDir)
-    
+  
+  def kill(self):
+    #In python 2.6 this could be self.process.terminate()
+    print "Terminating ",self.process.pid,self.args
+    os.kill(self.process.pid,signal.SIGTERM)    
+
 class JobHandler:
   def __init__(self):
     self.runInfoDict       = {}

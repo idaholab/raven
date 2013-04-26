@@ -105,7 +105,7 @@ class Step(BaseType):
           elif converged:
             j=0
             while j <=len(runningList)-1:
-              runningList[j].kill
+              runningList[j].kill()
               runningList.pop(j)
               j+=1
             break
