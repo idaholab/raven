@@ -54,9 +54,9 @@ class Step(BaseType):
       inDictionary['Tester'].reset()
       if 'ROM' in inDictionary.keys():
         inDictionary['Tester'].getROM(inDictionary['ROM'])     #make aware the tester (if present) of the presence of a ROM
-        if self.debug: print('the tester '+ inDictionary['Tester'].name +' have been target on the ROM ' + self.inDictionary['ROM'].name)
+        if self.debug: print('the tester '+ inDictionary['Tester'].name +' have been target on the ROM ' + inDictionary['ROM'].name)
       inDictionary['Tester'].getOutput(inDictionary['Output'])                                #initialize the output with the tester
-      if self.debug: print('the tester '+inDictionary['Tester'].name+' have been initialized on the output '+self.inDictionary['Output'])
+      if self.debug: print('the tester '+inDictionary['Tester'].name+' have been initialized on the output '+ inDictionary['Output'])
     
     jobHandler = inDictionary['jobHandler']
     if 'Sampler' in inDictionary.keys():
