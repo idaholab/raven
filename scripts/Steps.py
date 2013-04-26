@@ -89,8 +89,7 @@ class Step(BaseType):
             converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
         if not converged:
 #          if int(submittedCounter) < int(self.maxNumberIteration):
-          if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and 
-             inDictionary['Sampler'].amIreadyToProvideAnInput():
+          if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
             newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
             inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
         elif converged:
