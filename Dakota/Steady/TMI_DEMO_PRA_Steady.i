@@ -816,18 +816,6 @@
     data_type = double
     component_name = CH1
   [../]
-  [./avg_temp_fuel_CH2]
-    operator = ElementAverageValue
-    path = FUEL:TEMPERATURE
-    data_type = double
-    component_name = CH2
-  [../]
-  [./avg_temp_fuel_CH3]
-    operator = ElementAverageValue
-    path = FUEL:TEMPERATURE
-    data_type = double
-    component_name = CH3
-  [../]
   [./sec_inlet_velocity]
     operator = ElementAverageValue
     path = VELOCITY
