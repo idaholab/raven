@@ -6,13 +6,17 @@ Created on Feb 20, 2013
 import xml.etree.ElementTree as ET
 import os
 from Simulation import Simulation
+import sys
 
 debug = True
 
 if __name__ == '__main__':
   #open the XML
   try:
-    inputFile = 'test.xml' #sys.argv[1]
+    if len(sys.argv) == 1:
+      inputFile = 'test.xml' 
+    else:
+      inputFile = sys.argv[1]
   except:
     raise IOError ('input file not provided')
   workingDir = os.getcwd()
@@ -31,3 +35,4 @@ if __name__ == '__main__':
   simulation = Simulation(inputFile)
   simulation.XMLread(root)
   simulation.run()
+
