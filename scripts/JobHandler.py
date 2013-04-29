@@ -83,6 +83,18 @@ class JobHandler:
         return False
     return True
 
+  def howManyFreeSpots(self):
+    cnt_free_spots = 0
+    if self.queue.empty():
+      for i in range(len(self.running)):
+        if self.running[i]:
+          if self.running[i].isDone():
+            cnt_free_spots += 1
+        else:
+          cnt_free_spots += 1
+    return cnt_free_spots
+    
+
   def getFinished(self):
     #print("getFinished "+str(self.running)+" "+str(self.queue.qsize()))
     finished = []
@@ -90,6 +102,28 @@ class JobHandler:
       if self.running[i] and self.running[i].isDone():
         finished.append(self.running[i])
         self.running[i] = None
+    if self.queue.empty():
+      return finished
+    for i in range(len(self.running)):
+      if self.running[i] == None and not self.queue.empty(): 
+        item = self.queue.get()          
+        command = item.command
+        command = command.replace("%INDEX%",str(i))
+        command = command.replace("%INDEX1%",str(i+1))
+        command = command.replace("%CURRENT_ID%",str(self.next_id))
+        self.running[i] = item
+        self.running[i].start()
+        self.next_id += 1
+
+    return finished
+
+  def getFinishedNoPop(self):
+    #print("getFinished "+str(self.running)+" "+str(self.queue.qsize()))
+    finished = []
+    for i in range(len(self.running)):
+      if self.running[i] and self.running[i].isDone():
+        finished.append(self.running[i])
+        #self.running[i] = None
     if self.queue.empty():
       return finished
     for i in range(len(self.running)):

@@ -72,18 +72,8 @@ class HDF5(DateSet):
       return tempDict
     
     def addGroup(self,attributes,loadFrom):
-      if(self.subtype == "MC"):
-        if(loadFrom['type'] == 'csv'):
-          # We extrapolate the group name from the file name 
-          stringSplit = loadFrom['name'].split("/")
-          stringSplit = stringSplit[len(stringSplit)-1].split(".csv")
-          group_name = stringSplit[0]
-          #group_name = loadFrom['name'].split(",")[0]
-          attributes["group"] = group_name
-        else:
-          # TODO add other methods to retrieve the info needed to construct the HDF5 database
-          pass
-      else:
+      attributes["group"] = attributes['prefix']
+      if(self.subtype != "MC" or self.subtype != "DET"):
         print("type " + str(self.subtype) + "not implemented yet")
         return
 

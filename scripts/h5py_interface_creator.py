@@ -83,8 +83,8 @@ class hdf5Database:
         dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
         
         grp.attrs["headers"]    = headers
-        grp.attrs["n_params"]    = data[0,:].size
-        grp.attrs["parent"]     = "root"
+        grp.attrs["n_params"]   = data[0,:].size
+        grp.attrs["parent_id"]  = "root"
         grp.attrs["start_time"] = data[0,0]
         grp.attrs["end_time"]   = data[data[:,0].size-1,0]
         grp.attrs["n_ts"]       = data[:,0].size
@@ -98,16 +98,40 @@ class hdf5Database:
           grp.attrs["source_file"] = source['name']
 
         try:
-          # parameter that caused the branching
-          grp.attrs["branch_param"] = attributes["branch_param"]
+          # parameter that has been changed 
+          grp.attrs["branch_changed_param"] = attributes["branch_changed_param"]
         except:
           # no branching information
           pass
+        try:
+          # parameter that caused the branching
+          grp.attrs["branch_changed_param_value"] = attributes["branch_changed_param_value"]
+        except:
+          # no branching information
+          pass        
         try:
           grp.attrs["conditional_prb"] = attributes["conditional_prb"]
         except:
           # no branching information => i.e. MonteCarlo data
           pass
+        try:
+          # initiator distribution
+          grp.attrs["initiator_distribution"] = attributes["initiator_distribution"]
+        except:
+          # no branching information
+          pass        
+        try:
+          # initiator distribution
+          grp.attrs["Probability_threshold"] = attributes["PbThreshold"]
+        except:
+          # no branching information
+          pass
+        try:
+          # initiator distribution
+          grp.attrs["end_timestep"] = attributes["end_ts"]
+        except:
+          # no branching information
+          pass        
       else:
         # do something else
         pass
@@ -127,9 +151,9 @@ class hdf5Database:
         # in this case append a subgroup to the parent group
         # otherwise => it's the main group
         try:
-          parent_group_name = attributes["parent"]
+          parent_group_name = attributes["parent_id"]
         except:
-          raise IOError ("NOT FOUND attribute <parent> into <attributes> dictionary")
+          raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
         # check if the parent exists... in that case... retrieve it and add the new sub group
         if parent_group_name in self.h5_file_w:
           grp = self.h5_file_w.require_group(parent_group_name)
@@ -157,16 +181,40 @@ class hdf5Database:
           sgrp.attrs["source_file"] = source['name']
 
         try:
-          # parameter that caused the branching
-          sgrp.attrs["branch_param"] = attributes["branch_param"]
+          # parameter that has been changed 
+          grp.attrs["branch_changed_param"] = attributes["branch_changed_param"]
         except:
           # no branching information
           pass
         try:
-          sgrp.attrs["conditional_prb"] = attributes["conditional_prb"]
+          # parameter that caused the branching
+          grp.attrs["branch_changed_param_value"] = attributes["branch_changed_param_value"]
+        except:
+          # no branching information
+          pass        
+        try:
+          grp.attrs["conditional_prb"] = attributes["conditional_prb"]
         except:
           # no branching information => i.e. MonteCarlo data
           pass
+        try:
+          # initiator distribution
+          grp.attrs["initiator_distribution"] = attributes["initiator_distribution"]
+        except:
+          # no branching information
+          pass        
+        try:
+          # initiator distribution
+          grp.attrs["Probability_threshold"] = attributes["PbThreshold"]
+        except:
+          # no branching information
+          pass
+        try:
+          # initiator distribution
+          grp.attrs["end_timestep"] = attributes["end_ts"]
+        except:
+          # no branching information
+          pass        
       else:
         # do something else
         pass
@@ -293,7 +341,7 @@ class hdf5Database:
           
           attrs["headers"]         = gb_attrs[0]["headers"].tolist()
           attrs["n_params"]        = gb_attrs[0]["n_params"]       
-          attrs["parent"]          = where_list[0]
+          attrs["parent_id"]       = where_list[0]
           attrs["start_time"]      = result[0,0]
           attrs["end_time"]        = result[result[:,0].size-1,0]
           attrs["n_ts"]            = result[:,0].size
@@ -301,19 +349,38 @@ class hdf5Database:
           attrs["input_file"]      = []
           attrs["source_file"]     = []
           try:
-            par = gb_attrs[0]["branch_param"]
-            attrs["branch_param"]    = []
+            par = gb_attrs[0]["branch_changed_param"]
+            attrs["branch_changed_param"]    = []
             attrs["conditional_prb"] = []
           except:
             pass
-          
+          try:
+            par2 = gb_attrs[0]["branch_changed_param_value"]
+            attrs["branch_changed_param_value"]    = []
+          except:
+            pass
+          try:
+            par3 = gb_attrs[0]["initiator_distribution"]
+            attrs["initiator_distribution"]    = []
+          except:
+            pass
+          try:
+            par4 = gb_attrs[0]["Probability_threshold"]
+            attrs["Probability_threshold"]    = []
+          except:
+            pass
+          try:
+            par5 = gb_attrs[0]["end_timestep"]
+            attrs["end_timestep"]    = []
+          except:
+            pass                    
           for key in gb_res:
             attrs["input_file"].append(gb_attrs[key]["input_file"])
             if attrs["source_type"] == 'csv':
               attrs["source_file"].append(gb_attrs[key]["source_file"])
             try:
               # parameter that caused the branching
-              attrs["branch_param"].append(gb_attrs[key]["branch_param"])
+              attrs["branch_changed_param"].append(gb_attrs[key]["branch_changed_param"])
             except:
               # no branching information
               pass
@@ -322,6 +389,26 @@ class hdf5Database:
             except:
               # no branching information => i.e. MonteCarlo data
               pass            
+            try:
+              attrs["branch_changed_param_value"].append(gb_attrs[key]["branch_changed_param_value"])
+            except:
+              # no branching information => i.e. MonteCarlo data
+              pass                        
+            try:
+              attrs["initiator_distribution"].append(gb_attrs[key]["initiator_distribution"])
+            except:
+              # no branching information => i.e. MonteCarlo data
+              pass                                    
+            try:
+              attrs["Probability_threshold"].append(gb_attrs[key]["Probability_threshold"])
+            except:
+              # no branching information => i.e. MonteCarlo data
+              pass                                                
+            try:
+              attrs["end_timestep"].append(gb_attrs[key]["end_timestep"])
+            except:
+              # no branching information => i.e. MonteCarlo data
+              pass                                                            
         else:
           if is_number(filter):
             back = int(filter) + 1
@@ -383,9 +470,29 @@ class hdf5Database:
             attrs["input_file"]      = []
             attrs["source_file"]     = []
             try:
-              par = gb_attrs[0]["branch_param"]
-              attrs["branch_param"]    = []
+              par = gb_attrs[0]["branch_changed_param"]
+              attrs["branch_changed_param"]    = []
               attrs["conditional_prb"] = []
+            except:
+              pass
+            try:
+              par2 = gb_attrs[0]["branch_changed_param_value"]
+              attrs["branch_changed_param_value"]    = []
+            except:
+              pass
+            try:
+              par3 = gb_attrs[0]["initiator_distribution"]
+              attrs["initiator_distribution"]    = []
+            except:
+              pass
+            try:
+              par4 = gb_attrs[0]["Probability_threshold"]
+              attrs["Probability_threshold"]    = []
+            except:
+              pass
+            try:
+              par5 = gb_attrs[0]["end_timestep"]
+              attrs["end_timestep"]    = []
             except:
               pass
             
@@ -395,7 +502,7 @@ class hdf5Database:
                 attrs["source_file"].append(gb_attrs[key]["source_file"])
               try:
                 # parameter that caused the branching
-                attrs["branch_param"].append(gb_attrs[key]["branch_param"])
+                attrs["branch_changed_param"].append(gb_attrs[key]["branch_changed_param"])
               except:
                 # no branching information
                 pass
@@ -404,7 +511,26 @@ class hdf5Database:
               except:
                 # no branching information => i.e. MonteCarlo data
                 pass            
-              
+              try:
+                attrs["branch_changed_param_value"].append(gb_attrs[key]["branch_changed_param_value"])
+              except:
+                # no branching information => i.e. MonteCarlo data
+                pass                        
+              try:
+                attrs["initiator_distribution"].append(gb_attrs[key]["initiator_distribution"])
+              except:
+                # no branching information => i.e. MonteCarlo data
+                pass                                    
+              try:
+                attrs["Probability_threshold"].append(gb_attrs[key]["Probability_threshold"])
+              except:
+                # no branching information => i.e. MonteCarlo data
+                pass                                                
+              try:
+                attrs["end_timestep"].append(gb_attrs[key]["end_timestep"])
+              except:
+                # no branching information => i.e. MonteCarlo data
+                pass                                                                          
           else:
             # ERR
             raise("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 

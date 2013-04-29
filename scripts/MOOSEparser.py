@@ -72,7 +72,10 @@ class MOOSEparser:
         else:
           child.attrib.update(modiDictionaryList[i])
       else:
-        ET.SubElement(returnElement,name[0], modiDictionaryList[i])
+        ET.SubElement(returnElement,name[0])
+        if len(name) > 1:
+          child = returnElement.find(name[0])
+          ET.SubElement(child,name[1],modiDictionaryList[i])
       if save: return returnElement
 
 

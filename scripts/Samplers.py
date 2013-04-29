@@ -10,6 +10,7 @@ from BaseType import BaseType
 import xml.etree.ElementTree as ET
 import os
 import Queue
+import copy
 
 class Sampler(BaseType):
   ''' 
@@ -110,10 +111,10 @@ class DynamicEventTree(Sampler):
     # this dictionary contains the inputs(i.e. the info to create them) are waiting to be run
     self.RunQueue                = {}
     self.RunQueue['identifiers'] = []
-    self.RunQueue['queue'      ] = Queue.Queue()
+    self.RunQueue['queue'      ] = []
 
   def amIreadyToProvideAnInput(self):
-    if(not self.RunQueue['queue'].empty()):
+    if(len(self.RunQueue['queue']) != 0):
       return True
     else:
       return False
@@ -220,26 +221,24 @@ class DynamicEventTree(Sampler):
   
   def __createRunningQueue(self,model,myInput):
     
-    self.counter += 1
-    if self.counter > 1:
+    if self.counter >= 1:
       endInfo = self.endInfo.pop(0)
       for i in xrange(endInfo['n_branches']):
+        self.counter += 1
         self.branchCountOnLevel += 1
         rname = endInfo['parent_node'].get('name') + ',' + str(self.branchCountOnLevel)
         subGroup = ET.Element(rname)
         subGroup.set('parent', endInfo['parent_node'].get('name'))
         subGroup.set('name', rname)
-        cnt = 1
+
         for key in endInfo['branch_changed_params'].keys():
-          if(cnt == self.branchCountOnLevel):
-            subGroup.set('branch_changed_param',key)
-            if self.branchCountOnLevel != 1:
-              subGroup.set('branch_changed_param_value',endInfo['branch_changed_params'][key]['actual_value'][cnt-1])
-              subGroup.set('branch_changed_param_pb',endInfo['branch_changed_params'][key]['associated_pb'][cnt-1])
-            else:
-              subGroup.set('branch_changed_param_value',endInfo['branch_changed_params'][key]['old_value'])
-              subGroup.set('branch_changed_param_pb',endInfo['branch_changed_params'][key]['unchanged_pb'])            
-          cnt += 1
+          subGroup.set('branch_changed_param',key)
+          if self.branchCountOnLevel != 1:
+            subGroup.set('branch_changed_param_value',endInfo['branch_changed_params'][key]['actual_value'][self.branchCountOnLevel-2])
+            subGroup.set('branch_changed_param_pb',endInfo['branch_changed_params'][key]['associated_pb'][self.branchCountOnLevel-2])
+          else:
+            subGroup.set('branch_changed_param_value',endInfo['branch_changed_params'][key]['old_value'])
+            subGroup.set('branch_changed_param_pb',endInfo['branch_changed_params'][key]['unchanged_pb'])            
         
         subGroup.set('initiator_distribution',endInfo['branch_dist']) 
         subGroup.set('start_time', endInfo['parent_node'].get('end_time'))
@@ -256,8 +255,13 @@ class DynamicEventTree(Sampler):
                   'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
                   'initiator_distribution':[endInfo['branch_dist']],
                   'start_time':endInfo['parent_node'].get('end_time'),
+                  'parent_id':subGroup.get('parent'),
                   'PbThreshold':[self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]}
+        self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**values)))
+        self.RunQueue['identifiers'].append(values['prefix'])
+        del values
     else:
+      self.counter += 1
       rname = self.TreeInfo.getroot().tag 
       values = {'prefix':rname}
       values['initiator_distribution'] = []
@@ -266,24 +270,24 @@ class DynamicEventTree(Sampler):
         values['initiator_distribution'].append(key)
       for key in self.branchProbabilities.keys():  
         values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
-     
-    if(self.maxSimulTime):
-      values['end_time'] = self.maxSimulTime    
-    self.RunQueue['queue'].put_nowait(model.createNewInput(myInput,self.type,**values))
-    self.RunQueue['identifiers'].append(values['prefix'])
-    del values
+      if(self.maxSimulTime): values['end_time'] = self.maxSimulTime
+      newInputs = model.createNewInput(myInput,self.type,**values)
+      self.RunQueue['queue'].append(newInputs)
+      self.RunQueue['identifiers'].append(values['prefix'])
+      del values
+      del newInputs
       
     return  
   
   def __getQueueElement(self):
-    if self.RunQueue['queue'].empty():
+    if len(self.RunQueue['queue']) == 0:
       # there are no more runs must be run
       # we set the self.limit == self.counter
       # => the simulation ends
       self.limit = self.counter
       return None
     else:
-      jobInput = self.RunQueue['queue'].get_nowait()
+      jobInput = self.RunQueue['queue'].pop(0)
       id       = self.RunQueue['identifiers'].pop(0)
       #set running flags in self.TreeInfo
       root = self.TreeInfo.getroot()

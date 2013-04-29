@@ -4,6 +4,7 @@ Created on Feb 19, 2013
 @author: crisr
 '''
 import os
+import copy
 import shutil
 import Datas
 from BaseType import BaseType
@@ -72,7 +73,10 @@ class RavenInterface:
         n_zeros = 4 - len(end_ts_str)
         for i in xrange(n_zeros):
           end_ts_str = "0" + end_ts_str
-      restart_file_base = Kwargs['outfile'] + "_restart_" + end_ts_str      
+      
+      splitted = Kwargs['outfile'].split('~')
+      output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[2]
+      restart_file_base = output_parent + "_restart_" + end_ts_str      
       modifDict['name'] = ['Executioner']
       modifDict['restart_file_base'] = restart_file_base
       listDict.append(modifDict)
@@ -164,6 +168,7 @@ class Code(Model):
     self.workingDir         = ''
     self.outFileRoot        = ''
     self.currentInputFiles  = []
+    self.infoForOut         = {}
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
     try: self.executable = os.path.abspath(xmlNode.text)
@@ -195,6 +200,8 @@ class Code(Model):
     if currentInput[0].endswith('.i'): index = 0
     else: index = 1
     Kwargs['outfile'] = 'outFrom~'+os.path.split(currentInput[index])[1].split('.')[0]
+    
+    self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
   def run(self,inputFiles,outputDatas,jobHandler):
     '''return an instance of external runner'''
@@ -220,6 +227,11 @@ class Code(Model):
     attributes["input_file"] = self.currentInputFiles
     attributes["type"] = "csv"
     attributes["name"] = os.path.join(self.workingDir,finisishedjob.output+'.csv')
+    if self.infoForOut.has_key(finisishedjob.identifier):
+      infoForOut = self.infoForOut.pop(finisishedjob.identifier)
+      for key in infoForOut:
+        attributes[key] = infoForOut[key]
+
     dataset.addGroup(attributes,attributes)
       
 class ROM(Model):

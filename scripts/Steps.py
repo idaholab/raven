@@ -89,13 +89,14 @@ class Step(BaseType):
             converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
         if not converged:
 #          if int(submittedCounter) < int(self.maxNumberIteration):
-          if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
-            newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-            inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
+          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+            if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
+              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+              inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
         elif converged:
           jobHandler.terminateAll()
           break
-      if jobHandler.isFinished() and len(finishedJobs) == 0:
+      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(0.3)
     for output in inDictionary['Output']:
