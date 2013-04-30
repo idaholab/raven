@@ -48,12 +48,12 @@ class RavenExodiff(Exodiff):
         
     def checkRunnable(self, options):
         if self.specs['requires_python3'] and not RavenExodiff.has_python3:
-            return (False, 'No python3 found')
+            return (False, 'skipped (No python3 found)')
         if self.specs['requires_swig2'] and not RavenExodiff.has_swig2:
-            return (False, 'No swig 2.0 found')
+            return (False, 'skipped (No swig 2.0 found)')
         if self.specs['requires_python2'] and not RavenExodiff.has_python2:
-            return (False, 'No python2 found')
+            return (False, 'skipped (No python2 found)')
         if self.specs['requires_python_config'] and \
                 not RavenExodiff.has_python_config:
-            return (False, 'No python-config found')
+            return (False, 'skipped (No python-config found)')
         return (True, '')
