@@ -74,7 +74,7 @@ class HDF5(DateSet):
     def addGroup(self,attributes,loadFrom):
       attributes["group"] = attributes['prefix']
       if(self.subtype != "MC" or self.subtype != "DET"):
-        print("type " + str(self.subtype) + "not implemented yet")
+        print("type " + str(self.subtype) + " not implemented yet")
         return
 
       self.dataset.addGroup(group_name,attributes,loadFrom)

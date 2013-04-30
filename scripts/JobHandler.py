@@ -95,13 +95,14 @@ class JobHandler:
     return cnt_free_spots
     
 
-  def getFinished(self):
+  def getFinished(self, removeFinished=True):
     #print("getFinished "+str(self.running)+" "+str(self.queue.qsize()))
     finished = []
     for i in range(len(self.running)):
       if self.running[i] and self.running[i].isDone():
         finished.append(self.running[i])
-        self.running[i] = None
+        if removeFinished:
+          self.running[i] = None
     if self.queue.empty():
       return finished
     for i in range(len(self.running)):
@@ -111,6 +112,8 @@ class JobHandler:
         command = command.replace("%INDEX%",str(i))
         command = command.replace("%INDEX1%",str(i+1))
         command = command.replace("%CURRENT_ID%",str(self.next_id))
+        command = command.replace("%CURRENT_ID1%",str(self.next_id+1))
+        item.command = command
         self.running[i] = item
         self.running[i].start()
         self.next_id += 1
@@ -118,26 +121,7 @@ class JobHandler:
     return finished
 
   def getFinishedNoPop(self):
-    #print("getFinished "+str(self.running)+" "+str(self.queue.qsize()))
-    finished = []
-    for i in range(len(self.running)):
-      if self.running[i] and self.running[i].isDone():
-        finished.append(self.running[i])
-        #self.running[i] = None
-    if self.queue.empty():
-      return finished
-    for i in range(len(self.running)):
-      if self.running[i] == None and not self.queue.empty(): 
-        item = self.queue.get()          
-        command = item.command
-        command = command.replace("%INDEX%",str(i))
-        command = command.replace("%INDEX1%",str(i+1))
-        command = command.replace("%CURRENT_ID%",str(self.next_id))
-        self.running[i] = item
-        self.running[i].start()
-        self.next_id += 1
-
-    return finished
+    return self.getFinished(False)
 
   def getNumSubmitted(self):
     return self.num_submitted
