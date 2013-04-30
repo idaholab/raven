@@ -113,6 +113,7 @@ class JobHandler:
         command = command.replace("%INDEX1%",str(i+1))
         command = command.replace("%CURRENT_ID%",str(self.next_id))
         command = command.replace("%CURRENT_ID1%",str(self.next_id+1))
+        command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
         item.command = command
         self.running[i] = item
         self.running[i].start()

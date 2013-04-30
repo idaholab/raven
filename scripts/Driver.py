@@ -11,6 +11,7 @@ import sys
 debug = True
 
 if __name__ == '__main__':
+  script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
   #open the XML
   try:
     if len(sys.argv) == 1:
@@ -32,7 +33,7 @@ if __name__ == '__main__':
     raise IOError ('not able to parse ' + inputFile)
   root = tree.getroot()
   #generate all the components of the simulation
-  simulation = Simulation(inputFile)
+  simulation = Simulation(inputFile, script_dir)
   simulation.XMLread(root)
   simulation.run()
 
