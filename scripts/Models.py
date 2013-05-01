@@ -171,7 +171,11 @@ class Code(Model):
     self.infoForOut         = {}
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
-    try: self.executable = os.path.abspath(xmlNode.text)
+    try: 
+      self.executable = xmlNode.text
+      abspath = os.path.abspath(self.executable)
+      if os.path.exists(abspath):
+        self.executable = abspath
     except: raise IOError('not found executable '+xmlNode.text)
     self.interface = returnCodeInterface(self.subType)
   def addInitParams(self,tempDict):
