@@ -169,8 +169,12 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
        distribution * dist = _dist_by_name.find(DistAlias)->second;
        DistributionUpdateVariable(*dist,paramName,newValue);
     }
-    mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+    else{
+       mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+
+    }
 }
+
 
 double
 DistributionContainer::Pdf(char * DistAlias, double x){
