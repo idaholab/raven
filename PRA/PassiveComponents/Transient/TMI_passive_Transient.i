@@ -565,18 +565,18 @@
 [Preconditioning]
   # active = 'FDP_Newton'
   # End preconditioning block
-  active = 'SMP_PJFNK SMP'
-  [./SMP_PJFNK]
-    type = SMP
-    full = true
-    petsc_options = -snes_mf_operator
-    petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
-    petsc_options_value = 'ds             ds'
-  [../]
+  active = 'SMP_PJFNK'
+ [./SMP_PJFNK]
+  type = SMP
+  full = true
+  petsc_options = '-snes_mf_operator'
+  petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
+ petsc_options_value = 'ds             ds'
+ [../] 
   [./SMP]
     type = SMP
     full = true
-    petsc_options = -snes_mf_operator
+    petsc_options = '-snes_mf_operator'
   [../]
   [./FDP_PJFNK]
     # These options **together** cause a zero pivot in this problem, even without SUPG terms.
@@ -586,10 +586,10 @@
     type = FDP
     full = true
     petsc_options = '-snes_mf_operator -pc_factor_shift_nonzero'
-    petsc_options_iname = -mat_fd_type
-    petsc_options_value = ds
-    petsc_options_iname = -mat_fd_type
-    petsc_options_value = ds
+    petsc_options_iname = '-mat_fd_type'
+    petsc_options_value = 'ds'
+    petsc_options_iname = '-mat_fd_type'
+    petsc_options_value = 'ds'
   [../]
   [./FDP_Newton]
     # These options **together** cause a zero pivot in this problem, even without SUPG terms.
@@ -598,19 +598,20 @@
     # petsc_options_value = '1.e-10               ds'
     type = FDP
     full = true
-    petsc_options = -snes
-    petsc_options_iname = -mat_fd_type
-    petsc_options_value = ds
-    petsc_options_iname = -mat_fd_type
-    petsc_options_value = ds
+    petsc_options = '-snes'
+    petsc_options_iname = '-mat_fd_type'
+    petsc_options_value = 'ds'
+    petsc_options_iname = '-mat_fd_type'
+    petsc_options_value = 'ds'
   [../]
 []
+
 
 [Executioner]
   # petsc_options_iname = '-ksp_gmres_restart -pc_type'
   # '300'
   type = RavenExecutioner
-  restart_file_base = TMI_DEMO_PRA_Steady_out_restart_0267
+  # restart_file_base = TMI_DEMO_PRA_Steady_out_restart_0267
   dt = 5e-2
   time_t = '0 1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
   time_dt = '1.e-1  0.1 0.15         0.20       0.25    0.30  0.35      0.40    0.45   0.5   0.6  0.8'
@@ -627,7 +628,8 @@
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
   l_max_its = 100 # Number of linear iterations for each Krylov solve
   start_time = 100.0
-  end_time = 300.0
+  # end_time = 300.0
+  num_steps = 1
   ss_check_tol = 1e-05
   nl_rel_step_tol = 1e-3
   predictor_scale = 0.6
@@ -649,7 +651,7 @@
 
 [Controlled]
   # control logic file name
-  control_logic_input = TMI_test_PRA_trans_MC_control
+  control_logic_input = TMI_passive_MC_control
   [./power_CH1]
     print_csv = true
     property_name = FUEL:power_fraction
