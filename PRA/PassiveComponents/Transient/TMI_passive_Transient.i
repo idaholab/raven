@@ -24,39 +24,40 @@
     T_0 = 564.15 # K
   [../]
 []
- [Materials]
- [./fuel-mat]
- type = SolidMaterialProperties
- k = 3.65
- Cp = 288.734
- rho = 1.032e4
- [../]
- [./gap-mat]
- type = SolidMaterialProperties
- k = 1.084498
- Cp = 1.0
- rho = 1.
- [../]
- [./clad-mat]
- type = SolidMaterialProperties
- k = 16.48672
- Cp = 321.384
- rho = 6.55e3
- [../]
- [./wall-mat]
- type = SolidMaterialProperties
- k = 10.0
- rho = 8000.0
- Cp = 400.0
- [../]
- []
+
+[Materials]
+  [./fuel-mat]
+    type = SolidMaterialProperties
+    k = 3.65
+    Cp = 288.734
+    rho = 1.032e4
+  [../]
+  [./gap-mat]
+    type = SolidMaterialProperties
+    k = 1.084498
+    Cp = 1.0
+    rho = 1.
+  [../]
+  [./clad-mat]
+    type = SolidMaterialProperties
+    k = 16.48672
+    Cp = 321.384
+    rho = 6.55e3
+  [../]
+  [./wall-mat]
+    type = SolidMaterialProperties
+    k = 10.0
+    rho = 8000.0
+    Cp = 400.0
+  [../]
+[]
+
 [Components]
+  # Core region components 
   [./reactor]
     type = Reactor
     initial_power = 2.77199979e9
   [../]
-    
-  # Core region components 
   [./CH1]
     # peak_power = '6.127004e8 0. 0.'
     type = CoreChannel
@@ -249,7 +250,7 @@
   [./Branch1-A]
     type = ErgBranch
     eos = eos
-    inputs = 'pipe1-HL-A(out)'
+    inputs = pipe1-HL-A(out)
     outputs = 'pipe2-HL-A(in) pipe-to-Pressurizer(in)'
     K = '0.5 0.7 80.'
     Area = 7.562307456
@@ -258,8 +259,8 @@
   [./Branch2-A]
     type = ErgBranch
     eos = eos
-    inputs = 'pipe1-CL-A(out)'
-    outputs = 'DownComer-A(in)'
+    inputs = pipe1-CL-A(out)
+    outputs = DownComer-A(in)
     K = '0.5 0.7'
     Area = 3.6185734
     Initial_pressure = 151.7e5
@@ -267,8 +268,8 @@
   [./Branch3-A]
     type = ErgBranch
     eos = eos
-    inputs = 'pipe2-HL-A(out)'
-    outputs = 'HX-A(primary_in)'
+    inputs = pipe2-HL-A(out)
+    outputs = HX-A(primary_in)
     K = '0.5 0.7'
     Area = 2.624474
     Initial_pressure = 151.7e5
@@ -280,8 +281,8 @@
     Initial_pressure = 151.7e5
     Head = 9.9
     K_reverse = 1000
-    outputs = 'pipe1-CL-A(in)'
-    inputs = 'pipe2-CL-A(out)'
+    outputs = pipe1-CL-A(in)
+    inputs = pipe2-CL-A(out)
   [../]
   [./HX-A]
     type = HeatExchanger
@@ -322,8 +323,8 @@
   [./Branch5-A]
     type = ErgBranch
     eos = eos
-    inputs = 'HX-A(secondary_out)'
-    outputs = 'pipe2-SC-A(in)'
+    inputs = HX-A(secondary_out)
+    outputs = pipe2-SC-A(in)
     K = '0.5 0.7'
     Area = 2.624474e2
     Initial_pressure = 151.7e5
@@ -331,16 +332,16 @@
   [./Branch6-A]
     type = ErgBranch
     eos = eos
-    inputs = 'HX-A(primary_out)'
-    outputs = 'pipe2-CL-A(in)'
+    inputs = HX-A(primary_out)
+    outputs = pipe2-CL-A(in)
     K = '0.5 0.7'
     Area = 2.624474e2
     Initial_pressure = 151.7e5
   [../]
   [./PressureOutlet-SC-A]
     type = TimeDependentVolume
-    input = 'pipe2-SC-A(out)'
-    p_bc = '151.7e5'
+    input = pipe2-SC-A(out)
+    p_bc = 151.7e5
     T_bc = 564.15
     eos = eos
   [../]
@@ -431,8 +432,8 @@
   [./Branch1-B]
     type = ErgBranch
     eos = eos
-    inputs = 'pipe1-HL-B(out)'
-    outputs = 'pipe2-HL-B(in)'
+    inputs = pipe1-HL-B(out)
+    outputs = pipe2-HL-B(in)
     K = '0.5 0.7'
     Area = 7.562307456
     Initial_pressure = 151.7e5
@@ -440,8 +441,8 @@
   [./Branch2-B]
     type = ErgBranch
     eos = eos
-    inputs = 'pipe1-CL-B(out)'
-    outputs = 'DownComer-B(in)'
+    inputs = pipe1-CL-B(out)
+    outputs = DownComer-B(in)
     K = '0.5 0.7'
     Area = 3.6185734
     Initial_pressure = 151.7e5
@@ -449,8 +450,8 @@
   [./Branch3-B]
     type = ErgBranch
     eos = eos
-    inputs = 'pipe2-HL-B(out)'
-    outputs = 'HX-B(primary_in)'
+    inputs = pipe2-HL-B(out)
+    outputs = HX-B(primary_in)
     K = '0.5 0.7'
     Area = 2.624474
     Initial_pressure = 151.7e5
@@ -462,8 +463,8 @@
     Initial_pressure = 151.7e5
     Head = 9.9
     K_reverse = 1000
-    outputs = 'pipe1-CL-B(in)'
-    inputs = 'pipe2-CL-B(out)'
+    outputs = pipe1-CL-B(in)
+    inputs = pipe2-CL-B(out)
   [../]
   [./HX-B]
     type = HeatExchanger
@@ -495,8 +496,8 @@
   [./Branch4-B]
     type = ErgBranch
     eos = eos
-    inputs = 'pipe1-SC-B(out)'
-    outputs = 'HX-B(secondary_in)'
+    inputs = pipe1-SC-B(out)
+    outputs = HX-B(secondary_in)
     K = '0.5 0.7'
     Area = 2.624474e2
     Initial_pressure = 151.7e5
@@ -504,8 +505,8 @@
   [./Branch5-B]
     type = ErgBranch
     eos = eos
-    inputs = 'HX-B(secondary_out)'
-    outputs = 'pipe2-SC-B(in)'
+    inputs = HX-B(secondary_out)
+    outputs = pipe2-SC-B(in)
     K = '0.5 0.7'
     Area = 2.624474e2
     Initial_pressure = 151.7e5
@@ -513,16 +514,16 @@
   [./Branch6-B]
     type = ErgBranch
     eos = eos
-    inputs = 'HX-B(primary_out)'
-    outputs = 'pipe2-CL-B(in)'
+    inputs = HX-B(primary_out)
+    outputs = pipe2-CL-B(in)
     K = '0.5 0.7'
     Area = 2.624474e2
     Initial_pressure = 151.7e5
   [../]
   [./PressureOutlet-SC-B]
     type = TimeDependentVolume
-    input = 'pipe2-SC-B(out)'
-    p_bc = '151.7e5'
+    input = pipe2-SC-B(out)
+    p_bc = 151.7e5
     T_bc = 564.15
     eos = eos
   [../]
@@ -540,23 +541,23 @@
   [../]
   [./Pressurizer]
     type = TimeDependentVolume
-    input = 'pipe-to-Pressurizer(out)'
-    p_bc = '151.7e5'
+    input = pipe-to-Pressurizer(out)
+    p_bc = 151.7e5
     T_bc = 564.15
     eos = eos
   [../]
   [./high_pressure_seconday_A]
     T_bc = 537.15
-    p_bc = '152.19e5'
+    p_bc = 152.19e5
     eos = eos
-    input = 'pipe1-SC-A(in)'
+    input = pipe1-SC-A(in)
     type = TimeDependentVolume
   [../]
   [./high_pressure_seconday_B]
     T_bc = 537.15
-    p_bc = '152.19e5'
+    p_bc = 152.19e5
     eos = eos
-    input = 'pipe1-SC-B(in)'
+    input = pipe1-SC-B(in)
     type = TimeDependentVolume
   [../]
 []
@@ -564,18 +565,18 @@
 [Preconditioning]
   # active = 'FDP_Newton'
   # End preconditioning block
-  active = 'SMP_PJFNK'
- [./SMP_PJFNK]
-  type = SMP
-  full = true
-  petsc_options = '-snes_mf_operator'
-  petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
- petsc_options_value = 'ds             ds'
- [../] 
+  active = 'SMP_PJFNK SMP'
+  [./SMP_PJFNK]
+    type = SMP
+    full = true
+    petsc_options = -snes_mf_operator
+    petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
+    petsc_options_value = 'ds             ds'
+  [../]
   [./SMP]
     type = SMP
     full = true
-    petsc_options = '-snes_mf_operator'
+    petsc_options = -snes_mf_operator
   [../]
   [./FDP_PJFNK]
     # These options **together** cause a zero pivot in this problem, even without SUPG terms.
@@ -585,10 +586,10 @@
     type = FDP
     full = true
     petsc_options = '-snes_mf_operator -pc_factor_shift_nonzero'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
+    petsc_options_iname = -mat_fd_type
+    petsc_options_value = ds
+    petsc_options_iname = -mat_fd_type
+    petsc_options_value = ds
   [../]
   [./FDP_Newton]
     # These options **together** cause a zero pivot in this problem, even without SUPG terms.
@@ -597,15 +598,17 @@
     # petsc_options_value = '1.e-10               ds'
     type = FDP
     full = true
-    petsc_options = '-snes'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
+    petsc_options = -snes
+    petsc_options_iname = -mat_fd_type
+    petsc_options_value = ds
+    petsc_options_iname = -mat_fd_type
+    petsc_options_value = ds
   [../]
 []
 
 [Executioner]
+  # petsc_options_iname = '-ksp_gmres_restart -pc_type'
+  # '300'
   type = RavenExecutioner
   restart_file_base = TMI_DEMO_PRA_Steady_out_restart_0267
   dt = 5e-2
@@ -616,10 +619,8 @@
   e_max = 99999.
   max_increase = 3
   perf_log = true
- #  petsc_options_iname = '-ksp_gmres_restart -pc_type'
- # petsc_options_value = '300 lu' # '300'
- petsc_options_iname = '-pc_type'
- petsc_options_value = 'lu' # '300'
+  petsc_options_iname = -pc_type
+  petsc_options_value = lu # '300'
   nl_rel_tol = 1e-6
   nl_abs_tol = 1e-10
   nl_max_its = 100
@@ -638,16 +639,16 @@
 
 [Output]
   # xda = true
+  # num_restart_files = 1
   file_base = TMI_DEMO_PRA_Transient_out
   exodus = true
   output_initial = true
   perf_log = true
- #num_restart_files = 1
   postprocessor_csv = true
 []
 
 [Controlled]
- # control logic file name
+  # control logic file name
   control_logic_input = TMI_test_PRA_trans_MC_control
   [./power_CH1]
     print_csv = true
@@ -704,22 +705,22 @@
     component_name = pipe2-SC-A
   [../]
   [./friction1_SC_B]
-   print_csv = true
-   property_name = f
-   data_type = double
-   component_name = pipe1-SC-B
+    print_csv = true
+    property_name = f
+    data_type = double
+    component_name = pipe1-SC-B
   [../]
   [./friction2_SC_B]
-   print_csv = true
-   property_name = f
-   data_type = double
-   component_name = pipe2-SC-B
+    print_csv = true
+    property_name = f
+    data_type = double
+    component_name = pipe2-SC-B
   [../]
   [./friction1_CL_B]
-   print_csv = true
-   property_name = f
-   data_type = double
-   component_name = pipe1-CL-B
+    print_csv = true
+    property_name = f
+    data_type = double
+    component_name = pipe1-CL-B
   [../]
   [./friction2_CL_B]
     print_csv = true
@@ -742,6 +743,12 @@
 []
 
 [Monitored]
+  # [./sec_inlet_density]
+  # operator = ElementAverageValue
+  # path = 
+  # data_type = double
+  # component_name = pipe1-SC-A
+  # [../]
   [./avg_temp_clad_CH1]
     operator = ElementAverageValue
     path = CLAD:TEMPERATURE
@@ -749,7 +756,7 @@
     component_name = CH1
   [../]
   [./avg_temp_clad_CH2]
-    operator = ElementAverageValue    
+    operator = ElementAverageValue
     path = CLAD:TEMPERATURE
     data_type = double
     component_name = CH2
@@ -816,32 +823,40 @@
     data_type = double
     component_name = pipe1-SC-A
   [../]
-#  [./sec_inlet_density]
-#    operator = ElementAverageValue
-#    path = 
-#    data_type = double
-#    component_name = pipe1-SC-A
-#  [../]
 []
 
 [Distributions]
   RNG_seed = 2
-  [./auxBackUpTimeDist]
-    type = NormalDistribution
-    mu = 63.0
-    sigma = 20.0
-    xMin  = 3.0
-    xMax  = 123.0
-    truncation = 1
+  [./sojTimeS]
+    k = 4.35
+    type = WeibullDistribution
+    lambda = 11.493
   [../]
-  [./CladFailureDist]
-    type = TriangularDistribution
-    xMin = 1255.3722 # Lower bound (PRA succes criteria)
-    xPeak = 1477.59
-    xMax = 1699.8167 # Upper bound (Urbanic-Heidrick Transition Temperature)
-    truncation = 1
-    lowerBound = 1255.3722
-    upperBound = 1699.8167 
+  [./sojTimeMD]
+    k = 2.1
+    type = WeibullDistribution
+    lambda = 0
+  [../]
+  [./sojTimeMC]
+    k = 2.1
+    type = WeibullDistribution
+    lambda = 0
+  [../]
+  [./repairM]
+    type = ExponentialDistribution
+    lambda = 0.001
+  [../]
+  [./repairC]
+    type = ExponentialDistribution
+    lambda = 0.02
+  [../]
+  [./repairD]
+    type = ExponentialDistribution
+    lambda = 0.02
+  [../]
+  [./repairL]
+    type = ExponentialDistribution
+    lambda = 0.8
   [../]
 []
 
@@ -909,7 +924,7 @@
   [./InitialOutletSecPress]
     data_type = double
     print_csv = true
-    initial_value = 151.7e5  #15170000
+    initial_value = 151.7e5 # 15170000
   [../]
   [./PrimaryPumpTransStart]
     data_type = double
@@ -939,7 +954,7 @@
   [./init_Power_Fraction_CH1]
     print_csv = true
     data_type = double
-    initial_value = 3.33672612e-1 
+    initial_value = 3.33672612e-1
   [../]
   [./init_Power_Fraction_CH2]
     print_csv = true
@@ -949,7 +964,7 @@
   [./init_Power_Fraction_CH3]
     print_csv = true
     data_type = double
-    initial_value = 2.96405926e-1 
-  [../]  
-  
+    initial_value = 2.96405926e-1
+  [../]
 []
+
