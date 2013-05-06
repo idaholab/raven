@@ -96,6 +96,7 @@ class DynamicEventTree(Sampler):
     #optional value... Conditional Probability Cut. If the Probability falls below this value the associated branch is terminated    
     self.CP_cut                  = None
     self.maxSimulTime            = None #(optional) if not present, the sampler will not change the relative keyword in the input file
+    self.print_end_xml           = False
     self.branchProbabilities     = {}
     self.branchedLevel           = {}
     self.branchCountOnLevel      = 0
@@ -310,70 +311,14 @@ class DynamicEventTree(Sampler):
       
     input = self.__getQueueElement()
     if not input:
-      print("Dynamic Event Tree Sampling ended!!!!")
+      print("A Branch ended!!!!")
     return input
     
-    
-#    self.counter += 1
-#    
-#    if self.counter > 1:
-#      self.branchCountOnLevel += 1
-#      subGroup = ET.Element(self.endInfo['parent_node'].get('name') + ',' + str(self.branchCountOnLevel))
-#      subGroup.set('parent', self.endInfo['parent_node'].get('name'))
-#      rname = self.endInfo['parent_node'].get('name') + ',' + str(self.branchCountOnLevel)
-#      subGroup.set('name', rname)
-#      cnt = 1
-#      for key in self.endInfo['branch_changed_params'].keys():
-#        if(cnt == self.branchCountOnLevel):
-#          subGroup.set('branch_changed_param',key)
-#          if self.branchCountOnLevel != 1:
-#            subGroup.set('branch_changed_param_value',self.endInfo['branch_changed_params'][key]['actual_value'][cnt-1])
-#            subGroup.set('branch_changed_param_pb',self.endInfo['branch_changed_params'][key]['associated_pb'][cnt-1])
-#          else:
-#            subGroup.set('branch_changed_param_value',self.endInfo['branch_changed_params'][key]['old_value'])
-#            subGroup.set('branch_changed_param_pb',self.endInfo['branch_changed_params'][key]['unchanged_pb'])            
-#        cnt += 1
-#      
-#      subGroup.set('initiator_distribution',self.endInfo['branch_dist']) 
-#      subGroup.set('start_time', self.endInfo['parent_node'].get('end_time'))
-#      # we initialize the end_time to be equal to the start one... It will modified at the end of this branch
-#      subGroup.set('end_time', self.endInfo['parent_node'].get('end_time'))
-#      subGroup.set('runEnded',False)
-#      subGroup.set('running',True)
-##      subGroup.set('restartFileRoot',self.endInfo['restartRoot'])
-#      self.endInfo['parent_node'].append(subGroup)
-#  
-##      end_ts_str = str(self.endInfo['end_ts'])
-##      dec_places = len(end_ts_str)
-##      if(self.endInfo['end_ts'] <= 9999):
-##        n_zeros = 4 - dec_places
-##        for i in xrange(n_zeros):
-##          end_ts_str = "0" + end_ts_str
-#      
-#      values = {'prefix':rname,'end_ts':self.endInfo['end_ts'],
-#                'branch_changed_param':[subGroup.get('branch_changed_param')],
-#                'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
-#                'initiator_distribution':[self.endInfo['branch_dist']],
-#                'start_time':self.endInfo['parent_node'].get('end_time'),
-#                'PbThreshold':[self.branchProbabilities[self.endInfo['branch_dist']][self.branchedLevel[self.endInfo['branch_dist']]]]}
-#    else:
-#      rname = self.TreeInfo.getroot().tag 
-#      values = {'prefix':rname}
-#      values['initiator_distribution'] = []
-#      values['PbThreshold']            = []
-#      for key in self.distDict.keys():
-#        values['initiator_distribution'].append(key)
-#      for key in self.branchProbabilities.keys():  
-#        values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
-#
-#    if(self.maxSimulTime):
-#      values['end_time'] = self.maxSimulTime    
-#    #for key in self.distDict:
-#    #  values[key] = self.distDict[key].distribution.rvs()
-#    return model.createNewInput(myInput,self.type,**values)
-
   def readMoreXML(self,xmlNode):
     elm = ET.Element(xmlNode.attrib['name'] + '_1')
+    flag = ""
+    flag = xmlNode.attrib['print_end_xml']
+    self.print_end_xml = (flag.lower() in ['true','t','yes','si','perche no','avojia','certamente','dajie'])
     #elm.set('parent', 'root')
     elm.set('name', xmlNode.attrib['name'] + '_1')
     elm.set('start_time', 0.0)

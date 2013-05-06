@@ -71,6 +71,9 @@ class HDF5(DateSet):
       tempDict['exist'] = self.exist
       return tempDict
     
+    def getEndingGroupNames(self):
+      return self.dataset.retrieveAllHistoryNames()
+
     def addGroup(self,attributes,loadFrom):
       attributes["group"] = attributes['prefix']
       if(self.subtype != "MC" or self.subtype != "DET"):
@@ -82,7 +85,7 @@ class HDF5(DateSet):
     # This function returns an history =>
     # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
     # MC  => The History named ["group"] (one run)
-    def __returnHistory(self,attributes):
+    def returnHistory(self,attributes):
       if (not self.exist) and (not self.built):
         raise("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
       if attributes['filter']:
@@ -92,7 +95,7 @@ class HDF5(DateSet):
       return tupleVar
     
     def __retrieveDataTimePoint(self,attributes):
-      histVar = self.__returnHistory(attributes)
+      histVar = self.returnHistory(attributes)
 
       if attributes['outParam'] == 'all':
         all_out_param  = True
@@ -198,7 +201,7 @@ class HDF5(DateSet):
       for i in range(len(hist_list)): 
         #load the data into the numpy array
         attributes['history'] = hist_list[i]
-        histVar = self.__returnHistory(attributes)
+        histVar = self.returnHistory(attributes)
 
         if i == 0:
           if(all_out_param):
@@ -310,7 +313,7 @@ class HDF5(DateSet):
       outDict = {}  
    
       #load the data into the tuple
-      histVar = self.__returnHistory(attributes)
+      histVar = self.returnHistory(attributes)
       
       if(all_out_param):
         field_names = histVar[1]["headers"]

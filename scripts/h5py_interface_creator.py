@@ -29,6 +29,9 @@ class hdf5Database:
       self.fileOpen       = False
       # paths of all groups into the data base
       self.allGroupPaths = []
+      # dict of boolean, true if the corresponding group in self.allGroupPaths
+      # is an ending group, false if it is not
+      self.allGroupEnds = {}      
       # we can create a base empty database or we open an existing one
       if self.fileExist:
         self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
@@ -38,11 +41,13 @@ class hdf5Database:
         self.h5_file_w = self.openDataBaseW(self.onDiskFile,'w')
         # add the root as first group
         self.allGroupPaths.append("/") 
+        self.allGroupEnds["/"] = False
         # the first root group has been added (DET)
         self.firstRootGroup = False
     
     def __createObjFromFile(self):
       self.allGroupPaths = []
+      self.allGroupEnds  = {}
       if not self.fileOpen:
         self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
       self.h5_file_w.visititems(self.__isGroup)
@@ -50,6 +55,11 @@ class hdf5Database:
     def __isGroup(self,name,obj):
       if isinstance(obj,h5.Group):
         self.allGroupPaths.append(name)
+        try:
+          self.allGroupEnds[name]  = obj.attrs["EndGroup"]
+        except:
+          print('not found attribute EndGroup in group ' + name + '.Set True.')
+          self.allGroupEnds[name]  = True
         
     def addGroup(self,gname,attributes,source):
       if self.type == 'DET':
@@ -88,6 +98,7 @@ class hdf5Database:
         grp.attrs["start_time"] = data[0,0]
         grp.attrs["end_time"]   = data[data[:,0].size-1,0]
         grp.attrs["n_ts"]       = data[:,0].size
+        grp.attrs["EndGroup"]   = True
         try:
           grp.attrs["input_file"] = attributes["input_file"]
         except:
@@ -137,8 +148,10 @@ class hdf5Database:
         pass
       if parent_group_name != "/":
         self.allGroupPaths.append(parent_group_name + "/" + gname)
+        self.allGroupEnds[parent_group_name + "/" + gname] = True
       else:
-        self.allGroupPaths.append("/" + gname)    
+        self.allGroupPaths.append("/" + gname)
+        self.allGroupEnds["/" + gname] = True
 
     def __addSubGroup(self,gname,attributes,source):
       if source['type'] == 'csv':
@@ -160,6 +173,9 @@ class hdf5Database:
         else:
           raise ValueError("NOT FOUND group named " + parent_group_name)  
         # create sub group
+        self.allGroupEnds[parent_group_name] = False
+        grp.attrs["EndGroup"]   = False
+        
         print(gname)
         print(self.h5_file_w.mode)
         sgrp = grp.create_group(gname)
@@ -172,6 +188,8 @@ class hdf5Database:
         sgrp.attrs["start_time"] = data[0,0]
         sgrp.attrs["end_time"]   = data[data[:,0].size-1,0]
         sgrp.attrs["n_ts"]       = data[:,0].size
+        sgrp.attrs["EndGroup"]   = True
+        
         try:
           sgrp.attrs["input_file"] = attributes["input_file"]
         except:
@@ -182,36 +200,36 @@ class hdf5Database:
 
         try:
           # parameter that has been changed 
-          grp.attrs["branch_changed_param"] = attributes["branch_changed_param"]
+          sgrp.attrs["branch_changed_param"] = attributes["branch_changed_param"]
         except:
           # no branching information
           pass
         try:
           # parameter that caused the branching
-          grp.attrs["branch_changed_param_value"] = attributes["branch_changed_param_value"]
+          sgrp.attrs["branch_changed_param_value"] = attributes["branch_changed_param_value"]
         except:
           # no branching information
           pass        
         try:
-          grp.attrs["conditional_prb"] = attributes["conditional_prb"]
+          sgrp.attrs["conditional_prb"] = attributes["conditional_prb"]
         except:
           # no branching information => i.e. MonteCarlo data
           pass
         try:
           # initiator distribution
-          grp.attrs["initiator_distribution"] = attributes["initiator_distribution"]
+          sgrp.attrs["initiator_distribution"] = attributes["initiator_distribution"]
         except:
           # no branching information
           pass        
         try:
           # initiator distribution
-          grp.attrs["Probability_threshold"] = attributes["PbThreshold"]
+          sgrp.attrs["Probability_threshold"] = attributes["PbThreshold"]
         except:
           # no branching information
           pass
         try:
           # initiator distribution
-          grp.attrs["end_timestep"] = attributes["end_ts"]
+          sgrp.attrs["end_timestep"] = attributes["end_ts"]
         except:
           # no branching information
           pass        
@@ -220,8 +238,10 @@ class hdf5Database:
         pass
       if parent_group_name != "/":
         self.allGroupPaths.append(parent_group_name + "/" + gname)
+        self.allGroupEnds[parent_group_name + "/" + gname] = True
       else:
-        self.allGroupPaths.append("/" + gname)    
+        self.allGroupPaths.append("/" + gname) 
+        self.allGroupEnds["/" + gname] = True
       
       return
     
@@ -249,6 +269,19 @@ class hdf5Database:
       back = to - fr
       
       return back
+    
+    def retrieveAllHistoryNames(self):
+      if not self.fileOpen:
+        self.__createObjFromFile()
+
+      if self.type == 'MC':
+        return self.allGroupPaths
+      else:
+        workingList = []
+        for index in xrange(len(self.allGroupPaths)):
+         if self.allGroupEnds[self.allGroupPaths[index]] == True:
+           workingList.append(self.allGroupPaths[index])
+        return workingList
 
     def retrieveHistory(self,name,filter=None):
       # name => history name => It must correspond to a group name
@@ -538,6 +571,10 @@ class hdf5Database:
         raise("History named " + name + "not found in database")
 
       return(result,attrs)
+
+    def printOutCsvHistory(self,what):
+      pass
+
 
     def closeDataBaseW(self):
       self.h5_file_w.close()

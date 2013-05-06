@@ -102,7 +102,7 @@ class Step(BaseType):
     for output in inDictionary['Output']:
       output.finalize()
       
-    quit()
+    #quit()
 
 class SimpleRun(Step):
   pass

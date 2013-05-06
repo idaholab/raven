@@ -7,7 +7,9 @@ import os
 import copy
 import shutil
 import Datas
+import numpy as np
 from BaseType import BaseType
+import csv
 
 class RavenInterface:
   '''this class is used a part of a code dictionary to specialize Model.Code for RAVEN'''
@@ -131,6 +133,67 @@ def returnCodeInterface(Type):
   try: return codeInterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
 
+######################################################################
+#                       FILTER interface                             #
+# NB. For readability this types should be moved to a separate module# 
+######################################################################
+
+class PrintCSV:
+  def __init__(self):
+    self.paramters = []
+  def readMoreXML(self,xmlNode):
+    param = ''
+    param = xmlNode.text
+    if(param.lower() != 'all'):
+      self.paramters = param.strip().split(',')
+    else:
+      self.paramters.append(param) 
+    
+    return
+  def finalizeFilter(self,inObj,outObj):
+    # check the input type
+    if(inObj.type == "HDF5"):
+      endGroupNames = inObj.getEndingGroupNames()
+      histories = {}
+      for index in xrange(len(endGroupNames)):
+        histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
+      
+      try:
+        outType = outObj.type
+      except:
+        with io.open(outObj, 'w') as csvfile, io.open('additional_info_'+outObj, 'w') as addcsvfile:
+          for key in histories:
+            headers = ''
+            attributes = histories[key][1]
+            for i in xrange(len(attributes['headers'])):
+              headers = headers + histories[key][1]['headers'][i] + ','
+            numpy.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history ,' + key)
+            #process the attributes in a different csv file (different kind of informations)
+            
+            
+            
+
+    elif(inObj.type == "Datas"):
+      pass
+    else:
+      raise NameError ('Filter PrintCSV for input type ' + inObj.type + ' not yet implemented.')
+    
+    
+    
+    
+    
+  
+  
+  
+  
+def returnFilterInterface(Type):
+  base = 'Filter'
+  filterInterfaceDict = {}
+  filterInterfaceDict['PrintCSV'] = PrintCSV
+  
+  try: return filterInterfaceDict[Type]()
+  except: raise NameError('not known '+base+' type '+Type)
+  
 class Model(BaseType):
   ''' a model is something that given an input will return an output reproducing some phisical model
       it could as complex as a stand alone code or a reduced order model trained somehow'''
@@ -262,21 +325,48 @@ class ROM(Model):
     pass
 
 
+class Filter(Model):
+  '''
+  Filter is an Action System. All the models here, take an input and perform an action
+  '''
+  def __init__(self):
+    Model.__init__(self)
+    self.input  = {}     # input source
+    self.action = None   # action
+  def readMoreXML(self,xmlNode):
+    Model.readMoreXML(self, xmlNode)
+    self.interface = returnFilterInterface(self.subType)
+    self.interface.readMoreXML(xmlNode)
 
+  def addInitParams(self,tempDict):
+    Model.addInitParams(self, tempDict)
+    tempDict['executable']=self.executable
 
+  def run(self,inputFiles,outputDatas,jobHandler):
+    '''return an instance of external runner'''
+    self.currentInputFiles = inputFiles
+    executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
+#    for inputFile in self.currentInputFiles: shutil.copy(inputFile,self.workingDir)
+    self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
+    print('job submitted')
+    return self.process
+
+#    def __returnInputTypeInterface(type):
+#      base = 'input'
+#      InputInterfaceDict = {}
+#      InputInterfaceDict['DataSets'   ] = DataSetsInterface
+#
+#      try: return InputInterfaceDict[Type]()
+#      except: raise NameError('not known '+base+' type '+Type + 'in Filter Model.')
+      
 #function used to generate a Model class
 def returnInstance(Type):
   base = 'model'
   InterfaceDict = {}
-  InterfaceDict['ROM' ] = ROM
-  InterfaceDict['Code'] = Code
-  #InterfaceDict['Code'] = Code
+  InterfaceDict['ROM'   ] = ROM
+  InterfaceDict['Code'  ] = Code
+  InterfaceDict['Filter'] = Filter
+
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
-  
-  
-  
-  
-  
-  
   

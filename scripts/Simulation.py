@@ -151,7 +151,7 @@ class Simulation:
       if self.debug: print('starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
       inputDict = {}                    #initialize the input dictionary
       inputDict['Input' ] = []          #set the Input to an empty list
-      inputDict['Output'] = []          #set the Input to an empty list
+      inputDict['Output'] = []          #set the Output to an empty list
       for [a,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
 #        if self.debug: print(a+' is:')
         if a == 'Input':
