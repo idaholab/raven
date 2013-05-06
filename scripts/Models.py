@@ -9,7 +9,7 @@ import shutil
 import Datas
 import numpy as np
 from BaseType import BaseType
-import csv
+from __future__ import print_function
 
 class RavenInterface:
   '''this class is used a part of a code dictionary to specialize Model.Code for RAVEN'''
@@ -160,6 +160,7 @@ class PrintCSV:
       
       try:
         outType = outObj.type
+        #not yet implemented
       except:
         with io.open(outObj, 'w') as csvfile, io.open('additional_info_'+outObj, 'w') as addcsvfile:
           for key in histories:
@@ -167,25 +168,68 @@ class PrintCSV:
             attributes = histories[key][1]
             for i in xrange(len(attributes['headers'])):
               headers = headers + histories[key][1]['headers'][i] + ','
-            numpy.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history ,' + key)
+            np.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history,' + key)
+            csvfile.write(' ')
             #process the attributes in a different csv file (different kind of informations)
-            
-            
-            
-
+            addcsvfile.write('history,'+key+',')
+            addcsvfile.write('________________________________,' + '_'*len(key)+',')
+            addcsvfile.write('number of parameters,'+str(attributes['n_params']))
+            addcsvfile.write('parameters,'+headers) 
+            addcsvfile.write('parent,'+str(attributes['parent'])) 
+            addcsvfile.write('start time,'+str(attributes['start_time']))
+            addcsvfile.write('end time,'+str(attributes['end_time']))
+            addcsvfile.write('number of time-steps,'+str(attributes['n_ts']))
+            try:
+              addcsvfile.write('number of branches in this history,'+str(len(attributes['initiator_distributions'])))
+              string_work = ''
+              for i in xrange(len(attributes['initiator_distributions'])):
+                string_work = string_work + attributes['initiator_distributions'][i] + ','          
+              addcsvfile.write('initiator distributions,'+str(string_work))
+            except:
+              pass
+            try:
+              string_work = ''
+              for i in xrange(len(attributes['end_timestep'])):
+                string_work = string_work + attributes['end_timestep'][i] + ','          
+              addcsvfile.write('end time step,'+str(string_work))
+            except:
+              pass             
+            try:
+              string_work = ''
+              for i in xrange(len(attributes['branch_changed_param'])):
+                string_work = string_work + attributes['branch_changed_param'][i] + ','          
+              addcsvfile.write('changed parameters,'+str(string_work))
+            except:
+              pass
+            try:
+              string_work = ''
+              for i in xrange(len(attributes['branch_changed_param_value'])):
+                string_work = string_work + attributes['branch_changed_param_value'][i] + ','          
+              addcsvfile.write('changed parameters values,'+str(string_work))
+            except:
+              pass
+            try:
+              string_work = ''
+              for i in xrange(len(attributes['conditional_prb'])):
+                string_work = string_work + attributes['conditional_prb'][i] + ','          
+              addcsvfile.write('conditional probability,'+str(string_work))
+            except:
+              pass
+            try:
+              string_work = ''
+              for i in xrange(len(attributes['Probability_threshold'])):
+                string_work = string_work + attributes['Probability_threshold'][i] + ','          
+              addcsvfile.write('Probability threshold,'+str(string_work))
+            except:
+              pass            
+            addcsvfile.write(' ')
+        io.close(addcsvfile)
+        io.close(csvfile)
     elif(inObj.type == "Datas"):
       pass
     else:
       raise NameError ('Filter PrintCSV for input type ' + inObj.type + ' not yet implemented.')
     
-    
-    
-    
-    
-  
-  
-  
-  
 def returnFilterInterface(Type):
   base = 'Filter'
   filterInterfaceDict = {}
