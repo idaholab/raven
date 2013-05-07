@@ -41,6 +41,12 @@ class Step(BaseType):
     '''main driver for a step'''
     if self.debug: print('beginning the step: '+self.name)
     self.initializeStep(inDictionary)
+    # filtering (this module must be split in different modules, otherwise it is a mess
+    if 'Model' in inDictionary.keys():
+      if inDictionary['Model'].type == 'Filter':
+        for i in xrange(len(inDictionary['Input'])):
+          inDictionary['Model'].run(inDictionary['Input'][i],inDictionary['Output'][i])
+        return
     #clean up the ROM
     if 'ROM' in inDictionary.keys():
       inDictionary['ROM'].reset()                             #if present reset the ROM for a new run
@@ -98,7 +104,7 @@ class Step(BaseType):
           break
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
-      time.sleep(0.3)
+      time.sleep(0.1)
     for output in inDictionary['Output']:
       output.finalize()
       
@@ -107,18 +113,14 @@ class Step(BaseType):
 class SimpleRun(Step):
   pass
 
-
-
-
-
-
-
-
 def returnInstance(Type):
   base = 'Step'
   InterfaceDict = {}
-  InterfaceDict['SimpleRun'    ] = SimpleRun
-  InterfaceDict['MultiRun'     ] = Step
+  InterfaceDict['SimpleRun'     ] = SimpleRun
+  InterfaceDict['MultiRun'      ] = Step
+  # this step type may be specialized to fit only the needs for
+  # post processing actions
+  InterfaceDict['PostProcessing'] = Step
 
   try:
     if Type in InterfaceDict.keys():

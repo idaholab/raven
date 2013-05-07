@@ -415,13 +415,13 @@ TriangularDistribution::untrPdf(double & x){
    double ub = _dis_parameters.find("upperBound") ->second;
    double peak = _dis_parameters.find("xPeak") ->second;
 
-   if (x<lb)
+   if (x<=lb)
       value=0;
    if ((x>lb)&(x<peak))
       value=2*(x-lb)/(ub-lb)/(peak-lb);
    if ((x>peak)&(x<ub))
       value=2*(ub-x)/(ub-lb)/(ub-peak);
-   if (x>ub)
+   if (x>=ub)
       value=0;
 
    return value;
@@ -433,13 +433,13 @@ double  TriangularDistribution::untrCdf(double & x){
    double ub = _dis_parameters.find("upperBound") ->second;
    double peak = _dis_parameters.find("xPeak") ->second;
 
-   if (x<lb)
+   if (x<=lb)
       value=0;
    if ((x>lb)&(x<peak))
       value=(x-lb)*(x-lb)/(ub-lb)/(peak-lb);
    if ((x>peak)&(x<ub))
       value=1-(ub-x)*(ub-x)/(ub-lb)/(ub-peak);
-   if (x>ub)
+   if (x>=ub)
       value=1;
 
    return value;
@@ -490,8 +490,13 @@ TriangularDistribution::Cdf(double & x){
 		  value=0;
 	  else if (x>xMax)
 		  value=1;
-	  else
+	  else{
+	      std::cerr << "TriangularDistribution::untrCdf(xMax) = " <<  TriangularDistribution::untrCdf(xMax) << std::endl;
+          std::cerr << "TriangularDistribution::untrCdf(xMin) = " <<  TriangularDistribution::untrCdf(xMin) << std::endl;
+          std::cerr << "TriangularDistribution::untrCdf(x) = " <<  TriangularDistribution::untrCdf(x) << std::endl;
+
 		  value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * (TriangularDistribution::untrCdf(x)- TriangularDistribution::untrCdf(xMin));
+	  }
    else
       value=-1;
 

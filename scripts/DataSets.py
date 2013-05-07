@@ -76,11 +76,11 @@ class HDF5(DateSet):
 
     def addGroup(self,attributes,loadFrom):
       attributes["group"] = attributes['prefix']
-      if(self.subtype != "MC" or self.subtype != "DET"):
+      if(self.subtype != "MC" and self.subtype != "DET"):
         print("type " + str(self.subtype) + " not implemented yet")
         return
 
-      self.dataset.addGroup(group_name,attributes,loadFrom)
+      self.dataset.addGroup(attributes["group"],attributes,loadFrom)
       self.built = True
     # This function returns an history =>
     # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)

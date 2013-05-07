@@ -111,6 +111,8 @@ bool DistributionContainer::checkCdf(std::string DistAlias, double value){
   bool result;
   if (Cdf(std::string(DistAlias),value) >= getVariable("ProbabilityThreshold",DistAlias)){
     result=true;
+    std::cerr << "WE ARE IN CHECK CDF... IT is true... DistAlias" << DistAlias << "value = " << value << std::endl;
+    std::cerr << "PROB THRESHOLD = " << getVariable("ProbabilityThreshold",DistAlias) << " cdf value = " << Cdf(std::string(DistAlias),value) << std::endl;
     _dist_by_trigger_status[DistAlias] = true;
     _last_dist_triggered = DistAlias;
     _at_least_a_dist_triggered = true;

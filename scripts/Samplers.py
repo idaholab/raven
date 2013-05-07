@@ -126,7 +126,7 @@ class DynamicEventTree(Sampler):
   def finalizeActualSampling(self,jobObject,model,myInput):
     # we read the info at the end of one branch
     self.workingDir = model.workingDir
-    self.__readBranchInfo()
+    if not self.__readBranchInfo(): return
     
     # we collect the info in a multi-level dictionary
     endInfo = {}
@@ -156,7 +156,7 @@ class DynamicEventTree(Sampler):
     if(jobObject.identifier == self.TreeInfo.getroot().tag):
       endInfo['parent_node'] = self.TreeInfo.getroot()
     else:
-      endInfo['parent_node'] = self.TreeInfo.find(jobObject.identifier)
+      endInfo['parent_node'] = list(self.TreeInfo.getroot().iter(jobObject.identifier))[0]  
     self.branchCountOnLevel = 0
     # set runEnded and running to true and false respectively   
     endInfo['parent_node'].set('runEnded',True)
@@ -184,7 +184,8 @@ class DynamicEventTree(Sampler):
       filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
       print('branch info file' + filename +' has not been found. => No Branching.')
-      return
+      branch_present = False
+      return branch_present
     try:
       branch_info_tree = ET.parse(filename)
     except:
@@ -218,7 +219,8 @@ class DynamicEventTree(Sampler):
       break
     # we remove the file
     os.remove(filename)
-    return
+    branch_present = True
+    return branch_present 
   
   def __createRunningQueue(self,model,myInput):
     
@@ -250,14 +252,19 @@ class DynamicEventTree(Sampler):
         subGroup.set('queue',True)
 #        subGroup.set('restartFileRoot',endInfo['restartRoot'])
         endInfo['parent_node'].append(subGroup)
-     
+
         values = {'prefix':rname,'end_ts':endInfo['end_ts'],
                   'branch_changed_param':[subGroup.get('branch_changed_param')],
                   'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
                   'initiator_distribution':[endInfo['branch_dist']],
                   'start_time':endInfo['parent_node'].get('end_time'),
-                  'parent_id':subGroup.get('parent'),
-                  'PbThreshold':[self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]}
+                  'parent_id':subGroup.get('parent')}
+        if self.branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
+          #we set the threshold to 1.1 => no branch possible for this dist anymore.
+          values['PbThreshold'] = [1.1]
+        else:
+          values['PbThreshold'] = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
+        
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**values)))
         self.RunQueue['identifiers'].append(values['prefix'])
         del values
@@ -297,7 +304,7 @@ class DynamicEventTree(Sampler):
         root.set('running',True)
         root.set('queue',False)
       else:
-        subElm = root.find(id)
+        subElm = list(root.iter(id))[0]
         if(subElm is not None):
           subElm.set('runEnded',False)
           subElm.set('running',True)
@@ -318,7 +325,7 @@ class DynamicEventTree(Sampler):
     elm = ET.Element(xmlNode.attrib['name'] + '_1')
     flag = ""
     flag = xmlNode.attrib['print_end_xml']
-    self.print_end_xml = (flag.lower() in ['true','t','yes','si','perche no','avojia','certamente','dajie'])
+    self.print_end_xml = (flag.lower() in ['true','t','yes','si','y','yeah','ja','da','oui','sic','perche no','avojia','certamente','dajie','divertimose'])
     #elm.set('parent', 'root')
     elm.set('name', xmlNode.attrib['name'] + '_1')
     elm.set('start_time', 0.0)

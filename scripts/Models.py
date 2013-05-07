@@ -9,7 +9,6 @@ import shutil
 import Datas
 import numpy as np
 from BaseType import BaseType
-from __future__ import print_function
 
 class RavenInterface:
   '''this class is used a part of a code dictionary to specialize Model.Code for RAVEN'''
@@ -162,7 +161,9 @@ class PrintCSV:
         outType = outObj.type
         #not yet implemented
       except:
-        with io.open(outObj, 'w') as csvfile, io.open('additional_info_'+outObj, 'w') as addcsvfile:
+        splitted = outObj.split('.')
+        addfile = splitted[0] + '_additional_info.' + splitted[1]
+        with open(outObj, 'w') as csvfile, open(addfile, 'w') as addcsvfile:
           for key in histories:
             headers = ''
             attributes = histories[key][1]
@@ -223,8 +224,8 @@ class PrintCSV:
             except:
               pass            
             addcsvfile.write(' ')
-        io.close(addcsvfile)
-        io.close(csvfile)
+        close(addcsvfile)
+        close(csvfile)
     elif(inObj.type == "Datas"):
       pass
     else:
@@ -250,7 +251,7 @@ class Model(BaseType):
     except: raise 'missed type for the model'+self.name
   def addInitParams(self,tempDict):
     tempDict['subType'] = self.subType
-  def reset(self):
+  def reset(self,runInfo,inputs):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step'''
   def train(self,trainingSet,stepName):
     '''This needs to be over loaded if the model requires an initialization'''
@@ -384,17 +385,12 @@ class Filter(Model):
 
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
-    tempDict['executable']=self.executable
 
-  def run(self,inputFiles,outputDatas,jobHandler):
-    '''return an instance of external runner'''
-    self.currentInputFiles = inputFiles
-    executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
-#    for inputFile in self.currentInputFiles: shutil.copy(inputFile,self.workingDir)
-    self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
-    print('job submitted')
-    return self.process
-
+  def run(self,inObj,outObj):
+    '''
+    run calls the interface finalizer 
+    '''
+    self.interface.finalizeFilter(inObj,outObj)
 #    def __returnInputTypeInterface(type):
 #      base = 'input'
 #      InputInterfaceDict = {}
