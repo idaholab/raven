@@ -60,9 +60,12 @@ def control_function(monitored, controlled, auxiliary):
   stateMDcdfProgress = 0
   repairMcdfProgress = 0
   repairCcdfProgress = 0
+  repairLcdfProgress = 0
+  
+  
   
   writer = csv.writer(open("debug.csv", "w"))
-  writer.writerow(["i","time [y]","stateScdfProgress","stateMCcdfProgress","stateMDcdfProgress","repairMcdfProgress"])
+  writer.writerow(['i','time [y]','state','stateScdfProgress','stateMCcdfProgress','stateMDcdfProgress','repairMcdfProgress'])
   
   for i in range (numberWeeks):
     
@@ -106,7 +109,7 @@ def control_function(monitored, controlled, auxiliary):
         if stateMDcdfProgress>random_n_3:
           state=4    
           stateDstartTime = i/52.1775
-          sojTimeM = stateMstartTime - stateCstartTime
+          sojTimeM = stateMstartTime - stateDstartTime
           stateMCcdfProgress = 0
           stateMDcdfProgress = 0
           repairMcdfProgress = 0  
@@ -132,9 +135,9 @@ def control_function(monitored, controlled, auxiliary):
       #### State 4 ####    
       if state == 4:
         sojTimeD = sojTimeM * 1.34
-        repairDcdfProgress = repairCcdfProgress + (distcont.Pdf('repairD',timeInYear-stateCstartTime)+distcont.Pdf('repairD',timeInYear_1-stateCstartTime)) *(timeInYear-timeInYear_1)/2
+        repairDcdfProgress = repairCcdfProgress + (distcont.Pdf('repairD',timeInYear-stateDstartTime)+distcont.Pdf('repairD',timeInYear_1-stateDstartTime)) *(timeInYear-timeInYear_1)/2
         
-        if (i/52.1775-stateCstartTime)>sojTimeD:
+        if (i/52.1775-stateDstartTime)>sojTimeD:
           state = 5
           stateLstartTime = i/52.1775
           sojTimeD = stateDstartTime - i/52.1775
@@ -148,9 +151,11 @@ def control_function(monitored, controlled, auxiliary):
         repairLcdfProgress = repairLcdfProgress + (distcont.Pdf('repairL',timeInYear-stateLstartTime)+distcont.Pdf('repairL',timeInYear_1-stateLstartTime)) *(timeInYear-timeInYear_1)/2
         t_D = sojTimeD + sojTimeM
         y = stateDstartTime - i/52.1775
-        argument = (t_C+y)/t_C
+        argument = (t_D+y)/t_D
         a = a_d * math.pow(argument,theta1C)
-        failurePressure = pressureRupture(a,1)
+        
+        
+        failurePressure = pressureRupture(a,2)
         
         if repairCcdfProgress > random_n_5:
           state = 1  
@@ -194,7 +199,7 @@ def control_function(monitored, controlled, auxiliary):
         if stateMDcdfProgress>random_n_3:
           state=4    
           stateDstartTime = i/52.1775
-          sojTimeM = stateMstartTime - stateCstartTime
+          sojTimeM = stateMstartTime - stateDstartTime
           stateMCcdfProgress = 0
           stateMDcdfProgress = 0
           repairMcdfProgress = 0  
@@ -220,9 +225,9 @@ def control_function(monitored, controlled, auxiliary):
       #### State 4 ####    
       if state == 4:
         sojTimeD = sojTimeM * 1.34
-        repairDcdfProgress = repairCcdfProgress + (distcont.Pdf('repairD',timeInYear-stateCstartTime)+distcont.Pdf('repairD',timeInYear_1-stateCstartTime)) *(timeInYear-timeInYear_1)/2
+        repairDcdfProgress = repairCcdfProgress + (distcont.Pdf('repairD',timeInYear-stateDstartTime)+distcont.Pdf('repairD',timeInYear_1-stateDstartTime)) *(timeInYear-timeInYear_1)/2
         
-        if (i/52.1775-stateCstartTime)>sojTimeD:
+        if (i/52.1775-stateDstartTime)>sojTimeD:
           state = 5
           stateLstartTime = i/52.1775
           sojTimeD = stateDstartTime - i/52.1775
@@ -236,17 +241,19 @@ def control_function(monitored, controlled, auxiliary):
         repairLcdfProgress = repairLcdfProgress + (distcont.Pdf('repairL',timeInYear-stateLstartTime)+distcont.Pdf('repairL',timeInYear_1-stateLstartTime)) *(timeInYear-timeInYear_1)/2
         t_D = sojTimeD + sojTimeM
         y = stateDstartTime - i/52.1775
-        argument = (t_C+y)/t_C
+        argument = (t_D+y)/t_D
         a = a_d * math.pow(argument,theta2C)
-        failurePressure = pressureRupture(a,1)
+        failurePressure = pressureRupture(a,2)
         
         if repairCcdfProgress > random_n_5:
           state = 1  
           repairLcdfProgress = 0
           failurePressure = 0
   
-  #writer.writerow(["i","time [y]","stateScdfProgress","stateMCcdfProgress","stateMDcdfProgress","repairMcdfProgress"])   
-  data2print = []
-  writer.writerow(data2print)       
+  
+    #writer.writerow(['i','time [y]','state','stateScdfProgress','stateMCcdfProgress','stateMDcdfProgress','repairMcdfProgress'])   
+    data2print = [str(i), str(timeInYear), str(state), str(stateScdfProgress), str(stateMCcdfProgress), str(stateMDcdfProgress), str(repairMcdfProgress)]
+    writer.writerow(data2print)  
+       
   return 
 
