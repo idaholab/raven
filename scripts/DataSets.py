@@ -28,7 +28,8 @@ class DateSet(BaseType):
     def retrieveData(self,attributes):
       pass
     def finalize(self):
-      self.dataset.closeDataBaseW()
+#      self.dataset.closeDataBaseW()
+      pass
 
 class HDF5(DateSet):
     '''
@@ -71,8 +72,12 @@ class HDF5(DateSet):
       tempDict['exist'] = self.exist
       return tempDict
     
+    def getEndingGroupPaths(self):
+      return self.dataset.retrieveAllHistoryPaths()
     def getEndingGroupNames(self):
       return self.dataset.retrieveAllHistoryNames()
+    
+      
 
     def addGroup(self,attributes,loadFrom):
       attributes["group"] = attributes['prefix']

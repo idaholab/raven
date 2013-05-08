@@ -14,6 +14,7 @@ import Models
 import Tests
 import Distributions
 import DataSets
+import OutStreams
 from JobHandler import JobHandler
 
 class Simulation:
@@ -49,6 +50,7 @@ class Simulation:
     self.testsDict         = {}
     self.DistributionsDict = {}
     self.dataSetsDict      = {}
+    self.OutStreamsDict    = {}
     self.filesDict         = {} #this is different, it just return the absolute path of the file
     #list of supported quequing software:
     self.knownQuequingSoftware = []
@@ -64,6 +66,7 @@ class Simulation:
     self.addWhatDict['Tests'         ] = Tests.returnInstance
     self.addWhatDict['Distributions' ] = Distributions.returnInstance
     self.addWhatDict['DataSets'      ] = DataSets.returnInstance
+    self.addWhatDict['OutStreams'    ] = OutStreams.returnInstance
     #Mapping between a class type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'        ] = self.stepsDict
@@ -75,6 +78,7 @@ class Simulation:
     self.whichDict['Files'        ] = self.filesDict
     self.whichDict['Distributions'] = self.DistributionsDict
     self.whichDict['DataSets'     ] = self.dataSetsDict
+    self.whichDict['OutStreams'   ] = self.OutStreamsDict
     self.jobHandler = JobHandler()
   def XMLread(self,xmlNode):
     '''read the general input info to set up the calculation environment'''
@@ -140,6 +144,7 @@ class Simulation:
     prntDict(self.testsDict)
     prntDict(self.filesDict)
     prntDict(self.dataSetsDict)
+    prntDict(self.OutStreamsDict)
     prntDict(self.addWhatDict)
     prntDict(self.whichDict)
   def run(self):

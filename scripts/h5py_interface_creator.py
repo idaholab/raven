@@ -49,7 +49,7 @@ class hdf5Database:
       self.allGroupPaths = []
       self.allGroupEnds  = {}
       if not self.fileOpen:
-        self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
+        self.h5_file_w = self.openDataBaseW(self.onDiskFile,'a')
       self.h5_file_w.visititems(self.__isGroup)
     
     def __isGroup(self,name,obj):
@@ -164,10 +164,22 @@ class hdf5Database:
         # in this case append a subgroup to the parent group
         # otherwise => it's the main group
         try:
-          parent_group_name = attributes["parent_id"]
+          parent_name = attributes["parent_id"]
         except:
           raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
         # check if the parent exists... in that case... retrieve it and add the new sub group
+#        test_list = []
+#        test = self.h5_file_w.visititems(test_list.append(self.h5_file_w.get(self.h5_file_w)))
+        # find parent group path
+        if parent_name != '/':
+          for index in xrange(len(self.allGroupPaths)):
+            test_list = self.allGroupPaths[index].split('/')
+            if test_list[len(test_list)-1] == parent_name:
+              parent_group_name = self.allGroupPaths[index]
+              break
+        else:
+          parent_group_name = parent_name   
+        
         if parent_group_name in self.h5_file_w:
           grp = self.h5_file_w.require_group(parent_group_name)
         else:
@@ -270,7 +282,7 @@ class hdf5Database:
       
       return back
     
-    def retrieveAllHistoryNames(self):
+    def retrieveAllHistoryPaths(self):
       if not self.fileOpen:
         self.__createObjFromFile()
 
@@ -282,7 +294,22 @@ class hdf5Database:
          if self.allGroupEnds[self.allGroupPaths[index]] == True:
            workingList.append(self.allGroupPaths[index])
         return workingList
+      
+    def retrieveAllHistoryNames(self):
+      if not self.fileOpen:
+        self.__createObjFromFile()
 
+      if self.type == 'MC':
+        return self.allGroupPaths
+      else:
+        workingList = []
+        for index in xrange(len(self.allGroupPaths)):
+         if self.allGroupEnds[self.allGroupPaths[index]] == True:
+           test_list = self.allGroupPaths[index].split('/')
+           workingList.append(test_list[len(test_list)-1])
+           del test_list
+        return workingList
+      
     def retrieveHistory(self,name,filter=None):
       # name => history name => It must correspond to a group name
       # filter => what must be retrieved: - 'whole' = whole history => all branches back from name to root

@@ -169,63 +169,68 @@ class PrintCSV:
             attributes = histories[key][1]
             for i in xrange(len(attributes['headers'])):
               headers = headers + histories[key][1]['headers'][i] + ','
-            np.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history,' + key)
-            csvfile.write(' ')
-            #process the attributes in a different csv file (different kind of informations)
-            addcsvfile.write('history,'+key+',')
-            addcsvfile.write('________________________________,' + '_'*len(key)+',')
-            addcsvfile.write('number of parameters,'+str(attributes['n_params']))
-            addcsvfile.write('parameters,'+headers) 
-            addcsvfile.write('parent,'+str(attributes['parent'])) 
-            addcsvfile.write('start time,'+str(attributes['start_time']))
-            addcsvfile.write('end time,'+str(attributes['end_time']))
-            addcsvfile.write('number of time-steps,'+str(attributes['n_ts']))
             try:
-              addcsvfile.write('number of branches in this history,'+str(len(attributes['initiator_distributions'])))
+              hist = ''
+              hist = key
+              hist = hist.translate('_',',') 
+            except:
+              hist = key  
+            np.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history,' + hist +'\n')
+            csvfile.write(' '+'\n')
+            #process the attributes in a different csv file (different kind of informations)
+            addcsvfile.write('history,'+key+','+'\n')
+            addcsvfile.write('________________________________,' + '_'*len(key)+','+'\n')
+            addcsvfile.write('number of parameters,'+str(attributes['n_params'])+'\n')
+            addcsvfile.write('parameters,'+headers+'\n') 
+            addcsvfile.write('parent,'+str(attributes['parent_id'])+'\n') 
+            addcsvfile.write('start time,'+str(attributes['start_time'])+'\n')
+            addcsvfile.write('end time,'+str(attributes['end_time'])+'\n')
+            addcsvfile.write('number of time-steps,'+str(attributes['n_ts'])+'\n')
+            try:
+              addcsvfile.write('number of branches in this history,'+str(len(attributes['initiator_distributions']))+'\n')
               string_work = ''
               for i in xrange(len(attributes['initiator_distributions'])):
                 string_work = string_work + attributes['initiator_distributions'][i] + ','          
-              addcsvfile.write('initiator distributions,'+str(string_work))
+              addcsvfile.write('initiator distributions,'+str(string_work)+'\n')
             except:
               pass
             try:
               string_work = ''
               for i in xrange(len(attributes['end_timestep'])):
                 string_work = string_work + attributes['end_timestep'][i] + ','          
-              addcsvfile.write('end time step,'+str(string_work))
+              addcsvfile.write('end time step,'+str(string_work)+'\n')
             except:
               pass             
             try:
               string_work = ''
               for i in xrange(len(attributes['branch_changed_param'])):
                 string_work = string_work + attributes['branch_changed_param'][i] + ','          
-              addcsvfile.write('changed parameters,'+str(string_work))
+              addcsvfile.write('changed parameters,'+str(string_work)+'\n')
             except:
               pass
             try:
               string_work = ''
               for i in xrange(len(attributes['branch_changed_param_value'])):
                 string_work = string_work + attributes['branch_changed_param_value'][i] + ','          
-              addcsvfile.write('changed parameters values,'+str(string_work))
+              addcsvfile.write('changed parameters values,'+str(string_work)+'\n')
             except:
               pass
             try:
               string_work = ''
               for i in xrange(len(attributes['conditional_prb'])):
                 string_work = string_work + attributes['conditional_prb'][i] + ','          
-              addcsvfile.write('conditional probability,'+str(string_work))
+              addcsvfile.write('conditional probability,'+str(string_work)+'\n')
             except:
               pass
             try:
               string_work = ''
               for i in xrange(len(attributes['Probability_threshold'])):
                 string_work = string_work + attributes['Probability_threshold'][i] + ','          
-              addcsvfile.write('Probability threshold,'+str(string_work))
+              addcsvfile.write('Probability threshold,'+str(string_work)+'\n')
             except:
               pass            
-            addcsvfile.write(' ')
-        close(addcsvfile)
-        close(csvfile)
+            addcsvfile.write(' '+'\n')
+            
     elif(inObj.type == "Datas"):
       pass
     else:
