@@ -112,13 +112,13 @@ class ScreenPlot(OutStream):
         else:    
           plot_it = True
         if plot_it:
-          plt.figure()
+          plt.figure(index)
           plt.xlabel(headers[timeLoc])
           plt.ylabel(headers[index])
           plt.title('Plot of histories')
           for key in self.histories:
             plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-          plt.show()
+    plt.show()
 
 
 class PdfPlot(OutStream):
