@@ -24,7 +24,12 @@
       <max_iter>4000</max_iter>
       <degree>4</degree>
     </ROM>
-    <Filter name='csv_from_hdf5' type='PrintCSV'>all</Filter>
+    
+    <Filter name='Plot1' type='Plot'> 
+      <historyID>ALL<historyID>
+      <variables>ALL</variables>
+    </Filter>
+    
 </Models>
 <Distributions>
     <Normal name='Gauss1'>
@@ -132,6 +137,19 @@
         <Sampler type='Samplers' subtype='MonteCarlo'  >MyMC</Sampler>
         <Output  type='Datas'    subtype='TimePointSet'>finalPbconverged</Output>
     </MultiRun>
+    
+    
+    
+    <PostProcessing name='plot'>
+        <Input   type='Datasets'  	  subtype='HDF5'>testDataBase</Input>
+        <Model   type='Models'    	  subtype='Filter'>Plot1</Input>
+        <Output  type='outStream'  	  subtype='screen'></Output>
+        <Output  type='outStream'			subtype='jpeg'>fileName</Output>
+    </PostProcessing>
+    
+    
+    
+    
 </Steps>
 <OutStreams>
   <Screen name="testScreen">
@@ -141,6 +159,36 @@
 <DataSets>
     <HDF5 name="testDataBase" type="DET"/> 
 </DataSets>
+
+
+<OutStreams>
+		<Screen name="">
+		  <variable> ALL </variable>
+		</Screen>
+		<Pdf    name="" >
+		  <variable>
+		   a,
+		   b
+		  </variable>
+		</Pdf>
+		  <variable> all </variable>
+		  <fileNameRoot> plotPDF </fileNameRoot>
+		<Eps    name="" >
+		  <variable> b </variable>
+		  <fileNameRoot> plotEPS </fileNameRoot>
+		</Eps>
+		<Jpeg   name="" >
+		  <variable> a </variable>
+		  <fileNameRoot> plotJPEG </fileNameRoot>
+		</Jpeg>
+		<Png    name="" >
+		  <variable> a </variable>
+		  <fileNameRoot> plotPNG </fileNameRoot>
+		</Png>
+</OutStreams>
+
+
+
 <Datas>
     <Histories name='stories'>
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>

@@ -125,7 +125,10 @@ class ScreenPlot(OutStream):
           plt.title('Plot of histories')
           for key in self.histories:
             plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-    plt.show()    
+    #plt.show()
+    plt.draw()
+    
+        
   def finalize(self):
     pass
 #    try:

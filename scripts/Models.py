@@ -239,11 +239,60 @@ class PrintCSV:
       pass
     else:
       raise NameError ('Filter PrintCSV for input type ' + inObj.type + ' not yet implemented.')
+
+
+class Plot
+  def __init__(self):
+    self.paramters = []
     
+  def readMoreXML(self,xmlNode):
+    param = ''
+    param = xmlNode.text
+    return
+  
+  def finalizeFilter(self,inObj,outObj):    
+    if(inObj.type == "HDF5"):
+      endGroupNames = inObj.getEndingGroupNames()
+      histories = {}
+      for index in xrange(len(endGroupNames)):
+        histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
+      
+    elif (inObj.type == "CSV"):
+      # do something
+    else:
+      raise NameError ('Filter Plot for input type ' + inObj.type + ' not yet implemented.')
+    
+    for i in range (len(endGroupNames)):
+      fig[i]=plt.figure()
+      plt.plot(histories[endGroupNames[1]],histories[endGroupNames[i]])
+      plt.xlabel('Time')
+      plt.ylabel(histories[key][1]['headers'][i])
+      plt.title('Plot of history:', i)
+    
+      if (outObj.type == "screen"):
+        plt.show()
+      elif (outObj.type == "jpeg"):
+        fileName=str(histories[endGroupNames[i]])+'.jpeg'
+        fig[i].savefig(fileName,dpi=fig.dpi)  # dpi=fig.dpi is to keep same same figure rendering of show() also for savefig()
+      elif (outObj.type == "png"):
+        fileName=str(histories[endGroupNames[i]])+'.png'
+        fig[i].savefig(fileName,dpi=fig.dpi)
+      elif (outObj.type == "eps"):
+        fileName=str(histories[endGroupNames[i]])+'.eps'
+        fig[i].savefig(fileName,dpi=fig.dpi)        
+      elif (outObj.type == "pdf"):
+        fileName=str(histories[endGroupNames[i]])+'.pdf'
+        fig[i].savefig(fileName,dpi=fig.dpi)        
+      else:
+        raise NameError ('Filter Plot for output type ' + outObj.type + ' not implemented.')  
+    return
+    
+        
 def returnFilterInterface(Type):
   base = 'Filter'
   filterInterfaceDict = {}
   filterInterfaceDict['PrintCSV'] = PrintCSV
+  filterInterfaceDict['Plot'] = Plot
   
   try: return filterInterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
