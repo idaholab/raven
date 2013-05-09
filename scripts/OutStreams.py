@@ -89,7 +89,14 @@ class ScreenPlot(OutStream):
   def __init__(self):
     OutStream.__init__(self)  
 
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
+    # this function adds the file name/names to the
+    # filename list
+    print('toLoadFrom :')
+    print(toLoadFrom)
+    
+    self.toLoadFromList.append(toLoadFrom)
+    
     try:
       self.retrieveHistories()
     except:  
@@ -118,7 +125,38 @@ class ScreenPlot(OutStream):
           plt.title('Plot of histories')
           for key in self.histories:
             plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-    plt.show()
+    plt.show()    
+  def finalize(self):
+    pass
+#    try:
+#      self.retrieveHistories()
+#    except:  
+#      OutStream.retrieveHistories(self)
+#    headers = self.histories[self.alreadyRead[0]][1]['headers']
+#    timeVar = ''
+#    for i in xrange(len(headers)):
+#      if headers[i].lower() == 'time':
+#        #timeVar = headers.pop(i)
+#        timeLoc = i
+#        break
+#    
+#    for index in xrange(len(headers)):
+#      if headers[index].lower() != 'time':
+#        if not self.variables[0]=='all':
+#          if headers[index] in self.variables:
+#            plot_it = True
+#          else:
+#            plot_it = False  
+#        else:    
+#          plot_it = True
+#        if plot_it:
+#          plt.figure(index)
+#          plt.xlabel(headers[timeLoc])
+#          plt.ylabel(headers[index])
+#          plt.title('Plot of histories')
+#          for key in self.histories:
+#            plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
+#    plt.show()
 
 
 class PdfPlot(OutStream):

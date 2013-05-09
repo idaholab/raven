@@ -60,28 +60,30 @@ class RavenInterface:
       listDict.append(modifDict)
       del modifDict
     if 'start_time' in Kwargs.keys():
-      modifDict = {}
-      st_time = Kwargs['start_time']
-      modifDict['name'] = ['Executioner']
-      modifDict['start_time'] = st_time
-      listDict.append(modifDict)
-      del modifDict
+      if Kwargs['start_time'] != 'Initial':
+        modifDict = {}
+        st_time = Kwargs['start_time']
+        modifDict['name'] = ['Executioner']
+        modifDict['start_time'] = st_time
+        listDict.append(modifDict)
+        del modifDict
       
     if 'end_ts' in Kwargs.keys():
-      modifDict = {}
-      end_ts_str = str(Kwargs['end_ts'])
-      if(Kwargs['end_ts'] <= 9999):
-        n_zeros = 4 - len(end_ts_str)
-        for i in xrange(n_zeros):
-          end_ts_str = "0" + end_ts_str
-      
-      splitted = Kwargs['outfile'].split('~')
-      output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[2]
-      restart_file_base = output_parent + "_restart_" + end_ts_str      
-      modifDict['name'] = ['Executioner']
-      modifDict['restart_file_base'] = restart_file_base
-      listDict.append(modifDict)
-      del modifDict
+      if Kwargs['end_ts'] != 0:
+        modifDict = {}
+        end_ts_str = str(Kwargs['end_ts'])
+        if(Kwargs['end_ts'] <= 9999):
+          n_zeros = 4 - len(end_ts_str)
+          for i in xrange(n_zeros):
+            end_ts_str = "0" + end_ts_str
+        
+        splitted = Kwargs['outfile'].split('~')
+        output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[2]
+        restart_file_base = output_parent + "_restart_" + end_ts_str      
+        modifDict['name'] = ['Executioner']
+        modifDict['restart_file_base'] = restart_file_base
+        listDict.append(modifDict)
+        del modifDict
 
     if 'end_time' in Kwargs.keys():
       modifDict = {}
@@ -98,12 +100,13 @@ class RavenInterface:
     del modifDict
     
     if 'branch_changed_param' in Kwargs.keys():
-      for i in xrange(len(Kwargs['branch_changed_param'])):
-        modifDict = {}
-        modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
-        modifDict['value'] = Kwargs['branch_changed_param_value'][i]
-        listDict.append(modifDict)
-        del modifDict
+      if Kwargs['branch_changed_param'][0] != 'None': 
+        for i in xrange(len(Kwargs['branch_changed_param'])):
+          modifDict = {}
+          modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
+          modifDict['value'] = Kwargs['branch_changed_param_value'][i]
+          listDict.append(modifDict)
+          del modifDict
 
     return listDict  
   
@@ -187,10 +190,11 @@ class PrintCSV:
             addcsvfile.write('end time,'+str(attributes['end_time'])+'\n')
             addcsvfile.write('number of time-steps,'+str(attributes['n_ts'])+'\n')
             try:
-              addcsvfile.write('number of branches in this history,'+str(len(attributes['initiator_distributions']))+'\n')
+              init_dist = attributes['initiator_distribution']
+              addcsvfile.write('number of branches in this history,'+str(len(attributes['initiator_distribution']))+'\n')
               string_work = ''
-              for i in xrange(len(attributes['initiator_distributions'])):
-                string_work = string_work + attributes['initiator_distributions'][i] + ','          
+              for i in xrange(len(attributes['initiator_distribution'])):
+                string_work = string_work + attributes['initiator_distribution'](i) + ','          
               addcsvfile.write('initiator distributions,'+str(string_work)+'\n')
             except:
               pass

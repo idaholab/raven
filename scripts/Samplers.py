@@ -272,8 +272,12 @@ class DynamicEventTree(Sampler):
       self.counter += 1
       rname = self.TreeInfo.getroot().tag 
       values = {'prefix':rname}
-      values['initiator_distribution'] = []
-      values['PbThreshold']            = []
+      values['initiator_distribution']     = []
+      values['PbThreshold']                = []
+      values['branch_changed_param']       = ['None']
+      values['branch_changed_param_value'] = ['None']
+      values['start_time']                 = 'Initial'
+      values['end_ts']                     = 0
       for key in self.distDict.keys():
         values['initiator_distribution'].append(key)
       for key in self.branchProbabilities.keys():  

@@ -213,6 +213,7 @@ class hdf5Database:
         try:
           # parameter that has been changed 
           sgrp.attrs["branch_changed_param"] = attributes["branch_changed_param"]
+          testget = sgrp.attrs["branch_changed_param"]
         except:
           # no branching information
           pass

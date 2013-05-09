@@ -76,8 +76,6 @@ class HDF5(DateSet):
       return self.dataset.retrieveAllHistoryPaths()
     def getEndingGroupNames(self):
       return self.dataset.retrieveAllHistoryNames()
-    
-      
 
     def addGroup(self,attributes,loadFrom):
       attributes["group"] = attributes['prefix']
