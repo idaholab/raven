@@ -147,7 +147,10 @@ class DynamicEventTree(Sampler):
       
       else:
         # two way branch
-        pb = self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]
+        if self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']])-1:
+          pb = 1.0
+        else:
+          pb = self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]
         endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0 - pb
         endInfo['branch_changed_params'][key]['associated_pb'] = [pb]
     if(jobObject.identifier == self.TreeInfo.getroot().tag):
@@ -288,6 +291,7 @@ class DynamicEventTree(Sampler):
         values = {'prefix':rname,'end_ts':endInfo['end_ts'],
                   'branch_changed_param':[subGroup.get('branch_changed_param')],
                   'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
+                  'conditional_prb':[subGroup.get('conditional_pb')],
                   'initiator_distribution':[endInfo['branch_dist']],
                   'start_time':endInfo['parent_node'].get('end_time'),
                   'parent_id':subGroup.get('parent')}
@@ -310,6 +314,7 @@ class DynamicEventTree(Sampler):
       values['branch_changed_param_value'] = ['None']
       values['start_time']                 = 'Initial'
       values['end_ts']                     = 0
+      values['conditional_prb']            = [1.0]
       for key in self.distDict.keys():
         values['initiator_distribution'].append(key)
       for key in self.branchProbabilities.keys():  

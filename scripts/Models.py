@@ -181,7 +181,7 @@ class PrintCSV:
             np.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history,' + hist +'\n')
             csvfile.write(' '+'\n')
             #process the attributes in a different csv file (different kind of informations)
-            addcsvfile.write('history,'+key+','+'\n')
+            addcsvfile.write('history,'+hist+','+'\n')
             addcsvfile.write('________________________________,' + '_'*len(key)+','+'\n')
             addcsvfile.write('number of parameters,'+str(attributes['n_params'])+'\n')
             addcsvfile.write('parameters,'+headers+'\n') 
@@ -196,7 +196,7 @@ class PrintCSV:
               for i in xrange(len(init_dist)):
                 string_work_2 = ''
                 for j in init_dist[i]:
-                  string_work_2 = string_work_2 + str(j) + '/'
+                  string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','          
               addcsvfile.write('initiator distributions,'+str(string_work)+'\n')
             except:
@@ -216,9 +216,9 @@ class PrintCSV:
                 string_work_2 = ''
                 for j in branch_changed_param[i]:
                   if not j:
-                    string_work_2 = string_work_2 + 'None' + '/'
+                    string_work_2 = string_work_2 + 'None' + ' '
                   else:
-                    string_work_2 = string_work_2 + str(j) + '/'
+                    string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','          
               addcsvfile.write('changed parameters,'+str(string_work)+'\n')
             except:
@@ -230,9 +230,9 @@ class PrintCSV:
                 string_work_2 = ''
                 for j in branch_changed_param_value[i]:
                   if not j:
-                    string_work_2 = string_work_2 + 'None' + '/'
+                    string_work_2 = string_work_2 + 'None' + ' '
                   else:
-                    string_work_2 = string_work_2 + str(j) + '/'
+                    string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','                          
               addcsvfile.write('changed parameters values,'+str(string_work)+'\n')
             except:
@@ -241,7 +241,13 @@ class PrintCSV:
               string_work = ''
               cond_pbs = attributes['conditional_prb']
               for i in xrange(len(cond_pbs)):
-                string_work = string_work + cond_pbs[i] + ','          
+                string_work_2 = ''
+                for j in cond_pbs[i]:
+                  if not j:
+                    string_work_2 = string_work_2 + 'None' + ' '
+                  else:
+                    string_work_2 = string_work_2 + str(j) + ' '
+                string_work = string_work + string_work_2 + ','                
               addcsvfile.write('conditional probability,'+str(string_work)+'\n')
             except:
               pass
@@ -249,7 +255,13 @@ class PrintCSV:
               string_work = ''
               pb_thresholds = attributes['Probability_threshold']
               for i in xrange(len(pb_thresholds)):
-                string_work = string_work + pb_thresholds[i] + ','          
+                string_work_2 = ''
+                for j in pb_thresholds[i]:
+                  if not j:
+                    string_work_2 = string_work_2 + 'None' + ' '
+                  else:
+                    string_work_2 = string_work_2 + str(j) + ' '
+                string_work = string_work + string_work_2 + ','
               addcsvfile.write('Probability threshold,'+str(string_work)+'\n')
             except:
               pass            

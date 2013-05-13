@@ -24,7 +24,7 @@
       <max_iter>4000</max_iter>
       <degree>4</degree>
     </ROM>
-    
+    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
     <Filter name='Plot1' type='Plot'> 
       <historyID>ALL</historyID>
       <variables>ALL</variables>
