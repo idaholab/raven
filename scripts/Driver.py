@@ -30,7 +30,6 @@ if __name__ == '__main__':
     tree = ET.parse(inputFile)
     if debug: print('opened file '+inputFile)
   except:
-    tree = ET.parse(inputFile)
     raise IOError ('not able to parse ' + inputFile)
   root = tree.getroot()
   #generate all the components of the simulation

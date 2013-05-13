@@ -2,8 +2,8 @@
 <Simulatio>
 <RunInfo>
     <WorkingDir>/Users/alfoa/projects/trunk/raven/te_stDriver</WorkingDir>
-    <Files>second,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i,DET_histories.csv</Files>
-    <Sequence>test_plot,FirstMRun,extract_hist_from_hdf5</Sequence>
+    <Files>TMI_test_PRA_transient_less_w_MC.i,TMI_PRA_trans_MC_control.py,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i,DET_histories.csv</Files>
+    <Sequence>FirstMRun,extract_hist_from_hdf5</Sequence>
     <batchSize>4</batchSize>
     <!--<ParallelCommand></ParallelCommand>
     <ParallelProcNumb></ParallelProcNumb>
@@ -19,17 +19,16 @@
 <Models>
     <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
     <ROM name='MySVM' type='SVM'>
-      <C lupo='ga'>3.0</C>
+      <C>3.0</C>
       <cache_size>4000</cache_size>
       <max_iter>4000</max_iter>
       <degree>4</degree>
     </ROM>
     
     <Filter name='Plot1' type='Plot'> 
-      <historyID>ALL<historyID>
+      <historyID>ALL</historyID>
       <variables>ALL</variables>
     </Filter>
-    
 </Models>
 <Distributions>
     <Normal name='Gauss1'>
@@ -80,7 +79,7 @@
         <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
         <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
     </LatinHyperCube>
-    <MonteCarlo     name='RAVENmc6'  limit='6'/>
+    <MonteCarlo     name='RAVENmc6'  limit='4'/>
     <MonteCarlo     name='RAVENmc50' limit='50'/>
     <LatinHyperCube name='MyLHC'     limit='50' start='10'></LatinHyperCube>
     <EquallySpaced  name='MyES'      limit='50' start='10'></EquallySpaced>
@@ -112,8 +111,11 @@
         <Output  type='Datas'    subtype='Histories'       >stories</Output>
     </MultiRun >
     <MultiRun name='test_plot'>
-        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w.i</Input>
-        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_MC.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input>
         <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
         <Sampler type='Samplers'   subtype='MonteCarlo'      >RAVENmc6</Sampler>
         <Output  type='OutStreams' subtype='Screen'          >testScreen</Output>
@@ -137,19 +139,12 @@
         <Sampler type='Samplers' subtype='MonteCarlo'  >MyMC</Sampler>
         <Output  type='Datas'    subtype='TimePointSet'>finalPbconverged</Output>
     </MultiRun>
-    
-    
-    
     <PostProcessing name='plot'>
-        <Input   type='Datasets'  	  subtype='HDF5'>testDataBase</Input>
-        <Model   type='Models'    	  subtype='Filter'>Plot1</Input>
-        <Output  type='outStream'  	  subtype='screen'></Output>
-        <Output  type='outStream'			subtype='jpeg'>fileName</Output>
+        <Input   type='Datasets'        subtype='HDF5'>testDataBase</Input>
+        <Model   type='Models'          subtype='Filter'>Plot1</Model>
+        <Output  type='outStream'       subtype='screen'></Output>
+        <Output  type='outStream'       subtype='jpeg'>fileName</Output>
     </PostProcessing>
-    
-    
-    
-    
 </Steps>
 <OutStreams>
   <Screen name="testScreen">
@@ -159,35 +154,6 @@
 <DataSets>
     <HDF5 name="testDataBase" type="DET"/> 
 </DataSets>
-
-
-<OutStreams>
-		<Screen name="">
-		  <variable> ALL </variable>
-		</Screen>
-		<Pdf    name="" >
-		  <variable>
-		   a,
-		   b
-		  </variable>
-		</Pdf>
-		  <variable> all </variable>
-		  <fileNameRoot> plotPDF </fileNameRoot>
-		<Eps    name="" >
-		  <variable> b </variable>
-		  <fileNameRoot> plotEPS </fileNameRoot>
-		</Eps>
-		<Jpeg   name="" >
-		  <variable> a </variable>
-		  <fileNameRoot> plotJPEG </fileNameRoot>
-		</Jpeg>
-		<Png    name="" >
-		  <variable> a </variable>
-		  <fileNameRoot> plotPNG </fileNameRoot>
-		</Png>
-</OutStreams>
-
-
 
 <Datas>
     <Histories name='stories'>

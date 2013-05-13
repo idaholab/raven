@@ -261,7 +261,7 @@ class PrintCSV:
       raise NameError ('Filter PrintCSV for input type ' + inObj.type + ' not yet implemented.')
 
 
-class Plot
+class Plot:
   def __init__(self):
     self.paramters = []
     
@@ -279,6 +279,7 @@ class Plot
       
     elif (inObj.type == "CSV"):
       # do something
+      pass
     else:
       raise NameError ('Filter Plot for input type ' + inObj.type + ' not yet implemented.')
     
