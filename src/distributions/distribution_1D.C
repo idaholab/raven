@@ -401,8 +401,13 @@ TriangularDistribution::TriangularDistribution(const std::string & name, InputPa
    _dis_parameters["upperBound"] = getParam<double>("upperBound");
     
     
-    if (getParam<double>("upperBound")<getParam<double>("lowerBound"))
+    if (getParam<double>("upperBound") < getParam<double>("lowerBound"))
         mooseError("ERROR: bounds for triangular distribution are incorrect");  
+    if (getParam<double>("upperBound") < _dis_parameters.find("xMin") ->second)
+      mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
+    if (getParam<double>("lowerBound") > _dis_parameters.find("xMax") ->second)
+      mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
+
 }
 TriangularDistribution::~TriangularDistribution()
 {
