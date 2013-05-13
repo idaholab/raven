@@ -1,5 +1,5 @@
 Dynamic Event Tree Analysis Through RAVEN
-Authors: A.Alfonsi, C. Rabiti, D.Mandelli, J.J. Cogliati, R.A. Kinoshita 
+Authors: A.Alfonsi, C. Rabiti, D.Mandelli, J.J. Cogliati, R.A. Kinoshita, A. Naviglio
 Abstract
 
 Classic Event-Tree (ET) based methodologies are extensively used as tools to perform reliability and safety assessment of complex and critical engineering systems. 

@@ -175,7 +175,7 @@ class PrintCSV:
             try:
               hist = ''
               hist = key
-              hist = hist.translate('_',',') 
+              hist = hist.replace(',','_') 
             except:
               hist = key  
             np.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history,' + hist +'\n')
@@ -191,45 +191,65 @@ class PrintCSV:
             addcsvfile.write('number of time-steps,'+str(attributes['n_ts'])+'\n')
             try:
               init_dist = attributes['initiator_distribution']
-              addcsvfile.write('number of branches in this history,'+str(len(attributes['initiator_distribution']))+'\n')
+              addcsvfile.write('number of branches in this history,'+str(len(init_dist))+'\n')
               string_work = ''
-              for i in xrange(len(attributes['initiator_distribution'])):
-                string_work = string_work + attributes['initiator_distribution'](i) + ','          
+              for i in xrange(len(init_dist)):
+                string_work_2 = ''
+                for j in init_dist[i]:
+                  string_work_2 = string_work_2 + str(j) + '/'
+                string_work = string_work + string_work_2 + ','          
               addcsvfile.write('initiator distributions,'+str(string_work)+'\n')
             except:
               pass
             try:
               string_work = ''
-              for i in xrange(len(attributes['end_timestep'])):
-                string_work = string_work + attributes['end_timestep'][i] + ','          
+              end_ts = attributes['end_timestep']
+              for i in xrange(len(end_ts)):
+                string_work = string_work + str(end_ts[i]) + ','          
               addcsvfile.write('end time step,'+str(string_work)+'\n')
             except:
               pass             
             try:
               string_work = ''
-              for i in xrange(len(attributes['branch_changed_param'])):
-                string_work = string_work + attributes['branch_changed_param'][i] + ','          
+              branch_changed_param = attributes['branch_changed_param']
+              for i in xrange(len(branch_changed_param)):
+                string_work_2 = ''
+                for j in branch_changed_param[i]:
+                  if not j:
+                    string_work_2 = string_work_2 + 'None' + '/'
+                  else:
+                    string_work_2 = string_work_2 + str(j) + '/'
+                string_work = string_work + string_work_2 + ','          
               addcsvfile.write('changed parameters,'+str(string_work)+'\n')
             except:
               pass
             try:
               string_work = ''
-              for i in xrange(len(attributes['branch_changed_param_value'])):
-                string_work = string_work + attributes['branch_changed_param_value'][i] + ','          
+              branch_changed_param_value = attributes['branch_changed_param_value']
+              for i in xrange(len(branch_changed_param_value)):
+                string_work_2 = ''
+                for j in branch_changed_param_value[i]:
+                  if not j:
+                    string_work_2 = string_work_2 + 'None' + '/'
+                  else:
+                    string_work_2 = string_work_2 + str(j) + '/'
+                string_work = string_work + string_work_2 + ','                          
               addcsvfile.write('changed parameters values,'+str(string_work)+'\n')
             except:
               pass
             try:
               string_work = ''
-              for i in xrange(len(attributes['conditional_prb'])):
-                string_work = string_work + attributes['conditional_prb'][i] + ','          
+              cond_pbs = attributes['conditional_prb']
+              for i in xrange(len(cond_pbs)):
+                string_work = string_work + cond_pbs[i] + ','          
               addcsvfile.write('conditional probability,'+str(string_work)+'\n')
             except:
               pass
             try:
               string_work = ''
-              for i in xrange(len(attributes['Probability_threshold'])):
-                string_work = string_work + attributes['Probability_threshold'][i] + ','          
+              pb_thresholds = attributes['Probability_threshold']
+              for i in xrange(len(pb_thresholds)):
+                string_work = string_work + pb_thresholds[i] + ','          
               addcsvfile.write('Probability threshold,'+str(string_work)+'\n')
             except:
               pass            

@@ -119,9 +119,6 @@ class DynamicEventTree(Sampler):
       return True
     else:
       return False
-
-  def  computeConditionalProbability(self):
-    return
   
   def finalizeActualSampling(self,jobObject,model,myInput):
     # we read the info at the end of one branch
@@ -142,7 +139,7 @@ class DynamicEventTree(Sampler):
          unchanged_pb = 0.0
          try:
            for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])):
-             unchanged_pb = unchanged_pb + pb 
+             unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
          except:
           pass
          if(unchanged_pb <= 1):
@@ -162,16 +159,37 @@ class DynamicEventTree(Sampler):
     endInfo['parent_node'].set('runEnded',True)
     endInfo['parent_node'].set('running',False)
     endInfo['parent_node'].set('end_time',self.actual_end_time)
-    # add call to conditional probability calculation
-    self.computeConditionalProbability()
-    self.branchedLevel[endInfo['branch_dist']]       += 1
 
+    self.branchedLevel[endInfo['branch_dist']]       += 1
+    
     self.endInfo.append(endInfo)
+    # compute conditional probability calculation (put the result into self.endInfo)
+    self.computeConditionalProbability()
+
     # we create the input queue for all the branches must be run
     self.__createRunningQueue(model,myInput)
     
     return
-  
+  def computeConditionalProbability(self,index=None):
+    if not index:
+      index = len(self.endInfo)-1
+    parent_cond_pb = 0.0  
+    try:
+      parent_cond_pb = self.endInfo[index]['parent_node'].get('conditional_pb')
+      if not parent_cond_pb:
+        parent_cond_pb = 1.0
+    except:
+      parent_cond_pb = 1.0
+      
+    for key in self.endInfo[index]['branch_changed_params']:
+       try:
+         testpb = self.endInfo[index]['branch_changed_params'][key]['unchanged_pb']
+         self.endInfo[index]['branch_changed_params'][key]['unchanged_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['unchanged_pb'])
+         for pb in xrange(len(self.endInfo[index]['branch_changed_params'][key]['associated_pb'])):
+           self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb])
+       except:
+         pass
+    return  
   def __readBranchInfo(self):
     # function for reading Branch Info from xml file
 
@@ -215,7 +233,7 @@ class DynamicEventTree(Sampler):
             self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb)) 
           except:
             pass
-      # we exit the loop here, because only one trigger at the time can be handled     
+      # we exit the loop here, because only one trigger at the time can be handled  right now   
       break
     # we remove the file
     os.remove(filename)
@@ -234,15 +252,29 @@ class DynamicEventTree(Sampler):
         subGroup.set('parent', endInfo['parent_node'].get('name'))
         subGroup.set('name', rname)
 
+        cond_pb_un = 0.0
+        cond_pb_c =0.0
         for key in endInfo['branch_changed_params'].keys():
           subGroup.set('branch_changed_param',key)
           if self.branchCountOnLevel != 1:
             subGroup.set('branch_changed_param_value',endInfo['branch_changed_params'][key]['actual_value'][self.branchCountOnLevel-2])
             subGroup.set('branch_changed_param_pb',endInfo['branch_changed_params'][key]['associated_pb'][self.branchCountOnLevel-2])
+            try:
+              cond_pb_c = cond_pb_c + endInfo['branch_changed_params'][key]['changed_cond_pb'] 
+            except:
+              pass
           else:
             subGroup.set('branch_changed_param_value',endInfo['branch_changed_params'][key]['old_value'])
-            subGroup.set('branch_changed_param_pb',endInfo['branch_changed_params'][key]['unchanged_pb'])            
-        
+            subGroup.set('branch_changed_param_pb',endInfo['branch_changed_params'][key]['unchanged_pb'])
+            try:
+              cond_pb_un =  cond_pb_un + endInfo['branch_changed_params'][key]['unchanged_cond_pb']
+            except:
+              pass
+        if self.branchCountOnLevel != 1:
+          subGroup.set('conditional_pb',cond_pb_c)
+        else:
+          subGroup.set('conditional_pb',cond_pb_un)
+          
         subGroup.set('initiator_distribution',endInfo['branch_dist']) 
         subGroup.set('start_time', endInfo['parent_node'].get('end_time'))
         # we initialize the end_time to be equal to the start one... It will modified at the end of this branch

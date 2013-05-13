@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 import os
 from Simulation import Simulation
 import sys
+import matplotlib.pyplot as plt
 
 debug = True
 
@@ -36,4 +37,6 @@ if __name__ == '__main__':
   simulation = Simulation(inputFile, script_dir)
   simulation.XMLread(root)
   simulation.run()
+  
+  plt.show()
 

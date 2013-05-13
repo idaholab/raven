@@ -603,7 +603,7 @@
  
  [Executioner]
  type = RavenExecutioner
- restart_file_base = TMI_test_PRA_transient_less_w_ss_out_3783
+ restart_file_base = TMI_test_PRA_transient_less_w_ss_out_restart_0831
  dt = 5e-2
  time_t = '0 1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
  time_dt = '1.e-1  0.1 0.15         0.20       0.25    0.30  0.35      0.40    0.45   0.5   0.6  0.8'
@@ -639,6 +639,7 @@
  perf_log = true
  #num_restart_files = 1
   file_base = TMI_test_PRA_transient_less_w_out
+ postprocessor_csv = true
 []
 
 [Controlled]

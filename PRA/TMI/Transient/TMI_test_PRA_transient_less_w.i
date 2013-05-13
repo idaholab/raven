@@ -24,7 +24,32 @@
     T_0 = 564.15 # K
   [../]
 []
-
+ [Materials]
+ [./fuel-mat]
+ type = SolidMaterialProperties
+ k = 3.65
+ Cp = 288.734
+ rho = 1.032e4
+ [../]
+ [./gap-mat]
+ type = SolidMaterialProperties
+ k = 1.084498
+ Cp = 1.0
+ rho = 1.
+ [../]
+ [./clad-mat]
+ type = SolidMaterialProperties
+ k = 16.48672
+ Cp = 321.384
+ rho = 6.55e3
+ [../]
+ [./wall-mat]
+ type = SolidMaterialProperties
+ k = 10.0
+ rho = 8000.0
+ Cp = 400.0
+ [../]
+ []
 [Components]
   [./reactor]
     type = Reactor
@@ -54,6 +79,7 @@
     k_hs = '3.65 1.084498 16.48672'
     Cp_hs = '288.734 1.0 321.384'
     rho_hs = '1.0412e2 1.0 6.6e1'
+    material_hs = 'fuel-mat gap-mat clad-mat' 
     power_fraction = '3.33672612e-1 0 0'
   [../]
   [./CH2]
@@ -78,6 +104,7 @@
     k_hs = '3.65  1.084498  16.48672'
     Cp_hs = '288.734  1.0  321.384'
     rho_hs = '1.0412e2 1. 6.6e1'
+    material_hs = 'fuel-mat gap-mat clad-mat'
     power_fraction = '3.69921461e-1 0 0'
   [../]
   [./CH3]
@@ -101,6 +128,7 @@
     elem_number_of_hs = '3 1 1'
     k_hs = '3.65  1.084498  16.48672'
     Cp_hs = '288.734  1.0  6.6e3'
+    material_hs = 'fuel-mat gap-mat clad-mat' 
     rho_hs = '1.0412e2  1.0  6.6e1'
     power_fraction = '2.96405926e-1 0 0'
   [../]
@@ -262,7 +290,7 @@
     position = '0 4. 8.'
     orientation = '0 0 -1'
     A = 5.
-    A_secondary = 2.5 # 5
+    A_secondary = 5. # 5
     Dh = 0.01
     Dh_secondary = 0.01
     length = 4.
@@ -279,6 +307,7 @@
     rho_wall = 100.0
     Cp_wall = 100.0
     n_wall_elems = 2
+    material_wall = wall-mat
   [../]
   [./Branch4-A]
     type = ErgBranch
@@ -442,7 +471,7 @@
     position = '0 -4. 8.'
     orientation = '0 0 -1'
     A = 5.
-    A_secondary = 2.5 # 5.
+    A_secondary = 5.0 # 5.
     Dh = 0.01
     Dh_secondary = 0.01
     length = 4.
@@ -458,6 +487,7 @@
     k_wall = 100.0
     rho_wall = 100.0
     Cp_wall = 100.0
+    material_wall = wall-mat
     n_wall_elems = 2
     disp_mode = -1.0
   [../]
@@ -603,7 +633,7 @@
   exodus = false
   output_initial = true
   perf_log = true
-  num_restart_files = 1
+ #num_restart_files = 1
   postprocessor_csv = true
 []
 
@@ -794,6 +824,14 @@ component_name = pipe2-CL-A
     xMax  = 123.0
     truncation = 1
   [../]
+ [./noise]
+    type = NormalDistribution
+     mu = 1.0
+     sigma = 0.05
+     xMin  = -1.0
+     xMax  = 1.0
+     truncation = 1
+ [../] 
   [./CladFailureDist]
     type = TriangularDistribution
     xMin = 1255.3722 # Lower bound (PRA succes criteria)
