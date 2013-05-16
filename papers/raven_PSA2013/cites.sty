@@ -1,0 +1,137 @@
+%
+% CITES (style option to DARTICLE) is an extracted and changed
+% part of the AIP style written by Charles Karney (Karney@PPC.MFEnet).
+% CITES DOCUMENT SUBSTYLE -- released 15 March 1988
+%
+% To use this give CITES as an optional argument to \documentstyle.  The
+% main style should be DARTICLE.  E.g.,
+%     \documentstyle[12pt,german,cites]{darticle}
+ 
+% This provides
+% (1) Superscript reference numbers in citation and bibliography.
+%     This is done by calling  \numcite  after \begin{document}.
+%     You should put the references in the logically correct place, e.g.
+%     "...  as is given by Landau \cite{landau}.  Next sentence ..."
+%     \cite takes care of removing the preceding spaces and putting the
+%     reference after the punctuation (e.g, "...  Landau.$~7$ ...").
+ 
+% (2) Three or more consecutive reference numbers are represented as a
+%     range.  Thus 1,3,4,5,6,8,9 is printed as 1,3--6,8,9.  No sorting is
+%     performed; i.e., 1,3,2 is printed as such.
+%     The cites style does this by default.
+ 
+% (3) \citenum and \citea give you more control over the appearance of
+%     the citations.  \citenum emits the plain citation number without
+%     ornament as in "...  as shown in Ref.~\citenum{foo}.".  \citea puts
+%     it's argument into the ornamentation for citations.
+%     Thus \cite{foo} is equivalent to \citea{\citenum{foo}}.
+ 
+% (4) \bibnum{p} prints entries of the thebibliography environment in the
+%     form     #.
+%     \bibnum{k} prints entries of the thebibliography environment in the
+%     form    [#]
+%     \bibnum{h} prints entries of the thebibliography environment in the
+%     form    $^{#1}$
+%     Default is \bibnum{k}.
+%     If \numcite is used, \bibnum should appear after it.
+%     G. Kruljac,  MPI Stuttgart, kruljac@ds0mpi11,   13.03.89
+ 
+%   CHANGES
+%  06.04.89  G. Kruljac, kruljac@ds0mpi11
+%            - inserted commands \refincount and \@refincount to
+%              offer a possibility for citation numbering inside
+%              chapters, sections,...
+%              Initially it is empty. The user can define it by i.e.
+%              \refincount{\thechapter.} or \refincount{\thesubsection.}
+%
+%            - corrections inside thebibliography for leftmargin
+%              evaluations
+%
+%
+ 
+%\typeout{Document Substyle 'CITES'.  Released 15 March 1988}
+\typeout{Document Substyle `CITES' modified by MPI FKF, Version 1.1, 06.04.89}
+ 
+% here we define the counter which should preceed the reference number
+\def\@refincount{}
+\def\refincount#1{\gdef\@refincount{#1}}
+ 
+% Superscript citations -- skip optional arg to \cite
+% Move citation after period and comma.
+\def\@cite#1#2{[{\@refincount#1\if@tempswa , #2\fi}]}
+ 
+\gdef\numcite{\bibnum{h}
+              \def\@cite##1##2{\unskip\nobreak\relax
+              \def\@tempa{$\m@th^{\hbox{\the\scriptfont0
+                                        \@refincount##1}}$}%
+              \futurelet\@tempc\@citexx}
+              \def\@citexx{\ifx.\@tempc\let\@tempd=\@citepunct\else
+                           \ifx,\@tempc\let\@tempd=\@citepunct\else
+                           \let\@tempd=\@tempa\fi\fi\@tempd}
+              \def\@citepunct{\@tempc%
+                           \edef\@sf{\spacefactor=\the\spacefactor\relax}
+                           \@tempa\@sf\@gobble}}
+ 
+\def\bibnumh{\hfil$\m@th^{\@refincount\arabic{enumi}}$}
+\def\bibnump{\hfil\@refincount\arabic{enumi}.}
+\def\bibnumk{\hfil[\@refincount\arabic{enumi}]}
+\def\bibnum#1{\if\string#1h \global\let\@bibnum=\bibnumh\else
+              \if\string#1k \global\let\@bibnum=\bibnumk\else
+              \if\string#1p \global\let\@bibnum=\bibnump\else
+              \global\let\@bibnum=\bibnumh%
+              \fi\fi\fi}
+\let\@bibnum=\bibnumk
+ 
+\def\thebibliography#1{\par%\clearpage%
+             \section*{\refname\@mkboth
+                       {\uppercase{\refname}}{\uppercase{\refname}}}%
+             \list
+%            {\@bibnum}{\settowidth\labelwidth{$\m@th{##1}$}
+             {\@bibnum}%
+            {\ifx\@bibnum\bibnumk%
+                  \settowidth\labelwidth{[\@refincount#1]}
+              \else\ifx\@bibnum\bibnumh
+                        \settowidth\labelwidth{$\m@th^{\@refincount#1}$}
+                        \labelsep0pt\itemindent\labelwidth
+                   \else\settowidth\labelwidth{\@refincount#1.}
+              \fi\fi
+             \leftmargin\labelwidth
+             \advance\leftmargin\labelsep
+             \ifnum\itemindent=0\else\advance\itemindent-\leftmargin\fi
+             \usecounter{enumi}}
+             \def\newblock{\hskip .11em plus .33em minus -.07em}
+             \sloppy
+             \sfcode`\.=1000\relax}
+ 
+% \citenum emits the plain citation number without ornament
+% \citea puts it's argument into the ornamentation for citations
+% thus \cite{foo} is equivalent to \citea{\citenum{foo}}
+\def\citenum#1{{\def\@cite##1##2{##1}\cite{#1}}}
+\def\citea#1{\@cite{#1}{}}
+ 
+% Collapse citation numbers to ranges.  Non-numeric and undefined labels
+% are handled.  No sorting is done.  E.g., 1,3,2,3,4,5,foo,1,2,3,?,4,5
+% gives 1,3,2-5,foo,1-3,?,4,5
+\newcount\@tempcntc
+\def\@citex[#1]#2{\if@filesw\immediate\write\@auxout{\string\citation{#2}}\fi
+  \@tempcnta\z@\@tempcntb\m@ne\def\@citea{}\@cite{\@for\@citeb:=#2\do
+    {\@ifundefined
+       {b@\@citeb}{\@citeo\@tempcntb\m@ne\@citea\def\@citea{,}{\bf ?}\@warning
+       {Citation `\@citeb' on page \thepage \space undefined}}%
+    {\setbox\z@\hbox{\global\@tempcntc0\csname b@\@citeb\endcsname\relax}%
+     \ifnum\@tempcntc=\z@ \@citeo\@tempcntb\m@ne
+       \@citea\def\@citea{,}\hbox{\csname b@\@citeb\endcsname}%
+     \else
+      \advance\@tempcntb\@ne
+      \ifnum\@tempcntb=\@tempcntc
+      \else\advance\@tempcntb\m@ne\@citeo
+      \@tempcnta\@tempcntc\@tempcntb\@tempcntc\fi\fi}}\@citeo}{#1}}
+\def\@citeo{\ifnum\@tempcnta>\@tempcntb\else\@citea%
+            \def\@citea{,\@refincount}%
+            \ifnum\@tempcnta=\@tempcntb\the\@tempcnta\else
+            {\advance\@tempcnta\@ne%
+            \ifnum\@tempcnta=\@tempcntb
+            \else \def\@citea{--\@refincount}\fi
+    \advance\@tempcnta\m@ne\the\@tempcnta\@citea\the\@tempcntb}\fi\fi}
+ 
+ 
