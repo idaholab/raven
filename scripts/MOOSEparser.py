@@ -65,18 +65,23 @@ class MOOSEparser:
       name = modiDictionaryList[i]['name']
       del modiDictionaryList[i]['name']
       if returnElement.find(name[0])!=None:   #if the first level name is present
-        child = returnElement.find(name[0])
-        if len(name)>1:
-          if child.find(name[1])!=None: child.find(name[1]).attrib.update(modiDictionaryList[i])
-          else: ET.SubElement(child,name[1],modiDictionaryList[i])
+        if 'erase_block' in modiDictionaryList[i].keys():
+          if modiDictionaryList[i]['erase_block']:
+            returnElement.remove(returnElement.find(name[0]))
         else:
-          child.attrib.update(modiDictionaryList[i])
-      else:
-        ET.SubElement(returnElement,name[0])
-        if len(name) > 1:
           child = returnElement.find(name[0])
-          ET.SubElement(child,name[1],modiDictionaryList[i])
-      if save: return returnElement
+          if len(name)>1:
+            if child.find(name[1])!=None: child.find(name[1]).attrib.update(modiDictionaryList[i])
+            else: ET.SubElement(child,name[1],modiDictionaryList[i])
+          else:
+            child.attrib.update(modiDictionaryList[i])
+      else:
+        if not 'erase_block' in modiDictionaryList[i].keys():
+          ET.SubElement(returnElement,name[0])
+          if len(name) > 1:
+            child = returnElement.find(name[0])
+            ET.SubElement(child,name[1],modiDictionaryList[i])
+    if save: return returnElement
 
 
 

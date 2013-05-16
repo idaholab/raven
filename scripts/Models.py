@@ -98,7 +98,14 @@ class RavenInterface:
     modifDict['num_restart_files'] = 1
     listDict.append(modifDict)
     del modifDict
+    # in this way we erase the whole block in order to neglect eventual older info
+    # remember this "command" must be added before giving the info for refilling the block
+    modifDict = {}
+    modifDict['name'] = ['RestartInitialize']
+    modifDict['erase_block'] = True
+    listDict.append(modifDict)
     
+    del modifDict    
     if 'branch_changed_param' in Kwargs.keys():
       if Kwargs['branch_changed_param'][0] != 'None': 
         for i in xrange(len(Kwargs['branch_changed_param'])):
@@ -164,20 +171,24 @@ class PrintCSV:
         outType = outObj.type
         #not yet implemented
       except:
-        splitted = outObj.split('.')
-        addfile = splitted[0] + '_additional_info.' + splitted[1]
-        with open(outObj, 'w') as csvfile, open(addfile, 'w') as addcsvfile:
-          for key in histories:
-            headers = ''
-            attributes = histories[key][1]
-            for i in xrange(len(attributes['headers'])):
-              headers = headers + histories[key][1]['headers'][i] + ','
-            try:
-              hist = ''
-              hist = key
-              hist = hist.replace(',','_') 
-            except:
-              hist = key  
+#        splitted = outObj.split('.')
+#        addfile = splitted[0] + '_additional_info.' + splitted[1]
+#        with open(outObj, 'w') as csvfile, open(addfile, 'w') as addcsvfile:
+        for key in histories:
+          headers = ''
+          attributes = histories[key][1]
+          for i in xrange(len(attributes['headers'])):
+            headers = headers + histories[key][1]['headers'][i] + ','
+          try:
+            hist = ''
+            hist = key
+            hist = hist.replace(',','_') 
+          except:
+            hist = key
+          splitted = outObj.split('.')
+          addfile = splitted[0] + '_additional_info_' + hist + '.'+splitted[1]
+          csvfilen = splitted[0] + '_' + hist + '.'+splitted[1]
+          with open(csvfilen, 'w') as csvfile, open(addfile, 'w') as addcsvfile:            
             np.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history,' + hist +'\n')
             csvfile.write(' '+'\n')
             #process the attributes in a different csv file (different kind of informations)
@@ -412,7 +423,10 @@ class Code(Model):
     executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
 #    for inputFile in self.currentInputFiles: shutil.copy(inputFile,self.workingDir)
     self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
-    print('job submitted')
+    if self.currentInputFiles[0].endswith('.i'): index = 0
+    else: index = 1
+    
+    print('job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
     return self.process
 
   def collectOutput(self,finisishedjob,output):

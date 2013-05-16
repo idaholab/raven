@@ -496,10 +496,6 @@ TriangularDistribution::Cdf(double & x){
 	  else if (x>xMax)
 		  value=1;
 	  else{
-	      std::cerr << "TriangularDistribution::untrCdf(xMax) = " <<  TriangularDistribution::untrCdf(xMax) << std::endl;
-          std::cerr << "TriangularDistribution::untrCdf(xMin) = " <<  TriangularDistribution::untrCdf(xMin) << std::endl;
-          std::cerr << "TriangularDistribution::untrCdf(x) = " <<  TriangularDistribution::untrCdf(x) << std::endl;
-
 		  value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * (TriangularDistribution::untrCdf(x)- TriangularDistribution::untrCdf(xMin));
 	  }
    else

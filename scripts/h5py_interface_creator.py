@@ -89,6 +89,9 @@ class hdf5Database:
         
         parent_group_name = "/"
         grp = self.h5_file_w.create_group(gname)
+        
+        print('Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+        
         # create data set in this new group
         dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
         
@@ -188,8 +191,8 @@ class hdf5Database:
         self.allGroupEnds[parent_group_name] = False
         grp.attrs["EndGroup"]   = False
         
-        print(gname)
-        print(self.h5_file_w.mode)
+        print('Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+        
         sgrp = grp.create_group(gname)
         # create data set in this new group
         dataset = sgrp.create_dataset(gname+"_data", dtype="float", data=data)

@@ -6,6 +6,7 @@ Created on Feb 21, 2013
 import xml.etree.ElementTree as ET
 import time
 from BaseType import BaseType
+import copy
 
 class Step(BaseType):
   '''this class implement one step of the simulation pattern'''
@@ -39,6 +40,7 @@ class Step(BaseType):
   
   def takeAstep(self,inDictionary):
     '''main driver for a step'''
+    #inDictionary['OriginalInput'] = copy.deepcopy(inDictionary['Input'])
     if self.debug: print('beginning the step: '+self.name)
     self.initializeStep(inDictionary)
     # filtering (this module must be split in different modules, otherwise it is a mess

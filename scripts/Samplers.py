@@ -123,7 +123,7 @@ class DynamicEventTree(Sampler):
   def finalizeActualSampling(self,jobObject,model,myInput):
     # we read the info at the end of one branch
     self.workingDir = model.workingDir
-    if not self.__readBranchInfo(): return
+    if not self.__readBranchInfo(jobObject.output): return
     
     # we collect the info in a multi-level dictionary
     endInfo = {}
@@ -193,14 +193,16 @@ class DynamicEventTree(Sampler):
        except:
          pass
     return  
-  def __readBranchInfo(self):
+  def __readBranchInfo(self,out_base=None):
     # function for reading Branch Info from xml file
 
     # we remove all the elements from the info container
     del self.actualBranchInfo
     self.actualBranchInfo = {}
-    filename = "actual_branch_info.xml"
-
+    if out_base:
+      filename = out_base + "_actual_branch_info.xml"
+    else:
+      filename = "actual_branch_info.xml"
     if not os.path.isabs(filename):
       filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
@@ -364,9 +366,12 @@ class DynamicEventTree(Sampler):
     
   def readMoreXML(self,xmlNode):
     elm = ET.Element(xmlNode.attrib['name'] + '_1')
-    flag = ""
-    flag = xmlNode.attrib['print_end_xml']
-    self.print_end_xml = (flag.lower() in ['true','t','yes','si','y','yeah','ja','da','oui','sic','perche no','avojia','certamente','dajie','divertimose'])
+    try:
+      flag = ""
+      flag = xmlNode.attrib['print_end_xml']
+      self.print_end_xml = (flag.lower() in ['true','t','yes','si','y','yeah','ja','da','oui','sic','perche no','avojia','certamente','dajie','divertimose'])
+    except:
+      self.print_end_xml = False
     #elm.set('parent', 'root')
     elm.set('name', xmlNode.attrib['name'] + '_1')
     elm.set('start_time', 0.0)
