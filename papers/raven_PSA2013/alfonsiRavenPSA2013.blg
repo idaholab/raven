@@ -3,44 +3,44 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: alfonsiRavenPSA2013.aux
 The style file: ieeetr.bst
 Database file #1: bibl.bib
-You've used 4 entries,
+You've used 9 entries,
             1876 wiz_defined-function locations,
-            504 strings with 4391 characters,
-and the built_in function-call counts, 1294 in all, are:
-= -- 114
-> -- 68
-< -- 1
-+ -- 24
-- -- 20
-* -- 96
-:= -- 191
-add.period$ -- 4
-call.type$ -- 4
-change.case$ -- 4
+            536 strings with 5338 characters,
+and the built_in function-call counts, 2654 in all, are:
+= -- 234
+> -- 140
+< -- 2
++ -- 50
+- -- 41
+* -- 202
+:= -- 392
+add.period$ -- 9
+call.type$ -- 9
+change.case$ -- 9
 chr.to.int$ -- 0
-cite$ -- 4
-duplicate$ -- 68
-empty$ -- 111
-format.name$ -- 20
-if$ -- 312
+cite$ -- 9
+duplicate$ -- 138
+empty$ -- 237
+format.name$ -- 41
+if$ -- 634
 int.to.chr$ -- 0
-int.to.str$ -- 4
-missing$ -- 3
-newline$ -- 15
-num.names$ -- 4
-pop$ -- 16
+int.to.str$ -- 9
+missing$ -- 7
+newline$ -- 30
+num.names$ -- 9
+pop$ -- 35
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 53
+skip$ -- 94
 stack$ -- 0
-substring$ -- 68
-swap$ -- 32
-text.length$ -- 1
+substring$ -- 144
+swap$ -- 57
+text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
 warning$ -- 0
-while$ -- 9
-width$ -- 5
-write$ -- 42
+while$ -- 19
+width$ -- 10
+write$ -- 90

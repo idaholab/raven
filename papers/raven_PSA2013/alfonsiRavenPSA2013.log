@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  16 MAY 2013 15:01
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  20 MAY 2013 17:44
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -390,38 +390,80 @@ is through the newly de-vel-oped mod-ule "\OT1/ptm/b/n/10.95 AN\OT1/ptm/m/n/10.
 95 alysis
  []
 
-[5] (./alfonsiRavenPSA2013.bbl) [6] (./alfonsiRavenPSA2013.aux)
+<figures/BranchingLaws.png, id=30, 550.30594pt x 179.16937pt>
+File: figures/BranchingLaws.png Graphic file (type png)
 
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+<use figures/BranchingLaws.png> [5]
+<figures/softwareCalcStructure.png, id=34, 1001.99344pt x 633.86812pt>
+File: figures/softwareCalcStructure.png Graphic file (type png)
 
- ) 
+<use figures/softwareCalcStructure.png> [6 <./figures/BranchingLaws.png (PNG co
+py)> <./figures/softwareCalcStructure.png (PNG copy)>]
+<figures/PWR_TMI_SCHEME.PNG, id=38, 852.18375pt x 295.1025pt>
+File: figures/PWR_TMI_SCHEME.PNG Graphic file (type png)
+
+<use figures/PWR_TMI_SCHEME.PNG>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[7]
+Overfull \hbox (2.29794pt too wide) in paragraph at lines 342--343
+[]\OT1/ptm/m/n/10.95 Variable Val-ues : 1354.75, 1395.92 , 1427.50, 1454.13, 14
+77.59, 1501.05, 1527.68, 1559.27,
+ []
+
+[8 <./figures/PWR_TMI_SCHEME.PNG (PNG copy)>]
+<figures/DieselRecTime.png, id=46, 727.71875pt x 500.87125pt>
+File: figures/DieselRecTime.png Graphic file (type png)
+
+<use figures/DieselRecTime.png>
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 369--370
+ [][] 
+ []
+
+<figures/CladFailure.png, id=47, 728.7225pt x 501.875pt>
+File: figures/CladFailure.png Graphic file (type png)
+
+<use figures/CladFailure.png>
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 376--377
+ [][] 
+ []
+
+
+Overfull \hbox (38.57072pt too wide) in paragraph at lines 367--380
+[][]       [] 
+ []
+
+[9 <./figures/DieselRecTime.png (PNG copy)> <./figures/CladFailure.png (PNG cop
+y)>] (./alfonsiRavenPSA2013.bbl [10]) [11] (./alfonsiRavenPSA2013.aux) ) 
 Here is how much of TeX's memory you used:
- 5304 strings out of 493747
- 76291 string characters out of 3143546
- 148257 words of memory out of 3000000
- 8487 multiletter control sequences out of 15000+200000
- 23488 words of font info for 52 fonts, out of 3000000 for 9000
+ 5359 strings out of 493747
+ 77377 string characters out of 3143546
+ 148304 words of memory out of 3000000
+ 8529 multiletter control sequences out of 15000+200000
+ 27770 words of font info for 64 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 36i,12n,48p,1628b,280s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/local/texlive/2010/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
-exlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/te
-xlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/tex
-live/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texli
-ve/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive
-/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2
-010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2010
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2010/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2010/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2010/texmf
--dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/texmf-d
-ist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2010/texmf-dist/font
-s/type1/urw/times/utmb8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/ur
-w/times/utmr8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/ut
-mri8a.pfb>
-Output written on alfonsiRavenPSA2013.pdf (6 pages, 184740 bytes).
+ 36i,12n,48p,2122b,410s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/l
+ocal/texlive/2010/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/20
+10/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/201
+0/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2010
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2010/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2010/tex
+mf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2010/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2010/texmf-di
+st/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2010/texmf-dist/
+fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2010/texmf-dist/f
+onts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2010/texmf-dist/fon
+ts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/texmf-dist/fonts
+/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/u
+rw/times/utmb8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/u
+tmr8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmri8a.pfb
+>
+Output written on alfonsiRavenPSA2013.pdf (11 pages, 531875 bytes).
 PDF statistics:
- 81 PDF objects out of 1000 (max. 8388607)
- 57 compressed objects within 1 object stream
+ 103 PDF objects out of 1000 (max. 8388607)
+ 69 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 31 words of extra memory for PDF output out of 10000 (max. 10000000)
 

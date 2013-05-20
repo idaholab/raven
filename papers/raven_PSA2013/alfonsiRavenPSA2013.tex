@@ -245,7 +245,7 @@ A way to achieve this goal is an Event Tree approach. In dynamic PRA analysis, C
   \caption{Dynamic Event Tree Conceptual Scheme.}
    \label{fig:DET_schemeFlow}
 \end{figure}
-\\One of the disadvantages of this method is that timing/sequencing of events and system dynamics is not explicitly accounted for in the analysis.In order to overcome these limitations a ``dynamic'' approach is needed. The Dynamic Event Tree (DET) technique brings several advantages, among which the fact that it simulates probabilistic system evolution in a way that is consistent with the severe accident model. This leads to a more realistic and mechanistically consistent analysis of the system taken in consideration. The dynamic PRA, in general, and the Dynamic Event Tree methodologies, in particular, are designed to take the timing of events explicitly into account which can become very important especially when uncertainties in complex phenomena are considered. Hence, the main idea of this methodology is to let a system code (i.e. RELAP-7) determine the pathway of an accident scenario within a probabilistic ``environment''. \\ Figure~\ref{fig:DET_schemeFlow} schematically shows the DET logic. As already mentioned, the accident sequence starts with an initiating event. Based on an user defined branching logic, driven by \textbf{P}robabilistic \textbf{D}istribution \textbf{F}unctions (PDFs), an event occurs at a certain time $t=T$. The simulation spoons $n$ different branches. In each of them, the branching event determines a different consequence (carrying on associated probabilities). Each sequence continues until another event occurs and a new set of branching is spooned. The simulation ends when an exit condition or a maximum mission time is reached.    
+\\One of the disadvantages of this method is that timing/sequencing of events and system dynamics is not explicitly accounted for in the analysis.In order to overcome these limitations a ``dynamic'' approach is needed. The Dynamic Event Tree (DET) technique brings several advantages~\cite{ADAPTHakobyan}, among which the fact that it simulates probabilistic system evolution in a way that is consistent with the severe accident model. This leads to a more realistic and mechanistically consistent analysis of the system taken in consideration. The dynamic PRA, in general, and the Dynamic Event Tree methodologies, in particular, are designed to take the timing of events explicitly into account which can become very important especially when uncertainties in complex phenomena are considered. Hence, the main idea of this methodology is to let a system code (i.e. RELAP-7) determine the pathway of an accident scenario within a probabilistic ``environment''. \\ Figure~\ref{fig:DET_schemeFlow} schematically shows the DET logic. As already mentioned, the accident sequence starts with an initiating event. Based on an user defined branching logic, driven by \textbf{P}robabilistic \textbf{D}istribution \textbf{F}unctions (PDFs), an event occurs at a certain time $t=T$. The simulation spoons $n$ different branches. In each of them, the branching event determines a different consequence (carrying on associated probabilities). Each sequence continues until another event occurs and a new set of branching is spooned. The simulation ends when an exit condition or a maximum mission time is reached.    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{RAVEN APPROACHING DYNAMIC METHODOLOGIES: ANDREA MODULE} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -260,37 +260,161 @@ As easily understandable, in complex cases, the number of branches may become ex
 \item quantify the probability of these scenarios
 \end{itemize}
 \vspace{-5mm}
-These main tasks are accomplished based on user specified branching and termination rules, model of the system in RELAP-7, probability assignment rules to accident sequences (either by inputed values or/and by distribution functions).
-Regarding the branching rules,  
-
- 
+These main tasks are accomplished based on user specified branching and termination laws, model of the system in RELAP-7, probability assignment rules to accident sequences (either by inputed values or/and by distribution functions).
+The synergy among the different RAVEN modules gives to the package the flexibility to summarize all the state of art DET capabilities. Indeed, as in similar tools[reference ADAPT and MDET], the RAVEN/ANDREA allows the user use different approaches for defying the branching logic:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item branching/failures on demand (i.e. time and field triggers)
+\item branching based on failure probability distributions
+\item multi-branching scenarios
+\end{itemize}
+\vspace{-5mm}
+The list above, in conjunction with the brief overview of the mathematical framework analyzed in section~\ref{sec:mathFramework}, gives an indication on how RAVEN (and the DET module) combines the capabilities present in other similar, but not equal, codes.  
+In RAVEN there is no distinction between active (e.g. circulation pumps, valves, controlled systems, etc.) and passive (e.g. steam generators, condensers, pipes, etc.) component behaviors; All are treated as a aleatory uncertainties, since the physical conditions under which a branching would occur for the them are determined by the thermal-hydraulic code RELAP-7 without user "control".  On the other side, the user can act on the epistemic uncertainties, uncertainties due by lack of knowledge on the phenomena analyzed (e.g. Heat capacity coefficient, etc.). 
+In RAVEN, from an user point of view, either the aleatory and epistemic uncertainties are undifferentiated, since the branching laws are inputted in the same way. All the triggers are identified by Probability Distribution Functions (PDFs) and activated when an user defined probability threshold, on the associated Cumulative Distribution Function (CDF), is overpassed.
+The probability thresholds on the CDFs are automatically handled by the DET module; the user only needs to specify them in the input.
+The user implements the dynamic event tree logic in the previous Python control logic input, under the function named $``dynamic\_event\_tree''$. In this function, all the features available in RAVEN can be used (online monitoring, controlling, auxiliary system, probability distributions, utilities, etc.). 
+\begin{figure}[h] 
+  \centering
+     \includegraphics[width=0.8\textwidth]{figures/BranchingLaws.png}
+  \caption{Example of Dynamic Event Tree logic}
+   \label{fig:DET_branchLaws}
+\end{figure}
+\\As an example, in Figure~\ref{fig:DET_branchLaws}, it is reported a set of branching rules. The ``checkCdf'' function, available in the distribution container, check if the associated threshold has been passed, and, in case, send a branching signal to RAVEN/RELAP-7 in order to print a restart file, that will be handled by the DET module. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Subsection{Computational Infrastructure} 
+\Subsection{Software Infrastructure} 
 \label{sec:CPUInfrastructure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{SOFTWARE LAYOUT AND CALCULATION FLOW} 
-\label{sec:swLayoutCalcFlow}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-to add
+In this section the software infrastructure for the DET generation will  be briefly presented. As already mentioned, the DET module is part of RAVEN Python external driver, which represents the core of PRA analysis.
+\begin{figure}[h] 
+  \centering
+     \includegraphics[width=0.75\textwidth]{figures/softwareCalcStructure.png}
+  \caption{Software calculation infrastructure scheme.}
+   \label{fig:softwareInfrastructure}
+\end{figure} 
+\\The external driver manager has the control of the different modules that support the Dynamic Event Tree calculation:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item General Calculation Driver and Job Handler
+\item Visualization and Input supporting GUI
+\item Dynamic Event Tree and Probability Engine
+\item Database manager
+\item Post-processing and Data Mining module
+\item Distribute Computing Environment Interface
+\end{itemize}
+\vspace{-5mm}
+The General Calculation Driver is in charge to communicate information among the different modules. It is the only software branch that is aware of which modules are participating to the calculation.   
+\\Figure~\ref{fig:softwareInfrastructure} shows a schematic overview of the calculation structure, highlighting the most important modules that are involved in a DET calculation. Following an initiating event, the Dynamic Event Tree module provides initiating conditions as well as the duration of the simulation (optionally) to the system simulator (i.e. RAVEN/RELAP-7). The Calculation Driver, through the Job Handler module, runs the simulator until a stopping condition is reached. The DET module decides whether to branch or not depending on the information received, through the general calculation driver, by RAVEN/RELAP-7. The probability engine is in charge of computing the likelihood of branching generated by trigger signals (e.g. probability threshold on Clad Failure distribution overpassed).  If the DET module decides that $n$ branches are needed, it communicates to the Calculation Driver/Job Handler, that manages the jobs through a queue system, to execute the $n$ branches in $n$ different subprocesses (in parallel, if the machine is multi-processors, in sequence otherwise). The resulting tree structure, branch probabilities, trigger information, and simulation results are sent to the Database manager, that, based on the kind of information received, distributes the data among the sub-structures (DET, PRA, Output databases). The database manager is able to store data in different formats(e.g. HDF5, CSV, etc.). The user can decide to perform post-processing operations and/or data mining manipulation on the fly, through the Post-processing and data mining module. The whole calculation may be visualized through the RAVEN GUI, that is able to exploit the communication capabilities present in the external calculation driver for following the simulation evolution (e.g. monitored variables or probability evolution through different branches, etc.). \\ The whole calculation infrastructure is designed to be agnostic regarding the machine in which it is running with extremely good performance either in PCs/workstations and HPC clusters. 
 %%%%%%%%%%%%%%%%%%%%%%%%
 \Section{DEMO FOR A PWR PRA ANALYSIS} 
 %%%%%%%%%%%%%%%%%%%%%%%%
-to add 
+In order to show the capabilities introduced with the new Dynamic Event Tree module, a simplified PWR Dynamic PRA analysis has been employed.
+\begin{figure}[h]
+   \centering
+    \includegraphics[width=1.0\textwidth]{figures/PWR_TMI_SCHEME.PNG}
+    \caption{PWR model scheme.}
+    \label{fig:PWRmodel}
+\end{figure}
+Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the Down-comers, the Lower Plenum, the Reactor Core Model and the Upper Plenum. Core channels (flow channels with heat structure attached to each of them) were used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. 
+%The hot core channel represents the inner hottest zone of the reactor core. The average core channel represents the mid zone of the core and the cold core channel represents the outer zone of the core, respectively. 
+There are two primary loops, i.e., loop A and loop B. Each loop consists of the Hot Leg, a Heat Exchanger and its secondary side pipes, the Cold Leg and a primary Pump. A Pressurizer is attached to the Loop A piping system to control the system pressure. A Time Dependent Volume (pressure boundary conditions) component is used to represent the Pressurizer. Since the RELAP-7 code does not have the two-phase flow capability for all needed components yet, single-phase counter-current heat exchanger models are implemented to mimic the function of steam generators in order to transfer heat from the primary to the secondary.
+In order to perform a Dynamic PRA analysis on this simplified model, it has been necessary to control unconventional parameters (i.e. inlet/outlet friction factors), since RELAP-7 still has limitations for the component controllable parameters and models. In the following paragraph, the PRA station black out sequence of events is reported. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Station Black Out (SBO) analysis} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-to add
+The Probabilist Risk Assessment analysis has been performed simulating a Station Black Out accident, sampling the probability thresholds (i.e. branching triggers) on the CDFs representing  the recovery time of the diesel generators (DGs)  $t_{1}$ (Normal distribution, mu = 1100 s, sigma = 700 s)  and the clad failure temperature $TC{f}$  (Triangular distribution, xPeak = 1477.59\footnote{Typical PRA success criteria.} K, xMin~ =~1255.37\footnote{10 CFR50.46 limit.} K, xMax = 1699.82 K~\cite{Urbanic1978}). Two sets of Dynamic Event Tree calculations have been run. They differ for the strategy through which the probability thresholds have been chosen:
+\vspace{-5mm}
+\begin{itemize}
+    \item Equally spaced branching probability thresholds
+    \item Branching probability thresholds corresponding to equally spaced variable values ($TC{f}$ and $t_{1}$)
+\end{itemize}
+\vspace{-5mm}
+The probability threshold values for both calculations are reported in the list below:
+\vspace{-5mm}
+ \begin{itemize}
+   \item \textbf{First DET calculation} :
+   \begin{itemize}
+       \item Clad Failure Temperature distribution (Fig.~\ref{fig:CladFailureDist} -  - green points): 
+       \begin{itemize} 
+            \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
+            \item Variable Values           : 1354.75, 1395.92 , 1427.50, 1454.13, 1477.59, 1501.05, 1527.68, 1559.27, 1600.43 
+       \end{itemize}
+       \item DGs recovery time distribution (Fig.~\ref{fig:DGrecTime} - green points): 
+       \begin{itemize} 
+            \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
+            \item Variable Values           : 382.52, 621.06, 813.45, 985.89, 1151.28, 1319.82, 1502.67, 1718.86, 2021.09 
+       \end{itemize}
+    \end{itemize}
+   \item \textbf{Second DET calculation}:
+   \begin{itemize}
+       \item Clad Failure Temperature distribution (Fig.~\ref{fig:CladFailureDist} - red points): 
+       \begin{itemize} 
+            \item Probability Thresholds: 0.020, 0.091, 0.212, 0.384, 0.596, 0.773, 0.899, 0.975
+            \item Variable Values           : 1300.00, 1350.00, 1400.00, 1450.00, 1500.00, 1550.00, 1600.00, 1650.00 
+       \end{itemize}
+       \item DGs recovery time distribution (Fig.~\ref{fig:DGrecTime} - red points): 
+       \begin{itemize} 
+            \item Probability Thresholds: 0.034, 0.159, 0.360, 0.595, 0.795, 0.920, 0.976
+            \item Variable Values           : 200.00, 600.00, 1000.00, 1400.00, 1800.00, 2200.00, 2600.00 
+       \end{itemize}
+    \end{itemize}
+\end{itemize}
+\vspace{-5mm}
+
+\begin{figure}
+ \begin{minipage}[b]{8.5cm}
+   \centering
+   \includegraphics[width=9cm]{figures/DieselRecTime.png}
+   \caption{Diesel Generator Recovery Time CDF.}
+   \label{fig:DGrecTime}
+ \end{minipage}
+ \ \hspace{2mm} \hspace{3mm} \
+ \begin{minipage}[b]{8.5cm}
+  \centering
+   \includegraphics[width=9cm]{figures/CladFailure.png}
+   \caption{Failure Clad Temperature CDF.}
+   \label{fig:CladFailureDist}
+ \end{minipage}
+\end{figure}
+%MonteCarloHeadPump.png
+%MonteCarloAvgCladTemp.png
+The SBO transient is based on the following sequence of events (starting from a steady-state operational condition of the Nuclear Power Plant~\cite{relap7FY12}):
+\vspace{-5mm}
+ \begin{itemize}
+   \item 100.0 seconds, transient begins
+   \item 101.0 seconds, loss of power grid and immediate shutdown of the reactor(scram):
+   \begin{itemize}
+       \item Pump coast-down;  
+       \item Decay heat power;
+       \item Diesel Generators and residual heat removal system (RHRS) not available. 
+    \end{itemize}
+   \item $t_{1}$, recovery of the diesel generators
+   \item $t_{2}$, end of transient either for clad failure or 3000 seconds of simulation (PRA success)
+\end{itemize}
+\vspace{-5mm}
+Since the scope of this demo is to show the new capabilities contained in RAVEN and RELAP-7 is not optimized for long simulation times, the transient has been accelerated in order to simulate a maximum of 3000 seconds. 
+In the following paragraph, the simulations results are shown and explained.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Results} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-to add
+T
+\\O
+
+A
+\\D
+\\D
+%Figure~\ref{fig:distributionResults} shows the distribution of the maximum temperature reached by the clad in the core channels (blue histogram) and compares it with the distribution of clad failure temperature (red histogram).
+%Although there is large overlapping of the two distributions, which indicates a high failure probability of the system considered, the scope of the analysis was just to show  RAVEN capabilities to perform stochastic analysis of relatively complex systems.
+%The distribution of the clad temperature already accounts for the simulations that have been stopped for having reached the corresponding failure temperature. Therefore, the overlapping of the two distributions is not representative of the total failure rate. Instead, the total failure rate could be inferred from the steep decrease on the higher temperature side of the number of counts with respect the lower temperature one. The probability of failure is artificially elevated with respect a real case in order to keep the effort bounded while illustrating the full RAVEN capabilities.
 %%%%%%%%%%%%%%%%%
 \section{CONCLUSIONS AND FUTURE WORK}
 %%%%%%%%%%%%%%%%%
-to add
+In this paper it has been presented RAVEN as a tool to perform dynamic PRA through Dynamic Event Tree sampling. In particular, the software structure and all the components that are involved in the computation have been presented, including system simulator (i.e., RELAP-7) and the control logic, characterized by monitor system dynamics and on-line control of selected parameters.
+An example of PRA analysis has been also presented for a SBO-like case for a simplified PWR loop. 
+The description of the implementation for such case demonstrates how the flexibility of the software framework provides state of art tools to perform Dynamic PRA, uncertainty quantification and plant control. 
+Next capabilities, to be implemented to RAVEN and that are currently under development, include adaptive dynamic event tree generation, adaptive sampling~\cite{mandelliSVMANS} and more advanced data mining algorithms~\cite{mandelliEsrel2011}. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{ACKNOWLEDGMENT}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

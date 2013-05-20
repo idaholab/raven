@@ -23,4 +23,30 @@ D.~Mandelli and C.~Smith, ``Integrating safety assessment methods using the
   Proceeding of American Nuclear Society (ANS), San Diego (CA)}, vol.~107,
   pp.~883--885, 2012.
 
+\bibitem{ADAPTHakobyan}
+A.~Hakobyan, T.~Aldemir, R.~Denning, S.~Dunagan, D.~Kunsman, B.~Rutt, and
+  U.~Catalyurek, ``Dynamic generation of accident progression event trees,''
+  {\em Nuclear Engineering and Design}, vol.~238, no.~12, pp.~3457 -- 3467,
+  2008.
+
+\bibitem{Urbanic1978}
+T.~R.~H. V.~F.~Urbanic, ``High-temperature oxidation of zircaloy-2 and
+  zircaloy-4 in steam,'' {\em Nuclear Materials}, vol.~251, no.~75, 1978.
+
+\bibitem{relap7FY12}
+D.~Anders, R.~Berry, D.~Gaston, R.~Martineau, J.~Peterson, H.~Zhang, H.~Zhao,
+  and L.~Zou, ``Relap-7 level 2 milestone report: Demonstration of a steady
+  state single phase pwr simulation with relap-7,'' Tech. Rep.
+  INL/EXT-12-25924, Idaho National Laboratory (INL), 2012.
+
+\bibitem{mandelliSVMANS}
+D.~Mandelli and C.~Smith, ``Adaptive sampling using support vector machines,''
+  in {\em Proceeding of American Nuclear Society (ANS), San Diego (CA)},
+  vol.~107, pp.~736--738, 2012.
+
+\bibitem{mandelliEsrel2011}
+D.~Mandelli, A.~Yilmaz, and T.~Aldemir, ``Scenario analysis and pra: Overview
+  and lessons learned,'' in {\em Proceedings of European Safety and Reliability
+  Conference (ESREL 2011), Troyes (France)}, 2011.
+
 \end{thebibliography}
