@@ -158,7 +158,7 @@ This paper wants to provide an overview of the DET structure, highlighting the m
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Mathematical Framework}
 \label{sec:mathFramework}
-Let be $\bar{\theta}(t)$ a vector describing the plant status in the phase space; the dynamic of the plant, including the control system, can be summarized by the following equation:
+Let be $\bar{\theta}(t)$ a vector describing the plant status in the phase space; the dynamic of the plant, including the control system, can be summarized by the following equation~\cite{MathFrameworkMC2013}:
 \begin{equation}
 \frac{\partial \bar{\theta}}{\partial t} = \bar{H}(\theta(t),t)
 \label{eq:SystemDynamics}
@@ -214,7 +214,7 @@ Thus, the introduction of the auxiliary system into the mathematical framework l
 \label{eq:generalSystemEquationwithControlSplittingAndAux}
 \end{equation}
 \Subsection{Software Overview}
-RAVEN, is plugged with the software environment MOOSE~\cite{MOOSE}. MOOSE is a computer simulation framework,  developed at Idaho National Laboratory (INL), that simplifies the process for predicting the behavior of complex systems and developing non-linear, multi-physics simulation tools. Other than providing the algorithms for the solution of the differential equation, MOOSE also provides all the manipulation tools for the \verb!C++! classes containing the solution vector. This framework has been used to construct and develop the Thermal-Hydraulic code RELAP-7, giving an enormous flexibility in the coupling procedure with RAVEN. 
+RAVEN~\cite{alfonsiMC}, is plugged with the software environment MOOSE~\cite{MOOSE}. MOOSE is a computer simulation framework,  developed at Idaho National Laboratory (INL), that simplifies the process for predicting the behavior of complex systems and developing non-linear, multi-physics simulation tools. Other than providing the algorithms for the solution of the differential equation, MOOSE also provides all the manipulation tools for the \verb!C++! classes containing the solution vector. This framework has been used to construct and develop the Thermal-Hydraulic code RELAP-7, giving an enormous flexibility in the coupling procedure with RAVEN. 
 RELAP-7 is the next generation nuclear reactor system safety analysis. It will become the main reactor systems simulation toolkit for RISMC (\textbf{R}isk \textbf{I}nformed \textbf{S}afety \textbf{M}argin \textbf{C}haracterization)~\cite{mandelliANS_RISMC} project and the next generation tool in the RELAP reactor safety/systems analysis application series. 
 RAVEN has been developed in a high modular and pluggable way in order to enable easy integration of different programming languages (i.e., \verb!C++!, \verb!Python!) and coupling with other applications including the ones based on MOOSE. The code consists of four main modules:
 \vspace{-5mm}
@@ -233,7 +233,7 @@ The interface provides all the capabilities to generate the monitored quantities
 \\As previously mentioned, a Graphical User Interface (GUI) is not required to run RAVEN, but it represents an added value to the whole code. The GUI is compatible with all the capabilities actually present in RAVEN.  Its development is performed using QtPy, which is a \verb!Python! interface for a \verb!C++! based library (\verb!C++!) for GUI implementation. The GUI is based on a software named Peacock, which is a GUI interface for MOOSE based application and, in its base implementation, is only able to assist the user in the creation of the input.  In order to make it fit all the RAVEN needs, the GUI has been specialized and is in continuous evolution.
 \vspace{-5mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\Section{THE DYNAMIC EVEN TREE METHODOLOGY}
+\Section{THE DYNAMIC EVENT TREE METHODOLOGY}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:DET_methodology}
 In technological complex systems, as nuclear power  plants, an accident scenario begins with an initiating event and, through the interaction of dynamics and stochastics, evolves over time. This mutual action leads to the production of infinitely many different scenarios, that define a continuous dynamic event tree with infinite branches. At each time point, the stochastic variability of the accident outcomes is determined by a multi-variate probability distribution.
@@ -261,7 +261,7 @@ As easily understandable, in complex cases, the number of branches may become ex
 \end{itemize}
 \vspace{-5mm}
 These main tasks are accomplished based on user specified branching and termination laws, model of the system in RELAP-7, probability assignment rules to accident sequences (either by inputed values or/and by distribution functions).
-The synergy among the different RAVEN modules gives to the package the flexibility to summarize all the state of art DET capabilities. Indeed, as in similar tools[reference ADAPT and MDET], the RAVEN/ANDREA allows the user use different approaches for defying the branching logic:
+The synergy among the different RAVEN modules gives to the package the flexibility to summarize all the state of art DET capabilities. Indeed, as in similar tools~\cite{ADAPTHakobyan}, the RAVEN/ANDREA allows the user use different approaches for defying the branching logic:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
@@ -324,11 +324,11 @@ In order to perform a Dynamic PRA analysis on this simplified model, it has been
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Station Black Out (SBO) analysis} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The Probabilist Risk Assessment analysis has been performed simulating a Station Black Out accident, sampling the probability thresholds (i.e. branching triggers) on the CDFs representing  the recovery time of the diesel generators (DGs)  $t_{1}$ (Normal distribution, mu = 1100 s, sigma = 700 s)  and the clad failure temperature $TC{f}$  (Triangular distribution, xPeak = 1477.59\footnote{Typical PRA success criteria.} K, xMin~ =~1255.37\footnote{10 CFR50.46 limit.} K, xMax = 1699.82 K~\cite{Urbanic1978}). Two sets of Dynamic Event Tree calculations have been run. They differ for the strategy through which the probability thresholds have been chosen:
+The Probabilist Risk Assessment analysis has been performed simulating a Station Black Out accident, sampling the probability thresholds (i.e. branching triggers) on the CDFs representing  the recovery time of the diesel generators (DGs)  $t_{1}$ (Normal distribution, mu = 1100 s, sigma = 700 s, xMin = 3 s, xMax = $\infty$)  and the clad failure temperature $TC{f}$  (Triangular distribution, xPeak = 1477.59\footnote{Typical PRA success criteria.} K, xMin~ =~1255.37\footnote{10 CFR50.46 limit.} K, xMax = 1699.82 K~\cite{Urbanic1978}). Two sets of Dynamic Event Tree calculations have been run. They differ for the strategy through which the probability thresholds have been chosen:
 \vspace{-5mm}
 \begin{itemize}
-    \item Equally spaced branching probability thresholds
-    \item Branching probability thresholds corresponding to equally spaced variable values ($TC{f}$ and $t_{1}$)
+    \item ESBP, equally spaced branching probability thresholds 
+    \item ESVV, branching probability thresholds corresponding to equally spaced variable values ($TC{f}$ and $t_{1}$)
 \end{itemize}
 \vspace{-5mm}
 The probability threshold values for both calculations are reported in the list below:
@@ -351,12 +351,12 @@ The probability threshold values for both calculations are reported in the list 
    \begin{itemize}
        \item Clad Failure Temperature distribution (Fig.~\ref{fig:CladFailureDist} - red points): 
        \begin{itemize} 
-            \item Probability Thresholds: 0.020, 0.091, 0.212, 0.384, 0.596, 0.773, 0.899, 0.975
+            \item Probability Thresholds: 0.0200, 0.0910, 0.2120, 0.3840, 0.5960, 0.7730, 0.8990, 0.9750
             \item Variable Values           : 1300.00, 1350.00, 1400.00, 1450.00, 1500.00, 1550.00, 1600.00, 1650.00 
        \end{itemize}
        \item DGs recovery time distribution (Fig.~\ref{fig:DGrecTime} - red points): 
        \begin{itemize} 
-            \item Probability Thresholds: 0.034, 0.159, 0.360, 0.595, 0.795, 0.920, 0.976
+            \item Probability Thresholds: 0.0433, 0.1901, 0.4086, 0.6451, 0.8315, 0.9383, 0.9829
             \item Variable Values           : 200.00, 600.00, 1000.00, 1400.00, 1800.00, 2200.00, 2600.00 
        \end{itemize}
     \end{itemize}
@@ -374,12 +374,12 @@ The probability threshold values for both calculations are reported in the list 
  \begin{minipage}[b]{8.5cm}
   \centering
    \includegraphics[width=9cm]{figures/CladFailure.png}
-   \caption{Failure Clad Temperature CDF.}
+   \caption{Clad Failure Temperature CDF.}
    \label{fig:CladFailureDist}
  \end{minipage}
 \end{figure}
-%MonteCarloHeadPump.png
-%MonteCarloAvgCladTemp.png
+In addiction, a Monte-Carlo (MC) calculation has been run. It has been decided to perform only 50 samplings (randomizing $t_{1}$ and $TC{f}$), in order to maintain a similar numerosity (number of "samplings")  among MC and DET calculations.    
+
 The SBO transient is based on the following sequence of events (starting from a steady-state operational condition of the Nuclear Power Plant~\cite{relap7FY12}):
 \vspace{-5mm}
  \begin{itemize}
@@ -395,26 +395,108 @@ The SBO transient is based on the following sequence of events (starting from a 
 \end{itemize}
 \vspace{-5mm}
 Since the scope of this demo is to show the new capabilities contained in RAVEN and RELAP-7 is not optimized for long simulation times, the transient has been accelerated in order to simulate a maximum of 3000 seconds. 
-In the following paragraph, the simulations results are shown and explained.
+In the following section, the simulations results are shown and discussed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Subsection{Results} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-T
-\\O
+DET analyses have been performed, obtaining the following data sets:
+\vspace{-5mm}
+\begin{itemize}
+\item \emph{ESBP DET I}: 37 DET branches resulting in 18 complete histories
+\item \emph{ESVV DET II}: 31 DET branches resulting in 15 complete histories
+\end{itemize}
+\vspace{-5mm}
+Note that the different number of branches (and, hence, the number of histories) changes from the two data sets since a difference number of branching thresholds have been considered (see Section 5.1).
 
-A
-\\D
-\\D
+\begin{figure}
+ \begin{minipage}[b]{8.5cm}
+   \centering
+   \includegraphics[width=9cm]{figures/DETpbClad.png}
+   %\caption{Clad Temperature evolution in hot core channel (case ESBP DET I).}
+   %\label{fig:DETpbClad}
+ \end{minipage}
+ \ \hspace{2mm} \hspace{3mm} \
+ \begin{minipage}[b]{8.5cm}
+   \centering
+   \includegraphics[width=9cm]{figures/DETpbHead.png}
+   %\caption{Pump Head evolution (case ESBP DET I).}
+   %\label{fig:DETpbHead}
+ \end{minipage}
+\caption{Case ESBP DET I: Clad Temperature and Pump Head temporal profiles (all histories)}
+\label{fig:ESBPall}
+\end{figure}
+\vspace{-5mm}
+Figures~\ref{fig:ESBPall} and~\ref{fig:ESVVall} show the histories obtained for the ESBP DET I and ESVV DET II respectively.
+Following, the station back-out condition the pump head decreases (pump coast-down) and the temperature of the core rises since reactor core cooling is not available. Such temperature increasing continues until one of the following conditions occurs:
+\vspace{-5mm}
+\begin{itemize}
+\item temperature of the clad reaches the clad failure temperature, indicated with a red circle (red scenarios in Fig.s~\ref{fig:ESBPall} and~\ref{fig:ESVVall})
+\item DG power is restored (green scenarios in Fig.s~\ref{fig:ESBPall} and~\ref{fig:ESVVall})
+\end{itemize}
+\vspace{-5mm}
+Note that following the recovery of the DG power (green scenarios) the clad temperature drops  and an oscillating behavior can be observed.
+This is caused by pressure waves created by the sudden activation of the auxiliary core cooling system.
+
+From a safety point of view, the most important information is the frequency of failures in the phase space. This information can be shown plotting the final outcome (green points for system success and red points for system failure) of all the simulations for each data sets in a $2$-dimensional space (DG recovery time vs. clad failure temperature) as shown in Fig.~\ref{fig:DET_LS}.
+The limit surface, i.e. the boundary between system failure and system success regions (black line), is also indicated in Fig.~\ref{fig:DET_LS}. Such boundary was determined using a Support Vector Machine (SVM) based algorithm~\cite{}.
+Note that most of the points in this $2$-dimensional space (for both data sets) lie in proximity  of the limit surface while samples generated by a classical Monte-Carlo based algorithm would be evenly distributed (see Fig.~\ref{fig:MonteCarloLS}). 
+This example shows one of the advantages of DET algorithm in terms of ``choosing'' the best set of candidate samples when performing PRA analyses.
+
+%%%%%%%%%%
+
+\begin{figure}
+ \begin{minipage}[b]{8.5cm}
+  \centering
+   \includegraphics[width=9cm]{figures/DETvarClad.png}
+   %\caption{Clad Temperature evolution in hot core channel (case ESVV DET II).}
+   %\label{fig:DETvarClad}
+ \end{minipage}
+ \ \hspace{2mm} \hspace{3mm} \
+ \begin{minipage}[b]{8.5cm}
+  \centering
+   \includegraphics[width=9cm]{figures/DETvarHead.png}
+   %\caption{Pump Head evolution (case ESVV DET II).}
+   %\label{fig:DETvarHead}
+ \end{minipage}
+\caption{Case ESVV DET II: Clad Temperature and Pump Head temporal profiles (all histories)}
+\label{fig:ESVVall}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%
+\begin{figure}
+ \begin{minipage}[b]{8.5cm}
+   \centering
+   \includegraphics[width=9cm]{figures/DET_LS_pb.png}
+   %\caption{Limit Surface (case ESBP DET I).}
+   %\label{fig:DETvarLS}
+ \end{minipage}
+ \ \hspace{2mm} \hspace{3mm} \
+ \begin{minipage}[b]{8.5cm}
+  \centering
+   \includegraphics[width=9cm]{figures/DET_LS_var.png}
+   %\caption{Limit Surface (case ESVV DET II).}
+   %\label{fig:DETpbLS}
+ \end{minipage}
+\caption{DET Limit Surface: case ESBP DET I(left) and case  ESVV DET II (right)}
+\label{fig:DET_LS}
+\end{figure}
+\begin{figure}[h]
+   \centering
+    \includegraphics[width=0.6\textwidth]{figures/MC.png}
+    \caption{Monte-Carlo Limit Surface.}
+    \label{fig:MonteCarloLS}
+\end{figure}
+
 %Figure~\ref{fig:distributionResults} shows the distribution of the maximum temperature reached by the clad in the core channels (blue histogram) and compares it with the distribution of clad failure temperature (red histogram).
 %Although there is large overlapping of the two distributions, which indicates a high failure probability of the system considered, the scope of the analysis was just to show  RAVEN capabilities to perform stochastic analysis of relatively complex systems.
 %The distribution of the clad temperature already accounts for the simulations that have been stopped for having reached the corresponding failure temperature. Therefore, the overlapping of the two distributions is not representative of the total failure rate. Instead, the total failure rate could be inferred from the steep decrease on the higher temperature side of the number of counts with respect the lower temperature one. The probability of failure is artificially elevated with respect a real case in order to keep the effort bounded while illustrating the full RAVEN capabilities.
 %%%%%%%%%%%%%%%%%
 \section{CONCLUSIONS AND FUTURE WORK}
 %%%%%%%%%%%%%%%%%
-In this paper it has been presented RAVEN as a tool to perform dynamic PRA through Dynamic Event Tree sampling. In particular, the software structure and all the components that are involved in the computation have been presented, including system simulator (i.e., RELAP-7) and the control logic, characterized by monitor system dynamics and on-line control of selected parameters.
-An example of PRA analysis has been also presented for a SBO-like case for a simplified PWR loop. 
-The description of the implementation for such case demonstrates how the flexibility of the software framework provides state of art tools to perform Dynamic PRA, uncertainty quantification and plant control. 
-Next capabilities, to be implemented to RAVEN and that are currently under development, include adaptive dynamic event tree generation, adaptive sampling~\cite{mandelliSVMANS} and more advanced data mining algorithms~\cite{mandelliEsrel2011}. 
+This paper has presented RAVEN as a tool to perform dynamic PRA through Dynamic Event Tree sampling. In particular, the software structure and all the components that are involved in the computation have been described, including system simulator (i.e., RELAP-7) and the control logic, characterized by monitor system dynamics and on-line control of selected parameters.
+An example of PRA analysis has been also shown for a SBO scenario for a simplified PWR loop. 
+The description of the implementation for such case demonstrates how the flexibility of the software framework provides state-of-the-art tools to perform Dynamic PRA, uncertainty quantification and plant control. 
+Next capabilities, to be implemented to RAVEN, and currently under development, include adaptive dynamic event tree generation, adaptive sampling~\cite{mandelliSVMANS} and data mining algorithms~\cite{mandelliEsrel2011}. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section*{ACKNOWLEDGMENT}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

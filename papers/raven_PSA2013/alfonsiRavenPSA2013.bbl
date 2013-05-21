@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{ravenFY12}
 C.~Rabiti, A.~Alfonsi, J.~Cogliati, D.~Mandelli, and R.~Kinoshita, ``Reactor
@@ -10,6 +10,20 @@ C.~Rabiti, A.~Alfonsi, D.~Mandelli, J.~Cogliati, and R.~Martineau, ``Raven as
   control logic and probabilistic risk assessment driver for relap-7,'' in {\em
   Proceeding of American Nuclear Society (ANS), San Diego (CA)}, vol.~107,
   pp.~333--335, 2012.
+
+\bibitem{MathFrameworkMC2013}
+C.~Rabiti, D.~M.~A. Alfonsi, J.~Cogliati, and B.~Kinoshita, ``Mathematical
+  framework for the analysis of dynamic stochastic systems with the raven
+  code,'' in {\em Proceedings of International Conference of mathematics and
+  Computational Methods Applied to Nuclear Science and Engineering (M\&C 2013),
+  Sun Valley (Idaho)}, pp.~320--332, 2013.
+
+\bibitem{alfonsiMC}
+A.~Alfonsi, C.~Rabiti, D.~Mandelli, J.~Cogliati, and B.~Kinoshita, ``Raven as a
+  tool for dynamic probabilistic risk assessment: Software overview,'' in {\em
+  Proceedings of International Conference of mathematics and Computational
+  Methods Applied to Nuclear Science and Engineering (M\&C 2013), Sun Valley
+  (Idaho)}, pp.~1247--1261, 2013.
 
 \bibitem{MOOSE}
 D.~Gaston, G.~Hansen, S.~Kadioglu, D.~A. Knoll, C.~Newman, H.~Park, C.~Permann,
@@ -30,8 +44,8 @@ A.~Hakobyan, T.~Aldemir, R.~Denning, S.~Dunagan, D.~Kunsman, B.~Rutt, and
   2008.
 
 \bibitem{Urbanic1978}
-T.~R.~H. V.~F.~Urbanic, ``High-temperature oxidation of zircaloy-2 and
-  zircaloy-4 in steam,'' {\em Nuclear Materials}, vol.~251, no.~75, 1978.
+V.~F. Urbanic and T.~R. Heidrick, ``High-temperature oxidation of zircaloy-2
+  and zircaloy-4 in steam,'' {\em Nuclear Materials}, vol.~251, no.~75, 1978.
 
 \bibitem{relap7FY12}
 D.~Anders, R.~Berry, D.~Gaston, R.~Martineau, J.~Peterson, H.~Zhang, H.~Zhao,

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  20 MAY 2013 17:44
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  21 MAY 2013 17:15
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -413,7 +413,7 @@ Overfull \hbox (2.29794pt too wide) in paragraph at lines 342--343
  []
 
 [8 <./figures/PWR_TMI_SCHEME.PNG (PNG copy)>]
-<figures/DieselRecTime.png, id=46, 727.71875pt x 500.87125pt>
+<figures/DieselRecTime.png, id=46, 421.575pt x 316.18124pt>
 File: figures/DieselRecTime.png Graphic file (type png)
 
 <use figures/DieselRecTime.png>
@@ -421,7 +421,7 @@ Overfull \hbox (14.22638pt too wide) in paragraph at lines 369--370
  [][] 
  []
 
-<figures/CladFailure.png, id=47, 728.7225pt x 501.875pt>
+<figures/CladFailure.png, id=47, 421.575pt x 316.18124pt>
 File: figures/CladFailure.png Graphic file (type png)
 
 <use figures/CladFailure.png>
@@ -435,35 +435,107 @@ Overfull \hbox (38.57072pt too wide) in paragraph at lines 367--380
  []
 
 [9 <./figures/DieselRecTime.png (PNG copy)> <./figures/CladFailure.png (PNG cop
-y)>] (./alfonsiRavenPSA2013.bbl [10]) [11] (./alfonsiRavenPSA2013.aux) ) 
+y)>] <figures/DETpbClad.png, id=51, 562.1pt x 421.575pt>
+File: figures/DETpbClad.png Graphic file (type png)
+
+<use figures/DETpbClad.png>
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 414--417
+ [][] 
+ []
+
+<figures/DETpbHead.png, id=52, 562.1pt x 421.575pt>
+File: figures/DETpbHead.png Graphic file (type png)
+
+<use figures/DETpbHead.png>
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 421--424
+ [][] 
+ []
+
+
+Overfull \hbox (38.57072pt too wide) in paragraph at lines 412--425
+[][]       [] 
+ []
+
+<figures/DETvarClad.png, id=53, 562.1pt x 421.575pt>
+File: figures/DETvarClad.png Graphic file (type png)
+
+<use figures/DETvarClad.png>
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 450--453
+ [][] 
+ []
+
+<figures/DETvarHead.png, id=54, 562.1pt x 421.575pt>
+File: figures/DETvarHead.png Graphic file (type png)
+
+<use figures/DETvarHead.png>
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 457--460
+ [][] 
+ []
+
+
+Overfull \hbox (38.57072pt too wide) in paragraph at lines 448--461
+[][]       [] 
+ []
+
+<figures/DET_LS_pb.png, id=55, 562.1pt x 421.575pt>
+File: figures/DET_LS_pb.png Graphic file (type png)
+
+<use figures/DET_LS_pb.png>
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 469--472
+ [][] 
+ []
+
+<figures/DET_LS_var.png, id=56, 562.1pt x 421.575pt>
+File: figures/DET_LS_var.png Graphic file (type png)
+
+<use figures/DET_LS_var.png>
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 476--479
+ [][] 
+ []
+
+
+Overfull \hbox (38.57072pt too wide) in paragraph at lines 467--480
+[][]       [] 
+ []
+
+<figures/MC.png, id=57, 562.1pt x 421.575pt>
+File: figures/MC.png Graphic file (type png)
+ <use figures/MC.png>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[10 <./figures/DETpbClad.png (PNG copy)> <./figures/DETpbHead.png (PNG copy)>]
+[11 <./figures/DETvarClad.png (PNG copy)> <./figures/DETvarHead.png (PNG copy)>
+ <./figures/DET_LS_pb.png (PNG copy)> <./figures/DET_LS_var.png (PNG copy)>]
+(./alfonsiRavenPSA2013.bbl [12 <./figures/MC.png (PNG copy)>]) [13]
+(./alfonsiRavenPSA2013.aux) ) 
 Here is how much of TeX's memory you used:
- 5359 strings out of 493747
- 77377 string characters out of 3143546
- 148304 words of memory out of 3000000
- 8529 multiletter control sequences out of 15000+200000
+ 5400 strings out of 493747
+ 78257 string characters out of 3143546
+ 148349 words of memory out of 3000000
+ 8563 multiletter control sequences out of 15000+200000
  27770 words of font info for 64 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  36i,12n,48p,2122b,410s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/l
-ocal/texlive/2010/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/20
-10/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive/201
-0/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2010
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/local/texlive/2010/t
-exmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/2010/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2010/texmf
--dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/local/texlive/2010/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2010/texmf-dist/
-fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2010/texmf-dist/f
-onts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/2010/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2010/texmf-dist/fonts
-/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/u
-rw/times/utmb8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/u
-tmr8a.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/urw/times/utmri8a.pfb
->
-Output written on alfonsiRavenPSA2013.pdf (11 pages, 531875 bytes).
+{/usr/local/texlive/2010/texmf-dist/fonts/enc/dvip
+s/base/8r.enc}</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/c
+m/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmmi10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/
+cmmi6.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cm
+mi8.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr1
+0.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.p
+fb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb>
+</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb><
+/usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></u
+sr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr
+/local/texlive/2010/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/t
+exlive/2010/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/201
+0/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2010/texmf-di
+st/fonts/type1/urw/times/utmri8a.pfb>
+Output written on alfonsiRavenPSA2013.pdf (13 pages, 576740 bytes).
 PDF statistics:
- 103 PDF objects out of 1000 (max. 8388607)
- 69 compressed objects within 1 object stream
+ 117 PDF objects out of 1000 (max. 8388607)
+ 74 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 31 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 66 words of extra memory for PDF output out of 10000 (max. 10000000)
 
