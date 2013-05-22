@@ -628,8 +628,11 @@
  #restart_file_base = TMI_DEMO_PRA_Steady_out_restart_0194
   type = RavenExecutioner
   dt = 5e-2
-  time_t = '0 1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
-  time_dt = '1.e-1  0.1 0.15         0.20       0.25    0.30  0.35      0.40    0.45   0.5   0.6  0.8'
+  [./TimeStepper]
+    type = FunctionDT
+    time_t = '0 1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
+    time_dt = '1.e-1  0.1 0.15         0.20       0.25    0.30  0.35      0.40    0.45   0.5   0.6  0.8'
+  [../]
   dtmax = 9999
   e_tol = 10.0
   e_max = 99999.

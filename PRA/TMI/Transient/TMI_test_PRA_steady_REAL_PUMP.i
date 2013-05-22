@@ -592,8 +592,11 @@ petsc_options_value = 'ds'
   # restart_file_base = TMI_test_PRA_out_restart_0194
   type = RavenExecutioner
   dt = 5e-2
-  time_t = '0         1.0   3.0       5.01       9.5     9.75    14      17    7e1'
-  time_dt = '1.e-3  0.025    0.026   2.5e-2    2.5e-2  2.5e-2      3.5e-2    4.5e-1'
+  [./TimeStepper]
+    type = FunctionDT
+    time_t = '0         1.0   3.0       5.01       9.5     9.75    14      17    7e1'
+    time_dt = '1.e-3  0.025    0.026   2.5e-2    2.5e-2  2.5e-2      3.5e-2    4.5e-1'
+  [../]
   dtmax = 9999
   e_tol = 10.0
   e_max = 99999.
