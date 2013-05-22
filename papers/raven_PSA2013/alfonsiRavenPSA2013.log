@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  22 MAY 2013 08:33
+This is pdfTeX, Version 3.1415926-1.40.11 (TeX Live 2010) (format=pdflatex 2010.7.21)  22 MAY 2013 13:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -245,6 +245,11 @@ Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
 \verbatim@line=\toks25
 \verbatim@in@stream=\read1
 )
+(/usr/local/texlive/2010/texmf-dist/tex/latex/hyphenat/hyphenat.sty
+Package: hyphenat 2009/09/02 v2.3c hyphenation utilities
+\langwohyphens=\language72
+LaTeX Info: Redefining \_ on input line 43.
+)
 (/usr/local/texlive/2010/texmf-dist/tex/latex/tex-gyre/tgheros.sty
 Package: tgheros 2009/09/27 v1.2 TeX Gyre Heros as default sans serif family
 
@@ -365,6 +370,13 @@ File: omsptm.fd
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 112.
 
+Overfull \hbox (2.4673pt too wide) in paragraph at lines 153--156
+[]\OT1/ptm/m/n/10.95 RAVEN is a multi-purpose \OT1/ptm/b/n/10.95 P\OT1/ptm/m/n/
+10.95 robabilistic \OT1/ptm/b/n/10.95 R\OT1/ptm/m/n/10.95 isk \OT1/ptm/b/n/10.9
+5 A\OT1/ptm/m/n/10.95 ssessment (PRA) soft-ware frame-work that al-lows dis-pat
+ch-ing
+ []
+
 
 Package Fancyhdr Warning: \headheight is too small (14.0pt): 
  Make it at least 17.82594pt.
@@ -374,50 +386,83 @@ Package Fancyhdr Warning: \headheight is too small (14.0pt):
 [1{/usr/local/texlive/2010/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 ]
+Overfull \hbox (20.98473pt too wide) in paragraph at lines 209--212
+[]\OT1/ptm/m/n/10.95 The aux-il-iary vari-ables are those that in sta-tis-ti-ca
+l anal-y-sis are ar-ti-fi-cially added, when pos-si-ble, to non-Markovian
+ []
+
 [2]
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 217.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 225.
 
  (/usr/local/texlive/2010/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-) [3]
+)
+Overfull \hbox (3.26918pt too wide) in paragraph at lines 225--226
+\OT1/ptm/m/n/10.95 be-hav-ior of com-plex sys-tems and de-vel-op-ing non-linear
+, multi-physics sim-u-la-tion tools. Other than pro-vid-ing
+ []
+
+[3]
+Overfull \hbox (0.72882pt too wide) in paragraph at lines 246--249
+\OT1/ptm/m/n/10.95 per-formed us-ing []\OT1/pcr/m/n/10.95 QtPy\OT1/ptm/m/n/10.9
+5 , which is a []\OT1/pcr/m/n/10.95 Python \OT1/ptm/m/n/10.95 in-ter-face for a
+ []\OT1/pcr/m/n/10.95 C++ \OT1/ptm/m/n/10.95 based li-brary ([]\OT1/pcr/m/n/10.
+95 C++\OT1/ptm/m/n/10.95 ) for GUI im-ple-men-ta-tion.
+ []
+
+
+Overfull \hbox (10.7027pt too wide) in paragraph at lines 256--258
+[]\OT1/ptm/m/n/10.95 Conventional ET based method-olo-gies are ex-ten-sively us
+ed as tools to per-form re-li-a-bil-ity and safety as-sess-ment
+ []
+
+
+Overfull \hbox (19.81348pt too wide) in paragraph at lines 256--258
+\OT1/ptm/m/n/10.95 of com-plex and crit-i-cal en-gi-neer-ing sys-tems. One of t
+he dis-ad-van-tages of these meth-ods is that tim-ing/se-quenc-ing
+ []
+
 <figures/DET_schemeFlow.png, id=26, 637.38126pt x 337.26pt>
 File: figures/DET_schemeFlow.png Graphic file (type png)
 
 <use figures/DET_schemeFlow.png> [4 <./figures/DET_schemeFlow.png (PNG copy)>]
-Overfull \hbox (3.0498pt too wide) in paragraph at lines 253--257
-[]\OT1/ptm/m/n/10.95 RAVEN is now able to per-form Dy-namic Event Tree anal-y-s
-is through the newly de-vel-oped mod-ule "\OT1/ptm/b/n/10.95 AN\OT1/ptm/m/n/10.
-95 alysis
+Overfull \hbox (0.56447pt too wide) in paragraph at lines 301--302
+\OT1/ptm/m/n/10.95 The list above, in con-junc-tion with the brief overview of 
+the math-e-mat-i-cal frame-work an-a-lyzed in sec-tion 2.1[],
  []
 
-<figures/BranchingLaws.png, id=30, 550.30594pt x 179.16937pt>
+[5] <figures/BranchingLaws.png, id=33, 550.30594pt x 179.16937pt>
 File: figures/BranchingLaws.png Graphic file (type png)
 
-<use figures/BranchingLaws.png> [5]
+<use figures/BranchingLaws.png>
 <figures/softwareCalcStructure.png, id=34, 1001.99344pt x 633.86812pt>
 File: figures/softwareCalcStructure.png Graphic file (type png)
 
-<use figures/softwareCalcStructure.png> [6 <./figures/BranchingLaws.png (PNG co
-py)> <./figures/softwareCalcStructure.png (PNG copy)>]
-<figures/PWR_TMI_SCHEME.PNG, id=38, 852.18375pt x 295.1025pt>
-File: figures/PWR_TMI_SCHEME.PNG Graphic file (type png)
-
-<use figures/PWR_TMI_SCHEME.PNG>
+<use figures/softwareCalcStructure.png>
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[7]
-Overfull \hbox (2.29794pt too wide) in paragraph at lines 344--345
+[6 <./figures/BranchingLaws.png (PNG copy)>]
+Overfull \hbox (15.7729pt too wide) in paragraph at lines 342--345
+\OT1/ptm/m/n/10.95 con-di-tions as well as the du-ra-tion of the sim-u-la-tion 
+(op-tion-ally) to the sys-tem sim-u-la-tor (i.e. RAVEN/RELAP-7). 
+ []
+
+<figures/PWR_TMI_SCHEME.PNG, id=38, 852.18375pt x 295.1025pt>
+File: figures/PWR_TMI_SCHEME.PNG Graphic file (type png)
+
+<use figures/PWR_TMI_SCHEME.PNG> [7 <./figures/softwareCalcStructure.png (PNG c
+opy)>] [8 <./figures/PWR_TMI_SCHEME.PNG (PNG copy)>]
+Overfull \hbox (2.29794pt too wide) in paragraph at lines 389--390
 []\OT1/ptm/m/n/10.95 Variable Val-ues : 1354.75, 1395.92 , 1427.50, 1454.13, 14
 77.59, 1501.05, 1527.68, 1559.27,
  []
 
-[8 <./figures/PWR_TMI_SCHEME.PNG (PNG copy)>]
 <figures/DieselRecTime.png, id=46, 421.575pt x 316.18124pt>
 File: figures/DieselRecTime.png Graphic file (type png)
 
 <use figures/DieselRecTime.png>
-Overfull \hbox (14.22638pt too wide) in paragraph at lines 371--372
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 411--412
  [][] 
  []
 
@@ -425,12 +470,12 @@ Overfull \hbox (14.22638pt too wide) in paragraph at lines 371--372
 File: figures/CladFailure.png Graphic file (type png)
 
 <use figures/CladFailure.png>
-Overfull \hbox (14.22638pt too wide) in paragraph at lines 378--379
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 418--419
  [][] 
  []
 
 
-Overfull \hbox (38.57072pt too wide) in paragraph at lines 369--382
+Overfull \hbox (38.57072pt too wide) in paragraph at lines 409--422
 [][]       [] 
  []
 
@@ -439,7 +484,7 @@ y)>] <figures/DETpbClad.png, id=51, 562.1pt x 421.575pt>
 File: figures/DETpbClad.png Graphic file (type png)
 
 <use figures/DETpbClad.png>
-Overfull \hbox (14.22638pt too wide) in paragraph at lines 416--419
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 456--459
  [][] 
  []
 
@@ -447,76 +492,82 @@ Overfull \hbox (14.22638pt too wide) in paragraph at lines 416--419
 File: figures/DETpbHead.png Graphic file (type png)
 
 <use figures/DETpbHead.png>
-Overfull \hbox (14.22638pt too wide) in paragraph at lines 423--426
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 463--466
  [][] 
  []
 
 
-Overfull \hbox (38.57072pt too wide) in paragraph at lines 414--427
+Overfull \hbox (38.57072pt too wide) in paragraph at lines 454--467
 [][]       [] 
  []
 
-<figures/DETvarClad.png, id=53, 562.1pt x 421.575pt>
+[10 <./figures/DETpbClad.png (PNG copy)> <./figures/DETpbHead.png (PNG copy)>]
+<figures/DETvarClad.png, id=56, 562.1pt x 421.575pt>
 File: figures/DETvarClad.png Graphic file (type png)
 
 <use figures/DETvarClad.png>
-Overfull \hbox (14.22638pt too wide) in paragraph at lines 453--456
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 493--496
  [][] 
  []
 
-<figures/DETvarHead.png, id=54, 562.1pt x 421.575pt>
+<figures/DETvarHead.png, id=57, 562.1pt x 421.575pt>
 File: figures/DETvarHead.png Graphic file (type png)
 
 <use figures/DETvarHead.png>
-Overfull \hbox (14.22638pt too wide) in paragraph at lines 460--463
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 500--503
  [][] 
  []
 
 
-Overfull \hbox (38.57072pt too wide) in paragraph at lines 451--464
+Overfull \hbox (38.57072pt too wide) in paragraph at lines 491--504
 [][]       [] 
  []
 
-<figures/DET_LS_pb.png, id=55, 562.1pt x 421.575pt>
+<figures/DET_LS_pb.png, id=58, 562.1pt x 421.575pt>
 File: figures/DET_LS_pb.png Graphic file (type png)
 
 <use figures/DET_LS_pb.png>
-Overfull \hbox (14.22638pt too wide) in paragraph at lines 472--475
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 512--515
  [][] 
  []
 
-<figures/DET_LS_var.png, id=56, 562.1pt x 421.575pt>
+<figures/DET_LS_var.png, id=59, 562.1pt x 421.575pt>
 File: figures/DET_LS_var.png Graphic file (type png)
 
 <use figures/DET_LS_var.png>
-Overfull \hbox (14.22638pt too wide) in paragraph at lines 479--482
+Overfull \hbox (14.22638pt too wide) in paragraph at lines 519--522
  [][] 
  []
 
 
-Overfull \hbox (38.57072pt too wide) in paragraph at lines 470--483
+Overfull \hbox (38.57072pt too wide) in paragraph at lines 510--523
 [][]       [] 
  []
 
-<figures/MC.png, id=57, 562.1pt x 421.575pt>
+<figures/MC.png, id=60, 562.1pt x 421.575pt>
 File: figures/MC.png Graphic file (type png)
  <use figures/MC.png>
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[10 <./figures/DETpbClad.png (PNG copy)> <./figures/DETpbHead.png (PNG copy)>]
+
+Overfull \hbox (0.91444pt too wide) in paragraph at lines 539--544
+\OT1/ptm/m/n/10.95 Dy-namic PRA, un-cer-tainty quan-tifi-ca-tion and plant con-
+trol. Next ca-pa-bil-i-ties, to be im-ple-mented to RAVEN,
+ []
+
 [11 <./figures/DETvarClad.png (PNG copy)> <./figures/DETvarHead.png (PNG copy)>
- <./figures/DET_LS_pb.png (PNG copy)> <./figures/DET_LS_var.png (PNG copy)>]
-(./alfonsiRavenPSA2013.bbl [12 <./figures/MC.png (PNG copy)>]) [13]
+] (./alfonsiRavenPSA2013.bbl [12 <./figures/DET_LS_pb.png (PNG copy)> <./figure
+s/DET_LS_var.png (PNG copy)>]) [13 <./figures/MC.png (PNG copy)>]
 (./alfonsiRavenPSA2013.aux) ) 
 Here is how much of TeX's memory you used:
- 5402 strings out of 493747
- 78284 string characters out of 3143546
- 148367 words of memory out of 3000000
- 8565 multiletter control sequences out of 15000+200000
+ 5436 strings out of 493747
+ 78793 string characters out of 3143546
+ 148110 words of memory out of 3000000
+ 8595 multiletter control sequences out of 15000+200000
  27770 words of font info for 64 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 36i,12n,48p,2122b,410s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 36i,12n,48p,849b,342s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/local/texlive/2010/texmf-dist/fonts/enc/dvip
 s/base/8r.enc}</usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/c
 m/cmex10.pfb></usr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm
@@ -532,7 +583,7 @@ sr/local/texlive/2010/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr
 exlive/2010/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/201
 0/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2010/texmf-di
 st/fonts/type1/urw/times/utmri8a.pfb>
-Output written on alfonsiRavenPSA2013.pdf (13 pages, 569892 bytes).
+Output written on alfonsiRavenPSA2013.pdf (13 pages, 566791 bytes).
 PDF statistics:
  117 PDF objects out of 1000 (max. 8388607)
  74 compressed objects within 1 object stream
