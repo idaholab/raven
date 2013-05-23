@@ -3,7 +3,7 @@
   # 3=3 eqn, 1D non-isothermal flow
   # 7=7 eqn, 1D 2-phase flow
   # scaling_factor_var = '1. 1.e-6 1.e-7'
-  # supg = false
+  stabilization_type = 'SUPG'
   model_type = 3
   global_init_P = 15.17e6
   global_init_V = 0.
@@ -570,8 +570,6 @@
     petsc_options = '-snes_mf_operator'
   [../]
   [./FDP_PJFNK]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
     # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
     # petsc_options_value = '1.e-10               ds'
     type = FDP
@@ -583,8 +581,6 @@
     petsc_options_value = 'ds'
   [../]
   [./FDP_Newton]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
     # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
     # petsc_options_value = '1.e-10               ds'
     type = FDP
