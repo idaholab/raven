@@ -3,46 +3,44 @@ Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
 The top-level auxiliary file: alfonsiRavenPSA2013.aux
 The style file: ieeetr.bst
 Database file #1: bibl.bib
-Warning--I didn't find a database entry for ""
-You've used 11 entries,
+You've used 12 entries,
             1876 wiz_defined-function locations,
-            548 strings with 5879 characters,
-and the built_in function-call counts, 3449 in all, are:
-= -- 306
-> -- 175
+            555 strings with 6120 characters,
+and the built_in function-call counts, 3805 in all, are:
+= -- 340
+> -- 192
 < -- 2
-+ -- 62
-- -- 51
-* -- 256
-:= -- 495
-add.period$ -- 11
-call.type$ -- 11
-change.case$ -- 11
++ -- 68
+- -- 56
+* -- 283
+:= -- 545
+add.period$ -- 12
+call.type$ -- 12
+change.case$ -- 12
 chr.to.int$ -- 0
-cite$ -- 11
-duplicate$ -- 182
-empty$ -- 314
-format.name$ -- 51
-if$ -- 834
+cite$ -- 12
+duplicate$ -- 199
+empty$ -- 344
+format.name$ -- 56
+if$ -- 922
 int.to.chr$ -- 0
-int.to.str$ -- 11
-missing$ -- 9
-newline$ -- 36
-num.names$ -- 11
-pop$ -- 49
+int.to.str$ -- 12
+missing$ -- 10
+newline$ -- 39
+num.names$ -- 12
+pop$ -- 51
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 0
-skip$ -- 127
+skip$ -- 141
 stack$ -- 0
-substring$ -- 208
-swap$ -- 77
+substring$ -- 236
+swap$ -- 86
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 0
 warning$ -- 0
-while$ -- 25
-width$ -- 13
-write$ -- 108
-(There was 1 warning)
+while$ -- 28
+width$ -- 14
+write$ -- 118
