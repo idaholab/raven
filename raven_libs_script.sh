@@ -3,13 +3,22 @@ INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}
 mkdir -p $BUILD_DIR
 mkdir -p $INSTALL_DIR
 export PYTHONPATH=$INSTALL_DIR/lib/python2.7/site-packages/
-cd $BUILD_DIR
 
 #hdf5
+cd $BUILD_DIR
 curl -v -O http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
 tar -xvjf hdf5-1.8.11.tar.bz2
 cd hdf5-1.8.11
 (unset CC CXX F90 F77 FC; ./configure --prefix=$INSTALL_DIR)
+make
+make install
+
+#freetype
+cd $BUILD_DIR
+curl -L -O http://downloads.sourceforge.net/project/freetype/freetype2/2.4.12/freetype-2.4.12.tar.bz2
+tar -xvjf freetype-2.4.12.tar.bz2
+cd freetype-2.4.12
+(unset CC CXX; ./configure --prefix=$INSTALL_DIR)
 make
 make install
 
@@ -48,4 +57,11 @@ cd $BUILD_DIR
 curl -O https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
 tar -xvzf scikit-learn-0.13.1.tar.gz
 cd scikit-learn-0.13.1
+(unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
+
+#matplotlib
+cd $BUILD_DIR
+curl -L -O https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz
+tar -xvzf matplotlib-1.2.1.tar.gz
+cd matplotlib-1.2.1
 (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
