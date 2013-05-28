@@ -68,15 +68,18 @@ class MonteCarlo(Sampler):
   def __init__(self):
     Sampler.__init__(self)
     self.limit       = 0        #maximum number of sampler it will perform every time it is used
+    self.init_seed   = 0
   def generateInput(self,model,myInput):
     self.counter += 1
-    values = {'prefix':str(self.counter)}
+    values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
     for key in self.distDict:
       values[key] = self.distDict[key].distribution.rvs()
     return model.createNewInput(myInput,self.type,**values)
   def readMoreXML(self,xmlNode):
+    try: self.init_seed = xmlNode.attrib['initial_seed']
+    except: self.init_seed = 0 
     try: self.limit = xmlNode.attrib['limit']
-    except: raise IOError('not found limit for the Sampler '+self.name)
+    except: raise IOError('not found limit for the Sampler '+self.name)    
     return
   def addInitParams(self,tempDict):
     tempDict['limit' ] = self.limit  
