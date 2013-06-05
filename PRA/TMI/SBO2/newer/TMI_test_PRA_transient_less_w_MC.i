@@ -646,6 +646,7 @@
   # xda = true
   #num_restart_files = 1
   output_initial =  true
+  output_displaced = true
   perf_log =  true
   file_base =  TMI_test_PRA_transient_less_w_out
   exodus =  true

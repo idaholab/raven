@@ -656,6 +656,7 @@
   file_base = TMI_test_PRA_transient_less_w_out
   exodus = true
   output_initial = true
+  output_displaced = true
   perf_log = true
  #num_restart_files = 1
   postprocessor_csv = true

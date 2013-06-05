@@ -641,6 +641,7 @@
   file_base = TMI_DEMO_PRA_Transient_out
   exodus = true
   output_initial = true
+  output_displaced = true
   perf_log = true
   postprocessor_csv = true
 []

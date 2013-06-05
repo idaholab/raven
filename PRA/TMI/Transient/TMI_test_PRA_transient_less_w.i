@@ -631,6 +631,7 @@
   file_base = test_of_control_logic_for_MC
   exodus = false
   output_initial = true
+  output_displaced = true
   perf_log = true
  #num_restart_files = 1
   postprocessor_csv = true

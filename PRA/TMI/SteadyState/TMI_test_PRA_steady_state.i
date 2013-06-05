@@ -648,6 +648,7 @@ order = FIRST
   file_base = TMI_test_PRA_steady_state
   exodus = true
   output_initial = true
+  output_displaced = true
   perf_log = true
   num_restart_files = 1
 []
