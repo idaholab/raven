@@ -5,6 +5,16 @@
 #    export MODULEPATH=/apps/local/modules/modulefiles
 #fi
 
+if test -x /apps/local/modules/bin/modulecmd;
+then
+	MODULECMD=/apps/local/modules/bin/modulecmd
+else
+	if test -x /usr/bin/modulecmd;
+	then 
+		MODULECMD=/usr/bin/modulecmd
+       fi
+fi
+
 echo `pwd`
 
 echo PBS_O_WORKDIR $PBS_O_WORKDIR
@@ -21,7 +31,7 @@ export -p > $PBS_O_WORKDIR/remote_mod_export
     
 echo "$MODULEPATH"
 #export MODULEPATH
-eval `/apps/local/modules/bin/modulecmd bash load moose-dev-gcc pbs python/3.2`
+eval `$MODULECMD bash load moose-dev-gcc pbs python/3.2`
 
 #cd $PBS_O_WORKDIR
 
