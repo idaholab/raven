@@ -77,7 +77,7 @@ class MonteCarlo(Sampler):
     return model.createNewInput(myInput,self.type,**values)
   def readMoreXML(self,xmlNode):
     try: self.init_seed = xmlNode.attrib['initial_seed']
-    except: self.init_seed = 0 
+    except: self.init_seed = 1 
     try: self.limit = xmlNode.attrib['limit']
     except: raise IOError('not found limit for the Sampler '+self.name)    
     return

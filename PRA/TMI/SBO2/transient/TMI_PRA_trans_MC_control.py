@@ -5,9 +5,11 @@ import raventools
 
 
 distcont  = distribution1D.DistributionContainer.Instance()
-DecayHeatScalingFactor     = raventools.decayHeat(1,1,3600*24*30*8,0.064)
-PumpCoastDown              = raventools.pumpCoastdown(22.5,9.9)
-PumpCoastDownSec           = raventools.pumpCoastdown(22.5,1)
+toolcont  = raventools.RavenToolsContainer.Instance()
+
+#DecayHeatScalingFactor     = raventools.decayHeat(1,1,3600*24*30*8,0.064)
+#PumpCoastDown              = raventools.pumpCoastdown(22.5,9.9)
+#PumpCoastDownSec           = raventools.pumpCoastdown(22.5,1)
 
 def initial_function(monitored, controlled, auxiliary):
 
@@ -48,7 +50,7 @@ def control_function(monitored, controlled, auxiliary):
         #primary pump B
         if controlled.Head_PumpB>1.e-4*9.9:
             if monitored.time<(auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux): # not yet auxiliary system up
-                controlled.Head_PumpB = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time) 
+                controlled.Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
                 controlled.friction1_SC_B = auxiliary.frict_m*controlled.Head_PumpB + auxiliary.frict_q
                 controlled.friction2_SC_B = auxiliary.frict_m*controlled.Head_PumpB + auxiliary.frict_q
                 controlled.friction1_CL_B = auxiliary.frict_m*controlled.Head_PumpB + auxiliary.frict_q
@@ -70,7 +72,7 @@ def control_function(monitored, controlled, auxiliary):
                         controlled.friction1_CL_B = 0.1
                         controlled.friction2_CL_B = 0.1 
                 else:
-                    controlled.Head_PumpB = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time)
+                    controlled.Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time)
                     if controlled.friction1_SC_B > 0.1:
                         controlled.friction1_SC_B = auxiliary.friction_time_start_exp*math.exp(-(monitored.time-(auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux))/4.0)                         
                         controlled.friction2_SC_B = controlled.friction1_SC_B                        
@@ -105,7 +107,7 @@ def control_function(monitored, controlled, auxiliary):
                         controlled.friction1_CL_B = 0.1
                         controlled.friction2_CL_B = 0.1
                 else:
-                    controlled.Head_PumpB = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time)
+                    controlled.Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time)
                     controlled.friction1_SC_B = auxiliary.frict_m*controlled.Head_PumpB + auxiliary.frict_q
                     controlled.friction2_SC_B = auxiliary.frict_m*controlled.Head_PumpB + auxiliary.frict_q
                     controlled.friction1_CL_B = auxiliary.frict_m*controlled.Head_PumpB + auxiliary.frict_q
@@ -113,7 +115,7 @@ def control_function(monitored, controlled, auxiliary):
         #primary pump A        
         if controlled.Head_PumpA>1.e-4*9.9:
             if monitored.time<(auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux): # not yet auxiliary system up
-                controlled.Head_PumpA = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time) 
+                controlled.Head_PumpA = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
                 controlled.friction1_SC_A = auxiliary.frict_m*controlled.Head_PumpA + auxiliary.frict_q
                 controlled.friction2_SC_A = auxiliary.frict_m*controlled.Head_PumpA + auxiliary.frict_q
                 controlled.friction1_CL_A = auxiliary.frict_m*controlled.Head_PumpA + auxiliary.frict_q
@@ -133,7 +135,7 @@ def control_function(monitored, controlled, auxiliary):
                         controlled.friction2_CL_A = 0.1
                 else:
                     if controlled.friction1_SC_A > 0.1:
-                        controlled.Head_PumpA = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time) 
+                        controlled.Head_PumpA = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
                         controlled.friction1_SC_A = auxiliary.friction_time_start_exp*math.exp(-(monitored.time-(auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux))/4.0)
                         controlled.friction2_SC_A = controlled.friction1_SC_A                  
                         controlled.friction1_CL_A = controlled.friction1_SC_A
@@ -164,22 +166,22 @@ def control_function(monitored, controlled, auxiliary):
                         controlled.friction1_CL_A = 0.1
                         controlled.friction2_CL_A = 0.1
                 else:
-                    controlled.Head_PumpA = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time) 
+                    controlled.Head_PumpA = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
                     controlled.friction1_SC_A = auxiliary.frict_m*controlled.Head_PumpA + auxiliary.frict_q
                     controlled.friction2_SC_A = auxiliary.frict_m*controlled.Head_PumpA + auxiliary.frict_q
                     controlled.friction1_CL_A = auxiliary.frict_m*controlled.Head_PumpA + auxiliary.frict_q
                     controlled.friction2_CL_A = auxiliary.frict_m*controlled.Head_PumpA + auxiliary.frict_q 
 
         #core power following decay heat curve     
-        controlled.power_CH1 = auxiliary.init_Power_Fraction_CH1*DecayHeatScalingFactor.powerCalculation(monitored.time-auxiliary.scram_start_time)
-        controlled.power_CH2 = auxiliary.init_Power_Fraction_CH2*DecayHeatScalingFactor.powerCalculation(monitored.time-auxiliary.scram_start_time)
-        controlled.power_CH3 = auxiliary.init_Power_Fraction_CH3*DecayHeatScalingFactor.powerCalculation(monitored.time-auxiliary.scram_start_time)
+        controlled.power_CH1 = auxiliary.init_Power_Fraction_CH1*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
+        controlled.power_CH2 = auxiliary.init_Power_Fraction_CH2*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
+        controlled.power_CH3 = auxiliary.init_Power_Fraction_CH3*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
         #secondary system replaced by auxiliary secondary system
     if monitored.time<(auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux) and auxiliary.ScramStatus: # not yet auxiliary system up
         print('not yet auxiliary system up')
         if controlled.high_pressure_secondary_A >= auxiliary.InitialOutletSecPress: 
-            if (auxiliary.InitialOutletSecPress + (auxiliary.initialInletSecPress - auxiliary.InitialOutletSecPress)*(1-PumpCoastDownSec.flowrateCalculation(monitored.time-auxiliary.scram_start_time))) >= (auxiliary.InitialOutletSecPress+29.35152e+4):  
-                 controlled.high_pressure_secondary_A = auxiliary.InitialOutletSecPress + (auxiliary.initialInletSecPress - auxiliary.InitialOutletSecPress)*(1-PumpCoastDownSec.flowrateCalculation(monitored.time-auxiliary.scram_start_time))
+            if (auxiliary.InitialOutletSecPress + (auxiliary.initialInletSecPress - auxiliary.InitialOutletSecPress)*(1-toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time))) >= (auxiliary.InitialOutletSecPress+29.35152e+4):  
+                 controlled.high_pressure_secondary_A = auxiliary.InitialOutletSecPress + (auxiliary.initialInletSecPress - auxiliary.InitialOutletSecPress)*(1-toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time))
                  print('controlled.high_pressure_secondary_A')
                  print(str(controlled.high_pressure_secondary_A))                            
             else:
@@ -191,8 +193,8 @@ def control_function(monitored, controlled, auxiliary):
               print('controlled.high_pressure_secondary_A')
               print(str(controlled.high_pressure_secondary_A))
         if controlled.high_pressure_secondary_B >= auxiliary.InitialOutletSecPress:
-            if (auxiliary.InitialOutletSecPress + (auxiliary.initialInletSecPress - auxiliary.InitialOutletSecPress)*(1-PumpCoastDownSec.flowrateCalculation(monitored.time-auxiliary.scram_start_time))) >= (auxiliary.InitialOutletSecPress+29.35152e+4):   
-                controlled.high_pressure_secondary_B = auxiliary.InitialOutletSecPress + (auxiliary.initialInletSecPress - auxiliary.InitialOutletSecPress)*(1-PumpCoastDownSec.flowrateCalculation(monitored.time-auxiliary.scram_start_time))    
+            if (auxiliary.InitialOutletSecPress + (auxiliary.initialInletSecPress - auxiliary.InitialOutletSecPress)*(1-toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time))) >= (auxiliary.InitialOutletSecPress+29.35152e+4):   
+                controlled.high_pressure_secondary_B = auxiliary.InitialOutletSecPress + (auxiliary.initialInletSecPress - auxiliary.InitialOutletSecPress)*(1-toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time))    
                 print('controlled.high_pressure_secondary_B')               
                 print(str(controlled.high_pressure_secondary_B))
             else:

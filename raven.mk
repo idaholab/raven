@@ -153,15 +153,31 @@ $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/dis
 
 $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/raventools.i \
                                              $(RAVEN_DIR)/src/tools/batteries.C \
-                                             $(RAVEN_DIR)/src/tools/dieselGenerator.C \
+                                             $(RAVEN_DIR)/src/tools/DieselGeneratorBase.C \
                                              $(RAVEN_DIR)/src/tools/pumpCoastdown.C \
                                              $(RAVEN_DIR)/src/tools/decayHeat.C \
                                              $(RAVEN_DIR)/src/tools/powerGrid.C \
+                                             $(RAVEN_DIR)/src/tools/RavenToolsContainer.C \
                                              $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_LIB)
 # Swig
-	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/tools/  -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/raventools.i
+	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/ $(libmesh_INCLUDE) \
+          -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/tools/ \
+          -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ \
+          $(RAVEN_MODULES)/raventools.i
+#swig -c++ -python -py3 -I$(RAVEN_DIR)/include/tools/  -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/raventools.i
 # Compile
-	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC \
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
+	$(libmesh_CXX) $(libmeh_CPPFLAGS) $(PYTHON_INCLUDE) $(libmesh_INCLUDE) \
+	 -c  $(RAVEN_MODULES)/raventools_wrap.cxx -o $(RAVEN_DIR)/python_modules/raventools_wrap.lo
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
+	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
+	-o $(RAVEN_MODULES)/libraventools.la $(RAVEN_LIB) $(PYTHON_LIB) $(RAVEN_MODULES)/raventools_wrap.lo -rpath $(RAVEN_MODULES)
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libraventools.la  $(RAVEN_MODULES)/libraventools.la 
+	rm -f $(RAVEN_MODULES)/_raventools.so
+	ln -s libraventools.$(raven_shared_ext) $(RAVEN_MODULES)/_raventools.so
+
+
+#$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC \
           -I$(RAVEN_DIR)/include/tools/ -I$(RAVEN_DIR)/include/utilities/ \
           $(RAVEN_DIR)/python_modules/raventools_wrap.cxx \
           $(RAVEN_DIR)/src/tools/*.C \

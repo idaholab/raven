@@ -34,19 +34,6 @@ DistributionContainer::~DistributionContainer()
 {
 }
 
-/*void
-DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params){
-   // create the distribution type
-   distribution * dist = dynamic_cast<distribution *>(_factory.create(type, name, params));
-   if (_dist_by_name.find(name) == _dist_by_name.end())
-    _dist_by_name[name] = dist;
-   else
-     mooseError("Distribution with name " << name << " already exists");
-
-   _dist_by_type[type].push_back(dist);
-
-   }*/
-
 void
 DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist){
    // create the distribution type
@@ -59,18 +46,6 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
    _dist_by_type[type].push_back(dist);
 
 }
-
-//void
-//DistributionContainer::constructDistributionContainer(std::string DistAlias, distribution_type type, double xmin, double xmax, double param1, double param2, unsigned int seed){
-//  _distribution_cont.push_back(distribution(type, xmin, xmax, param1, param2, seed));
-//  _vector_pos_map[DistAlias]=_distribution_cont.size()-1;
-//}
-//void
-//DistributionContainer::constructDistributionContainerCustom(std::string DistAlias, distribution_type type, std::vector< double > dist_x, std::vector< double > dist_y, int numPoints, custom_dist_fit_type fit_type, unsigned int seed){
-//
-//  _distribution_cont.push_back(distribution(dist_x, dist_y, numPoints, fit_type, seed));
-//  _vector_pos_map[DistAlias]=_distribution_cont.size()-1;
-//}
 
 std::string
 DistributionContainer::getType(char *  DistAlias){
@@ -111,8 +86,6 @@ bool DistributionContainer::checkCdf(std::string DistAlias, double value){
   bool result;
   if (Cdf(std::string(DistAlias),value) >= getVariable("ProbabilityThreshold",DistAlias)){
     result=true;
-    std::cerr << "WE ARE IN CHECK CDF... IT is true... DistAlias" << DistAlias << "value = " << value << std::endl;
-    std::cerr << "PROB THRESHOLD = " << getVariable("ProbabilityThreshold",DistAlias) << " cdf value = " << Cdf(std::string(DistAlias),value) << std::endl;
     _dist_by_trigger_status[DistAlias] = true;
     _last_dist_triggered = DistAlias;
     _at_least_a_dist_triggered = true;

@@ -79,8 +79,8 @@
     k_hs = '3.65 1.084498 16.48672'
     Cp_hs = '288.734 1.0 321.384'
     rho_hs = '1.0412e2 1.0 6.6e1'
+    material_hs = 'fuel-mat gap-mat clad-mat' 
     power_fraction = '3.33672612e-1 0 0'
-    material_hs = 'fuel-mat gap-mat clad-mat'
   [../]
   [./CH2]
     # peak_power = '5.094461e8 0. 0.'
@@ -104,8 +104,8 @@
     k_hs = '3.65  1.084498  16.48672'
     Cp_hs = '288.734  1.0  321.384'
     rho_hs = '1.0412e2 1. 6.6e1'
-    power_fraction = '3.69921461e-1 0 0'
     material_hs = 'fuel-mat gap-mat clad-mat'
+    power_fraction = '3.69921461e-1 0 0'
   [../]
   [./CH3]
     # peak_power = '3.401687e8 0. 0.'
@@ -128,9 +128,9 @@
     elem_number_of_hs = '3 1 1'
     k_hs = '3.65  1.084498  16.48672'
     Cp_hs = '288.734  1.0  6.6e3'
+    material_hs = 'fuel-mat gap-mat clad-mat' 
     rho_hs = '1.0412e2  1.0  6.6e1'
     power_fraction = '2.96405926e-1 0 0'
-    material_hs = 'fuel-mat gap-mat clad-mat'
   [../]
   [./bypass_pipe]
     type = Pipe
@@ -289,8 +289,8 @@
     eos_secondary = eos
     position = '0 4. 8.'
     orientation = '0 0 -1'
-    A = 5.0
-    A_secondary = 5.0 # 5
+    A = 5.
+    A_secondary = 5. # 5
     Dh = 0.01
     Dh_secondary = 0.01
     length = 4.
@@ -303,7 +303,6 @@
     f_secondary = 0.01
     Twall_init = 564.15
     wall_thickness = 0.001
-    dim_wall = 1
     k_wall = 100.0
     rho_wall = 100.0
     Cp_wall = 100.0
@@ -472,7 +471,7 @@
     position = '0 -4. 8.'
     orientation = '0 0 -1'
     A = 5.
-    A_secondary = 5. # 5.
+    A_secondary = 5.0 # 5.
     Dh = 0.01
     Dh_secondary = 0.01
     length = 4.
@@ -488,9 +487,9 @@
     k_wall = 100.0
     rho_wall = 100.0
     Cp_wall = 100.0
+    material_wall = wall-mat
     n_wall_elems = 2
     disp_mode = -1.0
-    material_wall = wall-mat
   [../]
   [./Branch4-B]
     type = ErgBranch
@@ -564,14 +563,7 @@
 [Preconditioning]
   # active = 'FDP_Newton'
   # End preconditioning block
-  active = 'SMP_PJFNK'
- [./SMP_PJFNK]
-  type = SMP
-  full = true
-  petsc_options = '-snes_mf_operator'
-  petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
- petsc_options_value = 'ds             ds'
- [../] 
+  active = 'SMP'
   [./SMP]
     type = SMP
     full = true
@@ -602,29 +594,28 @@
 []
 
 [Executioner]
+  # restart_file_base = TMI_test_PRA_out_restart_0194
   type = RavenExecutioner
-  restart_file_base = TMI_DEMO_PRA_Steady_out_restart_0267
+  restart_file_base = TMI_test_PRA_steady_state_restart_1459
   dt = 5e-2
   [./TimeStepper]
     type = FunctionDT
-    time_t = '0 1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
-    time_dt = '1.e-1  0.1 0.15         0.20       0.25    0.30  0.35      0.40    0.45   0.5   0.6  0.8'
+    time_t = '0         3.0         5.01       9.5       9.75    14          17        60       61.1     450     1.0e5'
+    time_dt = '1.e-3  0.005         0.01       2.5e-2    2.5e-2  2.5e-2      2.5e-2    2.5e-2   1.5e-2   10.0e-2  1.0e-1'
   [../]
   dtmax = 9999
   e_tol = 10.0
   e_max = 99999.
   max_increase = 3
   perf_log = true
- #  petsc_options_iname = '-ksp_gmres_restart -pc_type'
- # petsc_options_value = '300 lu' # '300'
- petsc_options_iname = '-pc_type'
- petsc_options_value = 'lu' # '300'
+  petsc_options_iname = '-ksp_gmres_restart -pc_type'
+  petsc_options_value = '300 lu' # '300'
   nl_rel_tol = 1e-6
   nl_abs_tol = 1e-10
   nl_max_its = 100
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
   l_max_its = 100 # Number of linear iterations for each Krylov solve
-  start_time = 100.0
+  start_time = 60.0
   end_time = 300.0
   ss_check_tol = 1e-05
   nl_rel_step_tol = 1e-3
@@ -637,8 +628,8 @@
 
 [Output]
   # xda = true
-  file_base = TMI_DEMO_PRA_Transient_out
-  exodus = true
+  file_base = test_of_control_logic_for_MC
+  exodus = false
   output_initial = true
   output_displaced = true
   perf_log = true
@@ -647,7 +638,6 @@
 []
 
 [Controlled]
- # control logic file name
   control_logic_input = TMI_test_PRA_trans_MC_control
   [./power_CH1]
     print_csv = true
@@ -693,88 +683,88 @@
   [../]
   [./friction1_SC_A]
     print_csv = true
-    property_name = f
+    property_name = friction
     data_type = double
     component_name = pipe1-SC-A
   [../]
-  [./friction2_SC_A]
-    print_csv = true
-    property_name = f
-    data_type = double
-    component_name = pipe2-SC-A
-  [../]
-  [./friction1_SC_B]
-   print_csv = true
-   property_name = f
-   data_type = double
-   component_name = pipe1-SC-B
-  [../]
-  [./friction2_SC_B]
-   print_csv = true
-   property_name = f
-   data_type = double
-   component_name = pipe2-SC-B
-  [../]
-  [./friction1_CL_B]
-   print_csv = true
-   property_name = f
-   data_type = double
-   component_name = pipe1-CL-B
-  [../]
-  [./friction2_CL_B]
-    print_csv = true
-    property_name = f
-    data_type = double
-    component_name = pipe2-CL-B
-  [../]
-  [./friction1_CL_A]
-    print_csv = true
-    property_name = f
-    data_type = double
-    component_name = pipe1-CL-A
-  [../]
-  [./friction2_CL_A]
-    print_csv = true
-    property_name = f
-    data_type = double
-    component_name = pipe2-CL-A
-  [../]
+[./friction2_SC_A]
+print_csv = true
+property_name = friction
+data_type = double
+component_name = pipe2-SC-A
+[../]
+[./friction1_SC_B]
+print_csv = true
+property_name = friction
+data_type = double
+component_name = pipe1-SC-B
+[../]
+[./friction2_SC_B]
+print_csv = true
+property_name = friction
+data_type = double
+component_name = pipe2-SC-B
+[../]
+[./friction1_CL_B]
+print_csv = true
+property_name = friction
+data_type = double
+component_name = pipe1-CL-B
+[../]
+[./friction2_CL_B]
+print_csv = true
+property_name = friction
+data_type = double
+component_name = pipe2-CL-B
+[../]
+[./friction1_CL_A]
+print_csv = true
+property_name = friction
+data_type = double
+component_name = pipe1-CL-A
+[../]
+[./friction2_CL_A]
+print_csv = true
+property_name = friction
+data_type = double
+component_name = pipe2-CL-A
+[../]
 []
 
 [Monitored]
-  [./avg_temp_clad_CH1]
+  [./max_temp_clad_CH1]
     operator = ElementAverageValue
     path = CLAD:TEMPERATURE
     data_type = double
     component_name = CH1
   [../]
-  [./avg_temp_clad_CH2]
+  [./max_temp_clad_CH2]
     operator = ElementAverageValue    
-    path = CLAD:TEMPERATURE
+     path = CLAD:TEMPERATURE
     data_type = double
     component_name = CH2
   [../]
-  [./avg_temp_clad_CH3]
+  [./max_temp_clad_CH3]
     # tests pressure monitoring in a pipe (ElementAverageValue operator)
     operator = ElementAverageValue
     path = CLAD:TEMPERATURE
     data_type = double
     component_name = CH3
   [../]
-  [./avg_Fluid_Vel_H_L-A]
+  [./Max_Fluid_Vel_H_L-A]
     # tests velocity monitoring in a pipe (ElementAverageValue operator)
     operator = ElementAverageValue
     path = VELOCITY
     data_type = double
     component_name = pipe1-HL-A
   [../]
-  [./avg_Fluid_Vel_C_L_A]
+  [./Max_Fluid_Vel_C_L_A]
     operator = ElementAverageValue
     path = VELOCITY
     data_type = double
     component_name = DownComer-A
   [../]
-  [./avg_out_temp_sec_A]
+  [./out_temp_sec_A]
     operator = ElementAverageValue
     path = TEMPERATURE
     data_type = double
@@ -792,19 +782,19 @@
     data_type = double
     component_name = pipe1-CL-B
   [../]
-  [./avg_temp_fuel_CH1]
+  [./max_temp_fuel_CH1]
     operator = ElementAverageValue
     path = FUEL:TEMPERATURE
     data_type = double
     component_name = CH1
   [../]
-  [./avg_temp_fuel_CH2]
+  [./max_temp_fuel_CH2]
     operator = ElementAverageValue
     path = FUEL:TEMPERATURE
     data_type = double
     component_name = CH2
   [../]
-  [./avg_temp_fuel_CH3]
+  [./max_temp_fuel_CH3]
     operator = ElementAverageValue
     path = FUEL:TEMPERATURE
     data_type = double
@@ -834,6 +824,14 @@
     xMax  = 123.0
     truncation = 1
   [../]
+ [./noise]
+    type = NormalDistribution
+     mu = 1.0
+     sigma = 0.05
+     xMin  = -1.0
+     xMax  = 1.0
+     truncation = 1
+ [../] 
   [./CladFailureDist]
     type = TriangularDistribution
     xMin = 1255.3722 # Lower bound (PRA succes criteria)
@@ -851,19 +849,19 @@
     print_csv = true
     initial_value = True
   [../]
-  [./frict_m]
-    data_type = double
-    initial_value = -505.56
-    print_csv = true
-  [../]
-  [./frict_q]
-    data_type = double
-    initial_value = 5005.1
-    print_csv = true
-  [../]
+[./frict_m]
+data_type = double
+initial_value = -505.56
+print_csv = true
+[../]
+[./frict_q]
+data_type = double
+initial_value = 5005.1
+print_csv = true
+[../]
   [./scram_start_time]
     data_type = double
-    initial_value = 101.0
+    initial_value = 61.0
     print_csv = true
   [../]
   [./friction_time_start_exp]
@@ -911,10 +909,25 @@
     print_csv = true
     initial_value = 151.7e5  #15170000
   [../]
+  [./AuxDieselRecoveryTime]
+    data_type = double
+    print_csv = true
+    initial_value = 180
+  [../]
+  [./PrimaryPump]
+    data_type = double
+    print_csv = true
+    initial_value = 0
+  [../]
   [./PrimaryPumpTransStart]
     data_type = double
     print_csv = true
     initial_value = 0.5
+  [../]
+  [./SecondaryPump]
+    data_type = double
+    print_csv = true
+    initial_value = 0
   [../]
   [./SecondaryPumpTransStart]
     data_type = double
@@ -924,7 +937,7 @@
   [./PowerStatus]
     data_type = double
     print_csv = true
-    initial_value = 1
+    initial_value = 0
   [../]
   [./CladTempTreshold]
     data_type = double
@@ -953,3 +966,23 @@
   [../]  
   
 []
+ 
+ [RavenTools]
+ [./PumpCoastDown]
+ type = pumpCoastdownExponential
+ coefficient = 26.5
+ initial_flow_rate = 8.9
+ [../]
+ [./DecayHeatScalingFactor]
+ type = decayHeat
+ eq_type = 1
+ initial_pow = 1
+ operating_time = 20736000
+ power_coefficient = 0.74
+ [../]
+ [./PumpCoastDownSec]
+ type = pumpCoastdownExponential
+ coefficient = 10.5
+ initial_flow_rate = 1.0
+ [../]
+ []

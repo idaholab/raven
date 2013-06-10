@@ -1003,4 +1003,22 @@
     initial_value = 2.96405926e-1
   [../]
 []
-
+ [RavenTools]
+ [./PumpCoastDown]
+ type = pumpCoastdownExponential
+ coefficient = 22.5
+ initial_flow_rate = 9.9
+ [../]
+ [./DecayHeatScalingFactor]
+ type = decayHeat
+ eq_type = 1
+ initial_pow = 1
+ operating_time = 20736000
+ power_coefficient = 0.064
+ [../]
+ [./PumpCoastDownSec]
+ type = pumpCoastdownExponential
+ coefficient = 22.5
+ initial_flow_rate = 1.0
+ [../]
+ []

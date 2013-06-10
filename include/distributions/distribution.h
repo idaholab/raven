@@ -12,6 +12,7 @@
 #include "Interpolation_Functions.h"
 #include "RavenObject.h"
 #include "distribution_min.h"
+
 const int _defaultSeed = 1256955321;
 
 enum truncation {MULTIPLICATIVE=1, SUM=2};

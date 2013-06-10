@@ -675,8 +675,6 @@
 []
 
  [Controlled]
- # control logic file name
- #control_logic_input = TMI_PRA_trans_MC_control
  [./power_CH1]
  print_csv = true
  property_name = FUEL:power_fraction
@@ -695,18 +693,6 @@
  data_type = double
  component_name = CH3
  [../]
- #  [./high_pressure_secondary_A]
- #   property_name = p_bc
- #   print_csv = true
- #   data_type = double
- #   component_name = high_pressure_seconday_A
- # [../]
- # [./high_pressure_secondary_B]
- #   property_name = p_bc
- #   print_csv = true
- #   data_type = double
- #   component_name = high_pressure_seconday_B
- # [../]
  [./MassFlowRateIn_SC_A]
  property_name = v_bc
  print_csv = true
