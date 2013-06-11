@@ -15,7 +15,7 @@
 #include <map>
 #include "distribution.h"
 #include "Interpolation_Functions.h"
-#include <MooseRandom.h>
+//#include <MooseRandom.h>
 
 using namespace std;
 
@@ -111,7 +111,7 @@ class DistributionContainer{
      std::string _last_dist_triggered;
      bool _at_least_a_dist_triggered;
 
-     MooseRandom _random;
+     //MooseRandom _random;
 
 //     /*
 //      * Function to get the position in the internal mapping
