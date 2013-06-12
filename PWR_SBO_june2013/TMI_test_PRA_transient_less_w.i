@@ -655,7 +655,7 @@
   # xda = true
   #num_restart_files = 1
   output_initial =  true
-  output_displaced = true
+  output_displaced = false
   perf_log =  false
   file_base =  TMI_test_PRA_transient_less_w_out
   exodus =  false
@@ -860,12 +860,12 @@
  [../]
  [./crew1DG2CoupledDG1]
  type = UniformDistribution
- xMin = 0
+ xMin = 0.5
  xMax = 1
  [../]
  [./crewSecPG]
  type = NormalDistribution
- mu = 1800
+ mu = 1400
  sigma = 400
  [../]
  [./PrimPGrecovery]

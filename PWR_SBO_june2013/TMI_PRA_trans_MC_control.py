@@ -19,17 +19,17 @@ def initial_function(monitored, controlled, auxiliary):
 def control_function(monitored, controlled, auxiliary):
     #we use aux var in order to keep track of variables' values must be transfered from a calculation to the others
     if monitored.time_step == 1:
-        auxiliary.scram_start_time = 120.01
+        auxiliary.scram_start_time = 101.0
         random_n_1 = distcont.random()
-        auxiliary.DG1recoveryTime = 10.0 + distcont.randGen('crew1DG1',random_n_1) 
+        auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
 
         
         random_n_2 = distcont.random()
-        auxiliary.DG2recoveryTime = 10.0 + auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
+        auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
 
         
         random_n_3 = distcont.random()
-        auxiliary.SecPGrecoveryTime = 20.0 + distcont.randGen('crewSecPG',random_n_3) 
+        auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
 
         
         random_n_4 = distcont.random()
