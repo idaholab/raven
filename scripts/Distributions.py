@@ -6,6 +6,7 @@ Created on Mar 7, 2013
 import sys
 import xml.etree.ElementTree as ET
 import scipy.stats.distributions  as dist
+import numpy as np
 from BaseType import BaseType
 
 class Distribution(BaseType):
@@ -32,13 +33,19 @@ class Distribution(BaseType):
       self.adjustment = xmlNode.find('adjustment').text
     else:
       self.adjustment = 'scaling'
-
   def addInitParams(self,tempDict):
     tempDict['upperBoundUsed'] = self.upperBoundUsed
     tempDict['lowerBoundUsed'] = self.lowerBoundUsed
     tempDict['upperBound'    ] = self.upperBound
     tempDict['lowerBound'    ] = self.lowerBound
     tempDict['adjustmentType'] = self.adjustmentType
+  def rvsWithinCDFbounds(self,LowerBound,upperBound):
+    point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
+    return self.distribution.ppt(point)
+  def rvsWithinbounds(self,LowerBound,upperBound):
+    CDFupper = self.distribution.cdf(upperBound)
+    CDFlower = self.distribution.cdf(LowerBound)
+    return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
 
 

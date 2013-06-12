@@ -9,143 +9,11 @@ import shutil
 import Datas
 import numpy as np
 from BaseType import BaseType
-
-class RavenInterface:
-  '''this class is used a part of a code dictionary to specialize Model.Code for RAVEN'''
-  def generateCommand(self,inputFiles,executable):
-    if inputFiles[0].endswith('.i'): index = 0
-    else: index = 1
-    outputfile = 'outFrom~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
-    ' Output/file_base='+ outputfile)
-    return executeCommand,outputfile
-  
-  def appendLoadFileExtension(self,fileRoot):
-    return fileRoot + '.csv'
-  
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
-    import MOOSEparser
-    self.samplersDictionary = {}
-    self.samplersDictionary['MonteCarlo']     = self.MonteCarloForRAVEN
-    self.samplersDictionary['EquallySpaced']  = self.EquallySpacedForRAVEN
-    self.samplersDictionary['LatinHyperCube'] = self.LatinHyperCubeForRAVEN
-    self.samplersDictionary['DynamicEventTree'] = self.DynamicEventTreeForRAVEN
-    if currentInputFiles[0].endswith('.i'): index = 0
-    else: index = 1
-    parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
-    modifDict = self.samplersDictionary[samplerType](**Kwargs)
-    parser.modifyOrAdd(modifDict,False)
-    temp = str(oriInputFiles[index][:])
-    currentInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1])
-    parser.printInput(currentInputFiles[index])
-    return currentInputFiles
-
-  def MonteCarloForRAVEN(self,**Kwargs):
-    try: counter = Kwargs['prefix']
-    except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
-    try: init_seed = Kwargs['initial_seed']
-    except: init_seed = 1
-    
-    listDict = []
-    modifDict = {}
-    modifDict['name'] = ['Distributions']
-      
-    RNG_seed = int(counter) + int(init_seed) - 1
-    modifDict['RNG_seed'] = str(RNG_seed)
-    listDict.append(modifDict)
-    return listDict
-  
-  def DynamicEventTreeForRAVEN(self,**Kwargs):
-    listDict = []
-    
-    for i in xrange(len(Kwargs['initiator_distribution'])):
-      modifDict = {}
-      modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
-      modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
-      listDict.append(modifDict)
-      del modifDict
-    if 'start_time' in Kwargs.keys():
-      if Kwargs['start_time'] != 'Initial':
-        modifDict = {}
-        st_time = Kwargs['start_time']
-        modifDict['name'] = ['Executioner']
-        modifDict['start_time'] = st_time
-        listDict.append(modifDict)
-        del modifDict
-      
-    if 'end_ts' in Kwargs.keys():
-      if Kwargs['end_ts'] != 0:
-        modifDict = {}
-        end_ts_str = str(Kwargs['end_ts'])
-        if(Kwargs['end_ts'] <= 9999):
-          n_zeros = 4 - len(end_ts_str)
-          for i in xrange(n_zeros):
-            end_ts_str = "0" + end_ts_str
-        
-        splitted = Kwargs['outfile'].split('~')
-        output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[2]
-        restart_file_base = output_parent + "_restart_" + end_ts_str      
-        modifDict['name'] = ['Executioner']
-        modifDict['restart_file_base'] = restart_file_base
-        listDict.append(modifDict)
-        del modifDict
-
-    if 'end_time' in Kwargs.keys():
-      modifDict = {}
-      end_time = Kwargs['end_time']
-      modifDict['name'] = ['Executioner']
-      modifDict['end_time'] = end_time
-      listDict.append(modifDict)
-      del modifDict
-      
-    modifDict = {}
-    modifDict['name'] = ['Output']
-    modifDict['num_restart_files'] = 1
-    listDict.append(modifDict)
-    del modifDict
-    # in this way we erase the whole block in order to neglect eventual older info
-    # remember this "command" must be added before giving the info for refilling the block
-    modifDict = {}
-    modifDict['name'] = ['RestartInitialize']
-    modifDict['erase_block'] = True
-    listDict.append(modifDict)
-    
-    del modifDict    
-    if 'branch_changed_param' in Kwargs.keys():
-      if Kwargs['branch_changed_param'][0] != 'None': 
-        for i in xrange(len(Kwargs['branch_changed_param'])):
-          modifDict = {}
-          modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
-          modifDict['value'] = Kwargs['branch_changed_param_value'][i]
-          listDict.append(modifDict)
-          del modifDict
-
-    return listDict  
-  
-  def EquallySpacedForRAVEN(self,**Kwargs):
-    raise IOError('EquallySpacedForRAVEN not yet implemented')
-    listDict = []
-    return listDict
-  
-  def LatinHyperCubeForRAVEN(self,**Kwargs):
-    raise IOError('LatinHyperCubeForRAVEN not yet implemented')
-    listDict = []
-    return listDict
+import SupervisionedLearning 
+#import Postprocessors
+#import ROM interfaces
 
 
-class ExternalTest:
-  def generateCommand(self,inputFiles,executable):
-    return '', ''
-  def findOutputFile(self,command):
-    return ''
-  
-def returnCodeInterface(Type):
-  base = 'Code'
-  codeInterfaceDict = {}
-  codeInterfaceDict['RAVEN'] = RavenInterface
-  codeInterfaceDict['ExternalTest'] = ExternalTest
-  try: return codeInterfaceDict[Type]()
-  except: raise NameError('not known '+base+' type '+Type)
 
 ######################################################################
 #                       FILTER interface                             #
@@ -162,7 +30,6 @@ class PrintCSV:
       self.paramters = param.strip().split(',')
     else:
       self.paramters.append(param) 
-    
     return
   def finalizeFilter(self,inObj,outObj):
     # check the input type
@@ -288,7 +155,6 @@ class PrintCSV:
     else:
       raise NameError ('Filter PrintCSV for input type ' + inObj.type + ' not yet implemented.')
 
-
 class Plot:
   def __init__(self):
     self.paramters = []
@@ -317,7 +183,6 @@ class Plot:
       plt.xlabel('Time')
       plt.ylabel(histories[key][1]['headers'][i])
       plt.title('Plot of history:', i)
-    
       if (outObj.type == "screen"):
         plt.show()
       elif (outObj.type == "jpeg"):
@@ -335,19 +200,17 @@ class Plot:
       else:
         raise NameError ('Filter Plot for output type ' + outObj.type + ' not implemented.')  
     return
-    
         
 def returnFilterInterface(Type):
   base = 'Filter'
   filterInterfaceDict = {}
   filterInterfaceDict['PrintCSV'] = PrintCSV
   filterInterfaceDict['Plot'] = Plot
-  
   try: return filterInterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   
 class Model(BaseType):
-  ''' a model is something that given an input will return an output reproducing some phisical model
+  ''' a model is something that given an input will return an output reproducing some physical model
       it could as complex as a stand alone code or a reduced order model trained somehow'''
   def __init__(self):
     BaseType.__init__(self)
@@ -360,31 +223,32 @@ class Model(BaseType):
     tempDict['subType'] = self.subType
   def reset(self,runInfo,inputs):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step'''
+    raise IOError('the model '+self.name+' that has no reset method' )
   def train(self,trainingSet,stepName):
-    '''This needs to be over loaded if the model requires an initialization'''
-    print('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
-    return
+    '''This needs to be over written if the model requires an initialization'''
+    raise IOError('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
   def run(self):
     '''This call should be over loaded and return a jobHandler.External/InternalRunner'''
-    return
+    raise IOError('the model '+self.name+' that has no run method' )
   def collectOutput(self,collectFrom,storeTo):
     storeTo.addOutput(collectFrom)
-  def collectOutput(self,collectFrom,obj,storeTo):
-    storeTo.addOutput(collectFrom)  
   def createNewInput(self,myInput,samplerType,**Kwargs):
     raise IOError('for this model the createNewInput has not yet being implemented')
-  def addDataSetGroup(self):
-    pass
+
 class Code(Model):
+  '''this is the generic class that import an external code into the framework'''
   def __init__(self):
     Model.__init__(self)
-    self.executable         = ''
-    self.oriInputFiles      = []
-    self.workingDir         = ''
-    self.outFileRoot        = ''
-    self.currentInputFiles  = []
-    self.infoForOut         = {}
+    self.executable         = ''   #name of the executable (abs path)
+    self.oriInputFiles      = []   #list of the original input files (abs path)
+    self.workingDir         = ''   #location where the code is currently running
+    self.outFileRoot        = ''   #root to be used to generate the sequence of output files
+    self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
+    self.infoForOut         = {}   #
   def readMoreXML(self,xmlNode):
+    '''extension of info to be read for the Code(model)
+    !!!!generate also the code interface for the proper type of code!!!!'''
+    import CodeInterfaces
     Model.readMoreXML(self, xmlNode)
     try: 
       self.executable = xmlNode.text
@@ -392,23 +256,29 @@ class Code(Model):
       if os.path.exists(abspath):
         self.executable = abspath
     except: raise IOError('not found executable '+xmlNode.text)
-    self.interface = returnCodeInterface(self.subType)
+    self.interface = CodeInterfaces.returnCodeInterface(self.subType)
   def addInitParams(self,tempDict):
+    '''extension of addInitParams for the Code(model)'''
     Model.addInitParams(self, tempDict)
     tempDict['executable']=self.executable
   def addCurrentSetting(self,originalDict):
+    '''extension of addInitParams for the Code(model)'''
     originalDict['current working directory'] = self.workingDir
     originalDict['current output file root']  = self.outFileRoot
     originalDict['current input file']        = self.currentInputFiles
     originalDict['original input file']       = self.oriInputFiles
   def reset(self,runInfoDict,inputFiles):
-    '''initialize some of the current setting for the runs and generate the working directory with the starting input files'''
-    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName'])
+    '''initialize some of the current setting for the runs and generate the working 
+       directory with the starting input files'''
+    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except: pass
+    except: print('warning current working dir '+self.workingDir+'already exists, this might imply deletion of present files')
     for inputFile in inputFiles:
       shutil.copy(inputFile,self.workingDir)
+    print('original input files copied in the current working dir: '+self.workingDir)
+    print('files copied:')
+    print(inputFiles)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
       self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
@@ -419,7 +289,6 @@ class Code(Model):
     if currentInput[0].endswith('.i'): index = 0
     else: index = 1
     Kwargs['outfile'] = 'outFrom~'+os.path.split(currentInput[index])[1].split('.')[0]
-    
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
   def run(self,inputFiles,outputDatas,jobHandler):
@@ -430,19 +299,15 @@ class Code(Model):
     self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
     if self.currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    
     print('job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
     return self.process
-
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
     if output.type == "HDF5":
       self.__addDataSetGroup(finisishedjob,output)
-      
     else:
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
     return
-  
   def __addDataSetGroup(self,finisishedjob,dataset):
     # add a group into the database
     attributes={}
@@ -453,37 +318,46 @@ class Code(Model):
       infoForOut = self.infoForOut.pop(finisishedjob.identifier)
       for key in infoForOut:
         attributes[key] = infoForOut[key]
-
     dataset.addGroup(attributes,attributes)
-      
+
 class ROM(Model):
-  '''
-  ROM stands for Reduced Order Models. All the models here, first learn than predict the outcome
-  '''
+  '''ROM stands for Reduced Order Models. All the models here, first learn than predict the outcome'''
   def __init__(self):
     Model.__init__(self)
     self.initializzationOptionDict = {}
   def readMoreXML(self,xmlNode):
+    '''read the additional input needed and istanziate the underlying ROM'''
     Model.readMoreXML(self, xmlNode)
-    import scikitLearnInterface
     for child in xmlNode:
       try: self.initializzationOptionDict[child.tag] = int(child.text)
       except:
         try: self.initializzationOptionDict[child.tag] = float(child.text)
         except: self.initializzationOptionDict[child.tag] = child.text
-    self.importedROM = scikitLearnInterface.classDictionary[self.subType](**self.initializzationOptionDict) #create an instance of the ROM
+    self.test =  SupervisionedLearning.returnInstance(self.subType)
+    self.SupervisedEngine = self.test(**self.initializzationOptionDict)   
+    #self.SupervisedEngine = SupervisionedLearning.returnInstance(self.subType)(self.initializzationOptionDict) #create an instance of the ROM
+  def addInitParams(self,originalDict):
+    ROMdict = self.SupervisedEngine.returnInitialParamters()
+    for key in ROMdict.keys():
+      originalDict[key] = ROMdict[key]
   def addCurrentSetting(self,originalDict):
-    ROMdict = self.importedROM.get_params()
+    ROMdict = self.SupervisedEngine.returnCurrentSetting()
     for key in ROMdict.keys():
       originalDict[key] = ROMdict[key]
   def reset(self):
-    pass
+    self.SupervisedEngine.reset()
+#  def run(self):
+#    return
+#  def collectOutput(self,collectFrom,storeTo):
+#    storeTo.addOutput(collectFrom)
+#  def createNewInput(self,myInput,samplerType,**Kwargs):
+#    raise IOError('for this model the createNewInput has not yet being implemented')
+
+
 
 
 class Filter(Model):
-  '''
-  Filter is an Action System. All the models here, take an input and perform an action
-  '''
+  '''Filter is an Action System. All the models here, take an input and perform an action'''
   def __init__(self):
     Model.__init__(self)
     self.input  = {}     # input source
@@ -492,14 +366,10 @@ class Filter(Model):
     Model.readMoreXML(self, xmlNode)
     self.interface = returnFilterInterface(self.subType)
     self.interface.readMoreXML(xmlNode)
-
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
-
   def run(self,inObj,outObj):
-    '''
-    run calls the interface finalizer 
-    '''
+    '''run calls the interface finalizer'''
     self.interface.finalizeFilter(inObj,outObj)
 #    def __returnInputTypeInterface(type):
 #      base = 'input'
@@ -509,14 +379,14 @@ class Filter(Model):
 #      try: return InputInterfaceDict[Type]()
 #      except: raise NameError('not known '+base+' type '+Type + 'in Filter Model.')
       
-#function used to generate a Model class
+
 def returnInstance(Type):
+  '''This function return an instance of the request model type'''
   base = 'model'
   InterfaceDict = {}
   InterfaceDict['ROM'   ] = ROM
   InterfaceDict['Code'  ] = Code
   InterfaceDict['Filter'] = Filter
-
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   

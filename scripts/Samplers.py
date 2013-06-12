@@ -11,11 +11,10 @@ import xml.etree.ElementTree as ET
 import os
 import Queue
 import copy
+import numpy as np
 
 class Sampler(BaseType):
-  ''' 
-  this is the base class for samplers
-  '''
+  ''' this is the base class for samplers'''
   def __init__(self):
     BaseType.__init__(self)
     self.counter = 0
@@ -23,72 +22,110 @@ class Sampler(BaseType):
     self.workingDir = ""
     self.toBeSampled = {}  #key=feature to be sampled, value = ['type of distribution to be used', 'name of the distribution']
     self.distDict    = {}  #contain the instance of the distribution to be used, it is created every time the sampler is initialize
-  
   def readMoreXML(self,xmlNode):
     for child in xmlNode:
-      self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']]
-  
+      self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']] 
   def addInitParams(self,tempDict):
     for value in self.toBeSampled.items():
       tempDict[value[0]] = value[1][0]+':'+value[1][1]
-  
+    tempDict['limit' ]        = self.limit
   def addCurrentSetting(self,tempDict):
-    pass
+    tempDict['counter' ] = self.counter    
   def initialize(self):
     self.counter = 0
-    
   def amIreadyToProvideAnInput(self):
-    if(self.counter <= self.limit):
-      return True
-    else:
-      return False
-    
+    '''this check if the sampler is ready to generate a new input
+       it might not since it is waiting for more information or has 
+       run out of limit, depends from the type of sampler'''
+    if(self.counter <= self.limit): return True
+    else: return False
   def fillDistribution(self,availableDist):
+    '''generate the instances of the distribution that will be used'''
     for key in self.toBeSampled.keys():
       self.distDict[key] = availableDist[self.toBeSampled[key][1]].inDistr()
     return
-  
   def finalizeActualSampling(self,jobObject,model,myInput):
+    '''???'''
     pass
-  
+  def generateInput(self):
+    '''override this method to place your input generation'''
+    raise IOError('This sampler has not an input generation?!?!')
+    return
   def generateInputBatch(self,myInput,model,batchSize):
-    try:
-      if batchSize<=self.limit: newInputs = [None]*batchSize
-      else:newInputs = [None]*self.limit
-      for i in range(len(newInputs)):
-        newInputs[i]=self.generateInput(model,myInput)
-    except:
-      newInputs = [None]*batchSize
-      for i in range(len(newInputs)):
-        newInputs[i]=self.generateInput(model,myInput)          
+    '''for the first set of run a set of run are started in // so we need more than one input '''
+    newInputs = []
+    while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
+      newInputs.append(self.generateInput(model,myInput))
     return newInputs
-
 
 class MonteCarlo(Sampler):
   def __init__(self):
     Sampler.__init__(self)
-    self.limit       = 0        #maximum number of sampler it will perform every time it is used
+    self.limit       = 0        #maximum number of samples it will perform every time it is used
     self.init_seed   = 0
+  def readMoreXML(self,xmlNode):
+    try: self.init_seed    = xmlNode.attrib['initial_seed']
+    except: self.init_seed = 0 
+    try: self.limit    = xmlNode.attrib['limit']
+    except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+  def addInitParams(self,tempDict):
+    Sampler.addInitParams(self,tempDict)
+    tempDict['initial seed' ] = self.init_seed
   def generateInput(self,model,myInput):
+    '''returns the model.createNewInput() passing into it the type of sampler,
+       the values to be used and the some add info in the values dict'''
     self.counter += 1
     values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
+    #evaluate the distributions and fill values{}
     for key in self.distDict:
       values[key] = self.distDict[key].distribution.rvs()
     return model.createNewInput(myInput,self.type,**values)
-  def readMoreXML(self,xmlNode):
-    try: self.init_seed = xmlNode.attrib['initial_seed']
-    except: self.init_seed = 1 
-    try: self.limit = xmlNode.attrib['limit']
-    except: raise IOError('not found limit for the Sampler '+self.name)    
-    return
-  def addInitParams(self,tempDict):
-    tempDict['limit' ] = self.limit  
-  def addCurrentSetting(self,tempDict):
-    tempDict['counter' ] = self.counter    
+
 class LatinHyperCube(Sampler):
+  '''implement a latin hyper cube approach only with random picking of the intervals'''
   def __init__(self):
     Sampler.__init__(self)
-    self.limit       = 0        #maximum number of sampler it will perform every time it is used
+    self.limit        = 0        #maximum number of sampler it will perform every time it is used
+    self.grid         = []       #is a list that for each point in the grid return a dictionary of the distributions where values are the bounds in terms of the random variate
+  def addInitParams(self,tempDict):
+    Sampler.addInitParams(self,tempDict)
+    tempDict['initial seed' ] = self.init_seed
+  def addCurrentSetting(self,tempDict):
+    i = 0
+    for distribution in self.distDict.keys():
+      tempDict['interval '+ int(i) + ', distribution ' +distribution+' is in range'] = self.grid[i].distBounds[distribution]
+  def initialize(self):
+    Sampler.initialize(self)
+    self.grid = [None]*self.limit
+    nDimension = len(self.distDict)
+    takenGlobal = np.zeros((self.limit,nDimension),ndmin=2,dtype=int)
+    distList = self.distDict.keys()
+    for i in range(self.grid):
+      self.grid[i] = dict.fromkeys(self.distDict.keys(),[None]*2)
+    for j in range(self.limit):
+      for i in range(nDimension):
+        placed = False
+        while placed == False:
+          indexInterval = int(np.random.rand(1)*self.limit)
+          if takenGlobal[indexInterval][i] == 0:
+            takenGlobal[indexInterval][i] = 1
+            distName = distList[i]
+            #if equally spaced do not use ppt
+            lowerBound = self.distDict[distName].ppt(float((indexInterval-1)/self.limit))
+            upperBound = self.distDict[distName].ppt(float((indexInterval)/self.limit))
+            self.grid[j].distBounds[distName] = [lowerBound,upperBound]
+  def generateInput(self,model,myInput):
+    '''returns the model.createNewInput() passing into it the type of sampler,
+       the values to be used and the some add info in the values dict'''
+    self.counter += 1
+    values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
+    #evaluate the distributions and fill values{}
+    for key in self.distDict:
+      upper = self.grid[self.counter][key][1]
+      lower = self.grid[self.counter][key][1]
+      values[key] = [self.distDict[key].distribution.rvsWithinbounds(lower,upper),lower,upper]
+    return model.createNewInput(myInput,self.type,**values)
+
    
 class EquallySpaced(Sampler):
   pass
@@ -118,7 +155,7 @@ class DynamicEventTree(Sampler):
     self.RunQueue['queue'      ] = []
 
   def amIreadyToProvideAnInput(self):
-    if(len(self.RunQueue['queue']) != 0):
+    if(len(self.RunQueue['queue']) != 0 or self.counter == 0):
       return True
     else:
       return False
@@ -361,7 +398,6 @@ class DynamicEventTree(Sampler):
   def generateInput(self,model,myInput):
     if self.counter <= 1:
       self.__createRunningQueue(model, myInput)
-      
     input = self.__getQueueElement()
     if not input:
       print("A Branch ended!!!!")
@@ -399,6 +435,7 @@ class DynamicEventTree(Sampler):
       bvalues = [float(x) for x in bv.split()]
       self.branchProbabilities[child.attrib['distName']] = bvalues
       self.branchedLevel[child.attrib['distName']]       = 0
+
 #function used to generate a Model class
 def returnInstance(Type):
   base = 'Sampler'
