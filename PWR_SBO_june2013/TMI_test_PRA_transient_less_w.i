@@ -1079,3 +1079,23 @@
  delta = 0.5
  [../]
  []
+ 
+ [RavenTools]
+ [./PumpCoastDown]
+ type = pumpCoastdownExponential
+ coefficient = 26.5
+ initial_flow_rate = 8.9
+ [../]
+ [./DecayHeatScalingFactor]
+ type = decayHeat
+ eq_type = 1
+ initial_pow = 1
+ operating_time = 20736000
+ power_coefficient = 0.74
+ [../]
+ [./PumpCoastDownSec]
+ type = pumpCoastdownExponential
+ coefficient = 10.5
+ initial_flow_rate = 1.0
+ [../]
+ []

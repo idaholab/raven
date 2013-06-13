@@ -4,13 +4,14 @@ import distribution1D
 import raventools
 # initialize distribution container
 distcont  = distribution1D.DistributionContainer.Instance()
+toolcont  = raventools.RavenToolsContainer.Instance()
 # initialize decay heat curve
-DecayHeatScalingFactor     = raventools.decayHeat(1,1,3600*24*30*8,0.74)
+#DecayHeatScalingFactor     = raventools.decayHeat(1,1,3600*24*30*8,0.74)
 # intialize pump Coast Down curves
 # PumpCoastDown acts on the Head of the Pumps
-PumpCoastDown              = raventools.pumpCoastdown(26.5,8.9)
+#PumpCoastDown              = raventools.pumpCoastdown(26.5,8.9)
 # PumpCoastDownSec acts
-PumpCoastDownSec           = raventools.pumpCoastdown(10.5,1)
+#PumpCoastDownSec           = raventools.pumpCoastdown(10.5,1)
 
 
 def initial_function(monitored, controlled, auxiliary):    
@@ -79,7 +80,7 @@ def control_function(monitored, controlled, auxiliary):
         #primary pump B
         if auxiliary.a_Head_PumpB>1.e-4*8.9:
             if not auxiliary.AuxSystemUp: # not yet auxiliary system up
-                auxiliary.a_Head_PumpB = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time) 
+                auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
                 if auxiliary.a_Head_PumpB < (1.e-4*8.9):
                     auxiliary.a_Head_PumpB = 1.e-4*8.9
                 auxiliary.a_friction1_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
@@ -105,7 +106,7 @@ def control_function(monitored, controlled, auxiliary):
                         auxiliary.a_friction1_CL_B = 0.1
                         auxiliary.a_friction2_CL_B = 0.1 
                 else:
-                    auxiliary.a_Head_PumpB = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time) 
+                    auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
                     if auxiliary.a_Head_PumpB < (1.e-4*8.9):
                         auxiliary.a_Head_PumpB = 1.e-4*8.9
                     if auxiliary.a_friction1_SC_B > 0.1:
@@ -144,7 +145,7 @@ def control_function(monitored, controlled, auxiliary):
                         auxiliary.a_friction1_CL_B = 0.1
                         auxiliary.a_friction2_CL_B = 0.1
                 else:
-                    auxiliary.a_Head_PumpB = PumpCoastDown.flowrateCalculation(monitored.time-auxiliary.scram_start_time) + noise_b 
+                    auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
                     auxiliary.a_friction1_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
                     auxiliary.a_friction2_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
                     auxiliary.a_friction1_CL_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
@@ -157,14 +158,14 @@ def control_function(monitored, controlled, auxiliary):
         auxiliary.a_friction2_CL_A = auxiliary.a_friction2_CL_B
         
         #core power following decay heat curve     
-        auxiliary.a_power_CH1 = auxiliary.init_Power_Fraction_CH1*DecayHeatScalingFactor.powerCalculation(monitored.time-auxiliary.scram_start_time)
-        auxiliary.a_power_CH2 = auxiliary.init_Power_Fraction_CH2*DecayHeatScalingFactor.powerCalculation(monitored.time-auxiliary.scram_start_time)
-        auxiliary.a_power_CH3 = auxiliary.init_Power_Fraction_CH3*DecayHeatScalingFactor.powerCalculation(monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH1 = auxiliary.init_Power_Fraction_CH1*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH2 = auxiliary.init_Power_Fraction_CH2*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH3 = auxiliary.init_Power_Fraction_CH3*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
     #secondary system replaced by auxiliary secondary system
     if not auxiliary.AuxSystemUp and auxiliary.ScramStatus: # not yet auxiliary system up
         print('not yet auxiliary system up')
-        auxiliary.a_MassFlowRateIn_SC_B = 2.542*PumpCoastDownSec.flowrateCalculation(monitored.time-auxiliary.scram_start_time)
-        auxiliary.a_MassFlowRateIn_SC_A = 2.542*PumpCoastDownSec.flowrateCalculation(monitored.time-auxiliary.scram_start_time) 
+        auxiliary.a_MassFlowRateIn_SC_B = 2.542*toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time) 
+        auxiliary.a_MassFlowRateIn_SC_A = 2.542*toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time) 
         if auxiliary.a_MassFlowRateIn_SC_A < (1.e-4*2.542):
             auxiliary.a_MassFlowRateIn_SC_A = 1.e-4*2.542
             auxiliary.a_MassFlowRateIn_SC_B = 1.e-4*2.542
