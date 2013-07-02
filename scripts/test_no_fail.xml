@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>../play/te_stDriver</WorkingDir>
+    <Files>TMI_PRA_trans_MC_nofail_control.py,TMI_test_PRA_transient_less_w_MC_nofail.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+    <Sequence>test_MC</Sequence>
+    <batchSize>4</batchSize>
+</RunInfo>
+
+<Models>
+    <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
+</Models>
+<Distributions>
+    <Normal name='auxBackUpTimeDist'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>    
+    <Triangular name='CladFailureDist'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
+    </Triangular>
+</Distributions>
+<Samplers>
+    <MonteCarlo     name='TestMonteCarlo'  limit='20'/>     
+</Samplers>
+<Steps>
+    <MultiRun name='test_MC'>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_MC_nofail.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_nofail_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers'   subtype='MonteCarlo'      >TestMonteCarlo</Sampler>
+        <Output  type='OutStreams' subtype='Screen'          >testScreen</Output>
+    </MultiRun > 
+</Steps>
+<OutStreams>
+  <Screen name="testScreen">
+    <variable>Head_PumpB,avg_temp_clad_CH1</variable>
+  </Screen> 
+</OutStreams>
+<Datas>
+    <Histories name='stories'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+</Datas>
+</Simulatio>
+
+
+

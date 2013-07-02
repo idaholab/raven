@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulatio>
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk/raven/te_stDriver</WorkingDir>
+    <WorkingDir>../play/revirD_tset</WorkingDir>
     <Files>second,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i</Files>
     <Sequence>FirstMRun,second,FirstMRun,MyAdaptiveROM,MyAdaptiveNoROM</Sequence>
     <batchSize>5</batchSize>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulatio>
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk/raven/te_stDriver</WorkingDir>
+    <WorkingDir>../play/revirD_tset</WorkingDir>
     <Files>TMI_test_PRA_transient_less_w_DET.i,TMI_test_PRA_transient_less_w_MC.i,TMI_PRA_trans_MC_control.py,TMI_PRA_trans_DET_control.py,DET_histories_eqPb.csv,DET_histories_eqVar.csv,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i,DET_histories.csv</Files>
     <Sequence>DET_RUN_eqPb,extract_hist_from_hdf5_eqPb</Sequence>
     <!--  -->

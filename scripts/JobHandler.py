@@ -3,6 +3,10 @@ Created on Mar 5, 2013
 
 @author: crisr
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import Queue as queue
 import subprocess
 import os
@@ -24,6 +28,9 @@ class ExternalRunner:
       return True
     else:
       return False
+
+  def getReturnCode(self):
+    return self.process.returncode
   
   def start(self):
     oldDir = os.getcwd()
@@ -36,7 +43,7 @@ class ExternalRunner:
   
   def kill(self):
     #In python 2.6 this could be self.process.terminate()
-    print "Terminating ",self.process.pid,self.command
+    print("Terminating ",self.process.pid,self.command)
     os.kill(self.process.pid,signal.SIGTERM)    
 
 class JobHandler:
@@ -102,6 +109,10 @@ class JobHandler:
       if self.running[i] and self.running[i].isDone():
         finished.append(self.running[i])
         if removeFinished:
+          running = self.running[i]
+          returncode = running.getReturnCode()
+          if returncode != 0:
+            print("Process Failed",running,running.command," returncode",returncode)
           self.running[i] = None
     if self.queue.empty():
       return finished
