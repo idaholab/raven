@@ -43,6 +43,7 @@ class Simulation:
     self.runInfoDict['totNumbCores'      ] = 1
     self.runInfoDict['stepName'          ] = 1
     self.runInfoDict['precommand'        ] = ''
+    self.runInfoDict['mode'              ] = ''
     #the step to run the simulation in sequence
     self.stepSequenceList = []
     #there is one dictionary for each type in the simulation
@@ -122,6 +123,7 @@ class Simulation:
       elif element.tag == 'ParallelProcNumb'  : self.runInfoDict['ParallelProcNumb'  ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
+      elif element.tag == 'mode'              : self.runInfoDict['mode'              ] = element.text.strip().lower()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','):
           self.stepSequenceList.append(stepName)
@@ -135,6 +137,8 @@ class Simulation:
       if os.path.split(key)[0] == '': self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
       elif not os.path.isabs(key):self.filesDict[key] = os.path.abspath(key)
     #export to the job handler the environmental variables
+    if self.runInfoDict['mode'] == 'pbs':
+      self.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %SCRIPT_DIR%/remote_runner2.sh out_%CURRENT_ID% %WORKING_DIR% "+self.runInfoDict['precommand']
     self.jobHandler.initialize(self.runInfoDict)
     
   def printDicts(self):

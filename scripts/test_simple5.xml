@@ -5,7 +5,7 @@
     <Files>second,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>5</batchSize>
-    <precommand>pbsdsh -v -n %INDEX1% -- %SCRIPT_DIR%/remote_runner2.sh out_%CURRENT_ID% %WORKING_DIR% </precommand>
+    <mode>pbs</mode>
     <!--<ParallelCommand></ParallelCommand>
     <ParallelProcNumb></ParallelProcNumb>
     <ThreadingCommand></ThreadingCommand>
