@@ -73,7 +73,7 @@ class JobHandler:
 
   def addExternal(self,executeCommand,outputFile,workingDir):
     #probably something more for the PBS
-    command = ''
+    command = self.runInfoDict['precommand']
     if self.mpiCommand !='':
       command += self.mpiCommand+' '
     if self.threadingCommand !='':

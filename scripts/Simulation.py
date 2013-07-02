@@ -3,6 +3,10 @@ Created on Feb 19, 2013
 
 @author: crisr
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import xml.etree.ElementTree as ET
 import os
 import copy
@@ -38,6 +42,7 @@ class Simulation:
     self.runInfoDict['numProcByRun'      ] = 1
     self.runInfoDict['totNumbCores'      ] = 1
     self.runInfoDict['stepName'          ] = 1
+    self.runInfoDict['precommand'        ] = ''
     #the step to run the simulation in sequence
     self.stepSequenceList = []
     #there is one dictionary for each type in the simulation
@@ -116,6 +121,7 @@ class Simulation:
       elif element.tag == 'totNumbCores'      : self.runInfoDict['totNumbCores'      ] = int(element.text)
       elif element.tag == 'ParallelProcNumb'  : self.runInfoDict['ParallelProcNumb'  ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
+      elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','):
           self.stepSequenceList.append(stepName)
