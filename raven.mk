@@ -45,7 +45,8 @@ HAS_DYNAMIC := $(shell $(libmesh_LIBTOOL) --config | grep build_libtool_libs | c
 
 ifeq ($(HAS_DYNAMIC),no)  
 ifdef PYTHON_MODULES
-$(error RAVEN modules must be compiled with shared libmesh libraries)
+$(warning RAVEN modules must be compiled with shared libmesh libraries)
+	PYTHON_MODULES = 
 endif
 endif
 

@@ -32,7 +32,9 @@ class RavenExodiff(Exodiff):
 
     has_swig2 = "Version 2.0" in output_swig
 
-
+    module_dir = os.path.join(os.getcwd(),"python_modules")
+    has_distributions = os.path.exists(os.path.join(module_dir,"_distribution1D.so"))
+    
     def __init__(self, name, params):
         Exodiff.__init__(self, name, params)
         
@@ -42,6 +44,7 @@ class RavenExodiff(Exodiff):
         params.addParam('requires_swig2', False, "Requires swig2 for test")
         params.addParam('requires_python2', False, "Requires python2 for test")
         params.addParam('requires_python_config', False, "Requires python-config for test")
+        params.addParam('requires_distributions_module', False, "Requires distributions module to be built")
         return params
     getValidParams = staticmethod(getValidParams)
 
@@ -56,4 +59,7 @@ class RavenExodiff(Exodiff):
         if self.specs['requires_python_config'] and \
                 not RavenExodiff.has_python_config:
             return (False, 'skipped (No python-config found)')
+        if self.specs['requires_distributions_module'] and \
+                not RavenExodiff.has_distributions:
+            return (False, 'skipped (Distributions not built)')
         return (True, '')
