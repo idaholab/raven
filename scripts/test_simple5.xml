@@ -6,6 +6,7 @@
     <Sequence>FirstMRun</Sequence>
     <batchSize>5</batchSize>
     <mode>pbs</mode>
+    <expectedTime>0:30:00</expectedTime>
     <!--<ParallelCommand></ParallelCommand>
     <ParallelProcNumb></ParallelProcNumb>
     <ThreadingCommand></ThreadingCommand>

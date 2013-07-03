@@ -44,6 +44,7 @@ class Simulation:
     self.runInfoDict['stepName'          ] = 1
     self.runInfoDict['precommand'        ] = ''
     self.runInfoDict['mode'              ] = ''
+    self.runInfoDict['expectedTime'      ] = '10:00:00'
     #the step to run the simulation in sequence
     self.stepSequenceList = []
     #there is one dictionary for each type in the simulation
@@ -124,6 +125,7 @@ class Simulation:
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
       elif element.tag == 'mode'              : self.runInfoDict['mode'              ] = element.text.strip().lower()
+      elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','):
           self.stepSequenceList.append(stepName)
