@@ -41,9 +41,9 @@ else
 raven_shared_ext := so
 endif
 
-HAS_DYNAMIC := $(shell PYTHONPATH=$(RAVEN_DIR)/../moose/scripts/TestHarness python -c 'import util; print "DYNAMIC" in util.getSharedOption("../libmesh/installed")')
+HAS_DYNAMIC := $(shell $(libmesh_LIBTOOL) --config | grep build_libtool_libs | cut -d'=' -f2 )
 
-ifeq ($(HAS_DYNAMIC),False)  
+ifeq ($(HAS_DYNAMIC),no)  
 ifdef PYTHON_MODULES
 $(error RAVEN modules must be compiled with shared libmesh libraries)
 endif
