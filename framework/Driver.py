@@ -17,7 +17,7 @@ import subprocess
 debug = True
 
 if __name__ == '__main__':
-  script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+  frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
   #open the XML
   try:
     if len(sys.argv) == 1:
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     raise IOError ('not able to parse ' + inputFile)
   root = tree.getroot()
   #generate all the components of the simulation
-  simulation = Simulation(inputFile, script_dir)
+  simulation = Simulation(inputFile, frameworkDir)
   simulation.XMLread(root)
   in_pbs = "PBS_NODEFILE" in os.environ
   if simulation.runInfoDict['mode'] == 'pbs' and not in_pbs:

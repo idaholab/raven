@@ -23,12 +23,13 @@ from JobHandler import JobHandler
 
 class Simulation:
   '''This is a class that contain all the object needed to run the simulation'''
-  def __init__(self,inputfile,script_dir):
+  def __init__(self,inputfile,frameworkDir):
     self.debug=True
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
     self.runInfoDict['SimulationFile'    ] = inputfile
-    self.runInfoDict['ScriptDir'         ] = script_dir
+    self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts")
+    self.runInfoDict['FrameworkDir'      ] = frameworkDir
     self.runInfoDict['WorkingDir'        ] = ''
     self.runInfoDict['TempWorkingDir'    ] = ''
     self.runInfoDict['ParallelCommand'   ] = ''
