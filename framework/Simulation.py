@@ -170,16 +170,17 @@ class Simulation:
       inputDict = {}                    #initialize the input dictionary
       inputDict['Input' ] = []          #set the Input to an empty list
       inputDict['Output'] = []          #set the Output to an empty list
-      for [a,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
+      for [key,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
 #        if self.debug: print(a+' is:')
-        if a == 'Input':
-          inputDict[a].append(self.whichDict[b][d])
+        if key == 'Input':
+          inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
-        elif a == 'Output':
-          inputDict[a].append(self.whichDict[b][d])
+        elif key == 'Output':
+          inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: self.whichDict[b][d].printMe()
         else:
-          inputDict[a] = self.whichDict[b][d]
+          #Create extra dictionary entry
+          inputDict[key] = self.whichDict[b][d]
 #          if self.debug: self.whichDict[b][d].printMe()
       inputDict['jobHandler'] = self.jobHandler
       if 'Sampler' in inputDict.keys():
