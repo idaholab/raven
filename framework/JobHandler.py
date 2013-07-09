@@ -19,32 +19,36 @@ class ExternalRunner:
       self.output = output
       self.identifier =  str(output).split("~")[1]
     else: 
-      os.path.join(workingDir,'generalOut')
-    self.workingDir = workingDir
+      self.output = os.path.join(workingDir,'generalOut')
+    self.__workingDir = workingDir
     
   def isDone(self):
-    self.process.poll()
-    if self.process.returncode != None:
+    self.__process.poll()
+    if self.__process.returncode != None:
       return True
     else:
       return False
 
   def getReturnCode(self):
-    return self.process.returncode
+    return self.__process.returncode
   
   def start(self):
     oldDir = os.getcwd()
-    os.chdir(self.workingDir)
+    os.chdir(self.__workingDir)
     localenv = dict(os.environ)
     localenv['PYTHONPATH'] = ''
     outFile = open(self.output,'w')
-    self.process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.workingDir,env=localenv)
+    self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
   
   def kill(self):
     #In python 2.6 this could be self.process.terminate()
-    print("Terminating ",self.process.pid,self.command)
-    os.kill(self.process.pid,signal.SIGTERM)    
+    print("Terminating ",self.__process.pid,self.command)
+    os.kill(self.__process.pid,signal.SIGTERM)    
+
+  def getWorkingDir(self):
+    return self.__workingDir
+
 
 class JobHandler:
   def __init__(self):
@@ -59,8 +63,8 @@ class JobHandler:
     self.internalRunning        = []
     self.running = []
     self.queue = queue.Queue()
-    self.next_id = 0
-    self.num_submitted = 0
+    self.__nextId = 0
+    self.__numSubmitted = 0
     
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
@@ -80,7 +84,7 @@ class JobHandler:
       command +=self.threadingCommand+' '
     command += executeCommand
     self.queue.put(ExternalRunner(command,workingDir,outputFile))
-    self.num_submitted += 1
+    self.__numSubmitted += 1
 
   def isFinished(self):
     if not self.queue.empty():
@@ -122,15 +126,15 @@ class JobHandler:
         command = item.command
         command = command.replace("%INDEX%",str(i))
         command = command.replace("%INDEX1%",str(i+1))
-        command = command.replace("%CURRENT_ID%",str(self.next_id))
-        command = command.replace("%CURRENT_ID1%",str(self.next_id+1))
+        command = command.replace("%CURRENT_ID%",str(self.__nextId))
+        command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
         command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
         command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
-        command = command.replace("%WORKING_DIR%",item.workingDir)
+        command = command.replace("%WORKING_DIR%",item.getWorkingDir())
         item.command = command
         self.running[i] = item
         self.running[i].start()
-        self.next_id += 1
+        self.__nextId += 1
 
     return finished
 
@@ -138,7 +142,7 @@ class JobHandler:
     return self.getFinished(False)
 
   def getNumSubmitted(self):
-    return self.num_submitted
+    return self.__numSubmitted
 
   def addInternal(self):
     return

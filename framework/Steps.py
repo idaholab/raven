@@ -3,6 +3,10 @@ Created on Feb 21, 2013
 
 @author: crisr
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import xml.etree.ElementTree as ET
 import time
 from BaseType import BaseType
@@ -16,19 +20,23 @@ class Step(BaseType):
     self.parList  = []    #list of list [[internal name, type, subtype, global name]]
     self.directory= ''    #where eventual files need to be saved
     self.typeDict = {}    #for each internal name identifier the allowed type
+
   def readMoreXML(self,xmlNode):
     try:self.directory = xmlNode.attrib['directory']
     except: pass
     for child in xmlNode:
       self.typeDict[child.tag] = child.attrib['type']
       self.parList.append([child.tag,self.typeDict[child.tag],child.attrib['subtype'],child.text])
+
   def addInitParams(self,tempDict):
     for List in self.parList: 
       tempDict[List[0]] = List[1]+':'+List[2]+':'+List[3]
+
   def initializeStep(self,inDictionary):
     # cleaning up the model
     inDictionary['Model'].reset(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
     print('the model '+inDictionary['Model'].name+' has been reset')
+
   def takeAstep(self,inDictionary):
     raise IOError('for this model the takeAstep has not yet being implemented')
 
@@ -67,14 +75,17 @@ class MultiRun(Step):
   def __init__(self):
     Step.__init__(self)
     self.maxNumberIteration = 0
+
   def addCurrentSetting(self,originalDict):
     originalDict['max number of iteration'] = self.maxNumberIteration
+
   def initializeStep(self,inDictionary):
     Step.initializeStep(self,inDictionary)
     #get the max number of iteration in the step
     if 'Sampler' in inDictionary.keys(): self.maxNumberIteration = inDictionary['Sampler'].limit
     else: self.maxNumberIteration = 1
     print('limit to the number of simulation is: '+str(self.maxNumberIteration))
+
   def takeAstep(self,inDictionary):
     '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
     self.takeAstepIni(inDictionary)
@@ -83,6 +94,7 @@ class MultiRun(Step):
         self.takeAstepRunDET(inDictionary)
         return
     self.takeAstepRun(inDictionary)
+
   def takeAstepIni(self,inDictionary):
     '''main driver for a step'''
     print('beginning of the step: '+self.name)
@@ -113,6 +125,7 @@ class MultiRun(Step):
     else:
       #we start the only case we have
       inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler'])
+
   def takeAstepRun(self,inDictionary):
     converged = False
     jobHandler = inDictionary['jobHandler']
@@ -144,6 +157,7 @@ class MultiRun(Step):
       time.sleep(0.1)
     for output in inDictionary['Output']:
       output.finalize()
+
   def takeAstepRunDET(self,inDictionary):
     converged = False
     jobHandler = inDictionary['jobHandler']
