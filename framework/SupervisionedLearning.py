@@ -3,6 +3,10 @@ Created on Mar 16, 2013
 
 @author: crisr
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 from sklearn import svm
 import Datas
 import numpy
@@ -28,19 +32,24 @@ import numpy
 class superVisioned():
   def __init__(self,**kwargs):
     self.initializzationOptionDict = kwargs
+
   def train(self):
     '''override this method to train the ROM'''
     return
+
   def reset(self):
     '''override this method to re-instance the ROM'''
     return
+
   def evaluate(self):
     '''override this method to get the prediction from the ROM'''
     return
+
   def returnInitialParamters(self):
     '''override this method to pass the fix set of parameters of the ROM'''
     InitialParamtersDict={}
     return InitialParamtersDict
+
   def returnCurrentSetting(self):
     '''override this method to pass the set of parameters of the ROM that can change during simulation'''
     CurrentSettingDict={}
@@ -57,6 +66,7 @@ class SVMsciKitLearn(superVisioned):
     self.availSVM['epsSVR'   ] = svm.SVR
     try: self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']](self.initializzationOptionDict)
     except: raise IOError ('not known support vector machine type')
+
   def train(self,data):
     """Fit the model according to the given training data.
         Parameters
@@ -75,8 +85,10 @@ class SVMsciKitLearn(superVisioned):
             Returns self.
         fit( X, y, sample_weight=None):"""
     self.SVM.fit()
+
   def returnInitialParamters(self):
     return self.SVM._get_param_names()
+
   def evaluate(self):
     """Perform regression on samples in X.
         For an one-class model, +1 or -1 is returned.
@@ -88,6 +100,7 @@ class SVMsciKitLearn(superVisioned):
         y_pred : array, shape = [n_samples]
         predict(self, X)"""
     self.SVM.predict()
+
   def reset(self):
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']](self.initializzationOptionDict)
 

@@ -3,6 +3,10 @@ Created on Mar 25, 2013
 
 @author: crisr
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import xml.etree.ElementTree as ET
 import os
 import copy
@@ -36,6 +40,7 @@ class MOOSEparser:
           else: current.attrib[listline[0].strip()]=listline[1][:listline[1].index('#')].strip()
         else:
           current.tail.append(line)
+
   def printInput(self,outfile=None):
     if outfile==None: outfile =self.inputfile
     IOfile = open(outfile,'w')
@@ -55,6 +60,7 @@ class MOOSEparser:
         except: pass
         IOfile.write('  [../]\n')
       IOfile.write('[]\n')
+
   def modifyOrAdd(self,modiDictionaryList,save=True):
     '''ModiDictionaryList is a list of dictionaries of the required addition or modification'''
     '''-name- key should return a ordered list of the name e.g. ['Components','Pipe']'''

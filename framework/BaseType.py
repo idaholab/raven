@@ -2,12 +2,16 @@
 Created on Mar 16, 2013
 @author: crisr
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
 
 class BaseType:
   '''this is the base class for each general type used by the simulation'''
   def __init__(self):
     self.name    = ''      # name of this istance (alias)
     self.type    = ''      # specific type within this class
+
   def readXML(self,xmlNode):
     '''provide a basic reading capability from the xml input file
        for what is common to all types in the simulation than calls readMoreXML
@@ -19,9 +23,11 @@ class BaseType:
     try: self.type = xmlNode.tag
     except: raise IOError('not found type for the '+self.__class__.__name__+' named '+self.name)
     self.readMoreXML(xmlNode)
+
   def readMoreXML(self,xmlNode):
     '''method to be overloaded to collect the additional input'''
     pass
+
   def whoAreYou(self):
     '''this is a generic interface that will return the type
        and name of any class that inherits this base class 
@@ -33,6 +39,7 @@ class BaseType:
     tempDict['type']       = self.type
     tempDict['name']       = self.name
     return tempDict
+
   def myInitializzationParams(self):
     '''this is a generic interface that will return the name and
        value of the initialization parameters of any class
@@ -42,9 +49,11 @@ class BaseType:
     tempDict = {}
     self.addInitParams(tempDict)
     return tempDict
+
   def addInitParams(self,originalDict):
     '''function to be overloaded to inject the name and values of the initial parameters'''
     pass
+
   def myCurrentSetting(self):
     '''this is a generic interface that will return the name and
        value of the parameters that change during the simulation 
@@ -54,9 +63,11 @@ class BaseType:
     tempDict = {}
     self.addCurrentSetting(tempDict)
     return tempDict
+
   def addCurrentSetting(self,originalDict):
     '''function to be overloaded to inject the name and values of the parameters that might change during the simulation'''
     pass
+
   def printMe(self):
     '''this is a generic interface that will print all the info for
        the instance of an object that inherit this class'''

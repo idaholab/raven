@@ -3,6 +3,10 @@ Created on Mar 7, 2013
 
 @author: crisr
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import sys
 import xml.etree.ElementTree as ET
 import scipy.stats.distributions  as dist
@@ -33,15 +37,18 @@ class Distribution(BaseType):
       self.adjustment = xmlNode.find('adjustment').text
     else:
       self.adjustment = 'scaling'
+
   def addInitParams(self,tempDict):
     tempDict['upperBoundUsed'] = self.upperBoundUsed
     tempDict['lowerBoundUsed'] = self.lowerBoundUsed
     tempDict['upperBound'    ] = self.upperBound
     tempDict['lowerBound'    ] = self.lowerBound
     tempDict['adjustmentType'] = self.adjustmentType
+
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
     point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
     return self.distribution.ppt(point)
+
   def rvsWithinbounds(self,LowerBound,upperBound):
     CDFupper = self.distribution.cdf(upperBound)
     CDFlower = self.distribution.cdf(LowerBound)
@@ -54,12 +61,13 @@ class Normal(Distribution):
     Distribution.__init__(self)
     self.mean  = 0.0
     self.sigma = 0.0
+
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
     try: self.mean  = float(xmlNode.find('mean' ).text)
-    except: raise 'mean value needed for normal distribution'
+    except: raise Exception('mean value needed for normal distribution')
     try: self.sigma = float(xmlNode.find('sigma').text)
-    except: raise 'sigma value needed for normal distribution'
+    except: raise Exception('sigma value needed for normal distribution')
     self.inDistr()
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
@@ -85,11 +93,11 @@ class Triangular(Distribution):
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
     try: self.apex = float(xmlNode.find('apex').text)
-    except: raise 'apex value needed for normal distribution'
+    except: raise Exception('apex value needed for normal distribution')
     try: self.min = float(xmlNode.find('min').text)
-    except: raise 'min value needed for normal distribution'
+    except: raise Exception('min value needed for normal distribution')
     try: self.max = float(xmlNode.find('max').text)
-    except: raise 'max value needed for normal distribution'
+    except: raise Exception('max value needed for normal distribution')
     self.inDistr()
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)

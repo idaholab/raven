@@ -3,6 +3,10 @@ Created on Jun 8, 2013
 
 @author: crisr
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import os
 import copy
 import shutil
@@ -20,9 +24,11 @@ class RavenInterface:
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
     ' Output/file_base='+ outputfile)
     return executeCommand,outputfile
+
   def appendLoadFileExtension(self,fileRoot):
     '''  '''
     return fileRoot + '.csv'
+
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
     import MOOSEparser
@@ -42,6 +48,7 @@ class RavenInterface:
     newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
     parser.printInput(newInputFiles[index])
     return newInputFiles
+
   def MonteCarloForRAVEN(self,**Kwargs):
     try: counter = Kwargs['prefix']
     except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
@@ -121,6 +128,7 @@ class RavenInterface:
           listDict.append(modifDict)
           del modifDict
     return listDict  
+
   def EquallySpacedForRAVEN(self,**Kwargs):
     raise IOError('EquallySpacedForRAVEN not yet implemented')
     listDict = []
@@ -135,6 +143,7 @@ class RavenInterface:
 class ExternalTest:
   def generateCommand(self,inputFiles,executable):
     return '', ''
+
   def findOutputFile(self,command):
     return ''
   

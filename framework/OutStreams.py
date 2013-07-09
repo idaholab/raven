@@ -3,6 +3,10 @@ Created on May 8, 2013
 
 @author: mandd
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import xml.etree.ElementTree as ET
 import numpy as np
 from BaseType import BaseType
@@ -20,6 +24,7 @@ class OutStream(BaseType):
     self.toLoadFromList = []
     self.alreadyRead    = []
     self.histories      = {}
+
   def readMoreXML(self,xmlNode):
     var = xmlNode.find('variable').text
     var.replace(" ","")
@@ -43,6 +48,7 @@ class OutStream(BaseType):
 
   def finalize(self):
     pass 
+
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
@@ -56,6 +62,7 @@ class OutStream(BaseType):
 #
 #  def getOutParametersValues(self):
 #    return self.outParametersValues 
+
   def retrieveHistories(self):
     try:
       if self.toLoadFromList[0].type == "HDF5":

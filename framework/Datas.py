@@ -3,6 +3,10 @@ Created on Feb 16, 2013
 
 @author: alfoa
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
 from Csv_loader import CsvLoader as ld
@@ -19,6 +23,7 @@ class Data(BaseType):
     self.inpParametersValues   = {}  # input parameters as keys, corresponding values 
     self.outParametersValues   = {}  # output variables as keys, corresponding values
     self.toLoadFromList = []
+  
   def readMoreXML(self,xmlNode):
     self.inputs  = xmlNode.find('Input' ).text.split(',')
     self.outputs = xmlNode.find('Output').text.split(',')
@@ -41,6 +46,7 @@ class Data(BaseType):
 
   def finalize(self):
     pass 
+
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
@@ -49,6 +55,7 @@ class Data(BaseType):
     
     self.toLoadFromList.append(toLoadFrom)
     return
+
   def getInpParametersValues(self):
     return self.inpParametersValues  
 
@@ -60,16 +67,17 @@ class Data(BaseType):
       if keyword in self.inpParametersValues.keys():
         return self.inpParametersValues[keyword]
       else:
-        raise("parameter " + keyword + 
+        raise Exception("parameter " + keyword + 
               " not found in inpParametersValues dictionary. Function: Data.getParam")    
     elif typeVar == "output":
       if keyword in self.outParametersValues.keys():
         return self.outParametersValues[keyword]    
       else:
-        raise("parameter " + keyword + 
+        raise Exception("parameter " + keyword + 
               " not found in outParametersValues dictionary. Function: Data.getParam")
     else:
-      raise("type " + typeVar + " is not a valid type. Function: Data.getParam")
+      raise Exception("type " + typeVar + " is not a valid type. Function: Data.getParam")
+
 class TimePoint(Data):
   def finalize(self):
     try:

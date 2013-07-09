@@ -275,7 +275,7 @@ class hdf5Database:
           list_path = list_str_w
           break      
       if not found:
-        raise("ERROR: Group named " + nameTo + " not found in the HDF5 database" + self.onDiskFile)
+        raise Exception("ERROR: Group named " + nameTo + " not found in the HDF5 database" + self.onDiskFile)
       else:
         listGroups = path.split("/")
       
@@ -389,7 +389,7 @@ class hdf5Database:
               n_params = int(grp.attrs['n_params'])
             
             if n_params != int(grp.attrs['n_params']):
-              raise("Can not merge datasets with different number of parameters")
+              raise Exception("Can not merge datasets with different number of parameters")
             # get numpy array
             gb_res[i]   = dataset[:,:]
             gb_attrs[i] =grp.attrs        
@@ -477,7 +477,7 @@ class hdf5Database:
           if is_number(filter):
             back = int(filter) + 1
             if len(list_path) < back:
-              raise("Error. Number of branches back > number of actual branches in dataset for History ending with " + name)
+              raise Exception("Error. Number of branches back > number of actual branches in dataset for History ending with " + name)
             # start constructing the merged numpy array
             where_list = []
             name_list  = []
@@ -511,7 +511,7 @@ class hdf5Database:
                 n_params = int(grp.attrs['n_params'])
               
               if n_params != int(grp.attrs['n_params']):
-                raise("Can not merge datasets with different number of parameters")
+                raise Exception("Can not merge datasets with different number of parameters")
               # get numpy array
               gb_res[i]   = dataset[:,:]
               gb_attrs[i] =grp.attrs        
@@ -597,9 +597,9 @@ class hdf5Database:
                 pass                                                                          
           else:
             # ERR
-            raise("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 
+            raise Exception("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 
       else:
-        raise("History named " + name + "not found in database")
+        raise Exception("History named " + name + "not found in database")
 
       return(result,attrs)
 

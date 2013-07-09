@@ -3,6 +3,10 @@ Created on April 9, 2013
 
 @author: alfoa
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import numpy as np
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
@@ -19,14 +23,19 @@ class DateSet(BaseType):
       '''
       BaseType.__init__(self)
       self.dataset = None
+
     def readMoreXML(self,xmlNode):
       pass
+
     def addInitParams(self,tempDict):
       return tempDict
+
     def addGroup(self,attributes,loadFrom):
       pass
+
     def retrieveData(self,attributes):
       pass
+
     def finalize(self):
 #      self.dataset.closeDataBaseW()
       pass
@@ -88,9 +97,10 @@ class HDF5(DateSet):
     # This function returns an history =>
     # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
     # MC  => The History named ["group"] (one run)
+
     def returnHistory(self,attributes):
       if (not self.exist) and (not self.built):
-        raise("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
+        raise Exception("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
       if attributes['filter']:
         tupleVar = self.dataset.retrieveHistory(attributes["history"],attributes['filter'])
       else:
@@ -133,7 +143,7 @@ class HDF5(DateSet):
             ix = histVar[1]["headers"].index(key)
             inDict[key] = histVar[0][0,ix]
           else:
-            raise("ERROR: the parameter " + key + " has not been found")
+            raise Exception("ERROR: the parameter " + key + " has not been found")
     
     # fill output param dictionary
     
@@ -148,7 +158,7 @@ class HDF5(DateSet):
             if key in histVar[1]["headers"]:
               outDict[key] = histVar[0][last_row,histVar[1]["headers"].index(key)]        
             else:
-              raise("ERROR: the parameter " + key + " has not been found")
+              raise Exception("ERROR: the parameter " + key + " has not been found")
       else:
       
         for i in histVar[0]:
@@ -178,7 +188,7 @@ class HDF5(DateSet):
                     outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
                            
                 else:
-                  raise("ERROR: the parameter " + key + " has not been found")      
+                  raise Exception("ERROR: the parameter " + key + " has not been found")      
       return (inDict,outDict)
 
     def __retrieveDataTimePointSet(self,attributes):
@@ -224,7 +234,7 @@ class HDF5(DateSet):
             inDict[key][i] = histVar[0][0,ix]
             #inDict[key][i] = 1
           else:
-            raise("ERROR: the parameter " + str(key) + " has not been found")
+            raise Exception("ERROR: the parameter " + str(key) + " has not been found")
         # time end case
         if time_end:
           last_row = histVar[1][:,0].size - 1
@@ -243,7 +253,7 @@ class HDF5(DateSet):
                   outDict[key] = np.zeros(len(hist_list))
                 outDict[key][i] = histVar[0][last_row,histVar[1]["headers"].index(key)]
               else:
-                raise("ERROR: the parameter " + str(key) + " has not been found")
+                raise Exception("ERROR: the parameter " + str(key) + " has not been found")
         else:
           
           for i in histVar[0]:
@@ -288,7 +298,7 @@ class HDF5(DateSet):
                       previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
                       outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
                   else:
-                    raise("ERROR: the parameter " + key + " has not been found")      
+                    raise Exception("ERROR: the parameter " + key + " has not been found")      
         del histVar       
       return (inDict,outDict)
     
@@ -330,7 +340,7 @@ class HDF5(DateSet):
             ix = histVar[1]["headers"].index(key)
             inDict[key] = histVar[0][0,ix]
           else:
-            raise("ERROR: the parameter " + key + " has not been found")
+            raise Exception("ERROR: the parameter " + key + " has not been found")
       
       # time all case
       if time_all:
@@ -342,7 +352,7 @@ class HDF5(DateSet):
             if key in histVar[1]["headers"]:
               outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]        
             else:
-              raise("ERROR: the parameter " + key + " has not been found")
+              raise Exception("ERROR: the parameter " + key + " has not been found")
       else:
         # it will be implemented when we decide a strategy about time filtering 
         ## for now it is a copy paste of the time_all case
@@ -354,7 +364,7 @@ class HDF5(DateSet):
             if key in histVar[1]["headers"]:
               outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]        
             else:
-              raise("ERROR: the parameter " + key + " has not been found")
+              raise Exception("ERROR: the parameter " + key + " has not been found")
       return (inDict,outDict)
 
     def retrieveData(self,attributes):
@@ -368,7 +378,7 @@ class HDF5(DateSet):
 #      elif attributes["type"] == "Histories":
 #        data = self.__retrieveDataHistories(attributes)
       else:
-        raise("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData") 
+        raise Exception("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData") 
       return data
 
 
