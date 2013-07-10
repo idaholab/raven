@@ -163,7 +163,7 @@
     K =  '0.2 0.2 0.2 0.2 0.4 40.0'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./UpperPlenum]
     inputs =  'CH1(out) CH2(out) CH3(out) bypass_pipe(out)'
@@ -172,7 +172,7 @@
     K =  '0.5 0.5 0.5 80.0 0.5 0.5'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./DownComer-A]
     A =  3.6185734
@@ -265,7 +265,7 @@
     K =  '0.5 0.7 80.'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Branch2-A]
     inputs =  'pipe1-CL-A(out)'
@@ -274,7 +274,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Branch3-A]
     inputs =  'pipe2-HL-A(out)'
@@ -283,7 +283,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Pump-A]
     inputs =  'pipe2-CL-A(out)'
@@ -329,7 +329,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Branch5-A]
     inputs =  'HX-A(secondary_out)'
@@ -338,7 +338,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Branch6-A]
     inputs =  'HX-A(primary_out)'
@@ -347,7 +347,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./PressureOutlet-SC-A]
     eos =  eos
@@ -447,7 +447,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Branch2-B]
     inputs =  'pipe1-CL-B(out)'
@@ -456,7 +456,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Branch3-B]
     inputs =  'pipe2-HL-B(out)'
@@ -465,7 +465,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Pump-B]
     inputs =  'pipe2-CL-B(out)'
@@ -511,7 +511,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Branch5-B]
     inputs =  'HX-B(secondary_out)'
@@ -520,7 +520,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./Branch6-B]
     inputs =  'HX-B(primary_out)'
@@ -529,7 +529,7 @@
     K =  '0.5 0.7'
     eos =  eos
     Initial_pressure =  151.7e5
-    type =  ErgBranch
+    type =  Branch
   [../]
   [./PressureOutlet-SC-B]
     eos =  eos

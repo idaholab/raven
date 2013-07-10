@@ -148,7 +148,7 @@
     Hw = 0.0
   [../]
   [./LowerPlenum]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'DownComer-A(out) DownComer-B(out)'
     outputs = 'CH1(in) CH2(in) CH3(in) bypass_pipe(in)'
@@ -157,7 +157,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./UpperPlenum]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'CH1(out) CH2(out) CH3(out) bypass_pipe(out)'
     outputs = 'pipe1-HL-A(in) pipe1-HL-B(in)'
@@ -257,7 +257,7 @@
     HT_geometry_code = 101
   [../]
   [./Branch1-A]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'pipe1-HL-A(out)'
     outputs = 'pipe2-HL-A(in) pipe-to-Pressurizer(in)'
@@ -266,7 +266,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./Branch2-A]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'pipe1-CL-A(out)'
     outputs = 'DownComer-A(in)'
@@ -275,7 +275,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./Branch3-A]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'pipe2-HL-A(out)'
     outputs = 'HX-A(primary_in)'
@@ -322,7 +322,7 @@
     HT_geometry_code = 101
   [../]
   [./Branch4-A]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = pipe1-SC-A(out)
     outputs = HX-A(secondary_in)
@@ -331,7 +331,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./Branch5-A]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'HX-A(secondary_out)'
     outputs = 'pipe2-SC-A(in)'
@@ -340,7 +340,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./Branch6-A]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'HX-A(primary_out)'
     outputs = 'pipe2-CL-A(in)'
@@ -447,7 +447,7 @@
     HT_geometry_code = 101
   [../]
   [./Branch1-B]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'pipe1-HL-B(out)'
     outputs = 'pipe2-HL-B(in)'
@@ -456,7 +456,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./Branch2-B]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'pipe1-CL-B(out)'
     outputs = 'DownComer-B(in)'
@@ -465,7 +465,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./Branch3-B]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'pipe2-HL-B(out)'
     outputs = 'HX-B(primary_in)'
@@ -512,7 +512,7 @@
     HT_geometry_code = 101
   [../]
   [./Branch4-B]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'pipe1-SC-B(out)'
     outputs = 'HX-B(secondary_in)'
@@ -521,7 +521,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./Branch5-B]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'HX-B(secondary_out)'
     outputs = 'pipe2-SC-B(in)'
@@ -530,7 +530,7 @@
     Initial_pressure = 151.7e5
   [../]
   [./Branch6-B]
-    type = ErgBranch
+    type = Branch
     eos = eos
     inputs = 'HX-B(primary_out)'
     outputs = 'pipe2-CL-B(in)'
