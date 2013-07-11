@@ -12,7 +12,7 @@ import xml.etree.ElementTree as ET
 from BaseType import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 
-class DateSet(BaseType):
+class DateBase(BaseType):
     '''
     class to handle database,
     to build and to retrieve attributes and values from it
@@ -22,7 +22,7 @@ class DateSet(BaseType):
       Constructor
       '''
       BaseType.__init__(self)
-      self.dataset = None
+      self.database = None
 
     def readMoreXML(self,xmlNode):
       pass
@@ -37,10 +37,10 @@ class DateSet(BaseType):
       pass
 
     def finalize(self):
-#      self.dataset.closeDataBaseW()
+#      self.database.closeDataBaseW()
       pass
 
-class HDF5(DateSet):
+class HDF5(DateBase):
     '''
     class to handle h5py (hdf5) database,
     to build and to retrieve attributes and values from it
@@ -49,7 +49,7 @@ class HDF5(DateSet):
       '''
       Constructor
       '''
-      DateSet.__init__(self)
+      DateBase.__init__(self)
       self.subtype  = None
       self.exist = False
       self.built = False
@@ -69,10 +69,10 @@ class HDF5(DateSet):
       # or update it
       try:
         file_name = xmlNode.attrib['filename']
-        self.dataset = h5Data(self.name,self.subtype,file_name)
+        self.database = h5Data(self.name,self.subtype,file_name)
         self.exist   = True
       except:
-        self.dataset = h5Data(self.name,self.subtype) 
+        self.database = h5Data(self.name,self.subtype) 
         self.exist   = False
       
     def addInitParams(self,tempDict):
@@ -82,9 +82,9 @@ class HDF5(DateSet):
       return tempDict
     
     def getEndingGroupPaths(self):
-      return self.dataset.retrieveAllHistoryPaths()
+      return self.database.retrieveAllHistoryPaths()
     def getEndingGroupNames(self):
-      return self.dataset.retrieveAllHistoryNames()
+      return self.database.retrieveAllHistoryNames()
 
     def addGroup(self,attributes,loadFrom):
       attributes["group"] = attributes['prefix']
@@ -92,7 +92,7 @@ class HDF5(DateSet):
         print("type " + str(self.subtype) + " not implemented yet")
         return
 
-      self.dataset.addGroup(attributes["group"],attributes,loadFrom)
+      self.database.addGroup(attributes["group"],attributes,loadFrom)
       self.built = True
     # This function returns an history =>
     # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
@@ -102,9 +102,9 @@ class HDF5(DateSet):
       if (not self.exist) and (not self.built):
         raise Exception("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
       if attributes['filter']:
-        tupleVar = self.dataset.retrieveHistory(attributes["history"],attributes['filter'])
+        tupleVar = self.database.retrieveHistory(attributes["history"],attributes['filter'])
       else:
-        tupleVar = self.dataset.retrieveHistory(attributes["history"])
+        tupleVar = self.database.retrieveHistory(attributes["history"])
       return tupleVar
     
     def __retrieveDataTimePoint(self,attributes):
@@ -383,7 +383,7 @@ class HDF5(DateSet):
 
 
 def returnInstance(Type):
-  base = 'DataSet'
+  base = 'DataBase'
   InterfaceDict = {}
   InterfaceDict['HDF5'   ] = HDF5
   try:

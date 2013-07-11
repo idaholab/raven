@@ -15,7 +15,7 @@ import numpy as np
 from BaseType import BaseType
 
 class RavenInterface:
-  '''this class is used a part of a code dictionary to specialize Model.Code for RAVEN'''
+  '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
   def generateCommand(self,inputFiles,executable):
     '''seek which is which of the input files and generate According the running command'''
     if inputFiles[0].endswith('.i'): index = 0
@@ -30,7 +30,7 @@ class RavenInterface:
     return fileRoot + '.csv'
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
-    '''this generate a new input file depending on which sampler is chosen'''
+    '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
     newInputFiles = []
     self.samplersDictionary                     = {}
@@ -65,13 +65,14 @@ class RavenInterface:
   
   def DynamicEventTreeForRAVEN(self,**Kwargs):
     listDict = []
-    
+    # Check the initiator distributions and add the next threshold
     for i in xrange(len(Kwargs['initiator_distribution'])):
       modifDict = {}
       modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
       modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
       listDict.append(modifDict)
       del modifDict
+    # add the initial time for this new branch calculation
     if 'start_time' in Kwargs.keys():
       if Kwargs['start_time'] != 'Initial':
         modifDict = {}
@@ -80,7 +81,8 @@ class RavenInterface:
         modifDict['start_time'] = st_time
         listDict.append(modifDict)
         del modifDict
-      
+    # create the restart file name root from the parent branch calculation
+    # in order to restart the calc from the last point in time
     if 'end_ts' in Kwargs.keys():
       if Kwargs['end_ts'] != 0:
         modifDict = {}
@@ -97,7 +99,7 @@ class RavenInterface:
         modifDict['restart_file_base'] = restart_file_base
         listDict.append(modifDict)
         del modifDict
-
+    # max simulation time (if present)
     if 'end_time' in Kwargs.keys():
       modifDict = {}
       end_time = Kwargs['end_time']
@@ -119,6 +121,8 @@ class RavenInterface:
     listDict.append(modifDict)
     
     del modifDict    
+    # check and add the variables that have been changed by a distribution trigger
+    # add them into the RestartInitialize block
     if 'branch_changed_param' in Kwargs.keys():
       if Kwargs['branch_changed_param'][0] != 'None': 
         for i in xrange(len(Kwargs['branch_changed_param'])):

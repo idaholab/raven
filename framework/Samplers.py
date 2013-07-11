@@ -304,6 +304,7 @@ class DynamicEventTree(Sampler):
       break
     # we remove the file
     os.remove(filename)
+
     branch_present = True
     return branch_present 
   
