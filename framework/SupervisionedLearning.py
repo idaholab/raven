@@ -10,6 +10,8 @@ warnings.simplefilter('default',DeprecationWarning)
 from sklearn import svm
 import Datas
 import numpy
+from itertools import product as itprod
+import cPickle as pk
 '''here we intend ROM as super-visioned learning, 
    where we try to understand the underlying model by a set of labeled sample
    a sample is composed by (feature,label) that is easy translated in (input,output)
@@ -29,6 +31,7 @@ import numpy
  Linear and Quadratic Discriminant Analysis
  Isotonic regression
  '''
+
 class superVisioned():
   def __init__(self,**kwargs):
     self.initializzationOptionDict = kwargs
@@ -54,6 +57,43 @@ class superVisioned():
     '''override this method to pass the set of parameters of the ROM that can change during simulation'''
     CurrentSettingDict={}
     return CurrentSettingDict
+
+class StochasticPolynomials(superVisioned):
+  def __init__(self,**kwargs):
+    superVisioned.__init__(self,**kwargs)
+    #TODO can I accept distDict here?
+  def train(self,solns,distDict):
+    quad,self.distDict=pk.load(file('multiquad.pk','r'))
+    #FIXME need solns, a dict of soln values keyed on qps
+
+    self.poly_coeffs={}
+    # loop over all possible combinations of expansion orders in each var
+    for ords in list(product(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
+      self.poly_coeffs[ords]=0
+      for qp in quad.indx_ord.keys(): #quadrature points
+        poly=wt=probNorm=1.
+        for v,var in enumerate(self.distDict):
+          poly*=self.distDict[var].quad().evNormPoly(ords[v],qp[v])
+          wt*=self.distDict[var].standardToActualWeight(qp2wt[qp[v]])
+          #TODO assumes standardToActualWeight is a linear transformation!
+          probNorm*=self.distDict[var].probNorm(qp[v])
+        self.poly_coeffs[ords]+=solns[qp]*wt*poly*probNorm
+  def evaluate(self,valDict):
+    # valDict is dict of values to evaluate at, keyed on var
+    tot=0
+    for ords,coeff in self.poly_coeff:
+      tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
+              ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
+      #TODO revertPt may not always be straightforward to implement!
+    return tot
+  def reset(self):
+    try:
+      del self.poly_coeffs
+      del self.distDict
+    except: pass
+
+
+
 
 class SVMsciKitLearn(superVisioned):
   def __init__(self,**kwargs):
@@ -108,7 +148,8 @@ def returnInstance(Type):
   '''This function return an instance of the request model type'''
   base = 'superVisioned'
   InterfaceDict = {}
-  InterfaceDict['SVMscikitLearn'   ] = SVMsciKitLearn
+  InterfaceDict['SVMscikitLearn'       ] = SVMsciKitLearn
+  InterfaceDict['StochasticPolynomials'] = StochasticPolynomials
   try: return InterfaceDict[Type]
   except: raise NameError('not known '+base+' type '+Type)
   

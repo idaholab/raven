@@ -16,6 +16,9 @@ import os
 #import Queue
 import copy
 import numpy as np
+import cPickle as pk
+import Quadrature
+import Distributions
 
 class Sampler(BaseType):
   ''' this is the base class for samplers'''
@@ -70,6 +73,69 @@ class Sampler(BaseType):
     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
       newInputs.append(self.generateInput(model,myInput))
     return newInputs
+
+class StochasticCollocation(Sampler):
+  def __init__(self):
+    Sampler.__init__(self)
+    self.min_poly_order = 0 #lowest acceptable polynomial order
+    self.var_poly_order = dict() #stores poly orders for each var
+  def readMoreXML(self,xmlNode):
+    # attempt to set minimum total function polynomial expansion order
+    try: self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
+    except: self.min_poly_order = 0
+    # attempt to set polynomial expansion order for individual params
+    for var in self.distDict.keys():
+      try:
+        self.var_poly_order[var] = int(xmlNode.attrib[var+'_poly_order'])
+      except: pass
+    # assign values to undefined order variables
+    if self.min_poly_order>0:
+      if len( set(self.var_poly_order) ^ set(self.distDict) )==0: #keys correspond exactly
+        if sum(self.var_poly_order.values())<self.min_poly_order:
+          raise IOError('Minimum total polynomial order is set greater than sum of all variable orders!')
+      else:
+        r_keys = set(self.distDict) - set(self.var_poly_order) #var orders not set yet
+        r_order = min(len(r_keys),self.min_poly_order-sum(self.var_poly_order.values())) #min remaining order needed
+        for key in r_keys: #ones that haven't been set yet
+          self.var_poly_order['key']=int(round(0.5+r_order/(len(r_keys))))
+    self.generateQuadrature() #FIXME is this where this should go?
+
+  def generateInput(self,model,myInput):
+    self.counter+=1
+    qps=self.quad.qps[self.counter-1]
+    qp_index = self.quad.qp_index[qps]
+    values={'prefix':str(self.counter),'qp indices':str(qp_index)}
+    try:
+      for var in self.distDict.keys():
+        values[var]=self.distDict[var].standardToActualPoint(\
+            qps[self.quad.indx_quads[self.distDict[var].quad()]])
+      # qps is a tuple of gauss quad points, so use the variable's distribution'
+      #   to look up the index for the right variable,
+      #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
+      # TODO we could also pass "var" as an argument to the quadrature to make indexing look a lot nicer
+    except StopIteration: raise 'No Gauss points left to iterate over!'
+    return model.createNewInput(myInput,self.type,**values)
+
+  def generateQuadrature(self):
+    quadDict={}
+    quadDict[Distributions.Uniform().type]=Quadrature.Legendre
+    quadDict[Distributions.Normal().type]=Quadrature.StatHermite
+    #TODO need alpha and/or beta values for these two...todo?
+    quadDict[Distributions.Gamma().type]=Quadrature.Laguerre
+    quadDict[Distributions.Beta().type]=Quadrature.Jacobi
+    quads=[]
+    for var in self.distDict.keys():
+      #TODO see above, this won't work for quads that need addl params
+      #  create a dict for addl params lists to *add to quadrature init call?
+      #  this for sure works, even if it's empty!
+      quads.append(quadDict[self.distDict[var].type](self.var_poly_order[var]))
+      self.distDict[var].setQuad(quads[-1],self.var_poly_order[var])
+    self.quad=Quadrature.MultiQuad(quads)
+    pk.dump([self.quad,self.distDict],file('multiquad.pk','w')) #TODO needs to be cleaned up after use, as well...
+    # also, is this the best implementation available?
+    # also, how to make sure solns are indexed like multiquad?
+    # also, dump distDict for good measure?
+
 
 class MonteCarlo(Sampler):
   def __init__(self):
@@ -467,6 +533,7 @@ def returnInstance(Type):
   InterfaceDict['LatinHyperCube'   ] = LatinHyperCube
   InterfaceDict['EquallySpaced'    ] = EquallySpaced
   InterfaceDict['DynamicEventTree' ] = DynamicEventTree
+  InterfaceDict['StochasticCollocation' ] = StochasticCollocation
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   
