@@ -424,7 +424,7 @@ class DynamicEventTree(Sampler):
         subGroup.set('queue',True)
 #        subGroup.set('restartFileRoot',endInfo['restartRoot'])
         endInfo['parent_node'].append(subGroup)
-
+        
         values = {'prefix':rname,'end_ts':endInfo['end_ts'],
                   'branch_changed_param':[subGroup.get('branch_changed_param')],
                   'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
@@ -437,6 +437,14 @@ class DynamicEventTree(Sampler):
           values['PbThreshold'] = [1.1]
         else:
           values['PbThreshold'] = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
+        
+        # for the other distributions, we put the unbranched threshold
+        for key in self.distDict.keys():
+          if not (key in endInfo['branch_dist']):
+            values['initiator_distribution'].append(key)
+        for key in self.branchProbabilities.keys():
+          if not (key in endInfo['branch_dist']):
+            values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
         
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**values)))
         self.RunQueue['identifiers'].append(values['prefix'])
