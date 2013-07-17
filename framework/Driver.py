@@ -31,11 +31,10 @@ if __name__ == '__main__':
     inputFile = os.path.join(workingDir,inputFile)
   if not os.path.exists(inputFile):
     print('file not found '+inputFile)
-  try:
-    tree = ET.parse(inputFile)
-    if debug: print('opened file '+inputFile)
-  except:
-    raise IOError ('not able to parse ' + inputFile)
+  
+  tree = ET.parse(inputFile)
+  if debug: print('opened file '+inputFile)
+
   root = tree.getroot()
   #generate all the components of the simulation
   simulation = Simulation(inputFile, frameworkDir)

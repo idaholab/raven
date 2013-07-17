@@ -132,7 +132,7 @@ class Simulation:
           self.stepSequenceList.append(stepName)
       elif element.tag == 'Files':
         for fileName in element.text.split(','):
-          self.filesDict[fileName] = fileName
+          self.filesDict[fileName] = fileName.strip()
       
     self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']

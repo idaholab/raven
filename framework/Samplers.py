@@ -25,7 +25,7 @@ class Sampler(BaseType):
   def __init__(self):
     BaseType.__init__(self)
     self.counter = 0
-    self.limit   = sys.maxsize
+    self.limit   = sys.maxsize # maximum number of Runs (i.e. Montecarlo = Number of Histories to run, DET = Unlimited)
     self.workingDir = ""
     self.toBeSampled = {}  #key=feature to be sampled, value = ['type of distribution to be used', 'name of the distribution']
     self.distDict    = {}  #contain the instance of the distribution to be used, it is created every time the sampler is initialize
@@ -59,7 +59,13 @@ class Sampler(BaseType):
     return
 
   def finalizeActualSampling(self,jobObject,model,myInput):
-    '''???'''
+    ''' This function is used by samplers that need to finalize the just ended sample
+        For example, In a MonteCarlo simulation it can be used to sample paramaters at 
+        the end of a previous calculation in order to make the Model aware of the parameters
+        it needs to change. For a Dynamic Event Tree case, this function can be used to retrieve
+        the information from the just finished run of a branch in order to retrieve, for example,
+        the distribution name that caused the trigger, etc.
+    '''
     pass
 
   def generateInput(self):
@@ -219,10 +225,8 @@ class EquallySpaced(Sampler):
 class DynamicEventTree(Sampler):
   def __init__(self):
     Sampler.__init__(self)
-    #optional value... Conditional Probability Cut. If the Probability falls below this value the associated branch is terminated    
-    self.CP_cut                  = None
-    self.maxSimulTime            = None #(optional) if not present, the sampler will not change the relative keyword in the input file
-    self.print_end_xml           = False
+    self.maxSimulTime            = None  #(optional) if not present, the sampler will not change the relative keyword in the input file
+    self.print_end_xml           = False #
     self.branchProbabilities     = {}
     self.branchedLevel           = {}
     self.branchCountOnLevel      = 0
@@ -294,7 +298,9 @@ class DynamicEventTree(Sampler):
     self.endInfo.append(endInfo)
     # compute conditional probability calculation (put the result into self.endInfo)
     self.computeConditionalProbability()
-
+    # check if the branch reached the end of the probability bins provided by the user
+    
+    
     # we create the input queue for all the branches must be run
     self.__createRunningQueue(model,myInput)
     
@@ -465,6 +471,8 @@ class DynamicEventTree(Sampler):
       # we set the self.limit == self.counter
       # => the simulation ends
       self.limit = self.counter
+      if self.print_end_xml:
+        self.TreeInfo.write(self.name + "_xml_output_summary")
       return None
     else:
       jobInput = self.RunQueue['queue'].pop(0)
@@ -514,8 +522,6 @@ class DynamicEventTree(Sampler):
     self.TreeInfo = ET.ElementTree(elm)    
     
     childreen = xmlNode.find("BranchingSettings")
-    try: self.CP_cut = childreen.attrib['CPcut']
-    except: self.CP_cut = None
     try: self.maxSimulTime = childreen.attrib['maxSimulationTime']
     except: self.maxSimulTime = None
     Sampler.readMoreXML(self,childreen)

@@ -114,7 +114,7 @@ class History(Data):
           stringSplit = self.toLoadFromList[index][1].split("/")
           attributes['history'] = stringSplit[len(stringSplit)-1]
           self.inpParametersValues[index] = self.toLoadFromList[0][0].retrieveData(attributes)[0]
-          self.inpParametersValues[index] = self.toLoadFromList[0][0].retrieveData(attributes)[1]
+          self.outParametersValues[index] = self.toLoadFromList[0][0].retrieveData(attributes)[1]
           
     except:      
       tupleVar = ld().loader.csvLoaderForHistory(self.toLoadFromList[0],self.time,self.inputs,self.outputs)

@@ -165,8 +165,7 @@ class MultiRun(Step):
       finishedJobs = jobHandler.getFinished()
       #loop on the finished jobs
       for finishedJob in finishedJobs:
-        if 'Sampler' in inDictionary.keys():
-          inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
+        inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
         for output in inDictionary['Output']:                                                      #for all expected outputs
             inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
         if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run

@@ -93,7 +93,7 @@ class RavenInterface:
             end_ts_str = "0" + end_ts_str
         
         splitted = Kwargs['outfile'].split('~')
-        output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[2]
+        output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[1]
         restart_file_base = output_parent + "_restart_" + end_ts_str      
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base
