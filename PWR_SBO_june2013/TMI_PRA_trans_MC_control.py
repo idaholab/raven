@@ -22,23 +22,23 @@ def control_function(monitored, controlled, auxiliary):
     if monitored.time_step == 1:
         auxiliary.scram_start_time = 101.0
         random_n_1 = distcont.random()
-        auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
+        #auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
 
         
         random_n_2 = distcont.random()
-        auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
+        #auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
 
         
         random_n_3 = distcont.random()
-        auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
+        #auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
 
         
         random_n_4 = distcont.random()
-        auxiliary.CladTempTreshold = distcont.randGen('CladFailureDist',random_n_4)
+        #auxiliary.CladTempTreshold = distcont.randGen('CladFailureDist',random_n_4)
 
         
         random_n_5 = distcont.random() # primary offsite power recovery
-        auxiliary.PrimPGrecoveryTime = distcont.randGen('PrimPGrecovery',random_n_5)
+        #auxiliary.PrimPGrecoveryTime = distcont.randGen('PrimPGrecovery',random_n_5)
 
     
         auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime, auxiliary.PrimPGrecoveryTime)
