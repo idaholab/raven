@@ -115,7 +115,7 @@ class StochasticCollocation(Sampler):
       for var in self.distDict.keys():
         values[var]=self.distDict[var].standardToActualPoint(\
             qps[self.quad.indx_quads[self.distDict[var].quad()]])
-      # qps is a tuple of gauss quad points, so use the variable's distribution'
+      # qps is a tuplself.branchedLevele of gauss quad points, so use the variable's distribution'
       #   to look up the index for the right variable,
       #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
       # TODO we could also pass "var" as an argument to the quadrature to make indexing look a lot nicer
@@ -384,7 +384,14 @@ class DynamicEventTree(Sampler):
     
     if self.counter >= 1:
       endInfo = self.endInfo.pop(0)
-      for i in xrange(endInfo['n_branches']):
+      n_branches = endInfo['n_branches']
+      
+      if self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']]):
+        print('Branch ' + endInfo['parent_node'].get('name') + 'hit last Threshold for distribution ' + endInfo['branch_dist']) 
+        print('Branch ' + endInfo['parent_node'].get('name') + 'is dead end.')
+        self.branchCountOnLevel = 1
+        n_branches = endInfo['n_branches'] - 1
+      for i in xrange(n_branches):
         self.counter += 1
         self.branchCountOnLevel += 1
         rname = endInfo['parent_node'].get('name') + ',' + str(self.branchCountOnLevel)
@@ -429,24 +436,25 @@ class DynamicEventTree(Sampler):
                   'branch_changed_param':[subGroup.get('branch_changed_param')],
                   'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
                   'conditional_prb':[subGroup.get('conditional_pb')],
-                  'initiator_distribution':[endInfo['branch_dist']],
                   'start_time':endInfo['parent_node'].get('end_time'),
                   'parent_id':subGroup.get('parent')}
-        if self.branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
-          #we set the threshold to 1.1 => no branch possible for this dist anymore.
-          #values['PbThreshold'] = [1.1]
-          # must be fixed... not ok here...even if it works
-          del values
-          return
-        else:
-          values['PbThreshold'] = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
+#         if self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']]):
+#           #we set the threshold to 1.1 => no branch possible for this dist anymore.
+#           #values['PbThreshold'] = [1.1]
+#           # must be fixed... not ok here...even if it works
+#           del values
+#           return
+#         else:
+        if not (self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']])):
+          values['initiator_distribution'] = [endInfo['branch_dist']]
+          values['PbThreshold']            = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
         
         # for the other distributions, we put the unbranched threshold
         for key in self.distDict.keys():
-          if not (key in endInfo['branch_dist']) and self.branchedLevel[key] < len(self.branchProbabilities[key]):
+          if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] <= len(self.branchProbabilities[key])):
             values['initiator_distribution'].append(key)
         for key in self.branchProbabilities.keys():
-          if not (key in endInfo['branch_dist']) and self.branchedLevel[key] < len(self.branchProbabilities[key]):
+          if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] <= len(self.branchProbabilities[key])):
             values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
         
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**values)))
