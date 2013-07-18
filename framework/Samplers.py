@@ -434,7 +434,10 @@ class DynamicEventTree(Sampler):
                   'parent_id':subGroup.get('parent')}
         if self.branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
           #we set the threshold to 1.1 => no branch possible for this dist anymore.
-          values['PbThreshold'] = [1.1]
+          #values['PbThreshold'] = [1.1]
+          # must be fixed... not ok here...even if it works
+          del values
+          return
         else:
           values['PbThreshold'] = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
         
