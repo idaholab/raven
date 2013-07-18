@@ -443,10 +443,10 @@ class DynamicEventTree(Sampler):
         
         # for the other distributions, we put the unbranched threshold
         for key in self.distDict.keys():
-          if not (key in endInfo['branch_dist']):
+          if not (key in endInfo['branch_dist']) and self.branchedLevel[key] < len(self.branchProbabilities[key]):
             values['initiator_distribution'].append(key)
         for key in self.branchProbabilities.keys():
-          if not (key in endInfo['branch_dist']):
+          if not (key in endInfo['branch_dist']) and self.branchedLevel[key] < len(self.branchProbabilities[key]):
             values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
         
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**values)))
