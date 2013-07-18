@@ -163,7 +163,9 @@ class MonteCarlo(Sampler):
     '''returns the model.createNewInput() passing into it the type of sampler,
        the values to be used and the some add info in the values dict'''
     self.counter += 1
+    
     values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
+    valuse['changed_params':[self.distDict[key].]]
     #evaluate the distributions and fill values{}
     for key in self.distDict:
       values[key] = self.distDict[key].distribution.rvs()
@@ -225,90 +227,167 @@ class EquallySpaced(Sampler):
 class DynamicEventTree(Sampler):
   def __init__(self):
     Sampler.__init__(self)
-    self.maxSimulTime            = None  #(optional) if not present, the sampler will not change the relative keyword in the input file
-    self.print_end_xml           = False #
+    '''
+      (optional) if not present, the sampler will not change the relative keyword in the input file
+    '''
+    self.maxSimulTime            = None  
+    '''
+      print the xml tree representation of the dynamic event tree calculation
+      see variable 'self.TreeInfo'
+    '''
+    self.print_end_xml           = False 
+    '''
+      Dictionary of the probability bins for each distribution that have been 
+      inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
+    '''
     self.branchProbabilities     = {}
+    '''
+      Dictionary of the last probability bin level (position in the array) reached for each distribution ('distName':IntegerValue)
+    '''
     self.branchedLevel           = {}
+    '''
+      Counter for the branch needs to be run after a calculation branched (it is a working variable)
+    '''
     self.branchCountOnLevel      = 0
-    # actual branch info
+    '''
+      Dictionary tha contains the actual branching info 
+      (i.e. distribution that triggered, values of the variables that need to be changed, etc)
+    '''
     self.actualBranchInfo        = {}
+    '''
+      Parent Branch end time (It's a working variable used to set up the new branches need to be run.
+                              The new branches' start time will be the end time of the parent branch )
+    '''    
     self.actual_end_time         = 0.0
+    '''
+      Parent Branch end time step (It's a working variable used to set up the new branches need to be run.
+      The end time step is used to construct the filename of the restart files needed for restart the new branch calculations)
+    '''        
     self.actual_end_ts           = 0
-    # here we store all the info regarding the DET => we create the info for all the
-    # branchings and we store them
-    self.TreeInfo                = None    
+    '''
+      Xml tree object. It stored all the info regarding the DET. It is in continue evolution during a DET calculation
+    '''
+    self.TreeInfo                = None
+    '''
+      List of Dictionaries. It is a working variable used to store the information needed to create branches from a Parent Branch
+    '''
     self.endInfo                 = []
-    self.branchCountOnLevel      = 0
-    # this dictionary contains the inputs(i.e. the info to create them) are waiting to be run
+    '''
+      Queue system. The inputs are waiting to be run are stored in this queue dictionary
+    '''
     self.RunQueue                = {}
+    # identifiers of the inputs in queue (name of the history... for example DET_1,1,1)
     self.RunQueue['identifiers'] = []
+    # Corresponding inputs
     self.RunQueue['queue'      ] = []
-
+  '''
+    Function that inquires if there is at least an input the in the queue that needs to be run
+    @ In, None
+    @ Out, boolean 
+  '''
   def amIreadyToProvideAnInput(self):
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0):
       return True
     else:
       return False
-  
+  '''
+    General function (available to all samplers) that finalize the sampling calculation just ended 
+    In this case (DET), The function reads the information from the ended calculation, updates the
+    working variables, and creates the new inputs for the next branches
+    @ In, jobObject: JobHandler Instance of the job (run) just finished
+    @ In, model    : Model Instance... It may be a Code Instance, a ROM, etc.
+    @ In, myInput  : List of the original input files
+    @ Out, None 
+  '''  
   def finalizeActualSampling(self,jobObject,model,myInput):
-    # we read the info at the end of one branch
     self.workingDir = model.workingDir
+    '''
+      Read the branch info from the parent calculation (just ended calculation)
+      This function stores the information in the dictionary 'self.actualBranchInfo'
+      If no branch info, this history is concluded => return
+    '''
     if not self.__readBranchInfo(jobObject.output): return
-    
-    # we collect the info in a multi-level dictionary
+    '''
+      Collect the branch info in a multi-level dictionary
+    '''
     endInfo = {}
     endInfo['end_time']               = self.actual_end_time
     endInfo['end_ts']                 = self.actual_end_ts
     endInfo['branch_dist']            = list(self.actualBranchInfo.keys())[0]
     endInfo['branch_changed_params']  = self.actualBranchInfo[endInfo['branch_dist']]
-      
+    '''
+      Loop of the parameters that have been changed after a trigger gets activated
+    '''
     for key in endInfo['branch_changed_params']:
       endInfo['n_branches'] = 1 + int(len(endInfo['branch_changed_params'][key]['actual_value']))
       if(len(endInfo['branch_changed_params'][key]['actual_value']) > 1):
-        # multi-branch situation
+         '''
+           Multi-Branch mode => the resulting branches from this parent calculation (just ended)
+           will be more then 2
+         '''
+         # unchanged_pb = probablity (not conditional probability yet) that the event does not occur  
          unchanged_pb = 0.0
          try:
+           ''' changed_pb = probablity (not conditional probability yet) that the event A occurs and the final state is 'alpha' ''' 
            for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])):
              unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
          except:
           pass
          if(unchanged_pb <= 1):
            endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
-      
       else:
-        # two way branch
+         '''
+           Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
+         '''
         if self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']])-1:
           pb = 1.0
         else:
           pb = self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]
         endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0 - pb
         endInfo['branch_changed_params'][key]['associated_pb'] = [pb]
+    '''
+      Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
+    '''
     if(jobObject.identifier == self.TreeInfo.getroot().tag):
       endInfo['parent_node'] = self.TreeInfo.getroot()
     else:
       endInfo['parent_node'] = list(self.TreeInfo.getroot().iter(jobObject.identifier))[0]  
     self.branchCountOnLevel = 0
-    # set runEnded and running to true and false respectively   
+    '''
+      set runEnded and running to true and false respectively
+    '''
     endInfo['parent_node'].set('runEnded',True)
     endInfo['parent_node'].set('running',False)
     endInfo['parent_node'].set('end_time',self.actual_end_time)
-
+    '''
+      The branchedLevel counter is updated
+    '''
     self.branchedLevel[endInfo['branch_dist']]       += 1
-    
+    '''
+      Append the parent end info in the list tha contains them 
+      (it is needed in order to avoid overlapping among info coming from different parent calculations)
+      When this info is used, they are popped out
+    '''
     self.endInfo.append(endInfo)
-    # compute conditional probability calculation (put the result into self.endInfo)
+    '''
+      Compute conditional probability 
+    '''
     self.computeConditionalProbability()
-    # check if the branch reached the end of the probability bins provided by the user
-    
-    
-    # we create the input queue for all the branches must be run
+    '''
+      Create the inputs and put them in the runQueue dictionary
+    '''
     self.__createRunningQueue(model,myInput)
-    
     return
 
+  '''
+    Function to compute Conditional probability of the branches that are going to be run.
+    The conditional probabilities are stored in the self.endInfo object
+    @ In, index: position in the self.endInfo list (optional). Default = 0
+  '''
   def computeConditionalProbability(self,index=None):
     if not index:
       index = len(self.endInfo)-1
+    ''' parent_cond_pb = associated conditional probability of the Parent branch '''
     parent_cond_pb = 0.0  
     try:
       parent_cond_pb = self.endInfo[index]['parent_node'].get('conditional_pb')
@@ -316,7 +395,11 @@ class DynamicEventTree(Sampler):
         parent_cond_pb = 1.0
     except:
       parent_cond_pb = 1.0
-      
+    ''' 
+      for all the branches the conditional pb is computed 
+      unchanged_cond_pb = Conditional Probability of the branches in which the event has not occurred
+      changed_cond_pb   = Conditional Probability of the branches in which the event has occurred  
+    '''
     for key in self.endInfo[index]['branch_changed_params']:
        try:
          testpb = self.endInfo[index]['branch_changed_params'][key]['unchanged_pb']
@@ -445,7 +528,7 @@ class DynamicEventTree(Sampler):
 #           del values
 #           return
 #         else:
-        if not (self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']])):
+        if not (self.branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']])):
           values['initiator_distribution'] = [endInfo['branch_dist']]
           values['PbThreshold']            = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
         
