@@ -335,9 +335,9 @@ class DynamicEventTree(Sampler):
          if(unchanged_pb <= 1):
            endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
       else:
-         '''
-           Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
-         '''
+        '''
+          Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
+        '''
         if self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']])-1:
           pb = 1.0
         else:
