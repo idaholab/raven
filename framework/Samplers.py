@@ -165,7 +165,6 @@ class MonteCarlo(Sampler):
     self.counter += 1
     
     values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
-    valuse['changed_params':[self.distDict[key].]]
     #evaluate the distributions and fill values{}
     for key in self.distDict:
       values[key] = self.distDict[key].distribution.rvs()
