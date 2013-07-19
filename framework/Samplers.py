@@ -409,12 +409,21 @@ class DynamicEventTree(Sampler):
          pass
     return  
 
+  '''
+    Function to read the Branching info that comes from a Model
+    The branching info (for example, distribution that triggered, parameters must be changed, etc)
+    are supposed to be in a xml format
+    @ In, out_base: is the output root that, if present, is used to construct the file name the function is going
+                    to try reading.
+    @ Out, boolean: true if the info are present (a set of new branches need to be run), false if the actual parent calculation reached an end point
+  '''
   def __readBranchInfo(self,out_base=None):
-    # function for reading Branch Info from xml file
-
-    # we remove all the elements from the info container
+    
+    ''' Remove all the elements from the info container '''
+    
     del self.actualBranchInfo
     self.actualBranchInfo = {}
+    ''' Construct the file name adding the out_base root if present'''
     if out_base:
       filename = out_base + "_actual_branch_info.xml"
     else:
@@ -425,19 +434,25 @@ class DynamicEventTree(Sampler):
       print('branch info file' + filename +' has not been found. => No Branching.')
       branch_present = False
       return branch_present
+    
+    ''' Parse the file and create the xml element tree object'''
     try:
       branch_info_tree = ET.parse(filename)
     except:
       branch_info_tree = ET.parse(filename)
       raise IOError ('not able to parse ' + filename)
     root = branch_info_tree.getroot()
-
+    
+    ''' Check if end_time and end_ts (time step)  are present... In case store them in the relative working vars '''
     try:
       self.actual_end_time = float(root.attrib['end_time'])
       self.actual_end_ts   = int(root.attrib['end_ts'])
     except:
       pass
-
+    '''
+      Store the information in a dictionary that has as keywords the distributions that triggered
+    '''
+    
     for node in root:
       if node.tag == "Distribution_trigger":
         dist_name = node.attrib['name'].strip()
@@ -454,35 +469,58 @@ class DynamicEventTree(Sampler):
             self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb)) 
           except:
             pass
-      # we exit the loop here, because only one trigger at the time can be handled  right now   
+      ''' we exit the loop here, because only one trigger at the time can be handled  right now '''  
       break
-    # we remove the file
+    
+    ''' remove the file'''
     os.remove(filename)
 
     branch_present = True
     return branch_present 
-  
+  '''
+    Function to create and append new inputs to the queue. It uses all the containers have been updated by the previous functions
+    @ In, model  : Model instance. It can be a Code type, ROM, etc.
+    @ In, myInput: List of the original inputs
+    @ Out, None
+  '''
   def __createRunningQueue(self,model,myInput):
-    
+    ''' Check if the number of calculation that have been run is greater than 1. If so, the simulation is already in the tree '''
     if self.counter >= 1:
+      ''' Pop out the last endInfo information'''
       endInfo = self.endInfo.pop(0)
+      ''' n_branches = number of branches need to be run'''
       n_branches = endInfo['n_branches']
-      
-      if self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']]):
+      ''' 
+        Check if the distribution that just triggered hitted the last probability threshold . 
+        In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in 
+        which the event did not occur is not going to be tracked
+      '''
+      if self.branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
         print('Branch ' + endInfo['parent_node'].get('name') + 'hit last Threshold for distribution ' + endInfo['branch_dist']) 
         print('Branch ' + endInfo['parent_node'].get('name') + 'is dead end.')
         self.branchCountOnLevel = 1
         n_branches = endInfo['n_branches'] - 1
+      '''
+        Loop over the branches for which the inputs must be created
+      '''
       for i in xrange(n_branches):
         self.counter += 1
         self.branchCountOnLevel += 1
+        ''' Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter'''
         rname = endInfo['parent_node'].get('name') + ',' + str(self.branchCountOnLevel)
+        
+        ''' create a subgroup that will be appended to the parent element in the xml tree structure '''
         subGroup = ET.Element(rname)
         subGroup.set('parent', endInfo['parent_node'].get('name'))
         subGroup.set('name', rname)
-
+        ''' cond_pb_un = conditional probability event not occur '''
+        ''' cond_pb_c  = conditional probability event/s occur/s'''
         cond_pb_un = 0.0
-        cond_pb_c =0.0
+        cond_pb_c  = 0.0
+        '''
+          Loop over  branch_changed_params (events) and start storing information, 
+          such as conditional pb, variable values, into the xml tree object
+        '''
         for key in endInfo['branch_changed_params'].keys():
           subGroup.set('branch_changed_param',key)
           if self.branchCountOnLevel != 1:
@@ -499,15 +537,20 @@ class DynamicEventTree(Sampler):
               cond_pb_un =  cond_pb_un + endInfo['branch_changed_params'][key]['unchanged_cond_pb']
             except:
               pass
+
+        ''' add conditional probability'''
         if self.branchCountOnLevel != 1:
           subGroup.set('conditional_pb',cond_pb_c)
         else:
           subGroup.set('conditional_pb',cond_pb_un)
           
+        ''' add initiator distribution info, start time, etc. '''
         subGroup.set('initiator_distribution',endInfo['branch_dist']) 
         subGroup.set('start_time', endInfo['parent_node'].get('end_time'))
-        # we initialize the end_time to be equal to the start one... It will modified at the end of this branch
+        ''' 'we initialize the end_time to be equal to the start one... It will modified at the end of this branch '''
         subGroup.set('end_time', endInfo['parent_node'].get('end_time'))
+        
+        ''' branch calculation info... running, queue, etc are set here'''
         subGroup.set('runEnded',False)
         subGroup.set('running',False)
         subGroup.set('queue',True)
@@ -532,6 +575,9 @@ class DynamicEventTree(Sampler):
           values['PbThreshold']            = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
         
         # for the other distributions, we put the unbranched threshold
+        if not ('initiator_distribution' in values.keys()):
+          values['initiator_distribution'] = []
+          values['PbThreshold'           ] = []
         for key in self.distDict.keys():
           if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] <= len(self.branchProbabilities[key])):
             values['initiator_distribution'].append(key)

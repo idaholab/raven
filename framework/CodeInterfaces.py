@@ -66,12 +66,13 @@ class RavenInterface:
   def DynamicEventTreeForRAVEN(self,**Kwargs):
     listDict = []
     # Check the initiator distributions and add the next threshold
-    for i in xrange(len(Kwargs['initiator_distribution'])):
-      modifDict = {}
-      modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
-      modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
-      listDict.append(modifDict)
-      del modifDict
+    if 'initiator_distribution' in Kwargs.keys():
+      for i in xrange(len(Kwargs['initiator_distribution'])):
+        modifDict = {}
+        modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
+        modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
+        listDict.append(modifDict)
+        del modifDict
     # add the initial time for this new branch calculation
     if 'start_time' in Kwargs.keys():
       if Kwargs['start_time'] != 'Initial':
