@@ -713,10 +713,10 @@ class DynamicEventTree(Sampler):
           values['PbThreshold'           ] = []
         ''' Add the unbranched thresholds'''
         for key in self.distDict.keys():
-          if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] <= len(self.branchProbabilities[key])):
+          if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] < len(self.branchProbabilities[key])):
             values['initiator_distribution'].append(key)
         for key in self.branchProbabilities.keys():
-          if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] <= len(self.branchProbabilities[key])):
+          if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] < len(self.branchProbabilities[key])):
             values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
         '''
           Call the model function "createNewInput" with the "values" dictionary just filled.
