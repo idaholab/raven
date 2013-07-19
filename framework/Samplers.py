@@ -1,7 +1,7 @@
 '''
-Created on Mar 8, 2013
+Created on May 8, 2013
 
-@author: crisr
+@author: alfoa
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
@@ -24,24 +24,58 @@ class Sampler(BaseType):
   ''' this is the base class for samplers'''
   def __init__(self):
     BaseType.__init__(self)
+    ''' 
+      Counter of the samples performed
+    '''
     self.counter = 0
-    self.limit   = sys.maxsize # maximum number of Runs (i.e. Montecarlo = Number of Histories to run, DET = Unlimited)
+    ''' 
+      maximum number of Samples (for example, Montecarlo = Number of Histories to run, DET = Unlimited)
+    '''
+    self.limit   = sys.maxsize 
+    ''' 
+      Working directory (Path of the directory in which all the outputs,etc. are stored)
+    '''    
     self.workingDir = ""
-    self.toBeSampled = {}  #key=feature to be sampled, value = ['type of distribution to be used', 'name of the distribution']
-    self.distDict    = {}  #contain the instance of the distribution to be used, it is created every time the sampler is initialize
+    ''' 
+      Dictionary of sampling variables.
+      key=feature to be sampled, value = ['type of distribution to be used', 'name of the distribution']
+    '''     
+    self.toBeSampled = {}  
+    '''
+      Contains the instance of the distribution to be used, it is created every time the sampler is initialize
+    '''
+    self.distDict    = {}  
 
+  '''
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+  '''
   def readMoreXML(self,xmlNode):
     for child in xmlNode:
       self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']] 
-
+  '''
+    Function adds the initial parameter in a temporary dictionary
+    @ In, tempDict
+    @ Out, tempDict 
+  '''
   def addInitParams(self,tempDict):
     for value in self.toBeSampled.items():
       tempDict[value[0]] = value[1][0]+':'+value[1][1]
     tempDict['limit' ]        = self.limit
-
+  '''
+    Function adds the current settings in a temporary dictionary
+    @ In, tempDict
+    @ Out, tempDict 
+  '''
   def addCurrentSetting(self,tempDict):
     tempDict['counter' ] = self.counter    
-
+  '''
+    Function used to initialize the Latin Hyper Cube Sampler
+    @ In, None
+    @ Out, None
+  '''
   def initialize(self):
     self.counter = 0
 
@@ -80,12 +114,23 @@ class Sampler(BaseType):
     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
       newInputs.append(self.generateInput(model,myInput))
     return newInputs
-
+#
+#
+#
+'''
+  STOCHASTIC COLLOCATION Sampler 
+'''
 class StochasticCollocation(Sampler):
   def __init__(self):
     Sampler.__init__(self)
     self.min_poly_order = 0 #lowest acceptable polynomial order
     self.var_poly_order = dict() #stores poly orders for each var
+  '''
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+  '''
   def readMoreXML(self,xmlNode):
     # attempt to set minimum total function polynomial expansion order
     try: self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
@@ -106,7 +151,13 @@ class StochasticCollocation(Sampler):
         for key in r_keys: #ones that haven't been set yet
           self.var_poly_order['key']=int(round(0.5+r_order/(len(r_keys))))
     self.generateQuadrature() #FIXME is this where this should go?
-
+  '''
+    Function used to generate an input.
+    It returns the model.createNewInput() passing into it the type of sampler,
+    the values to be used and the some add info in the values dict
+    @ In, model: Model object instance
+    @ Out, myInputs: Original input files
+  '''
   def generateInput(self,model,myInput):
     self.counter+=1
     qps=self.quad.qps[self.counter-1]
@@ -142,27 +193,44 @@ class StochasticCollocation(Sampler):
     # also, is this the best implementation available?
     # also, how to make sure solns are indexed like multiquad?
     # also, dump distDict for good measure?
-
-
+#
+#
+#
+'''
+  MONTE CARLO Sampler 
+'''
 class MonteCarlo(Sampler):
   def __init__(self):
     Sampler.__init__(self)
     self.limit       = 0        #maximum number of samples it will perform every time it is used
     self.init_seed   = 0
-
+  '''
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+  '''
   def readMoreXML(self,xmlNode):
     try: self.init_seed    = xmlNode.attrib['initial_seed']
     except: self.init_seed = 0 
     try: self.limit    = xmlNode.attrib['limit']
     except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
+  '''
+    Function adds the initial parameter in a temporary dictionary
+    @ In, tempDict
+    @ Out, tempDict 
+  '''
   def addInitParams(self,tempDict):
     Sampler.addInitParams(self,tempDict)
     tempDict['initial seed' ] = self.init_seed
 
+  '''
+    Function used to generate an input 
+    @ In, model: Model object instance
+    @ Out, myInputs: Original input files
+  '''
   def generateInput(self,model,myInput):
-    '''returns the model.createNewInput() passing into it the type of sampler,
-       the values to be used and the some add info in the values dict'''
     self.counter += 1
     
     values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
@@ -170,31 +238,65 @@ class MonteCarlo(Sampler):
     for key in self.distDict:
       values[key] = self.distDict[key].distribution.rvs()
     return model.createNewInput(myInput,self.type,**values)
-
+#
+#
+#
+'''
+  LATIN HYPER CUBE Sampler 
+'''
 class LatinHyperCube(Sampler):
   '''implement a latin hyper cube approach only with random picking of the intervals'''
   def __init__(self):
     Sampler.__init__(self)
-    self.limit        = 0        #maximum number of sampler it will perform every time it is used
-    self.grid         = []       #is a list that for each point in the grid return a dictionary of the distributions where values are the bounds in terms of the random variate
-
+    '''
+      maximum number of sampler it will perform every time it is used 
+    '''
+    self.limit        = 0
+    ''' 
+      is a list that for each point in the grid return a dictionary of the 
+      distributions where values are the bounds in terms of the random variate 
+    '''
+    self.grid         = []       #
+  '''
+    Function adds the initial parameter in a temporary dictionary
+    @ In, tempDict
+    @ Out, tempDict 
+  '''
   def addInitParams(self,tempDict):
     Sampler.addInitParams(self,tempDict)
     tempDict['initial seed' ] = self.init_seed
-
+  '''
+    Function adds the current settings in a temporary dictionary
+    @ In, tempDict
+    @ Out, tempDict 
+  '''
   def addCurrentSetting(self,tempDict):
     i = 0
     for distribution in self.distDict.keys():
       tempDict['interval '+ int(i) + ', distribution ' +distribution+' is in range'] = self.grid[i].distBounds[distribution]
-
+  '''
+    Function used to initialize the Latin Hyper Cube Sampler
+    @ In, None
+    @ Out, None
+  '''
   def initialize(self):
+    ''' Initialize Sampler '''
     Sampler.initialize(self)
+    ''' Initialize the grid to have a size equal to the max number of samplings '''
     self.grid = [None]*self.limit
+    ''' Grep number of distributions for sampling '''
     nDimension = len(self.distDict)
     takenGlobal = np.zeros((self.limit,nDimension),ndmin=2,dtype=int)
+    ''' Create a list of the distributions' names '''
     distList = list(self.distDict.keys())
+    ''' 
+      Initialize the grid dictionary to a set of 
+      dictionaries with keys = distribution keys and 
+      a value container size of 2 (Lower and Upper bounds)
+    '''
     for i in range(self.grid):
       self.grid[i] = dict.fromkeys(self.distDict.keys(),[None]*2)
+    ''' Construct the grid'''
     for j in range(self.limit):
       for i in range(nDimension):
         placed = False
@@ -203,27 +305,45 @@ class LatinHyperCube(Sampler):
           if takenGlobal[indexInterval][i] == 0:
             takenGlobal[indexInterval][i] = 1
             distName = distList[i]
-            #if equally spaced do not use ppt
+            '''if equally spaced do not use ppt'''
             lowerBound = self.distDict[distName].ppt(float((indexInterval-1)/self.limit))
             upperBound = self.distDict[distName].ppt(float((indexInterval)/self.limit))
             self.grid[j].distBounds[distName] = [lowerBound,upperBound]
-
+  '''
+    Function used to generate an input.
+    It returns the model.createNewInput() passing into it the type of sampler,
+    the values to be used and the some add info in the values dict
+    @ In, model: Model object instance
+    @ Out, myInputs: Original input files
+  '''
   def generateInput(self,model,myInput):
-    '''returns the model.createNewInput() passing into it the type of sampler,
-       the values to be used and the some add info in the values dict'''
+    ''' increase the counter'''
     self.counter += 1
+    ''' 
+      Fill the values dictionary that will be passed into the model in order to create an input
+      In this dictionary the info for changing the original input is stored
+    '''    
     values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
-    #evaluate the distributions and fill values{}
+    ''''evaluate the distributions and put the results into values'''
     for key in self.distDict:
       upper = self.grid[self.counter][key][1]
       lower = self.grid[self.counter][key][1]
       values[key] = [self.distDict[key].distribution.rvsWithinbounds(lower,upper),lower,upper]
     return model.createNewInput(myInput,self.type,**values)
-
-   
+#
+#
+#
+'''
+  EQUALLY SPACED Sampler - TO BE IMPLEMENTED 
+'''
 class EquallySpaced(Sampler):
   pass
-
+#
+#
+#
+'''
+  DYNAMIC EVEN TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (ANDREA) :D
+'''
 class DynamicEventTree(Sampler):
   def __init__(self):
     Sampler.__init__(self)
@@ -607,10 +727,18 @@ class DynamicEventTree(Sampler):
         del values
     else:
       ''' 
-        The first DET calculation branch has already been run'
+        We construct the input for the first DET branch calculation'
       '''
+      ''' Increase the counter'''
       self.counter += 1
+      ''' 
+        The root name of the xml element tree is the starting name for all the branches 
+        (this root name = the user defined sampler name)
+      '''
       rname = self.TreeInfo.getroot().tag 
+      ''' 
+        Fill th values dictionary in
+      '''
       values = {'prefix':rname}
       values['initiator_distribution']     = []
       values['PbThreshold']                = []
@@ -624,6 +752,10 @@ class DynamicEventTree(Sampler):
       for key in self.branchProbabilities.keys():  
         values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
       if(self.maxSimulTime): values['end_time'] = self.maxSimulTime
+      '''
+        Call the model function "createNewInput" with the "values" dictionary just filled.
+        Add the new input path into the RunQueue system  
+      '''
       newInputs = model.createNewInput(myInput,self.type,**values)
       self.RunQueue['queue'].append(newInputs)
       self.RunQueue['identifiers'].append(values['prefix'])
@@ -631,21 +763,33 @@ class DynamicEventTree(Sampler):
       del newInputs
       
     return  
-  
+  '''
+    Function to get an input from the internal queue system
+    @ In, None  
+    @ Out, jobInput: First input in the queue 
+  '''
   def __getQueueElement(self):
     if len(self.RunQueue['queue']) == 0:
-      # there are no more runs must be run
-      # we set the self.limit == self.counter
-      # => the simulation ends
+      ''' 
+        There are no more runs must be run
+        we set the self.limit == self.counter
+        => the simulation ends
+      '''
       self.limit = self.counter
+      ''' 
+        If the user specified to print the xml representation of the calculation
+        Print it out
+      '''
       if self.print_end_xml:
         self.TreeInfo.write(self.name + "_xml_output_summary")
       return None
     else:
+      ''' Pop out the first input in queue'''
       jobInput = self.RunQueue['queue'].pop(0)
       id       = self.RunQueue['identifiers'].pop(0)
       #set running flags in self.TreeInfo
       root = self.TreeInfo.getroot()
+      ''' Update the run information flags'''
       if (root.tag == id):
         root.set('runEnded',False)
         root.set('running',True)
@@ -658,15 +802,31 @@ class DynamicEventTree(Sampler):
           subElm.set('queue',False)
 
     return jobInput
-    
+  '''
+    Function to generate a input. In this case it just calls 
+    the function '__getQueueElement' to retrieve the first input
+    in the queue
+    @ In, model    : Model object instance
+    @ In, myInput  : Original input files
+    @ Out, jobInput: First input in the queue 
+  '''
   def generateInput(self,model,myInput):
     if self.counter <= 1:
+      ''' If first branch input, create the queue '''
       self.__createRunningQueue(model, myInput)
+    ''' retrieve the input from the queue'''
     input = self.__getQueueElement()
     if not input:
+      ''' If no inputs are present in the queue => a branch is finished '''
       print("A Branch ended!!!!")
     return input
-    
+  '''
+    Function used to generate an input.
+    It returns the model.createNewInput() passing into it the type of sampler,
+    the values to be used and the some add info in the values dict
+    @ In, model: Model object instance
+    @ Out, myInputs: Original input files
+  '''
   def readMoreXML(self,xmlNode):
     elm = ET.Element(xmlNode.attrib['name'] + '_1')
     try:
@@ -675,19 +835,25 @@ class DynamicEventTree(Sampler):
       self.print_end_xml = (flag.lower() in ['true','t','yes','si','y','yeah','ja','da','oui','sic','perche no','avojia','certamente','dajie','divertimose'])
     except:
       self.print_end_xml = False
-    #elm.set('parent', 'root')
+      
     elm.set('name', xmlNode.attrib['name'] + '_1')
     elm.set('start_time', 0.0)
-    # we initialize the end_time to be equal to the start one... 
-    # It will modified at the end of this branch
+    ''' 
+      Initialize the end_time to be equal to the start one... 
+      It will modified at the end of each branch
+    '''
     elm.set('end_time', 0.0)
     elm.set('runEnded',False)
     elm.set('running',True)
     elm.set('queue',False)
-    # here we store all the info regarding the DET => we create the info for all the
-    # branchings and we store them
+    ''' 
+      Here it is stored all the info regarding the DET => we create the info for all the
+      branchings and we store them
+    '''
     self.TreeInfo = ET.ElementTree(elm)    
-    
+    '''
+      Read branching settings
+    '''
     childreen = xmlNode.find("BranchingSettings")
     try: self.maxSimulTime = childreen.attrib['maxSimulationTime']
     except: self.maxSimulTime = None
@@ -697,8 +863,11 @@ class DynamicEventTree(Sampler):
       bvalues = [float(x) for x in bv.split()]
       self.branchProbabilities[child.attrib['distName']] = bvalues
       self.branchedLevel[child.attrib['distName']]       = 0
-
-#function used to generate a Model class
+'''
+  function used to generate a Sampler class
+  @ In, Type : Sampler type
+  @ Out,Instance of the Specialized Sampler class
+'''
 def returnInstance(Type):
   base = 'Sampler'
   InterfaceDict = {}
