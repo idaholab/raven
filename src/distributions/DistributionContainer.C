@@ -43,6 +43,9 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
    else
      mooseError("Distribution with name " << name << " already exists");
 
+   _dist_by_trigger_status[name] = false;
+   _at_least_a_dist_triggered = false;
+
    _dist_by_type[type].push_back(dist);
 
 }
