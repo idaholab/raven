@@ -55,7 +55,8 @@ class Sampler(BaseType):
   def fillDistribution(self,availableDist):
     '''generate the instances of the distribution that will be used'''
     for key in self.toBeSampled.keys():
-      self.distDict[key] = availableDist[self.toBeSampled[key][1]].inDistr()
+      self.distDict[key] = availableDist[self.toBeSampled[key][1]]
+      self.distDict[key].inDistr()
     return
 
   def finalizeActualSampling(self,jobObject,model,myInput):
@@ -486,6 +487,11 @@ class DynamicEventTree(Sampler):
   def __createRunningQueue(self,model,myInput):
     ''' Check if the number of calculation that have been run is greater than 1. If so, the simulation is already in the tree '''
     if self.counter >= 1:
+      ''' 
+        The first DET calculation branch has already been run'
+      '''
+      
+      ''' Start the manipulation:'''
       ''' Pop out the last endInfo information'''
       endInfo = self.endInfo.pop(0)
       ''' n_branches = number of branches need to be run'''
@@ -549,46 +555,60 @@ class DynamicEventTree(Sampler):
         subGroup.set('start_time', endInfo['parent_node'].get('end_time'))
         ''' 'we initialize the end_time to be equal to the start one... It will modified at the end of this branch '''
         subGroup.set('end_time', endInfo['parent_node'].get('end_time'))
-        
         ''' branch calculation info... running, queue, etc are set here'''
         subGroup.set('runEnded',False)
         subGroup.set('running',False)
         subGroup.set('queue',True)
 #        subGroup.set('restartFileRoot',endInfo['restartRoot'])
+        ''' Append the new branch (subgroup) info to the parent_node in the xml tree object'''
         endInfo['parent_node'].append(subGroup)
         
+        ''' 
+          Fill the values dictionary that will be passed into the model in order to create an input
+          In this dictionary the info for changing the original input is stored
+        '''
         values = {'prefix':rname,'end_ts':endInfo['end_ts'],
                   'branch_changed_param':[subGroup.get('branch_changed_param')],
                   'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
                   'conditional_prb':[subGroup.get('conditional_pb')],
                   'start_time':endInfo['parent_node'].get('end_time'),
                   'parent_id':subGroup.get('parent')}
-#         if self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']]):
-#           #we set the threshold to 1.1 => no branch possible for this dist anymore.
-#           #values['PbThreshold'] = [1.1]
-#           # must be fixed... not ok here...even if it works
-#           del values
-#           return
-#         else:
+
+        ''' 
+          Check if the distribution that just triggered hitted the last probability threshold . 
+          In this case there is not a probability threshold that needs to be added in the input
+          for this particular distribution 
+        '''
         if not (self.branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']])):
           values['initiator_distribution'] = [endInfo['branch_dist']]
           values['PbThreshold']            = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
-        
-        # for the other distributions, we put the unbranched threshold
+        ''' 
+          For the other distributions, we put the unbranched thresholds
+          Before adding these thresholds, check if the keyword 'initiator_distribution' is present... 
+          (In the case the previous if statement is true, this keyword is not present yet
+          Add it otherwise 
+        '''
         if not ('initiator_distribution' in values.keys()):
           values['initiator_distribution'] = []
           values['PbThreshold'           ] = []
+        ''' Add the unbranched thresholds'''
         for key in self.distDict.keys():
           if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] <= len(self.branchProbabilities[key])):
             values['initiator_distribution'].append(key)
         for key in self.branchProbabilities.keys():
           if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] <= len(self.branchProbabilities[key])):
             values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
-        
+        '''
+          Call the model function "createNewInput" with the "values" dictionary just filled.
+          Add the new input path into the RunQueue system  
+        '''
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**values)))
         self.RunQueue['identifiers'].append(values['prefix'])
         del values
     else:
+      ''' 
+        The first DET calculation branch has already been run'
+      '''
       self.counter += 1
       rname = self.TreeInfo.getroot().tag 
       values = {'prefix':rname}
