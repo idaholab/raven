@@ -203,6 +203,15 @@ DistributionContainer::randGen(std::string DistAlias, double RNG){
      return -1.0;
 
 }
+std::string DistributionContainer::lastDistributionTriggered(){
+  if(atLeastADistTriggered()){
+    return _last_dist_triggered;
+  }
+  else{
+    return std::string("");
+  }
+};
+bool DistributionContainer::atLeastADistTriggered(){return _at_least_a_dist_triggered;};
 
 
 DistributionContainer & DistributionContainer::Instance() {

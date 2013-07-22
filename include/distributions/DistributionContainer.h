@@ -90,15 +90,8 @@ class DistributionContainer{
      // unfortunately there is no way (right now) to link a triggered distribution
      // to the variables that have been changed in consequence of the trigger
      // for now we assume to get the last one.
-     std::string lastDistributionTriggered(){
-       if(atLeastADistTriggered()){
-         return _last_dist_triggered;
-       }
-       else{
-         return std::string("");
-       }
-     };
-     bool atLeastADistTriggered(){return _at_least_a_dist_triggered;};
+     std::string lastDistributionTriggered();
+     bool atLeastADistTriggered();
 
      protected:
      std::map < std::string, int > _vector_pos_map;
