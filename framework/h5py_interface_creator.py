@@ -5,6 +5,7 @@ Created on Mar 25, 2013
 '''
 import numpy as np
 import h5py  as h5
+import os
 '''
   *************************
   *  HDF5 DATABASE CLASS  *
@@ -14,7 +15,7 @@ class hdf5Database:
     '''
     class to create a h5py (hdf5) database
     '''
-    def __init__(self,name, type, filename=None):
+    def __init__(self,name, type, databaseDir, filename=None):
       ''' 
         database name (i.e. arbitrary name).
         It is the database name that has been found in the xml input
@@ -42,6 +43,14 @@ class hdf5Database:
         self.onDiskFile = name + "_" + str(self.type) + ".h5" 
         self.fileExist  = False 
       '''
+        Database directory
+      '''
+      self.databaseDir =  databaseDir
+      ''' 
+        Create file name and path
+      '''
+      self.filenameAndPath = os.path.join(self.databaseDir,self.onDiskFile)
+      '''
         Is the file opened?
       ''' 
       self.fileOpen       = False
@@ -61,7 +70,8 @@ class hdf5Database:
         '''  
           self.h5_file_w is the HDF5 object. Open the database in "update" mode 
         '''
-        self.h5_file_w = self.openDataBaseW(self.onDiskFile,'r+')
+        ''' Open file'''
+        self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'r+')
         '''
           Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
           and the dictionary "self.allGroupEnds" based on the database that already exists
@@ -75,7 +85,7 @@ class hdf5Database:
         '''  
           self.h5_file_w is the HDF5 object. Open the database in "write only" mode 
         '''
-        self.h5_file_w = self.openDataBaseW(self.onDiskFile,'w')
+        self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'w')
         '''
           Add the root as first group
         '''
@@ -99,7 +109,7 @@ class hdf5Database:
       self.allGroupPaths = []
       self.allGroupEnds  = {}
       if not self.fileOpen:
-        self.h5_file_w = self.openDataBaseW(self.onDiskFile,'a')
+        self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'a')
       self.h5_file_w.visititems(self.__isGroup)
     '''
       Function to check if an object name is of type "group". If it is, the function stores 
@@ -403,7 +413,7 @@ class hdf5Database:
           path  = self.allGroupPaths[i]
           break      
       if not found:
-        raise Exception("ERROR: Group named " + nameTo + " not found in the HDF5 database" + self.onDiskFile)
+        raise Exception("ERROR: Group named " + nameTo + " not found in the HDF5 database" + self.filenameAndPath)
       else:
         ''' Split the path in order to create a list of the groups in this history '''
         listGroups = path.split("/")

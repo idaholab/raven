@@ -23,7 +23,7 @@ class PrintCSV:
       self.paramters.append(param) 
     return
 
-  def finalizeFilter(self,inObj,outObj):
+  def finalizeFilter(self,inObj,outObj,workingDir=None):
     # check the input type
     if(inObj.type == "HDF5"):
       endGroupNames = inObj.getEndingGroupNames()
@@ -52,6 +52,9 @@ class PrintCSV:
           splitted = outObj.split('.')
           addfile = splitted[0] + '_additional_info_' + hist + '.'+splitted[1]
           csvfilen = splitted[0] + '_' + hist + '.'+splitted[1]
+          if workingDir:
+            addfile = os.path.join(workingDir,addfile)
+            csvfilen = os.path.join(workingDir,csvfilen)
           with open(csvfilen, 'w') as csvfile, open(addfile, 'w') as addcsvfile:            
             np.savetxt(csvfile, histories[key][0], delimiter=",",header=headers,comments='history,' + hist +'\n')
             csvfile.write(' '+'\n')
@@ -156,7 +159,7 @@ class Plot:
     param = xmlNode.text
     return
   
-  def finalizeFilter(self,inObj,outObj):    
+  def finalizeFilter(self,inObj,outObj,workingDir=None):
     if(inObj.type == "HDF5"):
       endGroupNames = inObj.getEndingGroupNames()
       histories = {}

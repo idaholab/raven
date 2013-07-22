@@ -63,8 +63,17 @@ class SimpleRun(Step):
 
 class PostProcessing(Step):
   '''this class is used to perform post processing on data'''
+  def initializeStep(self,inDictionary):
+    Step.initializeStep(self,inDictionary)
   def takeAstep(self,inDictionary):
     '''main driver for a step'''
+    '''
+      Initialize the Step
+    '''
+    Step.initializeStep(self,inDictionary)
+    '''
+      Run the step
+    '''
     if 'Model' in inDictionary.keys():
       if inDictionary['Model'].type == 'Filter':
         for i in xrange(len(inDictionary['Input'])):

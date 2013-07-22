@@ -11,6 +11,7 @@ import numpy as np
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
+import os
 
 class DateBase(BaseType):
     '''
@@ -21,9 +22,14 @@ class DateBase(BaseType):
       '''
       Constructor
       '''
+      ''' Base Class'''
       BaseType.__init__(self)
+      ''' Database object'''
       self.database = None
-
+      ''' 
+        Database directory. Default = working directory.
+      '''
+      self.databaseDir = ''
     '''
       Function to read the portion of the xml input that belongs to this class
       and initialize some stuff based on the inputs got
@@ -31,7 +37,14 @@ class DateBase(BaseType):
       @ Out, None
     '''
     def readMoreXML(self,xmlNode):
-      pass
+      '''
+        Check if a directory has been provided
+      '''
+      try:
+        self.databaseDir = xmlNode.attrib['directory']
+      except:
+        self.databaseDir = os.path.join(os.getcwd(),'DataBaseStorage')
+      return
 
     '''
       Function that adds the initial parameter in a temporary dictionary
@@ -88,6 +101,7 @@ class HDF5(DateBase):
       @ Out, None
     '''
     def readMoreXML(self,xmlNode):
+      DateBase.readMoreXML(self, xmlNode)
       try:
         '''
           Read Type
@@ -100,17 +114,24 @@ class HDF5(DateBase):
       except:
         raise IOError('attribute type ' + 'for data set ' + self.name + 'not found')
       '''
+        Check if database directory exist, otherwise create it
+      '''
+      if not os.path.exists(self.databaseDir):
+        os.makedirs(self.databaseDir)
+  
+      '''
         Check if a filename has been provided
         if yes, we assume the user wants to load the data from there
         or update it
       '''
       try:
         file_name = xmlNode.attrib['filename']
-        self.database = h5Data(self.name,self.subtype,file_name)
+        self.database = h5Data(self.name,self.subtype,self.databaseDir,file_name)
         self.exist   = True
       except:
-        self.database = h5Data(self.name,self.subtype) 
+        self.database = h5Data(self.name,self.subtype,self.databaseDir) 
         self.exist   = False
+        
     '''
       Function that adds the initial parameter in a temporary dictionary
       @ In, tempDict

@@ -151,7 +151,7 @@ class Simulation:
     if self.runInfoDict['mode'] == 'pbs':
       self.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %SCRIPT_DIR%/remote_runner2.sh out_%CURRENT_ID% %WORKING_DIR% "+self.runInfoDict['precommand']
     self.jobHandler.initialize(self.runInfoDict)
-    
+
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''
     def prntDict(Dict):

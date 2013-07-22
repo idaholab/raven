@@ -14,6 +14,7 @@ import Datas
 import numpy as np
 from BaseType import BaseType
 import SupervisionedLearning 
+from Filters import *
 #import Postprocessors
 #import ROM interfaces
 
@@ -188,20 +189,27 @@ class Filter(Model):
     Model.__init__(self)
     self.input  = {}     # input source
     self.action = None   # action
- 
+    self.workingDir = ''
   def readMoreXML(self,xmlNode):
-    from Filters import *
-    
     Model.readMoreXML(self, xmlNode)
     self.interface = returnFilterInterface(self.subType)
     self.interface.readMoreXML(xmlNode)
+    
  
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
 
+  def reset(self,runInfoDict,inputFiles):
+    '''initialize some of the current setting for the runs and generate the working 
+       directory with the starting input files'''
+    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
+    runInfoDict['TempWorkingDir'] = self.workingDir
+    try: os.mkdir(self.workingDir)
+    except: print('warning current working dir '+self.workingDir+'already exists, this might imply deletion of present files')
+    return
   def run(self,inObj,outObj):
     '''run calls the interface finalizer'''
-    self.interface.finalizeFilter(inObj,outObj)
+    self.interface.finalizeFilter(inObj,outObj,self.workingDir)
 
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
