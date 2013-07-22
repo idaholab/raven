@@ -274,7 +274,6 @@ The main idea of this methodology is to let a system code (i.e., RELAP-7) determ
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:DETRavenApproach}
 RAVEN is now able to perform DET analysis through the newly developed module "\textbf{AN}alysis of \textbf{D}ynamic \textbf{RE}actor \textbf{A}ccident evolution" (ANDREA), that has been included in the RAVEN external Python manager. 
-%RAVEN is now able to perform Dynamic Event Tree analysis through the newly developed module``Raven DET'' (RDET), that has been included in the RAVEN external Python manager.
 
 Following the philosophy of the DET approach, this module lets RELAP-7 find the path of an accident sequence, in a probabilistic point of view. When the system achieves certain conditions that would lead to alternative accident ways (i.e. an event occurs), a sampler generates a new set of branches (new possible scenarios), associating for each a conditional probability.  
 
@@ -294,7 +293,6 @@ As can be inferred from above, RAVEN provides capabilities to:
 These main tasks are accomplished based on user specified branching and termination laws, model of the system in RELAP-7, probability assignment rules to accident sequences (either by inputed values or/and by distribution functions).
 The synergy among the different RAVEN modules gives to the package the flexibility to summarize all the state of art DET capabilities. 
 Indeed, as in similar tools~\cite{ADAPTHakobyan}, the RAVEN/ANDREA allows the user use different approaches for defying the branching logic:
-%Indeed, as in similar tools~\cite{ADAPTHakobyan}, the RAVEN/RDET allows the user use different approaches for defying the branching logic:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
