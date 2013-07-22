@@ -25,7 +25,7 @@ class Simulation:
   '''This is a class that contain all the object needed to run the simulation'''
   def __init__(self,inputfile,frameworkDir):
     self.debug=True
-    #this dictionary contains the general info to run the simulation
+    '''this dictionary contains the general info to run the simulation'''
     self.runInfoDict = {}
     self.runInfoDict['SimulationFile'    ] = inputfile
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts")
@@ -46,11 +46,13 @@ class Simulation:
     self.runInfoDict['precommand'        ] = ''
     self.runInfoDict['mode'              ] = ''
     self.runInfoDict['expectedTime'      ] = '10:00:00'
-    #the step to run the simulation in sequence
+    '''the step to run the simulation in sequence'''
     self.stepSequenceList = []
-    #there is one dictionary for each type in the simulation
-    #the keys in the dictionary are the user provided name for all the needed types
-    #they point to an instance of the class
+    '''
+      there is one dictionary for each type in the simulation
+      the keys in the dictionary are the user provided name for all the needed types
+      they point to an instance of the class
+    '''
     self.stepsDict         = {}
     self.dataDict          = {}
     self.samplersDict      = {}
@@ -60,12 +62,14 @@ class Simulation:
     self.dataBasesDict     = {}
     self.OutStreamsDict    = {}
     self.filesDict         = {} #this is different, it just return the absolute path of the file
-    #list of supported quequing software:
+    '''list of supported quequing software:'''
     self.knownQuequingSoftware = []
     self.knownQuequingSoftware.append('None')
     self.knownQuequingSoftware.append('PBS Professional')
-    #Class Dictionary
-    #when a new function is added to the simulation this dictionary need to be expanded
+    '''
+      Class Dictionary
+      when a new function is added to the simulation this dictionary need to be expanded
+    '''
     self.addWhatDict  = {}
     self.addWhatDict['Steps'         ] = Steps.returnInstance
     self.addWhatDict['Datas'         ] = Datas.returnInstance
@@ -75,7 +79,9 @@ class Simulation:
     self.addWhatDict['Distributions' ] = Distributions.returnInstance
     self.addWhatDict['DataBases'     ] = DataBases.returnInstance
     self.addWhatDict['OutStreams'    ] = OutStreams.returnInstance
-    #Mapping between a class type and the dictionary containing the instances for the simulation
+    '''
+      Mapping between a class type and the dictionary containing the instances for the simulation
+    '''
     self.whichDict = {}
     self.whichDict['Steps'        ] = self.stepsDict
     self.whichDict['Datas'        ] = self.dataDict
@@ -85,7 +91,7 @@ class Simulation:
     self.whichDict['RunInfo'      ] = self.runInfoDict
     self.whichDict['Files'        ] = self.filesDict
     self.whichDict['Distributions'] = self.DistributionsDict
-    self.whichDict['DataBases'     ] = self.dataBasesDict
+    self.whichDict['DataBases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.OutStreamsDict
     self.jobHandler = JobHandler()
   def XMLread(self,xmlNode):
@@ -98,6 +104,7 @@ class Simulation:
             if childChild.attrib['name'] != None:
               name = childChild.attrib['name']
               self.whichDict[Type][name] = self.addWhatDict[Type](childChild.tag)
+              ''' Call the object readXML function'''
               self.whichDict[Type][name].readXML(childChild)
 #              if self.debug: self.whichDict[Type][name].printMe()
             else: raise IOError('not found name attribute for one '+Type)
@@ -114,9 +121,9 @@ class Simulation:
           self.runInfoDict['WorkingDir'        ] = element.text
         else:
           self.runInfoDict['WorkingDir'        ] = os.path.abspath(element.text)
-      elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text
-      elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text
-      elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text
+      elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
+      elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
+      elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'ThreadingProcessor': self.runInfoDict['ThreadingProcessor'] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
       elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
@@ -124,12 +131,13 @@ class Simulation:
       elif element.tag == 'totNumbCores'      : self.runInfoDict['totNumbCores'      ] = int(element.text)
       elif element.tag == 'ParallelProcNumb'  : self.runInfoDict['ParallelProcNumb'  ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
-      elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
+      elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
+      elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text.strip()
       elif element.tag == 'mode'              : self.runInfoDict['mode'              ] = element.text.strip().lower()
-      elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text
+      elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','):
-          self.stepSequenceList.append(stepName)
+          self.stepSequenceList.append(stepName.strip())
       elif element.tag == 'Files':
         for fileName in element.text.split(','):
           self.filesDict[fileName] = fileName.strip()

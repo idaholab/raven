@@ -11,17 +11,61 @@ import Queue as queue
 import subprocess
 import os
 import signal
+import logging, logging.handlers
+import threading
 
 class ExternalRunner:
   def __init__(self,command,workingDir,output=None):
+    ''' Initialize command variable'''
     self.command    = command
+
     if    output!=None: 
       self.output = output
       self.identifier =  str(output).split("~")[1]
     else: 
       self.output = os.path.join(workingDir,'generalOut')
-    self.__workingDir = workingDir
+      self.identifier = 'generalOut'
+    ''' Initialize logger'''
+    #self.logger     = self.createLogger(self.identifier)
+    #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
     
+    self.__workingDir = workingDir
+
+  '''
+    Function to create a logging object
+    @ In, name: name of the logging object
+    @ Out, logging object 
+  '''
+  def createLogger(self,name):
+    return logging.getLogger(name)
+  '''
+    Function to create a logging object
+    @ In, logger_name     : name of the logging object
+    @ In, filename        : log file name (with path)
+    @ In, max_size        : maximum file size (bytes)
+    @ In, max_number_files: maximum number of files to be created
+    @ Out, None 
+  '''
+  def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
+    hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
+    logging.getLogger(logger_name).addHandler(hadler)
+    logging.getLogger(logger_name).setLevel(logging.INFO)
+    return 
+
+  '''
+    Function that logs every line received from the out stream
+    @ In, out_stream: output stream
+    @ In, logger    : the instance of the logger object
+    @ Out, logger   : the logger itself 
+  '''
+  def outStreamReader(self, out_stream):
+    while True:
+      line = out_stream.readline()
+      if len(line) == 0 or not line:
+        break
+      self.logger.info('%s', line)
+      #self.logger.debug('%s', line.srip())
+
   def isDone(self):
     self.__process.poll()
     if self.__process.returncode != None:
@@ -39,6 +83,11 @@ class ExternalRunner:
     localenv['PYTHONPATH'] = ''
     outFile = open(self.output,'w')
     self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
+    #self.__process = subprocess.Popen(self.command,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,cwd=self.__workingDir,env=localenv)
+    #self.thread = threading.Thread(target=self.outStreamReader, args=(self.__process.stdout,)) 
+    #self.thread.daemon = True
+    #self.thread.start()
+
     os.chdir(oldDir)
   
   def kill(self):

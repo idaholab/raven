@@ -13,11 +13,13 @@ class BaseType:
     self.type    = ''      # specific type within this class
 
   def readXML(self,xmlNode):
-    '''provide a basic reading capability from the xml input file
+    '''
+      provide a basic reading capability from the xml input file
        for what is common to all types in the simulation than calls readMoreXML
        that needs to be overloaded and used as API
        Each type supported by the simulation should have:
-       name (xml attribute), type (xml tag)'''
+       name (xml attribute), type (xml tag)
+    '''
     try:    self.name = xmlNode.attrib['name']
     except: raise IOError('not found name for a '+self.__class__.__name__)
     try: self.type = xmlNode.tag

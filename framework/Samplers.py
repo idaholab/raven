@@ -362,9 +362,11 @@ class DynamicEventTree(Sampler):
     '''
     self.branchProbabilities     = {}
     '''
-      Dictionary of the last probability bin level (position in the array) reached for each distribution ('distName':IntegerValue)
+      List of Dictionaries of the last probability bin level (position in the array) reached for each distribution ('distName':IntegerValue)
+      This container is a working dictionary. The branchedLevels are stored in the xml tree "self.TreeInfo" since they must track
+      the evolution of the dynamic event tree
     '''
-    self.branchedLevel           = {}
+    self.branchedLevel           = []
     '''
       Counter for the branch needs to be run after a calculation branched (it is a working variable)
     '''
@@ -436,6 +438,17 @@ class DynamicEventTree(Sampler):
     endInfo['branch_dist']            = list(self.actualBranchInfo.keys())[0]
     endInfo['branch_changed_params']  = self.actualBranchInfo[endInfo['branch_dist']]
     '''
+      Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
+    '''
+    if(jobObject.identifier == self.TreeInfo.getroot().tag):
+      endInfo['parent_node'] = self.TreeInfo.getroot()
+    else:
+      endInfo['parent_node'] = list(self.TreeInfo.getroot().iter(jobObject.identifier))[0]
+    
+    ''' get the branchedLevel dictionary '''
+    
+    branchedLevel = endInfo['parent_node'].get('branchedLevel')
+    '''
       Loop of the parameters that have been changed after a trigger gets activated
     '''
     for key in endInfo['branch_changed_params']:
@@ -459,19 +472,13 @@ class DynamicEventTree(Sampler):
         '''
           Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
         '''
-        if self.branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']])-1:
+        if branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']])-1:
           pb = 1.0
         else:
-          pb = self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]
+          pb = self.branchProbabilities[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]
         endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0 - pb
         endInfo['branch_changed_params'][key]['associated_pb'] = [pb]
-    '''
-      Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
-    '''
-    if(jobObject.identifier == self.TreeInfo.getroot().tag):
-      endInfo['parent_node'] = self.TreeInfo.getroot()
-    else:
-      endInfo['parent_node'] = list(self.TreeInfo.getroot().iter(jobObject.identifier))[0]  
+  
     self.branchCountOnLevel = 0
     '''
       set runEnded and running to true and false respectively
@@ -482,7 +489,15 @@ class DynamicEventTree(Sampler):
     '''
       The branchedLevel counter is updated
     '''
-    self.branchedLevel[endInfo['branch_dist']]       += 1
+    if branchedLevel[endInfo['branch_dist']] < len(self.branchProbabilities[endInfo['branch_dist']]):
+      branchedLevel[endInfo['branch_dist']]       += 1
+    '''
+      Append the parent branchedLevel (updated for the new branch/es) in the list tha contains them 
+      (it is needed in order to avoid overlapping among info coming from different parent calculations)
+      When this info is used, they are popped out
+    '''   
+    self.branchedLevel.append(branchedLevel)
+    
     '''
       Append the parent end info in the list tha contains them 
       (it is needed in order to avoid overlapping among info coming from different parent calculations)
@@ -612,7 +627,8 @@ class DynamicEventTree(Sampler):
       '''
       
       ''' Start the manipulation:'''
-      ''' Pop out the last endInfo information'''
+      ''' Pop out the last endInfo information and the branchedLevel'''
+      branchedLevel = self.branchedLevel.pop(0)
       endInfo = self.endInfo.pop(0)
       ''' n_branches = number of branches need to be run'''
       n_branches = endInfo['n_branches']
@@ -621,9 +637,9 @@ class DynamicEventTree(Sampler):
         In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in 
         which the event did not occur is not going to be tracked
       '''
-      if self.branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
-        print('Branch ' + endInfo['parent_node'].get('name') + 'hit last Threshold for distribution ' + endInfo['branch_dist']) 
-        print('Branch ' + endInfo['parent_node'].get('name') + 'is dead end.')
+      if branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
+        print('Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
+        print('Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
         self.branchCountOnLevel = 1
         n_branches = endInfo['n_branches'] - 1
       '''
@@ -633,7 +649,7 @@ class DynamicEventTree(Sampler):
         self.counter += 1
         self.branchCountOnLevel += 1
         ''' Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter'''
-        rname = endInfo['parent_node'].get('name') + ',' + str(self.branchCountOnLevel)
+        rname = endInfo['parent_node'].get('name') + ':' + str(self.branchCountOnLevel)
         
         ''' create a subgroup that will be appended to the parent element in the xml tree structure '''
         subGroup = ET.Element(rname)
@@ -673,8 +689,10 @@ class DynamicEventTree(Sampler):
         ''' add initiator distribution info, start time, etc. '''
         subGroup.set('initiator_distribution',endInfo['branch_dist']) 
         subGroup.set('start_time', endInfo['parent_node'].get('end_time'))
-        ''' 'we initialize the end_time to be equal to the start one... It will modified at the end of this branch '''
+        ''' initialize the end_time to be equal to the start one... It will modified at the end of this branch '''
         subGroup.set('end_time', endInfo['parent_node'].get('end_time'))
+        ''' add the branchedLevel dictionary to the subgroup'''
+        subGroup.set('branchedLevel', branchedLevel)
         ''' branch calculation info... running, queue, etc are set here'''
         subGroup.set('runEnded',False)
         subGroup.set('running',False)
@@ -699,9 +717,9 @@ class DynamicEventTree(Sampler):
           In this case there is not a probability threshold that needs to be added in the input
           for this particular distribution 
         '''
-        if not (self.branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']])):
+        if not (branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']])):
           values['initiator_distribution'] = [endInfo['branch_dist']]
-          values['PbThreshold']            = [self.branchProbabilities[endInfo['branch_dist']][self.branchedLevel[endInfo['branch_dist']]]]
+          values['PbThreshold']            = [self.branchProbabilities[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]]
         ''' 
           For the other distributions, we put the unbranched thresholds
           Before adding these thresholds, check if the keyword 'initiator_distribution' is present... 
@@ -713,11 +731,11 @@ class DynamicEventTree(Sampler):
           values['PbThreshold'           ] = []
         ''' Add the unbranched thresholds'''
         for key in self.distDict.keys():
-          if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] < len(self.branchProbabilities[key])):
+          if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])):
             values['initiator_distribution'].append(key)
         for key in self.branchProbabilities.keys():
-          if not (key in endInfo['branch_dist']) and (self.branchedLevel[key] < len(self.branchProbabilities[key])):
-            values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
+          if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])):
+            values['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
         '''
           Call the model function "createNewInput" with the "values" dictionary just filled.
           Add the new input path into the RunQueue system  
@@ -736,6 +754,10 @@ class DynamicEventTree(Sampler):
         (this root name = the user defined sampler name)
       '''
       rname = self.TreeInfo.getroot().tag 
+      '''
+        Get the initial branchedLevel dictionary (=> the list gets empty)
+      '''
+      branchedLevel = self.branchedLevel.pop(0)
       ''' 
         Fill th values dictionary in
       '''
@@ -750,7 +772,7 @@ class DynamicEventTree(Sampler):
       for key in self.distDict.keys():
         values['initiator_distribution'].append(key)
       for key in self.branchProbabilities.keys():  
-        values['PbThreshold'].append(self.branchProbabilities[key][self.branchedLevel[key]])
+        values['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
       if(self.maxSimulTime): values['end_time'] = self.maxSimulTime
       '''
         Call the model function "createNewInput" with the "values" dictionary just filled.
@@ -803,12 +825,12 @@ class DynamicEventTree(Sampler):
 
     return jobInput
   '''
-    Function to generate a input. In this case it just calls 
+    Function used to generate a input. In this case it just calls 
     the function '__getQueueElement' to retrieve the first input
     in the queue
     @ In, model    : Model object instance
     @ In, myInput  : Original input files
-    @ Out, jobInput: First input in the queue 
+    @ Out, input   : First input in the queue 
   '''
   def generateInput(self,model,myInput):
     if self.counter <= 1:
@@ -820,12 +842,12 @@ class DynamicEventTree(Sampler):
       ''' If no inputs are present in the queue => a branch is finished '''
       print("A Branch ended!!!!")
     return input
+
   '''
-    Function used to generate an input.
-    It returns the model.createNewInput() passing into it the type of sampler,
-    the values to be used and the some add info in the values dict
-    @ In, model: Model object instance
-    @ Out, myInputs: Original input files
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
   '''
   def readMoreXML(self,xmlNode):
     elm = ET.Element(xmlNode.attrib['name'] + '_1')
@@ -846,11 +868,7 @@ class DynamicEventTree(Sampler):
     elm.set('runEnded',False)
     elm.set('running',True)
     elm.set('queue',False)
-    ''' 
-      Here it is stored all the info regarding the DET => we create the info for all the
-      branchings and we store them
-    '''
-    self.TreeInfo = ET.ElementTree(elm)    
+
     '''
       Read branching settings
     '''
@@ -858,11 +876,27 @@ class DynamicEventTree(Sampler):
     try: self.maxSimulTime = childreen.attrib['maxSimulationTime']
     except: self.maxSimulTime = None
     Sampler.readMoreXML(self,childreen)
+    branchedLevel = {}
     for child in childreen:
       bv = child.attrib['BranchProbs']
       bvalues = [float(x) for x in bv.split()]
       self.branchProbabilities[child.attrib['distName']] = bvalues
-      self.branchedLevel[child.attrib['distName']]       = 0
+      branchedLevel[child.attrib['distName']]       = 0
+
+    ''' 
+      Append the branchedLevel dictionary in the proper list
+    '''
+    self.branchedLevel.append(branchedLevel)
+    ''' 
+      The dictionary branchedLevel is stored in the xml tree too. That's because
+      the advancement of the thresholds must follow the tree structure
+    '''
+    elm.set('branchedLevel', branchedLevel)
+    ''' 
+      Here it is stored all the info regarding the DET => we create the info for all the
+      branchings and we store them
+    '''
+    self.TreeInfo = ET.ElementTree(elm)          
 '''
   function used to generate a Sampler class
   @ In, Type : Sampler type
