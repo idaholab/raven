@@ -94,6 +94,7 @@ class Simulation:
     self.whichDict['DataBases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.OutStreamsDict
     self.jobHandler = JobHandler()
+
   def XMLread(self,xmlNode):
     '''read the general input info to set up the calculation environment'''
     for child in xmlNode:
@@ -109,10 +110,11 @@ class Simulation:
 #              if self.debug: self.whichDict[Type][name].printMe()
             else: raise IOError('not found name attribute for one '+Type)
         else: self.readRunInfo(child)
-      else: raise IOError('the '+child.tag+' is not among the known simulation components')
+      else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not os.path.exists(self.runInfoDict['WorkingDir']):
       os.makedirs(self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
+
   def readRunInfo(self,xmlNode):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
@@ -170,6 +172,7 @@ class Simulation:
     prntDict(self.OutStreamsDict)
     prntDict(self.addWhatDict)
     prntDict(self.whichDict)
+
   def run(self):
     '''run the simulation'''
     if self.debug: print('entering in the run')
@@ -182,6 +185,7 @@ class Simulation:
       inputDict['Output'] = []          #set the Output to an empty list
       for [key,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
 #        if self.debug: print(a+' is:')
+        #print([key,b,c,d])
         if key == 'Input':
           inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
