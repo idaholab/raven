@@ -180,6 +180,7 @@ class JobHandler:
         command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
         command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
         command = command.replace("%WORKING_DIR%",item.getWorkingDir())
+        command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
         item.command = command
         self.running[i] = item
         self.running[i].start()

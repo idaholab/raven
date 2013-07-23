@@ -17,7 +17,7 @@
 </RunInfo>
 
 <Models>
-    <Code name='MyRAVEN' type='RAVEN'>%SCRIPT_DIR%/../RAVEN-opt</Code>
+    <Code name='MyRAVEN' type='RAVEN'>%SCRIPT_DIR%/../RAVEN-%METHOD%</Code>
     <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
     <Filter name='Plot1' type='Plot'> 
       <historyID>ALL</historyID>
