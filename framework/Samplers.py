@@ -896,7 +896,8 @@ class DynamicEventTree(Sampler):
       Here it is stored all the info regarding the DET => we create the info for all the
       branchings and we store them
     '''
-    self.TreeInfo = ET.ElementTree(elm)          
+    self.TreeInfo = ET.ElementTree(elm)
+
 '''
   function used to generate a Sampler class
   @ In, Type : Sampler type

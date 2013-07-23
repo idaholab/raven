@@ -110,6 +110,8 @@ class Simulation:
             else: raise IOError('not found name attribute for one '+Type)
         else: self.readRunInfo(child)
       else: raise IOError('the '+child.tag+' is not among the known simulation components')
+    if not os.path.exists(self.runInfoDict['WorkingDir']):
+      os.makedirs(self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
   def readRunInfo(self,xmlNode):
     '''reads the xml input file for the RunInfo block'''
