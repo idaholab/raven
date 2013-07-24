@@ -55,7 +55,7 @@ if __name__ == '__main__':
                "-l","walltime="+simulation.runInfoDict["expectedTime"],
                "-l","place=free","-v",
                'COMMAND="python Driver.py '+inputFile+'"',
-               "./save_and_command2.sh"]
+               "../scripts/save_and_command2.sh"]
     os.chdir(workingDir)
     print(os.getcwd(),command)
     subprocess.call(command)
