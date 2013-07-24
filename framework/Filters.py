@@ -9,6 +9,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import Datas
 import numpy as np
+import os
 
 '''
   ********************************
@@ -70,6 +71,9 @@ class PrintCSV:
 #        splitted = outObj.split('.')
 #        addfile = splitted[0] + '_additional_info.' + splitted[1]
 #        with open(outObj, 'w') as csvfile, open(addfile, 'w') as addcsvfile:
+        ''' 
+          If file, split the strings and add the working directory if present
+        '''
         for key in histories:
           '''
             Loop over histories
@@ -90,9 +94,17 @@ class PrintCSV:
           try:
             hist = ''
             hist = key
-            hist = hist.replace(',','_') 
+            #hist = hist.replace(',','_') 
           except:
             hist = key
+          ''' 
+            If file, split the strings and add the working directory if present
+          '''
+          if workingDir:
+            if os.path.split(outObj)[1] == '':
+              outObj = outObj[:-1]
+            splitted_1 = os.path.split(outObj)
+            outObj = splitted_1[1]
           splitted = outObj.split('.')
           '''
             Create csv files' names

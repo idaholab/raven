@@ -205,7 +205,7 @@ class Filter(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except: print('warning current working dir '+self.workingDir+'already exists, this might imply deletion of present files')
+    except: print('warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
   def run(self,inObj,outObj):
     '''run calls the interface finalizer'''

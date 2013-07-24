@@ -70,10 +70,12 @@ class PostProcessing(Step):
     '''
       Initialize the Step
     '''
+    print('Intialize step PostProcessing')
     Step.initializeStep(self,inDictionary)
     '''
       Run the step
     '''
+    print('Run step PostProcessing')
     if 'Model' in inDictionary.keys():
       if inDictionary['Model'].type == 'Filter':
         for i in xrange(len(inDictionary['Input'])):
