@@ -59,6 +59,13 @@ if __name__ == '__main__':
     os.chdir(workingDir)
     print(os.getcwd(),command)
     subprocess.call(command)
+  elif simulation.runInfoDict['mode'] == 'pbs' and in_pbs:
+    #Figure out number of nodes and use for batchsize
+    nodefile = os.environ["PBS_NODEFILE"]
+    lines = open(nodefile,"r").readlines()
+    simulation.runInfoDict['batchSize'] = len(lines)
+    print("Using Nodefile to set batchSize:",simulation.runInfoDict['batchSize'])
+    simulation.run()
   else:
     ''' Run the simulation '''
     simulation.run()
