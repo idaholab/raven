@@ -62,22 +62,27 @@ class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
     #TODO can I accept distDict here?
-  def train(self,solns,distDict):
-    quad,self.distDict=pk.load(file('multiquad.pk','r'))
+  def train(self):
+    #quad,self.distDict=pk.load(file('multiquad.pk','r'))
     #FIXME need solns, a dict of soln values keyed on qps
 
     self.poly_coeffs={}
-    # loop over all possible combinations of expansion orders in each var
-    for ords in list(product(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
+    dictQpCoeffs=pk.load(file('SCweights.pk','r'))
+    for ords in dictQpCoeffs.keys():
       self.poly_coeffs[ords]=0
-      for qp in quad.indx_ord.keys(): #quadrature points
-        poly=wt=probNorm=1.
-        for v,var in enumerate(self.distDict):
-          poly*=self.distDict[var].quad().evNormPoly(ords[v],qp[v])
-          wt*=self.distDict[var].standardToActualWeight(qp2wt[qp[v]])
-          #TODO assumes standardToActualWeight is a linear transformation!
-          probNorm*=self.distDict[var].probNorm(qp[v])
-        self.poly_coeffs[ords]+=solns[qp]*wt*poly*probNorm
+      for qp in dictQpCoeffs[ords].keys():
+        self.poly_coeffs[ords]+=dictQpCoeffs[ords][qp]*soln[qp]
+    # loop over all possible combinations of expansion orders in each var
+    #for ords in list(product(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
+    #  self.poly_coeffs[ords]=0
+    #  for qp in quad.indx_ord.keys(): #quadrature points
+    #    poly=wt=probNorm=1.
+    #    for v,var in enumerate(self.distDict):
+    #      poly*=self.distDict[var].quad().evNormPoly(ords[v],qp[v])
+    #      wt*=self.distDict[var].standardToActualWeight(qp2wt[qp[v]])
+    #      #TODO assumes standardToActualWeight is a linear transformation!
+    #      probNorm*=self.distDict[var].probNorm(qp[v])
+    #    self.poly_coeffs[ords]+=solns[qp]*wt*poly*probNorm
   def evaluate(self,valDict):
     # valDict is dict of values to evaluate at, keyed on var
     tot=0

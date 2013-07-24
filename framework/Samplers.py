@@ -19,6 +19,7 @@ import numpy as np
 import cPickle as pk
 import Quadrature
 import Distributions
+from itertools import product as iterproduct
 
 class Sampler(BaseType):
   ''' this is the base class for samplers'''
@@ -136,9 +137,9 @@ class StochasticCollocation(Sampler):
       else:
         r_keys = set(self.distDict) - set(self.var_poly_order) #var orders not set yet
         r_order = min(len(r_keys),self.min_poly_order-sum(self.var_poly_order.values())) #min remaining order needed
-        for key in r_keys: #ones that haven't been set yet
+        for key in r_keys:
           self.var_poly_order['key']=int(round(0.5+r_order/(len(r_keys))))
-    self.generateQuadrature() #FIXME is this where this should go?
+    self.generateQuadrature()
     
   '''
     Function to read the portion of the xml input that belongs to this specialized class
@@ -147,7 +148,7 @@ class StochasticCollocation(Sampler):
     @ Out, None
   '''
   def readMoreXML(self,xmlNode):
-    #Sampler.readMoreXML(self,xmlNode)
+    #Sampler.readMoreXML(self,xmlNode) # overwritten
     # attempt to set minimum total function polynomial expansion order
     try: self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
     except: self.min_poly_order = 0
@@ -157,8 +158,9 @@ class StochasticCollocation(Sampler):
       self.toBeSampled[child.text]    = [child.attrib['type'],child.attrib['distName']] 
       self.var_poly_order[child.text] = int(child.attrib['poly_order'])
     
+    # won't work if there's no uncertain variables!
     if len(self.toBeSampled.keys()) == 0:
-      raise IOError('No Variables to sample')
+      raise IOError('No uncertain variables to sample!')
     
     return
   '''
@@ -169,41 +171,62 @@ class StochasticCollocation(Sampler):
     @ Out, myInputs: Original input files
   '''
   def generateInput(self,model,myInput):
-    self.counter+=1
-    qps=self.quad.qps[self.counter-1]
-    qp_index = self.quad.qp_index[qps]
-    values={'prefix':str(self.counter),'qp indices':str(qp_index)}
     try:
+      self.counter+=1
+      qps=self.quad.qps[self.counter-1]
+      qp_index = self.quad.qp_index[qps]
+      values={'prefix':str(self.counter),'qp indices':str(qp_index)}
       for var in self.distDict.keys():
         values[var]=self.distDict[var].standardToActualPoint(\
             qps[self.quad.indx_quads[self.distDict[var].quad()]])
-      # qps is a tuplself.branchedLevele of gauss quad points, so use the variable's distribution'
+      # qps is a tuple of gauss quad points, so use the variable's distribution'
       #   to look up the index for the right variable,
       #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
       # TODO we could also pass "var" as an argument to the quadrature to make indexing look a lot nicer
-    except StopIteration: raise 'No Gauss points left to iterate over!'
-    return model.createNewInput(myInput,self.type,**values)
+      return model.createNewInput(myInput,self.type,**values)
+    except StopIteration: raise 'No Gauss points to iterate over!'
+    except(KeyError,IndexError): print('No more quadrature points!')
 
   def generateQuadrature(self):
-#     quadDict={}
-#     quadDict[Distributions.Uniform().type]=Quadrature.Legendre
-#     quadDict[Distributions.Normal().type]=Quadrature.StatHermite
-#     #TODO need alpha and/or beta values for these two...todo?
-#     quadDict[Distributions.Gamma().type]=Quadrature.Laguerre
-#     quadDict[Distributions.Beta().type]=Quadrature.Jacobi
-#     
     quads=[]
     for var in self.distDict.keys():
       #TODO see above, this won't work for quads that need addl params
+      #  Example: Laguerre, Jacobi
       #  create a dict for addl params lists to *add to quadrature init call?
       #  this for sure works, even if it's empty!
       quads.append(self.distDict[var].bestQuad(self.var_poly_order[var]))
       self.distDict[var].setQuad(quads[-1],self.var_poly_order[var])
     self.quad=Quadrature.MultiQuad(quads)
-    pk.dump([self.quad,self.distDict],file('multiquad.pk','w')) #TODO needs to be cleaned up after use, as well...
+    #premake evNormPoly, stdToActualWeight, probnorm for coefficients
+    # this dictionary is keyed on the quadrature point tuple and is the product
+    #     of poly*wt*probNorm for each quadrature point tuple
+    dictQpCoeffs={}
+    for wt in self.quad.qp_weight.keys():
+      print(wt,self.quad.qp_weight[wt])
+    for ords in list(iterproduct(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
+      dictQpCoeffs[ords]={}
+      for qp in self.quad.indx_qp.values(): #quadrature points
+        dictQpCoeffs[ords][qp]=0
+        poly=wt=probNorm=1.
+        for v,var in enumerate(self.distDict):
+          actVar=self.distDict[var]
+          poly*=actVar.quad().evNormPoly(ords[v],qp[v])
+          # Note we this assumes standardToActualWeight is linear!
+          probNorm*=actVar.probability_norm(qp[v])
+        # already the product of weights for each var
+        wt=actVar.actual_weight(self.quad.qp_weight[qp])
+        dictQpCoeffs[ords][qp]=wt*poly*probNorm
+        # summing over each [qp]*soln[qp] will give poly_coeff[ords]
+
+    pk.dump(dictQpCoeffs,file('SCweights.pk','w')) #TODO needs to be cleaned up after use, as well...
+    # scipy.stats.<distribution> can't be serialized, so we have to XML it
+    #json.dump([self.distDict],file('multiquad.json','wb')) #TODO needs to be cleaned up after use, as well...
     # also, is this the best implementation available?
     # also, how to make sure solns are indexed like multiquad?
     # also, dump distDict for good measure?
+
+
+
   def fillDistribution(self,availableDist):
     '''generate the instances of the distribution that will be used'''
     self.availableDist = availableDist

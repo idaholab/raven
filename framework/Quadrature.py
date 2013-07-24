@@ -64,7 +64,7 @@ class Legendre(Quadrature):
     self.qps,self.wts = orth.p_roots(self.order) #points and weights from scipy
 
   def setDist(self):
-    self.dist=spst.uniform(-1,1) #associated distribution
+  #  self.dist=spst.uniform(-1,1) #associated distribution
     self.poly=sps.legendre #associated polynomials
 
   def evNormPoly(self,o,x):
@@ -79,7 +79,7 @@ class ShiftLegendre(Quadrature):
     self.qps,self.wts=orth.ps_roots(self.order)
 
   def setDist(self):
-    self.dist=spst.uniform(0,1)
+  #  self.dist=spst.uniform(0,1)
     self.poly=sps.sh_legendre
 
   def evNormPoly(self,o,x):
@@ -93,7 +93,7 @@ class Hermite(Quadrature):
     self.qps,self.wts = orth.h_roots(self.order)
 
   def setDist(self):
-    self.dist=spst.norm() #FIXME is this true?? exp(-x^2/<<2>>)
+  #  self.dist=spst.norm() #FIXME is this true?? exp(-x^2/<<2>>)
     self.poly=sps.hermite
 
   def evNormPoly(self,o,x):
@@ -108,7 +108,7 @@ class StatHermite(Quadrature):
     self.qps,self.wts = orth.he_roots(self.order)
 
   def setDist(self):
-    self.dist=spst.norm()
+  #  self.dist=spst.norm()
     self.poly=sps.hermitenorm
 
   def evNormPoly(self,o,x):
@@ -128,7 +128,7 @@ class Laguerre(Quadrature):
     self.qps,self.wts = orth.la_roots(self.order,self.alpha)
 
   def setDist(self):
-    self.dist=spst.gamma(self.alpha) #shift from [a,inf] to [0,inf]?
+  #  self.dist=spst.gamma(self.alpha) #shift from [a,inf] to [0,inf]?
     self.poly=sps.genlaguerre
 
   def evNormPoly(self,o,x):
@@ -147,7 +147,7 @@ class Jacobi(Quadrature):
     self.qps,self.wts = orth.j_roots(self.order,self.alpha,self.beta)
 
   def setDist(self):
-    self.dist=spst.beta(self.alpha,self.beta)
+  #  self.dist=spst.beta(self.alpha,self.beta)
     self.poly=sps.jacobi
 
   def evNormPoly(self,o,x):

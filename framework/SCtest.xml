@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>../te_stDriver</WorkingDir>
+    <Files>TMI_test_PRA_transient_less_w_DET.i,TMI_test_PRA_transient_less_w_MC.i,TMI_PRA_trans_MC_nofail_control.py,TMI_PRA_trans_DET_control.py,DET_histories_eqPb.csv,DET_histories_eqVar.csv,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i,DET_histories.csv</Files>
+    <Sequence>test_plot</Sequence>
+    <!--  -->
+    <batchSize>8</batchSize>
+    <!--<ParallelCommand></ParallelCommand>
+    <ParallelProcNumb></ParallelProcNumb>
+    <ThreadingCommand></ThreadingCommand>
+    <ThreadingProcessor></ThreadingProcessor>
+    <numNode></numNode>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+    <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
+</Models>
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1</mean>
+        <sigma>0.1</sigma>
+        <!--lowerBound>0</lowerBound-->
+        <!--upperBound>2</upperBound-->
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='auxBackUpTimeDist'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>    
+    <Normal name='Gauss2'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='CladFailureDist'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
+<!--         <lowerBound>0</lowerBound> This is not yet supported
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>  -->
+    </Triangular>
+</Distributions>
+
+
+<Samplers>
+  <MonteCarlo     name='RAVENmc6'  limit='800'>
+<!--    <Variable type ='Normal' distName='Gauss1'>pippo</Variable>-->
+      <Variable type ='Normal' distName='Gauss1'>power_CH1</Variable>
+  </MonteCarlo>
+      <StochasticCollocation name='SC' min_poly_order='2'>
+      <Variable type ='Normal' distName='Gauss1' poly_order='2'>power_CH1</Variable>
+      <Variable type ='Normal' distName='Gauss1' poly_order='2'>power_CH2</Variable>
+      <Variable type ='Normal' distName='Gauss1' poly_order='2'>power_CH3</Variable>
+      </StochasticCollocation>
+</Samplers>
+
+<Steps>
+    <MultiRun name='test_plot'>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_nofail_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+<!--        <Sampler type='Samplers'   subtype='MonteCarlo'      >RAVENmc6</Sampler>-->
+        <Sampler type='Samplers'   subtype='StochasticCollocation'>SC</Sampler>
+        <Output  type='OutStreams' subtype='Screen'          >testScreen</Output>
+    </MultiRun > 
+</Steps>
+<OutStreams>
+  <Screen name="testScreen">
+    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+  </Screen> 
+</OutStreams>
+
+<Datas>
+    <Histories name='stories'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+   <Histories name='stories_from_database'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+    <TimePointSet name='trainer'          time='end'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+    </TimePointSet>
+    <TimePoint    name='form3stories'     time='0.001'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePoint>
+    <TimePoint    name='form1story'       time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePoint>
+    <TimePointSet name='finalPbconverged' time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+    <TimePointSet name='finalLSconverged' time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+    <TimePointSet name='PbfromROM'        time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+</Datas>
+</Simulatio>
+
+
+
