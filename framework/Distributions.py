@@ -14,6 +14,7 @@ import numpy as np
 from BaseType import BaseType
 import scipy.special as polys
 from scipy.misc import factorial
+import Quadrature
 
 class Distribution(BaseType):
   ''' 
@@ -26,8 +27,15 @@ class Distribution(BaseType):
     self.upperBound       = 0.0
     self.lowerBound       = 0.0
     self.adjustmentType   = ''
+    self.bestQuad = None
     
   def readMoreXML(self,xmlNode):
+    try:
+      type = xmlNode.attrib['ExpansionQuadrature']
+      self.bestQuad = Quadrature.returnInstance(type)
+    except:
+      pass
+
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
@@ -76,6 +84,7 @@ class Uniform(Distribution):
     self.low = 0.0
     self.hi = 0.0
     self.type = 'Uniform'
+    self.bestQuad = Quadrature.Legendre
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
     try: self.low = float(xmlNode.find('low').text)
@@ -124,6 +133,7 @@ class Normal(Distribution):
     self.mean  = 0.0
     self.sigma = 0.0
     self.type = 'Normal'
+    self.bestQuad = Quadrature.StatHermite
 
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
@@ -170,6 +180,7 @@ class Gamma(Distribution):
     self.alpha = 0.0
     self.beta = 1.0
     self.type = 'Gamma'
+    self.bestQuad = Quadrature.Laguerre
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
     try: self.low = float(xmlNode.find('low').text)
@@ -211,6 +222,7 @@ class Beta(Distribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
+    self.bestQuad = Quadrature.Jacobi
     # TODO default to specific Beta distro?
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
@@ -247,6 +259,7 @@ class Triangular(Distribution):
     self.min  = 0.0
     self.max  = 0.0
     self.type = 'Triangular'
+    self.bestQuad = None
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
     try: self.apex = float(xmlNode.find('apex').text)

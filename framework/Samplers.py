@@ -125,21 +125,9 @@ class StochasticCollocation(Sampler):
     Sampler.__init__(self)
     self.min_poly_order = 0 #lowest acceptable polynomial order
     self.var_poly_order = dict() #stores poly orders for each var
-  '''
-    Function to read the portion of the xml input that belongs to this specialized class
-    and initialize some stuff based on the inputs got
-    @ In, xmlNode    : Xml element node
-    @ Out, None
-  '''
-  def readMoreXML(self,xmlNode):
-    # attempt to set minimum total function polynomial expansion order
-    try: self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
-    except: self.min_poly_order = 0
-    # attempt to set polynomial expansion order for individual params
-    for var in self.distDict.keys():
-      try:
-        self.var_poly_order[var] = int(xmlNode.attrib[var+'_poly_order'])
-      except: pass
+    self.availableDist = None #container of all available distributions
+  def initialize(self):
+    Sampler.initialize(self)
     # assign values to undefined order variables
     if self.min_poly_order>0:
       if len( set(self.var_poly_order) ^ set(self.distDict) )==0: #keys correspond exactly
@@ -151,6 +139,28 @@ class StochasticCollocation(Sampler):
         for key in r_keys: #ones that haven't been set yet
           self.var_poly_order['key']=int(round(0.5+r_order/(len(r_keys))))
     self.generateQuadrature() #FIXME is this where this should go?
+    
+  '''
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
+  '''
+  def readMoreXML(self,xmlNode):
+    #Sampler.readMoreXML(self,xmlNode)
+    # attempt to set minimum total function polynomial expansion order
+    try: self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
+    except: self.min_poly_order = 0
+    
+    # attempt to set polynomial expansion order for individual params
+    for child in xmlNode:
+      self.toBeSampled[child.text]    = [child.attrib['type'],child.attrib['distName']] 
+      self.var_poly_order[child.text] = int(child.attrib['poly_order'])
+    
+    if len(self.toBeSampled.keys()) == 0:
+      raise IOError('No Variables to sample')
+    
+    return
   '''
     Function used to generate an input.
     It returns the model.createNewInput() passing into it the type of sampler,
@@ -175,24 +185,32 @@ class StochasticCollocation(Sampler):
     return model.createNewInput(myInput,self.type,**values)
 
   def generateQuadrature(self):
-    quadDict={}
-    quadDict[Distributions.Uniform().type]=Quadrature.Legendre
-    quadDict[Distributions.Normal().type]=Quadrature.StatHermite
-    #TODO need alpha and/or beta values for these two...todo?
-    quadDict[Distributions.Gamma().type]=Quadrature.Laguerre
-    quadDict[Distributions.Beta().type]=Quadrature.Jacobi
+#     quadDict={}
+#     quadDict[Distributions.Uniform().type]=Quadrature.Legendre
+#     quadDict[Distributions.Normal().type]=Quadrature.StatHermite
+#     #TODO need alpha and/or beta values for these two...todo?
+#     quadDict[Distributions.Gamma().type]=Quadrature.Laguerre
+#     quadDict[Distributions.Beta().type]=Quadrature.Jacobi
+#     
     quads=[]
     for var in self.distDict.keys():
       #TODO see above, this won't work for quads that need addl params
       #  create a dict for addl params lists to *add to quadrature init call?
       #  this for sure works, even if it's empty!
-      quads.append(quadDict[self.distDict[var].type](self.var_poly_order[var]))
+      quads.append(self.distDict[var].bestQuad(self.var_poly_order[var]))
       self.distDict[var].setQuad(quads[-1],self.var_poly_order[var])
     self.quad=Quadrature.MultiQuad(quads)
     pk.dump([self.quad,self.distDict],file('multiquad.pk','w')) #TODO needs to be cleaned up after use, as well...
     # also, is this the best implementation available?
     # also, how to make sure solns are indexed like multiquad?
     # also, dump distDict for good measure?
+  def fillDistribution(self,availableDist):
+    '''generate the instances of the distribution that will be used'''
+    self.availableDist = availableDist
+    for key in self.toBeSampled.keys():
+      self.distDict[key] = availableDist[self.toBeSampled[key][1]]
+      self.distDict[key].inDistr()
+    return
 #
 #
 #
@@ -917,3 +935,5 @@ def returnInstance(Type):
   
   
   
+
+

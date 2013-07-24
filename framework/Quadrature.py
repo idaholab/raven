@@ -226,3 +226,17 @@ def part_ndenum(arr,lvl):
   idx=np.ndindex(arr.shape[:lvl])
   for i in idx:
     yield i,arr[i]
+
+
+def returnInstance(Type):
+  base = 'Quadrature'
+  InterfaceDict = {}
+  InterfaceDict['Legendre'       ] = Legendre
+  InterfaceDict['MultiQuad'      ] = MultiQuad
+  InterfaceDict['Jacobi'         ] = Jacobi
+  InterfaceDict['Laguerre'       ] = Laguerre
+  InterfaceDict['StatHermite'    ] = StatHermite
+  InterfaceDict['Hermite'        ] = Hermite
+  InterfaceDict['ShiftLegendre'  ] = ShiftLegendre  
+  try: return InterfaceDict[Type]()
+  except: raise NameError('not known '+base+' type '+Type)
