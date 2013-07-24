@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulatio>
 <RunInfo>
-    <WorkingDir>../play/revirD_tset</WorkingDir>
-    <Files>second,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i</Files>
+    <WorkingDir>../tests/framework/revirD_tset</WorkingDir>
+    <Files>second,TMI_test_PRA_transient_less_w.i,TMI_PRA_transient_less_w.py,sss.i</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>5</batchSize>
     <mode>pbs</mode>
@@ -93,17 +93,17 @@
 <Steps>
     <MultiRun name='FirstMRun'>
         <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.i</Input>
-        <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.py</Input>
+        <Input   type='Files'    subtype=''       >TMI_PRA_transient_less_w.py</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
         <Sampler type = 'Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
-        <DataSet type='DataSets' subtype=''            >testDataBase</DataSet>
-        <Output  type='DataSets' subtype='HDF5' >testDataBase</Output>
+        <DataBases type='DataBases' subtype=''        >testDataBase</DataBases>
+        <Output  type='DataBases' subtype='HDF5' >testDataBase</Output>
         <Output  type='Datas'    subtype='Histories' >stories</Output>
     </MultiRun >
 </Steps>
-<DataSets>
+<DataBases>
     <HDF5 name="testDataBase" type="MC"/> 
-</DataSets>
+</DataBases>
 <Datas>
     <Histories name='stories'>
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
