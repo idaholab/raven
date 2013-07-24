@@ -110,8 +110,8 @@ class JobHandler:
     self.submitDict['Internal'] = self.addInternal
     self.externalRunning        = []
     self.internalRunning        = []
-    self.running = []
-    self.queue = queue.Queue()
+    self.__running = []
+    self.__queue = queue.Queue()
     self.__nextId = 0
     self.__numSubmitted = 0
     
@@ -122,7 +122,7 @@ class JobHandler:
     if self.runInfoDict['ThreadingProcessor'] !=1:
       self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+self.runInfoDict['ThreadingProcessor']
     #initialize PBS
-    self.running = [None]*self.runInfoDict['batchSize']
+    self.__running = [None]*self.runInfoDict['batchSize']
 
   def addExternal(self,executeCommand,outputFile,workingDir):
     #probably something more for the PBS
@@ -132,23 +132,23 @@ class JobHandler:
     if self.threadingCommand !='':
       command +=self.threadingCommand+' '
     command += executeCommand
-    self.queue.put(ExternalRunner(command,workingDir,outputFile))
+    self.__queue.put(ExternalRunner(command,workingDir,outputFile))
     self.__numSubmitted += 1
 
   def isFinished(self):
-    if not self.queue.empty():
+    if not self.__queue.empty():
       return False
-    for i in range(len(self.running)):
-      if self.running[i] and not self.running[i].isDone():
+    for i in range(len(self.__running)):
+      if self.__running[i] and not self.__running[i].isDone():
         return False
     return True
 
   def howManyFreeSpots(self):
     cnt_free_spots = 0
-    if self.queue.empty():
-      for i in range(len(self.running)):
-        if self.running[i]:
-          if self.running[i].isDone():
+    if self.__queue.empty():
+      for i in range(len(self.__running)):
+        if self.__running[i]:
+          if self.__running[i].isDone():
             cnt_free_spots += 1
         else:
           cnt_free_spots += 1
@@ -156,22 +156,22 @@ class JobHandler:
     
 
   def getFinished(self, removeFinished=True):
-    #print("getFinished "+str(self.running)+" "+str(self.queue.qsize()))
+    #print("getFinished "+str(self.__running)+" "+str(self.__queue.qsize()))
     finished = []
-    for i in range(len(self.running)):
-      if self.running[i] and self.running[i].isDone():
-        finished.append(self.running[i])
+    for i in range(len(self.__running)):
+      if self.__running[i] and self.__running[i].isDone():
+        finished.append(self.__running[i])
         if removeFinished:
-          running = self.running[i]
+          running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
             print("Process Failed",running,running.command," returncode",returncode)
-          self.running[i] = None
-    if self.queue.empty():
+          self.__running[i] = None
+    if self.__queue.empty():
       return finished
-    for i in range(len(self.running)):
-      if self.running[i] == None and not self.queue.empty(): 
-        item = self.queue.get()          
+    for i in range(len(self.__running)):
+      if self.__running[i] == None and not self.__queue.empty(): 
+        item = self.__queue.get()          
         command = item.command
         command = command.replace("%INDEX%",str(i))
         command = command.replace("%INDEX1%",str(i+1))
@@ -182,8 +182,8 @@ class JobHandler:
         command = command.replace("%WORKING_DIR%",item.getWorkingDir())
         command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
         item.command = command
-        self.running[i] = item
-        self.running[i].start()
+        self.__running[i] = item
+        self.__running[i].start()
         self.__nextId += 1
 
     return finished
@@ -199,9 +199,9 @@ class JobHandler:
   
   def terminateAll(self):
     #clear out the queue
-    while not self.queue.empty():
-      self.queue.get()
-    for i in range(len(self.running)):
-      self.running[i].kill()
+    while not self.__queue.empty():
+      self.__queue.get()
+    for i in range(len(self.__running)):
+      self.__running[i].kill()
 
 
