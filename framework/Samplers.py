@@ -175,7 +175,7 @@ class StochasticCollocation(Sampler):
       values={'prefix':str(self.counter),'qp indices':str(qp_index)}
       for var in self.distDict.keys():
         values[var]=self.distDict[var].standardToActualPoint(\
-            qps[self.quad.indx_quads[self.distDict[var].quad()]])
+            qps[self.quad.index_quads[self.distDict[var].quad()]])
       # qps is a tuple of gauss quad points, so use the variable's distribution'
       #   to look up the index for the right variable,
       #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
@@ -738,9 +738,9 @@ class DynamicEventTree(Sampler):
       values = {'prefix':rname}
       values['initiator_distribution']     = []
       values['PbThreshold']                = []
-      values['branch_changed_param']       = ['None']
-      values['branch_changed_param_value'] = ['None']
-      values['start_time']                 = 'Initial'
+      values['branch_changed_param']       = [b'None']
+      values['branch_changed_param_value'] = [b'None']
+      values['start_time']                 = b'Initial'
       values['end_ts']                     = 0
       values['conditional_prb']            = [1.0]
       for key in self.distDict.keys():

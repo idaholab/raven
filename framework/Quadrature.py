@@ -199,7 +199,7 @@ class MultiQuad(Quadrature):
     #make set of dictionaries
     self.indx_qp=dict(zip(self.indices,self.qps))
     self.indx_weight=dict(zip(self.indices,self.wts))
-    self.qp_indx=dict(zip(self.qps,self.indices))
+    self.qp_index=dict(zip(self.qps,self.indices))
     self.qp_weight=dict(zip(self.qps,self.wts))
 
   def integrate(self,func,mult=1.0):

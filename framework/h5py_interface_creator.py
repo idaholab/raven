@@ -602,6 +602,10 @@ class hdf5Database:
           try:
             par = gb_attrs[0]["branch_changed_param"]
             attrs["branch_changed_param"]    = []
+          except:
+            pass
+          try:
+            par = gb_attrs[0]["conditional_prb"]
             attrs["conditional_prb"] = []
           except:
             pass
@@ -667,7 +671,7 @@ class hdf5Database:
           ''' 
             A number of groups' back have been inputted
             Follow the same strategy used above (filter = whole)
-            but stop at back(th) groups from group "name"
+            but stop at back(th) group starting from group "name"
           '''
           if is_number(filter):
             back = int(filter) + 1
