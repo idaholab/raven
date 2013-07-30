@@ -45,7 +45,8 @@ class RavenFramework(Tester):
     except:
       missing.append('matplotlib')
     if len(missing) > 0:
-      return (False,'skipped (Missing python modules: '+" ".join(missing)+')')
+      return (False,'skipped (Missing python modules: '+" ".join(missing)+
+              " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
     return (True, '')
 
   def processResults(self, moose_dir,retcode, options, output):
