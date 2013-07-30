@@ -10,7 +10,7 @@ if [ `echo $MODULEPATH | grep -c '/apps/projects/moose/modulefiles'` -eq 0 ]; th
 
 export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
 
-export -p | egrep -v '^declare -x PBS_'  > $PBS_O_WORKDIR/orig_export
+#export -p | egrep -v '^declare -x PBS_'  > $PBS_O_WORKDIR/orig_export
 
 which python
 echo $COMMAND
