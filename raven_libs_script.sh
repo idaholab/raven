@@ -3,7 +3,6 @@ BUILD_DIR=${BUILD_DIR:=$HOME/raven_libs/build}
 INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}
 mkdir -p $BUILD_DIR
 mkdir -p $INSTALL_DIR
-export PYTHONPATH=$INSTALL_DIR/lib/python2.7/site-packages/
 
 #hdf5
 cd $BUILD_DIR
@@ -30,6 +29,8 @@ tar -xvzf Cython-0.18.tar.gz
 cd Cython-0.18
 #Python works badly with mpicc and mpicxx
 (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
+
+export PYTHONPATH=`ls -d $INSTALL_DIR/*/python*/site-packages/`
 
 #numpy
 cd $BUILD_DIR
@@ -66,3 +67,5 @@ curl -L -O https://downloads.sourceforge.net/project/matplotlib/matplotlib/matpl
 tar -xvzf matplotlib-1.2.1.tar.gz
 cd matplotlib-1.2.1
 (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
+
+echo PYTHONPATH=$PYTHONPATH
