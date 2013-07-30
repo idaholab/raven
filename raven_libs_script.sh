@@ -1,3 +1,4 @@
+#!/bin/bash
 BUILD_DIR=${BUILD_DIR:=$HOME/raven_libs/build}
 INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}
 mkdir -p $BUILD_DIR
