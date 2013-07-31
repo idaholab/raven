@@ -21,6 +21,12 @@ else
 #numpy
 #no dependencies
     cd $BUILD_DIR
+    curl -O http://www.netlib.org/blas/blas.tgz
+    tar -xvzf blas.tgz
+    export BLAS_SRC=$BUILD_DIR/BLAS
+    curl -O http://www.netlib.org/lapack/lapack-3.4.2.tgz
+    tar -xvzf lapack-3.4.2.tgz
+    export LAPACK_SRC=$BUILD_DIR/lapack-3.4.2
     curl -L -O http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
     tar -xvzf numpy-1.7.0.tar.gz
     cd numpy-1.7.0
@@ -87,6 +93,24 @@ else
     curl -L -O http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
     tar -xvzf scipy-0.12.0.tar.gz
     cd scipy-0.12.0
+    patch -p1 << PATCH_SCIPY
+--- scipy-0.12.0/scipy/_build_utils/_fortran.py	2013-04-06 10:10:34.000000000 -0600
++++ scipy-0.12.0_mod/scipy/_build_utils/_fortran.py	2013-07-31 13:51:13.965027409 -0600
+@@ -16,8 +16,11 @@
+ 
+     libraries = info.get('libraries', '')
+     for library in libraries:
+-        if r_mkl.search(library):
+-            return True
++        try:
++            if r_mkl.search(library):
++                return True
++        except:
++            pass
+ 
+     return False
+ 
+PATCH_SCIPY
     (unset CC CXX F90 F77 FC; python setup.py install --prefix=$INSTALL_DIR)
 fi
 
