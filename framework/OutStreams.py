@@ -97,7 +97,8 @@ class OutStream(BaseType):
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
-    print('toLoadFrom :')
+
+    print('OUTSTREAM     : toLoadFrom :')
     print(toLoadFrom)
     
     self.toLoadFromList.append(toLoadFrom)
@@ -177,7 +178,9 @@ class ScreenPlot(OutStream):
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
-    print('toLoadFrom :')
+                
+           
+    print('FILTER SCREENPLOT: toLoadFrom :')
     print(toLoadFrom)
     '''
       Append loading object in the list

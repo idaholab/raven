@@ -37,7 +37,7 @@ class Model(BaseType):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step'''
     raise IOError('the model '+self.name+' that has no reset method' )
 
-  def train(self,trainingSet,*stepName):
+  def train(self,trainingSet,stepName):
     '''This needs to be over written if the model requires an initialization'''
     raise IOError('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
 
@@ -79,7 +79,8 @@ class Code(Model):
     '''extension of addInitParams for the Code(model)'''
     Model.addInitParams(self, tempDict)
     tempDict['executable']=self.executable
-
+  
+  
   def addCurrentSetting(self,originalDict):
     '''extension of addInitParams for the Code(model)'''
     originalDict['current working directory'] = self.workingDir
@@ -93,11 +94,12 @@ class Code(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except: print('warning current working dir '+self.workingDir+'already exists, this might imply deletion of present files')
+                   
+    except: print('MODEL CODE    : warning current working dir '+self.workingDir+'already exists, this might imply deletion of present files')
     for inputFile in inputFiles:
       shutil.copy(inputFile,self.workingDir)
-    print('original input files copied in the current working dir: '+self.workingDir)
-    print('files copied:')
+    print('MODEL CODE    : original input files copied in the current working dir: '+self.workingDir)
+    print('MODEL CODE    : files copied:')
     print(inputFiles)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
@@ -123,7 +125,7 @@ class Code(Model):
     #XXX what does this if block do?  Should it be a for loop and look thru the array?
     if self.currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    print('job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
+    print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
     return self.process
 
   def collectOutput(self,finisishedjob,output):
@@ -161,9 +163,13 @@ class ROM(Model):
         try: self.initializzationOptionDict[child.tag] = float(child.text)
         except: self.initializzationOptionDict[child.tag] = child.text
     self.test =  SupervisionedLearning.returnInstance(self.subType)
-    self.SupervisedEngine = self.test(**self.initializzationOptionDict)   
+    self.SupervisedEngine = self.test(**self.initializzationOptionDict)
+    #self.test.
     #self.SupervisedEngine = SupervisionedLearning.returnInstance(self.subType)(self.initializzationOptionDict) #create an instance of the ROM
-
+  
+  def addLoadingSource(self,loadFrom):
+    self.toLoadFrom = loadFrom
+  
   def addInitParams(self,originalDict):
     ROMdict = self.SupervisedEngine.returnInitialParamters()
     for key in ROMdict.keys():
@@ -176,6 +182,17 @@ class ROM(Model):
 
   def reset(self):
     self.SupervisedEngine.reset()
+
+  def train(self,trainingSet=None):
+    '''This needs to be over written if the model requires an initialization'''
+    #raise IOError('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
+    print('we are in train ROM')
+    #self.test.type
+    if trainingSet:
+      self.SupervisedEngine.train(trainingSet)
+    else:
+      self.SupervisedEngine.train(self.toLoadFrom)
+    return
 #  def run(self):
 #    return
 #  def collectOutput(self,collectFrom,storeTo):
@@ -206,7 +223,7 @@ class Filter(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except: print('warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
   def run(self,inObj,outObj):
     '''run calls the interface finalizer'''

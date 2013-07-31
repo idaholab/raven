@@ -92,7 +92,8 @@ class ExternalRunner:
   
   def kill(self):
     #In python 2.6 this could be self.process.terminate()
-    print("Terminating ",self.__process.pid,self.command)
+           
+    print("JOB HANDLER   : Terminating ",self.__process.pid,self.command)
     os.kill(self.__process.pid,signal.SIGTERM)    
 
   def getWorkingDir(self):
@@ -165,7 +166,7 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            print("Process Failed",running,running.command," returncode",returncode)
+            print("JOB HANDLER   : Process Failed",running,running.command," returncode",returncode)
           self.__running[i] = None
     if self.__queue.empty():
       return finished

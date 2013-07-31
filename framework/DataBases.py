@@ -168,7 +168,8 @@ class HDF5(DateBase):
     def addGroup(self,attributes,loadFrom):
       attributes["group"] = attributes['prefix']
       if(self.subtype != "MC" and self.subtype != "DET"):
-        print("type " + str(self.subtype) + " not implemented yet")
+        
+        print("DATABASE HDF5:  type " + str(self.subtype) + " not implemented yet")
         return
 
       self.database.addGroup(attributes["group"],attributes,loadFrom)

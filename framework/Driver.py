@@ -64,7 +64,8 @@ if __name__ == '__main__':
     nodefile = os.environ["PBS_NODEFILE"]
     lines = open(nodefile,"r").readlines()
     simulation.runInfoDict['batchSize'] = len(lines)
-    print("Using Nodefile to set batchSize:",simulation.runInfoDict['batchSize'])
+           
+    print("DRIVER        : Using Nodefile to set batchSize:",simulation.runInfoDict['batchSize'])
     simulation.run()
   else:
     ''' Run the simulation '''

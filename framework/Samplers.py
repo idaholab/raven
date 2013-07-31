@@ -574,7 +574,7 @@ class DynamicEventTree(Sampler):
     if not os.path.isabs(filename):
       filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
-      print('branch info file' + filename +' has not been found. => No Branching.')
+      print('SAMPLER ANDREA: branch info file' + filename +' has not been found. => No Branching.')
       branch_present = False
       return branch_present
     
@@ -640,8 +640,8 @@ class DynamicEventTree(Sampler):
       # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in 
       # which the event did not occur is not going to be tracked
       if branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
-        print('Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
-        print('Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
+        print('SAMPLER ANDREA: Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
+        print('SAMPLER ANDREA: Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
         self.branchCountOnLevel = 1
         n_branches = endInfo['n_branches'] - 1
       # Loop over the branches for which the inputs must be created
@@ -818,7 +818,7 @@ class DynamicEventTree(Sampler):
     input = self.__getQueueElement()
     if not input:
       # If no inputs are present in the queue => a branch is finished 
-      print("A Branch ended!!!!")
+      print("SAMPLER ANDREA: A Branch ended!!!!")
     return input
 
   def readMoreXML(self,xmlNode):

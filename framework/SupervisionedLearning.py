@@ -36,7 +36,7 @@ class superVisioned():
   def __init__(self,**kwargs):
     self.initializzationOptionDict = kwargs
 
-  def train(self):
+  def train(self,obj):
     '''override this method to train the ROM'''
     return
 
@@ -65,6 +65,7 @@ class StochasticPolynomials(superVisioned):
   def train(self,data):
     print('\n\n...Got to train() in StochPolys in SVL...\n')
     self.solns={}
+    
     attr={'history':None,'prefix':None}
     M=data.returnHistory(attr)
     # copying pattern from OutStreams.py, around line 120

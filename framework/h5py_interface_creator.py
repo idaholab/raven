@@ -122,8 +122,9 @@ class hdf5Database:
         self.allGroupPaths.append(name)
         try:
           self.allGroupEnds[name]  = obj.attrs["EndGroup"]
-        except:
-          print('not found attribute EndGroup in group ' + name + '.Set True.')
+        except: 
+
+          print('DATABASE HDF5 : not found attribute EndGroup in group ' + name + '.Set True.')
           self.allGroupEnds[name]  = True
     '''
       Function to add a group into the database
@@ -187,7 +188,8 @@ class hdf5Database:
           Create the group
         '''
         grp = self.h5_file_w.create_group(gname)
-        print('Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+                
+        print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
         '''
           Create dataset in this newly added group
         '''
@@ -313,7 +315,8 @@ class hdf5Database:
         '''
         self.allGroupEnds[parent_group_name] = False
         grp.attrs["EndGroup"]   = False
-        print('Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+               
+        print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
         '''
           Create the sub-group
         '''
