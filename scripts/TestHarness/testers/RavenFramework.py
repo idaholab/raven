@@ -55,5 +55,5 @@ class RavenFramework(Tester):
       if not os.path.exists(filename):
         missing.append(filename)
     if len(missing) > 0:
-      return ('CWD '+os.getcwd()+' Expected files not created '+" ".join(missing),output)
+      return ('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),output)
     return ('',output)
