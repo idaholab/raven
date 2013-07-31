@@ -20,7 +20,7 @@ class hdf5Database:
         database name (i.e. arbitrary name).
         It is the database name that has been found in the xml input
       '''
-      self.name       = name                           
+      self.name       = name
       '''  
         Database type :
         * MC  = MonteCarlo => Storing by a Parallel structure 
@@ -247,6 +247,18 @@ class hdf5Database:
           grp.attrs["end_timestep"] = attributes["end_ts"]
         except:
           ''' no branching information '''
+          pass        
+        try:
+          # quadrature points
+          grp.attrs["qps"] = attributes["qps"]
+        except:
+          # no quadrature point data
+          pass        
+        try:
+          # partial coefficients for stochastic collocation
+          grp.attrs["partialCoeffs"] = attributes["partialCoeffs"]
+        except:
+          # no partial coefficient data
           pass        
       else:
         ''' do something else '''

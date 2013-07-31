@@ -13,7 +13,7 @@ import shutil
 import Datas
 import numpy as np
 from BaseType import BaseType
-import SupervisionedLearning 
+import SupervisionedLearning
 from Filters import *
 #import Postprocessors
 #import ROM interfaces
@@ -24,7 +24,7 @@ class Model(BaseType):
   def __init__(self):
     BaseType.__init__(self)
     self.subType  = ''
-    self.runQueue = []  
+    self.runQueue = []
 
   def readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['type']
@@ -67,7 +67,7 @@ class Code(Model):
     !!!!generate also the code interface for the proper type of code!!!!'''
     import CodeInterfaces
     Model.readMoreXML(self, xmlNode)
-    try: 
+    try:
       self.executable = xmlNode.text
       abspath = os.path.abspath(self.executable)
       if os.path.exists(abspath):

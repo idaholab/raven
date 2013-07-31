@@ -175,7 +175,9 @@ class StochasticCollocation(Sampler):
       self.counter+=1
       qps=self.quad.qps[self.counter-1]
       qp_index = self.quad.qp_index[qps]
-      values={'prefix':str(self.counter),'qp indices':str(qps)}
+      values={'prefix'        :self.counter,
+              'qp indices'    :qps,
+              'partial coeffs':self.partCoeff[qps]}
       for var in self.distDict.keys():
         values[var]=self.distDict[var].actual_point(\
             qps[self.quad.dict_quads[self.distDict[var].quad()]])
@@ -207,13 +209,13 @@ class StochasticCollocation(Sampler):
     #premake evNormPoly, stdToActualWeight, probnorm for coefficients
     # this dictionary is keyed on the quadrature point tuple and is the product
     #     of poly*wt*probNorm for each quadrature point tuple
-    dictQpCoeffs={}
-    for wt in self.quad.qp_weight.keys():
-      print(wt,self.quad.qp_weight[wt])
-    for ords in list(iterproduct(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
-      dictQpCoeffs[ords]={}
-      for qp in self.quad.indx_qp.values(): #quadrature points
-        dictQpCoeffs[ords][qp]=0
+    self.partialCoeffs={}
+    #for wt in self.quad.qp_weight.keys():
+    #  print(wt,self.quad.qp_weight[wt])
+    for qp in self.quad.indx_qp.values(): #quadrature points
+      self.partialCoeffs[qp]={}
+      for ords in list(iterproduct(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
+        self.partialCoeffs[qp][ords]=0
         poly=wt=probNorm=1.
         for v,var in enumerate(self.distDict):
           actVar=self.distDict[var]
@@ -222,10 +224,27 @@ class StochasticCollocation(Sampler):
           probNorm*=actVar.probability_norm(qp[v])
         # already the product of weights for each var
         wt=actVar.actual_weight(self.quad.qp_weight[qp])
-        dictQpCoeffs[ords][qp]=wt*poly*probNorm
+        self.partialCoeffs[qp][ords]=wt*poly*probNorm
         # summing over each [qp]*soln[qp] will give poly_coeff[ords]
+    #self.partialCoeffs={}
+    #for wt in self.quad.qp_weight.keys():
+    #  print(wt,self.quad.qp_weight[wt])
+    #for ords in list(iterproduct(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
+    #  self.partialCoeffs[ords]={}
+    #  for qp in self.quad.indx_qp.values(): #quadrature points
+    #    self.partialCoeffs[ords][qp]=0
+    #    poly=wt=probNorm=1.
+    #    for v,var in enumerate(self.distDict):
+    #      actVar=self.distDict[var]
+    #      poly*=actVar.quad().evNormPoly(ords[v],qp[v])
+    #      # Note we this assumes standardToActualWeight is linear!
+    #      probNorm*=actVar.probability_norm(qp[v])
+    #    # already the product of weights for each var
+    #    wt=actVar.actual_weight(self.quad.qp_weight[qp])
+    #    self.partialCoeffs[ords][qp]=wt*poly*probNorm
+    #    # summing over each [qp]*soln[qp] will give poly_coeff[ords]
 
-    pk.dump(dictQpCoeffs,file('SCweights.pk','w')) #TODO needs to be cleaned up after use, as well...
+    pk.dump(self.partialCoeffs,file('SCweights.pk','w')) #TODO needs to be cleaned up after use, as well...
     # scipy.stats.<distribution> can't be serialized, so we have to XML it
     #json.dump([self.distDict],file('multiquad.json','wb')) #TODO needs to be cleaned up after use, as well...
     # also, is this the best implementation available?

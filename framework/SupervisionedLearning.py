@@ -66,23 +66,27 @@ class StochasticPolynomials(superVisioned):
     print('\n\n...Got to train() in StochPolys in SVL...\n')
     self.solns={}
     
-    attr={'history':None,'prefix':None}
-    M=data.returnHistory(attr)
-    # copying pattern from OutStreams.py, around line 120
-    # FIXME don't have self.toLoadFromList
-    endGroupNames = self.toLoadFromList[0].getEndingGroupNames()
-    for index in xrange(len(endGroupNames)):
-      #FIXME don't have self.alreadyRead
-      if not endGroupNames[index] in self.alreadyRead:
-        self.histories[endGroupNames[index]] = self.toLoadFromList[0].returnHistory({'history':endGroupNames[index],'filter':'whole'})
-        self.alreadyRead.append(endGroupNames[index])
+    if data.type=='hdf5':
+      attr={'history':None,'prefix':None}
+      M=data.returnHistory(attr)
+      # copying pattern from OutStreams.py, around line 120
+      # FIXME don't have self.toLoadFromList
+      endGroupNames = toLoadFromList[0].getEndingGroupNames()
+      for index in xrange(len(endGroupNames)):
+        #FIXME don't have self.alreadyRead
+        if not endGroupNames[index] in self.alreadyRead:
+          self.histories[endGroupNames[index]] = self.toLoadFromList[0].returnHistory({'history':endGroupNames[index],'filter':'whole'})
+          self.alreadyRead.append(endGroupNames[index])
 
-    self.poly_coeffs={}
-    dictQpCoeffs=pk.load(file('SCweights.pk','r'))
-    for ords in dictQpCoeffs.keys():
-      self.poly_coeffs[ords]=0
-      for qp in dictQpCoeffs[ords].keys():
-        self.poly_coeffs[ords]+=dictQpCoeffs[ords][qp]*soln[qp]
+      self.poly_coeffs={}
+      #dictQpCoeffs=pk.load(file('SCweights.pk','r')) take from hdf5
+      for ords in dictQpCoeffs.keys():
+        self.poly_coeffs[ords]=0
+        for qp in dictQpCoeffs[ords].keys():
+          self.poly_coeffs[ords]+=dictQpCoeffs[ords][qp]*soln[qp]
+    else:
+      print('Reading from non-HDF5 for StochPolys not supported yet...')
+    return
     # loop over all possible combinations of expansion orders in each var
     #for ords in list(product(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
     #  self.poly_coeffs[ords]=0
