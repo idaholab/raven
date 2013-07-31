@@ -21,7 +21,7 @@ else
 #numpy
 #no dependencies
     cd $BUILD_DIR
-    curl -O http://iweb.dl.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
+    curl -L -O http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
     tar -xvzf numpy-1.7.0.tar.gz
     cd numpy-1.7.0
     (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
@@ -84,7 +84,7 @@ else
 #scipy
 #depends on numpy
     cd $BUILD_DIR
-    curl -O http://iweb.dl.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
+    curl -L -O http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
     tar -xvzf scipy-0.12.0.tar.gz
     cd scipy-0.12.0
     (unset CC CXX F90 F77 FC; python setup.py install --prefix=$INSTALL_DIR)
