@@ -61,10 +61,20 @@ class superVisioned():
 class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
-    #TODO can I accept distDict here?
-  def train(self):
-    #quad,self.distDict=pk.load(file('multiquad.pk','r'))
-    #FIXME need solns, a dict of soln values keyed on qps
+    print('\n\n...Got to __init__ in StochPolys in SVL...\n')
+  def train(self,data):
+    print('\n\n...Got to train() in StochPolys in SVL...\n')
+    self.solns={}
+    attr={'history':None,'prefix':None}
+    M=data.returnHistory(attr)
+    # copying pattern from OutStreams.py, around line 120
+    # FIXME don't have self.toLoadFromList
+    endGroupNames = self.toLoadFromList[0].getEndingGroupNames()
+    for index in xrange(len(endGroupNames)):
+      #FIXME don't have self.alreadyRead
+      if not endGroupNames[index] in self.alreadyRead:
+        self.histories[endGroupNames[index]] = self.toLoadFromList[0].returnHistory({'history':endGroupNames[index],'filter':'whole'})
+        self.alreadyRead.append(endGroupNames[index])
 
     self.poly_coeffs={}
     dictQpCoeffs=pk.load(file('SCweights.pk','r'))

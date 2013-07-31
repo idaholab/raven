@@ -96,6 +96,7 @@ class MultiRun(Step):
     if 'Sampler' in inDictionary.keys(): self.maxNumberIteration = inDictionary['Sampler'].limit
     else: self.maxNumberIteration = 1
     print('limit to the number of simulation is: '+str(self.maxNumberIteration))
+    #FIXME this reports falsely if sampler.limit is set in sampler.initialize
 
   def takeAstep(self,inDictionary):
     '''this need to be fixed for the moment we branch for Dynamic Event Trees'''

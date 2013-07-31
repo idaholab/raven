@@ -33,11 +33,12 @@ class RavenInterface:
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
     newInputFiles = []
-    self.samplersDictionary                     = {}
-    self.samplersDictionary['MonteCarlo']       = self.MonteCarloForRAVEN
-    self.samplersDictionary['EquallySpaced']    = self.EquallySpacedForRAVEN
-    self.samplersDictionary['LatinHyperCube']   = self.LatinHyperCubeForRAVEN
-    self.samplersDictionary['DynamicEventTree'] = self.DynamicEventTreeForRAVEN
+    self.samplersDictionary                          = {}
+    self.samplersDictionary['MonteCarlo']            = self.MonteCarloForRAVEN
+    self.samplersDictionary['EquallySpaced']         = self.EquallySpacedForRAVEN
+    self.samplersDictionary['LatinHyperCube']        = self.LatinHyperCubeForRAVEN
+    self.samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForRAVEN
+    self.samplersDictionary['StochasticCollocation'] = self.StochasticCollocationForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
@@ -48,6 +49,16 @@ class RavenInterface:
     newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
     parser.printInput(newInputFiles[index])
     return newInputFiles
+
+  def StochasticCollocationForRAVEN(self,**Kwargs):
+    try: counter = Kwargs['prefix']
+    except: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
+    try: qps = Kwargs['qp indices']
+    except: raise IOError('a qp index is required for the StochColl sampler for RAVEN')
+    listDict = []
+    modifDict = {} #TODO what is this? What do I need in here?
+    modifDict['name']=['Distributions']
+    return listDict
 
   def MonteCarloForRAVEN(self,**Kwargs):
     try: counter = Kwargs['prefix']

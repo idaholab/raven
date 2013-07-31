@@ -64,7 +64,7 @@ class Sampler(BaseType):
     @ In, tempDict
     @ Out, tempDict 
     '''
-    tempDict['counter' ] = self.counter    
+    tempDict['counter' ] = self.counter
 
   def initialize(self):
     '''
@@ -135,6 +135,10 @@ class StochasticCollocation(Sampler):
         r_order = min(len(r_keys),self.min_poly_order-sum(self.var_poly_order.values())) #min remaining order needed
         for key in r_keys:
           self.var_poly_order['key']=int(round(0.5+r_order/(len(r_keys))))
+    self.limit=np.product(self.var_poly_order.values())-1
+    #TODO Shouldn't need to -1 here; where should it happen?
+    #tried to put it in Steps, MultiRun.initializeStep, set maxNumberIteration, didn't work.
+      
     self.generateQuadrature()
     
   def readMoreXML(self,xmlNode):
@@ -157,7 +161,6 @@ class StochasticCollocation(Sampler):
     # won't work if there's no uncertain variables!
     if len(self.toBeSampled.keys()) == 0:
       raise IOError('No uncertain variables to sample!')
-    
     return
 
   def generateInput(self,model,myInput):
@@ -172,17 +175,24 @@ class StochasticCollocation(Sampler):
       self.counter+=1
       qps=self.quad.qps[self.counter-1]
       qp_index = self.quad.qp_index[qps]
-      values={'prefix':str(self.counter),'qp indices':str(qp_index)}
+      values={'prefix':str(self.counter),'qp indices':str(qps)}
       for var in self.distDict.keys():
-        values[var]=self.distDict[var].standardToActualPoint(\
-            qps[self.quad.index_quads[self.distDict[var].quad()]])
+        values[var]=self.distDict[var].actual_point(\
+            qps[self.quad.dict_quads[self.distDict[var].quad()]])
       # qps is a tuple of gauss quad points, so use the variable's distribution'
       #   to look up the index for the right variable,
       #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
       # TODO we could also pass "var" as an argument to the quadrature to make indexing look a lot nicer
       return model.createNewInput(myInput,self.type,**values)
-    except StopIteration: raise 'No Gauss points to iterate over!'
-    except(KeyError,IndexError): print('No more quadrature points!')
+      #except StopIteration: raise 'No Gauss points to iterate over!'
+    except IndexError as e:
+      print('ran into',e)
+      print('counter =',self.counter)
+      if len(self.quad.qps) > 0:
+        print('No more quadrature points!')
+      else:
+        print('IOError({0}): {1}'.format(e.errno,e.strerror))
+        raise
 
   def generateQuadrature(self):
     quads=[]
@@ -221,8 +231,6 @@ class StochasticCollocation(Sampler):
     # also, is this the best implementation available?
     # also, how to make sure solns are indexed like multiquad?
     # also, dump distDict for good measure?
-
-
 
   def fillDistribution(self,availableDist):
     '''generate the instances of the distribution that will be used'''
@@ -866,16 +874,10 @@ def returnInstance(Type):
   '''
   base = 'Sampler'
   InterfaceDict = {}
-  InterfaceDict['MonteCarlo'       ] = MonteCarlo
-  InterfaceDict['LatinHyperCube'   ] = LatinHyperCube
-  InterfaceDict['EquallySpaced'    ] = EquallySpaced
-  InterfaceDict['DynamicEventTree' ] = DynamicEventTree
+  InterfaceDict['MonteCarlo'            ] = MonteCarlo
+  InterfaceDict['LatinHyperCube'        ] = LatinHyperCube
+  InterfaceDict['EquallySpaced'         ] = EquallySpaced
+  InterfaceDict['DynamicEventTree'      ] = DynamicEventTree
   InterfaceDict['StochasticCollocation' ] = StochasticCollocation
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
-  
-  
-  
-  
-
-

@@ -61,7 +61,7 @@ class OutStream(BaseType):
     if var.lower() == 'all':
       self.variables = ['all']
     else:
-      self.variables = var.split(',')  
+      self.variables = var.split(',')
       
     try:
       var = xmlNode.find('fileNameRoot').text
@@ -75,7 +75,7 @@ class OutStream(BaseType):
     @ Out, tempDict 
   '''
   def addInitParams(self,tempDict):
-    for i in range(len(self.variables)): 
+    for i in range(len(self.variables)):
       tempDict['Variables_'+str(i)] = self.variables[i]
     if self.fileNameRoot:
       tempDict['FileNameRoot'] = self.fileNameRoot

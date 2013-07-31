@@ -37,7 +37,7 @@ class Model(BaseType):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step'''
     raise IOError('the model '+self.name+' that has no reset method' )
 
-  def train(self,trainingSet,stepName):
+  def train(self,trainingSet,*stepName):
     '''This needs to be over written if the model requires an initialization'''
     raise IOError('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
 
@@ -182,6 +182,7 @@ class ROM(Model):
 #    storeTo.addOutput(collectFrom)
 #  def createNewInput(self,myInput,samplerType,**Kwargs):
 #    raise IOError('for this model the createNewInput has not yet being implemented')
+#  TODO how is ROM tied to Supervisioned Learning?  "train" method in Model isn't overwritten...
 
 class Filter(Model):
   '''Filter is an Action System. All the models here, take an input and perform an action'''
