@@ -3,7 +3,7 @@
 <RunInfo>
     <WorkingDir>./inputs</WorkingDir>
     <Files>TMI_test_PRA_transient_less_w_DET.i,TMI_test_PRA_transient_less_w_MC.i,TMI_PRA_trans_MC_nofail_control.py,TMI_PRA_trans_DET_control.py,DET_histories_eqPb.csv,DET_histories_eqVar.csv,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i,DET_histories.csv</Files>
-    <Sequence>test_plot</Sequence>
+    <Sequence>set_up_SC,create_ROM</Sequence>
     <!--  -->
     <batchSize>8</batchSize>
     <!--<ParallelCommand></ParallelCommand>
@@ -59,11 +59,11 @@
 <!--    <Variable type ='Normal' distName='Gauss1'>pippo</Variable>-->
       <Variable type ='Normal' distName='Gauss1'>power_CH1</Variable>
   </MonteCarlo>
-      <StochasticCollocation name='SC' min_poly_order='2'>
+  <StochasticCollocation name='SC' min_poly_order='2'>
       <Variable type ='Normal' distName='Gauss1' poly_order='2'>power_CH1</Variable>
       <Variable type ='Normal' distName='Gauss1' poly_order='2'>power_CH2</Variable>
       <Variable type ='Normal' distName='Gauss1' poly_order='2'>power_CH3</Variable>
-      </StochasticCollocation>
+  </StochasticCollocation>
 </Samplers>
 
 <Steps>
@@ -72,24 +72,24 @@
         <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_nofail_control.py</Input>
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
-        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input>
+        <!--Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input-->
         <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
 <!--        <Sampler type='Samplers'   subtype='MonteCarlo'      >RAVENmc6</Sampler>-->
         <Sampler type='Samplers'   subtype='StochasticCollocation'>SC</Sampler>
-        <Output  type='OutStreams' subtype='HDF5'          >SC_RUN</Output>
+        <Output  type='DataBases'   subtype='HDF5'          >SC_RUN</Output>
     </MultiRun > 
-    <Multirun name='create_ROM'>
-        <Input   type='Files'      subtype=''         >SC_RUN</Input>
+    <MultiRun name='create_ROM'>
+        <Input   type='Files'      subtype='HDF5'         >SC_RUN</Input>
         <ROM     type='Models'     subtype='StochasticCollocation'>SCrom</ROM>
-        <Output  type='OutStreams' subtype='HDF5'           >SC_OUT</Output>
-    </Multirun >
+        <Output  type='DataBases'   subtype='HDF5'           >SC_OUT</Output>
+    </MultiRun >
 
 </Steps>
-<OutStreams>
+<!--OutStreams>
   <Screen name="testScreen">
     <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
   </Screen> 
-</OutStreams>
+</OutStreams-->
 
 <DataBases>
   <HDF5 name='SC_RUN' type='MC'/>

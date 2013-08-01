@@ -105,7 +105,7 @@ class Simulation:
             if childChild.attrib['name'] != None:
               name = childChild.attrib['name']
               self.whichDict[Type][name] = self.addWhatDict[Type](childChild.tag)
-              ''' Call the object readXML function'''
+              # Call the object readXML function
               self.whichDict[Type][name].readXML(childChild)
 #              if self.debug: self.whichDict[Type][name].printMe()
             else: raise IOError('not found name attribute for one '+Type)
@@ -119,9 +119,9 @@ class Simulation:
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       print(element.tag)
-      if   element.tag == 'WorkingDir'        : 
+      if   element.tag == 'WorkingDir'        :
         temp_name = element.text
-        if os.path.isabs(temp_name):          
+        if os.path.isabs(temp_name):
           self.runInfoDict['WorkingDir'        ] = element.text
         else:
           self.runInfoDict['WorkingDir'        ] = os.path.abspath(element.text)
@@ -187,6 +187,8 @@ class Simulation:
 #        if self.debug: print(a+' is:')
         #print([key,b,c,d])
         if key == 'Input':
+          print('this:',b,d)
+          print(self.whichDict[b].keys())
           inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
         elif key == 'Output':
