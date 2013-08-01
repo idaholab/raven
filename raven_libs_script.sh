@@ -46,7 +46,7 @@ else
     curl -v -O http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
     tar -xvjf hdf5-1.8.11.tar.bz2
     cd hdf5-1.8.11
-    (unset CC CXX F90 F77 FC; ./configure --prefix=$INSTALL_DIR)
+    (CC=gcc CXX=g++ FC=gfortran ./configure --prefix=$INSTALL_DIR)
     make
     make install
 
