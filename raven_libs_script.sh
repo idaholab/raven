@@ -43,6 +43,7 @@ else
 #hdf5
 #no dependencies
     cd $BUILD_DIR
+    rm -Rvf hdf5-1.8.11
     curl -v -O http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
     tar -xvjf hdf5-1.8.11.tar.bz2
     cd hdf5-1.8.11
