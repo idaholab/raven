@@ -47,6 +47,7 @@ else
     tar -xvjf hdf5-1.8.11.tar.bz2
     cd hdf5-1.8.11
     (CC=gcc CXX=g++ FC=gfortran ./configure --prefix=$INSTALL_DIR)
+    cat config.log config.status
     make
     make install
 
