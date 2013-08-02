@@ -160,6 +160,69 @@ class RavenInterface:
     listDict = []
     return listDict
   
+class RelapInterface:
+  '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
+  def generateCommand(self,inputFiles,executable):
+    '''seek which is which of the input files and generate According the running command'''
+    if inputFiles[0].endswith('.i'): index = 0
+    else: index = 1
+    outputfile = 'outFrom~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    #   executeCommand will consist of a simple RELAP script that runs relap for inputfile
+    #   extracts data and stores in csv file format
+    executeCommand = (executable+' '+os.path.split(inputFiles[index])[1]+' ' + 
+    outputfile)
+    return executeCommand,outputfile
+
+  def appendLoadFileExtension(self,fileRoot):
+    '''  '''
+    return fileRoot + '.csv'
+
+
+  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+    '''this generate a new input file depending on which sampler is chosen'''
+    import RELAPparser
+    newInputFiles = []
+    self.samplersDictionary                     = {}
+    self.samplersDictionary['MonteCarlo']       = self.MonteCarloForRELAP
+    self.samplersDictionary['EquallySpaced']    = self.EquallySpacedForRELAP
+    self.samplersDictionary['LatinHyperCube']   = self.LatinHyperCubeForRELAP
+    self.samplersDictionary['DynamicEventTree'] = self.DynamicEventTreeForRELAP
+    if currentInputFiles[0].endswith('.i'): index = 0
+    else: index = 1
+    parser = RELAPparser.RELAPparser(currentInputFiles[index])
+    modifDict = self.samplersDictionary[samplerType](**Kwargs)
+    parser.modifyOrAdd(modifDict,True)
+    temp = str(oriInputFiles[index][:])
+    newInputFiles = copy.deepcopy(currentInputFiles)
+    newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+    parser.printInput(newInputFiles[index])
+    return newInputFiles
+    
+  def MonteCarloForRELAP(self,**Kwargs):
+    try: counter = Kwargs['prefix']
+    except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
+    listDict = []
+    modifDict = {}
+    for keys in Kwargs:
+      if 'position' in Kwargs[keys]:
+        modifDict[keys]=Kwargs[keys]
+    return modifDict
+    
+  def DynamicEventTreeForRELAP(self,**Kwargs):
+    raise IOError('DynamicEventTreeForRELAP not yet implemented')
+    listDict = []
+    return listDict
+
+  def EquallySpacedForRELAP(self,**Kwargs):
+    raise IOError('EquallySpacedForRAVEN not yet implemented')
+    listDict = []
+    return listDict
+  
+  def LatinHyperCubeForRELAP(self,**Kwargs):
+    raise IOError('LatinHyperCubeForRAVEN not yet implemented')
+    listDict = []
+    return listDict
+
   
 class ExternalTest:
   def generateCommand(self,inputFiles,executable):
@@ -175,6 +238,7 @@ def returnCodeInterface(Type):
   codeInterfaceDict = {}
   codeInterfaceDict['RAVEN'] = RavenInterface
   codeInterfaceDict['ExternalTest'] = ExternalTest
+  codeInterfaceDict['RELAP5'] = RelapInterface
   try: return codeInterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
 

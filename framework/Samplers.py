@@ -282,6 +282,12 @@ class MonteCarlo(Sampler):
     except: self.init_seed = 0 
     try: self.limit    = xmlNode.attrib['limit']
     except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+    #  stores variables for random sampling  added by nieljw to allow for RELAP5 
+    self.variables={}
+    for child in xmlNode:
+      self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']] 
+      try: self.toBeSampled[child.text].append(child.attrib['position'])
+      except: self.toBeSampled.append(0)   #append a default value of the position
 
   def addInitParams(self,tempDict):
     '''
@@ -303,7 +309,10 @@ class MonteCarlo(Sampler):
     values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
     #evaluate the distributions and fill values{}
     for key in self.distDict:
-      values[key] = self.distDict[key].distribution.rvs()
+       # modified by nieljw to sample values from distribution and create
+       # list values with position in RELAP5 file to be modified
+       value = self.distDict[key].distribution.rvs()
+       values[key]={'value':value,'position':self.toBeSampled[key][2]}
     return model.createNewInput(myInput,self.type,**values)
 #
 #
