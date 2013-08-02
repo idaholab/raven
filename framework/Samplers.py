@@ -289,7 +289,7 @@ class MonteCarlo(Sampler):
     for child in xmlNode:
       self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']] 
       try: self.toBeSampled[child.text].append(child.attrib['position'])
-      except: self.toBeSampled.append(0)   #append a default value of the position
+      except: self.toBeSampled[child.text].append(0)   #append a default value of the position
 
   def addInitParams(self,tempDict):
     '''
