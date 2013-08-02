@@ -29,11 +29,12 @@ class Step(BaseType):
       self.parList.append([child.tag,self.typeDict[child.tag],child.attrib['subtype'],child.text])
 
   def addInitParams(self,tempDict):
-    for List in self.parList: 
+    for List in self.parList:
       tempDict[List[0]] = List[1]+':'+List[2]+':'+List[3]
 
   def initializeStep(self,inDictionary):
     # cleaning up the model
+    print(inDictionary.keys())
     inDictionary['Model'].reset(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
     print('the model '+inDictionary['Model'].name+' has been reset')
 

@@ -3,7 +3,6 @@ import math
 import distribution1D
 import raventools
 # initialize distribution container
-distcont  = distribution1D.DistributionContainer.Instance()
 toolcont  = raventools.RavenToolsContainer.Instance()
 
 def initial_function(monitored, controlled, auxiliary):    
@@ -12,17 +11,6 @@ def initial_function(monitored, controlled, auxiliary):
 def control_function(monitored, controlled, auxiliary):
     #print(monitored,controlled,auxiliary)
     #we use aux var in order to keep track of variables' values must be transfered from a calculation to the others
-    if monitored.time_step == 1:
-        random_n_1 = distcont.random()
-        random_n_2 = distcont.random()
-        #Rand is different on different machines, therefore, this is hardcoded.
-        random_n_1 = 0.8401877171547095
-        random_n_2 = 0.39438292681909304
-        print("random_n_1 "+str(random_n_1)+" random_n_2 "+str(random_n_2))
-        auxiliary.DeltaTimeScramToAux = distcont.randGen('auxBackUpTimeDist',random_n_1)         
-        auxiliary.CladTempTresholdRNG = distcont.randGen('CladFailureDist',random_n_2)   
-        print("DeltaTimeScramToAux "+str(auxiliary.DeltaTimeScramToAux)+
-              " CladTempTresholdRNG "+str(auxiliary.CladTempTresholdRNG))
     
     if monitored.time>=(auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux) and auxiliary.ScramStatus: 
         auxiliary.AuxSystemUp =  True

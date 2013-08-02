@@ -130,10 +130,15 @@ class Code(Model):
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
-    if output.type == "HDF5":
-      self.__addDataBaseGroup(finisishedjob,output)
-    else:
-      output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
+    # TODO This errors if output doesn't have .type (csv for example)
+    try:
+      if output.type == "HDF5":
+        self.__addDataBaseGroup(finisishedjob,output)
+        return
+    except AttributeError:
+      pass
+    print('this:',output)
+    output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
     return
 
   def __addDataBaseGroup(self,finisishedjob,database):

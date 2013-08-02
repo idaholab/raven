@@ -187,8 +187,8 @@ class Simulation:
 #        if self.debug: print(a+' is:')
         #print([key,b,c,d])
         if key == 'Input':
-          print('this:',b,d)
-          print(self.whichDict[b].keys())
+          #print('this:',b,d)
+          #print(self.whichDict.keys())
           inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
         elif key == 'Output':

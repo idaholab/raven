@@ -53,11 +53,16 @@ class RavenInterface:
   def StochasticCollocationForRAVEN(self,**Kwargs):
     try: counter = Kwargs['prefix']
     except: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
-    try: qps = Kwargs['qp indices']
+    try: qps = Kwargs['qps']
     except: raise IOError('a qp index is required for the StochColl sampler for RAVEN')
     listDict = []
-    modifDict = {} #TODO what is this? What do I need in here?
-    modifDict['name']=['Distributions']
+    modifDict = {} #these are the sections modded in the .i file
+    names=Kwargs['vars'] #where do I actually get this?
+    print(names)
+    for i in xrange(len(Kwargs['qps'])):
+      modifDict['name']=names[i]
+      modifDict['value']=Kwargs['qps'][i]
+    listDict.append(modifDict)
     return listDict
 
   def MonteCarloForRAVEN(self,**Kwargs):

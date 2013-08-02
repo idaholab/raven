@@ -176,8 +176,9 @@ class StochasticCollocation(Sampler):
       qps=self.quad.qps[self.counter-1]
       qp_index = self.quad.qp_index[qps]
       values={'prefix'        :str(self.counter),
-              'qp indices'    :str(qps),
-              'partial coeffs':str(self.partCoeffs[qps])}
+              'qps'           :str(qps),
+              'partial coeffs':str(self.partCoeffs[qps]),
+              'vars'          :str(self.toBeSampled.keys())}
       for var in self.distDict.keys():
         values[var]=self.distDict[var].actual_point(\
             qps[self.quad.dict_quads[self.distDict[var].quad()]])
@@ -244,7 +245,7 @@ class StochasticCollocation(Sampler):
     #    self.partialCoeffs[ords][qp]=wt*poly*probNorm
     #    # summing over each [qp]*soln[qp] will give poly_coeff[ords]
 
-    pk.dump(self.partCoeffs,file('SCweights.pk','w')) #TODO needs to be cleaned up after use, as well...
+    #pk.dump(self.partCoeffs,file('SCweights.pk','w')) #TODO needs to be cleaned up after use, as well...
     # scipy.stats.<distribution> can't be serialized, so we have to XML it
     #json.dump([self.distDict],file('multiquad.json','wb')) #TODO needs to be cleaned up after use, as well...
     # also, is this the best implementation available?
