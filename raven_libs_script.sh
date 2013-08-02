@@ -158,4 +158,19 @@ fi
 update_python_path
 
 
+python <<PYTHON_SCRIPT
+l = ["numpy","h5py","scipy","sklearn","matplotlib"]
+found = []
+notfound = []
+for i in l:
+  try:
+    print __import__(i)
+    found.append(i)
+  except:
+    notfound.append(i)
+
+print "Found Modules: ",found
+print "Not Found Modules: ",notfound
+PYTHON_SCRIPT
+
 echo PYTHONPATH=$PYTHONPATH
