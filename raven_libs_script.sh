@@ -47,10 +47,16 @@ else
     curl -v -O http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
     tar -xvjf hdf5-1.8.11.tar.bz2
     cd hdf5-1.8.11
+    pwd; ls -l
     (CC=gcc CXX=g++ FC=gfortran ./configure --prefix=$INSTALL_DIR)
+    pwd; ls -l
     cat config.log config.status
+    pwd; ls -l
     make
+    pwd; ls -l
     make install
+    pwd; ls -l
+
 
 #cython
 #no dependencies
