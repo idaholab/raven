@@ -12,6 +12,7 @@ import copy
 import shutil
 import Datas
 import numpy as np
+import ast
 from BaseType import BaseType
 
 class RavenInterface:
@@ -56,13 +57,16 @@ class RavenInterface:
     try: qps = Kwargs['qps']
     except: raise IOError('a qp index is required for the StochColl sampler for RAVEN')
     listDict = []
-    modifDict = {} #these are the sections modded in the .i file
-    names=Kwargs['vars'] #where do I actually get this?
-    print(names)
-    for i in xrange(len(Kwargs['qps'])):
-      modifDict['name']=names[i]
-      modifDict['value']=Kwargs['qps'][i]
-    listDict.append(modifDict)
+    names = Kwargs['vars'] #come in as a string of a list, need to re-list
+    qps   = Kwargs['qps']
+    names = ast.literal_eval(names) #turns string of list/tuple into list
+    qps   = ast.literal_eval(qps)
+    for i in xrange(len(qps)):
+      modifDict={}
+      modifDict['name']=names[i].split(':')
+      modifDict['value']=qps[i]
+      listDict.append(modifDict)
+      del modifDict
     return listDict
 
   def MonteCarloForRAVEN(self,**Kwargs):

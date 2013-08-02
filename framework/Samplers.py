@@ -171,31 +171,32 @@ class StochasticCollocation(Sampler):
     @ In, model: Model object instance
     @ Out, myInputs: Original input files
     '''
-    try:
-      self.counter+=1
-      qps=self.quad.qps[self.counter-1]
-      qp_index = self.quad.qp_index[qps]
-      values={'prefix'        :str(self.counter),
-              'qps'           :str(qps),
-              'partial coeffs':str(self.partCoeffs[qps]),
-              'vars'          :str(self.toBeSampled.keys())}
-      for var in self.distDict.keys():
-        values[var]=self.distDict[var].actual_point(\
-            qps[self.quad.dict_quads[self.distDict[var].quad()]])
-      # qps is a tuple of gauss quad points, so use the variable's distribution'
-      #   to look up the index for the right variable,
-      #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
-      # TODO we could also pass "var" as an argument to the quadrature to make indexing look a lot nicer
-      return model.createNewInput(myInput,self.type,**values)
+    #try:
+    self.counter+=1
+    qps=self.quad.qps[self.counter-1]
+    qp_index = self.quad.qp_index[qps]
+    values={'prefix'        :str(self.counter),
+            'qps'           :str(qps),
+            'partial coeffs':str(self.partCoeffs[qps]),
+            'vars'          :str(self.toBeSampled.keys())}
+    for var in self.distDict.keys():
+      values[var]=self.distDict[var].actual_point(\
+          qps[self.quad.dict_quads[self.distDict[var].quad()]])
+    # qps is a tuple of gauss quad points, so use the variable's distribution'
+    #   to look up the index for the right variable,
+    #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
+    # TODO we could also pass "var" as an argument to the quadrature to make indexing look a lot nicer
+    return model.createNewInput(myInput,self.type,**values)
       #except StopIteration: raise 'No Gauss points to iterate over!'
-    except IndexError as e:
-      print('ran into',e)
-      print('counter =',self.counter)
-      if len(self.quad.qps) > 0:
-        print('No more quadrature points!')
-      else:
-        print('IOError({0}): {1}'.format(e.errno,e.strerror))
-        raise
+    #except IndexError as e:
+    #  print('ran into',e)
+    #  print('counter =',self.counter)
+    #  if len(self.quad.qps) > 0:
+    #    print('No more quadrature points!')
+    #    print(var)
+    #  else:
+    #    print('IOError({0}): {1}'.format(e.errno,e.strerror))
+    #    raise
 
   def generateQuadrature(self):
     quads=[]
@@ -256,6 +257,7 @@ class StochasticCollocation(Sampler):
     '''generate the instances of the distribution that will be used'''
     self.availableDist = availableDist
     for key in self.toBeSampled.keys():
+      print('Populating',key)
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]
       self.distDict[key].inDistr()
     return
