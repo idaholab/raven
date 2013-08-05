@@ -48,7 +48,7 @@ else
     tar -xvjf hdf5-1.8.11.tar.bz2
     cd hdf5-1.8.11
     pwd; ls -l
-    (CC=gcc CXX=g++ FC=gfortran ./configure --prefix=$INSTALL_DIR)
+    (unset CC CXX FC PARALLEL; ./configure --prefix=$INSTALL_DIR)
     pwd; ls -l
     echo "Before Make config.log Makefile config.status"
     cat config.log Makefile config.status
