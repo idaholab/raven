@@ -479,6 +479,7 @@ class hdf5Database:
           Parallel structure => "self.allGroupPaths" already contains the histories' paths
           No need to check the end group boolean flag
         '''
+        workingList = []
         for index in xrange(len(self.allGroupPaths)):
           test_list = self.allGroupPaths[index].split('/')
           workingList.append(test_list[len(test_list)-1])
