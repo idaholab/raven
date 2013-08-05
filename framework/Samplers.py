@@ -134,7 +134,7 @@ class StochasticCollocation(Sampler):
         r_keys = set(self.distDict) - set(self.var_poly_order) #var orders not set yet
         r_order = min(len(r_keys),self.min_poly_order-sum(self.var_poly_order.values())) #min remaining order needed
         for key in r_keys:
-          self.var_poly_order['key']=int(round(0.5+r_order/(len(r_keys))))
+          self.var_poly_order[key]=int(round(0.5+r_order/(len(r_keys))))
     self.limit=np.product(self.var_poly_order.values())-1
     #TODO Shouldn't need to -1 here; where should it happen?
     #tried to put it in Steps, MultiRun.initializeStep, set maxNumberIteration, didn't work.
