@@ -49,17 +49,17 @@ else
     cd hdf5-1.8.11
     pwd; ls -l
     (unset CC CXX FC PARALLEL; ./configure --prefix=$INSTALL_DIR)
-    pwd; ls -l
-    echo "Before Make config.log Makefile config.status"
-    cat config.log Makefile config.status
-    pwd; ls -l
-    echo "Make"
-    make -d
-    echo "After Make config.log Makefile config.status"
-    cat config.log Makefile config.status
-    pwd; ls -l
+    #pwd; ls -l
+    #echo "Before Make config.log Makefile config.status"
+    #cat config.log Makefile config.status
+    #pwd; ls -l
+    #echo "Make"
+    make 
+    #echo "After Make config.log Makefile config.status"
+    #cat config.log Makefile config.status
+    #pwd; ls -l
     make install
-    pwd; ls -l
+    #pwd; ls -l
 
 
 #cython

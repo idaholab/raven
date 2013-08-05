@@ -12,7 +12,7 @@ can be used.
 %INDEX% - 0 based index in list of running jobs.  Note that this is stable for the life of the job.  
 %INDEX1% - 1 based index in the list of running jobs, same as %INDEX%+1
 %CURRENT_ID% - 0 based id for the job handler.  This starts as 0, and increases for each job the job handler starts.
-$CURRENT_ID1% - 1 based id for the job handler, same as %CURRENT_ID%+1
+%CURRENT_ID1% - 1 based id for the job handler, same as %CURRENT_ID%+1
 %SCRIPT_DIR% - Expands to the full path of the script directory (raven/scripts)
 %FRAMEWORK_DIR% - Expands to the full path of the framework directory (raven/framework)
 %WORKING_DIR% - Expands to the working directory where the input is
