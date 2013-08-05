@@ -61,9 +61,7 @@ class superVisioned():
 class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
-    print('\n\n...Got to __init__ in StochPolys in SVL...\n')
   def train(self,data):
-    print('\n\n...Got to train() in StochPolys in SVL...\n')
     self.solns={}
     
     if data.type=='hdf5':

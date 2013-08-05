@@ -182,6 +182,7 @@ class StochasticCollocation(Sampler):
     for var in self.distDict.keys():
       values[var]=self.distDict[var].actual_point(\
           qps[self.quad.dict_quads[self.distDict[var].quad()]])
+      print(self.counter,'for var '+var+' set value',values[var])
     # qps is a tuple of gauss quad points, so use the variable's distribution'
     #   to look up the index for the right variable,
     #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
