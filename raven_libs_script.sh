@@ -54,7 +54,7 @@ else
     cat config.log config.status
     pwd; ls -l
     echo "Make"
-    make
+    make -d
     echo "After Make config.log config.status"
     cat config.log config.status
     pwd; ls -l
