@@ -11,6 +11,9 @@ if [ `echo $MODULEPATH | grep -c '/apps/projects/moose/modulefiles'` -eq 0 ]; th
 echo "$MODULEPATH"
 module load moose-dev-gcc pbs python/3.2
 
+#Disable MVAPICH2 sched_setaffinity
+export MV2_ENABLE_AFFINITY=0
+
 #cd $PBS_O_WORKDIR
 
 which python3
