@@ -50,13 +50,13 @@ else
     pwd; ls -l
     (CC=gcc CXX=g++ FC=gfortran ./configure --prefix=$INSTALL_DIR)
     pwd; ls -l
-    echo "Before Make config.log config.status"
-    cat config.log config.status
+    echo "Before Make config.log Makefile config.status"
+    cat config.log Makefile config.status
     pwd; ls -l
     echo "Make"
     make -d
-    echo "After Make config.log config.status"
-    cat config.log config.status
+    echo "After Make config.log Makefile config.status"
+    cat config.log Makefile config.status
     pwd; ls -l
     make install
     pwd; ls -l
