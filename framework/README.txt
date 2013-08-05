@@ -27,6 +27,10 @@ pbsdsh -v -n %INDEX1% -- %SCRIPT_DIR%/remote_runner2.sh out_%CURRENT_ID% %WORKIN
 %SCRIPT_DIR%/remote_runner2.sh is the command that is run, and %SCRIPT_DIR% allows the full path to be specified. 
 out_%CURRENT_ID% is used to specify a unique output file.  %WORKING_DIR% is used remotely to find the correct working directory.  
 
+Another example:
+strace -fo %WORKING_DIR%/strace_%CURRENT_ID% %SCRIPT_DIR%/../RAVEN-opt
+
+
 -- Running on Cluster --
 
 There are two methods of running on a cluster.  The first is to let

@@ -1,6 +1,8 @@
 #!/bin/bash
 BUILD_DIR=${BUILD_DIR:=$HOME/raven_libs/build}
 INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}
+PYTHON_CMD=${PYTHON_CMD:=python}
+JOBS=${JOBS:=1}
 mkdir -p $BUILD_DIR
 mkdir -p $INSTALL_DIR
 
@@ -14,7 +16,7 @@ update_python_path ()
     fi
 }
 
-if python -c 'import numpy'
+if $PYTHON_CMD -c 'import numpy'
 then 
     echo numpy module already built
 else
@@ -30,13 +32,13 @@ else
     curl -L -O http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
     tar -xvzf numpy-1.7.0.tar.gz
     cd numpy-1.7.0
-    (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
+    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
 
 update_python_path
 #export PYTHONPATH=`ls -d $INSTALL_DIR/*/python*/site-packages/`:"$ORIGPYTHONPATH"
 
-if python -c 'import h5py'
+if $PYTHON_CMD -c 'import h5py'
 then
     echo h5py module already built
 else
@@ -49,17 +51,8 @@ else
     cd hdf5-1.8.11
     pwd; ls -l
     (unset CC CXX FC PARALLEL; ./configure --prefix=$INSTALL_DIR)
-    #pwd; ls -l
-    #echo "Before Make config.log Makefile config.status"
-    #cat config.log Makefile config.status
-    #pwd; ls -l
-    #echo "Make"
-    make 
-    #echo "After Make config.log Makefile config.status"
-    #cat config.log Makefile config.status
-    #pwd; ls -l
+    make -j $JOBS
     make install
-    #pwd; ls -l
 
 
 #cython
@@ -69,7 +62,7 @@ else
     tar -xvzf Cython-0.18.tar.gz
     cd Cython-0.18
 #Python works badly with mpicc and mpicxx
-    (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
+    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 
 #h5py
 #depends on numpy, hdf5, cython
@@ -90,12 +83,12 @@ else
          COMPILER_SETTINGS['include_dirs'] += ['/opt/local/include']
          COMPILER_SETTINGS['library_dirs'] += ['/opt/local/lib']
 PATCH_SETUP
-    (unset CC CXX; python setup.py build --hdf5=$INSTALL_DIR)
-    (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)  
+    (unset CC CXX; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
+    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)  
 fi
 
 
-if python -c 'import scipy'
+if $PYTHON_CMD -c 'import scipy'
 then
     echo scipy module already built
 else
@@ -123,12 +116,12 @@ else
      return False
  
 PATCH_SCIPY
-    (unset CC CXX F90 F77 FC; python setup.py install --prefix=$INSTALL_DIR)
+    (unset CC CXX F90 F77 FC; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
 
 update_python_path
 
-if python -c 'import sklearn'
+if $PYTHON_CMD -c 'import sklearn'
 then
     echo sklearn module already built
 else
@@ -138,10 +131,10 @@ else
     curl -O https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
     tar -xvzf scikit-learn-0.13.1.tar.gz
     cd scikit-learn-0.13.1
-    (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
+    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
 
-if python -c 'import matplotlib'
+if $PYTHON_CMD -c 'import matplotlib'
 then 
     echo matplotlib module already built
 else
@@ -152,7 +145,7 @@ else
     tar -xvjf freetype-2.4.12.tar.bz2
     cd freetype-2.4.12
     (unset CC CXX; ./configure --prefix=$INSTALL_DIR)
-    make
+    make -j $JOBS
     make install
 
 #matplotlib
@@ -161,26 +154,27 @@ else
     curl -L -O https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz
     tar -xvzf matplotlib-1.2.1.tar.gz
     cd matplotlib-1.2.1
-    (unset CC CXX; python setup.py install --prefix=$INSTALL_DIR)
+    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
     
 fi
 
 update_python_path
 
 
-python <<PYTHON_SCRIPT
+$PYTHON_CMD <<PYTHON_SCRIPT
+from __future__ import print_function
 l = ["numpy","h5py","scipy","sklearn","matplotlib"]
 found = []
 notfound = []
 for i in l:
   try:
-    print __import__(i)
+    print(__import__(i))
     found.append(i)
   except:
     notfound.append(i)
 
-print "Found Modules: ",found
-print "Not Found Modules: ",notfound
+print("Found Modules: ",found)
+print("Not Found Modules: ",notfound)
 PYTHON_SCRIPT
 
-echo PYTHONPATH=$PYTHONPATH
+echo $PYTHON_CMD PYTHONPATH=$PYTHONPATH
