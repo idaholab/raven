@@ -5,6 +5,7 @@ PYTHON_CMD=${PYTHON_CMD:=python}
 JOBS=${JOBS:=1}
 mkdir -p $BUILD_DIR
 mkdir -p $INSTALL_DIR
+DOWNLOADER='curl -C - -L -O '
 
 ORIGPYTHONPATH="$PYTHONPATH"
 
@@ -23,13 +24,13 @@ else
 #numpy
 #no dependencies
     cd $BUILD_DIR
-    curl -O http://www.netlib.org/blas/blas.tgz
+    $DOWNLOADER http://www.netlib.org/blas/blas.tgz
     tar -xvzf blas.tgz
     export BLAS_SRC=$BUILD_DIR/BLAS
-    curl -O http://www.netlib.org/lapack/lapack-3.4.2.tgz
+    $DOWNLOADER http://www.netlib.org/lapack/lapack-3.4.2.tgz
     tar -xvzf lapack-3.4.2.tgz
     export LAPACK_SRC=$BUILD_DIR/lapack-3.4.2
-    curl -L -O http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
+    $DOWNLOADER http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
     tar -xvzf numpy-1.7.0.tar.gz
     cd numpy-1.7.0
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
@@ -46,7 +47,7 @@ else
 #no dependencies
     cd $BUILD_DIR
     rm -Rvf hdf5-1.8.11
-    curl -v -O http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
+    $DOWNLOADER http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
     tar -xvjf hdf5-1.8.11.tar.bz2
     cd hdf5-1.8.11
     pwd; ls -l
@@ -58,7 +59,7 @@ else
 #cython
 #no dependencies
     cd $BUILD_DIR
-    curl -O http://www.cython.org/release/Cython-0.18.tar.gz
+    $DOWNLOADER http://www.cython.org/release/Cython-0.18.tar.gz
     tar -xvzf Cython-0.18.tar.gz
     cd Cython-0.18
 #Python works badly with mpicc and mpicxx
@@ -67,7 +68,7 @@ else
 #h5py
 #depends on numpy, hdf5, cython
     cd $BUILD_DIR
-    curl -O http://h5py.googlecode.com/files/h5py-2.1.3.tar.gz
+    $DOWNLOADER http://h5py.googlecode.com/files/h5py-2.1.3.tar.gz
     #Need to switch this to http://h5py.googlecode.com/files/h5py-2.2.0b1.tar.gz or newer to get python 3.3 support.
     tar -xvzf h5py-2.1.3.tar.gz
     cd h5py-2.1.3
@@ -96,7 +97,7 @@ else
 #scipy
 #depends on numpy
     cd $BUILD_DIR
-    curl -L -O http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
+    $DOWNLOADER http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
     tar -xvzf scipy-0.12.0.tar.gz
     cd scipy-0.12.0
     patch -p1 << PATCH_SCIPY
@@ -129,7 +130,7 @@ else
 #scikit
 #depends on numpy, scipy
     cd $BUILD_DIR
-    curl -O https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
+    $DOWNLOADER https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
     tar -xvzf scikit-learn-0.13.1.tar.gz
     cd scikit-learn-0.13.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
@@ -142,7 +143,7 @@ else
 #freetype
 #no dependencies
     cd $BUILD_DIR
-    curl -L -O http://downloads.sourceforge.net/project/freetype/freetype2/2.4.12/freetype-2.4.12.tar.bz2
+    $DOWNLOADER http://downloads.sourceforge.net/project/freetype/freetype2/2.4.12/freetype-2.4.12.tar.bz2
     tar -xvjf freetype-2.4.12.tar.bz2
     cd freetype-2.4.12
     (unset CC CXX; ./configure --prefix=$INSTALL_DIR)
@@ -152,7 +153,7 @@ else
 #matplotlib
 #depends on numpy, freetype
     cd $BUILD_DIR
-    curl -L -O https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz
+    $DOWNLOADER https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz
     tar -xvzf matplotlib-1.2.1.tar.gz
     cd matplotlib-1.2.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
