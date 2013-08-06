@@ -16,7 +16,10 @@ import os
 #import Queue
 import copy
 import numpy as np
-import cPickle as pk
+try:
+  import cPickle as pk
+except:
+  import pickle as pk
 import Quadrature
 import Distributions
 from itertools import product as iterproduct
@@ -283,7 +286,7 @@ class MonteCarlo(Sampler):
     '''
     try: self.init_seed    = xmlNode.attrib['initial_seed']
     except: self.init_seed = 0 
-    try: self.limit    = xmlNode.attrib['limit']
+    try: self.limit    = int(xmlNode.attrib['limit'])
     except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
     #  stores variables for random sampling  added by nieljw to allow for RELAP5 
     self.variables={}

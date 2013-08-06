@@ -11,7 +11,10 @@ from sklearn import svm
 import Datas
 import numpy
 from itertools import product as itprod
-import cPickle as pk
+try:
+  import cPickle as pk
+except:
+  import pickle as pk
 '''here we intend ROM as super-visioned learning, 
    where we try to understand the underlying model by a set of labeled sample
    a sample is composed by (feature,label) that is easy translated in (input,output)

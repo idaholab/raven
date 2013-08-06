@@ -3,9 +3,15 @@ Created on Mar 25, 2013
 
 @author: alfoa
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+if not 'xrange' in dir(__builtins__):
+  xrange = range
 import numpy as np
 import h5py  as h5
 import os
+
 '''
   *************************
   *  HDF5 DATABASE CLASS  *
@@ -152,51 +158,40 @@ class hdf5Database:
         '''
         self.__addGroupRootLevel(gname,attributes,source)
       return
-    '''
+
+    def __addGroupRootLevel(self,gname,attributes,source):
+      '''
       Function to add a group into the database (root level)
       @ In, gname      : group name
       @ In, attributes : dictionary of attributes that must be added as metadata
       @ In, source     : data source (for example, csv file)
       @ Out, None
-    '''
-    def __addGroupRootLevel(self,gname,attributes,source):
       '''
-        Check in the "self.allGroupPaths" list if a group is already present... 
-        If so, error (Deleting already present information is not desiderable) 
-      '''
+      # Check in the "self.allGroupPaths" list if a group is already present... 
+      # If so, error (Deleting already present information is not desiderable) 
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
         if gname in comparisonName:
           raise IOError("Group named " + gname + " already present in database " + self.name)
       if source['type'] == 'csv':
-        ''' Source in CSV format'''
+        # Source in CSV format
         f = open(source['name'],'rb')
-        ''' 
-          Retrieve the headers of the CSV file
-        '''
-        firstRow = f.readline().translate(None,"\r\n")
-        headers = firstRow.split(",")
-        ''' 
-          Load the csv into a numpy array(n time steps, n parameters) 
-        '''
+        # Retrieve the headers of the CSV file
+        firstRow = f.readline().strip(b"\r\n")
+        #firstRow = f.readline().translate(None,"\r\n")
+        headers = firstRow.split(b",")
+        #print(repr(headers))
+        # Load the csv into a numpy array(n time steps, n parameters) 
         data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
-        ''' 
-          First parent group is the root itself
-        '''
+        # First parent group is the root itself
         parent_group_name = "/"
-        ''' 
-          Create the group
-        '''
+        # Create the group
         grp = self.h5_file_w.create_group(gname)
                 
         print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
-        '''
-          Create dataset in this newly added group
-        '''
+        # Create dataset in this newly added group
         dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
-        '''
-          Add metadata
-        '''
+        # Add metadata
         grp.attrs["headers"]    = headers
         grp.attrs["n_params"]   = data[0,:].size
         grp.attrs["parent_id"]  = "root"
@@ -214,39 +209,39 @@ class hdf5Database:
           grp.attrs["source_file"] = source['name']
 
         try:
-          ''' parameter that has been changed '''
+          # parameter that has been changed 
           grp.attrs["branch_changed_param"] = attributes["branch_changed_param"]
         except:
-          ''' no branching information '''
+          # no branching information
           pass
         try:
-          ''' parameter that caused the branching '''
+          # parameter that caused the branching 
           grp.attrs["branch_changed_param_value"] = attributes["branch_changed_param_value"]
         except:
-          ''' no branching information '''
+          # no branching information 
           pass        
         try:
           grp.attrs["conditional_prb"] = attributes["conditional_prb"]
         except:
-          ''' no branching information => i.e. MonteCarlo data '''
+          # no branching information => i.e. MonteCarlo data
           pass
         try:
-          ''' initiator distribution '''
+          # initiator distribution
           grp.attrs["initiator_distribution"] = attributes["initiator_distribution"]
         except:
-          ''' no branching information '''
+          # no branching information
           pass        
         try:
-          ''' initiator distribution '''
+          # initiator distribution
           grp.attrs["Probability_threshold"] = attributes["PbThreshold"]
         except:
-          ''' no branching information '''
+          # no branching information
           pass
         try:
-          ''' initiator distribution '''
+          # initiator distribution
           grp.attrs["end_timestep"] = attributes["end_ts"]
         except:
-          ''' no branching information '''
+          # no branching information
           pass        
         try:
           # quadrature points
@@ -261,18 +256,17 @@ class hdf5Database:
           # no partial coefficient data
           pass        
       else:
-        ''' do something else '''
+        # do something else
         pass
-      '''
-        Add the group name into the list "self.allGroupPaths" and 
-        set the relative bool flag into the dictionary "self.allGroupEnds"
-      '''
+      # Add the group name into the list "self.allGroupPaths" and 
+      # set the relative bool flag into the dictionary "self.allGroupEnds"
       if parent_group_name != "/":
         self.allGroupPaths.append(parent_group_name + "/" + gname)
         self.allGroupEnds[parent_group_name + "/" + gname] = True
       else:
         self.allGroupPaths.append("/" + gname)
         self.allGroupEnds["/" + gname] = True
+
     '''
       Function to add a group into the database (Hierarchical)
       @ In, gname      : group name

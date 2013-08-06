@@ -24,7 +24,7 @@ class CsvLoader:
     # open file
     myFile = open (filein,'rb')
     # read the field names
-    self.all_field_names = myFile.readline().split(',')
+    self.all_field_names = myFile.readline().decode().split(',')
     # load the table data (from the csv file) into a numpy nd array 
     data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
     # close file
