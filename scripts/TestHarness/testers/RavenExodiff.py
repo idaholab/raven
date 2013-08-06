@@ -32,7 +32,7 @@ class RavenExodiff(Exodiff):
 
     has_swig2 = "Version 2.0" in output_swig
 
-    module_dir = os.path.join(os.getcwd(),"python_modules")
+    module_dir = os.path.join(os.getcwd(),"control_modules")
     has_distributions = os.path.exists(os.path.join(module_dir,"_distribution1D.so"))
     
     def __init__(self, name, params):

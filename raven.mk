@@ -10,9 +10,9 @@ ifeq ($(PYTHON3_HELLO),HELLO)
         PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include) #-DPy_LIMITED_API 
         PYTHON_LIB = $(shell $(RAVEN_DIR)/scripts/find_flags.py library) #-DPy_LIMITED_API 
 ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
-	PYTHON_MODULES = 
+	CONTROL_MODULES = 
 else
-	PYTHON_MODULES = $(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/_raventools.so
+	CONTROL_MODULES = $(RAVEN_DIR)/control_modules/_distribution1D.so $(RAVEN_DIR)/control_modules/_raventools.so
 endif
 
 else
@@ -20,18 +20,18 @@ ifeq ($(PYTHON2_HELLO),HELLO)
 ifeq ($(PYTHON_CONFIG_WHICH),)
 	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
-	PYTHON_MODULES = 
+	CONTROL_MODULES = 
 else
 	PYTHON_INCLUDE=$(shell python-config --includes)
 	PYTHON_LIB=$(shell python-config --ldflags)
-	PYTHON_MODULES=
-#PYTHON_MODULES=$(RAVEN_DIR)/python_modules/_distribution1D.so $(RAVEN_DIR)/python_modules/_raventools.so
+	CONTROL_MODULES=
+#CONTROL_MODULES=$(RAVEN_DIR)/control_modules/_distribution1D.so $(RAVEN_DIR)/control_modules/_raventools.so
 endif
 else
 #Python3 not found.
 	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
-	PYTHON_MODULES = 
+	CONTROL_MODULES = 
 endif
 endif
 
@@ -44,9 +44,9 @@ endif
 HAS_DYNAMIC := $(shell $(libmesh_LIBTOOL) --config | grep build_libtool_libs | cut -d'=' -f2 )
 
 ifeq ($(HAS_DYNAMIC),no)  
-ifdef PYTHON_MODULES
+ifdef CONTROL_MODULES
 $(warning RAVEN modules must be compiled with shared libmesh libraries)
-	PYTHON_MODULES = 
+	CONTROL_MODULES = 
 endif
 endif
 
@@ -122,7 +122,7 @@ $(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugin_deps)
 ifeq ($(APPLICATION_NAME),RAVEN)
 all:: RAVEN
 
-RAVEN_MODULES = $(RAVEN_DIR)/python_modules
+RAVEN_MODULES = $(RAVEN_DIR)/control_modules
 
 $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/executioners/PythonControl.C
 	@echo "Override PythonControl Compile"
@@ -131,7 +131,7 @@ $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/exec
 
 # TODO[JWP]: Should this use libtool to make a platform-independent shared library?
 #            I could not test it because I don't have python3.
-$(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/distribution1D.i \
+$(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/distribution1D.i \
                                                  $(RAVEN_DIR)/src/distributions/distribution_1D.C \
                                                  $(RAVEN_DIR)/src/distributions/DistributionContainer.C \
                                                  $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_LIB)
@@ -143,7 +143,7 @@ $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/dis
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
 	$(libmesh_CXX) $(libmeh_CPPFLAGS) $(PYTHON_INCLUDE) $(libmesh_INCLUDE) \
-	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/python_modules/distribution1D_wrap.lo
+	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1D_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
 	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(RAVEN_LIB) $(PYTHON_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo -rpath $(RAVEN_MODULES)
@@ -152,7 +152,7 @@ $(RAVEN_DIR)/python_modules/_distribution1D.so : $(RAVEN_DIR)/python_modules/dis
 	ln -s libdistribution1D.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1D.so
 
 
-$(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/raventools.i \
+$(RAVEN_DIR)/control_modules/_raventools.so : $(RAVEN_DIR)/control_modules/raventools.i \
                                              $(RAVEN_DIR)/src/tools/batteries.C \
                                              $(RAVEN_DIR)/src/tools/DieselGeneratorBase.C \
                                              $(RAVEN_DIR)/src/tools/pumpCoastdown.C \
@@ -165,11 +165,11 @@ $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/ravento
           -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/tools/ \
           -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ \
           $(RAVEN_MODULES)/raventools.i
-#swig -c++ -python -py3 -I$(RAVEN_DIR)/include/tools/  -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/python_modules/raventools.i
+#swig -c++ -python -py3 -I$(RAVEN_DIR)/include/tools/  -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/control_modules/raventools.i
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
 	$(libmesh_CXX) $(libmeh_CPPFLAGS) $(PYTHON_INCLUDE) $(libmesh_INCLUDE) \
-	 -c  $(RAVEN_MODULES)/raventools_wrap.cxx -o $(RAVEN_DIR)/python_modules/raventools_wrap.lo
+	 -c  $(RAVEN_MODULES)/raventools_wrap.cxx -o $(RAVEN_DIR)/control_modules/raventools_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
 	-o $(RAVEN_MODULES)/libraventools.la $(RAVEN_LIB) $(PYTHON_LIB) $(RAVEN_MODULES)/raventools_wrap.lo -rpath $(RAVEN_MODULES)
@@ -178,14 +178,7 @@ $(RAVEN_DIR)/python_modules/_raventools.so : $(RAVEN_DIR)/python_modules/ravento
 	ln -s libraventools.$(raven_shared_ext) $(RAVEN_MODULES)/_raventools.so
 
 
-#$(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -fPIC \
-          -I$(RAVEN_DIR)/include/tools/ -I$(RAVEN_DIR)/include/utilities/ \
-          $(RAVEN_DIR)/python_modules/raventools_wrap.cxx \
-          $(RAVEN_DIR)/src/tools/*.C \
-          $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C -shared -o $(RAVEN_DIR)/python_modules/_raventools.so $(PYTHON_LIB)
-
-
-RAVEN: $(RAVEN_APP) $(PYTHON_MODULES)
+RAVEN: $(RAVEN_APP) $(CONTROL_MODULES)
 
 $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects)
 	@echo "Linking "$@"..."
@@ -197,17 +190,18 @@ endif
 delete_list := $(RAVEN_APP) $(RAVEN_LIB) $(RAVEN_DIR)/libRAVEN-$(METHOD).*
 
 clean::
-	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so \
-          $(RAVEN_DIR)/python_modules/_raventools.so \
-          $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx \
-          $(RAVEN_DIR)/python_modules/raventools_wrap.cxx \
-          $(RAVEN_DIR)/python_modules/distribution1D.py \
-          $(RAVEN_DIR)/python_modules/libdistribution1D.*
+	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \
+          $(RAVEN_DIR)/control_modules/_raventools.so \
+          $(RAVEN_DIR)/control_modules/distribution1D_wrap.cxx \
+          $(RAVEN_DIR)/control_modules/raventools_wrap.cxx \
+          $(RAVEN_DIR)/control_modules/distribution1D.py \
+          $(RAVEN_DIR)/control_modules/libdistribution1D.* \
+          $(RAVEN_DIR)/control_modules/*.so*
 
 clobber::
-	@rm -f $(RAVEN_DIR)/python_modules/_distribution1D.so \
-          $(RAVEN_DIR)/python_modules/distribution1D_wrap.cxx \
-          $(RAVEN_DIR)/python_modules/distribution1D.py
+	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \
+          $(RAVEN_DIR)/control_modules/distribution1D_wrap.cxx \
+          $(RAVEN_DIR)/control_modules/distribution1D.py
 
 cleanall:: 
 	make -C $(RAVEN_DIR) clean 
