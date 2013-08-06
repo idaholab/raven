@@ -68,6 +68,7 @@ else
 #depends on numpy, hdf5, cython
     cd $BUILD_DIR
     curl -O http://h5py.googlecode.com/files/h5py-2.1.3.tar.gz
+    #Need to switch this to http://h5py.googlecode.com/files/h5py-2.2.0b1.tar.gz or newer to get python 3.3 support.
     tar -xvzf h5py-2.1.3.tar.gz
     cd h5py-2.1.3
     patch -p1 << PATCH_SETUP
