@@ -17,6 +17,26 @@ update_python_path ()
     fi
 }
 
+if curl http://www.doe.gov > /dev/null
+then
+    echo Successfully got data from the internet
+else
+    echo Could not connect to internet
+    echo Enter Proxy Username
+    read username
+    echo Enter Proxy Password
+    read password
+    export http_proxy="http://${username}:${password}@134.20.11.87:8080"
+    export https_proxy=$http_proxy
+    if curl http://www.doe.gov > /dev/null
+    then
+        echo Successfully got data from the internet
+    else
+        echo Proxy setting did not help
+    fi
+
+fi
+
 if $PYTHON_CMD -c 'import numpy'
 then 
     echo numpy module already built
