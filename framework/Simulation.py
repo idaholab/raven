@@ -8,7 +8,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
-import os
+import os,subprocess
 import copy
 #from Driver import self.debug
 import Steps
@@ -20,6 +20,63 @@ import Distributions
 import DataBases
 import OutStreams
 from JobHandler import JobHandler
+
+class SimulationMode:
+  def doOverrideRun(self):
+    """If doOverrideRun is true, then use runOverride instead of 
+    running the simulation normally.
+    """
+    return False
+
+  def runOverride(self):
+    """this can completely override the Simulation's run method"""
+    pass
+
+  def modifySimulation(self):
+    """modifySimulation is called after the runInfoDict has been setup.
+    This allows the mode to change any parameters that need changing.
+    """
+    pass
+
+class PBSSimulationMode(SimulationMode):
+  def __init__(self,simulation):
+    self.__simulation = simulation
+    self.__in_pbs = "PBS_NODEFILE" in os.environ
+    
+  def doOverrideRun(self):
+    # Check if the simulation has been run in PBS mode and, in case, construct the proper command    
+    return not self.__in_pbs
+
+  def runOverride(self):
+    assert self.__simulation.runInfoDict['mode'] == 'pbs' and not self.__in_pbs
+    # Check if the simulation has been run in PBS mode and, in case, construct the proper command
+    batchSize = self.__simulation.runInfoDict['batchSize']
+    frameworkDir = self.__simulation.runInfoDict["FrameworkDir"]
+    command = ["qsub","-l","select="+str(batchSize)+":ncpus=1",
+               "-l","walltime="+self.__simulation.runInfoDict["expectedTime"],
+               "-l","place=free","-v",
+               'COMMAND="python Driver.py '+
+               self.__simulation.runInfoDict["SimulationFile"]+'"',
+               os.path.join(frameworkDir,"raven_qsub_command.sh")]
+    os.chdir(frameworkDir)
+    print(os.getcwd(),command)
+    subprocess.call(command)
+
+  def modifySimulation(self):
+    if self.__in_pbs:
+      #Figure out number of nodes and use for batchsize
+      nodefile = os.environ["PBS_NODEFILE"]
+      lines = open(nodefile,"r").readlines()
+      oldBatchsize =  self.__simulation.runInfoDict['batchSize']
+      newBatchsize = len(lines)
+      if newBatchsize != oldBatchsize:
+        self.__simulation.runInfoDict['batchSize'] = newBatchsize
+        print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
+      print("DRIVER        : Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
+      self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.__simulation.runInfoDict['precommand']
+
+
+    
 
 class Simulation:
   '''This is a class that contain all the object needed to run the simulation'''
@@ -94,6 +151,7 @@ class Simulation:
     self.whichDict['DataBases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.OutStreamsDict
     self.jobHandler = JobHandler()
+    self.__modeHandler = SimulationMode()
 
   def XMLread(self,xmlNode):
     '''read the general input info to set up the calculation environment'''
@@ -151,9 +209,10 @@ class Simulation:
     for key in self.filesDict.keys():
       if os.path.split(key)[0] == '': self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
       elif not os.path.isabs(key):self.filesDict[key] = os.path.abspath(key)
-    #export to the job handler the environmental variables
     if self.runInfoDict['mode'] == 'pbs':
-      self.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.runInfoDict['precommand']
+      self.__modeHandler = PBSSimulationMode(self)
+    #Let the mode handler do any modification here
+    self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)
 
   def printDicts(self):
@@ -176,6 +235,9 @@ class Simulation:
   def run(self):
     '''run the simulation'''
     if self.debug: print('entering in the run')
+    if self.__modeHandler.doOverrideRun():
+      self.__modeHandler.runOverride()
+      return
     for stepName in self.stepSequenceList:                #loop over the the steps
       stepInstance = self.stepsDict[stepName]             #retrieve the instance of the step
       self.runInfoDict['stepName'] = stepName             #provide the name of the step to runInfoDict
