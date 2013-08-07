@@ -4,7 +4,7 @@
     <WorkingDir>../tests/framework/revirD_tset</WorkingDir>
     <Files>second,TMI_test_PRA_transient_less_w.i,TMI_PRA_transient_less_w.py,sss.i</Files>
     <Sequence>FirstMRun</Sequence>
-    <batchSize>5</batchSize>
+    <batchSize>100</batchSize>
     <mode>pbs</mode>
     <expectedTime>0:30:00</expectedTime>
     <!--<ParallelCommand></ParallelCommand>
@@ -19,7 +19,7 @@
 </RunInfo>
 
 <Models>
-    <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
+    <Code name='MyRAVEN' type='RAVEN'>%SCRIPT_DIR%/../RAVEN-opt</Code>
     <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
     <Filter name='Plot1' type='Plot'> 
       <historyID>ALL</historyID>
@@ -75,7 +75,7 @@
         <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
         <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
     </LatinHyperCube>
-    <MonteCarlo     name='RAVENmc6'  limit='6'/>
+    <MonteCarlo     name='RAVENmc6'  limit='40'/>
     <MonteCarlo     name='RAVENmc50' limit='50'/>
     <LatinHyperCube name='MyLHC'     limit='50' start='10'></LatinHyperCube>
     <EquallySpaced  name='MyES'      limit='50' start='10'></EquallySpaced>

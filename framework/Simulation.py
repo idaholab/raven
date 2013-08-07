@@ -153,7 +153,7 @@ class Simulation:
       elif not os.path.isabs(key):self.filesDict[key] = os.path.abspath(key)
     #export to the job handler the environmental variables
     if self.runInfoDict['mode'] == 'pbs':
-      self.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %SCRIPT_DIR%/remote_runner2.sh out_%CURRENT_ID% %WORKING_DIR% "+self.runInfoDict['precommand']
+      self.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.runInfoDict['precommand']
     self.jobHandler.initialize(self.runInfoDict)
 
   def printDicts(self):

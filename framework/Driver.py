@@ -55,7 +55,7 @@ if __name__ == '__main__':
                "-l","walltime="+simulation.runInfoDict["expectedTime"],
                "-l","place=free","-v",
                'COMMAND="python Driver.py '+inputFile+'"',
-               "../scripts/save_and_command2.sh"]
+               os.path.join(frameworkDir,"raven_qsub_command.sh")]
     os.chdir(workingDir)
     print(os.getcwd(),command)
     subprocess.call(command)
