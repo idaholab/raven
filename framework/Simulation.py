@@ -22,6 +22,9 @@ import OutStreams
 from JobHandler import JobHandler
 
 class SimulationMode:
+  def __init__(self,simulation):
+    self.__simulation = simulation
+    
   def doOverrideRun(self):
     """If doOverrideRun is true, then use runOverride instead of 
     running the simulation normally.
@@ -36,7 +39,12 @@ class SimulationMode:
     """modifySimulation is called after the runInfoDict has been setup.
     This allows the mode to change any parameters that need changing.
     """
-    pass
+    import multiprocessing
+    try:
+      if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
+        print("WARNING cpu_count",multiprocessing.cpu_count()," < batchSize ",self.__simulation.runInfoDict['batchSize'])
+    except:
+      pass
 
 class PBSSimulationMode(SimulationMode):
   def __init__(self,simulation):
@@ -151,7 +159,7 @@ class Simulation:
     self.whichDict['DataBases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.OutStreamsDict
     self.jobHandler = JobHandler()
-    self.__modeHandler = SimulationMode()
+    self.__modeHandler = SimulationMode(self)
 
   def XMLread(self,xmlNode):
     '''read the general input info to set up the calculation environment'''
