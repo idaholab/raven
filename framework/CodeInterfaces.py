@@ -54,17 +54,20 @@ class RavenInterface:
   def StochasticCollocationForRAVEN(self,**Kwargs):
     try: counter = Kwargs['prefix']
     except: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
-    try: qps = Kwargs['qps']
-    except: raise IOError('a qp index is required for the StochColl sampler for RAVEN')
+    #try: qps = Kwargs['qps']
+    #except: raise IOError('a qp index is required for the StochColl sampler for RAVEN')
     listDict = []
-    names = Kwargs['vars'] #come in as a string of a list, need to re-list
-    qps   = Kwargs['qps']
-    names = ast.literal_eval(names) #turns string of list/tuple into list
-    qps   = ast.literal_eval(qps)
-    for i in xrange(len(qps)):
+    varValDict = Kwargs['vars'] #come in as a string of a list, need to re-list
+    #print('\nvarValDict type:',type(varValDict),varValDict,'\n')
+    #qps   = Kwargs['qps']
+    #names = ast.literal_eval(varValDict.keys()) #turns string of list/tuple into list
+    #vals = ast.literal_eval(var
+    #qps   = ast.literal_eval(qps)
+    for key in varValDict.keys():
       modifDict={}
-      modifDict['name']=names[i].split(':')
-      modifDict['value']=qps[i]
+      modifDict['name']=key.split(':')
+      modifDict['value']=varValDict[key]
+      #print('interface: set',key.split(':'),'to',varValDict[key])
       listDict.append(modifDict)
       del modifDict
     return listDict

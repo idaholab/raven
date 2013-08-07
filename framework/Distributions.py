@@ -147,7 +147,7 @@ class Normal(Distribution):
     tempDict['mean' ] = self.mean
     tempDict['sigma'] = self.sigma
   def inDistr(self):
-    if self.upperBoundUsed == False and self.lowerBoundUsed == False:
+    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self.distribution = dist.norm(loc=self.mean,scale=self.sigma)
       self.polynomial = polys.hermitenorm
       def norm(n):

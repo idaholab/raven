@@ -3,6 +3,10 @@ Created Feb 10, 2013
 
 @author: talbpaul
 '''
+from __future__ import division, print_function, unicode_literals, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+
 import numpy as np
 import sys
 import scipy.special.orthogonal as orth
@@ -10,6 +14,8 @@ import scipy.stats as spst
 import scipy.special as sps
 from scipy.misc import factorial
 from itertools import product #all possible combinations from given sets
+
+
 
 #============================================================================\
 class Quadrature():
@@ -19,9 +25,9 @@ class Quadrature():
   def __init__(self,order):
     self.type = '' #string of quadrature type
     self.order = order #quadrature order
-    self.qps = np.zeros(self.order) #points in quadrature
-    self.wts = np.zeros(self.order) #wts in quadrature
-    self.setQuad() #sets up points and wts
+    self.quad_pts = np.zeros(self.order) #points in quadrature
+    self.weights = np.zeros(self.order) #weights in quadrature
+    self.setQuad() #sets up points and weights
     self.setDist() #sets up associated distribution
 
   def setQuad(self):
@@ -39,16 +45,16 @@ class Quadrature():
     '''Integrates a given function using the quadrature points and weights.'''
     #overwritten in the multiquad class, this is for single quads
     result=0
-    for n in range(len(self.qps)):
-      result+=self.wts[n]*func(self.qps[n])
+    for n in range(len(self.quad_pts)):
+      result+=self.weights[n]*func(self.quad_pts[n])
     return result*mult
 
   def integrateArray(self,arr,mult=1.0):
     '''Uses weights to integrate given array of values, 
-       assuming they are on QPs.'''
+       assuming they are on quad_pts.'''
     # same for individual quads or multiquad
-    assert(len(arr) == len(self.wts))
-    result=sum(arr*self.wts)
+    assert(len(arr) == len(self.weights))
+    result=sum(arr*self.weights)
     return result*mult
 
 
@@ -61,7 +67,7 @@ class Legendre(Quadrature):
 
   def setQuad(self):
     self.type='Legendre'
-    self.qps,self.wts = orth.p_roots(self.order) #points and weights from scipy
+    self.quad_pts,self.weights = orth.p_roots(self.order) #points and weights from scipy
 
   def setDist(self):
   #  self.dist=spst.uniform(-1,1) #associated distribution
@@ -76,7 +82,7 @@ class Legendre(Quadrature):
 class ShiftLegendre(Quadrature):
   def setQuad(self):
     self.type='ShiftedLegendre'
-    self.qps,self.wts=orth.ps_roots(self.order)
+    self.quad_pts,self.weights=orth.ps_roots(self.order)
 
   def setDist(self):
   #  self.dist=spst.uniform(0,1)
@@ -90,7 +96,7 @@ class ShiftLegendre(Quadrature):
 class Hermite(Quadrature):
   def setQuad(self):
     self.type='Hermite'
-    self.qps,self.wts = orth.h_roots(self.order)
+    self.quad_pts,self.weights = orth.h_roots(self.order)
 
   def setDist(self):
   #  self.dist=spst.norm() #FIXME is this true?? exp(-x^2/<<2>>)
@@ -105,7 +111,7 @@ class Hermite(Quadrature):
 class StatHermite(Quadrature):
   def setQuad(self):
     self.type='StatisticianHermite'
-    self.qps,self.wts = orth.he_roots(self.order)
+    self.quad_pts,self.weights = orth.he_roots(self.order)
 
   def setDist(self):
   #  self.dist=spst.norm()
@@ -125,7 +131,7 @@ class Laguerre(Quadrature):
 
   def setQuad(self):
     self.quadType='GenLaguerre'
-    self.qps,self.wts = orth.la_roots(self.order,self.alpha)
+    self.quad_pts,self.weights = orth.la_roots(self.order,self.alpha)
 
   def setDist(self):
   #  self.dist=spst.gamma(self.alpha) #shift from [a,inf] to [0,inf]?
@@ -144,7 +150,7 @@ class Jacobi(Quadrature):
 
   def setQuad(self):
     self.quadType='Jacobi'
-    self.qps,self.wts = orth.j_roots(self.order,self.alpha,self.beta)
+    self.quad_pts,self.weights = orth.j_roots(self.order,self.alpha,self.beta)
 
   def setDist(self):
   #  self.dist=spst.beta(self.alpha,self.beta)
@@ -164,49 +170,53 @@ class Jacobi(Quadrature):
 #============================================================================\
 class MultiQuad(Quadrature):
   '''
-  Combines two or more quadratures to create ordinates, wts, integrate.
+  Combines two or more quadratures to create ordinates, weights, integrate.
   '''
   def __init__(self,quads):
-    self.quads=quads #list of quadratures in nD quad
+    self.quads=quads #dict of quadratures, indexed on var names
     self.type='multi-' #will be populated with names later
-    self.order=[] #list of orders of quadratures
-    self.totOrder=np.product([q.order for q in self.quads]) #total quadrature order
-    self.qps=np.zeros(self.totOrder,dtype=tuple) #placeholder for qp ordered tuples
-    #self.qps.copy() #tuple corresponding to qps
-    self.wts=np.zeros_like(self.qps) #placeholder for weights associated with qp tuples
+    self.totOrder=np.product([q.order for q in self.quads.values()]) #total quadrature order
+
+    #these are all indexed on individual quadratures
+    self.order={} #dict of orders of quadratures on quad
+    self.dict_quads={}
+
+    #these are indexed on possible combinations
+    self.quad_pts={} #np.zeros(self.totOrder,dtype=tuple) #placeholder for quad_pt ordered tuples
+    self.weights={} #np.zeros_like(self.quad_pts) #placeholder for weights associated with quad_pt tuples
+
     #lookup dictionaries
-    self.dict_quads={} #index to quadratures
-    self.indx_qp = {} #index to qp tuples
+    self.indx_quad_pt = {} #index to quad_pt tuples
     self.indx_weight={} #index to weights
-    self.qp_index={} #qps to indexes
-    self.qp_weight={} #qps to weights
+    self.quad_pt_index={} #quad_pts to indexes
+    self.quad_pt_weight={} #quad_pts to weights
     #Quadrature.__init__(self)
 
-    for q in range(len(quads)):
-      self.order.append(self.quads[q].order)
-      self.dict_quads[quads[q]]=q #give quadrature place in dictionary
-      self.type+=self.quads[q].type+'('+str(self.order[q])+')'
-      if q<len(quads)-1:
-        self.type+='-' #seperator for quad type name
+    for i,q in enumerate(quads.values()):
+      self.dict_quads[q]=i
+      self.order[q]=q.order
+      self.type+=q.type+'('+str(self.order[q])+')'
+      self.type+='-' #seperator for quad type name
+    self.type=self.type[:-1]
 
-    #use itertools.product to get all possible qp tuples from individual quad lists
-    self.indices=list(product(*[range(len(quad.qps)) for quad in self.quads]))
-    self.qps=list(product(*[quad.qps for quad in self.quads]))
-    wts=list(product(*[quad.wts for quad in self.quads]))
+    #use itertools.product to get all possible quad_pt tuples from individual quad lists
+    self.indices=list(product(*[range(len(quad.quad_pts)) for quad in self.quads.values()]))
+    self.quad_pts=list(product(*[quad.quad_pts for quad in self.quads.values()]))
+    weights=list(product(*[quad.weights for quad in self.quads.values()]))
     #multiply weights together instead of storing each seperately -> no need for separate
-    self.wts = list(np.product(w) for w in wts)
+    self.weights = list(np.product(w) for w in weights)
 
     #make set of dictionaries
-    self.indx_qp=dict(zip(self.indices,self.qps))
-    self.indx_weight=dict(zip(self.indices,self.wts))
-    self.qp_index=dict(zip(self.qps,self.indices))
-    self.qp_weight=dict(zip(self.qps,self.wts))
+    self.indx_quad_pt=dict(zip(self.indices,self.quad_pts))
+    self.indx_weight=dict(zip(self.indices,self.weights))
+    self.quad_pt_index=dict(zip(self.quad_pts,self.indices))
+    self.quad_pt_weight=dict(zip(self.quad_pts,self.weights))
 
   def integrate(self,func,mult=1.0):
     '''Integrates given function using inputs from nD quadrature.'''
     result=0
-    for n in range(len(self.qps)):
-      result+=self.wts[n]*func(*self.qps[n])
+    for n in range(len(self.quad_pts)):
+      result+=self.weights[n]*func(*self.quad_pts[n])
     return result*mult
 
 

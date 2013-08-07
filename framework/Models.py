@@ -137,7 +137,7 @@ class Code(Model):
         return
     except AttributeError:
       pass
-    print('this:',output)
+    #print('this:',output)
     output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
     return
 

@@ -36,7 +36,7 @@ class Step(BaseType):
 
   def initializeStep(self,inDictionary):
     # cleaning up the model
-    print(inDictionary.keys())
+    print(inDictionary['Model'])
     inDictionary['Model'].reset(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
     print('the model '+inDictionary['Model'].name+' has been reset')
 
