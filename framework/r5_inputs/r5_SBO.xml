@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>../r5_SBO</WorkingDir>
+    <Files>bf1sbowetdev.i,tpfh2o,relapdata.py,RELAP5run.py</Files>
+    <Sequence>test_MC</Sequence>
+    <batchSize>128</batchSize>
+    <numNode>4</numNode>
+    <procByNode>32</procByNode>
+    <mode>pbs</mode>
+    <totNumbCores>128</totNumbCores>
+</RunInfo>
+<Models>
+    <Code name='MyRELAP' type='RELAP5'>python RELAP5run.py</Code>
+</Models>
+<Distributions>
+    <Uniform name='ECCSbattery'>
+        <hi>14400.0</hi>
+        <low>0.0</low>
+    </Uniform>    
+    <Uniform name='EDGrecovery'>
+        <hi>21600.0</hi>
+        <low>7200.0</low>
+    </Uniform>    
+    <Triangular name='Cladfailure'>
+        <apex>1477.0</apex>
+        <min>1255.0</min>
+        <max>1700.0</max>
+    </Triangular>
+    <Uniform name='PumpSealLOCATime'>
+        <hi>21600.0</hi>
+        <low>7200.0</low>
+    </Uniform>    
+    <Uniform name='PumpSealLOCAArea'>
+        <hi>2.7242E-4</hi>
+        <low>0.0</low>
+    </Uniform>    
+</Distributions>
+<Samplers>
+    <MonteCarlo name='TestMonteCarlo' limit='128'>
+        <Variable type ='Uniform'  distName='ECCSbattery' position='6'>0000588</Variable>
+        <Variable type ='Uniform'  distName='EDGrecovery' position='1'>0000204</Variable>
+        <Variable type ='Uniform'  distName='Cladfailure' position='6'>0000503</Variable>
+        <Variable type ='Uniform'  distName='PumpSealLOCATime' position='6'>0000599</Variable>
+        <Variable type ='Uniform'  distName='PumpSealLOCAArea' position='3'>7520101</Variable>
+    </MonteCarlo>
+</Samplers>
+<Steps>
+    <MultiRun name='test_MC'>
+        <Input   type='Files'      subtype=''                >bf1sbowetdev.i</Input>
+        <Input   type='Files'      subtype=''                >RELAP5run.py</Input>
+        <Input   type='Files'      subtype=''                >relapdata.py</Input>
+        <Input   type='Files'      subtype=''                >tpfh2o</Input>
+        <Model   type='Models'     subtype='Code'            >MyRELAP</Model>
+        <Sampler type='Samplers'   subtype='MonteCarlo'      >TestMonteCarlo</Sampler>
+    </MultiRun> 
+</Steps>
+<Datas>
+    <Histories name='stories'>
+        <Input>1 time_(sec)</Input>
+        <Output>p_420010000</Output>
+   </Histories>
+</Datas>
+</Simulatio>
+
+
+
