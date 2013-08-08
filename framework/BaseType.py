@@ -8,9 +8,10 @@ warnings.simplefilter('default',DeprecationWarning)
 
 class BaseType:
   '''this is the base class for each general type used by the simulation'''
-  def __init__(self):
+  def __init__(self,debug=False):
     self.name    = ''      # name of this istance (alias)
     self.type    = ''      # specific type within this class
+    self.debug   = debug   #set up the debug status of the code
 
   def readXML(self,xmlNode):
     '''
