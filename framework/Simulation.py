@@ -9,8 +9,6 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
 import os,subprocess
-import copy
-#from Driver import self.debug
 import Steps
 import Datas
 import Samplers
@@ -88,36 +86,33 @@ class PBSSimulationMode(SimulationMode):
 
 class Simulation:
   '''This is a class that contain all the object needed to run the simulation'''
-  def __init__(self,inputfile,frameworkDir):
-    self.debug=True
-    '''this dictionary contains the general info to run the simulation'''
+  def __init__(self,inputfile,frameworkDir,debug=False):
+    self.debug= debug
+    #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
-    self.runInfoDict['SimulationFile'    ] = inputfile
-    self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts")
-    self.runInfoDict['FrameworkDir'      ] = frameworkDir
-    self.runInfoDict['WorkingDir'        ] = ''
-    self.runInfoDict['TempWorkingDir'    ] = ''
-    self.runInfoDict['ParallelCommand'   ] = ''
-    self.runInfoDict['ParallelProcNumb'  ] = 1
-    self.runInfoDict['ThreadingCommand'  ] = ''
-    self.runInfoDict['ThreadingProcessor'] = 1
-    self.runInfoDict['numNode'           ] = 1
-    self.runInfoDict['batchSize'         ] = 1
-    self.runInfoDict['quequingSoftware'  ] = ''
-    self.runInfoDict['procByNode'        ] = 1
-    self.runInfoDict['numProcByRun'      ] = 1
-    self.runInfoDict['totNumbCores'      ] = 1
-    self.runInfoDict['stepName'          ] = 1
-    self.runInfoDict['precommand'        ] = ''
-    self.runInfoDict['mode'              ] = ''
-    self.runInfoDict['expectedTime'      ] = '10:00:00'
-    '''the step to run the simulation in sequence'''
-    self.stepSequenceList = []
-    '''
-      there is one dictionary for each type in the simulation
-      the keys in the dictionary are the user provided name for all the needed types
-      they point to an instance of the class
-    '''
+    self.runInfoDict['SimulationFile'    ] = inputfile    #the xml input file
+    self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") #the location of the pbs script interfaves
+    self.runInfoDict['FrameworkDir'      ] = frameworkDir #the directory where the framework is located
+    self.runInfoDict['WorkingDir'        ] = ''           #the directory where the framework should be running
+    self.runInfoDict['TempWorkingDir'    ] = ''           #the temporary directory where a simulation step is run
+    self.runInfoDict['ParallelProcNumb'  ] = 1            #the number of mpi process by run
+    self.runInfoDict['ThreadingProcessor'] = 1            #Number of Threats by run
+    self.runInfoDict['numProcByRun'      ] = 1            #Total number of core used by one run (number of threats by number of mpi)
+    self.runInfoDict['batchSize'         ] = 1            #number of contemporaneous runs
+    self.runInfoDict['ParallelCommand'   ] = ''           #the command that should be used to submit jobs in parallel (mpi)
+    self.runInfoDict['ThreadingCommand'  ] = ''           #the command should be used to submit multi-threaded  
+    self.runInfoDict['numNode'           ] = 1            #number of nodes
+    self.runInfoDict['procByNode'        ] = 1            #number of processors by node
+    self.runInfoDict['totNumbCores'      ] = 1            #total number of cores available
+    self.runInfoDict['quequingSoftware'  ] = ''           #quequing software name 
+    self.runInfoDict['stepName'          ] = ''           #the name of the step currently running
+    self.runInfoDict['precommand'        ] = ''           #
+    self.runInfoDict['mode'              ] = ''           #
+    self.runInfoDict['expectedTime'      ] = '10:00:00'   #
+
+    #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
+    #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
+    #The value corresponding to a keyword is the instance of the corresponding class
     self.stepsDict         = {}
     self.dataDict          = {}
     self.samplersDict      = {}
@@ -126,15 +121,17 @@ class Simulation:
     self.DistributionsDict = {}
     self.dataBasesDict     = {}
     self.OutStreamsDict    = {}
-    self.filesDict         = {} #this is different, it just return the absolute path of the file
-    '''list of supported quequing software:'''
+    self.filesDict         = {} #this is different, for each file other than an instance it just returns the absolute path of the file
+    
+    self.stepSequenceList  = [] #the list of step of the simulation
+    
+    #list of supported quequing software:
     self.knownQuequingSoftware = []
     self.knownQuequingSoftware.append('None')
     self.knownQuequingSoftware.append('PBS Professional')
-    '''
-      Class Dictionary
-      when a new function is added to the simulation this dictionary need to be expanded
-    '''
+
+    #Class Dictionary when a new function is added to the simulation this dictionary need to be expanded
+    #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
     self.addWhatDict  = {}
     self.addWhatDict['Steps'         ] = Steps.returnInstance
     self.addWhatDict['Datas'         ] = Datas.returnInstance
@@ -144,9 +141,8 @@ class Simulation:
     self.addWhatDict['Distributions' ] = Distributions.returnInstance
     self.addWhatDict['DataBases'     ] = DataBases.returnInstance
     self.addWhatDict['OutStreams'    ] = OutStreams.returnInstance
-    '''
-      Mapping between a class type and the dictionary containing the instances for the simulation
-    '''
+
+    #Mapping between a class type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'        ] = self.stepsDict
     self.whichDict['Datas'        ] = self.dataDict
@@ -158,11 +154,13 @@ class Simulation:
     self.whichDict['Distributions'] = self.DistributionsDict
     self.whichDict['DataBases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.OutStreamsDict
+    
     self.jobHandler = JobHandler()
     self.__modeHandler = SimulationMode(self)
 
   def XMLread(self,xmlNode):
-    '''read the general input info to set up the calculation environment'''
+    '''parses the xml input file, instances the classes need to represent all objects in the simulation,
+       and call for the initialization of the simulation'''
     for child in xmlNode:
       if child.tag in self.whichDict.keys():
         Type = child.tag
@@ -170,16 +168,36 @@ class Simulation:
           for childChild in child:
             if childChild.attrib['name'] != None:
               name = childChild.attrib['name']
+              #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
+              #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               self.whichDict[Type][name] = self.addWhatDict[Type](childChild.tag)
-              # Call the object readXML function
+              #now we can read the info for this object
               self.whichDict[Type][name].readXML(childChild)
-#              if self.debug: self.whichDict[Type][name].printMe()
+              if self.debug: self.whichDict[Type][name].printMe()
             else: raise IOError('not found name attribute for one '+Type)
         else: self.readRunInfo(child)
       else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
+    #finalize the initialization
+    self.initialize()
+    
+  def initialize(self):
+    '''gets simulation ready to run'''
+    #check generate the existence of the working directory
     if not os.path.exists(self.runInfoDict['WorkingDir']):
       os.makedirs(self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
+    #check consistency and fill the missing info for the // runs (threading, mpi, batches)
+    self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
+    self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
+    
+    for key in self.filesDict.keys():
+      if os.path.split(key)[0] == '': self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
+      elif not os.path.isabs(key):self.filesDict[key] = os.path.abspath(key)
+    if self.runInfoDict['mode'] == 'pbs':
+      self.__modeHandler = PBSSimulationMode(self)
+    #Let the mode handler do any modification here
+    self.__modeHandler.modifySimulation()
+    self.jobHandler.initialize(self.runInfoDict)
 
   def readRunInfo(self,xmlNode):
     '''reads the xml input file for the RunInfo block'''
@@ -211,21 +229,11 @@ class Simulation:
       elif element.tag == 'Files':
         for fileName in element.text.split(','):
           self.filesDict[fileName] = fileName.strip()
-      
-    self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
-    self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
-    for key in self.filesDict.keys():
-      if os.path.split(key)[0] == '': self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
-      elif not os.path.isabs(key):self.filesDict[key] = os.path.abspath(key)
-    if self.runInfoDict['mode'] == 'pbs':
-      self.__modeHandler = PBSSimulationMode(self)
-    #Let the mode handler do any modification here
-    self.__modeHandler.modifySimulation()
-    self.jobHandler.initialize(self.runInfoDict)
 
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''
     def prntDict(Dict):
+      '''utility function capable to print a dictionary'''
       for key in Dict:
         print(key+'= '+str(Dict[key]))
     prntDict(self.runInfoDict)

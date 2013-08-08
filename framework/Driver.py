@@ -11,13 +11,15 @@ import xml.etree.ElementTree as ET
 import os
 from Simulation import Simulation
 import sys
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt #FIXME
 
 debug = True
 
 if __name__ == '__main__':
-  # Retrieve the framework directory path
+  '''This is the main driver for the RAVEN framework'''
+  # Retrieve the framework directory path and working dir
   frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+  workingDir = os.getcwd()
   # open the XML input 
   try:
     if len(sys.argv) == 1:
@@ -26,26 +28,19 @@ if __name__ == '__main__':
       inputFile = sys.argv[1]
   except:
     raise IOError ('input file not provided')
-  workingDir = os.getcwd()
-  if not os.path.isabs(inputFile):
-    inputFile = os.path.join(workingDir,inputFile)
-  if not os.path.exists(inputFile):
-    print('file not found '+inputFile)
+
   
-  # Try to parse the input => No try statement here otherwise 
-  # the parse will not give us information about the eventual errors occurred 
-  tree = ET.parse(inputFile)
+  #Parse the input
+  try: tree = ET.parse(inputFile)
+  except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
   if debug: print('opened file '+inputFile)
-
   root = tree.getroot()
-
-  # generate all the components of the simulation
-  simulation = Simulation(inputFile, frameworkDir)
+  #generate all the components of the simulation
+  simulation = Simulation(inputFile, frameworkDir,debug=debug)
   #Call the function to read and construct each single module of the simulation 
   simulation.XMLread(root)
   # Run the simulation 
   simulation.run()
-  
-  # TO BE DELETED
-  plt.show()
+
+  plt.show()   #FIXME
 
