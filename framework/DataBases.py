@@ -138,7 +138,7 @@ class HDF5(DateBase):
       @ Out, tempDict 
     ''' 
     def addInitParams(self,tempDict):
-      tempDict = DateSet.addInitParams(tempDict)
+      tempDict = DateBase.addInitParams(self,tempDict)
       tempDict['type']  = self.subtype
       tempDict['exist'] = self.exist
       return tempDict

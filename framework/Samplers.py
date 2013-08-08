@@ -344,6 +344,7 @@ class LatinHyperCube(Sampler):
     # is a list that for each point in the grid return a dictionary of the 
     #  distributions where values are the bounds in terms of the random variate 
     self.grid         = []       #
+    self.init_seed    = 0
 
   def addInitParams(self,tempDict):
     '''

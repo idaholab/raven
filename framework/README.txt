@@ -21,10 +21,10 @@ can be used.
 As an example, in pbs mode, the Simulation class add this to the start
 of every command:  
 
-pbsdsh -v -n %INDEX1% -- %SCRIPT_DIR%/remote_runner2.sh out_%CURRENT_ID% %WORKING_DIR%
+pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR%
 
 %INDEX1% is used to choose the node that the command runs on.  
-%SCRIPT_DIR%/remote_runner2.sh is the command that is run, and %SCRIPT_DIR% allows the full path to be specified. 
+%FRAMEWORK_DIR%/raven_remote.sh is the command that is run, and %FRAMEWORK_DIR% allows the full path to be specified. 
 out_%CURRENT_ID% is used to specify a unique output file.  %WORKING_DIR% is used remotely to find the correct working directory.  
 
 Another example:
