@@ -27,6 +27,10 @@ class RELAPparser:
     '''the method looks in self.lines for a card number matching the card in modiDictionaryList'''
     '''and modifies the word from modiDictionaryList at needed'''      
     temp=[]
+    temp.append('*RAVEN INPUT VALUES\n')
+    for j in modiDictionaryList:
+      temp.append('*'+j+'    '+modiDictionaryList[j]['position']+'   '+str(modiDictionaryList[j]['value'])+'\n')
+    temp.append('*RAVEN INPUT VALUES\n')
     for line in fileinput.input(self.inputfile, mode='r'):
       temp1=line
       if not re.match('^\s*\n',line):
