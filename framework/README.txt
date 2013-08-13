@@ -28,7 +28,7 @@ pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKI
 out_%CURRENT_ID% is used to specify a unique output file.  %WORKING_DIR% is used remotely to find the correct working directory.  
 
 Another example:
-strace -fo %WORKING_DIR%/strace_%CURRENT_ID% %SCRIPT_DIR%/../RAVEN-opt
+strace -fo %WORKING_DIR%/strace_%CURRENT_ID% %FRAMEWORK_DIR%/../RAVEN-opt
 
 
 -- Running on Cluster --
@@ -57,7 +57,7 @@ how long the problem should take to run.
 
 If the Driver is creating the pbs command, then a command like:
 
-python Driver.py ../scripts/test_simple5.xml
+python Driver.py ../inputs/test_simple5.xml
 
 will work.  The framework will create and submit an qsub command.
 
@@ -88,4 +88,4 @@ export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
 
 #Then the driver can be run
 
-python Driver.py ../scripts/test_simple5.xml
+python Driver.py ../inputs/test_simple5.xml
