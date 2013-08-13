@@ -77,7 +77,7 @@ class DateBase(BaseType):
 #      self.database.closeDataBaseW()
       pass
 '''
-  *************************
+  *************************s
   *  HDF5 DATABASE CLASS  *
   *************************
 '''
