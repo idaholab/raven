@@ -13,7 +13,7 @@ import shutil
 import Datas
 import numpy as np
 from BaseType import BaseType
-import SupervisionedLearning
+import SupervisedLearning
 from Filters import *
 #import Postprocessors
 #import ROM interfaces
@@ -167,10 +167,10 @@ class ROM(Model):
       except:
         try: self.initializzationOptionDict[child.tag] = float(child.text)
         except: self.initializzationOptionDict[child.tag] = child.text
-    self.test =  SupervisionedLearning.returnInstance(self.subType)
+    self.test =  SupervisedLearning.returnInstance(self.subType)
     self.SupervisedEngine = self.test(**self.initializzationOptionDict)
     #self.test.
-    #self.SupervisedEngine = SupervisionedLearning.returnInstance(self.subType)(self.initializzationOptionDict) #create an instance of the ROM
+    #self.SupervisedEngine = SupervisedLearning.returnInstance(self.subType)(self.initializzationOptionDict) #create an instance of the ROM
   
   def addLoadingSource(self,loadFrom):
     self.toLoadFrom = loadFrom
@@ -204,7 +204,7 @@ class ROM(Model):
 #    storeTo.addOutput(collectFrom)
 #  def createNewInput(self,myInput,samplerType,**Kwargs):
 #    raise IOError('for this model the createNewInput has not yet being implemented')
-#  TODO how is ROM tied to Supervisioned Learning?  "train" method in Model isn't overwritten...
+#  TODO how is ROM tied to Supervised Learning?  "train" method in Model isn't overwritten...
 
 class Filter(Model):
   '''Filter is an Action System. All the models here, take an input and perform an action'''

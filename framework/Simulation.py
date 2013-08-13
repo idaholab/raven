@@ -20,12 +20,17 @@ import OutStreams
 from JobHandler import JobHandler
 
 class SimulationMode:
+  """SimulationMode allows changes to the how the simulation 
+  runs are done.  modifySimulation lets the mode change runInfoDict
+  and other parameters.  runOverride lets the mode do the running instead
+  of simulation. """
   def __init__(self,simulation):
     self.__simulation = simulation
     
   def doOverrideRun(self):
     """If doOverrideRun is true, then use runOverride instead of 
-    running the simulation normally.
+    running the simulation normally.  This method should call 
+    simulation.run somehow
     """
     return False
 
