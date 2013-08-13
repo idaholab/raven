@@ -138,7 +138,9 @@ class HDF5(DateBase):
       @ Out, tempDict 
     ''' 
     def addInitParams(self,tempDict):
-      tempDict = DateBase.addInitParams(self,tempDict)
+      print('Andrea please FIXME I am using DataBase instead of DataSet that you placed in') #FIXME
+      tempDict = DateBase.addInitParams(tempDict)
+      tempDict = DateBase.addInitParams(tempDict)
       tempDict['type']  = self.subtype
       tempDict['exist'] = self.exist
       return tempDict
@@ -578,12 +580,10 @@ class HDF5(DateBase):
       @ Out, class Instance     : instance to that class
       Note: Interface function
     '''
-def returnInstance(Type):
+def returnInstance(Type,debug=False):
   base = 'DataBase'
   InterfaceDict = {}
   InterfaceDict['HDF5'   ] = HDF5
-  try:
-    if Type in InterfaceDict.keys():
-      return InterfaceDict[Type]()
-  except:
-    raise NameError(base +' of type' + Type + " unknown")
+  try:return InterfaceDict[Type](debug=debug)
+  except:raise NameError(base +' of type' + Type + " unknown")
+  
