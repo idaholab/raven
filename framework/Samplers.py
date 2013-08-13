@@ -174,42 +174,29 @@ class StochasticCollocation(Sampler):
     @ In, model: Model object instance
     @ Out, myInputs: Original input files
     '''
-    #try:
+    print('generate input model:',model)
     self.counter+=1
     quad_pts=self.quad.quad_pts[self.counter-1]
     quad_pt_index = self.quad.quad_pt_index[quad_pts]
     values={'prefix'        :str(self.counter),
-            'quad_pts'           :str(quad_pts),
-            'partial coeffs':str(self.partCoeffs[quad_pts])}
-            #'vars'          :str(self.toBeSampled.keys())}
+            'quad_pts'      :quad_pts,
+            'partial coeffs':self.partCoeffs[quad_pts].values(),
+            'exp order'    :self.quad.quad_pt_index[quad_pts]}
+    #values={}
+    #values['prefix']={'counter'       :str(self.counter),
+    #                  'quad pts'      :str(quad_pts),
+    #                  'partial coeffs':str(self.partCoeffs[quad_pts])}
+    #values['prefix']=(('counter'   ,'quad pts','partial coeffs'),
+    #                  (self.counter, quad_pts,str(self.partCoeffs[quad_pts].values())))
     values['vars']={}
-    #print('qps:',quad_pts)
+    # TODO would be beneficial to pass the orders of quad pt, too?
     for var in self.distDict.keys():
       values['vars'][var]=self.distDict[var].actual_point(\
           quad_pts[self.quad.dict_quads[self.quad.quads[var]]])
-      #print(self.distDict[var].quad())
-      #FIXME both vars have the same quadrature!  This is not right!
-      print('run',self.counter,'for var '+var+' set value',values['vars'][var])
-    #  values[var]=self.distDict[var].actual_point(\
-    #      quad_pts[self.quad.dict_quads[self.distDict[var].quad()]])
-    # quad_pts is a tuple of gauss quad points, so use the variable's distribution'
-    #   to look up the index for the right variable,
-    #   then use dist.standardToActualPoint to convert the gauss point to a parameter value
-    # TODO we could also pass "var" as an argument to the quadrature to make indexing look a lot nicer
+      #print('run',self.counter,'for var '+var+' set value',values['vars'][var])
     return model.createNewInput(myInput,self.type,**values)
-      #except StopIteration: raise 'No Gauss points to iterate over!'
-    #except IndexError as e:
-    #  print('ran into',e)
-    #  print('counter =',self.counter)
-    #  if len(self.quad.quad_pts) > 0:
-    #    print('No more quadrature points!')
-    #    print(var)
-    #  else:
-    #    print('IOError({0}): {1}'.format(e.errno,e.strerror))
-    #    raise
 
   def generateQuadrature(self):
-    #quads=[]
     quads={}
     for var in self.distDict.keys():
       #TODO see above, this won't work for quads that need addl params
@@ -217,15 +204,8 @@ class StochasticCollocation(Sampler):
       #  create a dict for addl params lists to *add to quadrature init call?
       #  this for sure works, even if it's empty!
       quads[var]=self.distDict[var].bestQuad(self.var_poly_order[var])
-      #quads.append(self.distDict[var].bestQuad(self.var_poly_order[var]))
-      # #self.distDict[var].setQuad(quads[-1],self.var_poly_order[var])
     self.quad=Quadrature.MultiQuad(quads)
-    #premake evNormPoly, stdToActualWeight, probnorm for coefficients
-    # this dictionary is keyed on the quadrature point tuple and is the product
-    #     of poly*weight*probNorm for each quadrature point tuple
     self.partCoeffs={}
-    #for weight in self.quad.quad_pt_weight.keys():
-    #  print(weight,self.quad.quad_pt_weight[weight])
     for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
       self.partCoeffs[quad_pt]={}
       for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])):
@@ -233,39 +213,13 @@ class StochasticCollocation(Sampler):
         poly=weight=probNorm=1.
         for v,var in enumerate(self.distDict):
           actVar=self.distDict[var]
-          # FIXME this won't work since quad won't belong to dist
-          #poly*=actVar.quad().evNormPoly(ords[v],quad_pt[v])
           poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
           # Note we this assumes standardToActualWeight is linear!
           probNorm*=actVar.probability_norm(quad_pt[v])
-        # already the product of weights for each var
         weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
         self.partCoeffs[quad_pt][ords]=weight*poly*probNorm
         # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
-    #self.partialCoeffs={}
-    #for weight in self.quad.quad_pt_weight.keys():
-    #  print(weight,self.quad.quad_pt_weight[weight])
-    #for ords in list(iterproduct(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
-    #  self.partialCoeffs[ords]={}
-    #  for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
-    #    self.partialCoeffs[ords][quad_pt]=0
-    #    poly=weight=probNorm=1.
-    #    for v,var in enumerate(self.distDict):
-    #      actVar=self.distDict[var]
-    #      poly*=actVar.quad().evNormPoly(ords[v],quad_pt[v])
-    #      # Note we this assumes standardToActualWeight is linear!
-    #      probNorm*=actVar.probability_norm(quad_pt[v])
-    #    # already the product of weights for each var
-    #    weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
-    #    self.partialCoeffs[ords][quad_pt]=weight*poly*probNorm
-    #    # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
-
-    #pk.dump(self.partCoeffs,file('SCweights.pk','w')) #TODO needs to be cleaned up after use, as well...
-    # scipy.stats.<distribution> can't be serialized, so we have to XML it
-    #json.dump([self.distDict],file('multiquad.json','wb')) #TODO needs to be cleaned up after use, as well...
-    # also, is this the best implementation available?
-    # also, how to make sure solns are indexed like multiquad?
-    # also, dump distDict for good measure?
+    return
 
   def fillDistribution(self,availableDist):
     '''generate the instances of the distribution that will be used'''

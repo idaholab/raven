@@ -41,7 +41,7 @@ class Model(BaseType):
     '''This needs to be over written if the model requires an initialization'''
     raise IOError('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
 
-  def run(self):
+  def run(self,*args):
     '''This call should be over loaded and return a jobHandler.External/InternalRunner'''
     raise IOError('the model '+self.name+' that has no run method' )
 
@@ -95,7 +95,7 @@ class Code(Model):
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
                    
-    except: print('MODEL CODE    : warning current working dir '+self.workingDir+'already exists, this might imply deletion of present files')
+    except: print('MODEL CODE    : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles:
       shutil.copy(inputFile,self.workingDir)
     print('MODEL CODE    : original input files copied in the current working dir: '+self.workingDir)
@@ -110,6 +110,18 @@ class Code(Model):
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     ''' This function creates a new input '''
+
+    def printKwargs(Kwargs):
+      print('in Models, createNewInput:')
+      for item in Kwargs.items():
+        if type(item[1])==dict:
+          print('\t',item[0],':')
+          for itm in item[1].items():
+            print('\t\t',itm)
+        else:
+          print('\t',item[0],':',item[1])
+    #printKwargs(Kwargs)
+
     if currentInput[0].endswith('.i'): index = 0
     else: index = 1
     Kwargs['outfile'] = 'outFrom~'+os.path.split(currentInput[index])[1].split('.')[0]
@@ -185,8 +197,8 @@ class ROM(Model):
     for key in ROMdict.keys():
       originalDict[key] = ROMdict[key]
 
-  def reset(self):
-    self.SupervisedEngine.reset()
+  def reset(self,*args):
+    self.SupervisedEngine.reset(*args)
 
   def train(self,trainingSet=None):
     '''This needs to be over written if the model requires an initialization'''
@@ -198,8 +210,19 @@ class ROM(Model):
     else:
       self.SupervisedEngine.train(self.toLoadFrom)
     return
-#  def run(self):
-#    return
+
+  def run(self,inputFiles,outputDatas,jobHandler):
+    '''return an instance of external runner'''
+    self.currentInputFiles = inputFiles
+    executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
+#    for inputFile in self.currentInputFiles: shutil.copy(inputFile,self.workingDir)
+    self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
+    #XXX what does this if block do?  Should it be a for loop and look thru the array?
+    if self.currentInputFiles[0].endswith('.i'): index = 0
+    else: index = 1
+    print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
+    return self.process
+
 #  def collectOutput(self,collectFrom,storeTo):
 #    storeTo.addOutput(collectFrom)
 #  def createNewInput(self,myInput,samplerType,**Kwargs):

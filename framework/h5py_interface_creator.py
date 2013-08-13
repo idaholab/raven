@@ -199,6 +199,7 @@ class hdf5Database:
         grp.attrs["end_time"]   = data[data[:,0].size-1,0]
         grp.attrs["n_ts"]       = data[:,0].size
         grp.attrs["EndGroup"]   = True
+        #FIXME should all the exceptions below be except KeyError to allow for other errors to break code?
         try:
           grp.attrs["input_file"] = attributes["input_file"]
         except:
@@ -208,53 +209,21 @@ class hdf5Database:
         if source['type'] == 'csv':
           grp.attrs["source_file"] = source['name']
 
-        try:
-          # parameter that has been changed 
-          grp.attrs["branch_changed_param"] = attributes["branch_changed_param"]
-        except:
-          # no branching information
-          pass
-        try:
-          # parameter that caused the branching 
-          grp.attrs["branch_changed_param_value"] = attributes["branch_changed_param_value"]
-        except:
-          # no branching information 
-          pass        
-        try:
-          grp.attrs["conditional_prb"] = attributes["conditional_prb"]
-        except:
-          # no branching information => i.e. MonteCarlo data
-          pass
-        try:
-          # initiator distribution
-          grp.attrs["initiator_distribution"] = attributes["initiator_distribution"]
-        except:
-          # no branching information
-          pass        
-        try:
-          # initiator distribution
-          grp.attrs["Probability_threshold"] = attributes["PbThreshold"]
-        except:
-          # no branching information
-          pass
-        try:
-          # initiator distribution
-          grp.attrs["end_timestep"] = attributes["end_ts"]
-        except:
-          # no branching information
-          pass        
-        try:
-          # quadrature points
-          grp.attrs["qps"] = attributes["qps"]
-        except:
-          # no quadrature point data
-          pass        
-        try:
-          # partial coefficients for stochastic collocation
-          grp.attrs["partialCoeffs"] = attributes["partialCoeffs"]
-        except:
-          # no partial coefficient data
-          pass        
+        #look for keyword attributes from the sampler
+        attempt_attr= {'branch_changed_param'      :'branch_changed_param',
+                       'branch_changed_param_value':'branch_changed_param_value',
+                       'conditional_prb'           :'conditional_prb',
+                       'initiator_distribution'    :'initiator_distribution',
+                       'Probability_threshold'     :'PbThreshold',
+                       'quad_pts'                  :'quad_pts',
+                       'partial coeffs'            :'partial coeffs',
+                       'exp order'                 :'exp order',
+                       }
+        for attr in attempt_attr.keys():
+          try:
+            grp.attrs[attr]=attributes[attempt_attr[attr]]
+          except KeyError:
+            pass
       else:
         # do something else
         pass

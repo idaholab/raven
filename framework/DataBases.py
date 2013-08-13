@@ -186,7 +186,9 @@ class HDF5(DateBase):
     def returnHistory(self,attributes):
       if (not self.exist) and (not self.built):
         raise Exception("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
-      if attributes['filter']:
+      if 'filter' in attributes.keys():#attributes['filter']:
+        #FIXME why don't I have 'history' in my database?
+        print('in DataBases:',attributes.keys())
         tupleVar = self.database.retrieveHistory(attributes["history"],attributes['filter'])
       else:
         tupleVar = self.database.retrieveHistory(attributes["history"])

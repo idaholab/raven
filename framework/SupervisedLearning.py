@@ -8,13 +8,17 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 from sklearn import svm
+import numpy as np
 import Datas
 import numpy
+import h5py
 from itertools import product as itprod
 try:
   import cPickle as pk
 except:
   import pickle as pk
+
+#import DataBases #TODO shouldn't need this, see StochPoly.train() for instance check
 '''here we intend ROM as super-visioned learning, 
    where we try to understand the underlying model by a set of labeled sample
    a sample is composed by (feature,label) that is easy translated in (input,output)
@@ -64,27 +68,52 @@ class superVisioned():
 class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
-  def train(self,data):
+
+  def train(self,inDictionary):
+    data=inDictionary['Input'][0]
     self.solns={}
     
-    if data.type=='hdf5':
-      attr={'history':None,'prefix':None}
-      M=data.returnHistory(attr)
-      # copying pattern from OutStreams.py, around line 120
-      # FIXME don't have self.toLoadFromList
-      endGroupNames = toLoadFromList[0].getEndingGroupNames()
-      for index in xrange(len(endGroupNames)):
-        #FIXME don't have self.alreadyRead
-        if not endGroupNames[index] in self.alreadyRead:
-          self.histories[endGroupNames[index]] = self.toLoadFromList[0].returnHistory({'history':endGroupNames[index],'filter':'whole'})
-          self.alreadyRead.append(endGroupNames[index])
+    if data.type=='HDF5':
+      #attr={'filter':['prefix','quad_pts','partial coeffs']}
+      #attr={'prefix':None,'quad_pts':None,'partial coeffs':None}
+      attr={}
+      hists=data.getEndingGroupNames()
+      M=[]
+      for i,h in enumerate(hists):
+        if h=='':continue
+        #print('h is',h)
+        attr['history']=h
+        M.append(data.returnHistory(attr))
+      #print('Items in HDF5:',len(M[-1][1]['headers']))
+      #print('\nvalues:',M[0][1]['quad_pts'])
+
+      # How to get specific values from solution?
+      solnIndex=numpy.where(M[0][1]['headers']=='avg_out_temp_sec_A')
+
+
+      # for each run, sampler passes the values (quad pt) to eval at, as well as
+      # the partial coefficients for that _quad point_.  Here, for each of those,
+      # we simply need to sum over each partCoeff[quad_pt][ord]*soln[quad_pt]
+      # to construct poly_coeff[ord]
 
       self.poly_coeffs={}
+      for history in M:
+        self.poly_coeffs[tuple(history[1]['exp order'])]=0
+        for partCoeff in history[1]['partial coeffs']:
+          self.poly_coeffs[tuple(history[1]['exp order'])]+=\
+                    history[0][0][solnIndex]*partCoeff
+      
+      #for key in self.poly_coeffs:
+      #  print(key,self.poly_coeffs[key])
+
+
+      #self.poly_coeffs={}
       #dictQpCoeffs=pk.load(file('SCweights.pk','r')) take from hdf5
-      for ords in dictQpCoeffs.keys():
-        self.poly_coeffs[ords]=0
-        for qp in dictQpCoeffs[ords].keys():
-          self.poly_coeffs[ords]+=dictQpCoeffs[ords][qp]*soln[qp]
+      #for ords in dictQpCoeffs.keys():
+      #  self.poly_coeffs[ords]=0
+      #  for qp in dictQpCoeffs[ords].keys():
+      #    self.poly_coeffs[ords]+=dictQpCoeffs[ords][qp]*soln[qp]
+      print('StochasticPolynomials ROM successfully trained.')
     else:
       print('Reading from non-HDF5 for StochPolys not supported yet...')
     return
@@ -101,13 +130,14 @@ class StochasticPolynomials(superVisioned):
     #    self.poly_coeffs[ords]+=solns[qp]*wt*poly*probNorm
   def evaluate(self,valDict):
     # valDict is dict of values to evaluate at, keyed on var
+    #FIXME these need to be adjusted for changes in train()
     tot=0
     for ords,coeff in self.poly_coeff:
       tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
               ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
       #TODO revertPt may not always be straightforward to implement!
     return tot
-  def reset(self):
+  def reset(self,*args):
     try:
       del self.poly_coeffs
       del self.distDict

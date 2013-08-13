@@ -57,6 +57,11 @@ class Quadrature():
     result=sum(arr*self.weights)
     return result*mult
 
+  def keepReal(self,arr):
+    '''Sometimes the quad points come out complex with 0j in the complex plain.
+       This method checks to make sure it's zero, then gets rid of it.'''
+    return np.real_if_close(arr)
+
 
 #============================================================================\
 class Legendre(Quadrature):
@@ -68,6 +73,8 @@ class Legendre(Quadrature):
   def setQuad(self):
     self.type='Legendre'
     self.quad_pts,self.weights = orth.p_roots(self.order) #points and weights from scipy
+    self.quad_pts = self.keepReal(self.quad_pts)
+    self.keepReal = self.keepReal(self.weights)
 
   def setDist(self):
   #  self.dist=spst.uniform(-1,1) #associated distribution
@@ -83,6 +90,8 @@ class ShiftLegendre(Quadrature):
   def setQuad(self):
     self.type='ShiftedLegendre'
     self.quad_pts,self.weights=orth.ps_roots(self.order)
+    self.quad_pts = self.keepReal(self.quad_pts)
+    self.keepReal = self.keepReal(self.weights)
 
   def setDist(self):
   #  self.dist=spst.uniform(0,1)
@@ -97,6 +106,8 @@ class Hermite(Quadrature):
   def setQuad(self):
     self.type='Hermite'
     self.quad_pts,self.weights = orth.h_roots(self.order)
+    self.quad_pts = self.keepReal(self.quad_pts)
+    self.keepReal = self.keepReal(self.weights)
 
   def setDist(self):
   #  self.dist=spst.norm() #FIXME is this true?? exp(-x^2/<<2>>)
@@ -112,12 +123,19 @@ class StatHermite(Quadrature):
   def setQuad(self):
     self.type='StatisticianHermite'
     self.quad_pts,self.weights = orth.he_roots(self.order)
+    self.quad_pts = self.keepReal(self.quad_pts)
+    self.keepReal = self.keepReal(self.weights)
 
   def setDist(self):
   #  self.dist=spst.norm()
     self.poly=sps.hermitenorm
 
   def evNormPoly(self,o,x):
+    try:
+      o=np.real(o)
+      x=np.real(x)
+    except:
+      print(self,'.evNormPoly tried to convert to real but it failed.  Moving on.')
     return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(2.*np.pi)*factorial(o))
 
 
@@ -132,6 +150,8 @@ class Laguerre(Quadrature):
   def setQuad(self):
     self.quadType='GenLaguerre'
     self.quad_pts,self.weights = orth.la_roots(self.order,self.alpha)
+    self.quad_pts = self.keepReal(self.quad_pts)
+    self.keepReal = self.keepReal(self.weights)
 
   def setDist(self):
   #  self.dist=spst.gamma(self.alpha) #shift from [a,inf] to [0,inf]?
@@ -151,6 +171,8 @@ class Jacobi(Quadrature):
   def setQuad(self):
     self.quadType='Jacobi'
     self.quad_pts,self.weights = orth.j_roots(self.order,self.alpha,self.beta)
+    self.quad_pts = self.keepReal(self.quad_pts)
+    self.keepReal = self.keepReal(self.weights)
 
   def setDist(self):
   #  self.dist=spst.beta(self.alpha,self.beta)
@@ -211,6 +233,7 @@ class MultiQuad(Quadrature):
     self.indx_weight=dict(zip(self.indices,self.weights))
     self.quad_pt_index=dict(zip(self.quad_pts,self.indices))
     self.quad_pt_weight=dict(zip(self.quad_pts,self.weights))
+
 
   def integrate(self,func,mult=1.0):
     '''Integrates given function using inputs from nD quadrature.'''

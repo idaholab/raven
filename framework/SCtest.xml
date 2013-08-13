@@ -4,62 +4,22 @@
     <WorkingDir>./inputs</WorkingDir>
     <Files>sccsv.csv,TMI_test_PRA_transient_less_w_DET.i,TMI_test_PRA_transient_less_w_MC.i,TMI_PRA_trans_MC_nofail_control.py,TMI_PRA_trans_DET_control.py,DET_histories_eqPb.csv,DET_histories_eqVar.csv,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i,DET_histories.csv</Files>
     <Sequence>set_up_SC,create_ROM</Sequence>
-    <!--  -->
     <batchSize>8</batchSize>
-    <!--<ParallelCommand></ParallelCommand>
-    <ParallelProcNumb></ParallelProcNumb>
-    <ThreadingCommand></ThreadingCommand>
-    <ThreadingProcessor></ThreadingProcessor>
-    <numNode></numNode>
-    <quequingSoftware></quequingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totNumbCores></totNumbCores>-->
 </RunInfo>
 
 <Models>
     <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
     <ROM  name='SCrom'   type='StochasticPolynomials'>SCrom</ROM>
-    <Filter name='csv_from_hdf5' type='PrintCSV'>all</Filter>
 </Models>
 <Distributions>
     <Normal name='Gauss1'>
         <mean>10</mean>
         <sigma>3</sigma>
-        <!--lowerBound>0</lowerBound-->
-        <!--upperBound>2</upperBound-->
-        <adjustement>up</adjustement>
     </Normal>
-    <Normal name='auxBackUpTimeDist'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
-        <!--lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement-->
-    </Normal>    
-    <Normal name='Gauss2'>
-        <mean>1</mean>
-        <sigma>0.4</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
-        <adjustement>scaling</adjustement>
-    </Normal>
-    <Triangular name='CladFailureDist'>
-        <apex>1</apex>
-        <min>-0.1</min>
-        <max>3</max>
-<!--         <lowerBound>0</lowerBound> This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>  -->
-    </Triangular>
 </Distributions>
 
 
 <Samplers>
-  <MonteCarlo     name='RAVENmc6'  limit='800'>
-<!--    <Variable type ='Normal' distName='Gauss1'>pippo</Variable>-->
-      <Variable type ='Normal' distName='Gauss1'>power_CH1</Variable>
-  </MonteCarlo>
   <StochasticCollocation name='SC' min_poly_order='2'>
       <Variable type ='Normal' distName='Gauss1' poly_order='4'>Controlled:power_CH1:value</Variable>
       <Variable type ='Normal' distName='Gauss1' poly_order='2'>Controlled:power_CH2:value</Variable>
@@ -72,25 +32,15 @@
         <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_nofail_control.py</Input>
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
-        <!--Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input-->
         <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
-<!--        <Sampler type='Samplers'   subtype='MonteCarlo'      >RAVENmc6</Sampler>-->
         <Sampler type='Samplers'   subtype='StochasticCollocation'>SC</Sampler>
         <Output  type='DataBases'  subtype='HDF5'           >SC_RUN</Output>
-        <!--Output  type='Files'      subtype=''               >SC_RUN.csv</Output-->
     </MultiRun> 
-    <MultiRun name='create_ROM'>
-        <Input   type='DataBases'  subtype='HDF5'           >SC_RUN</Input>
-        <Model   type='Models'     subtype='Code'           >MyRAVEN</Model>
-        <Model   type='Models'     subtype='StochasticCollocation'>SCrom</Model>
-        <Output  type='DataBases'  subtype='HDF5'           >SC_OUT</Output>
-    </MultiRun>
-    <!--PostProcessing name='history_from_hdf5'>
-      <Input   type='DataBases' subtype='HDF5'   >SC_RUN</Input>
-      <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
-      <Output  type='Files'    subtype=''       >sccsv.csv</Output>
-    </PostProcessing-->
-
+    <SCRun name='create_ROM'>
+        <Input type='DataBases'  subtype='HDF5'            >SC_RUN</Input>
+        <ROM   type='Models'       subtype='StochasticCollocation'>SCrom</ROM>
+        <!--Output  type='DataBases'  subtype='HDF5'           >SC_RUN</Output-->
+    </SCRun> 
 </Steps>
 <!--OutStreams>
   <Screen name="testScreen">
@@ -103,7 +53,7 @@
   <HDF5 name='SC_OUT' type='MC'/>
 </DataBases>
 
-<Datas>
+<!--Datas>
     <Histories name='stories'>
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
         <Output>avg_temp_clad_CH2,CladDamaged</Output>
@@ -136,7 +86,7 @@
         <Input>pippo,pip,pluto</Input>
         <Output>cladFailure</Output>
     </TimePointSet>
-</Datas>
+</Datas-->
 </Simulatio>
 
 

@@ -177,8 +177,11 @@ class Simulation:
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               self.whichDict[Type][name] = self.addWhatDict[Type](childChild.tag)
               #now we can read the info for this object
+              print(Type,name,(self.whichDict[Type][name]))
               self.whichDict[Type][name].readXML(childChild)
-              if self.debug: self.whichDict[Type][name].printMe()
+              if self.debug:
+                self.whichDict[Type][name].printMe()
+              #if self.debug: self.whichDict[Type][name].printMe()
             else: raise IOError('not found name attribute for one '+Type)
         else: self.readRunInfo(child)
       else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
@@ -268,10 +271,11 @@ class Simulation:
       inputDict['Output'] = []          #set the Output to an empty list
       for [key,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
 #        if self.debug: print(a+' is:')
-        #print([key,b,c,d])
+        #if self.debug:print([key,b,c,d])
         if key == 'Input':
           #print('this:',b,d)
           #print(self.whichDict.keys())
+          #if self.debug:print(self.whichDict.keys())
           inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
         elif key == 'Output':
@@ -279,6 +283,8 @@ class Simulation:
 #          if self.debug: self.whichDict[b][d].printMe()
         else:
           #Create extra dictionary entry
+          #print('keys',inputDict.keys(),self.whichDict.keys())
+          #print(key,b,d,self.whichDict.keys())
           inputDict[key] = self.whichDict[b][d]
 #          if self.debug: self.whichDict[b][d].printMe()
       inputDict['jobHandler'] = self.jobHandler
