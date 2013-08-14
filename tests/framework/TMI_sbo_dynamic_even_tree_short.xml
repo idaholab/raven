@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>SBO_DET</WorkingDir>
+    <Files>DET_histories_eqPb.csv,TMI_PRA_trans_DET_control.py,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+    <Sequence>DET_RUN_eqPb,extract_hist_from_hdf5_eqPb</Sequence>
+    <batchSize>160</batchSize>
+    <numNode>5</numNode>
+    <procByNode>32</procByNode>
+</RunInfo>
+<Models>
+    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-opt</Code>
+    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
+</Models>
+<Distributions>
+    <Normal name='crewSecPG'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='crew1DG2CoupledDG1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>    
+    <Normal name='crew1DG1'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='CladFailureDist'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
+    </Triangular>
+    <Triangular name='PrimPGrecovery'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
+    </Triangular>
+</Distributions>
+<Samplers>
+    <DynamicEventTree name='DET_equiPb'>
+      <BranchingSettings  CPcut = '1.0E-100'>
+        <Variable type='Normal' distName='crew1DG1' BranchProbs='0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9'>crew1DG1</Variable>
+        <Variable type='Normal' distName='crew1DG2CoupledDG1' BranchProbs='0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9'>crew1DG2CoupledDG1</Variable>
+        <Variable type='Normal' distName='crewSecPG' BranchProbs='0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9'>crewSecPG</Variable>
+        <Variable type='Triangular' distName='PrimPGrecovery' BranchProbs='0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9'>PrimPGrecovery</Variable>
+        <Variable type='Triangular' distName='CladFailureDist' BranchProbs='0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9'>CladFailureDist</Variable>
+      </BranchingSettings>
+    </DynamicEventTree>     
+</Samplers>
+<Steps> 
+    <MultiRun name='DET_RUN_eqPb'>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_DET_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers'   subtype='DynamicEventTree'>DET_equiPb</Sampler>
+        <DataBase type='DataBases' subtype=''                  >DET_SBO_RUN_eqPb</DataBase>
+        <Output  type='DataBases' subtype='HDF5'              >DET_SBO_RUN_eqPb</Output>
+    </MultiRun>  
+    <PostProcessing name='extract_hist_from_hdf5_eqPb'>
+        <Input   type='DataBases' subtype='HDF5'   >DET_SBO_RUN_eqPb</Input>
+        <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
+        <Output  type='Files'    subtype=''       >DET_histories_eqPb.csv</Output>
+    </PostProcessing>       
+</Steps>
+<DataBases>
+    <HDF5 name="DET_SBO_RUN_eqVar" type="DET"/> 
+    <HDF5 name="DET_SBO_RUN_eqPb" type="DET"/> 
+</DataBases>
+<Datas>
+   <Histories name='stories_from_database'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+</Datas>
+</Simulatio>
+
+
+
