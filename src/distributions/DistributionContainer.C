@@ -210,8 +210,9 @@ std::string DistributionContainer::lastDistributionTriggered(){
   else{
     return std::string("");
   }
-};
-bool DistributionContainer::atLeastADistTriggered(){return _at_least_a_dist_triggered;};
+}
+
+bool DistributionContainer::atLeastADistTriggered(){return _at_least_a_dist_triggered;}
 
 
 DistributionContainer & DistributionContainer::Instance() {
