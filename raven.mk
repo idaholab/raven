@@ -136,7 +136,7 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
                                                  $(RAVEN_DIR)/src/distributions/DistributionContainer.C \
                                                  $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_LIB)
 # Swig
-	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/ $(libmesh_INCLUDE) \
+	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/  \
           -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/distributions/ \
           -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ \
           $(RAVEN_MODULES)/distribution1D.i
@@ -161,7 +161,7 @@ $(RAVEN_DIR)/control_modules/_raventools.so : $(RAVEN_DIR)/control_modules/raven
                                              $(RAVEN_DIR)/src/tools/RavenToolsContainer.C \
                                              $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_LIB)
 # Swig
-	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/ $(libmesh_INCLUDE) \
+	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/  \
           -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/tools/ \
           -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ \
           $(RAVEN_MODULES)/raventools.i
