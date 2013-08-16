@@ -63,7 +63,9 @@ class PBSSimulationMode(SimulationMode):
     # Check if the simulation has been run in PBS mode and, in case, construct the proper command
     batchSize = self.__simulation.runInfoDict['batchSize']
     frameworkDir = self.__simulation.runInfoDict["FrameworkDir"]
-    command = ["qsub","-l","select="+str(batchSize)+":ncpus=1",
+    ncpus = self.__simulation.runInfoDict['ParallelProcNumb']
+    command = ["qsub","-l",
+               "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
                "-l","walltime="+self.__simulation.runInfoDict["expectedTime"],
                "-l","place=free","-v",
                'COMMAND="python Driver.py '+
@@ -85,6 +87,8 @@ class PBSSimulationMode(SimulationMode):
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       print("DRIVER        : Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.__simulation.runInfoDict['precommand']
+      if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
+        self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 
 
     
@@ -111,9 +115,10 @@ class Simulation:
     self.runInfoDict['totNumbCores'      ] = 1            #total number of cores available
     self.runInfoDict['quequingSoftware'  ] = ''           #quequing software name 
     self.runInfoDict['stepName'          ] = ''           #the name of the step currently running
-    self.runInfoDict['precommand'        ] = ''           #
-    self.runInfoDict['mode'              ] = ''           #
-    self.runInfoDict['expectedTime'      ] = '10:00:00'   #
+    self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
+    self.runInfoDict['postcommand'       ] = ''           # Added after the command is run.
+    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only mode supported is pbs
+    self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
     #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
@@ -228,7 +233,8 @@ class Simulation:
       elif element.tag == 'ParallelProcNumb'  : self.runInfoDict['ParallelProcNumb'  ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
-      elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text.strip()
+      elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
+      elif element.tag == 'postcommand'       : self.runInfoDict['postcommand'        ] = element.text
       elif element.tag == 'mode'              : self.runInfoDict['mode'              ] = element.text.strip().lower()
       elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':

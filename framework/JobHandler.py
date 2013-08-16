@@ -121,10 +121,10 @@ class JobHandler:
     
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
-    if self.runInfoDict['ParallelProcNumb'] !=1:
-      self.mpiCommand = self.runInfoDict['ParallelCommand']+' '+self.runInfoDict['ParallelProcNumb']
+    if self.runInfoDict['ParallelProcNumb'] !=1 and len(self.runInfoDict['ParallelCommand']) > 0:
+      self.mpiCommand = self.runInfoDict['ParallelCommand']+' '+str(self.runInfoDict['ParallelProcNumb'])
     if self.runInfoDict['ThreadingProcessor'] !=1:
-      self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+self.runInfoDict['ThreadingProcessor']
+      self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+str(self.runInfoDict['ThreadingProcessor'])
     #initialize PBS
     self.__running = [None]*self.runInfoDict['batchSize']
 
@@ -136,6 +136,7 @@ class JobHandler:
     if self.threadingCommand !='':
       command +=self.threadingCommand+' '
     command += executeCommand
+    command += self.runInfoDict['postcommand']
     self.__queue.put(ExternalRunner(command,workingDir,outputFile))
     self.__numSubmitted += 1
 
@@ -185,6 +186,7 @@ class JobHandler:
         command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
         command = command.replace("%WORKING_DIR%",item.getWorkingDir())
         command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
+        command = command.replace("%NUM_CPUS%",str(self.runInfoDict['ParallelProcNumb']))
         item.command = command
         self.__running[i] = item
         self.__running[i].start()
