@@ -845,12 +845,12 @@ class DynamicEventTree(Sampler):
     elm.set('queue',False)
 
     # Read branching settings
-    childreen = xmlNode.find("BranchingSettings")
-    try: self.maxSimulTime = childreen.attrib['maxSimulationTime']
+    children = xmlNode.find("BranchingSettings")
+    try: self.maxSimulTime = children.attrib['maxSimulationTime']
     except: self.maxSimulTime = None
-    Sampler.readMoreXML(self,childreen)
+    Sampler.readMoreXML(self,children)
     branchedLevel = {}
-    for child in childreen:
+    for child in children:
       bv = child.attrib['BranchProbs']
       bvalues = [float(x) for x in bv.split()]
       self.branchProbabilities[child.attrib['distName']] = bvalues
