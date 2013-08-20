@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <map>
-//#include <MooseRandom.h>
+#include <MooseRandom.h>
 
 using namespace std;
 
@@ -75,14 +75,15 @@ DistributionContainer::getType(std::string DistAlias){
 
 void
 DistributionContainer::seedRandom(unsigned int seed){
-	srand( seed );
-	//_random.seed(seed);
+  //srand( seed );
+  //_random.seed(seed);
+  MooseRandom::seed(seed);
 }
 double
 DistributionContainer::random(){
-   return (static_cast<double>(rand())/static_cast<double>(RAND_MAX));
-
-   //return _random.rand();
+  //return (static_cast<double>(rand())/static_cast<double>(RAND_MAX));
+  //return _random.rand();
+  return MooseRandom::rand();
 }
 
 bool DistributionContainer::checkCdf(std::string DistAlias, double value){
