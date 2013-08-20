@@ -88,9 +88,9 @@ class Uniform(Distribution):
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
     try: self.low = float(xmlNode.find('low').text)
-    except: raise 'low value needed for uniform distribution'
+    except: raise Exception('low value needed for uniform distribution')
     try: self.hi = float(xmlNode.find('hi').text)
-    except: raise 'hi value needed for uniform distribution'
+    except: raise Exception('hi value needed for uniform distribution')
     self.inDistr()
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self,tempDict)
@@ -184,9 +184,9 @@ class Gamma(Distribution):
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
     try: self.low = float(xmlNode.find('low').text)
-    except: raise 'low value needed for Gamma distribution'
+    except: raise Exception('low value needed for Gamma distribution')
     try: self.alpha = float(xmlNode.find('alpha').text)
-    except: raise 'alpha value needed for Gamma distribution'
+    except: raise Exception('alpha value needed for Gamma distribution')
     try: self.beta = float(xmlNode.find('beta').text)
     except: self.beta=1.0
     self.inDistr()
@@ -227,13 +227,13 @@ class Beta(Distribution):
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
     try: self.low = float(xmlNode.find('low').text)
-    except: raise 'low value needed for Gamma distribution'
+    except: raise Exception('low value needed for Gamma distribution')
     try: self.hi = float(xmlNode.find('hi').text)
-    except: raise 'hi value needed for Gamma distribution'
+    except: raise Exception('hi value needed for Gamma distribution')
     try: self.alpha = float(xmlNode.find('alpha').text)
-    except: raise 'alpha value needed for Gamma distribution'
+    except: raise Exception('alpha value needed for Gamma distribution')
     try: self.beta = float(xmlNode.find('beta').text)
-    except: raise 'beta value needed for Gamma distribution'
+    except: raise Exception('beta value needed for Gamma distribution')
     self.inDistr()
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self,tempDict)
