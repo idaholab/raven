@@ -789,15 +789,15 @@ class DynamicEventTree(Sampler):
       root = self.TreeInfo.getroot()
       # Update the run information flags
       if (root.tag == id):
-        root.set('runEnded',False)
-        root.set('running',True)
-        root.set('queue',False)
+        root.set('runEnded',str(False))
+        root.set('running',str(True))
+        root.set('queue',str(False))
       else:
         subElm = list(root.iter(id))[0]
         if(subElm is not None):
-          subElm.set('runEnded',False)
-          subElm.set('running',True)
-          subElm.set('queue',False)
+          subElm.set('runEnded',str(False))
+          subElm.set('running',str(True))
+          subElm.set('queue',str(False))
 
     return jobInput
 
@@ -836,13 +836,13 @@ class DynamicEventTree(Sampler):
       self.print_end_xml = False
       
     elm.set('name', xmlNode.attrib['name'] + '_1')
-    elm.set('start_time', 0.0)
+    elm.set('start_time', str(0.0))
     # Initialize the end_time to be equal to the start one... 
     # It will modified at the end of each branch
-    elm.set('end_time', 0.0)
-    elm.set('runEnded',False)
-    elm.set('running',True)
-    elm.set('queue',False)
+    elm.set('end_time', str(0.0))
+    elm.set('runEnded',str(False))
+    elm.set('running',str(True))
+    elm.set('queue',str(False))
 
     # Read branching settings
     children = xmlNode.find("BranchingSettings")
