@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>branch</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py,DET_histories.csv</Files>
+    <Sequence>DETrunTest,extract_hist_example</Sequence>
+    <batchSize>3</batchSize>
+    <!--<ParallelCommand></ParallelCommand>
+    <ParallelProcNumb></ParallelProcNumb>
+    <ThreadingCommand></ThreadingCommand>
+    <ThreadingProcessor></ThreadingProcessor>
+    <numNode></numNode>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
+    <Filter name='Plot1' type='Plot'> 
+      <historyID>ALL</historyID>
+      <variables>ALL</variables>
+    </Filter>
+    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
+</Models>
+
+<Distributions>
+  <Uniform name="zeroToOne">
+    <low>0.0</low>
+    <hi>1.0</hi>
+  </Uniform>
+</Distributions>
+
+<Samplers>
+  <DynamicEventTree name='DET_test'>
+    <BranchingSettings CPcut='1.0e-100'>
+      <Variable type="Uniform" distName="zeroToOne" BranchProbs='0.1 0.5'>zeroToOne</Variable>
+    </BranchingSettings>
+  </DynamicEventTree>   
+</Samplers>
+<Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+</Tests>
+<Steps>
+    <MultiRun name='DETrunTest'>
+        <Input   type='Files'    subtype=''>ideal_pump.i</Input>
+        <Input   type='Files'    subtype=''>ideal_pump_control.py</Input>
+        <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
+        <Sampler type = 'Samplers' subtype='DynamicEventTree'>DET_test</Sampler>
+        <DataBases type='DataBases' subtype=''        >testDataBase</DataBases>
+        <Output  type='DataBases' subtype='HDF5' >testDataBase</Output>
+        <Output  type='Datas'    subtype='Histories' >stories</Output>
+    </MultiRun >
+    <PostProcessing name='extract_hist_example'>
+        <Input   type='DataBases' subtype='HDF5'   >testDataBase</Input>
+        <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
+        <Output  type='Files'    subtype=''       >DET_histories.csv</Output>
+    </PostProcessing>      
+</Steps>
+<DataBases>
+    <HDF5 name="testDataBase" type="DET"/> 
+</DataBases>
+<Datas>
+    <Histories name='stories'>
+        <Input>pipe1_Area,pipe1_Dh</Input>
+        <Output>pipe1_Hw,pipe1_aw</Output>
+   </Histories>
+</Datas>
+</Simulatio>
+
+
+
