@@ -253,7 +253,7 @@ class hdf5Database:
         '''
           Retrieve the header of the CSV file
         '''
-        headers = f.readline().split(",")
+        headers = f.readline().split(b",")
         '''
           Load the csv into a numpy array(n time steps, n parameters)
         '''
