@@ -37,7 +37,7 @@ class RELAPparser:
         if line.split()[0] in modiDictionaryList:
             temp1 = self.replaceword(line,modiDictionaryList[line.split()[0]]['position'],modiDictionaryList[line.split()[0]]['value'])
       temp.append(temp1)  
-    if save==True: 
+    if save: 
       self.lines=temp
     return self.lines     
 

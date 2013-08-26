@@ -573,15 +573,16 @@ class DynamicEventTree(Sampler):
     if not os.path.isabs(filename):
       filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
-      print('SAMPLER ANDREA: branch info file' + filename +' has not been found. => No Branching.')
+      print('SAMPLER ANDREA: branch info file ' + filename +' has not been found. => No Branching.')
       branch_present = False
       return branch_present
     
     # Parse the file and create the xml element tree object
     try:
       branch_info_tree = ET.parse(filename)
+      print('Done parsing '+filename)
     except:
-      branch_info_tree = ET.parse(filename)
+      #branch_info_tree = ET.parse(filename) #This could cause a second exception
       raise IOError ('not able to parse ' + filename)
     root = branch_info_tree.getroot()
     

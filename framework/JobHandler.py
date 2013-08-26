@@ -71,10 +71,7 @@ class ExternalRunner:
 
   def isDone(self):
     self.__process.poll()
-    if self.__process.returncode != None:
-      return True
-    else:
-      return False
+    return self.__process.returncode != None
 
   def getReturnCode(self):
     return self.__process.returncode

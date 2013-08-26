@@ -421,7 +421,7 @@ class hdf5Database:
         ''' Tree structure => construct the histories' paths '''
         workingList = []
         for index in xrange(len(self.allGroupPaths)):
-         if self.allGroupEnds[self.allGroupPaths[index]] == True:
+         if self.allGroupEnds[self.allGroupPaths[index]]:
            workingList.append(self.allGroupPaths[index])
         return workingList
 
@@ -455,7 +455,7 @@ class hdf5Database:
         '''
         workingList = []
         for index in xrange(len(self.allGroupPaths)):
-         if self.allGroupEnds[self.allGroupPaths[index]] == True:
+         if self.allGroupEnds[self.allGroupPaths[index]]:
            test_list = self.allGroupPaths[index].split('/')
            workingList.append(test_list[len(test_list)-1])
            del test_list
