@@ -12,7 +12,8 @@ if len(sys.argv) > 1:
 else:
   output_file = sys.stdout
 
-yaml_output = subprocess.check_output(["../../RAVEN-"+os.environ["METHOD"],"--yaml"])
+self_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+yaml_output = subprocess.check_output([self_dir+"/../RAVEN-"+os.environ["METHOD"],"--yaml"])
 
 yaml_part = yaml_output.split('**START YAML DATA**\n')[1].split('**END YAML DATA**')[0]
 
