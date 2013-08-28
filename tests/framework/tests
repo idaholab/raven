@@ -8,5 +8,5 @@
 [./test_branch]
   type = 'RavenFramework'
   input = 'test_branch.xml'
-  output = 'branch/DETrunTest/outFrom~DET_test_1:1:2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1:1:2.csv branch/extract_hist_example/DET_histories_DET_test_1:2.csv'
+  output = 'branch/DETrunTest/outFrom~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
 []
