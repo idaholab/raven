@@ -58,7 +58,7 @@ class Sampler(BaseType):
     @ Out, tempDict 
     '''
     for value in self.toBeSampled.items():
-      tempDict[value[0]] = value[1][0]+':'+value[1][1]
+      tempDict[value[0]] = value[1][0]+'-'+value[1][1]
     tempDict['limit' ]        = self.limit
 
   def addCurrentSetting(self,tempDict):
@@ -649,7 +649,7 @@ class DynamicEventTree(Sampler):
         self.counter += 1
         self.branchCountOnLevel += 1
         # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
-        rname = endInfo['parent_node'].get('name') + ':' + str(self.branchCountOnLevel)
+        rname = endInfo['parent_node'].get('name') + '-' + str(self.branchCountOnLevel)
         
         # create a subgroup that will be appended to the parent element in the xml tree structure 
         subGroup = ET.Element(rname)
