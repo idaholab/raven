@@ -48,7 +48,7 @@ distribution::distribution(const std::string & name, InputParameters parameters)
      _dis_parameters["xMax"] = x_coordinates[x_coordinates.size()-1];
      std::vector<double> y_cordinates = getParam<std::vector<double> >("y_coordinates");
      int numberPoints = getParam<int>("numberPoints");
-     custom_dist_fit_type fitting_type = getParam<custom_dist_fit_type>("fitting_type");
+     custom_dist_fit_type fitting_type = static_cast<custom_dist_fit_type>((int)getParam<MooseEnum>("fitting_type"));
 
      _interpolation=Interpolation_Functions(x_coordinates,
                                             y_cordinates,
