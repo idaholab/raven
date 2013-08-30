@@ -17,7 +17,7 @@ update_python_path ()
     fi
 }
 
-if curl http://www.doe.gov > /dev/null
+if curl http://www.energy.gov > /dev/null
 then
     echo Successfully got data from the internet
 else
@@ -28,7 +28,7 @@ else
     read password
     export http_proxy="http://${username}:${password}@134.20.11.87:8080"
     export https_proxy=$http_proxy
-    if curl http://www.doe.gov > /dev/null
+    if curl http://www.energy.gov > /dev/null
     then
         echo Successfully got data from the internet
     else
@@ -36,6 +36,8 @@ else
     fi
 
 fi
+
+update_python_path
 
 if $PYTHON_CMD -c 'import numpy,sys;sys.exit(not numpy.version.version > "1.7")'
 then 
