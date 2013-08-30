@@ -37,7 +37,7 @@ else
 
 fi
 
-if $PYTHON_CMD -c 'import numpy'
+if $PYTHON_CMD -c 'import numpy,sys;sys.exit(not numpy.version.version > "1.7")'
 then 
     echo numpy module already built
 else
