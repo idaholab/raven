@@ -71,12 +71,11 @@ class PrintCSV:
         #  If file, split the strings and add the working directory if present
         for key in histories:
           #  Loop over histories
-          headers = ''
           #  Retrieve the metadata (posion 1 of the history tuple)
           attributes = histories[key][1]
           #  Construct the header in csv format (first row of the file)
-          for i in xrange(len(attributes['headers'])):
-            headers = headers + histories[key][1]['headers'][i] + ','
+          headers = ",".join([histories[key][1]['headers'][i] for i in 
+                              range(len(attributes['headers']))])
           #  Construct history name
           try:
             hist = ''
