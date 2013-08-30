@@ -87,7 +87,11 @@
   [./SMP_PJFNK]
     type = SMP
     full = true
-    petsc_options = '-snes_mf_operator'
+
+  #Preconditioned JFNK (default)
+  solve_type = 'PJFNK'
+
+
   [../]
   [./SMP_Newton]
     type = SMP
@@ -99,7 +103,11 @@
     # petsc_options_value = 'ds'
     type = FDP
     full = true
-    petsc_options = '-snes_mf_operator'
+
+  #Preconditioned JFNK (default)
+  solve_type = 'PJFNK'
+
+
     petsc_options_iname = '-mat_fd_coloring_err'
     petsc_options_value = 1.e-10
   [../]

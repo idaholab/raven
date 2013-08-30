@@ -585,12 +585,20 @@
     full =  true
     type =  SMP
     petsc_options_value =  'ds             ds'
-    petsc_options =  '-snes_mf_operator'
+
+  #Preconditioned JFNK (default)
+  solve_type = 'PJFNK'
+
+
   [../]
   [./SMP]
     full =  true
     type =  SMP
-    petsc_options =  '-snes_mf_operator'
+
+  #Preconditioned JFNK (default)
+  solve_type = 'PJFNK'
+
+
   [../]
   [./FDP_PJFNK]
     # These options **together** cause a zero pivot in this problem, even without SUPG terms.
@@ -601,7 +609,11 @@
     full =  true
     type =  FDP
     petsc_options_value =  'ds'
-    petsc_options =  '-snes_mf_operator -pc_factor_shift_nonzero'
+
+  #Preconditioned JFNK (default)
+  solve_type = 'PJFNK'
+
+    petsc_options =  '-pc_factor_shift_nonzero'
   [../]
   [./FDP_Newton]
     # These options **together** cause a zero pivot in this problem, even without SUPG terms.
