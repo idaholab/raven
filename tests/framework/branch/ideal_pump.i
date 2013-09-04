@@ -75,64 +75,56 @@
     eos = eos
   [../]
 []
+
 [Preconditioning]
   # Uncomment one of the lines below to activate one of the blocks...
   # active = 'SMP_PJFNK' 
   # active = 'FDP_PJFNK'
   # active = 'FDP_Newton' 
-  # active = 'my_PBP'
+  active = 'SMP_Newton'
+
   # The definitions of the above-named blocks follow.
-  # End preconditioning block
-  active = 'SMP_Newton' # SMP_Newton is currently not converging for me, likely an error in computeQpJacobian() somewhere!
   [./SMP_PJFNK]
     type = SMP
     full = true
 
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
-
-
+    # Preconditioned JFNK (default)
+    solve_type = 'PJFNK'
   [../]
+
   [./SMP_Newton]
     type = SMP
     full = true
-    petsc_options = -snes
+    solve_type = 'NEWTON'
   [../]
+
   [./FDP_PJFNK]
-    # petsc_options_iname = '-mat_fd_type'
-    # petsc_options_value = 'ds'
     type = FDP
     full = true
 
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
+    # Preconditioned JFNK (default)
+    solve_type = 'PJFNK'
 
-
+    # petsc_options_iname = '-mat_fd_type'
+    # petsc_options_value = 'ds'
     petsc_options_iname = '-mat_fd_coloring_err'
     petsc_options_value = 1.e-10
   [../]
+
   [./FDP_Newton]
-    # petsc_options_iname = '-mat_fd_type'
-    # petsc_options_value = 'ds'
     type = FDP
     full = true
-    petsc_options = -snes
+    solve_type = 'NEWTON'
     petsc_options_iname = '-mat_fd_coloring_err'
     petsc_options_value = 1.e-10
-  [../]
-  [./my_PBP]
-    # "Standard" cycle
-    # Each "vertical" pair in these vectors gives the (row,col) coordinates of the off-diagonal block
-    # Specify *All* off-diagonal couplings (2D)
-    type = PBP
-    petsc_options = '-snes_mf'
-    solve_order = 'rho rhou'
-    preconditioner = 'ILU  ILU'
-    off_diag_row = 'rho  rhou'
-    off_diag_column = 'rhou rho '
+    # petsc_options_iname = '-mat_fd_type'
+    # petsc_options_value = 'ds'
   [../]
 []
+
 [Executioner]
+  solve_type = 'NEWTON'
+
   # type = DT2Transient
   # When I tried to run this out to 5000 timesteps with dt=6.25e-4, 
   # it eventually started to bump down the timestep and eventually reached

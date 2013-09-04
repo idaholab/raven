@@ -576,57 +576,52 @@
     T_bc =  537.15
   [../]
 []
+
 [Preconditioning]
   # active = 'FDP_Newton'
-  # End preconditioning block
-  active =  'SMP_PJFNK'
+  active = 'SMP_PJFNK'
+
   [./SMP_PJFNK]
+    type =  SMP
+    full =  true
+
+    # Preconditioned JFNK (default)
+    solve_type = 'PJFNK'
+
     petsc_options_iname =  '-mat_fd_type  -mat_mffd_type'
-    full =  true
-    type =  SMP
     petsc_options_value =  'ds             ds'
-
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
-
-
   [../]
+
   [./SMP]
-    full =  true
     type =  SMP
+    full =  true
 
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
-
-
+    # Preconditioned JFNK (default)
+    solve_type = 'PJFNK'
   [../]
+
   [./FDP_PJFNK]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
-    petsc_options_iname =  '-mat_fd_type'
-    full =  true
     type =  FDP
+    full =  true
+
+    # Preconditioned JFNK (default)
+    solve_type = 'PJFNK'
+
+    petsc_options_iname =  '-mat_fd_type'
     petsc_options_value =  'ds'
-
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
-
-    petsc_options =  '-pc_factor_shift_nonzero'
+    petsc_options = '-pc_factor_shift_nonzero'
   [../]
+
   [./FDP_Newton]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
-    petsc_options_iname =  '-mat_fd_type'
-    full =  true
     type =  FDP
+    full =  true
+
+    petsc_options_iname =  '-mat_fd_type'
     petsc_options_value =  'ds'
-    petsc_options =  '-snes'
+    solve_type = 'NEWTON'
   [../]
 []
+
 [Executioner]
   #  petsc_options_iname = '-ksp_gmres_restart -pc_type'
   # petsc_options_value = '300 lu' # '300'

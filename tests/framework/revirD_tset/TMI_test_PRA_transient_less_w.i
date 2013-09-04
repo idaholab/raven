@@ -563,53 +563,49 @@
 
 [Preconditioning]
   # active = 'FDP_Newton'
-  # End preconditioning block
   active = 'SMP_PJFNK'
- [./SMP_PJFNK]
-  type = SMP
-  full = true
 
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
+  [./SMP_PJFNK]
+    type = SMP
+    full = true
 
+    # Preconditioned JFNK (default)
+    solve_type = 'PJFNK'
 
-  petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
- petsc_options_value = 'ds             ds'
- [../] 
+    petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
+    petsc_options_value = 'ds             ds'
+  [../]
+
   [./SMP]
     type = SMP
     full = true
 
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
-
-
+    # Preconditioned JFNK (default)
+    solve_type = 'PJFNK'
   [../]
+
   [./FDP_PJFNK]
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
     type = FDP
     full = true
 
-  #Preconditioned JFNK (default)
-  solve_type = 'PJFNK'
+    # Preconditioned JFNK (default)
+    solve_type = 'PJFNK'
 
     petsc_options = '-pc_factor_shift_nonzero'
     petsc_options_iname = '-mat_fd_type'
     petsc_options_value = 'ds'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
-  [../]
-  [./FDP_Newton]
     # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
     # petsc_options_value = '1.e-10               ds'
+  [../]
+
+  [./FDP_Newton]
     type = FDP
     full = true
-    petsc_options = '-snes'
+    solve_type = 'NEWTON'
     petsc_options_iname = '-mat_fd_type'
     petsc_options_value = 'ds'
-    petsc_options_iname = '-mat_fd_type'
-    petsc_options_value = 'ds'
+    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
+    # petsc_options_value = '1.e-10               ds'
   [../]
 []
 
