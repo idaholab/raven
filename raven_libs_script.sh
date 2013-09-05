@@ -90,23 +90,9 @@ else
 #h5py
 #depends on numpy, hdf5, cython
     cd $BUILD_DIR
-    $DOWNLOADER http://h5py.googlecode.com/files/h5py-2.1.3.tar.gz
-    #Need to switch this to http://h5py.googlecode.com/files/h5py-2.2.0b1.tar.gz or newer to get python 3.3 support.
-    tar -xvzf h5py-2.1.3.tar.gz
-    cd h5py-2.1.3
-    patch -p1 << PATCH_SETUP
---- h5py-2.1.3/setup.py 2013-04-22 13:51:24.000000000 -0600
-+++ h5py-2.1.3_mod/setup.py 2013-07-31 09:14:16.405939681 -0600
-@@ -64,7 +64,7 @@
-     }
-     if HDF5 is not None:
-         COMPILER_SETTINGS['include_dirs'] += [op.join(HDF5, 'include')]
--        COMPILER_SETTINGS['library_dirs'] += [op.join(HDF5, 'lib')]
-+        COMPILER_SETTINGS['library_dirs'] += [op.join(HDF5, 'lib'),op.join(HDF5, 'lib64')]
-     elif sys.platform == 'darwin':
-         COMPILER_SETTINGS['include_dirs'] += ['/opt/local/include']
-         COMPILER_SETTINGS['library_dirs'] += ['/opt/local/lib']
-PATCH_SETUP
+    $DOWNLOADER http://h5py.googlecode.com/files/h5py-2.2.0.tar.gz
+    tar -xvzf h5py-2.2.0.tar.gz
+    cd h5py-2.2.0
     (unset CC CXX; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)  
 fi
@@ -175,7 +161,7 @@ else
 #matplotlib
 #depends on numpy, freetype
     cd $BUILD_DIR
-    $DOWNLOADER https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz
+    $DOWNLOADER http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz
     tar -xvzf matplotlib-1.2.1.tar.gz
     cd matplotlib-1.2.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
