@@ -12,6 +12,8 @@ import numpy as np
 import h5py  as h5
 import os
 
+from utils import *
+
 '''
   *************************
   *  HDF5 DATABASE CLASS  *
@@ -221,7 +223,7 @@ class hdf5Database:
                        }
         for attr in attempt_attr.keys():
           try:
-            grp.attrs[attr]=attributes[attempt_attr[attr]]
+            grp.attrs[attr]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
           except KeyError:
             pass
       else:

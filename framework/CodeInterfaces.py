@@ -94,7 +94,7 @@ class RavenInterface:
     listDict = []
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
-      for i in xrange(len(Kwargs['initiator_distribution'])):
+      for i in range(len(Kwargs['initiator_distribution'])):
         modifDict = {}
         modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
         modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
@@ -117,7 +117,7 @@ class RavenInterface:
         end_ts_str = str(Kwargs['end_ts'])
         if(Kwargs['end_ts'] <= 9999):
           n_zeros = 4 - len(end_ts_str)
-          for i in xrange(n_zeros):
+          for i in range(n_zeros):
             end_ts_str = "0" + end_ts_str
         
         splitted = Kwargs['outfile'].split('~')
@@ -152,8 +152,8 @@ class RavenInterface:
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
     if 'branch_changed_param' in Kwargs.keys():
-      if Kwargs['branch_changed_param'][0] != 'None': 
-        for i in xrange(len(Kwargs['branch_changed_param'])):
+      if Kwargs['branch_changed_param'][0] not in ('None',b'None'): 
+        for i in range(len(Kwargs['branch_changed_param'])):
           modifDict = {}
           modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
           modifDict['value'] = Kwargs['branch_changed_param_value'][i]

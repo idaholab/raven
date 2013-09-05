@@ -12,11 +12,14 @@ if not 'xrange' in dir(__builtins__):
 import xml.etree.ElementTree as ET
 import os
 import copy
+from utils import *
+
 class MOOSEparser:
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
+
   def __init__(self,inputFile):
     if not os.path.exists(inputFile): raise IOError('not found MOOSE input file')
-    IOfile = open(inputFile,'r')
+    IOfile = open(inputFile,'rb')
     self.inputfile = inputFile
     lines = IOfile.readlines()
     self.root = ET.Element('root')
@@ -25,48 +28,47 @@ class MOOSEparser:
     parents = []
     parents.append(self.root)
     for line in lines:
-      line = line.lstrip().strip('\n')
-      if line.startswith('['):
+      line = line.lstrip().strip(b'\n')
+      if line.startswith(b'['):
         line = line.strip()
         if line =='[]' or line =='[../]':
           current = parents.pop(len(parents)-1)
         else:
-          name = line.strip('[').strip(']').strip('../')
+          name = line.strip(b'[').strip(b']').strip(b'../')
           parents.append(current)
           current = ET.SubElement(current,name)
           current.tail = []
       elif len(line)!=0:
-        if not line.startswith('#'):
-          listline = line.split('=')
-          if '#' not in listline[0]: current.attrib[listline[0].strip()]=listline[1]
+        if not line.startswith(b'#'):
+          listline = line.split(b'=')
+          if b'#' not in listline[0]: current.attrib[listline[0].strip()]=listline[1]
           else: current.attrib[listline[0].strip()]=listline[1][:listline[1].index('#')].strip()
         else:
           current.tail.append(line)
 
   def printInput(self,outfile=None):
     if outfile==None: outfile =self.inputfile
-    IOfile = open(outfile,'w')
+    IOfile = open(outfile,'wb')
     for child in self.root:
-      IOfile.write('['+str(child.tag)+']\n')
+      IOfile.write(b'['+toBytes(child.tag)+b']\n')
       try:
-        for string in child.tail:IOfile.write('  '+string+'\n')
+        for string in child.tail:IOfile.write(b'  '+string+b'\n')
       except: pass
-      for key in child.attrib.keys(): IOfile.write('  '+str(key)+' = '+str(child.attrib[key])+'\n')
+      for key in child.attrib.keys(): 
+        IOfile.write(b'  '+key+b' = '+toBytes(str(child.attrib[key]))+b'\n')
       for childChild in child:
-        IOfile.write('  '+'[./'+childChild.tag+']\n')
-        try:
-          for string in childChild.tail:IOfile.write('    '+string+'\n')
-        except: pass
-        try:
-          for key in childChild.attrib.keys(): IOfile.write('    '+str(key)+' = '+str(childChild.attrib[key])+'\n')
-        except: pass
-        IOfile.write('  [../]\n')
-      IOfile.write('[]\n')
+        IOfile.write(b'  '+b'[./'+toBytes(childChild.tag)+b']\n')
+        for string in childChild.tail if childChild.tail else []:
+          IOfile.write(b'    '+string+b'\n')
+        for key in childChild.attrib.keys(): 
+          IOfile.write(b'    '+toBytes(str(key))+b' = '+toBytes(str(childChild.attrib[key]))+b'\n')
+        IOfile.write(b'  [../]\n')
+      IOfile.write(b'[]\n')
 
   def modifyOrAdd(self,modiDictionaryList,save=True):
-    '''ModiDictionaryList is a list of dictionaries of the required addition or modification'''
-    '''-name- key should return a ordered list of the name e.g. ['Components','Pipe']'''
-    '''the other keywords possible are used as attribute names'''
+    '''ModiDictionaryList is a list of dictionaries of the required addition or modification
+    -name- key should return a ordered list of the name e.g. ['Components','Pipe']
+    the other keywords possible are used as attribute names'''
     if save: returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else: returnElement = self.root                           #otherwise return the original modified
     for i in xrange(len(modiDictionaryList)):

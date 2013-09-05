@@ -10,6 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import Datas
 import numpy as np
 import os
+from utils import *
 
 '''
   ********************************
@@ -58,7 +59,7 @@ class PrintCSV:
       histories = {}
 
       #  Construct a dictionary of all the histories
-      for index in xrange(len(endGroupNames)):
+      for index in range(len(endGroupNames)):
         histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
       
       try:
@@ -74,8 +75,8 @@ class PrintCSV:
           #  Retrieve the metadata (posion 1 of the history tuple)
           attributes = histories[key][1]
           #  Construct the header in csv format (first row of the file)
-          headers = ",".join([histories[key][1]['headers'][i] for i in 
-                              range(len(attributes['headers']))])
+          headers = b",".join([histories[key][1]['headers'][i] for i in 
+                               range(len(attributes['headers']))])
           #  Construct history name
           try:
             hist = ''
@@ -99,27 +100,27 @@ class PrintCSV:
             csvfilen = os.path.join(workingDir,csvfilen)
           
           #  Open the files and save the data
-          with open(csvfilen, 'w') as csvfile, open(addfile, 'w') as addcsvfile:
+          with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
             #  Add history to the csv file
-            np.savetxt(csvfile, histories[key][0], delimiter=",",header=headers)
-            csvfile.write(' '+'\n')
+            np.savetxt(csvfile, histories[key][0], delimiter=",",header=toString(headers))
+            csvfile.write(b' \n')
             #  process the attributes in a different csv file (different kind of informations)
             
             #  Add metadata to additional info csv file
-            addcsvfile.write('# History Metadata, \n')
-            addcsvfile.write('# ______________________________,' + '_'*len(key)+','+'\n')
-            addcsvfile.write('#number of parameters,\n')
-            addcsvfile.write(str(attributes['n_params'])+',\n')
-            addcsvfile.write('#parameters,\n') 
-            addcsvfile.write(headers+'\n') 
-            addcsvfile.write('#parent_id,\n') 
-            addcsvfile.write(str(attributes['parent_id'])+'\n') 
-            addcsvfile.write('#start time,\n')
-            addcsvfile.write(str(attributes['start_time'])+'\n')
-            addcsvfile.write('#end time,\n')
-            addcsvfile.write(str(attributes['end_time'])+'\n')
-            addcsvfile.write('#number of time-steps,\n')
-            addcsvfile.write(str(attributes['n_ts'])+'\n')
+            addcsvfile.write(b'# History Metadata, \n')
+            addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+b'\n')
+            addcsvfile.write(b'#number of parameters,\n')
+            addcsvfile.write(toBytes(str(attributes['n_params']))+b',\n')
+            addcsvfile.write(b'#parameters,\n') 
+            addcsvfile.write(headers+b'\n') 
+            addcsvfile.write(b'#parent_id,\n') 
+            addcsvfile.write(toBytes(attributes['parent_id'])+b'\n') 
+            addcsvfile.write(b'#start time,\n')
+            addcsvfile.write(toBytes(str(attributes['start_time']))+b'\n')
+            addcsvfile.write(b'#end time,\n')
+            addcsvfile.write(toBytes(str(attributes['end_time']))+b'\n')
+            addcsvfile.write(b'#number of time-steps,\n')
+            addcsvfile.write(toBytes(str(attributes['n_ts']))+b'\n')
             try:
               init_dist = attributes['initiator_distribution']
               addcsvfile.write('#number of branches in this history,\n')
@@ -131,7 +132,7 @@ class PrintCSV:
                   string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','          
               addcsvfile.write('#initiator distributions,\n')
-              addcsvfile.write(str(string_work)+'\n')
+              addcsvfile.write(toBytes(string_work)+b'\n')
             except:
               pass
             try:
@@ -203,7 +204,7 @@ class PrintCSV:
               addcsvfile.write(str(string_work)+'\n')
             except:
               pass            
-            addcsvfile.write(' '+'\n')
+            addcsvfile.write(b' \n')
             
     elif(inObj.type == "Datas"):
       pass
