@@ -580,7 +580,7 @@ class DynamicEventTree(Sampler):
     # Parse the file and create the xml element tree object
     try:
       branch_info_tree = ET.parse(filename)
-      print('Done parsing '+filename)
+      print('SAMPLER ANDREA: Done parsing '+filename)
     except:
       #branch_info_tree = ET.parse(filename) #This could cause a second exception
       raise IOError ('not able to parse ' + filename)
@@ -632,14 +632,14 @@ class DynamicEventTree(Sampler):
       
       # Start the manipulation:
       #  Pop out the last endInfo information and the branchedLevel
-      branchedLevel = self.branchedLevel.pop(0)
+      branchedLevelG = copy.deepcopy(self.branchedLevel.pop(0))
       endInfo = self.endInfo.pop(0)
       # n_branches = number of branches need to be run
       n_branches = endInfo['n_branches']
       # Check if the distribution that just triggered hitted the last probability threshold . 
       # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in 
       # which the event did not occur is not going to be tracked
-      if branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
+      if branchedLevelG[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
         print('SAMPLER ANDREA: Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
         print('SAMPLER ANDREA: Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
         self.branchCountOnLevel = 1
@@ -648,6 +648,7 @@ class DynamicEventTree(Sampler):
       for i in xrange(n_branches):
         self.counter += 1
         self.branchCountOnLevel += 1
+        branchedLevel = copy.deepcopy(branchedLevelG)
         # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
         rname = endInfo['parent_node'].get('name') + '-' + str(self.branchCountOnLevel)
         
@@ -690,6 +691,9 @@ class DynamicEventTree(Sampler):
         # initialize the end_time to be equal to the start one... It will modified at the end of this branch
         subGroup.set('end_time', endInfo['parent_node'].get('end_time'))
         # add the branchedLevel dictionary to the subgroup
+        if self.branchCountOnLevel != 1:
+          branchedLevel[endInfo['branch_dist']] = branchedLevel[endInfo['branch_dist']] - 1
+        
         subGroup.set('branchedLevel', branchedLevel)
         # branch calculation info... running, queue, etc are set here
         subGroup.set('runEnded',False)
@@ -733,6 +737,8 @@ class DynamicEventTree(Sampler):
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**values)))
         self.RunQueue['identifiers'].append(values['prefix'])
         del values
+        del branchedLevel
+
     else:
       # We construct the input for the first DET branch calculation'
       # Increase the counter
@@ -741,7 +747,8 @@ class DynamicEventTree(Sampler):
       # (this root name = the user defined sampler name)
       rname = self.TreeInfo.getroot().tag 
       # Get the initial branchedLevel dictionary (=> the list gets empty)
-      branchedLevel = self.branchedLevel.pop(0)
+      branchedLevelG = copy.deepcopy(self.branchedLevel.pop(0))
+      branchedLevel = copy.deepcopy(branchedLevelG)
       # Fill th values dictionary in
       values = {'prefix':rname}
       values['initiator_distribution']     = []
@@ -763,7 +770,8 @@ class DynamicEventTree(Sampler):
       self.RunQueue['identifiers'].append(values['prefix'])
       del values
       del newInputs
-      
+      del branchedLevel
+    del branchedLevelG
     return  
   
   def __getQueueElement(self):

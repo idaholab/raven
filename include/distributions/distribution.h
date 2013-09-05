@@ -43,7 +43,7 @@ public:
 
    std::string & getType();                                       		///< Get distribution type
    unsigned int & getSeed();                                      		///< Get seed
-
+   std::vector<std::string> getVariableNames();
 
    //virtual double windowProcessing(distribution & dist, double & RNG);
 

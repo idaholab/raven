@@ -12,6 +12,7 @@ double DistributionPdf(distribution & dist,double & x);
 double DistributionCdf(distribution & dist,double & x);
 double DistributionRandomNumberGenerator(distribution & dist);
 std::string getDistributionType(distribution & dist);
+std::vector<std::string> getDistributionVariableNames(distribution & dist);
 
 
 #endif /* DISTRIBUTION_MIN_H_ */

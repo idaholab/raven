@@ -112,19 +112,22 @@ class RavenInterface:
     # create the restart file name root from the parent branch calculation
     # in order to restart the calc from the last point in time
     if 'end_ts' in Kwargs.keys():
-      if Kwargs['end_ts'] != 0:
+      #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
+      if Kwargs['end_ts'] == 0:
+        print('here')
+      if str(Kwargs['start_time']) != 'Initial':
         modifDict = {}
         end_ts_str = str(Kwargs['end_ts'])
         if(Kwargs['end_ts'] <= 9999):
           n_zeros = 4 - len(end_ts_str)
           for i in range(n_zeros):
             end_ts_str = "0" + end_ts_str
-        
         splitted = Kwargs['outfile'].split('~')
         output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[1]
         restart_file_base = output_parent + "_restart_" + end_ts_str      
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base
+        print('CODE INTERFACE: Restart file name base is "' + restart_file_base + '"')
         listDict.append(modifDict)
         del modifDict
     # max simulation time (if present)

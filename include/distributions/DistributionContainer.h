@@ -40,6 +40,7 @@ class DistributionContainer{
 
      void seedRandom(unsigned int seed);
 
+     bool isEmpty(){return _dist_by_name.empty();};
      /*
       * Function to get the enum of the distribution called DistAlias
       * @ DistAlias, alias of the distribution from which retrieving the parameter
@@ -52,6 +53,9 @@ class DistributionContainer{
 
      void updateVariable(char * paramName,double newValue,char * DistAlias);
      void updateVariable(std::string paramName,double newValue,std::string DistAlias);
+
+     std::vector<std::string> getRavenDistributionVariableNames(std::string DistAlias);
+     std::vector<std::string> getDistributionNames();
 
      double Pdf(char * DistAlias, double x);
      double Pdf(std::string DistAlias, double x);     // return pdf value of the distribution _type as function of the position x within [_xMin , xMax]

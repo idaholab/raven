@@ -112,6 +112,15 @@ distribution::getType(){
    return _type;
 }
 
+std::vector<std::string>
+distribution::getVariableNames(){
+  std::vector<std::string> paramtersNames;
+  for (std::map<std::string,double>::iterator it = _dis_parameters.begin(); it!= _dis_parameters.end();it++){
+    paramtersNames.push_back(it->first);
+  }
+  return paramtersNames;
+}
+
 double getDistributionVariable(distribution & dist, std::string & variableName){
   return dist.getVariable(variableName);
 }
@@ -173,6 +182,12 @@ double untrDistributionRandomNumberGenerator(distribution & dist, double & RNG){
 
 std::string getDistributionType(distribution & dist) {
   return dist.getType();
+}
+
+std::vector<std::string>
+getDistributionVariableNames(distribution & dist)
+{
+  return dist.getVariableNames();
 }
 
 

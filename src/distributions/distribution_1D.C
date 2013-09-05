@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include "Interpolation_Functions.h"
 #include <string>
+#include <limits>
 
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
@@ -181,6 +182,9 @@ NormalDistribution::untrRandomNumberGenerator(double & RNG){
 
     value = mu + sigma * stdNorm;
 
+    if (RNG == 1){
+      value = std::numeric_limits<double>::max();
+    }
     return value;
 }
 
@@ -237,6 +241,9 @@ NormalDistribution::RandomNumberGenerator(double & RNG){
    }
    else{
      mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
+   if (RNG == 1){
+     value = std::numeric_limits<double>::max();
    }
    return value;
 }

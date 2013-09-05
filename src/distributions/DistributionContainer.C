@@ -34,6 +34,7 @@ DistributionContainer::~DistributionContainer()
 {
 }
 
+
 void
 DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist){
    // create the distribution type
@@ -154,6 +155,23 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
     }
 }
 
+std::vector<std::string>
+DistributionContainer::getDistributionNames(){
+  std::vector<std::string> distsNames;
+  for(std::map<std::string, distribution *>::iterator it = _dist_by_name.begin(); it!= _dist_by_name.end();it++){
+    distsNames.push_back(it->first);
+  }
+  return distsNames;
+}
+
+std::vector<std::string>
+DistributionContainer::getRavenDistributionVariableNames(std::string DistAlias){
+  if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
+     distribution * dist = _dist_by_name.find(DistAlias)->second;
+     return getDistributionVariableNames(*dist);
+  }
+  mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+}
 
 double
 DistributionContainer::Pdf(char * DistAlias, double x){
