@@ -907,11 +907,21 @@
     data_type =  bool
     initial_value =  False
   [../]
-  [./crew1DG1]
+ [./crew1DG2CoupledDG1]
+   print_csv =  true
+   data_type =  bool
+   initial_value =  False
+ [../] 
+  [./crewSecPG]
     print_csv =  true
     data_type =  bool
     initial_value =  False
   [../]
+ [./PrimPGrecovery]
+   print_csv =  true
+   data_type =  bool
+   initial_value =  False
+ [../]
   [./frict_m]
     print_csv =  false
     data_type =  double
@@ -957,10 +967,10 @@
     data_type =  double
     initial_value =  151.7e5  #15170000
   [../]
-  [./CladTempTreshold]
+  [./CladTempBranched]
     print_csv =  true
     data_type =  double
-    initial_value =  1477.59
+    initial_value = 0.0  
   [../]
   [./ScramStatus]
     print_csv =  true
@@ -1062,11 +1072,6 @@
  data_type =  double
  initial_value =  0.001
  [../] 
- [./CladTempTresholdRNG]
-  print_csv =  true
-  data_type =  double
-  initial_value =  0
- [../] 
  [./auxAbsolute]
    print_csv = true 
    data_type = double                                                                  
@@ -1075,22 +1080,47 @@
  [./DG1recoveryTime]
  data_type = double
  print_csv = true
- initial_value = 0
+ initial_value = 0.0
  [../]
  [./DG2recoveryTime]
  data_type = double
  print_csv = true
- initial_value = 0
+ initial_value = 0.0
  [../]
  [./SecPGrecoveryTime]
  data_type = double
  print_csv = true
- initial_value = 0
+ initial_value = 0.0
  [../]
  [./PrimPGrecoveryTime]
  data_type = double
  print_csv = true
- initial_value = 0
+ initial_value = 0.0
+ [../]
+ [./CladFailureDistThreshold]
+ data_type = double
+ print_csv = true
+ initial_value = 0.0
+ [../]
+ [./crew1DG1Threshold]
+ data_type = double
+ print_csv = true
+ initial_value = 0.0
+ [../]
+ [./crew1DG2CoupledDG1Threshold]
+ data_type = double
+ print_csv = true
+ initial_value = 0.0
+ [../]
+ [./crewSecPGThreshold]
+ data_type = double
+ print_csv = true
+ initial_value = 0.0
+ [../]
+ [./PrimPGrecoveryThreshold]
+ data_type = double
+ print_csv = true
+ initial_value = 0.0
  [../]
  []
  
