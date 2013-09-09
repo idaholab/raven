@@ -31,6 +31,7 @@ def control_function(monitored, controlled, auxiliary):
     mult = 1.01
     if auxiliary.dummy_for_branch < 1.0:
         auxiliary.dummy_for_branch = auxiliary.dummy_for_branch + 0.25 
+    print('THRESHOLDDDDDD ' + str(distcont.getVariable('ProbabilityThreshold','zeroToOne')))
     controlled.pipe1_Area = mult*controlled.pipe1_Area
     controlled.pipe1_Dh = mult*controlled.pipe1_Dh
     controlled.pipe1_Hw = mult*controlled.pipe1_Hw

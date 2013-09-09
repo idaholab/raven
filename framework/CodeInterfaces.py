@@ -21,7 +21,7 @@ class RavenInterface:
     '''seek which is which of the input files and generate According the running command'''
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    outputfile = 'outFrom~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
     ' Output/file_base='+ outputfile)
     return executeCommand,outputfile
@@ -180,7 +180,7 @@ class RelapInterface:
     '''seek which is which of the input files and generate According the running command'''
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    outputfile = 'outFrom~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     #   executeCommand will consist of a simple RELAP script that runs relap for inputfile
     #   extracts data and stores in csv file format
     executeCommand = (executable+' '+os.path.split(inputFiles[index])[1]+' ' + 

@@ -2,14 +2,14 @@
  [./simple_framework]
   type = 'RavenFramework'
   input = 'test_simple.xml'
-  output = 'revirD_tset/FirstMRun/outFrom~1~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/outFrom~2~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/outFrom~3~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/outFrom~4~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/outFrom~5~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/outFrom~6~TMI_test_PRA_transient_less_w_displaced.e'
-  csv = 'revirD_tset/FirstMRun/outFrom~6~TMI_test_PRA_transient_less_w.csv'
+  output = 'revirD_tset/FirstMRun/out~1~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/out~2~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/out~3~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/out~4~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/out~5~TMI_test_PRA_transient_less_w_displaced.e revirD_tset/FirstMRun/out~6~TMI_test_PRA_transient_less_w_displaced.e'
+  csv = 'revirD_tset/FirstMRun/out~6~TMI_test_PRA_transient_less_w.csv'
  [../]
 
 [./test_branch]
   type = 'RavenFramework'
   input = 'test_branch.xml'
-  output = 'branch/DETrunTest/outFrom~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv' 
+  output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv' 
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
  [../]
 

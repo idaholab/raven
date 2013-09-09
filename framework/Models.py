@@ -124,7 +124,7 @@ class Code(Model):
 
     if currentInput[0].endswith('.i'): index = 0
     else: index = 1
-    Kwargs['outfile'] = 'outFrom~'+os.path.split(currentInput[index])[1].split('.')[0]
+    Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
 
