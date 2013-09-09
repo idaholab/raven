@@ -146,23 +146,23 @@ The probability threshold values are reported below:
    \begin{itemize}
        \item DG1 recovery time distribution (Fig.~\ref{fig:CDFsDGs}~(a) - blue points): 
        \begin{itemize} 
-            \item Probability Thresholds: 0.05, 0.10, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
-            \item Variable Values           : 471.03, 543.69, 592.71, 631.68, 665.10, 695.12, 722.94, 749.33, 774.87, 800.00, 825.13, 850.67, 877.06, 904.88, 934.90, 968.32, 1007.29, 1056.31, 1128.97
+            \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,  0.9
+            \item Variable Values           : 543.69, 631.68, 695.12, 749.33, 800.00, 850.67, 904.88, 968.32, 1056.31
        \end{itemize}
        \item DG3 recovery factor distribution (Fig.~\ref{fig:CDFsDGs}~(b) - blue points): 
        \begin{itemize} 
-            \item Probability Thresholds: 0.05, 0.10, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
-            \item Variable Values           : 0.525, 0.550, 0.575, 0.600, 0.625, 0.650, 0.675, 0.700, 0.725, 0.750, 0.775, 0.800, 0.825, 0.850, 0.875, 0.900, 0.925, 0.950, 0.975
+            \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,  0.9
+            \item Variable Values           : 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
        \end{itemize}
        \item RSST recovery time distribution (Fig.~\ref{fig:CDFsACs}~(a) - blue points): 
        \begin{itemize} 
-            \item Probability Thresholds: 0.05, 0.10, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
-            \item Variable Values           : 742.06, 887.38, 985.43, 1063.35, 1130.20, 1190.24	1245.87, 1298.66, 1349.74, 1400.00, 1450.26, 1501.34, 1554.13, 1609.76, 1669.80, 1736.65, 1814.57, 1912.62, 2057.94
+            \item Probability Thresholds:  0.1, 0.2,  0.3,  0.4, 0.5, 0.6, 0.7,  0.8,  0.9
+            \item Variable Values           :  887.38, 1063.35, 1190.24, 1298.66, 1400.00, 1501.34, 1609.76, 1736.65, 1912.62
        \end{itemize}
        \item 138 kV line recovery time distribution (Fig.~\ref{fig:CDFsACs}~(b) - blue points): 
        \begin{itemize} 
-            \item Probability Thresholds: 0.05, 0.10, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
-            \item Variable Values           : 1177.57, 1359.22, 1481.78, 1579.19, 1662.76, 1737.80, 1807.34, 1873.33, 1937.17, 2000.00, 2062.83, 2126.67, 	2192.66, 2262.20, 2337.24, 2420.81, 2518.22, 2640.78, 2822.43
+            \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9  
+            \item Variable Values           : 1359.22,  1579.19,  1737.80, 1873.33,  2000.00,  2126.67, 2262.20,  2420.81, 2640.78
        \end{itemize}
        \item Clad Failure Temperature distribution (Fig.~\ref{fig:CDFCladFailure} - blue points): 
        \begin{itemize} 
@@ -177,86 +177,63 @@ In the following section, the simulations results are shown and discussed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DET analysis have been performed, obtaining a data-set composed by 37 DET branches resulting in 18 complete histories.
+DET analysis have been performed, obtaining a data-set composed by 305 DET branches resulting in 148 complete histories.
 
 \begin{figure}
  \begin{minipage}[b]{8.5cm}
    \centering
-   \includegraphics[width=9cm]{figures/DETpbClad.png}
-   %\caption{Clad Temperature evolution in hot core channel (case ESBP DET I).}
+   \includegraphics[width=9cm]{figures/CladTemperature.png}
+   %\caption{Clad Temperature evolution in hot core channel.}
    %\label{fig:DETpbClad}
  \end{minipage}
  \ \hspace{2mm} \hspace{3mm} \
  \begin{minipage}[b]{8.5cm}
    \centering
-   \includegraphics[width=9cm]{figures/DETpbHead.png}
-   %\caption{Pump Head evolution (case ESBP DET I).}
+   \includegraphics[width=9cm]{figures/HeadPump.png}
+   %\caption{Pump Head evolution.}
    %\label{fig:DETpbHead}
  \end{minipage}
-\caption{Case ESBP DET I: Clad Temperature and Pump Head temporal profiles (all histories)}
+\caption{Clad Temperature (Left) and Pump Head (Right) temporal profiles (all histories)}
 \label{fig:ESBPall}
 \end{figure}
 \vspace{-5mm}
 
-Figures~\ref{fig:ESBPall} and~\ref{fig:ESVVall} show the histories obtained for the ESBP DET I and ESVV DET II respectively.
+Figure~\ref{fig:ESBPall} shows the histories obtained for the calculation performed.
 Following the station back-out condition, the pump head decreases (pump coast-down) and the temperature of the core rises since reactor core cooling is not available. Such temperature increasing continues until one of the following conditions occurs:
 \vspace{-5mm}
 \begin{itemize}
-\item temperature of the clad reaches the clad failure temperature, indicated with a red circle (red scenarios in Fig.s~\ref{fig:ESBPall} and~\ref{fig:ESVVall}), or,
-\item DG power is restored (green scenarios in Fig.s~\ref{fig:ESBPall} and~\ref{fig:ESVVall}).
+\item Temperature of the clad reaches the clad failure temperature, indicated with a red circle (red scenarios in Fig.~\ref{fig:ESBPall}, or,
+\item Auxiliary cooling system is restored (green scenarios in Fig.~\ref{fig:ESBPall}).
 \end{itemize}
 \vspace{-5mm}
-Note that following the recovery of the DG power (green scenarios) the clad temperature drops  and an oscillating behavior can be observed.
-This is caused by the sudden activation of the auxiliary core cooling system.
 
-From a safety point of view, the most important information is the frequency of failures in the phase space. This information can be shown plotting the final outcome (green points for system success and red points for system failure) of all the simulations for each data sets in a $2$-dimensional space (DG recovery time vs. clad failure temperature) as shown in Fig.~\ref{fig:DET_LS}.
-The limit surface, i.e. the boundary between system failure and system success regions (black line), is also indicated in Fig.~\ref{fig:DET_LS}. Such boundary was determined using a Support Vector Machine (SVM) based algorithm~\cite{mandelliSVMANS}.
-Note that most of the points in this $2$-dimensional space (for both data sets) lie in proximity  of the limit surface while samples generated by a classical Monte-Carlo based algorithm would be evenly distributed (see Fig.~\ref{fig:MonteCarloLS}). 
-This example shows one of the advantages of DET algorithm in terms of ``choosing'' the best set of candidate samples when performing PRA analyses.
+Note that the back up of the cooling system causes oscillations on the clad temperature. These oscillations are determined by the sudden insertion of the auxiliary system that imposes a mass flow rate ~ 5\% of the operational one. The initial local maximum is due to the sudden loss of heat sink while the fuel still behaves as a heat reserve; after a while the remaining cooling capacity (pumps’ inertia) succeeds in reducing the temperature. The situation inverses again when the primary and secondary pumps completely stop. 
 
-%%%%%%%%%%
-
-\begin{figure}
- \begin{minipage}[b]{8.5cm}
-  \centering
-   \includegraphics[width=9cm]{figures/DETvarClad.png}
-   %\caption{Clad Temperature evolution in hot core channel (case ESVV DET II).}
-   %\label{fig:DETvarClad}
- \end{minipage}
- \ \hspace{2mm} \hspace{3mm} \
- \begin{minipage}[b]{8.5cm}
-  \centering
-   \includegraphics[width=9cm]{figures/DETvarHead.png}
-   %\caption{Pump Head evolution (case ESVV DET II).}
-   %\label{fig:DETvarHead}
- \end{minipage}
-\caption{Case ESVV DET II: Clad Temperature and Pump Head temporal profiles (all histories)}
-\label{fig:ESVVall}
-\end{figure}
+From a safety point of view, the most important information is the frequency of failures in the phase space. This information can be shown plotting the final outcome (green points for system success and red points for system failure) of all the simulations for each data sets in a $2$-dimensional space. Since the DET sampling has been performed on 5 distributions, among which 4 distributions sampled the same parameter $ACS$ (Auxiliary Cooling System) Recovery Time, it is possible to collaplse all the outcomes in a 2D space (ACS recovery time vs. clad failure temperature) as shown in Fig.~\ref{fig:LimitSurfaces}~(a).
+The limit surface, i.e. the boundary between system failure and system success regions (black line), is also indicated in Fig.~\ref{fig:DET_LS}. Such boundary was determined using a Support Vector Machine (SVM) based algorithm~\cite{mandelliANS_RISMC}.
+Note that most of the points in this $2$-dimensional space (for both data sets) lie in proximity  of the limit surface while samples generated by a classical Monte-Carlo based algorithm would be evenly distributed (see Fig.~\ref{fig:LimitSurfaces}~(b)). 
+This example shows one of the advantages of DET algorithm in terms of ``choosing'' the best set of candidate samples when performing PRA analyses~\cite{alfonsiPSA}.
 
 %%%%%%%%%%%%%%%%%
 \begin{figure}
- \begin{minipage}[b]{8.5cm}
-   \centering
-   \includegraphics[width=9cm]{figures/DET_LS_pb.png}
-   %\caption{Limit Surface (case ESBP DET I).}
-   %\label{fig:DETvarLS}
- \end{minipage}
- \ \hspace{2mm} \hspace{3mm} \
- \begin{minipage}[b]{8.5cm}
-  \centering
-   \includegraphics[width=9cm]{figures/DET_LS_var.png}
-   %\caption{Limit Surface (case ESVV DET II).}
-   %\label{fig:DETpbLS}
- \end{minipage}
-\caption{DET Limit Surface: case ESBP DET I(left) and case  ESVV DET II (right)}
-\label{fig:DET_LS}
-\end{figure}
-\begin{figure}[h]
-   \centering
-    \includegraphics[width=0.6\textwidth]{figures/MClimitSurface.png}
-    \caption{Monte-Carlo Limit Surface.}
-    \label{fig:MonteCarloLS}
+        \centering %
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.48\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{figures/limitSurface.png}
+                \caption{}
+                \label{fig:DET_LS}
+        \end{subfigure}
+        \begin{subfigure}[b]{0.48\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{figures/MClimitSurface.png}
+                \caption{}
+                \label{fig:MonteCarloLS}
+        \end{subfigure}
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \caption{Limit Surfaces: (a) Dynamic Event Tree, (b) Monte-Carlo}\label{fig:LimitSurfaces}
 \end{figure}
 
 %Figure~\ref{fig:distributionResults} shows the distribution of the maximum temperature reached by the clad in the core channels (blue histogram) and compares it with the distribution of clad failure temperature (red histogram).

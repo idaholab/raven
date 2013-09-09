@@ -982,12 +982,12 @@
 %
 
     % Printed on the cover and title page below the SANDIA REPORT number
-%    \newcommand{\SANDreleaseTypeVar}{Unlimited Release} % default
-    \newcommand{\SANDreleaseTypeVar}{Limited Release} % default
+    \newcommand{\SANDreleaseTypeVar}{Unlimited Release} % default
+    %\newcommand{\SANDreleaseTypeVar}{Limited Release} % default
 
     % Printed on the cover page
-%    \newcommand{\MarkCoverVar}{Approved for public release; further dissemination unlimited.} % default
-    \newcommand{\MarkCoverVar}{Approved for limited release; further dissemination limited to distribution list.} % default
+    \newcommand{\MarkCoverVar}{Approved for public release; further dissemination unlimited.} % default
+   % \newcommand{\MarkCoverVar}{Approved for limited release; further dissemination limited to distribution list.} % default
 
     % Printed on the title page
     \newsavebox{\MarkTitletempbox}
