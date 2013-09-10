@@ -123,8 +123,6 @@
 []
 
 [Executioner]
-  solve_type = 'NEWTON'
-
   # type = DT2Transient
   # When I tried to run this out to 5000 timesteps with dt=6.25e-4, 
   # it eventually started to bump down the timestep and eventually reached
