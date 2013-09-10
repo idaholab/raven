@@ -123,61 +123,6 @@
 []
 
 [Executioner]
-  # type = DT2Transient
-  # When I tried to run this out to 5000 timesteps with dt=6.25e-4, 
-  # it eventually started to bump down the timestep and eventually reached
-  # dtmin and the simulation failed, even though the residuals were
-  # quite small... (bottoming out around 1.e-6, which is very close to the
-  # relative residual tolerance of 1.e-5.)  Scaling the momentum equation does 
-  # help with this issue, but the nonlinear convergence does still fail
-  # albeit with low residuals (around timestep 3273).  I suppose the FDP
-  # finite difference parameter (mat_fd_coloring_err) could also be playing
-  # into this issue?
-  # With pc_type=lu, we can use dt=1
-  # setting time step range
-  # time_t = '0      0.1     0.5      1.0     2.0		10'
-  # time_dt ='5.e-3  1.1e-2   2.1e-1    2.1e-1   2.1e-1	1.'
-  # time_dt ='1.e-2  1.1e-2   2.1e-2    5.1e-2   5.1e-2	1.'
-  # 
-  # 
-  # The CFL condition (|U|*dt/dx <= 1) for this particular problem implies
-  # dt <= 2.4e-4.  This is an explicit timestepping limitation, so it would be nice
-  # if we could take a larger timestep than this...however in practice I found
-  # the Newton solver also had trouble with 2.4e-4.  2.e-4 seems to be OK, though
-  # the linear solver does have to work quite hard and it seems like it might not
-  # be worth it?  Meanwhile 1.e-4 is "easy".  1.5e-4 seems to be reasonable for
-  # later stages of the computation, not sure if it's applicable for the early
-  # stages, though...
-  # Note: dtmax is also obeyed by the normal Transient Executioner
-  # Required parameters for DT2Transient:
-  # Target error tolerance, implies desired truncation error, E ~ e_tol*|U2|.
-  # Grows timestep by (e_tol*|U2|/|U2-U1|)^(1/p) where U2 is the 2-step solution, 
-  # U1 is the 1-step solution.  In case you are only interested in timestepping
-  # to steady state, this number could perhaps be quite large.  If e_tol is too large,
-  # however, this may lead to too-rapid increase in dt and cause Newton to fail!
-  # Max-allowable (relative) error between the 1- and 2-step solutions |U2-U1|/max(|U2|,|U1|).
-  # A value of 1.0, for example, would indicate 100% relative error
-  # allowed between the U1 and U2 solutions.  The classical "step-doubling" method
-  # does not discuss this additional tolerance, it is assumed that the step is always
-  # accepted although the timestep may be reduced.  To accept any step no matter what,
-  # just set an arbitrary large value here.
-  # optional, the maximum amount by which the timestep can increase in a single update
-  # 
-  # 
-  # These options *should* append to any options set in Preconditioning blocks above  
-  # Zero pivot options in PETSc 2.3.x:
-  # -pc_factor_shift_nonzero: Shift added to diagonal (PCFactorSetShiftNonzero)
-  # -pc_factor_shift_nonzero <0>: Shift added to diagonal (PCFactorSetShiftNonzero)
-  # -pc_factor_shift_positive_definite: Manteuffel shift applied to diagonal (PCFactorSetShiftPd)
-  # -pc_factor_zeropivot <1e-12>: Pivot is considered zero if less than (PCFactorSetZeroPivot)
-  # Also consider running with -snes_ksp_ew -mat_mffd_type ds, but be aware
-  # that, with -snes_ksp_ew at least, the solver often gives up too easily
-  # and cuts the timestep.
-  # nl_abs_step_tol = 1e-15
-  # use 500 to test the physics
-  # num_steps = 500
-  # end_time = 5.
-  # close Executioner section
   type = RavenExecutioner
   dt = 1.e-1
   dtmin = 1.e-5
