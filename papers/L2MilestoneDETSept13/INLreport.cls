@@ -673,7 +673,7 @@
     % Used to need the title at the top of the first section/chapter, but that is
     % not required anymore.  Make sure we start on an odd page.
     \newcommand{\SANDmain}{
-	\cleardoublepage
+	%\cleardoublepage
 	\setboolean{SANDmainProvided}{true}
     }
 

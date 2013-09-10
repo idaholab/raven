@@ -6,6 +6,8 @@ Created on May 8, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+if not 'xrange' in dir(__builtins__):
+  xrange = range
 
 import sys
 import time
@@ -49,7 +51,13 @@ class Sampler(BaseType):
     @ Out, None
     '''
     for child in xmlNode:
-      self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']] 
+      sampleVar = child.text.split(':')
+      self.toBeSampled[sampleVar[0]] = [child.attrib['type'],child.attrib['distName']]
+      # we try to append the position =>  if the user wants to add a position 
+      #(i.e. word number in a RELAP5 card or array position for RAVEN), the sampledVariable would be 
+      # variableName:position (example wolf:6)
+      try: self.toBeSampled[sampleVar[0]].append(sampleVar[1])
+      except: self.toBeSampled[child.text].append(0)   #append a default value of the position
 
   def addInitParams(self,tempDict):
     '''
@@ -253,10 +261,6 @@ class MonteCarlo(Sampler):
     except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
     #  stores variables for random sampling  added by nieljw to allow for RELAP5 
     self.variables={}
-    for child in xmlNode:
-      self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']] 
-      try: self.toBeSampled[child.text].append(child.attrib['position'])
-      except: self.toBeSampled[child.text].append(0)   #append a default value of the position
 
   def addInitParams(self,tempDict):
     '''
@@ -728,7 +732,7 @@ class DynamicEventTree(Sampler):
         # Add the unbranched thresholds
         for key in self.distDict.keys():
           if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])):
-            values['initiator_distribution'].append(key)
+            values['initiator_distribution'].append(key.encode())
         for key in self.branchProbabilities.keys():
           if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])):
             values['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
@@ -759,7 +763,7 @@ class DynamicEventTree(Sampler):
       values['end_ts']                     = 0
       values['conditional_prb']            = [1.0]
       for key in self.distDict.keys():
-        values['initiator_distribution'].append(key)
+        values['initiator_distribution'].append(key.encode())
       for key in self.branchProbabilities.keys():  
         values['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
       if(self.maxSimulTime): values['end_time'] = self.maxSimulTime

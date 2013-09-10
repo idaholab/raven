@@ -38,11 +38,11 @@
 </Distributions>
 <Samplers>
     <MonteCarlo name='TestMonteCarlo' limit='128'>
-        <Variable type ='Uniform'  distName='ECCSbattery' position='6'>0000588</Variable>
-        <Variable type ='Uniform'  distName='EDGrecovery' position='1'>0000204</Variable>
-        <Variable type ='Uniform'  distName='Cladfailure' position='6'>0000503</Variable>
-        <Variable type ='Uniform'  distName='PumpSealLOCATime' position='6'>0000599</Variable>
-        <Variable type ='Uniform'  distName='PumpSealLOCAArea' position='3'>7520101</Variable>
+        <Variable type ='Uniform'  distName='ECCSbattery' >0000588:6</Variable>
+        <Variable type ='Uniform'  distName='EDGrecovery' >0000204:1</Variable>
+        <Variable type ='Uniform'  distName='Cladfailure' >0000503:6</Variable>
+        <Variable type ='Uniform'  distName='PumpSealLOCATime'>0000599:6</Variable>
+        <Variable type ='Uniform'  distName='PumpSealLOCAArea'>7520101:3</Variable>
     </MonteCarlo>
 </Samplers>
 <Steps>

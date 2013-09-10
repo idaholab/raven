@@ -218,12 +218,14 @@ class hdf5Database:
                        'initiator_distribution'    :'initiator_distribution',
                        'Probability_threshold'     :'PbThreshold',
                        'quad_pts'                  :'quad_pts',
-                       'partial coeffs'            :'partial coeffs',
-                       'exp order'                 :'exp order',
+                       'partial_coeffs'            :'partial_coeffs',
+                       'exp_order'                 :'exp_order',
                        }
         for attr in attempt_attr.keys():
           try:
-            grp.attrs[attr]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
+            shit = toBytes(attr)
+            grp.attrs[shit]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
+            #grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
           except KeyError:
             pass
       else:
