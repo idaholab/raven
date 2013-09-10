@@ -17,6 +17,7 @@ import Tests
 import Distributions
 import DataBases
 import OutStreams
+import math
 from JobHandler import JobHandler
 
 class SimulationMode:
@@ -90,6 +91,38 @@ class PBSSimulationMode(SimulationMode):
       if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
         self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 
+class MPISimulationMode(SimulationMode):
+  def __init__(self,simulation):
+    self.__simulation = simulation
+    self.__in_pbs = "PBS_NODEFILE" in os.environ
+
+  def modifySimulation(self):
+    if self.__in_pbs:
+      #Figure out number of nodes and use for batchsize
+      nodefile = os.environ["PBS_NODEFILE"]
+      lines = open(nodefile,"r").readlines()
+      numNode = self.__simulation.runInfoDict['numNode']
+      oldBatchsize = self.__simulation.runInfoDict['batchSize']
+      newBatchsize = max(int(math.floor(len(lines)/numNode)),1)
+      if newBatchsize != oldBatchsize:
+        self.__simulation.runInfoDict['batchSize'] = newBatchsize
+        print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
+      if newBatchsize > 1:
+        #need to split node lines
+        workingDir = self.__simulation.runInfoDict['WorkingDir']
+        for i in range(newBatchsize):
+          node_file = open(os.path.join(workingDir,"node_"+str(i)),"w")
+          for line in lines[i*numNode:(i+1)*numNode]:
+            node_file.write(line)
+          node_file.close()
+        #then give each index a separate file.
+        nodeCommand = "-f %BASE_WORKING_DIR%/node_%INDEX% "
+      else:
+        #If only one batch just use original node file
+        nodeCommand = "-f $PBS_NODEFILE "
+      self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numNode)+" "+self.__simulation.runInfoDict['precommand']
+      if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
+        self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 
     
 
@@ -208,6 +241,8 @@ class Simulation:
       elif not os.path.isabs(key):self.filesDict[key] = os.path.abspath(key)
     if self.runInfoDict['mode'] == 'pbs':
       self.__modeHandler = PBSSimulationMode(self)
+    elif self.runInfoDict['mode'] == 'mpi':
+      self.__modeHandler = MPISimulationMode(self)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)

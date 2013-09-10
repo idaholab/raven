@@ -182,6 +182,7 @@ class JobHandler:
         command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
         command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
         command = command.replace("%WORKING_DIR%",item.getWorkingDir())
+        command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
         command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
         command = command.replace("%NUM_CPUS%",str(self.runInfoDict['ParallelProcNumb']))
         item.command = command
