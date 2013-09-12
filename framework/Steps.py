@@ -61,8 +61,8 @@ class SimpleRun(Step):
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(0.1)
-    for output in inDictionary['Output']:
-      output.finalize()
+    #for output in inDictionary['Output']:
+    #  output.finalize()
 
 class PostProcessing(Step):
   '''this class is used to perform post processing on data'''
@@ -204,8 +204,8 @@ class MultiRun(Step):
         break
       time.sleep(0.1)
       
-    for output in inDictionary['Output']:
-      output.finalize()
+    #for output in inDictionary['Output']:
+    #  output.finalize()
 
 class SCRun(Step):
   '''this class implement one step of the simulation pattern' where several runs are needed'''
