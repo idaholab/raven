@@ -761,6 +761,7 @@ class DynamicEventTree(Sampler):
       values['branch_changed_param_value'] = [b'None']
       values['start_time']                 = b'Initial'
       values['end_ts']                     = 0
+      values['parent_id']                  = b'root'
       values['conditional_prb']            = [1.0]
       for key in self.distDict.keys():
         values['initiator_distribution'].append(key.encode())
@@ -803,7 +804,7 @@ class DynamicEventTree(Sampler):
       # Update the run information flags
       if (root.tag == id):
         root.set('runEnded',str(False))
-        root.set('running',str(True))
+        root.set('running',str(True)) 
         root.set('queue',str(False))
       else:
         subElm = list(root.iter(id))[0]

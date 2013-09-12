@@ -23,7 +23,7 @@ class hdf5Database:
     '''
     class to create a h5py (hdf5) database
     '''
-    def __init__(self,name, type, databaseDir, filename=None):
+    def __init__(self,name, databaseDir, filename=None):
       ''' 
         database name (i.e. arbitrary name).
         It is the database name that has been found in the xml input
@@ -31,10 +31,11 @@ class hdf5Database:
       self.name       = name
       '''  
         Database type :
+        -> The structure type is "inferred" by the first group is going to be added
         * MC  = MonteCarlo => Storing by a Parallel structure 
         * DET = Dynamic Event Tree => Storing by a Hierarchical structure
       '''
-      self.type       = type
+      self.type       = None
       ''' 
         .H5 file name (to be created or read) 
       '''
@@ -142,13 +143,15 @@ class hdf5Database:
       @ Out, None
     '''
     def addGroup(self,gname,attributes,source):
-      if self.type == 'DET':
+      #if self.type == 'DET':
+      if 'parent_id' in attributes.keys():
         '''
           If Hierarchical structure, firstly add the root group 
         '''
         if not self.firstRootGroup:
           self.__addGroupRootLevel(gname,attributes,source)
           self.firstRootGroup = True
+          self.type = 'DET'
         else:
           '''
             Add sub group in the Hierarchical structure
@@ -159,6 +162,8 @@ class hdf5Database:
           Parallel structure (always root level)
         '''
         self.__addGroupRootLevel(gname,attributes,source)
+        self.firstRootGroup = True
+        self.type = 'MC'
       return
 
     def __addGroupRootLevel(self,gname,attributes,source):
@@ -223,8 +228,7 @@ class hdf5Database:
                        }
         for attr in attempt_attr.keys():
           try:
-            shit = toBytes(attr)
-            grp.attrs[shit]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
+            grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
             #grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
           except KeyError:
             pass

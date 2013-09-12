@@ -113,8 +113,7 @@ class RavenInterface:
     # in order to restart the calc from the last point in time
     if 'end_ts' in Kwargs.keys():
       #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
-      if Kwargs['end_ts'] == 0:
-        print('here')
+
       if str(Kwargs['start_time']) != 'Initial':
         modifDict = {}
         end_ts_str = str(Kwargs['end_ts'])

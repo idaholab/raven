@@ -68,14 +68,14 @@ class DateBase(BaseType):
     '''
     def retrieveData(self,attributes):
       pass
-    '''
-      Function used to finalize the the database
-      @ In, None 
-      @ Out, None
-    '''
-    def finalize(self):
+#    '''
+#      Function used to finalize the the database
+#      @ In, None 
+#      @ Out, None
+#    '''
+#    def finalize(self):
 #      self.database.closeDataBaseW()
-      pass
+#      pass
 '''
   *************************s
   *  HDF5 DATABASE CLASS  *
@@ -102,17 +102,17 @@ class HDF5(DateBase):
     '''
     def readMoreXML(self,xmlNode):
       DateBase.readMoreXML(self, xmlNode)
-      try:
-        '''
-          Read Type
-        '''
-        subtype = xmlNode.attrib['type']
-        if subtype != "DET" and subtype != "MC":
-          raise IOError('type '+ subtype + 'for data set ' + self.name + 'unknown')
-        else:
-          self.subtype = subtype
-      except:
-        raise IOError('attribute type ' + 'for data set ' + self.name + 'not found')
+      #try:
+      #  '''
+      #    Read Type
+      #  '''
+      #  subtype = xmlNode.attrib['type']
+      #  if subtype != "DET" and subtype != "MC":
+      #    raise IOError('type '+ subtype + 'for data set ' + self.name + 'unknown')
+      #  else:
+      #    self.subtype = subtype
+      #except:
+      #  raise IOError('attribute type ' + 'for data set ' + self.name + 'not found')
       '''
         Check if database directory exist, otherwise create it
       '''
@@ -126,10 +126,10 @@ class HDF5(DateBase):
       '''
       try:
         file_name = xmlNode.attrib['filename']
-        self.database = h5Data(self.name,self.subtype,self.databaseDir,file_name)
+        self.database = h5Data(self.name,self.databaseDir,file_name)
         self.exist   = True
       except:
-        self.database = h5Data(self.name,self.subtype,self.databaseDir) 
+        self.database = h5Data(self.name,self.databaseDir) 
         self.exist   = False
         
     '''
@@ -138,9 +138,7 @@ class HDF5(DateBase):
       @ Out, tempDict 
     ''' 
     def addInitParams(self,tempDict):
-      print('Andrea please FIXME I am using DataBase instead of DataSet that you placed in') #FIXME
       tempDict = DateBase.addInitParams(self,tempDict)
-      tempDict['type']  = self.subtype
       tempDict['exist'] = self.exist
       return tempDict
 
@@ -168,10 +166,10 @@ class HDF5(DateBase):
     ''' 
     def addGroup(self,attributes,loadFrom):
       attributes["group"] = attributes['prefix']
-      if(self.subtype != "MC" and self.subtype != "DET"):
-        
-        print("DATABASE HDF5:  type " + str(self.subtype) + " not implemented yet")
-        return
+     # if(self.subtype != "MC" and self.subtype != "DET"):
+     #   
+     #   print("DATABASE HDF5:  type " + str(self.subtype) + " not implemented yet")
+     #   return
 
       self.database.addGroup(attributes["group"],attributes,loadFrom)
       self.built = True

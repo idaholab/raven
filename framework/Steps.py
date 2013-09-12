@@ -38,10 +38,10 @@ class Step(BaseType):
     # cleaning up the model
     #print(inDictionary['Model'])
     inDictionary['Model'].reset(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
-    print('the model '+inDictionary['Model'].name+' has been reset')
+    print('STEPS         : the model '+inDictionary['Model'].name+' has been reset')
 
   def takeAstep(self,inDictionary):
-    raise IOError('for this model the takeAstep has not yet being implemented')
+    raise IOError('STEPS         : For this model the takeAstep has not yet being implemented')
 
 
 class SimpleRun(Step):
@@ -98,7 +98,7 @@ class MultiRun(Step):
     #get the max number of iteration in the step
     if 'Sampler' in inDictionary.keys(): self.maxNumberIteration = inDictionary['Sampler'].limit
     else: self.maxNumberIteration = 1
-    print('limit to the number of simulation is: '+str(self.maxNumberIteration))
+    print('STEPS         : limit to the number of simulation is: '+str(self.maxNumberIteration))
     if 'ROM' in inDictionary.keys():
       inDictionary['ROM'].addLoadingSource(inDictionary['Input'])
     #FIXME this reports falsely if sampler.limit is set in sampler.initialize
@@ -237,7 +237,7 @@ class SCRun(Step):
 
   def takeAstepIni(self,inDictionary):
     '''main driver for a step'''
-    print('beginning of the step: '+self.name)
+    print('STEPS         : beginning of the step: '+self.name)
     self.initializeStep(inDictionary)
 ####ROM
 #    if 'ROM' in inDictionary.keys():

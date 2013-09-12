@@ -46,13 +46,13 @@ class Data(BaseType):
     tempDict['Time'] = self.time
     return tempDict
 
-  def finalize(self):
-    pass 
+#  def finalize(self):
+#    pass 
 
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
-    print('toLoadFrom :')
+    print('DATAS       : toLoadFrom -> ')
     print(toLoadFrom)
     
     self.toLoadFromList.append(toLoadFrom)
@@ -81,7 +81,8 @@ class Data(BaseType):
       raise Exception("type " + typeVar + " is not a valid type. Function: Data.getParam")
 
 class TimePoint(Data):
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
+    Data.addOutput(self, toLoadFrom)
     try:
       typeVar = self.toLoadFromList[0].type
       #add here the specialization for loading from other source
@@ -91,7 +92,8 @@ class TimePoint(Data):
       self.outParametersValues = tupleVar[1]
     
 class TimePointSet(Data):
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
+    Data.addOutput(self, toLoadFrom)
     try:
       types = []
       types = self.toLoadFromList[:].type
@@ -102,7 +104,8 @@ class TimePointSet(Data):
       self.outParametersValues = tupleVar[1]
 
 class History(Data):
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
+    Data.addOutput(self, toLoadFrom)
     try:
       typeVar = self.toLoadFromList[0][0].type
       if typeVar == "HDF5":
@@ -127,7 +130,8 @@ class Histories(Data):
   def __init__(self):
     Data.__init__(self)
 
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
+    Data.addOutput(self, toLoadFrom)
     try:
       typeVar = self.toLoadFromList[0][0].type
       if typeVar == "HDF5":
