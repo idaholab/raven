@@ -67,9 +67,11 @@ class Distribution(BaseType):
   def setQuad(self,quad,exp_order):
     self.distQuad=quad
     self.exp_order=exp_order
+
   def quad(self):
     try: return self.distQuad
     except: raise IOError ('No quadrature has been set for this distr. yet.')
+
   def polyOrder(self):
     try: return self.exp_order
     except: raise IOError ('Quadrature has not been set for this distr. yet.')
@@ -85,6 +87,7 @@ class Uniform(Distribution):
     self.hi = 0.0
     self.type = 'Uniform'
     self.bestQuad = Quadrature.Legendre
+
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
     try: self.low = float(xmlNode.find('low').text)
@@ -92,11 +95,13 @@ class Uniform(Distribution):
     try: self.hi = float(xmlNode.find('hi').text)
     except: raise Exception('hi value needed for uniform distribution')
     self.inDistr()
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self,tempDict)
     tempDict['low'] = self.low
     tempDict['hi'] = self.hi
     # no other additional parameters required
+
   def inDistr(self):
     self.range=self.hi-self.low
     self.distribution = dist.uniform(loc=self.low,scale=self.range)
@@ -106,18 +111,23 @@ class Uniform(Distribution):
     def norm(n):
       '''Returns normalization constant for polynomial type, given the poly ordeir'''
       return np.sqrt((2.*n+1.)/2.)
+
     def standardToActualPoint(x): #standard -> actual
       '''Given a [-1,1] point, converts to parameter value.'''
       return x*self.range/2.+self.distribution.mean()
+
     def actualToStandardPoint(x): #actual -> standard
       '''Given a parameter value, converts to [-1,1] point.'''
       return (x-self.distribution.mean())/(self.range/2.)
+
     def standardToActualWeight(x): #standard -> actual
       '''Given normal quadrature weight, returns adjusted weight.'''
       return x/(self.range/2.)
+
     def probNorm(x): #normalizes probability if total != 1
       '''Returns the poly factor to scale by so that sum(probability)=1.'''
       return self.range
+
     # point to functions
     self.poly_norm = norm
     self.actual_point = standardToActualPoint
@@ -142,24 +152,31 @@ class Normal(Distribution):
     try: self.sigma = float(xmlNode.find('sigma').text)
     except: raise Exception('sigma value needed for normal distribution')
     self.inDistr()
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['mean' ] = self.mean
     tempDict['sigma'] = self.sigma
+
   def inDistr(self):
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self.distribution = dist.norm(loc=self.mean,scale=self.sigma)
       self.polynomial = polys.hermitenorm
       def norm(n):
         return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
+
       def standardToActualPoint(x): #standard -> actual
         return x*self.sigma**2/2.+self.distribution.mean()
+
       def actualToStandardPoint(x): #actual -> standard
         return (x-self.distribution.mean())/(self.sigma**2/2.)
+
       def standardToActualWeight(x): #standard -> actual
         return x/(self.sigma**2/2.)
+
       def probNorm(x): #normalizes if total prob. != 1
         return 1.0
+
       self.poly_norm = norm
       self.actual_point = standardToActualPoint
       self.std_point = actualToStandardPoint
@@ -181,6 +198,7 @@ class Gamma(Distribution):
     self.beta = 1.0
     self.type = 'Gamma'
     self.bestQuad = Quadrature.Laguerre
+
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
     try: self.low = float(xmlNode.find('low').text)
@@ -190,24 +208,31 @@ class Gamma(Distribution):
     try: self.beta = float(xmlNode.find('beta').text)
     except: self.beta=1.0
     self.inDistr()
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self,tempDict)
     tempDict['low'] = self.low
     tempDict['alpha'] = self.alpha
     tempDict['beta'] = self.beta
+
   def inDistr(self):
     self.distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
     self.polynomial = polys.genlaguerre
     def norm(n):
       return np.sqrt(factorial(n)/polys.gamma(n+self.alpha+1.0))
+
     def standardToActualPoint(x): #standard -> actual
       return x/self.alpha+self.alpha+self.low #TODO these correct? no beta used
+
     def actualToStandardPoint(x): #actual -> standard
       return (x-self.low-self.alpha)*self.alpha
+
     def standardToActualWeight(x): #standard -> actual
       return x
+
     def probNorm(x): #normalizes probability if total != 1
       return 1.0
+
     self.poly_norm=norm
     self.actual_point = standardToActualPoint
     self.std_point = actualToStandardPoint
@@ -224,6 +249,7 @@ class Beta(Distribution):
     self.type = 'Beta'
     self.bestQuad = Quadrature.Jacobi
     # TODO default to specific Beta distro?
+
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
     try: self.low = float(xmlNode.find('low').text)
@@ -235,12 +261,14 @@ class Beta(Distribution):
     try: self.beta = float(xmlNode.find('beta').text)
     except: raise Exception('beta value needed for Gamma distribution')
     self.inDistr()
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self,tempDict)
     tempDict['low'] = self.low
     tempDict['hi'] = self.hi
     tempDict['alpha'] = self.alpha
     tempDict['beta'] = self.beta
+
   def inDistr(self):
     self.distribution = dist.beta(self.alpha,self.beta,scale=self.hi-self.low)
 
@@ -260,6 +288,7 @@ class Triangular(Distribution):
     self.max  = 0.0
     self.type = 'Triangular'
     self.bestQuad = None
+
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
     try: self.apex = float(xmlNode.find('apex').text)
@@ -269,11 +298,13 @@ class Triangular(Distribution):
     try: self.max = float(xmlNode.find('max').text)
     except: raise Exception('max value needed for normal distribution')
     self.inDistr()
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['apex' ] = self.apex
     tempDict['min'  ] = self.min
     tempDict['max'  ] = self.max
+
   def inDistr(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       c = (self.apex-self.min)/(self.max-self.min)

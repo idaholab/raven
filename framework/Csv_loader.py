@@ -154,10 +154,9 @@ class CsvLoader:
                 raise Exception("ERROR: the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-
-  # loader for time point set data type
   def csvLoaderForTimePointSet(self,filesin,time,inParam,outParam):
     '''
+    loader for time point set data type
     filesin = file names
     time   = time
     inParam = parameters to be picked up 
@@ -270,9 +269,9 @@ class CsvLoader:
       del data 
     return (inDict,outDict)
 
-# loader for history data type
   def csvLoaderForHistory(self,filein,time,inParam,outParam):
     '''
+    loader for history data type
     filein = file name
     time_filter   = time_filter
     inParamDict = parameters to be picked up (dictionary of values)
