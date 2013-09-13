@@ -172,8 +172,8 @@ class MultiRun(Step):
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(0.1)
-    for output in inDictionary['Output']:
-      output.finalize()
+    #for output in inDictionary['Output']:
+    #  output.finalize()
 
   def takeAstepRunDET(self,inDictionary):
     converged = False
