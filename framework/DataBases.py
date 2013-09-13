@@ -136,8 +136,7 @@ class HDF5(DateBase):
       Function that adds the initial parameter in a temporary dictionary
       @ In, tempDict
       @ Out, tempDict 
-    ''' 
-    def addInitParams(self,tempDict):
+      ''' 
       tempDict = DateBase.addInitParams(self,tempDict)
       tempDict['exist'] = self.exist
       return tempDict
