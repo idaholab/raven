@@ -858,14 +858,14 @@ CustomDistribution::Pdf(double & x){
 }
 
 double
-CustomDistribution::Cdf(double & x){
+CustomDistribution::Cdf(double & ){
    double value=-1;
 
    return value;
 }
 
 double
-CustomDistribution::RandomNumberGenerator(double & RNG){
+CustomDistribution::RandomNumberGenerator(double & ){
    double value=-1;
    return value;
 }
