@@ -45,7 +45,7 @@ class hdf5Database:
         self.fileExist  = True
       else:
         # File name on disk (file does not exist => it will create => fileExist flag is False) 
-        self.onDiskFile = name + "_" + str(self.type) + ".h5" 
+        self.onDiskFile = name + ".h5" 
         self.fileExist  = False 
       # Database directory
       self.databaseDir =  databaseDir
