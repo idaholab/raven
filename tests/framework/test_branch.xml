@@ -50,18 +50,18 @@
         <Input   type='Files'    subtype=''>ideal_pump_control.py</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
         <Sampler type = 'Samplers' subtype='DynamicEventTree'>DET_test</Sampler>
-        <DataBases type='DataBases' subtype=''        >testDataBase</DataBases>
-        <Output  type='DataBases' subtype='HDF5' >testDataBase</Output>
+        <DataBases type='DataBases' subtype=''        >testBranchDataBase</DataBases>
+        <Output  type='DataBases' subtype='HDF5' >testBranchDataBase</Output>
         <Output  type='Datas'    subtype='Histories' >stories</Output>
     </MultiRun >
     <PostProcessing name='extract_hist_example'>
-        <Input   type='DataBases' subtype='HDF5'   >testDataBase</Input>
+        <Input   type='DataBases' subtype='HDF5'   >testBranchDataBase</Input>
         <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
         <Output  type='Files'    subtype=''       >DET_histories.csv</Output>
     </PostProcessing>      
 </Steps>
 <DataBases>
-    <HDF5 name="testDataBase" type="DET"/> 
+    <HDF5 name="testBranchDataBase" type="DET"/> 
 </DataBases>
 <Datas>
     <Histories name='stories'>
