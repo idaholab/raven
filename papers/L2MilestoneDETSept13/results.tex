@@ -7,11 +7,11 @@ In order to show the capabilities introduced with the new DET module, a simplifi
     \caption{PWR model scheme}
     \label{fig:PWRmodel}
 \end{figure}
-Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the Down-comers, the Lower Plenum, the Reactor Core Model and the Upper Plenum. Core channels (flow channels with heat structure attached to each of them) were used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. 
+Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the Down-comers, the Lower Plenum, the Reactor Core Model and the Upper Plenum. Core channels (flow channels with heat structure attached to each of them) are used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. 
 %The hot core channel represents the inner hottest zone of the reactor core. The average core channel represents the mid zone of the core and the cold core channel represents the outer zone of the core, respectively. 
 There are two primary loops, i.e., loop A and loop B. Each loop consists of the Hot Leg, a Heat Exchanger and its secondary side pipes, the Cold Leg and a primary Pump. A Pressurizer is attached to the Loop A piping system to control the system pressure. A Time Dependent Volume (pressure boundary conditions) component is used to represent the Pressurizer. Since the RELAP-7 code does not have the two-phase flow capability for all needed components yet, single-phase counter-current heat exchanger models are implemented to mimic the function of steam generators in order to transfer heat from the primary to the secondary.
 
-In order to perform a Dynamic PRA analysis on this simplified model, it has been necessary to control unconventional parameters (i.e. inlet/outlet friction factors), since RELAP-7 still has limitations for the component controllable parameters and models. In the following paragraph, the PRA station black out sequence of events is reported. 
+In order to perform a DPRA analysis of this simplified model, it has been necessary to control unconventional parameters (i.e. inlet/outlet friction factors), since RELAP-7 still has limitations for the component controllable parameters and models. In the following paragraph, the PRA station black out sequence of events is reported. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Station Black Out (SBO) analysis} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -87,7 +87,7 @@ In addition, the clad failure temperature $TC,fail$ is not fixed but it is proba
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The Dynamic Event Tree calculation has been run considering equally spaced branching probability thresholds (ESBP). 
+The DET calculation has been run considering equally spaced branching probability thresholds (ESBP). 
 
 \begin{figure}
         \centering %
