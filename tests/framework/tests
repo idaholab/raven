@@ -13,4 +13,12 @@
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
  [../]
 
+[./test_branch_heavy]
+  type = 'RavenFramework'
+  heavy= True
+  input = 'test_sbo_heavy_det.xml'
+  output = 'SBO_DET/DET/out~DET_1-2-2~TMI.e SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_additional_info_DET_1-2-2.csv' 
+  csv = 'SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_DET_1-2-2.csv'
+ [../]
+
 []
