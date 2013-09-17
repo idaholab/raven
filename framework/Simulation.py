@@ -120,9 +120,16 @@ class MPISimulationMode(SimulationMode):
       else:
         #If only one batch just use original node file
         nodeCommand = "-f $PBS_NODEFILE "
-      self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numNode)+" "+self.__simulation.runInfoDict['precommand']
-      if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
-        self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
+    else:
+      #Not in PBS, so can't look at PBS_NODEFILE
+      newBatchsize = self.__simulation.runInfoDict['batchSize']
+      numNode = self.__simulation.runInfoDict['numNode']
+      nodeCommand = " "
+
+    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numNode)+" "+self.__simulation.runInfoDict['precommand']
+    if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
+      self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
+    print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
 
     
 
