@@ -24,7 +24,6 @@ if __name__ == '__main__':
   try:
     if len(sys.argv) == 1:
       inputFile = 'test.xml'
-      inputFile = '/Users/alfoa/projects/trunk/raven/tests/framework/test.xml'
     else:
       inputFile = sys.argv[1]
   except:
