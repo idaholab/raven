@@ -23,7 +23,8 @@ if __name__ == '__main__':
   # open the XML input 
   try:
     if len(sys.argv) == 1:
-      inputFile = 'test.xml' 
+      inputFile = 'test.xml'
+      inputFile = '/Users/alfoa/projects/trunk/raven/tests/framework/test.xml'
     else:
       inputFile = sys.argv[1]
   except:

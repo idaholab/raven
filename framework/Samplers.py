@@ -864,11 +864,23 @@ class DynamicEventTree(Sampler):
     except: self.maxSimulTime = None
     Sampler.readMoreXML(self,children)
     branchedLevel = {}
+    error_found = False
     for child in children:
       bv = child.attrib['BranchProbs']
       bvalues = [float(x) for x in bv.split()]
+      bvalues.sort()
       self.branchProbabilities[child.attrib['distName']] = bvalues
       branchedLevel[child.attrib['distName']]       = 0
+      #error check
+      if max(bvalues) > 1:
+        print("SAMPLER ANDREA: ERROR -> One of the Thresholds for distribution " + str(child.attrib['distName']) + " is > 1")
+        error_found = True
+      templist = sorted(bvalues, key=float)
+      for index in range(len(templist)):
+        if templist.count(templist[index]) > 1:
+          print("SAMPLER ANDREA: ERROR -> In distribution " + str(child.attrib['distName']) + " the Threshold " + str(templist[index])+" appears multiple times!!")
+          error_found = True
+    if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )
 
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)

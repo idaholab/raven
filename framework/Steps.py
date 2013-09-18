@@ -61,8 +61,6 @@ class SimpleRun(Step):
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(0.1)
-    #for output in inDictionary['Output']:
-    #  output.finalize()
 
 class PostProcessing(Step):
   '''this class is used to perform post processing on data'''
@@ -106,10 +104,6 @@ class MultiRun(Step):
   def takeAstep(self,inDictionary):
     '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
     self.takeAstepIni(inDictionary)
-    #if 'Sampler' in inDictionary.keys():
-    #  if inDictionary['Sampler'].type == 'DynamicEventTree':
-    #    self.takeAstepRunDET(inDictionary)
-    #    return
     self.takeAstepRun(inDictionary)
 
   def takeAstepIni(self,inDictionary):
@@ -172,40 +166,7 @@ class MultiRun(Step):
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(0.1)
-    #for output in inDictionary['Output']:
-    #  output.finalize()
-
-#   def takeAstepRunDET(self,inDictionary):
-#     converged = False
-#     jobHandler = inDictionary['jobHandler']
-#     while True:
-#       finishedJobs = jobHandler.getFinished()
-#       #loop on the finished jobs
-#       for finishedJob in finishedJobs:
-#         inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
-#         for output in inDictionary['Output']:                                                      #for all expected outputs
-#             inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
-#         if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-#         #the harvesting process is done moving forward with the convergence checks
-#         if 'Tester' in inDictionary.keys():
-#           if 'ROM' in inDictionary.keys():
-#             converged = inDictionary['Tester'].testROM(inDictionary['ROM'])                           #the check is performed on the information content of the ROM
-#           else:
-#             converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
-#         if not converged:
-#           for freeSpot in xrange(jobHandler.howManyFreeSpots()):
-#             if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
-#               newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-#               inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
-#         elif converged:
-#           jobHandler.terminateAll()
-#           break
-#       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
-#         break
-#       time.sleep(0.1)
-#       
-#     #for output in inDictionary['Output']:
-#     #  output.finalize()
+   
 
 class SCRun(Step):
   '''this class implement one step of the simulation pattern' where several runs are needed'''
@@ -229,10 +190,6 @@ class SCRun(Step):
   def takeAstep(self,inDictionary):
     '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
     self.takeAstepIni(inDictionary)
-#    if 'Sampler' in inDictionary.keys():
-#      if inDictionary['Sampler'].type == 'DynamicEventTree':
-#        self.takeAstepRunDET(inDictionary)
-#        return
     self.takeAstepRun(inDictionary)
 
   def takeAstepIni(self,inDictionary):
@@ -305,38 +262,6 @@ class SCRun(Step):
 #      output.finalize()
 #    print('HERE',inDictionary.keys())
     #if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-
-#  def takeAstepRunDET(self,inDictionary):
-#    converged = False
-#    jobHandler = inDictionary['jobHandler']
-#    while True:
-#      finishedJobs = jobHandler.getFinished()
-#      #loop on the finished jobs
-#      for finishedJob in finishedJobs:
-#        inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
-#        for output in inDictionary['Output']:                                                      #for all expected outputs
-#            inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
-#        if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-#        #the harvesting process is done moving forward with the convergence checks
-#        if 'Tester' in inDictionary.keys():
-#          if 'ROM' in inDictionary.keys():
-#            converged = inDictionary['Tester'].testROM(inDictionary['ROM'])                           #the check is performed on the information content of the ROM
-#          else:
-#            converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
-#        if not converged:
-#          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
-#            if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
-#              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-#              inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
-#        elif converged:
-#          jobHandler.terminateAll()
-#          break
-#      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
-#        break
-#      time.sleep(0.1)
-#      
-#    for output in inDictionary['Output']:
-#      output.finalize()
 
 def returnInstance(Type):
   base = 'Step'
