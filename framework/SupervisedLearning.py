@@ -128,6 +128,7 @@ class StochasticPolynomials(superVisioned):
     #      #TODO assumes standardToActualWeight is a linear transformation!
     #      probNorm*=self.distDict[var].probNorm(qp[v])
     #    self.poly_coeffs[ords]+=solns[qp]*wt*poly*probNorm
+
   def evaluate(self,valDict):
     # valDict is dict of values to evaluate at, keyed on var
     #FIXME these need to be adjusted for changes in train()
@@ -137,6 +138,7 @@ class StochasticPolynomials(superVisioned):
               ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
       #TODO revertPt may not always be straightforward to implement!
     return tot
+
   def reset(self,*args):
     try:
       del self.poly_coeffs

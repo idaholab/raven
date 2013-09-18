@@ -23,9 +23,9 @@ class RELAPparser:
       IOfile.write('%s' %(i))
 
   def modifyOrAdd(self,modiDictionaryList,save=True):
-    '''ModiDictionaryList is a list of dictionaries of the required addition or modification'''
-    '''the method looks in self.lines for a card number matching the card in modiDictionaryList'''
-    '''and modifies the word from modiDictionaryList at needed'''      
+    '''ModiDictionaryList is a list of dictionaries of the required addition or modification
+    the method looks in self.lines for a card number matching the card in modiDictionaryList
+    and modifies the word from modiDictionaryList at needed'''
     temp=[]
     temp.append('*RAVEN INPUT VALUES\n')
     for j in modiDictionaryList:
