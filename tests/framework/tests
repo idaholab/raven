@@ -21,4 +21,11 @@
   csv = 'SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_DET_1-2-2.csv'
  [../]
 
+ [./test_mpi]
+  type = 'RavenFramework'
+  heavy= True
+  input = 'test_mpi.xml'
+  output = 'mpi_driver_test/FirstMRun/out~1~simple_flow_3eqn_displaced.e'
+  csv = 'mpi_driver_test/FirstMRun/out~6~simple_flow_3eqn.csv'
+ [../]  
 []

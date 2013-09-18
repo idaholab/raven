@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>mpi_driver_test</WorkingDir>
+    <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>3</batchSize>
+    <ParallelProcNumb>4</ParallelProcNumb>    
+    <mode>mpi</mode>
+    <numNode>2</numNode>
+    <!--<ParallelCommand></ParallelCommand>
+    <ThreadingCommand></ThreadingCommand>
+    <ThreadingProcessor></ThreadingProcessor>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+  <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD% </Code>
+  <!-- <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/fix_stdin.sh %FRAMEWORK_DIR%/../RAVEN-%METHOD% </Code> -->
+    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
+    <Filter name='Plot1' type='Plot'> 
+      <historyID>ALL</historyID>
+      <variables>ALL</variables>
+    </Filter>
+</Models>
+
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='auxBackUpTimeDist'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>    
+    <Normal name='Gauss2'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='CladFailureDist'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
+<!--         <lowerBound>0</lowerBound> This is not yet supported
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>  -->
+    </Triangular>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo     name='RAVENmc6'  limit='6'/>
+</Samplers>
+<Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+</Tests>
+<Steps>
+    <MultiRun name='FirstMRun'>
+        <Input   type='Files'    subtype=''>simple_flow_3eqn.i</Input>
+        <Input   type='Files'    subtype=''>simple_flow_3eqn_control.py</Input>
+        <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
+        <Sampler type = 'Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
+        <DataBases type='DataBases' subtype=''        >testMPIDataBase</DataBases>
+        <Output  type='DataBases' subtype='HDF5' >testMPIDataBase</Output>
+        <Output  type='Datas'    subtype='Histories' >stories</Output>
+    </MultiRun >
+</Steps>
+<DataBases>
+    <HDF5 name="testMPIDataBase" type="MC"/> 
+</DataBases>
+<Datas>
+    <Histories name='stories'>
+        <Input>pipe_Area,pipe_Dh</Input>
+        <Output>pipe_Hw,pipe_Tw</Output>
+   </Histories>
+</Datas>
+</Simulatio>
+
+
+
