@@ -253,6 +253,7 @@ class Filter(Model):
     try: os.mkdir(self.workingDir)
     except: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
+
   def run(self,inObj,outObj):
     '''run calls the interface finalizer'''
     self.interface.finalizeFilter(inObj,outObj,self.workingDir)

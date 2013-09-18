@@ -28,40 +28,41 @@ class ExternalRunner:
     else: 
       self.output = os.path.join(workingDir,'generalOut')
       self.identifier = 'generalOut'
-    ''' Initialize logger'''
+    # Initialize logger
     #self.logger     = self.createLogger(self.identifier)
     #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
     
     self.__workingDir = workingDir
 
-  '''
+  def createLogger(self,name):
+    '''
     Function to create a logging object
     @ In, name: name of the logging object
     @ Out, logging object 
-  '''
-  def createLogger(self,name):
+    '''
     return logging.getLogger(name)
-  '''
+    
+  def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
+    '''
     Function to create a logging object
     @ In, logger_name     : name of the logging object
     @ In, filename        : log file name (with path)
     @ In, max_size        : maximum file size (bytes)
     @ In, max_number_files: maximum number of files to be created
     @ Out, None 
-  '''
-  def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
+    '''
     hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
     logging.getLogger(logger_name).addHandler(hadler)
     logging.getLogger(logger_name).setLevel(logging.INFO)
     return 
 
-  '''
+  def outStreamReader(self, out_stream):
+    '''
     Function that logs every line received from the out stream
     @ In, out_stream: output stream
     @ In, logger    : the instance of the logger object
     @ Out, logger   : the logger itself 
-  '''
-  def outStreamReader(self, out_stream):
+    '''
     while True:
       line = out_stream.readline()
       if len(line) == 0 or not line:

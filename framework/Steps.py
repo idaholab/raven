@@ -66,16 +66,13 @@ class PostProcessing(Step):
   '''this class is used to perform post processing on data'''
   def initializeStep(self,inDictionary):
     Step.initializeStep(self,inDictionary)
+
   def takeAstep(self,inDictionary):
     '''main driver for a step'''
-    '''
-      Initialize the Step
-    '''
+    # Initialize the Step
     print('Intialize step PostProcessing')
     Step.initializeStep(self,inDictionary)
-    '''
-      Run the step
-    '''
+    # Run the step
     print('Run step PostProcessing')
     if 'Model' in inDictionary.keys():
       if inDictionary['Model'].type == 'Filter':
