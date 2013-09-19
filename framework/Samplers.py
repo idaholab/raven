@@ -51,7 +51,7 @@ class Sampler(BaseType):
     @ Out, None
     '''
     for child in xmlNode:
-      sampleVar = child.text.split(':')
+      sampleVar = str(child.text).split(':')
       self.toBeSampled[sampleVar[0]] = [child.attrib['type'],child.attrib['distName']]
       # we try to append the position =>  if the user wants to add a position 
       #(i.e. word number in a RELAP5 card or array position for RAVEN), the sampledVariable would be 
@@ -261,6 +261,7 @@ class MonteCarlo(Sampler):
     except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
     #  stores variables for random sampling  added by nieljw to allow for RELAP5 
     self.variables={}
+    Sampler.readMoreXML(self, xmlNode)
 
   def addInitParams(self,tempDict):
     '''
@@ -389,7 +390,7 @@ class EquallySpaced(Sampler):
 #
 class DynamicEventTree(Sampler):
   '''
-  DYNAMIC EVEN TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (ANDREA) :D
+  DYNAMIC EVEN TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET      ) :D
   '''
   def __init__(self):
     Sampler.__init__(self)
@@ -578,14 +579,14 @@ class DynamicEventTree(Sampler):
     if not os.path.isabs(filename):
       filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
-      print('SAMPLER ANDREA: branch info file ' + filename +' has not been found. => No Branching.')
+      print('SAMPLER DET      : branch info file ' + filename +' has not been found. => No Branching.')
       branch_present = False
       return branch_present
     
     # Parse the file and create the xml element tree object
     try:
       branch_info_tree = ET.parse(filename)
-      print('SAMPLER ANDREA: Done parsing '+filename)
+      print('SAMPLER DET      : Done parsing '+filename)
     except:
       #branch_info_tree = ET.parse(filename) #This could cause a second exception
       raise IOError ('not able to parse ' + filename)
@@ -645,8 +646,8 @@ class DynamicEventTree(Sampler):
       # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in 
       # which the event did not occur is not going to be tracked
       if branchedLevelG[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
-        print('SAMPLER ANDREA: Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
-        print('SAMPLER ANDREA: Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
+        print('SAMPLER DET      : Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
+        print('SAMPLER DET      : Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
         self.branchCountOnLevel = 1
         n_branches = endInfo['n_branches'] - 1
       # Loop over the branches for which the inputs must be created
@@ -764,7 +765,7 @@ class DynamicEventTree(Sampler):
       values['end_ts']                     = 0
       values['parent_id']                  = b'root'
       values['conditional_prb']            = [1.0]
-      for key in self.distDict.keys():
+      for key in self.branchProbabilities.keys():
         values['initiator_distribution'].append(key.encode())
       for key in self.branchProbabilities.keys():  
         values['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
@@ -832,7 +833,7 @@ class DynamicEventTree(Sampler):
     input = self.__getQueueElement()
     if not input:
       # If no inputs are present in the queue => a branch is finished 
-      print("SAMPLER ANDREA: A Branch ended!!!!")
+      print("SAMPLER DET      : A Branch ended!!!!")
     return input
 
   def readMoreXML(self,xmlNode):
@@ -846,7 +847,7 @@ class DynamicEventTree(Sampler):
     try:
       flag = ""
       flag = xmlNode.attrib['print_end_xml']
-      self.print_end_xml = (flag.lower() in ['true','t','yes','si','y','yeah','ja','da','oui','sic','perche no','avojia','certamente','dajie','divertimose'])
+      self.print_end_xml = (flag.lower() in ['true','t','yes','si','y'])
     except:
       self.print_end_xml = False
       
@@ -874,12 +875,12 @@ class DynamicEventTree(Sampler):
       branchedLevel[child.attrib['distName']]       = 0
       #error check
       if max(bvalues) > 1:
-        print("SAMPLER ANDREA: ERROR -> One of the Thresholds for distribution " + str(child.attrib['distName']) + " is > 1")
+        print("SAMPLER DET      : ERROR -> One of the Thresholds for distribution " + str(child.attrib['distName']) + " is > 1")
         error_found = True
       templist = sorted(bvalues, key=float)
       for index in range(len(templist)):
         if templist.count(templist[index]) > 1:
-          print("SAMPLER ANDREA: ERROR -> In distribution " + str(child.attrib['distName']) + " the Threshold " + str(templist[index])+" appears multiple times!!")
+          print("SAMPLER DET      : ERROR -> In distribution " + str(child.attrib['distName']) + " the Threshold " + str(templist[index])+" appears multiple times!!")
           error_found = True
     if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )
 

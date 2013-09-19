@@ -172,7 +172,82 @@ class RavenInterface:
     raise IOError('LatinHyperCubeForRAVEN not yet implemented')
     listDict = []
     return listDict
+
+class MooseBasedAppInterface:
+  '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
+  def generateCommand(self,inputFiles,executable):
+    '''seek which is which of the input files and generate According the running command'''
+    if inputFiles[0].endswith('.i'): index = 0
+    else: index = 1
+    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
+    ' Output/file_base='+ outputfile)
+    return executeCommand,outputfile
+
+  def appendLoadFileExtension(self,fileRoot):
+    '''  '''
+    return fileRoot + '.csv'
+
+  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+    '''this generate a new input file depending on which sampler has been chosen'''
+    import MOOSEparser
+    newInputFiles = []
+    self.samplersDictionary                          = {}
+    self.samplersDictionary['MonteCarlo']            = self.MonteCarloForMooseBasedApp
+    self.samplersDictionary['EquallySpaced']         = self.EquallySpacedForMooseBasedApp
+    self.samplersDictionary['LatinHyperCube']        = self.LatinHyperCubeForMooseBasedApp
+    self.samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForMooseBasedApp
+    self.samplersDictionary['StochasticCollocation'] = self.StochasticCollocationForMooseBasedApp
+    if currentInputFiles[0].endswith('.i'): index = 0
+    else: index = 1
+    parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
+    modifDict = self.samplersDictionary[samplerType](**Kwargs)
+    parser.modifyOrAdd(modifDict,False)
+    temp = str(oriInputFiles[index][:])
+    newInputFiles = copy.deepcopy(currentInputFiles)
+    #TODO fix this? storing unwieldy amounts of data in 'prefix'
+    if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
+      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+    else:
+      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+    parser.printInput(newInputFiles[index])
+    return newInputFiles
+
+  def StochasticCollocationForMooseBasedApp(self,**Kwargs):
+    raise IOError('StochasticCollocationForMooseBasedApp not yet implemented')
+    listDict = []
+    return listDict
+
+  def MonteCarloForMooseBasedApp(self,**Kwargs):
+    try: counter = Kwargs['prefix']
+    except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
+    try: init_seed = Kwargs['initial_seed']
+    except: init_seed = 1
+    
+    listDict = []
+    modifDict = {}
+    modifDict['name'] = ['Distributions']
+    RNG_seed = int(counter) + int(init_seed) - 1
+    modifDict['RNG_seed'] = str(RNG_seed)
+    listDict.append(modifDict)
+    return listDict
   
+  def DynamicEventTreeForMooseBasedApp(self,**Kwargs):
+    raise IOError('DynamicEventTreeForMooseBasedApp not yet implemented')
+    listDict = []
+    return listDict
+
+  def EquallySpacedForMooseBasedApp(self,**Kwargs):
+    raise IOError('EquallySpacedForMooseBasedApp not yet implemented')
+    listDict = []
+    return listDict
+  
+  def LatinHyperCubeForMooseBasedApp(self,**Kwargs):
+    raise IOError('LatinHyperCubeForMooseBasedApp not yet implemented')
+    listDict = []
+    return listDict
+  
+
 class RelapInterface:
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
   def generateCommand(self,inputFiles,executable):
@@ -213,7 +288,7 @@ class RelapInterface:
     
   def MonteCarloForRELAP(self,**Kwargs):
     try: counter = Kwargs['prefix']
-    except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
+    except: raise IOError('a counter is needed for the Monte Carlo sampler for RELAP5')
     listDict = []
     modifDict = {}
     for keys in Kwargs:
@@ -249,9 +324,10 @@ def returnCodeInterface(Type):
      code for which the interface is present in the CodeInterfaces module'''
   base = 'Code'
   codeInterfaceDict = {}
-  codeInterfaceDict['RAVEN'] = RavenInterface
-  codeInterfaceDict['ExternalTest'] = ExternalTest
-  codeInterfaceDict['RELAP5'] = RelapInterface
+  codeInterfaceDict['RAVEN'        ] = RavenInterface
+  codeInterfaceDict['MooseBasedApp'] = MooseBasedAppInterface
+  codeInterfaceDict['ExternalTest' ] = ExternalTest
+  codeInterfaceDict['RELAP5'       ] = RelapInterface
   try: return codeInterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
 

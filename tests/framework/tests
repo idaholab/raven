@@ -19,7 +19,8 @@
   output = 'SBO_DET/DET/out~DET_1-2-2~TMI.e SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_additional_info_DET_1-2-2.csv' 
   csv = 'SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_DET_1-2-2.csv'
   max_time = 10000
-  heavy= True
+  heavy=True
+  rel_err = 0.1
  [../]
 
  [./test_mpi]
