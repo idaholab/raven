@@ -10,6 +10,7 @@ class RavenFramework(Tester):
     params.addRequiredParam('input',"The input file to use for this test.")
     params.addParam('output','',"List of output files that the input should create.")
     params.addParam('csv','',"List of csv files to check")
+    params.addParam('rel_err','','Relative Error for csv files')
     return params
   getValidParams = staticmethod(getValidParams)
 
@@ -60,7 +61,10 @@ class RavenFramework(Tester):
     
     if len(missing) > 0:
       return ('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),output)
-    csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files)
+    if len(self.specs["rel_err"]) > 0:
+      csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files,relative_error=float(self.specs["rel_err"]))
+    else:
+      csv_diff = CSVDiffer(self.specs['test_dir'],self.csv_files)
     message = csv_diff.diff()
     if csv_diff.getNumErrors() > 0:
       return (message,output)
