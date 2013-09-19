@@ -463,6 +463,7 @@ class DynamicEventTree(Sampler):
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
     # If no branch info, this history is concluded => return
+    
     if not self.__readBranchInfo(jobObject.output): return
     # Collect the branch info in a multi-level dictionary
     endInfo = {}
@@ -730,7 +731,7 @@ class DynamicEventTree(Sampler):
           values['initiator_distribution'] = []
           values['PbThreshold'           ] = []
         # Add the unbranched thresholds
-        for key in self.distDict.keys():
+        for key in self.branchProbabilities.keys():
           if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])):
             values['initiator_distribution'].append(key.encode())
         for key in self.branchProbabilities.keys():
