@@ -219,17 +219,17 @@ class MooseBasedAppInterface:
     return listDict
 
   def MonteCarloForMooseBasedApp(self,**Kwargs):
-    try: counter = Kwargs['prefix']
-    except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
-    try: init_seed = Kwargs['initial_seed']
-    except: init_seed = 1
-    
     listDict = []
     modifDict = {}
-    modifDict['name'] = ['Distributions']
-    RNG_seed = int(counter) + int(init_seed) - 1
-    modifDict['RNG_seed'] = str(RNG_seed)
-    listDict.append(modifDict)
+    for keys in Kwargs:
+      if 'position' in Kwargs[keys]:
+        modifDict = {}
+        varDeep = keys.split('/')
+        modifDict['name'] = varDeep
+        modifDict['value'] = Kwargs[keys]['value']
+        #modifDict['position'] = Kwargs[keys]['position']
+        listDict.append(modifDict)
+        del modifDict
     return listDict
   
   def DynamicEventTreeForMooseBasedApp(self,**Kwargs):
