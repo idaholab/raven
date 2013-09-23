@@ -550,10 +550,11 @@ class DynamicEventTree(Sampler):
     # changed_cond_pb   = Conditional Probability of the branches in which the event has occurred  
     for key in self.endInfo[index]['branch_changed_params']:
        try:
+         self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'] = []
          testpb = self.endInfo[index]['branch_changed_params'][key]['unchanged_pb']
          self.endInfo[index]['branch_changed_params'][key]['unchanged_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['unchanged_pb'])
          for pb in xrange(len(self.endInfo[index]['branch_changed_params'][key]['associated_pb'])):
-           self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb])
+           self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'].append(parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb]))
        except:
          pass
     return  
@@ -579,14 +580,14 @@ class DynamicEventTree(Sampler):
     if not os.path.isabs(filename):
       filename = os.path.join(self.workingDir,filename)
     if not os.path.exists(filename):
-      print('SAMPLER DET      : branch info file ' + filename +' has not been found. => No Branching.')
+      print('SAMPLER DET   : branch info file ' + filename +' has not been found. => No Branching.')
       branch_present = False
       return branch_present
     
     # Parse the file and create the xml element tree object
     try:
       branch_info_tree = ET.parse(filename)
-      print('SAMPLER DET      : Done parsing '+filename)
+      print('SAMPLER DET   : Done parsing '+filename)
     except:
       #branch_info_tree = ET.parse(filename) #This could cause a second exception
       raise IOError ('not able to parse ' + filename)
@@ -607,13 +608,16 @@ class DynamicEventTree(Sampler):
         for child in node:
           self.actualBranchInfo[dist_name][child.text.strip()] = {}
           self.actualBranchInfo[dist_name][child.text.strip()]['varType'] = child.attrib['type'].strip()
-          self.actualBranchInfo[dist_name][child.text.strip()]['actual_value'] = []
-          self.actualBranchInfo[dist_name][child.text.strip()]['actual_value'].append(child.attrib['actual_value'].strip())
+          #self.actualBranchInfo[dist_name][child.text.strip()]['actual_value'] = []
+          #self.actualBranchInfo[dist_name][child.text.strip()]['actual_value'].append(child.attrib['actual_value'].strip())
+          self.actualBranchInfo[dist_name][child.text.strip()]['actual_value'] = child.attrib['actual_value'].strip().split()
           self.actualBranchInfo[dist_name][child.text.strip()]['old_value'] = child.attrib['old_value'].strip()
           try:
-            as_pb = child.attrib['pb'].strip()
+            as_pb = child.attrib['probability'].strip().split()
             self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'] = []
-            self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb)) 
+            #self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb)) 
+            for index in range(len(as_pb)):
+              self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb[index]))
           except:
             pass
       # we exit the loop here, because only one trigger at the time can be handled  right now 
@@ -646,8 +650,8 @@ class DynamicEventTree(Sampler):
       # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in 
       # which the event did not occur is not going to be tracked
       if branchedLevelG[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
-        print('SAMPLER DET      : Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
-        print('SAMPLER DET      : Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
+        print('SAMPLER DET   : Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
+        print('SAMPLER DET   : Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
         self.branchCountOnLevel = 1
         n_branches = endInfo['n_branches'] - 1
       # Loop over the branches for which the inputs must be created
@@ -674,7 +678,7 @@ class DynamicEventTree(Sampler):
             subGroup.set('branch_changed_param_value',endInfo['branch_changed_params'][key]['actual_value'][self.branchCountOnLevel-2])
             subGroup.set('branch_changed_param_pb',endInfo['branch_changed_params'][key]['associated_pb'][self.branchCountOnLevel-2])
             try:
-              cond_pb_c = cond_pb_c + endInfo['branch_changed_params'][key]['changed_cond_pb'] 
+              cond_pb_c = cond_pb_c + endInfo['branch_changed_params'][key]['changed_cond_pb'][self.branchCountOnLevel-2] 
             except:
               pass
           else:
@@ -833,7 +837,7 @@ class DynamicEventTree(Sampler):
     input = self.__getQueueElement()
     if not input:
       # If no inputs are present in the queue => a branch is finished 
-      print("SAMPLER DET      : A Branch ended!!!!")
+      print("SAMPLER DET   : A Branch ended!!!!")
     return input
 
   def readMoreXML(self,xmlNode):
@@ -875,12 +879,12 @@ class DynamicEventTree(Sampler):
       branchedLevel[child.attrib['distName']]       = 0
       #error check
       if max(bvalues) > 1:
-        print("SAMPLER DET      : ERROR -> One of the Thresholds for distribution " + str(child.attrib['distName']) + " is > 1")
+        print("SAMPLER DET   : ERROR -> One of the Thresholds for distribution " + str(child.attrib['distName']) + " is > 1")
         error_found = True
       templist = sorted(bvalues, key=float)
       for index in range(len(templist)):
         if templist.count(templist[index]) > 1:
-          print("SAMPLER DET      : ERROR -> In distribution " + str(child.attrib['distName']) + " the Threshold " + str(templist[index])+" appears multiple times!!")
+          print("SAMPLER DET   : ERROR -> In distribution " + str(child.attrib['distName']) + " the Threshold " + str(templist[index])+" appears multiple times!!")
           error_found = True
     if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )
 
