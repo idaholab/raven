@@ -6,6 +6,12 @@
   csv = 'revirD_tset/FirstMRun/out~6~TMI_test_PRA_transient_less_w.csv'
  [../]
 
+ [./test_output]
+  type = 'RavenFramework'
+  input = 'test_output.xml'
+  output = 'output_check/pdf_graph_280.pdf'
+ [../]
+
 [./test_branch]
   type = 'RavenFramework'
   input = 'test_branch.xml'

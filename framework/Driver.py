@@ -42,5 +42,5 @@ if __name__ == '__main__':
   # Run the simulation 
   simulation.run()
 
-  plt.show()   #FIXME
+  #plt.show()   #FIXME
 

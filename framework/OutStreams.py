@@ -60,7 +60,8 @@ class OutStream(BaseType):
     try:
       var = xmlNode.find('fileNameRoot').text
       self.fileNameRoot = var.replace(" ","")
-    except:
+    except AttributeError: #No fileNameRoot attribute
+      print("AttributeError",xmlNode,var)
       pass
 
   def addInitParams(self,tempDict):
@@ -218,13 +219,22 @@ class PdfPlot(OutStream):
   '''
   def __init__(self):
     OutStream.__init__(self)
+    self.fileCount = 0
 
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
     '''
-    Function to finalize the PdfPlot. It creates the PDF output
-    @ In, None
+    Function to add a new output source (for example a CSV file or a HDF5 object)
+    @ In, toLoadFrom, source object
     @ Out, None 
     '''
+    # this function adds the file name/names to the
+    # filename list
+                
+           
+    print('FILTER SCREENPLOT: toLoadFrom :')
+    print(toLoadFrom)
+    # Append loading object in the list
+    self.toLoadFromList.append(toLoadFrom)
     # Retrieve histories
     try:
       self.retrieveHistories()
@@ -256,9 +266,20 @@ class PdfPlot(OutStream):
           plt.title('Plot of histories')
           for key in self.histories:
             plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-        fileName = self.fileNameRoot + '.pdf'
-        plt.savefig(fileName, dpi=fig.dpi)
+        self.fileCount += 1
+        fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.pdf'
+        print("PDF graph fileName",fileName)
+        plt.savefig(fileName)
     return
+    
+
+  def finalize(self):
+    '''
+    Function to finalize the PdfPlot. In this case it is not needed
+    @ In, None
+    @ Out, None
+    '''
+    pass
 
 class PngPlot(OutStream):
   '''
