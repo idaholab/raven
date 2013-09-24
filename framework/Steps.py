@@ -260,6 +260,100 @@ class SCRun(Step):
 #    print('HERE',inDictionary.keys())
     #if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
 
+class ExtractFromDataBase(Step):
+  '''
+    This step type is used only to extract information from a DataBase
+    @Input, DataBase (for example, HDF5)
+    @Output,Data(s) (for example, History)
+  '''
+  def __init__(self):
+    Step.__init__(self)
+    
+
+  def addCurrentSetting(self,originalDict):
+    Step.addCurrentSetting(self,originalDict)
+
+  def initializeStep(self,inDictionary):
+    # No Model initialization here... There is no model at all!!!!
+    pass
+
+  def takeAstep(self,inDictionary):
+    '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
+    self.takeAstepIni(inDictionary)
+    self.takeAstepRun(inDictionary)
+
+  def takeAstepIni(self,inDictionary):
+    avail_out = 'TimePoint-TimePointSet-History-Histories'
+    print('STEPS         : beginning of step named: ' + self.name)
+    self.initializeStep(inDictionary)
+    # check if #inputs == #outputs
+    if len(inDictionary['Input']) != len(inDictionary['Output']):
+      raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
+    for i in xrange(len(inDictionary['Input'])):
+      if (inDictionary['Input'][i].type != "HDF5"):
+        raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
+    for i in xrange(len(inDictionary['Output'])):
+      if (not inDictionary['Output'][i].type in avail_out.split('-')):
+        raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts ' + avail_out + ' as Output only. Got ' + inDictionary['Output'][i].type)
+    return    
+    
+  def takeAstepRun(self,inDictionary):
+    for i in xrange(len(inDictionary['Output'])):
+      #link the output to the database and construct the Data(s)
+      inDictionary['Output'][i].addOutput(inDictionary['Input'][i])
+    return
+
+class RomTrainer(Step):
+  '''this class implement one step of the simulation pattern' where several runs are needed'''
+  def __init__(self):
+    Step.__init__(self)
+    
+
+  def addCurrentSetting(self,originalDict):
+    Step.addCurrentSetting()
+
+  def initializeStep(self,inDictionary):
+    pass
+
+  def takeAstep(self,inDictionary):
+    '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
+    self.takeAstepIni(inDictionary)
+    self.takeAstepRun(inDictionary)
+
+  def takeAstepIni(self,inDictionary):
+    '''main driver for a step'''
+    print('STEPS         : beginning of the step: '+self.name)
+    self.initializeStep(inDictionary)
+
+  def takeAstepRun(self,inDictionary):
+    pass
+
+class PlottingStep(Step):
+  '''this class implement one step of the simulation pattern' where several runs are needed'''
+  def __init__(self):
+    Step.__init__(self)
+    
+
+  def addCurrentSetting(self,originalDict):
+    Step.addCurrentSetting()
+
+  def initializeStep(self,inDictionary):
+    pass
+
+  def takeAstep(self,inDictionary):
+    '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
+    self.takeAstepIni(inDictionary)
+    self.takeAstepRun(inDictionary)
+
+  def takeAstepIni(self,inDictionary):
+    '''main driver for a step'''
+    print('STEPS         : beginning of the step: '+self.name)
+    self.initializeStep(inDictionary)
+
+  def takeAstepRun(self,inDictionary):
+    pass
+
+
 def returnInstance(Type):
   base = 'Step'
   InterfaceDict = {}
@@ -267,6 +361,9 @@ def returnInstance(Type):
   InterfaceDict['MultiRun'      ] = MultiRun
   InterfaceDict['PostProcessing'] = PostProcessing
   InterfaceDict['SCRun'         ] = SCRun
+  InterfaceDict['Extract'       ] = ExtractFromDataBase 
+  InterfaceDict['RomTrainer'    ] = RomTrainer
+  InterfaceDict['Plotting'      ] = PlottingStep
   try:
     if Type in InterfaceDict.keys():
       return InterfaceDict[Type]()

@@ -388,25 +388,25 @@ class hdf5Database:
         # Create the "self.allGroupPaths" list from the existing database
         self.__createObjFromFile()
       # Check database type
-      if self.type == 'MC':
+      #if self.type == 'MC':
         # Parallel structure => "self.allGroupPaths" already contains the histories' paths
         # No need to check the end group boolean flag
-        workingList = []
-        for index in xrange(len(self.allGroupPaths)):
+      #  workingList = []
+      #  for index in xrange(len(self.allGroupPaths)):
+      #    test_list = self.allGroupPaths[index].split('/')
+      #    workingList.append(test_list[len(test_list)-1])
+      #    del test_list
+      #  return workingList
+      #else:
+        # Tree structure => construct the histories' names 
+        # Check the end group boolean flag before storing the groups' names
+      workingList = []
+      for index in xrange(len(self.allGroupPaths)):
+        if self.allGroupEnds[self.allGroupPaths[index]]:
           test_list = self.allGroupPaths[index].split('/')
           workingList.append(test_list[len(test_list)-1])
           del test_list
-        return workingList
-      else:
-        # Tree structure => construct the histories' names 
-        # Check the end group boolean flag before storing the groups' names
-        workingList = []
-        for index in xrange(len(self.allGroupPaths)):
-         if self.allGroupEnds[self.allGroupPaths[index]]:
-           test_list = self.allGroupPaths[index].split('/')
-           workingList.append(test_list[len(test_list)-1])
-           del test_list
-        return workingList
+      return workingList
 
     def retrieveHistory(self,name,filter=None):
       '''

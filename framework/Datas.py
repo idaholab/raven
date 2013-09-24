@@ -27,8 +27,10 @@ class Data(BaseType):
     self.toLoadFromList = []
   
   def readMoreXML(self,xmlNode):
-    self.inputs  = xmlNode.find('Input' ).text.split(',')
-    self.outputs = xmlNode.find('Output').text.split(',')
+    self.inputs  = xmlNode.find('Input' ).text.strip().split(',')
+    self.outputs = xmlNode.find('Output').text.strip().split(',')
+    try:self.hist_name = xmlNode.find('Input' ).attrib['name']
+    except:self.hist_name = None
     try:
       time = xmlNode.attrib['time']
       if time == 'end' or time == 'all':
@@ -85,7 +87,19 @@ class TimePoint(Data):
     Data.addOutput(self, toLoadFrom)
     try:
       typeVar = self.toLoadFromList[0].type
-      #add here the specialization for loading from other source
+      if typeVar == "HDF5":
+        attributes = {}
+        attributes['type']     = "TimePoint"
+        attributes['outParam'] = self.outputs
+        attributes['inParam' ] = self.inputs
+        attributes['filter'  ] = "whole"
+        if(not self.hist_name): raise IOError('DATAS     : ERROR: In order to create an history data, a history name must be provided')
+        attributes['history'] = self.hist_name
+        if self.time: attributes['time']  = self.time
+        else:attributes['time']='end'
+        tupleVar = self.toLoadFromList[0].retrieveData(attributes)
+        self.inpParametersValues = tupleVar[0]
+        self.inpParametersValues = tupleVar[1]
     except:
       tupleVar = ld().csvLoaderForTimePoint(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
       self.inpParametersValues = tupleVar[0]
@@ -95,8 +109,20 @@ class TimePointSet(Data):
   def addOutput(self,toLoadFrom):
     Data.addOutput(self, toLoadFrom)
     try:
-      types = []
-      types = self.toLoadFromList[:].type
+      typeVar = self.toLoadFromList[0].type
+      if typeVar == "HDF5":
+        attributes = {}
+        attributes['type']     = "TimePointSet"
+        attributes['outParam'] = self.outputs
+        attributes['inParam' ] = self.inputs
+        attributes['filter'  ] = "whole"
+        if self.time: attributes['time']  = self.time
+        else:attributes['time']='end'
+        #  Retrieve the ending groups' names
+        attributes['histories'] = self.toLoadFromList[0].getEndingGroupNames()
+        tupleVar = self.toLoadFromList[0].retrieveData(attributes)
+        self.inpParametersValues = tupleVar[0]
+        self.outParametersValues = tupleVar[1]
       #add here the specialization for loading from other source
     except:      
       tupleVar = ld().csvLoaderForTimePointSet(self.toLoadFromList,self.time,self.inputs,self.outputs)
@@ -107,20 +133,18 @@ class History(Data):
   def addOutput(self,toLoadFrom):
     Data.addOutput(self, toLoadFrom)
     try:
-      typeVar = self.toLoadFromList[0][0].type
+      typeVar = self.toLoadFromList[0].type
       if typeVar == "HDF5":
-        if self.toLoadFromList[0][0].subtype == "MC":
-          attributes = {}
-          attributes['type']     = "History"
-          attributes['outParam'] = self.outputs
-          attributes['inParam' ] = self.inputs
-          attributes['filter'  ] = "whole"
-          if self.time: attributes['time']  = self.time
-          stringSplit = self.toLoadFromList[index][1].split("/")
-          attributes['history'] = stringSplit[len(stringSplit)-1]
-          self.inpParametersValues[index] = self.toLoadFromList[0][0].retrieveData(attributes)[0]
-          self.outParametersValues[index] = self.toLoadFromList[0][0].retrieveData(attributes)[1]
-          
+        attributes = {}
+        attributes['type']     = "History"
+        attributes['outParam'] = self.outputs
+        attributes['inParam' ] = self.inputs
+        attributes['filter'  ] = "whole"
+        if(not self.hist_name): raise IOError('DATAS     : ERROR: In order to create an history data, a history name must be provided')
+        attributes['history'] = self.hist_name
+        tupleVar = self.toLoadFromList[0].retrieveData(attributes)
+        self.inpParametersValues = tupleVar[0]
+        self.inpParametersValues = tupleVar[1]
     except:      
       tupleVar = ld().loader.csvLoaderForHistory(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
       self.inpParametersValues = tupleVar[0]
@@ -133,24 +157,22 @@ class Histories(Data):
   def addOutput(self,toLoadFrom):
     Data.addOutput(self, toLoadFrom)
     try:
-      typeVar = self.toLoadFromList[0][0].type
+      typeVar = self.toLoadFromList[0].type
       if typeVar == "HDF5":
-        if self.toLoadFromList[0][0].subtype == "MC":
-          attributes = {}
-          attributes['type']     = "History"
-          attributes['outParam'] = self.outputs
-          attributes['inParam' ] = self.inputs
-          attributes['filter'  ] = "whole"
-          if self.time: attributes['time']  = self.time
-            
-          for index in xrange(len(self.toLoadFromList)):
-            stringSplit = self.toLoadFromList[index][1].split("/")
-            attributes['history'] = stringSplit[len(stringSplit)-1]
-            #obj = self.toLoadFromList[index][0]
-            tupleVar = self.toLoadFromList[0][0].retrieveData(attributes)
-            self.inpParametersValues[index] = tupleVar[0]
-            self.inpParametersValues[index] = tupleVar[1]
-            del stringSplit
+        attributes = {}
+        attributes['type']     = "History"
+        attributes['outParam'] = self.outputs
+        attributes['inParam' ] = self.inputs
+        attributes['filter'  ] = "whole"
+        #if self.time: attributes['time']  = self.time
+        #  Retrieve the ending groups' names
+        endGroupNames = self.toLoadFromList[0].getEndingGroupNames()
+        #  Construct a dictionary of all the histories
+        for index in range(len(endGroupNames)):
+          attributes['history'] = endGroupNames[index]
+          tupleVar = self.toLoadFromList[0].retrieveData(attributes)
+          self.inpParametersValues[index] = tupleVar[0]
+          self.outParametersValues[index] = tupleVar[1]
     except:  
       loader = ld()
       print(xrange(len(self.toLoadFromList)))
