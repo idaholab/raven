@@ -339,7 +339,9 @@ class Simulation:
       if 'Sampler' in inputDict.keys():
         inputDict['Sampler'].fillDistribution(self.DistributionsDict)
       stepInstance.takeAstep(inputDict)
-      
+      for output in inputDict['Output']:
+        if "finalize" in dir(output):
+          output.finalize()
       
       
       

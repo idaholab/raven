@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 import os
 from Simulation import Simulation
 import sys
-import matplotlib.pyplot as plt #FIXME
+#import matplotlib.pyplot as plt #FIXME
 
 debug = True
 

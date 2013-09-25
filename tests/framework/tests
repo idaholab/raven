@@ -9,8 +9,8 @@
  [./test_output]
   type = 'RavenFramework'
   input = 'test_output.xml'
-  output = 'output_check/pdf_graph_280.pdf'
-  skip = 'Cannot run headless'
+  output = 'output_check/pdf_graph.pdf'
+#  skip = 'Cannot run headless'
  [../]
 
 [./test_branch]

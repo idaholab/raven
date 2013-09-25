@@ -110,6 +110,7 @@
         <Output  type='DataBases' subtype='HDF5' >testOutputDataBase</Output>
         <Output  type='Datas'    subtype='Histories' >stories</Output>
         <Output  type='OutStreams' subtype='NotUsed' >testPdf</Output>
+        <!-- <Output  type='OutStreams' subtype='NotUsed' >testScreen</Output> -->
     </MultiRun >
 </Steps>
 <DataBases>

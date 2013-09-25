@@ -12,7 +12,7 @@ import numpy as np
 from BaseType import BaseType
 from Csv_loader import CsvLoader as ld
 import DataBases
-import matplotlib.pyplot as plt
+
 #from hdf5_manager import hdf5Manager as AAFManager
 #import h5py as h5
 
@@ -152,8 +152,14 @@ class ScreenPlot(OutStream):
   '''
   Specialized OutStream class ScreenPlot: Show data on the screan
   '''
+
   def __init__(self):
     OutStream.__init__(self)
+    #import matplotlib
+    #matplotlib.use('PDF')
+    import matplotlib.pyplot as plt
+    self.plt = plt
+
 
   def addOutput(self,toLoadFrom):
     '''
@@ -196,14 +202,13 @@ class ScreenPlot(OutStream):
         else:    
           plot_it = True
         if plot_it:
-          plt.figure(index)
-          plt.xlabel(headers[timeLoc])
-          plt.ylabel(headers[index])
-          plt.title('Plot of histories')
+          self.plt.figure(index)
+          self.plt.xlabel(headers[timeLoc])
+          self.plt.ylabel(headers[index])
+          self.plt.title('Plot of histories')
           for key in self.histories:
-            plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-    plt.draw()
-    #plt.show()
+            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
+    self.plt.draw()
 
   def finalize(self):
     '''
@@ -211,15 +216,22 @@ class ScreenPlot(OutStream):
     @ In, None
     @ Out, None 
     '''
-    pass
+    self.plt.show()
 
 class PdfPlot(OutStream):
   '''
   Specialized OutStream class PdfPlot: Create of PDF of data
   '''
+
   def __init__(self):
     OutStream.__init__(self)
     self.fileCount = 0
+    self.pp = False
+    import matplotlib
+    matplotlib.use('PDF')
+    import matplotlib.pyplot as plt
+    self.plt = plt
+
 
   def addOutput(self,toLoadFrom):
     '''
@@ -229,6 +241,10 @@ class PdfPlot(OutStream):
     '''
     # this function adds the file name/names to the
     # filename list
+    if not self.pp:
+      from matplotlib.backends.backend_pdf import PdfPages
+      fileName = self.fileNameRoot + '.pdf'
+      self.pp = PdfPages(fileName)
                 
            
     print('FILTER SCREENPLOT: toLoadFrom :')
@@ -260,16 +276,14 @@ class PdfPlot(OutStream):
         else:    
           plot_it = True
         if plot_it:
-          plt.figure()
-          plt.xlabel(headers[timeLoc])
-          plt.ylabel(headers[index])
-          plt.title('Plot of histories')
+          self.plt.figure()
+          self.plt.xlabel(headers[timeLoc])
+          self.plt.ylabel(headers[index])
+          self.plt.title('Plot of histories')
           for key in self.histories:
-            plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-        self.fileCount += 1
-        fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.pdf'
-        print("PDF graph fileName",fileName)
-        plt.savefig(fileName)
+            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
+          self.fileCount += 1
+          self.pp.savefig()
     return
     
 
@@ -279,7 +293,7 @@ class PdfPlot(OutStream):
     @ In, None
     @ Out, None
     '''
-    pass
+    self.pp.close()
 
 class PngPlot(OutStream):
   '''
@@ -287,6 +301,8 @@ class PngPlot(OutStream):
   '''
   def __init__(self):
     OutStream.__init__(self)
+    import matplotlib.pyplot as plt
+    self.plt = plt
 
   def finalize(self):
     '''
@@ -319,12 +335,12 @@ class PngPlot(OutStream):
         else:    
           plot_it = True
         if plot_it:
-          plt.figure()
-          plt.xlabel(headers[timeLoc])
-          plt.ylabel(headers[index])
-          plt.title('Plot of histories')
+          self.plt.figure()
+          self.plt.xlabel(headers[timeLoc])
+          self.plt.ylabel(headers[index])
+          self.plt.title('Plot of histories')
           for key in self.histories:
-            plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
+            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
         fileName = self.fileNameRoot + '.png'
         fig.savefig(fileName, dpi=fig.dpi)
     return
@@ -335,6 +351,8 @@ class JpegPlot(OutStream):
   '''
   def __init__(self):
     OutStream.__init__(self)  
+    import matplotlib.pyplot as plt
+    self.plt = plt
 
   def finalize(self):
     '''
@@ -368,12 +386,12 @@ class JpegPlot(OutStream):
         else:    
           plot_it = True
         if plot_it:
-          plt.figure()
-          plt.xlabel(headers[timeLoc])
-          plt.ylabel(headers[index])
-          plt.title('Plot of histories')
+          self.plt.figure()
+          self.plt.xlabel(headers[timeLoc])
+          self.plt.ylabel(headers[index])
+          self.plt.title('Plot of histories')
           for key in self.histories:
-            plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
+            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
         fileName = self.fileNameRoot + '.jpeg'
         fig.savefig(fileName, dpi=fig.dpi)
     return
@@ -384,6 +402,8 @@ class EpsPlot(OutStream):
   '''
   def __init__(self):
     OutStream.__init__(self)  
+    import matplotlib.pyplot as plt
+    self.plt = plt
 
   def finalize(self):
     '''
@@ -412,16 +432,16 @@ class EpsPlot(OutStream):
           if headers[index] in self.variables:
             plot_it = True
           else:
-            plot_it = False  
+            plot_it = False
         else:    
           plot_it = True
         if plot_it:
-          plt.figure()
-          plt.xlabel(headers[timeLoc])
-          plt.ylabel(headers[index])
-          plt.title('Plot of histories')
+          self.plt.figure()
+          self.plt.xlabel(headers[timeLoc])
+          self.plt.ylabel(headers[index])
+          self.plt.title('Plot of histories')
           for key in self.histories:
-            plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
+            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
         fileName = self.fileNameRoot + '.eps'
         fig.savefig(fileName, dpi=fig.dpi)
     return
@@ -442,5 +462,5 @@ def returnInstance(Type):
   try:
     if Type in InterfaceDict.keys():
       return InterfaceDict[Type]()
-  except:
+  except KeyError:
     raise NameError('not known '+base+' type'+Type)
