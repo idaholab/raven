@@ -10,6 +10,7 @@
   type = 'RavenFramework'
   input = 'test_output.xml'
   output = 'output_check/pdf_graph_280.pdf'
+  skip = 'Cannot run headless'
  [../]
 
 [./test_branch]
