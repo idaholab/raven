@@ -97,6 +97,18 @@
     <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
     <fileNameRoot>pdf_graph</fileNameRoot>
   </Pdf>
+  <Png name="testPng">
+    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+    <fileNameRoot>png_graph</fileNameRoot>
+  </Png>
+  <Jpeg name="testJpeg">
+    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+    <fileNameRoot>jpeg_graph</fileNameRoot>
+  </Jpeg>
+  <Eps name="testEps">
+    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+    <fileNameRoot>eps_graph</fileNameRoot>
+  </Eps>
 </OutStreams>
 
 <Steps>
@@ -111,6 +123,9 @@
         <Output  type='Datas'    subtype='Histories' >stories</Output>
         <Output  type='OutStreams' subtype='NotUsed' >testPdf</Output>
         <!-- <Output  type='OutStreams' subtype='NotUsed' >testScreen</Output> -->
+        <Output  type='OutStreams' subtype='NotUsed' >testPng</Output>
+        <Output  type='OutStreams' subtype='NotUsed' >testJpeg</Output>
+        <Output  type='OutStreams' subtype='NotUsed' >testEps</Output>
     </MultiRun >
 </Steps>
 <DataBases>

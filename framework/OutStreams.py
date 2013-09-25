@@ -231,6 +231,7 @@ class PdfPlot(OutStream):
     matplotlib.use('PDF')
     import matplotlib.pyplot as plt
     self.plt = plt
+    self.matplotlib = matplotlib
 
 
   def addOutput(self,toLoadFrom):
@@ -276,6 +277,8 @@ class PdfPlot(OutStream):
         else:    
           plot_it = True
         if plot_it:
+          if self.matplotlib.get_backend().lower() != "pdf":
+            self.plt.switch_backend("pdf")
           self.plt.figure()
           self.plt.xlabel(headers[timeLoc])
           self.plt.ylabel(headers[index])
@@ -301,15 +304,24 @@ class PngPlot(OutStream):
   '''
   def __init__(self):
     OutStream.__init__(self)
+    self.fileCount = 0
+    import matplotlib
+    matplotlib.use("agg")
     import matplotlib.pyplot as plt
     self.plt = plt
+    self.matplotlib = matplotlib
 
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
     '''
-    Function to finalize the PngPlot. It creates the PNG output
-    @ In, None
+    Function to add a new output source (for example a CSV file or a HDF5 object)
+    @ In, toLoadFrom, source object
     @ Out, None 
-    '''
+    '''                
+           
+    print('FILTER SCREENPLOT: toLoadFrom :')
+    print(toLoadFrom)
+    # Append loading object in the list
+    self.toLoadFromList.append(toLoadFrom)
     # Retrieve Histories
     try:
       self.retrieveHistories()
@@ -331,7 +343,7 @@ class PngPlot(OutStream):
           if headers[index] in self.variables:
             plot_it = True
           else:
-            plot_it = False  
+            plot_it = False
         else:    
           plot_it = True
         if plot_it:
@@ -341,8 +353,21 @@ class PngPlot(OutStream):
           self.plt.title('Plot of histories')
           for key in self.histories:
             self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-        fileName = self.fileNameRoot + '.png'
-        fig.savefig(fileName, dpi=fig.dpi)
+          self.fileCount += 1
+          fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.png'
+          #print("filename",fileName,"backend",self.matplotlib.get_backend())
+          if self.matplotlib.get_backend().lower() != "agg":
+            self.plt.switch_backend("agg")
+          self.plt.savefig(fileName, format="png")
+    return
+
+
+  def finalize(self):
+    '''
+    Function to finalize the PngPlot. It does nothing now
+    @ In, None
+    @ Out, None 
+    '''
     return
 
 class JpegPlot(OutStream):
@@ -350,16 +375,25 @@ class JpegPlot(OutStream):
   Specialized OutStream class JpegPlot: Create of JPEG picture of data
   '''
   def __init__(self):
-    OutStream.__init__(self)  
+    OutStream.__init__(self)
+    self.fileCount = 0
+    import matplotlib
+    matplotlib.use("agg")
     import matplotlib.pyplot as plt
     self.plt = plt
+    self.matplotlib = matplotlib
 
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
     '''
-    Function to finalize the JpegPlot. It creates the PNG output
-    @ In, None
+    Function to add a new output source (for example a CSV file or a HDF5 object)
+    @ In, toLoadFrom, source object
     @ Out, None 
-    '''
+    '''                
+           
+    print('FILTER SCREENPLOT: toLoadFrom :')
+    print(toLoadFrom)
+    # Append loading object in the list
+    self.toLoadFromList.append(toLoadFrom)
     # Retrieve Histories
     try:
       self.retrieveHistories()
@@ -382,7 +416,7 @@ class JpegPlot(OutStream):
           if headers[index] in self.variables:
             plot_it = True
           else:
-            plot_it = False  
+            plot_it = False
         else:    
           plot_it = True
         if plot_it:
@@ -392,25 +426,48 @@ class JpegPlot(OutStream):
           self.plt.title('Plot of histories')
           for key in self.histories:
             self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-        fileName = self.fileNameRoot + '.jpeg'
-        fig.savefig(fileName, dpi=fig.dpi)
+          self.fileCount += 1
+          fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.jpeg'
+          #print("filename",fileName,"backend",self.matplotlib.get_backend())
+          if self.matplotlib.get_backend().lower() != "agg":
+            self.plt.switch_backend("agg")
+          self.plt.savefig(fileName, format="jpeg")
     return
+
+
+  def finalize(self):
+    '''
+    Function to finalize the PngPlot. It does nothing now
+    @ In, None
+    @ Out, None 
+    '''
+    return
+
 
 class EpsPlot(OutStream):
   '''
   Specialized OutStream class EpsPlot: Create of EPS picture of data
   '''
   def __init__(self):
-    OutStream.__init__(self)  
+    OutStream.__init__(self)
+    self.fileCount = 0
+    import matplotlib
+    matplotlib.use("ps")
     import matplotlib.pyplot as plt
     self.plt = plt
+    self.matplotlib = matplotlib
 
-  def finalize(self):
+  def addOutput(self,toLoadFrom):
     '''
-    Function to finalize the EpsPlot. It creates the EPS output
-    @ In, None
+    Function to add a new output source (for example a CSV file or a HDF5 object)
+    @ In, toLoadFrom, source object
     @ Out, None 
-    '''
+    '''                
+           
+    print('FILTER SCREENPLOT: toLoadFrom :')
+    print(toLoadFrom)
+    # Append loading object in the list
+    self.toLoadFromList.append(toLoadFrom)
     # Retrieve Histories
     try:
       self.retrieveHistories()
@@ -442,9 +499,21 @@ class EpsPlot(OutStream):
           self.plt.title('Plot of histories')
           for key in self.histories:
             self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-        fileName = self.fileNameRoot + '.eps'
-        fig.savefig(fileName, dpi=fig.dpi)
+          self.fileCount += 1
+          fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.eps'
+          if self.matplotlib.get_backend().lower() != "ps":
+            self.plt.switch_backend("ps")
+          self.plt.savefig(fileName, format="eps")
     return
+
+  def finalize(self):
+    '''
+    Function to finalize the EpsPlot. It currently does nothing
+    @ In, None
+    @ Out, None 
+    '''
+    return
+
 
 def returnInstance(Type):
   '''

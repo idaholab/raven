@@ -9,7 +9,7 @@
  [./test_output]
   type = 'RavenFramework'
   input = 'test_output.xml'
-  output = 'output_check/pdf_graph.pdf'
+  output = 'output_check/pdf_graph.pdf output_check/eps_graph_18.eps output_check/jpeg_graph_18.jpeg output_check/png_graph_18.png'
 #  skip = 'Cannot run headless'
  [../]
 
