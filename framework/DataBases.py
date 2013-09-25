@@ -342,7 +342,7 @@ class HDF5(DateBase):
             raise Exception("ERROR: the parameter " + str(key) + " has not been found")
         # time end case => TimePointSet is at the final status 
         if time_end:
-          last_row = histVar[1][:,0].size - 1
+          last_row = histVar[0][:,0].size - 1
           if all_out_param:
             # Retrieve all the parameters 
             for key in histVar[1]["headers"]:

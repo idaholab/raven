@@ -37,4 +37,14 @@
   output = 'mpi_driver_test/FirstMRun/out~1~simple_flow_3eqn_displaced.e'
   csv = 'mpi_driver_test/FirstMRun/out~6~simple_flow_3eqn.csv'
  [../]  
+
+ [./test_extract_data_s_from_hdf5]
+  type = 'RavenFramework'
+  input = 'test_extract_data_s_from_hdf5.xml'
+  output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
+  csv = 'test_extract_data_s_from_hdf5/MonteCarlo/out~2~TMI.csv'
+  max_time = 50
+  rel_err = 0.001
+ [../]
+
 []

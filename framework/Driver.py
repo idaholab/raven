@@ -31,8 +31,10 @@ if __name__ == '__main__':
 
   
   #Parse the input
-  try: tree = ET.parse(inputFile)
-  except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
+  #try:
+  #Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
+  tree = ET.parse(inputFile)
+  #except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
   if debug: print('opened file '+inputFile)
   root = tree.getroot()
   #generate all the components of the simulation

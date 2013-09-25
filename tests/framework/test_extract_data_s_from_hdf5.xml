@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>test_extract_data_s_from_hdf5</WorkingDir>
+<Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+    <Sequence>MonteCarlo,test_extract</Sequence>
+    <batchSize>3</batchSize>
+</RunInfo>
+<Models>
+    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+</Models>
+<Samplers>
+  <MonteCarlo     name='RAVENmc3'  limit='2'></MonteCarlo>     
+</Samplers>
+<Steps> 
+    <MultiRun name='MonteCarlo'>
+        <Input   type='Files'      subtype=''                >TMI.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers'   subtype='MonteCarlo'>RAVENmc3</Sampler>
+        <Output  type='DataBases' subtype='HDF5'              >MC_TEST_EXTRACT_STEP</Output>
+    </MultiRun>  
+    <Extract name='test_extract'>
+        <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Output  type='Datas'    subtype='Histories'>histories_from_database</Output>
+        <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Output  type='Datas'    subtype='TimePoint'>timepoint_from_database</Output>
+        <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Output  type='Datas'    subtype='History'>history_from_database</Output>
+        <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Output  type='Datas'    subtype='TimePointSet'>timepointset_from_database</Output>
+    </Extract>  
+</Steps>
+<DataBases>
+        <HDF5 name="MC_TEST_EXTRACT_STEP"/> 
+</DataBases>
+<Datas>
+   <Histories name='histories_from_database'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+   <TimePoint name='timepoint_from_database'>
+        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </TimePoint>
+   <History name='history_from_database'>
+        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </History>
+   <TimePointSet name='timepointset_from_database'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </TimePointSet>
+</Datas>
+</Simulatio>
+
+
+
