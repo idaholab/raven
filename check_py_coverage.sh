@@ -50,5 +50,7 @@ coverage erase
 coverage run $EXTRA ../../framework/Driver.py test_simple.xml 
 coverage run $EXTRA ../../framework/Driver.py test_branch.xml 
 coverage run $EXTRA ../../framework/Driver.py test_mpi.xml 
+coverage run $EXTRA ../../framework/Driver.py test_output.xml
+coverage run $EXTRA ../../framework/Driver.py test_extract_data_s_from_hdf5.xml
 coverage html
 
