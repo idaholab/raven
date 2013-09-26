@@ -275,7 +275,7 @@ class ExtractFromDataBase(Step):
 
   def initializeStep(self,inDictionary):
     # No Model initialization here... There is no model at all!!!!
-    pass
+    return
 
   def takeAstep(self,inDictionary):
     '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
@@ -304,16 +304,22 @@ class ExtractFromDataBase(Step):
     return
 
 class RomTrainer(Step):
-  '''this class implement one step of the simulation pattern' where several runs are needed'''
+  '''
+    This step type is used only to train a ROM
+    @Input, DataBase (for example, HDF5)
+    @Output,Data(s) (for example, History)
+  '''
   def __init__(self):
     Step.__init__(self)
-    
 
   def addCurrentSetting(self,originalDict):
-    Step.addCurrentSetting()
+    Step.addCurrentSetting(self,originalDict)
 
   def initializeStep(self,inDictionary):
-    pass
+    # No Model initialization here... There is no model at all!!!!
+    for i in xrange(len(inDictionary['Input'])):
+      inDictionary['Output'][i].addLoadingSource(inDictionary['Input'][i])
+    return
 
   def takeAstep(self,inDictionary):
     '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
@@ -321,12 +327,23 @@ class RomTrainer(Step):
     self.takeAstepRun(inDictionary)
 
   def takeAstepIni(self,inDictionary):
-    '''main driver for a step'''
-    print('STEPS         : beginning of the step: '+self.name)
+    avail_in = 'TimePoint-TimePointSet-History-Histories'
+    print('STEPS         : beginning of step named: ' + self.name)
+    for i in xrange(len(inDictionary['Input'])):
+      if (not inDictionary['Input'][i].type in avail_in.split('-')):
+        raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts '+avail_in+' as Input only. Got ' + inDictionary['Input'][i].type)
+    for i in xrange(len(inDictionary['Output'])):
+      if (inDictionary['Output'][i].type != 'ROM'):
+        raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts a ROM as Output only. Got ' + inDictionary['Output'][i].type)
     self.initializeStep(inDictionary)
-
+    
+    return    
+    
   def takeAstepRun(self,inDictionary):
-    pass
+    #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
+    for i in xrange(len(inDictionary['Output'])):
+      inDictionary['Output'][i].train()
+    return
 
 class PlottingStep(Step):
   '''this class implement one step of the simulation pattern' where several runs are needed'''

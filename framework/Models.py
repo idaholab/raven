@@ -166,7 +166,7 @@ class Code(Model):
     database.addGroup(attributes,attributes)
 
 class ROM(Model):
-  '''ROM stands for Reduced Order Models. All the models here, first learn than predict the outcome'''
+  '''ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome'''
   def __init__(self):
     Model.__init__(self)
     self.initializzationOptionDict = {}
@@ -203,7 +203,6 @@ class ROM(Model):
   def train(self,trainingSet=None):
     '''This needs to be over written if the model requires an initialization'''
     #raise IOError('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
-    print('we are in train ROM')
     #self.test.type
     if trainingSet:
       self.SupervisedEngine.train(trainingSet)

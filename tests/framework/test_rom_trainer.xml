@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>test_rom_trainer</WorkingDir>
+    <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+    <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer</Sequence>
+    <batchSize>3</batchSize>
+</RunInfo>
+<Models>
+    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+    <ROM  name='ROM1' type='SVMscikitLearn'>
+      <SVMtype>LinearSVC</SVMtype>
+      <C>1.0</C>
+      <tol>0.0001</tol>
+    </ROM>
+</Models>
+<Samplers>
+  <MonteCarlo     name='RAVENmc3'  limit='2'></MonteCarlo>     
+</Samplers>
+<Steps> 
+    <MultiRun name='MC_for_rom_trainer'>
+        <Input   type='Files'      subtype=''                >TMI.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers'   subtype='MonteCarlo'>RAVENmc3</Sampler>
+        <Output  type='DataBases' subtype='HDF5'              >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
+    </MultiRun>  
+    <Extract name='test_extract_for_rom_trainer'>
+        <Input   type='DataBases' subtype='HDF5'       >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+        <Output  type='Datas'    subtype='TimePointSet'>timepointset_from_database_for_rom_trainer</Output>
+    </Extract>  
+    <RomTrainer name='test_rom_trainer'>
+        <Input   type='Datas' subtype='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Output  type='Models'    subtype='ROM'     >ROM1</Output>
+    </RomTrainer>  
+</Steps>
+<DataBases>
+        <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
+</DataBases>
+<Datas>
+   <TimePointSet name='timepointset_from_database_for_rom_trainer'>
+        <Input>DeltaTimeScramToAux</Input>
+        <Output>CladTempBranched</Output>
+   </TimePointSet>
+</Datas>
+</Simulatio>
+
+
+

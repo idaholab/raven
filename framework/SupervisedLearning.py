@@ -157,10 +157,15 @@ class SVMsciKitLearn(superVisioned):
     self.availSVM['C-SVC'    ] = svm.SVC
     self.availSVM['NuSVC'    ] = svm.NuSVC
     self.availSVM['epsSVR'   ] = svm.SVR
-    try: self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']](self.initializzationOptionDict)
-    except: raise IOError ('not known support vector machine type')
+    if not self.initializzationOptionDict['SVMtype'] in self.availSVM.keys():
+      raise IOError ('not known support vector machine type ' + self.initializzationOptionDict['SVMtype'])
+    self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
+    kwargs.pop('SVMtype')
+    self.SVM.set_params(**kwargs)
+    return
 
   def train(self,data):
+    ''' The data is always a dictionary'''
     """Fit the model according to the given training data.
         Parameters
         ----------
@@ -177,12 +182,26 @@ class SVMsciKitLearn(superVisioned):
         self : object
             Returns self.
         fit( X, y, sample_weight=None):"""
-    self.SVM.fit()
+    if(data.type != 'TimePointSet'):
+      raise IOError('The SVM type ' + self.initializzationOptionDict['SVMtype'] + 'requires a TimePointSet to be trained')
+    self.trainInputs = data.getInpParametersValues().items()
+    self.trainTarget = data.getOutParametersValues().items()
+    X = np.zeros(shape=(self.trainInputs[0][1].size,len(self.trainInputs)))
+    y = np.zeros(shape=(self.trainTarget[0][1].size))
+    for i in range(len(self.trainInputs)):
+      X[:,i] = self.trainInputs[i][1]
+    y = self.trainTarget[0][1]
+
+    print('SVM           : Training ' + self.initializzationOptionDict['SVMtype'])
+    self.SVM.fit(X,y)
+    print('SVM           : '+ self.initializzationOptionDict['SVMtype'] + ' trained!')
+    
+    return
 
   def returnInitialParamters(self):
-    return self.SVM._get_param_names()
+    return self.SVM.get_params()
 
-  def evaluate(self):
+  def evaluate(self,data):
     """Perform regression on samples in X.
         For an one-class model, +1 or -1 is returned.
         Parameters
@@ -192,7 +211,14 @@ class SVMsciKitLearn(superVisioned):
         -------
         y_pred : array, shape = [n_samples]
         predict(self, X)"""
-    self.SVM.predict()
+    if(data.type != 'TimePointSet'):
+      raise IOError('The SVM type ' + self.initializzationOptionDict['SVMtype'] + 'requires a TimePointSet to be trained')
+    trainInputs = data.getInpParametersValues().items()
+    X = np.zeros(shape=(trainInputs[0][1].size,len(trainInputs)))
+    for i in range(len(trainInputs)):
+      X[:,i] = self.trainInputs[i][1]
+    print('SVM           : Predicting by ' + self.initializzationOptionDict['SVMtype'])
+    return self.SVM.predict(X)
 
   def reset(self):
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']](self.initializzationOptionDict)
