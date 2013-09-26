@@ -9,9 +9,9 @@ In order to show the capabilities introduced with the new DET module, a simplifi
 \end{figure}
 Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the Down-comers, the Lower Plenum, the Reactor Core Model and the Upper Plenum. Core channels (flow channels with heat structure attached to each of them) are used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. 
 %The hot core channel represents the inner hottest zone of the reactor core. The average core channel represents the mid zone of the core and the cold core channel represents the outer zone of the core, respectively. 
-There are two primary loops, i.e., loop A and loop B. Each loop consists of the Hot Leg, a Heat Exchanger and its secondary side pipes, the Cold Leg and a primary Pump. A Pressurizer is attached to the Loop A piping system to control the system pressure. A Time Dependent Volume (pressure boundary conditions) component is used to represent the Pressurizer. Since the RELAP-7 code does not have the two-phase flow capability for all needed components yet, single-phase counter-current heat exchanger models are implemented to mimic the function of steam generators in order to transfer heat from the primary to the secondary.
+There are two primary loops, i.e., loop A and loop B. Each loop consists of the Hot Leg, a Heat Exchanger and its secondary side pipes, the Cold Leg and a primary Pump. A Pressurizer is attached to the Loop A piping system to control the system pressure. A Time Dependent Volume (pressure boundary conditions) component is used to represent the Pressurizer. Since the RELAP-7 code two-phase flow capability has not being used for this test, single-phase counter-current heat exchanger models are implemented to mimic the function of steam generators in order to transfer heat from the primary to the secondary.
 
-In order to perform a DPRA analysis of this simplified model, it has been necessary to control unconventional parameters (i.e. inlet/outlet friction factors), since RELAP-7 still has limitations for the component controllable parameters and models. In the following paragraph, the PRA station black out sequence of events is reported. 
+In order to perform a DPRA analysis of this simplified model, it has been necessary to control unconventional parameters (i.e. inlet/outlet friction factors), since RELAP-7 still has limitations for the component controllable parameters and models. In the following paragraph, the PRA station black out sequence of events is reported.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Station Black Out (SBO) analysis} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -71,7 +71,7 @@ The scenario is the following:
         \caption{AC power recovery paths through: DGs (a), RSST (b) and 138KV line (c). Red lines indicate electrical path to power Auxiliary cooling system}\label{fig:ACPowerRecovery}
 \end{figure}
 
-Given the uncertainties associated to the recovery of both DGs, RSST and 138KV line, it has been modeled these three recovery events as stochastic events with probabilistic distributions associated to them. Given the time scale associated to the dynamics of the RELAP-7 PWR model the distribution were as follows:
+Given the uncertainties associated to the recovery of both DGs, RSST and 138KV line, a stochastic model has been used to represent these events . Given the time scale associated to the dynamics of the RELAP-7 PWR model the corresponding probability distribution functions were as follows:
 \begin{itemize}
 \item DGs: a dead time of 100s is required by Team 1 to gather at the DGs building and DG1 repair time $TDG1$ has a normal distribution having mu = 800 and sigma = 200. This distribution is also truncated such that $0 < TDG1 < 2500$. The recovery time of DG3, TDG3 , is proportional to $TDG1$. Such relation has modeled using a multiplication factor T12, i.e., $TDG3 = TDG1\times T12$. T12 is uniformly distributed between [0.5 1]
 \item RSST: a dead time of 400s is needed to assess the damage at the RSST switch-yard and to plan its recovery. Recovery time for RSST, TRSST , is normally distributed with mu = 1400 and sigma= 400
@@ -147,37 +147,37 @@ The probability threshold values are reported below:
        \item DG1 recovery time distribution (Fig.~\ref{fig:CDFsDGs}~(a) - blue points): 
        \begin{itemize} 
             \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,  0.9
-            \item Variable Values           : 543.69, 631.68, 695.12, 749.33, 800.00, 850.67, 904.88, 968.32, 1056.31
+            \item Variable Values (s)           : 543.69 , 631.68, 695.12, 749.33, 800.00, 850.67, 904.88, 968.32, 1056.31
        \end{itemize}
        \item DG3 recovery factor distribution (Fig.~\ref{fig:CDFsDGs}~(b) - blue points): 
        \begin{itemize} 
             \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,  0.9
-            \item Variable Values           : 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
+            \item Variable Values (-)           : 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
        \end{itemize}
        \item RSST recovery time distribution (Fig.~\ref{fig:CDFsACs}~(a) - blue points): 
        \begin{itemize} 
             \item Probability Thresholds:  0.1, 0.2,  0.3,  0.4, 0.5, 0.6, 0.7,  0.8,  0.9
-            \item Variable Values           :  887.38, 1063.35, 1190.24, 1298.66, 1400.00, 1501.34, 1609.76, 1736.65, 1912.62
+            \item Variable Values (s)           :  887.38, 1063.35, 1190.24, 1298.66, 1400.00, 1501.34, 1609.76, 1736.65, 1912.62
        \end{itemize}
        \item 138 kV line recovery time distribution (Fig.~\ref{fig:CDFsACs}~(b) - blue points): 
        \begin{itemize} 
             \item Probability Thresholds: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9 
-            \item Variable Values           : 1359.22,  1579.19,  1737.80, 1873.33,  2000.00,  2126.67, 2262.20,  2420.81, 2640.78
+            \item Variable Values (s)           : 1359.22,  1579.19,  1737.80, 1873.33,  2000.00,  2126.67, 2262.20,  2420.81, 2640.78
        \end{itemize}
        \item Clad Failure Temperature distribution (Fig.~\ref{fig:CDFCladFailure} - blue points): 
        \begin{itemize} 
             \item Probability Thresholds: 0.005, 0.01, 0.02, 0.03, 0.04, 0.05, 0.10, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
-            \item Variable Values           : 1304.57, 1307.51, 1313.27, 1318.89, 1324.38, 1329.37, 1354.78, 1376.74, 1395.86, 1412.68, 1427.70, 1441.33, 1453.96, 1465.94, 1477.60, 1489.26, 1501.24, 1513.87, 1527.50, 	1542.51, 1559.34, 1578.45, 1600.40, 1625.79
+            \item Variable Values (K)           : 1304.57, 1307.51, 1313.27, 1318.89, 1324.38, 1329.37, 1354.78, 1376.74, 1395.86, 1412.68, 1427.70, 1441.33, 1453.96, 1465.94, 1477.60, 1489.26, 1501.24, 1513.87, 1527.50, 	1542.51, 1559.34, 1578.45, 1600.40, 1625.79
     \end{itemize}
 \end{itemize}
 \vspace{-5mm}
 
-Since the scope of this demo is to show the new capabilities contained in RAVEN, and RELAP-7 is not optimized for long simulation times, the transient has been accelerated in order to simulate a maximum of 2500 seconds. 
-In the following section, the simulations results are shown and discussed.
+Since the scope of this demo is to show the new capabilities contained in RAVEN, and RELAP-
+7 is not optimized for long simulation times, the transient has been accelerated in order to reach a reasonable number of failures at of 2500 seconds.  In the following section, the simulations results are shown and discussed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Results} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-DET analysis have been performed, obtaining a data-set composed by 593 DET branches resulting in 290 complete histories.
+DET analysis has been performed, obtaining a data-set composed by 593 DET branches resulting in 290 complete histories.
 
 \begin{figure}
  \begin{minipage}[b]{8.5cm}
@@ -212,7 +212,7 @@ Note that the back up of the cooling system causes oscillations on the clad temp
 From a safety point of view, the most important information is the frequency of failures in the phase space. This information can be shown plotting the final outcome (green points for system success and red points for system failure) of all the simulations for each data sets in a $2$-dimensional space. Since the DET sampling has been performed on 5 distributions, among which 4 distributions sampled the same parameter $ACS$ (Auxiliary Cooling System) Recovery Time, it is possible to collapse all the outcomes in a 2D space (ACS recovery time vs. clad failure temperature) as shown in Fig.~\ref{fig:LimitSurfaces}~(a).
 The limit surface, i.e. the boundary between system failure and system success regions (black line), is also indicated in Fig.~\ref{fig:DET_LS}. Such boundary was determined using a Support Vector Machine (SVM) based algorithm~\cite{mandelliANS_RISMC}.
 Note that most of the points in this $2$-dimensional space (for both data sets) lie in proximity  of the limit surface while samples generated by a classical Monte-Carlo based algorithm would be evenly distributed (see Fig.~\ref{fig:LimitSurfaces}~(b)). 
-This example shows one of the advantages of DET algorithm in terms of ``choosing'' the best set of candidate samples when performing PRA analyses~\cite{alfonsiPSA}.
+This example shows one of the advantages of DET algorithm in terms of ``choosing" the best set of candidate samples when performing PRA analyses~\cite{alfonsiPSA}.
 
 %%%%%%%%%%%%%%%%%
 \begin{figure}
