@@ -2,7 +2,7 @@
 <Simulatio>
 <RunInfo>
     <WorkingDir>test_extract_data_s_from_hdf5</WorkingDir>
-<Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+<Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd,TMI_PRA_trans_MC_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
     <Sequence>MonteCarlo,test_extract</Sequence>
     <batchSize>3</batchSize>
 </RunInfo>
@@ -18,6 +18,7 @@
         <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_control.py</Input>
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd</Input>        
         <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
         <Sampler type='Samplers'   subtype='MonteCarlo'>RAVENmc3</Sampler>
         <Output  type='DataBases' subtype='HDF5'              >MC_TEST_EXTRACT_STEP</Output>

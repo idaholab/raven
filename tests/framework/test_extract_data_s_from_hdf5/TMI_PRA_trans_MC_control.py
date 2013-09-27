@@ -34,7 +34,7 @@ def control_function(monitored, controlled, auxiliary):
 
         
         random_n_4 = distcont.random()
-        #auxiliary.CladTempTreshold = distcont.randGen('CladFailureDist',random_n_4)
+        auxiliary.CladTempBranched = distcont.randGen('CladFailureDist',random_n_4)
 
         
         random_n_5 = distcont.random() # primary offsite power recovery
@@ -47,7 +47,7 @@ def control_function(monitored, controlled, auxiliary):
     
     if monitored.time>=(auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux) and auxiliary.ScramStatus: 
         auxiliary.AuxSystemUp =  True
-    if (monitored.avg_temp_clad_CH1>auxiliary.CladTempTreshold) or (monitored.avg_temp_clad_CH2>auxiliary.CladTempTreshold) or (monitored.avg_temp_clad_CH3>auxiliary.CladTempTreshold):
+    if (monitored.avg_temp_clad_CH1>auxiliary.CladTempBranched) or (monitored.avg_temp_clad_CH2>auxiliary.CladTempBranched) or (monitored.avg_temp_clad_CH3>auxiliary.CladTempBranched):
         auxiliary.CladDamaged = True
 
 
