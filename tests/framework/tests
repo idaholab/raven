@@ -17,6 +17,7 @@
 [./test_branch]
   type = 'RavenFramework'
   input = 'test_branch.xml'
+  skip = 'waiting for restart new capability'
   output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv' 
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
  [../]
@@ -24,6 +25,7 @@
 [./test_branch_heavy]
   type = 'RavenFramework'
   input = 'test_sbo_heavy_det.xml'
+  skip = 'waiting for restart new capability'
   output = 'SBO_DET/DET/out~DET_1-2-2~TMI.e SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_additional_info_DET_1-2-2.csv' 
   csv = 'SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_DET_1-2-2.csv'
   max_time = 10000
@@ -42,6 +44,7 @@
  [./test_extract_data_s_from_hdf5]
   type = 'RavenFramework'
   input = 'test_extract_data_s_from_hdf5.xml'
+  skip = 'waiting for restart new capability'
   output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
   csv = 'test_extract_data_s_from_hdf5/MonteCarlo/out~2~TMI.csv'
   max_time = 500
@@ -51,6 +54,7 @@
  [./test_rom_trainer]
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'
+  skip = 'waiting for restart new capability'
   output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI.e'
   csv = 'test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
   max_time = 500
