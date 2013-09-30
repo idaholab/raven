@@ -140,21 +140,21 @@ class Simulation:
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
     self.runInfoDict['SimulationFile'    ] = inputfile    #the xml input file
-    self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") #the location of the pbs script interfaves
-    self.runInfoDict['FrameworkDir'      ] = frameworkDir #the directory where the framework is located
-    self.runInfoDict['WorkingDir'        ] = ''           #the directory where the framework should be running
-    self.runInfoDict['TempWorkingDir'    ] = ''           #the temporary directory where a simulation step is run
-    self.runInfoDict['ParallelProcNumb'  ] = 1            #the number of mpi process by run
-    self.runInfoDict['ThreadingProcessor'] = 1            #Number of Threats by run
-    self.runInfoDict['numProcByRun'      ] = 1            #Total number of core used by one run (number of threats by number of mpi)
-    self.runInfoDict['batchSize'         ] = 1            #number of contemporaneous runs
-    self.runInfoDict['ParallelCommand'   ] = ''           #the command that should be used to submit jobs in parallel (mpi)
-    self.runInfoDict['ThreadingCommand'  ] = ''           #the command should be used to submit multi-threaded  
-    self.runInfoDict['numNode'           ] = 1            #number of nodes
-    self.runInfoDict['procByNode'        ] = 1            #number of processors by node
-    self.runInfoDict['totNumbCores'      ] = 1            #total number of cores available
-    self.runInfoDict['quequingSoftware'  ] = ''           #quequing software name 
-    self.runInfoDict['stepName'          ] = ''           #the name of the step currently running
+    self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaves
+    self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
+    self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
+    self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
+    self.runInfoDict['ParallelProcNumb'  ] = 1            # the number of mpi process by run
+    self.runInfoDict['ThreadingProcessor'] = 1            # Number of Threats by run
+    self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threats by number of mpi)
+    self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
+    self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
+    self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded  
+    self.runInfoDict['numNode'           ] = 1            # number of nodes
+    self.runInfoDict['procByNode'        ] = 1            # number of processors by node
+    self.runInfoDict['totNumbCores'      ] = 1            # total number of cores available
+    self.runInfoDict['quequingSoftware'  ] = ''           # quequing software name 
+    self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
     self.runInfoDict['postcommand'       ] = ''           # Added after the command is run.
     self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only mode supported is pbs
@@ -171,7 +171,7 @@ class Simulation:
     self.DistributionsDict = {}
     self.dataBasesDict     = {}
     self.OutStreamsDict    = {}
-    self.filesDict         = {} #this is different, for each file other than an instance it just returns the absolute path of the file
+    self.filesDict         = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
     
     self.stepSequenceList  = [] #the list of step of the simulation
     
@@ -242,10 +242,12 @@ class Simulation:
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
     self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
-    
+    #transform all files in absolute path
     for key in self.filesDict.keys():
       if os.path.split(key)[0] == '': self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
-      elif not os.path.isabs(key):self.filesDict[key] = os.path.abspath(key)
+      elif not os.path.isabs(key)   : self.filesDict[key] = os.path.abspath(key)
+      if not os.path.exists(self.filesDict[key]): raise IOError('The file '+ key +' has not been found')
+    #
     if self.runInfoDict['mode'] == 'pbs':
       self.__modeHandler = PBSSimulationMode(self)
     elif self.runInfoDict['mode'] == 'mpi':
