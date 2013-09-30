@@ -20,18 +20,14 @@ if __name__ == '__main__':
   # Retrieve the framework directory path and working dir
   frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
   workingDir = os.getcwd()
-  # open the XML input 
-  try:
-    if len(sys.argv) == 1:
-      inputFile = 'test.xml'
-    else:
-      inputFile = sys.argv[1]
-  except:
-    raise IOError ('input file not provided')
+  # open the XML input
+  if len(sys.argv) == 1:
+    inputFile = os.path.join(workingDir,'test.xml')
+  else:
+    inputFile = sys.argv[1]
+    if not os.path.isabs(inputFile): inputFile = os.path.join(workingDir,inputFile)
 
-  
   #Parse the input
-  #try:
   #Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
   tree = ET.parse(inputFile)
   #except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
@@ -44,5 +40,4 @@ if __name__ == '__main__':
   # Run the simulation 
   simulation.run()
 
-  #plt.show()   #FIXME
 
