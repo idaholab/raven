@@ -1,0 +1,10 @@
+\label{sec:conclusions}
+The milestone of developing the DET methodology has been fully achieved. The DET module implemented in RAVEN is fully functional and makes RAVEN a state-of-art PRA simulation tool. In addition a framework (part of a larger general framework~\cite{RAVENFY13}) that makes this results replicable and stable has been generated. The framework is capable of deploying the DET and handling the data post processing. Data outputs are currently stored in HDF5 compressed format, which is a general portable format supported in almost all computing architectures~\cite{HDF5}. 
+The DET framework still needs to be integrated within the RAVEN/Peacock GUI, in order to show in real time some important information about the DET calculation (Branches' status, associated conditional probabilities, etc.).
+\\The methodology has shown interesting advantages with respect a standard Monte-Carlo approach:    
+\\ - Strong reduction in computational time while preserving the physical and probabilistic behavior of the plant;
+\\ - As shown in Fig.~\ref{fig:DET_LS}, the methodology is ``failure oriented'', since as soon as the a failure region is met, subsequent samplings are performed in its proximity. 
+\\These and other minor advantages make the DET a promising methodology to perform PRA analysis.
+
+In the near future, an Adaptive Dynamic Event Tree methodology is going to be developed, in order to investigate low probability, high risk zones of the input space.
+  
