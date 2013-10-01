@@ -84,12 +84,8 @@ class MOOSEparser:
         else:
           child = returnElement.find(name[0])
           if len(name)>1:
-            print (name[1])
-            if child.find(name[1])!=None:
-              child.find(name[1]).attrib.update(modiDictionaryList[i])
-            else: 
-              ET.SubElement(child,name[1],modiDictionaryList[i])
-              print(child.find(name[1]))
+            if child.find(name[1])!=None: child.find(name[1]).attrib.update(modiDictionaryList[i])
+            else: ET.SubElement(child,name[1],modiDictionaryList[i])
           else:
             child.attrib.update(modiDictionaryList[i])
       else:
@@ -99,12 +95,4 @@ class MOOSEparser:
             child = returnElement.find(name[0])
             ET.SubElement(child,name[1],modiDictionaryList[i])
     if save: return returnElement
-
-
-
-
-
-
-
-
 

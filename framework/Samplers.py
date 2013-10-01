@@ -280,14 +280,11 @@ class MonteCarlo(Sampler):
     @ Out, myInputs: Original input files
     '''
     self.counter += 1
-    
-    values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
     #evaluate the distributions and fill values{}
-    for key in self.distDict:
-       # modified by nieljw to sample values from distribution and create
-       # list values with position in RELAP5 file to be modified
-       value = self.distDict[key].distribution.rvs()
-       values['svar_' + key]={'value':value}
+    sampledVar = {}
+    for key in self.distDict: sampledVar[key]=self.distDict[key].distribution.rvs()
+    # create values dictionary
+    values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed),'sampledVars':sampledVar}
        #values[key]={'value':value,'position':self.toBeSampled[key][2]}
     return model.createNewInput(myInput,self.type,**values)
 #

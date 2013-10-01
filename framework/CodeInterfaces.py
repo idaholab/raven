@@ -224,18 +224,17 @@ class MooseBasedAppInterface:
     # the position in, eventually, a vector variable is not available yet...
     # the MOOSEparser needs to be modified in order to accept this variable type
     # for now the position (i.e. ':' at the end of a variable name) is discarded
-    for keys in Kwargs:
-      if('svar_' in keys):
-        key = keys.replace('svar_','').split(':')
+    for var in Kwargs['sampledVars']:
+        key = var.split(':')
         modifDict = {}
         modifDict['name'] = []
-        modifDict['name'] = key[0].split('/')[:-1]
-        modifDict[key[0].split('/')[-1]] = Kwargs[keys]['value']
+        modifDict['name'] = key[0].split('[')[:-1]
+        modifDict[key[0].split('[')[-1]] = Kwargs['sampledVars'][var]
         listDict.append(modifDict)
         del modifDict
         listDict.append({'name':['Postprocessors',key[0]],'type':'Reporter'})
-        listDict.append({'name':['Postprocessors',key[0]],'default':Kwargs[keys]['value']})
-        print (listDict)
+        listDict.append({'name':['Postprocessors',key[0]],'default':Kwargs['sampledVars'][var]})
+        #print (listDict)
     return listDict
   
   def DynamicEventTreeForMooseBasedApp(self,**Kwargs):
@@ -297,14 +296,11 @@ class RelapInterface:
     except: raise IOError('a counter is needed for the Monte Carlo sampler for RELAP5')
     listDict = []
     modifDict = {}
-    for keys in Kwargs:
-      if('svar_' in keys):
-        key = keys.replace('svar_','').split(':')
-        try:    Kwargs[keys]['position'] = int(key[1])
-        except: Kwargs[keys]['position'] = 0
-        modifDict[key[0]]=Kwargs[keys]
-      #if 'position' in Kwargs[keys]:
-      #  modifDict[keys]=Kwargs[keys]
+    for keys in Kwargs['sampledVars']:
+      key = keys.split(':')
+      try:    Kwargs['sampledVars'][keys]['position'] = int(key[1])
+      except: Kwargs['sampledVars'][keys]['position'] = 0
+      modifDict[key[0]]=Kwargs['sampledVars'][keys]
     return modifDict
     
   def DynamicEventTreeForRELAP(self,**Kwargs):
