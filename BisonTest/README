@@ -1,0 +1,12 @@
+I run this example problem nightly.  The run takes approximately half
+an hour using 12 cpus.
+
+I would vary:
+Power:                +/- 5%
+Clad Young's modulus: +/- 2%
+Initial grain radius: range 5-10e-6
+
+I can suggest others if needed.
+
+I would monitor the von Mises stress in the cladding.  Choose an
+element somewhere near the mid-height of the fuel stack.

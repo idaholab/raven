@@ -1,0 +1,90 @@
+Framework Information:
+SVN Revision:            21862
+PETSc Version:           3.3.0
+Current Time:            Mon Sep 30 21:10:00 2013
+Executable Timestamp:    Mon Sep 30 12:32:17 2013
+
+
+
+  BBBBBB     IIIIIII    SSSSS     OOOOO    N     N
+  B     B       I      S     S   O     O   NN    N
+  B     B       I      S         O     O   N N   N
+  BBBBBBB       I       SSSSS    O     O   N  N  N
+  B      B      I            S   O     O   N   N N
+  B      B      I      S     S   O     O   N    NN
+  BBBBBBB    IIIIIII    SSSSS     OOOOO    N     N
+
+
+        Nuclear Fuel Performance Analysis Code
+              Idaho National Laboratory
+                  Idaho Falls, Idaho
+
+
+Input file: 4~inputSmeared.i
+SI units:   meter, kilogram, second, kelvin, mole
+
+
+
+*** Warning, This code is deprecated, and likely to be removed in future library versions! ../src/numerics/numeric_vector.C, line 105, compiled Sep 16 2013 at 11:17:53 ***
+Diffusion coefficient option #3 selected for Sifgrs
+Grain boundary sweeping capability in Sifgrs is activated
+
+
+
+*** ERROR: The following parameters were unused in your input file:
+Functions/power_history/value
+Materials/clad_solid_mechanics/value
+Materials/fission_gas_release/value
+*** ERROR
+
+
+Stack frames: 1
+0: 0   libmesh_opt.0.dylib                 0x00000001074a4ba3 libMesh::print_trace(std::ostream&) + 35
+[0] /Users/crisr/projects/trunk/moose/src/parser/Parser.C, line 269, compiled Sep 30 2013 at 12:28:23
+application called MPI_Abort(MPI_COMM_WORLD, 1) - process 0
+
+ -------------------------------------------------------------------------------------------------------------------
+| Time:           Mon Sep 30 21:10:01 2013                                                                          |
+| OS:             Darwin                                                                                            |
+| HostName:       fn-151-186.local                                                                                  |
+| OS Release:     12.4.0                                                                                            |
+| OS Version:     Darwin Kernel Version 12.4.0: Wed May  1 17:57:12 PDT 2013; root:xnu-2050.24.15~1/RELEASE_X86_64  |
+| Machine:        x86_64                                                                                            |
+| Username:       crisr                                                                                             |
+| Configuration:  ../configure  '--with-methods=opt oprof dbg'                                                      |
+|  '--prefix=/Users/crisr/projects/trunk/libmesh/installed'                                                         |
+|  '--enable-silent-rules'                                                                                          |
+|  '--enable-openmp'                                                                                                |
+|  'CXX=mpicxx'                                                                                                     |
+|  'CC=mpicc'                                                                                                       |
+|  'FC=mpif90'                                                                                                      |
+|  'F77=mpif77'                                                                                                     |
+|  'METHODS=opt oprof dbg'                                                                                          |
+|  'PETSC_DIR=/opt/packages/petsc/petsc-3.3-p4/gcc-opt'                                                             |
+ -------------------------------------------------------------------------------------------------------------------
+ ------------------------------------------------------------------------------------------------------------------------
+| Setup Performance: Alive time=0.273873, Active time=0.124852                                                           |
+ ------------------------------------------------------------------------------------------------------------------------
+| Event                                     nCalls     Total Time  Avg Time    Total Time  Avg Time    % of Active Time  |
+|                                                      w/o Sub     w/o Sub     With Sub    With Sub    w/o S    With S   |
+|------------------------------------------------------------------------------------------------------------------------|
+|                                                                                                                        |
+|                                                                                                                        |
+| Setup                                                                                                                  |
+|   Create DisplacedProblem                 1          0.0019      0.001910    0.0019      0.001910    1.53     1.53     |
+|   Create Executioner                      1          0.0003      0.000260    0.0003      0.000260    0.21     0.21     |
+|   DisplacedProblem::init::eq.init()       1          0.0319      0.031950    0.0319      0.031950    25.59    25.59    |
+|   DisplacedProblem::init::meshChanged()   1          0.0036      0.003623    0.0036      0.003623    2.90     2.90     |
+|   FEProblem::init::meshChanged()          1          0.0099      0.009851    0.0099      0.009851    7.89     7.89     |
+|   NonlinearSystem::update()               1          0.0001      0.000073    0.0001      0.000073    0.06     0.06     |
+|   Prepare Mesh                            2          0.0102      0.005124    0.0102      0.005124    8.21     8.21     |
+|   Read Mesh                               2          0.0187      0.009358    0.0187      0.009358    14.99    14.99    |
+|   eq.init()                               1          0.0444      0.044402    0.0444      0.044402    35.56    35.56    |
+|   mesh.buildRefinementAndCoarseningMaps() 1          0.0038      0.003816    0.0038      0.003816    3.06     3.06     |
+|                                                                                                                        |
+| ghostGhostedBoundaries                                                                                                 |
+|   eq.init()                               1          0.0000      0.000003    0.0000      0.000003    0.00     0.00     |
+ ------------------------------------------------------------------------------------------------------------------------
+| Totals:                                   13         0.1249                                          100.00            |
+ ------------------------------------------------------------------------------------------------------------------------
+

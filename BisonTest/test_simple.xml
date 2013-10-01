@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>/Users/crisr/projects/trunk/raven/BisonTest</WorkingDir>
+    <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
+    <Sequence>Run0,printCSV</Sequence>
+    <batchSize>6</batchSize>
+    <!--<ThreadingCommand></ThreadingCommand>
+    <ThreadingProcessor>2</ThreadingProcessor>
+    <ParallelCommand></ParallelCommand>
+    <ParallelProcNumb></ParallelProcNumb>
+    <ThreadingCommand></ThreadingCommand>
+    <ThreadingProcessor></ThreadingProcessor>
+    <numNode></numNode>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+    <Code name='Bison-opt' type='MooseBasedApp'>/Users/crisr/projects/trunk/bison/bison-opt</Code>
+    <Filter name = 'printing' type = 'PrintCSV'>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
+    Materials|fission_gas_release|initial_grain_radius,max_stress</Filter>
+</Models>
+<OutStreams>
+    <Screen name = 'mypics'>
+    <variable>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
+    Materials|fission_gas_release|initial_grain_radius,max_stress</variable>
+    </Screen>
+</OutStreams>
+
+<Distributions>
+    <Uniform name='FlatPowerHistory'>
+        <low>0.95</low>
+        <hi>1.05</hi>
+    </Uniform>
+    <Uniform name='FlatYoung'>
+        <low>12.74e9</low>
+        <hi>13.26e9</hi>
+    </Uniform>
+    <Uniform name='FlatGrainRadius'>
+        <low>5e-6</low>
+        <hi>10e-6</hi>
+    </Uniform>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo name='Bison1' limit='1'>
+        <Variable type ='Uniform'  distName='FlatPowerHistory'>Functions|power_history|scale_factor</Variable>
+        <Variable type ='Uniform'  distName='FlatYoung'       >Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus</Variable> 
+        <Variable type ='Uniform'  distName='FlatGrainRadius' >Materials|fission_gas_release|initial_grain_radius</Variable> 
+    </MonteCarlo>
+</Samplers>
+<Steps>
+    <MultiRun name='Run0'>
+        <Input   type = 'Files'      subtype=''          >inputSmeared.i</Input>
+        <Input   type = 'Files'      subtype=''          >peakingfactors12.csv</Input>
+        <Input   type = 'Files'      subtype=''          >powerhistory.csv</Input>
+        <Input   type = 'Files'      subtype=''          >smeared.e</Input>
+        <Model   type = 'Models'     subtype='Code'      >Bison-opt</Model>
+        <Sampler type = 'Samplers'   subtype='MonteCarlo'>Bison1</Sampler>
+        <Output  type = 'DataBases'  subtype='HDF5'      >MyDatabase</Output>
+        <Output  type = 'OutStreams' subtype='Screen'    >mypics</Output>
+    </MultiRun >
+    <PostProcessing name = 'printCSV'>
+        <Input   type = 'DataBases' subtype='HDF5'   >MyDatabase</Input>
+        <Model   type = 'Models'    subtype='Filters'>printing</Model>
+        <Output  type = 'Files'     subtype=''      >BisonOut.csv</Output>
+    </PostProcessing>>
+</Steps>
+<Datas>
+    <Histories name='stories'>
+        <Input>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,Materials|fission_gas_release|initial_grain_radius</Input>
+        <Output>max_stress</Output>
+   </Histories>
+</Datas>
+<DataBases>
+    <HDF5 name = 'MyDatabase'/>
+</DataBases>
+<!--
+<Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+</Tests>
+-->
+
+</Simulatio>
+
+
+
