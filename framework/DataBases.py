@@ -172,7 +172,18 @@ class HDF5(DateBase):
 
       self.database.addGroup(attributes["group"],attributes,loadFrom)
       self.built = True
-
+    
+    def addGroupInit(self,gname,attributes=None):
+      '''
+      Function to add an initial root group into the data base...
+      This group will not contain a dataset but, eventually, only
+      metadata
+      @ In, gname      : name of the root group
+      @ Out, attributes: metadata muste be appended to the root group
+      '''
+      self.database.addGroupInit(gname,attributes)
+      return
+    
     def returnHistory(self,attributes):
       '''
       Function to retrieve a history from the HDF5 database

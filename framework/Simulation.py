@@ -20,6 +20,8 @@ import OutStreams
 import math
 from JobHandler import JobHandler
 
+
+
 class SimulationMode:
   """SimulationMode allows changes to the how the simulation 
   runs are done.  modifySimulation lets the mode change runInfoDict
@@ -208,6 +210,15 @@ class Simulation:
     self.jobHandler = JobHandler()
     self.__modeHandler = SimulationMode(self)
 
+  def createAbsPath(self,filein):
+    if os.path.split(filein)[0] == '': self.filesDict[filein] = os.path.join(self.runInfoDict['WorkingDir'],filein)
+    elif not os.path.isabs(filein)   : self.filesDict[filein] = os.path.abspath(filein)
+    return
+  
+  def checkExistPath(self,filein):
+    if not os.path.exists(self.filesDict[filein]): raise IOError('The file '+ filein +' has not been found')
+    return
+
   def XMLread(self,xmlNode):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation,
        and call for the initialization of the simulation'''
@@ -244,10 +255,8 @@ class Simulation:
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
     #transform all files in absolute path
     for key in self.filesDict.keys():
-      if os.path.split(key)[0] == '': self.filesDict[key] = os.path.join(self.runInfoDict['WorkingDir'],key)
-      elif not os.path.isabs(key)   : self.filesDict[key] = os.path.abspath(key)
-      if not os.path.exists(self.filesDict[key]): raise IOError('The file '+ key +' has not been found')
-    #
+      self.createAbsPath(key)
+    # 
     if self.runInfoDict['mode'] == 'pbs':
       self.__modeHandler = PBSSimulationMode(self)
     elif self.runInfoDict['mode'] == 'mpi':
@@ -323,13 +332,14 @@ class Simulation:
 #        if self.debug: print(a+' is:')
         #if self.debug:print([key,b,c,d])
         if key == 'Input':
-          #print('this:',b,d)
-          #print(self.whichDict.keys())
-          #if self.debug:print(self.whichDict.keys())
+          #if the input is a file, check if it exists 
+          if b == 'Files':
+            self.checkExistPath(d)
           inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
         elif key == 'Output':
           inputDict[key].append(self.whichDict[b][d])
+          
 #          if self.debug: self.whichDict[b][d].printMe()
         else:
           #Create extra dictionary entry

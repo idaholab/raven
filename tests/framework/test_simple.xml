@@ -2,7 +2,7 @@
 <Simulatio>
 <RunInfo>
     <WorkingDir>./revirD_tset</WorkingDir>
-    <Files>second,TMI_test_PRA_transient_less_w.i,TMI_PRA_trans_MC_control.py,sss.i,TMI_DEMO_PRA_Steady_out_restart_0267.xda</Files>
+    <Files>TMI_test_PRA_transient_less_w.i,TMI_PRA_trans_MC_control.py,TMI_DEMO_PRA_Steady_out_restart_0267.xda</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
     <!--<ParallelCommand></ParallelCommand>
@@ -95,43 +95,18 @@
         <Input   type='Files'    subtype=''       >TMI_DEMO_PRA_Steady_out_restart_0267.xda</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
         <Sampler type = 'Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
-        <DataBases type='DataBases' subtype=''        >testMCDataBase</DataBases>
-        <Output  type='DataBases' subtype='HDF5' >testMCDataBase</Output>
-        <Output  type='Datas'    subtype='Histories' >stories</Output>
+        <Output  type='DataBases'  subtype='HDF5' >testMCDataBase</Output>
+        <Output  type='Datas'      subtype='Histories' >stories</Output>
     </MultiRun >
 </Steps>
 <DataBases>
-    <HDF5 name="testMCDataBase" type="MC"/> 
+    <HDF5 name="testMCDataBase"/> 
 </DataBases>
 <Datas>
     <Histories name='stories'>
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
         <Output>avg_temp_clad_CH2,CladDamaged</Output>
    </Histories>
-    <TimePointSet name='trainer'          time='end'>
-        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>avg_temp_clad_CH2,CladDamaged</Output>
-    </TimePointSet>
-    <TimePoint    name='form3stories'     time='0.001'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePoint>
-    <TimePoint    name='form1story'       time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePoint>
-    <TimePointSet name='finalPbconverged' time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
-    <TimePointSet name='finalLSconverged' time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
-    <TimePointSet name='PbfromROM'        time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
 </Datas>
 </Simulatio>
 

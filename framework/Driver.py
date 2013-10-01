@@ -22,7 +22,8 @@ if __name__ == '__main__':
   workingDir = os.getcwd()
   # open the XML input
   if len(sys.argv) == 1:
-    inputFile = os.path.join(workingDir,'test.xml')
+    inputFile = '/Users/alfoa/projects/trunk/raven/tests/framework/tb.xml'
+    #inputFile = os.path.join(workingDir,'test.xml')
   else:
     inputFile = sys.argv[1]
     if not os.path.isabs(inputFile): inputFile = os.path.join(workingDir,inputFile)

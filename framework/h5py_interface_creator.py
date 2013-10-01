@@ -77,7 +77,9 @@ class hdf5Database:
         self.allGroupEnds["/"] = False
         # The first root group has not been added yet
         self.firstRootGroup = False
-
+        # The root name is / . it can be changed if addGroupInit is called
+        self.parent_group_name = b'/'
+      
     def __createObjFromFile(self):
       '''
       Function to create the list "self.allGroupPaths" and the dictionary "self.allGroupEnds"
@@ -107,7 +109,8 @@ class hdf5Database:
 
           print('DATABASE HDF5 : not found attribute EndGroup in group ' + name + '.Set True.')
           self.allGroupEnds[name]  = True
-
+      return
+     
     def addGroup(self,gname,attributes,source):
       '''
       Function to add a group into the database
@@ -115,8 +118,7 @@ class hdf5Database:
       @ In, attributes : dictionary of attributes that must be added as metadata
       @ In, source     : data source (for example, csv file)
       @ Out, None
-    '''
-    def addGroup(self,gname,attributes,source):
+      '''
       #if self.type == 'DET':
       if 'parent_id' in attributes.keys():
         '''
@@ -134,6 +136,33 @@ class hdf5Database:
         self.__addGroupRootLevel(gname,attributes,source)
         self.firstRootGroup = True
         self.type = 'MC'
+      return
+
+    def addGroupInit(self,gname,attributes=None):
+      '''
+      Function to add an empty group to the database
+      This function is generally used when the user provides a rootname in the input
+      @ In, attributes : dictionary of attributes that must be added as metadata
+      @ In, gname      : group name
+      @ Out, None
+      '''
+      for index in xrange(len(self.allGroupPaths)):
+        comparisonName = self.allGroupPaths[index]
+        if gname in comparisonName:
+          raise IOError("Root Group named " + gname + " already present in database " + self.name)
+      
+      self.parent_group_name = "/" + gname 
+      # Create the group
+      grp = self.h5_file_w.create_group(gname)
+      
+      # Add metadata
+      if attributes:
+        for key in attributes.keys():
+          grp.attrs[key] = attributes[key]
+
+      self.allGroupPaths.append("/" + gname)
+      self.allGroupEnds["/" + gname] = False
+      
       return
 
     def __addGroupRootLevel(self,gname,attributes,source):
@@ -160,11 +189,25 @@ class hdf5Database:
         #print(repr(headers))
         # Load the csv into a numpy array(n time steps, n parameters) 
         data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
-        # First parent group is the root itself
-        parent_group_name = "/"
+        # First parent group is the root name
+        parent_name = self.parent_group_name.replace('/', '')
         # Create the group
-        grp = self.h5_file_w.create_group(gname)
-                
+        if parent_name != '/':
+          parent_group_name = '-$' # control variable
+          for index in xrange(len(self.allGroupPaths)):
+            test_list = self.allGroupPaths[index].split('/')
+            if test_list[len(test_list)-1] == parent_name:
+              parent_group_name = self.allGroupPaths[index]
+              break
+          # Retrieve the parent group from the HDF5 database
+          if parent_group_name in self.h5_file_w:
+            rootgrp = self.h5_file_w.require_group(parent_group_name)
+          else:
+            raise ValueError("NOT FOUND group named " + parent_group_name)
+          grp = rootgrp.create_group(gname)
+        else:
+          grp = self.h5_file_w.create_group(gname)
+
         print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
         # Create dataset in this newly added group
         dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
@@ -455,7 +498,8 @@ class hdf5Database:
           # Start constructing the merged numpy array
           where_list = []
           name_list  = []
-          back = len(list_path)-1
+          if self.parent_group_name != '/': back = len(list_path)-2
+          else: back = len(list_path)-1
           if back <= 0:
             back = 1
             
@@ -591,6 +635,7 @@ class hdf5Database:
             back = int(filter) + 1
             if len(list_path) < back:
               raise Exception("Error. Number of branches back > number of actual branches in dataset for History ending with " + name)
+            if (back == len(list_path)-1) and (self.parent_group_name != '/'): back = back - 1
             # start constructing the merged numpy array
             where_list = []
             name_list  = []

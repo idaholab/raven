@@ -39,6 +39,11 @@ class Step(BaseType):
     #print(inDictionary['Model'])
     inDictionary['Model'].reset(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
     print('STEPS         : the model '+inDictionary['Model'].name+' has been reset')
+    for i in range(len(inDictionary['Output'])):
+      try: 
+        if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
+      except: pass
+    return
 
   def takeAstep(self,inDictionary):
     raise IOError('STEPS         : For this model the takeAstep has not yet being implemented')
@@ -96,6 +101,9 @@ class MultiRun(Step):
     print('STEPS         : limit to the number of simulation is: '+str(self.maxNumberIteration))
     if 'ROM' in inDictionary.keys():
       inDictionary['ROM'].addLoadingSource(inDictionary['Input'])
+
+    #if 'DataBases' in inDictionary.keys():
+    #  addGroupInit()
     #FIXME this reports falsely if sampler.limit is set in sampler.initialize
 
   def takeAstep(self,inDictionary):
