@@ -235,7 +235,6 @@ class Plot:
       @ In, inObj      : Input object (for example HDF5 object)
       @ In, outObj     : Output object (Plot type)
       @ In, workingDir : Working directory (where to store the csvs)
-      @ Out, None      : Print of the CSV file
     '''
 
     #  Check the input type 

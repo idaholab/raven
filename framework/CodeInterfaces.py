@@ -228,8 +228,8 @@ class MooseBasedAppInterface:
         key = var.split(':')
         modifDict = {}
         modifDict['name'] = []
-        modifDict['name'] = key[0].split('[')[:-1]
-        modifDict[key[0].split('[')[-1]] = Kwargs['sampledVars'][var]
+        modifDict['name'] = key[0].split('|')[:-1]
+        modifDict[key[0].split('|')[-1]] = Kwargs['sampledVars'][var]
         listDict.append(modifDict)
         del modifDict
         listDict.append({'name':['Postprocessors',key[0]],'type':'Reporter'})
@@ -292,9 +292,6 @@ class RelapInterface:
     return newInputFiles
     
   def MonteCarloForRELAP(self,**Kwargs):
-    try: counter = Kwargs['prefix']
-    except: raise IOError('a counter is needed for the Monte Carlo sampler for RELAP5')
-    listDict = []
     modifDict = {}
     for keys in Kwargs['sampledVars']:
       key = keys.split(':')
