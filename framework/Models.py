@@ -109,19 +109,8 @@ class Code(Model):
     return #self.oriInputFiles
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
-    ''' This function creates a new input '''
-
-    def printKwargs(Kwargs):
-      print('in Models, createNewInput:')
-      for item in Kwargs.items():
-        if type(item[1])==dict:
-          print('\t',item[0],':')
-          for itm in item[1].items():
-            print('\t\t',itm)
-        else:
-          print('\t',item[0],':',item[1])
-    #printKwargs(Kwargs)
-
+    ''' This function creates a new input
+        It is called from a sampler to get the implementation specific for this model'''
     if currentInput[0].endswith('.i'): index = 0
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]

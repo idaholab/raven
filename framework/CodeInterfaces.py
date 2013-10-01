@@ -229,11 +229,13 @@ class MooseBasedAppInterface:
         key = keys.replace('svar_','').split(':')
         modifDict = {}
         modifDict['name'] = []
-        for i in range(len(key[0].split('/'))-1):
-          modifDict['name'].append(key[0].split('/')[i])
+        modifDict['name'] = key[0].split('/')[:-1]
         modifDict[key[0].split('/')[-1]] = Kwargs[keys]['value']
         listDict.append(modifDict)
         del modifDict
+        listDict.append({'name':['Postprocessors',key[0]],'type':'Reporter'})
+        listDict.append({'name':['Postprocessors',key[0]],'default':Kwargs[keys]['value']})
+        print (listDict)
     return listDict
   
   def DynamicEventTreeForMooseBasedApp(self,**Kwargs):

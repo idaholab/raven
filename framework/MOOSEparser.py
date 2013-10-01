@@ -34,10 +34,13 @@ class MOOSEparser:
         if line =='[]' or line =='[../]':
           current = parents.pop(len(parents)-1)
         else:
-          name = line.strip(b'[').strip(b']').strip(b'../')
+#          name = line.strip(b'[').strip(b']').strip(b'../')
+          name = line[line.index(b'[')+1:line.index(b']')].strip(b'../').strip(b'./')
+          print(name)
           parents.append(current)
-          current = ET.SubElement(current,name)
+          current      = ET.SubElement(current,name)
           current.tail = []
+          if '#' in line[line.index(']'):]: current.tail.append(line[line.index(b']')+1:].strip(b'\n').lstrip())
       elif len(line)!=0:
         if not line.startswith(b'#'):
           listline = line.split(b'=')
@@ -81,8 +84,12 @@ class MOOSEparser:
         else:
           child = returnElement.find(name[0])
           if len(name)>1:
-            if child.find(name[1])!=None: child.find(name[1]).attrib.update(modiDictionaryList[i])
-            else: ET.SubElement(child,name[1],modiDictionaryList[i])
+            print (name[1])
+            if child.find(name[1])!=None:
+              child.find(name[1]).attrib.update(modiDictionaryList[i])
+            else: 
+              ET.SubElement(child,name[1],modiDictionaryList[i])
+              print(child.find(name[1]))
           else:
             child.attrib.update(modiDictionaryList[i])
       else:
