@@ -52,12 +52,13 @@ class Sampler(BaseType):
     '''
     for child in xmlNode:
       sampleVar = str(child.text).split(':')
-      self.toBeSampled[sampleVar[0]] = [child.attrib['type'],child.attrib['distName']]
+      #self.toBeSampled[sampleVar[0]] = [child.attrib['type'],child.attrib['distName']]
+      self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']]
       # we try to append the position =>  if the user wants to add a position 
       #(i.e. word number in a RELAP5 card or array position for RAVEN), the sampledVariable would be 
       # variableName:position (example wolf:6)
-      try: self.toBeSampled[sampleVar[0]].append(sampleVar[1])
-      except: self.toBeSampled[child.text].append(0)   #append a default value of the position
+      #try: self.toBeSampled[sampleVar[0]].append(sampleVar[1])
+      #except: self.toBeSampled[child.text].append(0)   #append a default value of the position
 
   def addInitParams(self,tempDict):
     '''
@@ -286,7 +287,8 @@ class MonteCarlo(Sampler):
        # modified by nieljw to sample values from distribution and create
        # list values with position in RELAP5 file to be modified
        value = self.distDict[key].distribution.rvs()
-       values[key]={'value':value,'position':self.toBeSampled[key][2]}
+       values['svar_' + key]={'value':value}
+       #values[key]={'value':value,'position':self.toBeSampled[key][2]}
     return model.createNewInput(myInput,self.type,**values)
 #
 #

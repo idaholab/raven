@@ -221,13 +221,17 @@ class MooseBasedAppInterface:
   def MonteCarloForMooseBasedApp(self,**Kwargs):
     listDict = []
     modifDict = {}
+    # the position in, eventually, a vector variable is not available yet...
+    # the MOOSEparser needs to be modified in order to accept this variable type
+    # for now the position (i.e. ':' at the end of a variable name) is discarded
     for keys in Kwargs:
-      if 'position' in Kwargs[keys]:
+      if('svar_' in keys):
+        key = keys.replace('svar_','').split(':')
         modifDict = {}
-        varDeep = keys.split('/')
-        modifDict['name'] = varDeep
-        modifDict['value'] = Kwargs[keys]['value']
-        #modifDict['position'] = Kwargs[keys]['position']
+        modifDict['name'] = []
+        for i in range(len(key[0].split('/'))-1):
+          modifDict['name'].append(key[0].split('/')[i])
+        modifDict[key[0].split('/')[-1]] = Kwargs[keys]['value']
         listDict.append(modifDict)
         del modifDict
     return listDict
@@ -292,8 +296,13 @@ class RelapInterface:
     listDict = []
     modifDict = {}
     for keys in Kwargs:
-      if 'position' in Kwargs[keys]:
-        modifDict[keys]=Kwargs[keys]
+      if('svar_' in keys):
+        key = keys.replace('svar_','').split(':')
+        try:    Kwargs[keys]['position'] = int(key[1])
+        except: Kwargs[keys]['position'] = 0
+        modifDict[key[0]]=Kwargs[keys]
+      #if 'position' in Kwargs[keys]:
+      #  modifDict[keys]=Kwargs[keys]
     return modifDict
     
   def DynamicEventTreeForRELAP(self,**Kwargs):
