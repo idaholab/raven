@@ -4,14 +4,13 @@
     <WorkingDir>/Users/crisr/projects/trunk/raven/BisonTest</WorkingDir>
     <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
     <Sequence>Run0,printCSV</Sequence>
-    <batchSize>6</batchSize>
-    <!--<ThreadingCommand></ThreadingCommand>
-    <ThreadingProcessor>2</ThreadingProcessor>
-    <ParallelCommand></ParallelCommand>
-    <ParallelProcNumb></ParallelProcNumb>
+    <batchSize>3</batchSize>
+    <ParallelProcNumb>4</ParallelProcNumb>    
+    <mode>mpi</mode>
+    <numNode>2</numNode>
+    <!--<ParallelCommand></ParallelCommand>
     <ThreadingCommand></ThreadingCommand>
     <ThreadingProcessor></ThreadingProcessor>
-    <numNode></numNode>
     <quequingSoftware></quequingSoftware>
     <procByNode></procByNode>
     <numProcByRun></numProcByRun>
@@ -24,10 +23,11 @@
     Materials|fission_gas_release|initial_grain_radius,max_stress</Filter>
 </Models>
 <OutStreams>
-    <Screen name = 'mypics'>
+    <Png name = 'mypics'>
     <variable>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
     Materials|fission_gas_release|initial_grain_radius,max_stress</variable>
-    </Screen>
+    <fileNameRoot>bison_pics</fileNameRoot>
+    </Png>
 </OutStreams>
 
 <Distributions>
