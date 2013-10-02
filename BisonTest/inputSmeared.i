@@ -570,6 +570,10 @@
 
 [Postprocessors]
   # Define postprocessors (some are required as specified above; others are optional; many others are available)
+  [./maximum_stress_criteria]
+    type = Reporter
+    default = 500000
+  [../]
 
   [./ave_temp_interior]            # average temperature of the cladding interior and all pellet exteriors
      type = SideAverageValue
