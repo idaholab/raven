@@ -10,7 +10,7 @@
     <numNode>10</numNode>
     <!--<ParallelCommand></ParallelCommand>
     <ThreadingCommand></ThreadingCommand>
-    <ThreadingProcessor></ThreadingProcessor>
+    <NumThreads></NumThreads>
     <quequingSoftware></quequingSoftware>
     <procByNode></procByNode>
     <numProcByRun></numProcByRun>

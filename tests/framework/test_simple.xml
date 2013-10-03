@@ -8,7 +8,7 @@
     <!--<ParallelCommand></ParallelCommand>
     <ParallelProcNumb></ParallelProcNumb>
     <ThreadingCommand></ThreadingCommand>
-    <ThreadingProcessor></ThreadingProcessor>
+    <NumThreads></NumThreads>
     <numNode></numNode>
     <quequingSoftware></quequingSoftware>
     <procByNode></procByNode>

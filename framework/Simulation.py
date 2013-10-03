@@ -66,7 +66,7 @@ class PBSSimulationMode(SimulationMode):
     # Check if the simulation has been run in PBS mode and, in case, construct the proper command
     batchSize = self.__simulation.runInfoDict['batchSize']
     frameworkDir = self.__simulation.runInfoDict["FrameworkDir"]
-    ncpus = self.__simulation.runInfoDict['ParallelProcNumb']
+    ncpus = self.__simulation.runInfoDict['NumThreads']
     command = ["qsub","-l",
                "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
                "-l","walltime="+self.__simulation.runInfoDict["expectedTime"],
@@ -90,7 +90,7 @@ class PBSSimulationMode(SimulationMode):
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       print("DRIVER        : Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.__simulation.runInfoDict['precommand']
-      if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
+      if(self.__simulation.runInfoDict['NumThreads'] > 1):
         self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 
 class MPISimulationMode(SimulationMode):
@@ -129,7 +129,7 @@ class MPISimulationMode(SimulationMode):
       nodeCommand = " "
 
     self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numNode)+" "+self.__simulation.runInfoDict['precommand']
-    if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
+    if(self.__simulation.runInfoDict['NumThreads'] > 1):
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
 
@@ -147,7 +147,7 @@ class Simulation:
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
     self.runInfoDict['ParallelProcNumb'  ] = 1            # the number of mpi process by run
-    self.runInfoDict['ThreadingProcessor'] = 1            # Number of Threats by run
+    self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threats by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
@@ -251,7 +251,7 @@ class Simulation:
       os.makedirs(self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
-    self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
+    self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['NumThreads']
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
     #transform all files in absolute path
     for key in self.filesDict.keys():
@@ -278,7 +278,7 @@ class Simulation:
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
-      elif element.tag == 'ThreadingProcessor': self.runInfoDict['ThreadingProcessor'] = int(element.text)
+      elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
       elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
       elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text)
