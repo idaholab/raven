@@ -119,8 +119,8 @@ class JobHandler:
     
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
-    if self.runInfoDict['ParallelProcNumb'] !=1 and len(self.runInfoDict['ParallelCommand']) > 0:
-      self.mpiCommand = self.runInfoDict['ParallelCommand']+' '+str(self.runInfoDict['ParallelProcNumb'])
+    if self.runInfoDict['NumMPI'] !=1 and len(self.runInfoDict['ParallelCommand']) > 0:
+      self.mpiCommand = self.runInfoDict['ParallelCommand']+' '+str(self.runInfoDict['NumMPI'])
     if self.runInfoDict['NumThreads'] !=1 and len(self.runInfoDict['ThreadingCommand']) > 0:
       self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+str(self.runInfoDict['NumThreads'])
     #initialize PBS

@@ -5,9 +5,9 @@
     <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
     <Sequence>Run0,printCSV</Sequence>
     <batchSize>3</batchSize>
-    <ParallelProcNumb>32</ParallelProcNumb>    
+    <NumThreads>32</NumThreads>    
     <mode>mpi</mode>
-    <numNode>10</numNode>
+    <NumMPI>10</NumMPI>
     <!--<ParallelCommand></ParallelCommand>
     <ThreadingCommand></ThreadingCommand>
     <NumThreads></NumThreads>

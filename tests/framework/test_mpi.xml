@@ -7,7 +7,7 @@
     <batchSize>3</batchSize>
     <NumThreads>4</NumThreads>    
     <mode>mpi</mode>
-    <numNode>2</numNode>
+    <NumMPI>2</NumMPI>
     <!--<ParallelCommand></ParallelCommand>
     <ThreadingCommand></ThreadingCommand>
     <quequingSoftware></quequingSoftware>

@@ -6,7 +6,7 @@
     <Sequence>DETrunTest,extract_hist_example</Sequence>
     <batchSize>3</batchSize>
     <!--<ParallelCommand></ParallelCommand>
-    <ParallelProcNumb></ParallelProcNumb>
+    <NumMPI></NumMPI>
     <ThreadingCommand></ThreadingCommand>
     <NumThreads></NumThreads>
     <numNode></numNode>

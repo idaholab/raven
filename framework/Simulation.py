@@ -103,9 +103,9 @@ class MPISimulationMode(SimulationMode):
       #Figure out number of nodes and use for batchsize
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
-      numNode = self.__simulation.runInfoDict['numNode']
+      numMPI = self.__simulation.runInfoDict['NumMPI']
       oldBatchsize = self.__simulation.runInfoDict['batchSize']
-      newBatchsize = max(int(math.floor(len(lines)/numNode)),1)
+      newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
@@ -114,7 +114,7 @@ class MPISimulationMode(SimulationMode):
         workingDir = self.__simulation.runInfoDict['WorkingDir']
         for i in range(newBatchsize):
           node_file = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numNode:(i+1)*numNode]:
+          for line in lines[i*numMPI:(i+1)*numMPI]:
             node_file.write(line)
           node_file.close()
         #then give each index a separate file.
@@ -125,10 +125,10 @@ class MPISimulationMode(SimulationMode):
     else:
       #Not in PBS, so can't look at PBS_NODEFILE
       newBatchsize = self.__simulation.runInfoDict['batchSize']
-      numNode = self.__simulation.runInfoDict['numNode']
+      numMPI = self.__simulation.runInfoDict['NumMPI']
       nodeCommand = " "
 
-    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numNode)+" "+self.__simulation.runInfoDict['precommand']
+    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
     if(self.__simulation.runInfoDict['NumThreads'] > 1):
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
@@ -146,7 +146,7 @@ class Simulation:
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
-    self.runInfoDict['ParallelProcNumb'  ] = 1            # the number of mpi process by run
+    self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
     self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threats by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
@@ -251,7 +251,7 @@ class Simulation:
       os.makedirs(self.runInfoDict['WorkingDir'])
     os.chdir(self.runInfoDict['WorkingDir'])
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
-    self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['NumThreads']
+    self.runInfoDict['numProcByRun'] = self.runInfoDict['NumMPI']*self.runInfoDict['NumThreads']
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
     #transform all files in absolute path
     for key in self.filesDict.keys():
@@ -283,7 +283,7 @@ class Simulation:
       elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
       elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text)
       elif element.tag == 'totNumbCores'      : self.runInfoDict['totNumbCores'      ] = int(element.text)
-      elif element.tag == 'ParallelProcNumb'  : self.runInfoDict['ParallelProcNumb'  ] = int(element.text)
+      elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'  ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
