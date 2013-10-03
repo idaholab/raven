@@ -61,6 +61,10 @@ how many threads an individual command should have.
 
 If the Driver is creating the pbs command, then a command like:
 
+module load python/2.7
+
+export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
+
 python Driver.py ../inputs/test_simple5.xml
 
 will work.  The framework will create and submit an qsub command.
@@ -93,3 +97,24 @@ export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
 #Then the driver can be run
 
 python Driver.py ../inputs/test_simple5.xml
+
+--- Running MPI mode from an interactive node ---
+
+Currently in MPI mode, the framework needs to be run from a node that 
+supports mpiexec.   It uses the variable $PBS_NODEFILE to find a list of nodes
+that it can run on, otherwise it will just run on the local node.  Here is 
+an example qsub command and other things needed to run:
+
+qsub -I -l select=13:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free
+
+cd raven/framework
+
+export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
+
+module load python/2.7 pbs
+
+if [ `echo $MODULEPATH | grep -c '/apps/projects/moose/modulefiles'` -eq 0 ]; then   export MODULEPATH=$MODULEPATH:/apps/projects/moose/modulefiles; fi
+module load moose-dev-gcc python/3.2 
+
+
+python Driver.py ../inputs/mpi_driver_test/test_mpi.xml
