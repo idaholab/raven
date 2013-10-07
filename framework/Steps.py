@@ -94,17 +94,17 @@ class SingleRun(Step):
     else:
       for output in inDictionary['Output']:
         inDictionary['Model'].collectOutput(None,output)
-class MultiRun(SimpleRun):
+class MultiRun(SingleRun):
   '''this class implement one step of the simulation pattern' where several runs are needed without being adaptive'''
   def __init__(self):
-    SimpleRun.__init__(self)
+    SingleRun.__init__(self)
     self.maxNumberIteration = 0
 
   def addCurrentSetting(self,originalDict):
     originalDict['max number of iteration'] = self.maxNumberIteration
 
   def initializeStep(self,inDictionary):
-    SimpleRun.initializeStep(self,inDictionary)
+    SingleRun.initializeStep(self,inDictionary)
     #checks
     try:    inDictionary['Sampler']
     except: raise IOError ('It is not possible a run without a sampler!!!')
