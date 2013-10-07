@@ -169,7 +169,6 @@ class HDF5(DateBase):
      #   
      #   print("DATABASE HDF5:  type " + str(self.subtype) + " not implemented yet")
      #   return
-
       self.database.addGroup(attributes["group"],attributes,loadFrom)
       self.built = True
     

@@ -104,7 +104,8 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = data[0,ix]
+          inDict[key] = np.zeros(1)
+          inDict[key][0] = data[0,ix]
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     
@@ -312,7 +313,8 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = data[0,ix]
+          inDict[key] = np.zeros(1)
+          inDict[key][0] = data[0,ix]
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     
