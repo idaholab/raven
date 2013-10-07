@@ -528,7 +528,7 @@
   #   iteration_window
   #   linear_iteration_ratio
 
-  type = AdaptiveTransient
+  type = Transient
 
 
   #Preconditioned JFNK (default)
@@ -553,15 +553,19 @@
 
   start_time = -200
   n_startup_steps = 1
-  dt = 2.0e2
   end_time = 8.0e7
   num_steps = 5 #5000
 
   dtmax = 2e6
   dtmin = 1
-  optimal_iterations = 6
-  iteration_window = 2
-  linear_iteration_ratio = 100
+
+  [./TimeStepper]
+    type = AdaptiveDT
+    dt = 2.0e2
+    optimal_iterations = 6
+    iteration_window = 2
+    linear_iteration_ratio = 100
+  [../]
 
   [./Quadrature]
     order = THIRD
