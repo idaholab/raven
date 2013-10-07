@@ -44,6 +44,8 @@ class SimulationMode:
   def modifySimulation(self):
     """modifySimulation is called after the runInfoDict has been setup.
     This allows the mode to change any parameters that need changing.
+    This typically modifies the precommand and the postcommand that 
+    are put infront of the command and after the command.
     """
     import multiprocessing
     try:
@@ -55,6 +57,7 @@ class SimulationMode:
 class PBSSimulationMode(SimulationMode):
   def __init__(self,simulation):
     self.__simulation = simulation
+    #Check if in pbs by seeing if environmental variable exists
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     
   def doOverrideRun(self):
@@ -62,11 +65,13 @@ class PBSSimulationMode(SimulationMode):
     return not self.__in_pbs
 
   def runOverride(self):
+    #Check and see if this is being accidently run
     assert self.__simulation.runInfoDict['mode'] == 'pbs' and not self.__in_pbs
     # Check if the simulation has been run in PBS mode and, in case, construct the proper command
     batchSize = self.__simulation.runInfoDict['batchSize']
     frameworkDir = self.__simulation.runInfoDict["FrameworkDir"]
     ncpus = self.__simulation.runInfoDict['NumThreads']
+    #Generate the qsub command needed to run input
     command = ["qsub","-l",
                "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
                "-l","walltime="+self.__simulation.runInfoDict["expectedTime"],
@@ -74,6 +79,7 @@ class PBSSimulationMode(SimulationMode):
                'COMMAND="python Driver.py '+
                self.__simulation.runInfoDict["SimulationFile"]+'"',
                os.path.join(frameworkDir,"raven_qsub_command.sh")]
+    #Change to frameworkDir so we find raven_qsub_command.sh
     os.chdir(frameworkDir)
     print(os.getcwd(),command)
     subprocess.call(command)
@@ -84,18 +90,22 @@ class PBSSimulationMode(SimulationMode):
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
       oldBatchsize =  self.__simulation.runInfoDict['batchSize']
-      newBatchsize = len(lines)
+      newBatchsize = len(lines) #the batchsize is just the number of nodes
+      # of which there are one per line in the nodefile
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       print("DRIVER        : Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
+      #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.__simulation.runInfoDict['precommand']
       if(self.__simulation.runInfoDict['NumThreads'] > 1):
+        #Add the MOOSE --n-threads command afterwards
         self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
     self.__simulation = simulation
+    #Figure out if we are in PBS
     self.__in_pbs = "PBS_NODEFILE" in os.environ
 
   def modifySimulation(self):
@@ -105,12 +115,15 @@ class MPISimulationMode(SimulationMode):
       lines = open(nodefile,"r").readlines()
       numMPI = self.__simulation.runInfoDict['NumMPI']
       oldBatchsize = self.__simulation.runInfoDict['batchSize']
+      #the batchsize is just the number of nodes of which there is one 
+      # per line in the nodefile divided by the numMPI (which is per run)
+      # and the floor and int and max make sure that the numbers are reasonable
       newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       if newBatchsize > 1:
-        #need to split node lines
+        #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
         for i in range(newBatchsize):
           node_file = open(os.path.join(workingDir,"node_"+str(i)),"w")
@@ -126,10 +139,14 @@ class MPISimulationMode(SimulationMode):
       #Not in PBS, so can't look at PBS_NODEFILE
       newBatchsize = self.__simulation.runInfoDict['batchSize']
       numMPI = self.__simulation.runInfoDict['NumMPI']
+      #TODO, we don't have a way to know which machines it can run on
+      # when not in PBS so just distribute it over the local machine:
       nodeCommand = " "
 
+    # Create the mpiexec pre command 
     self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
     if(self.__simulation.runInfoDict['NumThreads'] > 1):
+      #add number of threads to the post command.
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
 
