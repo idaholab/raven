@@ -28,10 +28,10 @@
         <Sampler type='Samplers'   subtype='MonteCarlo'>RAVENmc3</Sampler>
         <Output  type='DataBases' subtype='HDF5'              >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
     </MultiRun>  
-    <Extract name='test_extract_for_rom_trainer'>
+    <InOutFromDataBase name='test_extract_for_rom_trainer'>
         <Input   type='DataBases' subtype='HDF5'       >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
         <Output  type='Datas'    subtype='TimePointSet'>timepointset_from_database_for_rom_trainer</Output>
-    </Extract>  
+    </InOutFromDataBase>  
     <RomTrainer name='test_rom_trainer'>
         <Input   type='Datas' subtype='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
         <Output  type='Models'    subtype='ROM'     >ROM1</Output>

@@ -3,16 +3,23 @@ Created on Feb 20, 2013
 
 @author: crisr
 '''
+#For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
 
+#External Modules
 import xml.etree.ElementTree as ET
 import os
-from Simulation import Simulation
 import sys
-#import matplotlib.pyplot as plt #FIXME
+#External Modules
 
+#Internal Modules
+from Simulation import Simulation
+#Internal Modules
+
+#-------------------------------------------------------------Test Driver
 debug = True
 
 if __name__ == '__main__':
@@ -22,13 +29,14 @@ if __name__ == '__main__':
   workingDir = os.getcwd()
   # open the XML input
   if len(sys.argv) == 1:
-    inputFile = os.path.join(workingDir,'test.xml')
+    inputFile = '/Users/alfoa/projects/trunk/raven/tests/framework/tb.xml'
+    #inputFile = os.path.join(workingDir,'test.xml')
   else:
     inputFile = sys.argv[1]
     if not os.path.isabs(inputFile): inputFile = os.path.join(workingDir,inputFile)
 
   #Parse the input
-  #Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
+  #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
   tree = ET.parse(inputFile)
   #except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
   if debug: print('opened file '+inputFile)
@@ -37,6 +45,8 @@ if __name__ == '__main__':
   simulation = Simulation(inputFile, frameworkDir,debug=debug)
   #Call the function to read and construct each single module of the simulation 
   simulation.XMLread(root)
+  # Initialize the simulation 
+  simulation.initialize()
   # Run the simulation 
   simulation.run()
 

@@ -54,11 +54,11 @@
         <Output  type='DataBases' subtype='HDF5' >testBranchDataBase</Output>
         <Output  type='Datas'    subtype='Histories' >stories</Output>
     </MultiRun >
-    <PostProcessing name='extract_hist_example'>
+    <SingleRun name='extract_hist_example'>
         <Input   type='DataBases' subtype='HDF5'   >testBranchDataBase</Input>
         <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
         <Output  type='Files'    subtype=''       >DET_histories.csv</Output>
-    </PostProcessing>      
+    </SingleRun>      
 </Steps>
 <DataBases>
     <HDF5 name="testBranchDataBase" type="DET"/> 

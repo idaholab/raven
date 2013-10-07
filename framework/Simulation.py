@@ -3,12 +3,19 @@ Created on Feb 19, 2013
 
 @author: crisr
 '''
+#for future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3
 
+#External Modules
 import xml.etree.ElementTree as ET
 import os,subprocess
+import math
+#External Modules
+
+#Internal Modules
 import Steps
 import Datas
 import Samplers
@@ -17,11 +24,10 @@ import Tests
 import Distributions
 import DataBases
 import OutStreams
-import math
 from JobHandler import JobHandler
+#Internal Modules
 
-
-
+#----------------------------------------------------------------------------------------------------------
 class SimulationMode:
   """SimulationMode allows changes to the how the simulation 
   runs are done.  modifySimulation lets the mode change runInfoDict
@@ -44,8 +50,6 @@ class SimulationMode:
   def modifySimulation(self):
     """modifySimulation is called after the runInfoDict has been setup.
     This allows the mode to change any parameters that need changing.
-    This typically modifies the precommand and the postcommand that 
-    are put infront of the command and after the command.
     """
     import multiprocessing
     try:
@@ -55,9 +59,9 @@ class SimulationMode:
       pass
 
 class PBSSimulationMode(SimulationMode):
+  
   def __init__(self,simulation):
     self.__simulation = simulation
-    #Check if in pbs by seeing if environmental variable exists
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     
   def doOverrideRun(self):
@@ -65,13 +69,11 @@ class PBSSimulationMode(SimulationMode):
     return not self.__in_pbs
 
   def runOverride(self):
-    #Check and see if this is being accidently run
     assert self.__simulation.runInfoDict['mode'] == 'pbs' and not self.__in_pbs
     # Check if the simulation has been run in PBS mode and, in case, construct the proper command
     batchSize = self.__simulation.runInfoDict['batchSize']
     frameworkDir = self.__simulation.runInfoDict["FrameworkDir"]
-    ncpus = self.__simulation.runInfoDict['NumThreads']
-    #Generate the qsub command needed to run input
+    ncpus = self.__simulation.runInfoDict['ParallelProcNumb']
     command = ["qsub","-l",
                "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
                "-l","walltime="+self.__simulation.runInfoDict["expectedTime"],
@@ -79,7 +81,6 @@ class PBSSimulationMode(SimulationMode):
                'COMMAND="python Driver.py '+
                self.__simulation.runInfoDict["SimulationFile"]+'"',
                os.path.join(frameworkDir,"raven_qsub_command.sh")]
-    #Change to frameworkDir so we find raven_qsub_command.sh
     os.chdir(frameworkDir)
     print(os.getcwd(),command)
     subprocess.call(command)
@@ -90,22 +91,18 @@ class PBSSimulationMode(SimulationMode):
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
       oldBatchsize =  self.__simulation.runInfoDict['batchSize']
-      newBatchsize = len(lines) #the batchsize is just the number of nodes
-      # of which there are one per line in the nodefile
+      newBatchsize = len(lines)
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       print("DRIVER        : Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
-      #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.__simulation.runInfoDict['precommand']
-      if(self.__simulation.runInfoDict['NumThreads'] > 1):
-        #Add the MOOSE --n-threads command afterwards
+      if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
         self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
     self.__simulation = simulation
-    #Figure out if we are in PBS
     self.__in_pbs = "PBS_NODEFILE" in os.environ
 
   def modifySimulation(self):
@@ -113,21 +110,18 @@ class MPISimulationMode(SimulationMode):
       #Figure out number of nodes and use for batchsize
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
-      numMPI = self.__simulation.runInfoDict['NumMPI']
+      numNode = self.__simulation.runInfoDict['numNode']
       oldBatchsize = self.__simulation.runInfoDict['batchSize']
-      #the batchsize is just the number of nodes of which there is one 
-      # per line in the nodefile divided by the numMPI (which is per run)
-      # and the floor and int and max make sure that the numbers are reasonable
-      newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
+      newBatchsize = max(int(math.floor(len(lines)/numNode)),1)
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       if newBatchsize > 1:
-        #need to split node lines so that numMPI nodes are available per run
+        #need to split node lines
         workingDir = self.__simulation.runInfoDict['WorkingDir']
         for i in range(newBatchsize):
           node_file = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numMPI:(i+1)*numMPI]:
+          for line in lines[i*numNode:(i+1)*numNode]:
             node_file.write(line)
           node_file.close()
         #then give each index a separate file.
@@ -138,21 +132,17 @@ class MPISimulationMode(SimulationMode):
     else:
       #Not in PBS, so can't look at PBS_NODEFILE
       newBatchsize = self.__simulation.runInfoDict['batchSize']
-      numMPI = self.__simulation.runInfoDict['NumMPI']
-      #TODO, we don't have a way to know which machines it can run on
-      # when not in PBS so just distribute it over the local machine:
+      numNode = self.__simulation.runInfoDict['numNode']
       nodeCommand = " "
 
-    # Create the mpiexec pre command 
-    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
-    if(self.__simulation.runInfoDict['NumThreads'] > 1):
-      #add number of threads to the post command.
+    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numNode)+" "+self.__simulation.runInfoDict['precommand']
+    if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
 
     
 
-class Simulation:
+class Simulation(object):
   '''This is a class that contain all the object needed to run the simulation'''
   def __init__(self,inputfile,frameworkDir,debug=False):
     self.debug= debug
@@ -163,8 +153,8 @@ class Simulation:
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
-    self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
-    self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
+    self.runInfoDict['ParallelProcNumb'  ] = 1            # the number of mpi process by run
+    self.runInfoDict['ThreadingProcessor'] = 1            # Number of Threats by run
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threats by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
@@ -227,14 +217,14 @@ class Simulation:
     self.jobHandler = JobHandler()
     self.__modeHandler = SimulationMode(self)
 
-  def createAbsPath(self,filein):
+  def __createAbsPath(self,filein):
+    '''assuming that the file in is already in the self.filesDict it place as the value the absolute path'''
     if os.path.split(filein)[0] == '': self.filesDict[filein] = os.path.join(self.runInfoDict['WorkingDir'],filein)
     elif not os.path.isabs(filein)   : self.filesDict[filein] = os.path.abspath(filein)
-    return
   
-  def checkExistPath(self,filein):
+  def __checkExistPath(self,filein):
+    '''assuming that the file in is already in the self.filesDict it checks the esistence'''
     if not os.path.exists(self.filesDict[filein]): raise IOError('The file '+ filein +' has not been found')
-    return
 
   def XMLread(self,xmlNode):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation,
@@ -250,29 +240,24 @@ class Simulation:
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               self.whichDict[Type][name] = self.addWhatDict[Type](childChild.tag)
               #now we can read the info for this object
-              print(Type,name,(self.whichDict[Type][name]))
               self.whichDict[Type][name].readXML(childChild)
-              if self.debug:
-                self.whichDict[Type][name].printMe()
-              #if self.debug: self.whichDict[Type][name].printMe()
+              if self.debug: self.whichDict[Type][name].printMe()
             else: raise IOError('not found name attribute for one '+Type)
         else: self.readRunInfo(child)
       else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
-    #finalize the initialization
-    self.initialize()
     
   def initialize(self):
     '''gets simulation ready to run'''
-    #check generate the existence of the working directory
-    if not os.path.exists(self.runInfoDict['WorkingDir']):
-      os.makedirs(self.runInfoDict['WorkingDir'])
+    #check/generate the existence of the working directory 
+    if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
+    #move the full simulation environment in the working directory
     os.chdir(self.runInfoDict['WorkingDir'])
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
-    self.runInfoDict['numProcByRun'] = self.runInfoDict['NumMPI']*self.runInfoDict['NumThreads']
+    self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
     #transform all files in absolute path
     for key in self.filesDict.keys():
-      self.createAbsPath(key)
+      self.__createAbsPath(key)
     # 
     if self.runInfoDict['mode'] == 'pbs':
       self.__modeHandler = PBSSimulationMode(self)
@@ -281,38 +266,35 @@ class Simulation:
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)
+    
+    if self.debug: self.printDicts()
 
   def readRunInfo(self,xmlNode):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
-      print(element.tag)
       if   element.tag == 'WorkingDir'        :
         temp_name = element.text
-        if os.path.isabs(temp_name):
-          self.runInfoDict['WorkingDir'        ] = element.text
-        else:
-          self.runInfoDict['WorkingDir'        ] = os.path.abspath(element.text)
+        if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = element.text
+        else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(element.text)
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
-      elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'] = int(element.text)
+      elif element.tag == 'ThreadingProcessor': self.runInfoDict['ThreadingProcessor'] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
       elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
       elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text)
       elif element.tag == 'totNumbCores'      : self.runInfoDict['totNumbCores'      ] = int(element.text)
-      elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'  ] = int(element.text)
+      elif element.tag == 'ParallelProcNumb'  : self.runInfoDict['ParallelProcNumb'  ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
-      elif element.tag == 'postcommand'       : self.runInfoDict['postcommand'        ] = element.text
+      elif element.tag == 'postcommand'       : self.runInfoDict['postcommand'       ] = element.text
       elif element.tag == 'mode'              : self.runInfoDict['mode'              ] = element.text.strip().lower()
       elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
-        for stepName in element.text.split(','):
-          self.stepSequenceList.append(stepName.strip())
+        for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
       elif element.tag == 'Files':
-        for fileName in element.text.split(','):
-          self.filesDict[fileName] = fileName.strip()
+        for fileName in element.text.split(','): self.filesDict[fileName] = fileName.strip()
 
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''
@@ -339,19 +321,19 @@ class Simulation:
       self.__modeHandler.runOverride()
       return
     for stepName in self.stepSequenceList:                #loop over the the steps
-      stepInstance = self.stepsDict[stepName]             #retrieve the instance of the step
-      self.runInfoDict['stepName'] = stepName             #provide the name of the step to runInfoDict
+      stepInstance                 = self.stepsDict[stepName]   #retrieve the instance of the step
+      self.runInfoDict['stepName'] = stepName                   #provide the name of the step to runInfoDict
       if self.debug: print('starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
-      inputDict = {}                    #initialize the input dictionary
-      inputDict['Input' ] = []          #set the Input to an empty list
-      inputDict['Output'] = []          #set the Output to an empty list
+      inputDict                    = {}                         #initialize the input dictionary
+      inputDict['Input' ]          = []                         #set the Input to an empty list
+      inputDict['Output']          = []                         #set the Output to an empty list
       for [key,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
 #        if self.debug: print(a+' is:')
         #if self.debug:print([key,b,c,d])
         if key == 'Input':
           #if the input is a file, check if it exists 
           if b == 'Files':
-            self.checkExistPath(d)
+            self.__checkExistPath(d)
           inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
         elif key == 'Output':
@@ -367,6 +349,7 @@ class Simulation:
       inputDict['jobHandler'] = self.jobHandler
       if 'Sampler' in inputDict.keys():
         inputDict['Sampler'].fillDistribution(self.DistributionsDict)
+        inputDict['jobHandler'].StartingNewStep()
       stepInstance.takeAstep(inputDict)
       for output in inputDict['Output']:
         if "finalize" in dir(output):

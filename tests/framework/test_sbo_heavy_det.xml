@@ -65,11 +65,11 @@
         <Sampler type='Samplers'   subtype='DynamicEventTree'>DET</Sampler>
         <Output  type='DataBases' subtype='HDF5'              >DET_SBO_RUN_eqPb</Output>
     </MultiRun>  
-    <PostProcessing name='extract_hist_from_hdf5_eqPb'>
+    <SingleRun name='extract_hist_from_hdf5_eqPb'>
         <Input   type='DataBases' subtype='HDF5'   >DET_SBO_RUN_eqPb</Input>
         <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
         <Output  type='Files'    subtype=''       >DET_histories_eqPb.csv</Output>
-    </PostProcessing>       
+    </SingleRun>       
 </Steps>
 <DataBases>
         <HDF5 name="DET_SBO_RUN_eqPb"/> 

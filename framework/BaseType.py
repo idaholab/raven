@@ -6,7 +6,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-class BaseType:
+class BaseType(object):
   '''this is the base class for each general type used by the simulation'''
   def __init__(self,debug=False):
     self.name    = ''      # name of this istance (alias)

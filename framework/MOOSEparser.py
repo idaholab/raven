@@ -49,16 +49,7 @@ class MOOSEparser:
         else:
           current.tail.append(line)
 
-  def __printSubLevels(self,xmlnode,IOfile,indentMultiplier):
-    IOfile.write(b'  '*indentMultiplier+b'[./'+toBytes(xmlnode.tag)+b']\n')
-    for string in xmlnode.tail if xmlnode.tail else []:
-      IOfile.write(b'    '*indentMultiplier+string+b'\n')
-    for key in xmlnode.attrib.keys(): 
-      IOfile.write(b'    '*indentMultiplier+toBytes(str(key))+b' = '+toBytes(str(xmlnode.attrib[key]))+b'\n')
-
-
   def printInput(self,outfile=None):
-    # 4 sub levels maximum 
     if outfile==None: outfile =self.inputfile
     IOfile = open(outfile,'wb')
     for child in self.root:
@@ -69,13 +60,11 @@ class MOOSEparser:
       for key in child.attrib.keys(): 
         IOfile.write(b'  '+key+b' = '+toBytes(str(child.attrib[key]))+b'\n')
       for childChild in child:
-        self.__printSubLevels(childChild,IOfile,1)
-        for childChildChild in childChild:
-          self.__printSubLevels(childChildChild,IOfile,2)
-          for childChildChildChild in childChildChild:
-            self.__printSubLevels(childChildChildChild,IOfile,3)
-            IOfile.write(b'      [../]\n')
-          IOfile.write(b'    [../]\n')
+        IOfile.write(b'  '+b'[./'+toBytes(childChild.tag)+b']\n')
+        for string in childChild.tail if childChild.tail else []:
+          IOfile.write(b'    '+string+b'\n')
+        for key in childChild.attrib.keys(): 
+          IOfile.write(b'    '+toBytes(str(key))+b' = '+toBytes(str(childChild.attrib[key]))+b'\n')
         IOfile.write(b'  [../]\n')
       IOfile.write(b'[]\n')
 

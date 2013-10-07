@@ -42,6 +42,9 @@ except:
 class superVisioned():
   def __init__(self,**kwargs):
     self.initializzationOptionDict = kwargs
+    self.admittedData = []
+    self.admittedData.append('TimePointSet')
+    self.admittedData.append('TimePoint')
 
   def train(self,obj):
     '''override this method to train the ROM'''
@@ -68,6 +71,7 @@ class superVisioned():
 class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
+    self.admittedData = ['']
 
   def train(self,inDictionary):
     data=inDictionary['Input'][0]
@@ -162,41 +166,39 @@ class SVMsciKitLearn(superVisioned):
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
     kwargs.pop('SVMtype')
     self.SVM.set_params(**kwargs)
-    return
+    self.admittedData.append('TimePointSet')
 
-  def train(self,data):
-    ''' The data is always a dictionary'''
-    """Fit the model according to the given training data.
-        Parameters
-        ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
-            Training vector, where n_samples in the number of samples and
-            n_features is the number of features.
-        y : array-like, shape = [n_samples]
-            Target vector relative to X
-        class_weight : {dict, 'auto'}, optional
-            Weights associated with classes. If not given, all classes
-            are supposed to have weight one.
-        Returns
-        -------
-        self : object
-            Returns self.
-        fit( X, y, sample_weight=None):"""
-    if(data.type != 'TimePointSet'):
-      raise IOError('The SVM type ' + self.initializzationOptionDict['SVMtype'] + 'requires a TimePointSet to be trained')
-    self.trainInputs = data.getInpParametersValues().items()
-    self.trainTarget = data.getOutParametersValues().items()
-    X = np.zeros(shape=(self.trainInputs[0][1].size,len(self.trainInputs)))
-    y = np.zeros(shape=(self.trainTarget[0][1].size))
-    for i in range(len(self.trainInputs)):
-      X[:,i] = self.trainInputs[i][1]
-    y = self.trainTarget[0][1]
-
-    print('SVM           : Training ' + self.initializzationOptionDict['SVMtype'])
+  def train(self,X,y):
     self.SVM.fit(X,y)
-    print('SVM           : '+ self.initializzationOptionDict['SVMtype'] + ' trained!')
-    
-    return
+#    """Fit the model according to the given training data.
+#        Parameters
+#        ----------
+#        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+#            Training vector, where n_samples in the number of samples and
+#            n_features is the number of features.
+#        y : array-like, shape = [n_samples]
+#            Target vector relative to X
+#        class_weight : {dict, 'auto'}, optional
+#            Weights associated with classes. If not given, all classes
+#            are supposed to have weight one.
+#        Returns
+#        -------
+#        self : object
+#            Returns self.
+#        fit( X, y, sample_weight=None):"""
+#    self.trainInputs = data.getInpParametersValues().items()
+#    self.trainTarget = data.getOutParametersValues().items()
+#    X = np.zeros(shape=(self.trainInputs[0][1].size,len(self.trainInputs)))
+#    y = np.zeros(shape=(self.trainTarget[0][1].size))
+#    for i in range(len(self.trainInputs)):
+#      X[:,i] = self.trainInputs[i][1]
+#    y[:] = self.trainTarget[0][1]
+#
+#    print('SVM           : Training ' + self.initializzationOptionDict['SVMtype'])
+#    self.SVM.fit(X,y)
+#    print('SVM           : '+ self.initializzationOptionDict['SVMtype'] + ' trained!')
+#    
+#    return
 
   def returnInitialParamters(self):
     return self.SVM.get_params()

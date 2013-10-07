@@ -29,16 +29,7 @@ class RavenInterface:
   def appendLoadFileExtension(self,fileRoot):
     '''  '''
     return fileRoot + '.csv'
-  def __createRestartFileName(self,prefix,suffix,parentID,end_ts):
-    end_ts_str = str(end_ts)
-    output_parent = prefix + '~' + parentID + '~' + suffix
-    if(int(end_ts) <= 9999):
-      n_zeros = 4 - len(end_ts_str)
-      for i in range(n_zeros):
-        end_ts_str = "0" + end_ts_str
-    restart_file_base = output_parent + "_restart_" + end_ts_str 
-    return restart_file_base
-    
+
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
@@ -104,44 +95,72 @@ class RavenInterface:
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiator_distribution'])):
-        listDict.append({'name':['Distributions',Kwargs['initiator_distribution'][i]],'ProbabilityThreshold':Kwargs['PbThreshold'][i]})
+        modifDict = {}
+        modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
+        modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
+        listDict.append(modifDict)
+        del modifDict
     # add the initial time for this new branch calculation
     if 'start_time' in Kwargs.keys():
       if Kwargs['start_time'] != 'Initial':
+        modifDict = {}
         st_time = Kwargs['start_time']
-        listDict.append({'name':['Executioner'],'start_time':st_time})
+        modifDict['name'] = ['Executioner']
+        modifDict['start_time'] = st_time
+        listDict.append(modifDict)
+        del modifDict
     # create the restart file name root from the parent branch calculation
     # in order to restart the calc from the last point in time
     if 'end_ts' in Kwargs.keys():
+      #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
+
       if str(Kwargs['start_time']) != 'Initial':
-        restart_file_base = self.__createRestartFileName(Kwargs['outfile'].split('~')[0],
-                                                         Kwargs['outfile'].split('~')[1],
-                                                         Kwargs['parent_id'],Kwargs['end_ts'])
-        #end_ts_str = str(Kwargs['end_ts'])
-        #if(Kwargs['end_ts'] <= 9999):
-        #  n_zeros = 4 - len(end_ts_str)
-        #  for i in range(n_zeros):
-        #    end_ts_str = "0" + end_ts_str
-        #splitted = Kwargs['outfile'].split('~')
-        #output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[1]
-        #restart_file_base = output_parent + "_restart_" + end_ts_str
+        modifDict = {}
+        end_ts_str = str(Kwargs['end_ts'])
+        if(Kwargs['end_ts'] <= 9999):
+          n_zeros = 4 - len(end_ts_str)
+          for i in range(n_zeros):
+            end_ts_str = "0" + end_ts_str
+        splitted = Kwargs['outfile'].split('~')
+        output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[1]
+        restart_file_base = output_parent + "_restart_" + end_ts_str      
+        modifDict['name'] = ['Executioner']
+        modifDict['restart_file_base'] = restart_file_base
         print('CODE INTERFACE: Restart file name base is "' + restart_file_base + '"')
-        listDict.append({'name':['Executioner'],'restart_file_base':restart_file_base})
+        listDict.append(modifDict)
+        del modifDict
     # max simulation time (if present)
     if 'end_time' in Kwargs.keys():
+      modifDict = {}
       end_time = Kwargs['end_time']
-      listDict.append({'name':['Executioner'],'end_time':end_time})
-    # enable restarting
-    listDict.append({'name':['Output'],'num_restart_files':1})
+      modifDict['name'] = ['Executioner']
+      modifDict['end_time'] = end_time
+      listDict.append(modifDict)
+      del modifDict
+      
+    modifDict = {}
+    modifDict['name'] = ['Output']
+    modifDict['num_restart_files'] = 1
+    listDict.append(modifDict)
+    del modifDict
     # in this way we erase the whole block in order to neglect eventual older info
     # remember this "command" must be added before giving the info for refilling the block
-    listDict.append({'name':['RestartInitialize'],'erase_block':True})
+    modifDict = {}
+    modifDict['name'] = ['RestartInitialize']
+    modifDict['erase_block'] = True
+    listDict.append(modifDict)
+    
+    del modifDict    
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
     if 'branch_changed_param' in Kwargs.keys():
       if Kwargs['branch_changed_param'][0] not in ('None',b'None'): 
         for i in range(len(Kwargs['branch_changed_param'])):
-          listDict.append({'name':['RestartInitialize',Kwargs['branch_changed_param'][i]],'value':Kwargs['branch_changed_param_value'][i]})
+          modifDict = {}
+          modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
+          modifDict['value'] = Kwargs['branch_changed_param_value'][i]
+          listDict.append(modifDict)
+          del modifDict
     return listDict  
 
   def EquallySpacedForRAVEN(self,**Kwargs):
@@ -207,9 +226,12 @@ class MooseBasedAppInterface:
     # for now the position (i.e. ':' at the end of a variable name) is discarded
     for var in Kwargs['sampledVars']:
         key = var.split(':')
-        if len(key) > 1: position = key[1]
-        else:            position = 1
-        listDict.append({'name':key[0].split('|')[:-1],key[0].split('|')[-1]:Kwargs['sampledVars'][var],'position':position})
+        modifDict = {}
+        modifDict['name'] = []
+        modifDict['name'] = key[0].split('|')[:-1]
+        modifDict[key[0].split('|')[-1]] = Kwargs['sampledVars'][var]
+        listDict.append(modifDict)
+        del modifDict
         listDict.append({'name':['Postprocessors',key[0]],'type':'Reporter'})
         listDict.append({'name':['Postprocessors',key[0]],'default':Kwargs['sampledVars'][var]})
         #print (listDict)

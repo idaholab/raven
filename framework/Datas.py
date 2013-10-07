@@ -47,9 +47,7 @@ class Data(BaseType):
       tempDict['Output_'+str(i)] = self.outputs[i]
     tempDict['Time'] = self.time
     return tempDict
-  
-#  def finalize(self):
-#    pass 
+
   def addOutput(self,toLoadFrom):
     # this function adds the file name/names to the
     # filename list
@@ -150,8 +148,6 @@ class History(Data):
       self.outParametersValues = tupleVar[1]
 
 class Histories(Data):
-  def __init__(self):
-    Data.__init__(self)
 
   def addOutput(self,toLoadFrom):
     Data.addOutput(self, toLoadFrom)

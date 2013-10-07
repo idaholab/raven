@@ -23,7 +23,7 @@
         <Sampler type='Samplers'   subtype='MonteCarlo'>RAVENmc3</Sampler>
         <Output  type='DataBases' subtype='HDF5'              >MC_TEST_EXTRACT_STEP</Output>
     </MultiRun>  
-    <Extract name='test_extract'>
+    <InOutFromDataBase name='test_extract'>
         <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  type='Datas'    subtype='Histories'>histories_from_database</Output>
         <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
@@ -32,7 +32,7 @@
         <Output  type='Datas'    subtype='History'>history_from_database</Output>
         <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  type='Datas'    subtype='TimePointSet'>timepointset_from_database</Output>
-    </Extract>  
+    </InOutFromDataBase>  
 </Steps>
 <DataBases>
         <HDF5 name="MC_TEST_EXTRACT_STEP"/> 

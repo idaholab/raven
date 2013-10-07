@@ -102,7 +102,7 @@ class Sampler(BaseType):
 
   def finalizeActualSampling(self,jobObject,model,myInput):
     ''' This function is used by samplers that need to finalize the just ended sample
-        For example, In a MonteCarlo simulation it can be used to sample paramaters at 
+        For example, In a MonteCarlo simulation it can be used to sample parameters at 
         the end of a previous calculation in order to make the Model aware of the parameters
         it needs to change. For a Dynamic Event Tree case, this function can be used to retrieve
         the information from the just finished run of a branch in order to retrieve, for example,
@@ -115,11 +115,12 @@ class Sampler(BaseType):
     raise IOError('This sampler has not an input generation?!?!')
     return
 
-  def generateInputBatch(self,myInput,model,batchSize):
+  def generateInputBatch(self,myInput,model,batchSize,projector=None):
     '''for the first set of run a set of run are started in // so we need more than one input '''
     newInputs = []
     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
-      newInputs.append(self.generateInput(model,myInput))
+      if projector==None: newInputs.append(self.generateInput(model,myInput))
+      else             : newInputs.append(self.generateInput(model,myInput,projector))
     return newInputs
 #
 #

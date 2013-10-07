@@ -33,18 +33,14 @@ class Model(BaseType):
   def addInitParams(self,tempDict):
     tempDict['subType'] = self.subType
 
-  def reset(self,runInfo,inputs):
+  def initialize(self,runInfo,inputs):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step'''
-    raise IOError('the model '+self.name+' that has no reset method' )
-
-  def train(self,trainingSet,stepName):
-    '''This needs to be over written if the model requires an initialization'''
-    raise IOError('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
+    raise IOError('the model '+self.name+' that has no initialize method' )
 
   def run(self,*args):
     '''This call should be over loaded and return a jobHandler.External/InternalRunner'''
     raise IOError('the model '+self.name+' that has no run method' )
-
+  
   def collectOutput(self,collectFrom,storeTo):
     storeTo.addOutput(collectFrom)
 
@@ -80,7 +76,6 @@ class Code(Model):
     Model.addInitParams(self, tempDict)
     tempDict['executable']=self.executable
   
-  
   def addCurrentSetting(self,originalDict):
     '''extension of addInitParams for the Code(model)'''
     originalDict['current working directory'] = self.workingDir
@@ -88,19 +83,18 @@ class Code(Model):
     originalDict['current input file']        = self.currentInputFiles
     originalDict['original input file']       = self.oriInputFiles
 
-  def reset(self,runInfoDict,inputFiles):
+  def initialize(self,runInfoDict,inputFiles):
     '''initialize some of the current setting for the runs and generate the working 
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-                   
     except: print('MODEL CODE    : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles:
       shutil.copy(inputFile,self.workingDir)
-    print('MODEL CODE    : original input files copied in the current working dir: '+self.workingDir)
-    print('MODEL CODE    : files copied:')
-    print(inputFiles)
+    if self.debug: print('MODEL CODE    : original input files copied in the current working dir: '+self.workingDir)
+    if self.debug: print('MODEL CODE    : files copied:')
+    if self.debug: print(inputFiles)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
       self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
@@ -118,16 +112,13 @@ class Code(Model):
     return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
 
   def run(self,inputFiles,outputDatas,jobHandler):
-    '''return an instance of external runner'''
+    '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles
     executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
-#    for inputFile in self.currentInputFiles: shutil.copy(inputFile,self.workingDir)
-    self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
-    #XXX what does this if block do?  Should it be a for loop and look thru the array?
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
     if self.currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
-    return self.process
+    if self.debug: print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
@@ -159,23 +150,20 @@ class ROM(Model):
   def __init__(self):
     Model.__init__(self)
     self.initializzationOptionDict = {}
+    self.inputNames = []
+    self.outputName = ''
 
   def readMoreXML(self,xmlNode):
-    '''read the additional input needed and istanziate the underlying ROM'''
+    '''read the additional input needed and create an instance the underlying ROM'''
     Model.readMoreXML(self, xmlNode)
     for child in xmlNode:
       try: self.initializzationOptionDict[child.tag] = int(child.text)
       except:
         try: self.initializzationOptionDict[child.tag] = float(child.text)
         except: self.initializzationOptionDict[child.tag] = child.text
-    self.test =  SupervisedLearning.returnInstance(self.subType)
-    self.SupervisedEngine = self.test(**self.initializzationOptionDict)
-    #self.test.
-    #self.SupervisedEngine = SupervisedLearning.returnInstance(self.subType)(self.initializzationOptionDict) #create an instance of the ROM
-  
-  def addLoadingSource(self,loadFrom):
-    self.toLoadFrom = loadFrom
-  
+    self.ROM =  SupervisedLearning.returnInstance(self.subType)
+    self.SupervisedEngine = self.ROM(**self.initializzationOptionDict)
+    
   def addInitParams(self,originalDict):
     ROMdict = self.SupervisedEngine.returnInitialParamters()
     for key in ROMdict.keys():
@@ -186,36 +174,100 @@ class ROM(Model):
     for key in ROMdict.keys():
       originalDict[key] = ROMdict[key]
 
-  def reset(self,*args):
-    self.SupervisedEngine.reset(*args)
+  def initializeTrain(self,runInfoDict,loadFrom):
+    '''just provide an internal pointer to the external data and check compatibility'''
+    if loadFrom.type not in self.ROM.admittedData: raise IOError('type '+loadFrom.type+' is not compatible with the ROM '+self.ROM.type)
+    else: self.toLoadFrom = loadFrom
 
-  def train(self,trainingSet=None):
-    '''This needs to be over written if the model requires an initialization'''
-    #raise IOError('Step '+stepName+' tried to train the model '+self.name+' that has no training step' )
-    #self.test.type
-    if trainingSet:
-      self.SupervisedEngine.train(trainingSet)
-    else:
-      self.SupervisedEngine.train(self.toLoadFrom)
+  def close(self):
+    '''remember to call this function to decouple the data owned by the ROM and the environment data'''
+    self.toLoadFrom = copy.deepcopy(self.toLoadFrom)
+
+  def train(self):
+    '''Here we do the training of the ROM'''
+    '''Fit the model according to the given training data.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+            Training vector, where n_samples in the number of samples and
+            n_features is the number of features.
+        y : array-like, shape = [n_samples]
+            Target vector relative to X
+        class_weight : {dict, 'auto'}, optional
+            Weights associated with classes. If not given, all classes
+            are supposed to have weight one.'''
+
+    self.inputNames, inputsValues = self.toLoadFrom.getInpParametersValues().items()
+    try: outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
+    except: raise IOError('The output sought '+self.outputName+' is not in the training set')
+    self.inputsValues = np.zeros(shape=(inputsValues[1].size,len(self.inputNames)))
+    self.outputValues = np.zeros(shape=(inputsValues[1].size))
+    for i in range(len(self.inputNames)):
+      self.inputsValues[:,i] = inputsValues[i][:]
+    self.outputValues[:] = outputValues[:]
+    self.SupervisedEngine.train(self.inputsValues,self.outputValues)
+
+  def run(self,request,outputDatas,jobHandler):
+    '''This call run a ROM as a model
+    The input should be translated in to a set of coordinate where to perform the predictions
+    It is possible either to send in just one point in the input space or a set of points
+    input are accepted in the following form:
+    -as a strings: 'input_name=value,input_name=value,..' this supports only one point in the input space
+    -as a dictionary where keys are the input names and the values the corresponding values (either one value or a vector/list)
+    -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''
+    if  type(request)==str:#as a string
+      inputNames  = [entry.split('=')[0]  for entry in request.split(',')]
+      inputValues = [entry.split('=')[1]  for entry in request.split(',')]
+    elif type(request)==dict:#as a dictionary
+      inputNames, inputValues = request.items()
+    else:#as a internal data type
+      try: #try is used to be sure input.type exist
+        if input.type in self.ROM.admittedData:
+          inputNames, inputValues = self.request.getInpParametersValues().items()
+      except: raise IOError('the request of ROM evaluation is done via a not compatible data')
+    #now that the prediction points are read we check the compatibility with the ROM input-output set
+    lenght = len(set(inputNames).intersection(self.inputNames))
+    if lenght!=len(self.inputNames) or lenght!=len(inputNames):
+      raise IOError ('there is a mismatch between the provided request and the ROM structure')
+    #once compatibility is assert we allocate the needed storage (numbers of samples)x(size input space)  
+    self.request    = np.zeros(shape=(len(inputValues[1],self.inputNames)))
+    i = 0
+    for name in self.inputNames:
+      self.request[:][i] = inputValues[inputNames.index(name)]
+      i +=1
+#    jobHandler.submitDict['Internal'](self.SupervisedEngine.train(self.request,self.outputValues))
+    raise IOError('the multi treading is not yet in place neither the appanding')
+    
+class Projector(Model):
+  '''Projector is a data manipulator'''
+  def __init__(self):
+    Model.__init__(self)
+
+  def readMoreXML(self,xmlNode):
+    Model.readMoreXML(self, xmlNode)
+    self.interface = returnFilterInterface(self.subType)
+    self.interface.readMoreXML(xmlNode)
+ 
+  def addInitParams(self,tempDict):
+    Model.addInitParams(self, tempDict)
+
+  def reset(self,runInfoDict,input):
+    if input.type == 'ROM':
+      pass
+    #initialize some of the current setting for the runs and generate the working 
+    #   directory with the starting input files
+    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
+    runInfoDict['TempWorkingDir'] = self.workingDir
+    try: os.mkdir(self.workingDir)
+    except: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
-  def run(self,inputFiles,outputDatas,jobHandler):
-    '''return an instance of external runner'''
-    self.currentInputFiles = inputFiles
-    executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
-#    for inputFile in self.currentInputFiles: shutil.copy(inputFile,self.workingDir)
-    self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
-    #XXX what does this if block do?  Should it be a for loop and look thru the array?
-    if self.currentInputFiles[0].endswith('.i'): index = 0
-    else: index = 1
-    print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
-    return self.process
-
-#  def collectOutput(self,collectFrom,storeTo):
-#    storeTo.addOutput(collectFrom)
-#  def createNewInput(self,myInput,samplerType,**Kwargs):
-#    raise IOError('for this model the createNewInput has not yet being implemented')
-#  TODO how is ROM tied to Supervised Learning?  "train" method in Model isn't overwritten...
+  def run(self,inObj,outObj):
+    '''run calls the interface finalizer'''
+    self.interface.finalizeFilter(inObj,outObj,self.workingDir)
+    
+    
+    
 
 class Filter(Model):
   '''Filter is an Action System. All the models here, take an input and perform an action'''
@@ -224,11 +276,11 @@ class Filter(Model):
     self.input  = {}     # input source
     self.action = None   # action
     self.workingDir = ''
+
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
     self.interface = returnFilterInterface(self.subType)
     self.interface.readMoreXML(xmlNode)
-    
  
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
@@ -244,15 +296,21 @@ class Filter(Model):
 
   def run(self,inObj,outObj):
     '''run calls the interface finalizer'''
-    self.interface.finalizeFilter(inObj,outObj,self.workingDir)
+    for i in range(len(inObj)):
+      self.interface.finalizeFilter(inObj[i],outObj[i],self.workingDir)
+  def collectOutput(self,finishedjob,output):
+    self.interface.collectOutput(output)
+
+
 
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
   base = 'model'
   InterfaceDict = {}
-  InterfaceDict['ROM'   ] = ROM
-  InterfaceDict['Code'  ] = Code
-  InterfaceDict['Filter'] = Filter
+  InterfaceDict['ROM'      ] = ROM
+  InterfaceDict['Code'     ] = Code
+  InterfaceDict['Filter'   ] = Filter
+  InterfaceDict['Projector'] = Projector
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   
