@@ -34,18 +34,36 @@ class Model(BaseType):
     tempDict['subType'] = self.subType
 
   def initialize(self,runInfo,inputs):
-    ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step'''
-    raise IOError('the model '+self.name+' that has no initialize method' )
+    ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
+    after this call the next one will be run
+    @in runInfo is the run info from the jobHandler
+    @in inputs is a list containing whatever is passed with an input role in the step'''
+    pass
 
-  def run(self,*args):
-    '''This call should be over loaded and return a jobHandler.External/InternalRunner'''
+  def createNewInput(self,myInput,samplerType,**Kwargs):
+    '''this function have to return a new input that will be submitted to the model, it is called by the sampler
+    @in myInput the inputs (list) to start from to generate the new one
+    @in samplerType is the type of sampler that is calling to generate a new input
+    @in **Kwargs is a dictionary that contains the information coming from the sampler,
+         a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+    @return the new input (list)'''
+    raise IOError('for this model the createNewInput has not yet being implemented')
+
+  def run(self,Input,jobHandler):
+    '''This call should be over loaded and should not return any results,
+        possible it places a run one of the jobhadler lists!!!
+        @in inputs is a list containing whatever is passed with an input role in the step
+        @in jobHandler an instance of jobhandler that might be possible used to append a job for parallel running'''
     raise IOError('the model '+self.name+' that has no run method' )
   
   def collectOutput(self,collectFrom,storeTo):
-    storeTo.addOutput(collectFrom)
-
-  def createNewInput(self,myInput,samplerType,**Kwargs):
-    raise IOError('for this model the createNewInput has not yet being implemented')
+    '''This call collect the output of the run
+    @in collectFrom where the output is located, the form and the type is model dependent but should be compatible with the storeTo.addOutput method'''
+    if 'addOutput' in dir(storeTo):
+      try   : storeTo.addOutput(collectFrom)
+      except: raise IOError('The place where to store the output '+type(storeTo)+' was not compatible with the addOutput of '+type(collectFrom))
+    else: raise IOError('The place where to store the output has not a addOutput method')
+     
 
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
@@ -100,7 +118,6 @@ class Code(Model):
       self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
-    return #self.oriInputFiles
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     ''' This function creates a new input
@@ -111,7 +128,7 @@ class Code(Model):
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
 
-  def run(self,inputFiles,outputDatas,jobHandler):
+  def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles
     executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
@@ -122,14 +139,13 @@ class Code(Model):
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
-    # TODO This errors if output doesn't have .type (csv for example)
+    # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     try:
       if output.type == "HDF5":
         self.__addDataBaseGroup(finisishedjob,output)
         return
     except AttributeError:
       pass
-    #print('this:',output)
     output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
     return
 
@@ -144,6 +160,7 @@ class Code(Model):
       for key in infoForOut:
         attributes[key] = infoForOut[key]
     database.addGroup(attributes,attributes)
+
 
 class ROM(Model):
   '''ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome'''
@@ -180,23 +197,15 @@ class ROM(Model):
     else: self.toLoadFrom = loadFrom
 
   def close(self):
-    '''remember to call this function to decouple the data owned by the ROM and the environment data'''
+    '''remember to call this function to decouple the data owned by the ROM and the environment data after each training'''
     self.toLoadFrom = copy.deepcopy(self.toLoadFrom)
 
   def train(self):
     '''Here we do the training of the ROM'''
     '''Fit the model according to the given training data.
-        Parameters
-        ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
-            Training vector, where n_samples in the number of samples and
-            n_features is the number of features.
-        y : array-like, shape = [n_samples]
-            Target vector relative to X
-        class_weight : {dict, 'auto'}, optional
-            Weights associated with classes. If not given, all classes
+    @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
+    @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-
     self.inputNames, inputsValues = self.toLoadFrom.getInpParametersValues().items()
     try: outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
     except: raise IOError('The output sought '+self.outputName+' is not in the training set')
@@ -207,37 +216,76 @@ class ROM(Model):
     self.outputValues[:] = outputValues[:]
     self.SupervisedEngine.train(self.inputsValues,self.outputValues)
 
-  def run(self,request,outputDatas,jobHandler):
+  def createNewInput(self,currentInput,samplerType,**Kwargs):
+    ''' This function creates a new input
+        It is called from a sampler to get the implementation specific for this model
+        it support string input
+        dictionary input and datas input'''
+    if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
+    else: currentInput =currentInput[0]
+    if  type(currentInput)==str:#one input point requested a as a string
+      inputNames  = [component.split('=')[0] for component in currentInput.split(',')]
+      inputValues = [component.split('=')[1] for component in currentInput.split(',')]
+      for name, newValue in Kwargs['sampledVars'].items(): inputValues[inputNames.index(name)] = newValue
+      newInput = [inputNames[i]+'='+inputValues[i] for i in range(inputNames)]
+      newInput = newInput.join(',')
+    elif type(currentInput)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
+      for name, newValue in Kwargs['sampledVars'].items(): currentInput[name] = newValue
+    else:#as a internal data type
+      try: #try is used to be sure input.type exist
+        if currentInput.type in self.ROM.admittedData:
+          for name, newValue in Kwargs['sampledVars'].items():
+            try   : self.currentInput.getInpParametersValues()[name] = np.array(newValue)
+            except: raise IOError('trying to sample '+name+' that is not in the original input')
+      except: raise IOError('the request of ROM evaluation is done via a not compatible input')
+    currentInput = [currentInput]
+    return currentInput
+
+  def run(self,request,jobHandler):
     '''This call run a ROM as a model
     The input should be translated in to a set of coordinate where to perform the predictions
     It is possible either to send in just one point in the input space or a set of points
     input are accepted in the following form:
     -as a strings: 'input_name=value,input_name=value,..' this supports only one point in the input space
-    -as a dictionary where keys are the input names and the values the corresponding values (either one value or a vector/list)
+    -as a dictionary where keys are the input names and the values the corresponding values (it should be either vector or list)
     -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''
-    if  type(request)==str:#as a string
+    if len(request)>1: raise IOError('ROM accepts only one input not a list of inputs')
+    else: request =request[0]
+    #first we extract the input names and the corresponding values (it is an implicit mapping)
+    if  type(request)==str:#one input point requested a as a string
       inputNames  = [entry.split('=')[0]  for entry in request.split(',')]
       inputValues = [entry.split('=')[1]  for entry in request.split(',')]
-    elif type(request)==dict:#as a dictionary
-      inputNames, inputValues = request.items()
+    elif type(request)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
+      inputNames, inputValues = request.items()[:][0], request.items()[:][1]
     else:#as a internal data type
       try: #try is used to be sure input.type exist
         if input.type in self.ROM.admittedData:
-          inputNames, inputValues = self.request.getInpParametersValues().items()
+          inputNames, inputValues = self.request.getInpParametersValues().items()[:][0], self.request.getInpParametersValues().items()[:][1]
       except: raise IOError('the request of ROM evaluation is done via a not compatible data')
     #now that the prediction points are read we check the compatibility with the ROM input-output set
     lenght = len(set(inputNames).intersection(self.inputNames))
     if lenght!=len(self.inputNames) or lenght!=len(inputNames):
       raise IOError ('there is a mismatch between the provided request and the ROM structure')
-    #once compatibility is assert we allocate the needed storage (numbers of samples)x(size input space)  
-    self.request    = np.zeros(shape=(len(inputValues[1],self.inputNames)))
-    i = 0
-    for name in self.inputNames:
-      self.request[:][i] = inputValues[inputNames.index(name)]
-      i +=1
-#    jobHandler.submitDict['Internal'](self.SupervisedEngine.train(self.request,self.outputValues))
-    raise IOError('the multi treading is not yet in place neither the appanding')
-    
+    #build a mapping from the ordering of the input sent in and the ordering inside the ROM
+    self.requestToLocalOrdering = []
+    for local in self.inputNames:
+      self.requestToLocalOrdering.append(inputNames.index(local))
+    #building the arrays to send in for the prediction by the ROM
+    self.request = np.array([inputValues[index] for index in self.requestToLocalOrdering]).T
+    ############################------FIXME----------#######################################################
+    # we need to submit self.ROM.evaluate(self.request) to the job handler
+    self.output = self.ROM.evaluate(self.request)
+#    raise IOError('the multi treading is not yet in place neither the appending')
+  
+  def collectOutput(self,finishedJob,output):
+    '''This method append the ROM evaluation into the output'''
+    try: #try is used to be sure input.type exist
+      if output.type in self.ROM.admittedData:
+        for inputName in self.inputNames:
+          self.request.getInpParametersValues[inputName] = np.concatenate((self.request.getInpParametersValues[inputName], self.request[self.inputNames.index(inputName)][:]))
+    except: raise IOError('the output of the ROM is requested on a not compatible data')
+    self.request.getOutParametersValues[self.outputName] = np.concatenate((self.request.getOutParametersValues[inputName], self.output))
+  
 class Projector(Model):
   '''Projector is a data manipulator'''
   def __init__(self):
@@ -303,14 +351,15 @@ class Filter(Model):
 
 
 
+base = 'model'
+InterfaceDict = {}
+InterfaceDict['ROM'      ] = ROM
+InterfaceDict['Code'     ] = Code
+InterfaceDict['Filter'   ] = Filter
+InterfaceDict['Projector'] = Projector
+
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
-  base = 'model'
-  InterfaceDict = {}
-  InterfaceDict['ROM'      ] = ROM
-  InterfaceDict['Code'     ] = Code
-  InterfaceDict['Filter'   ] = Filter
-  InterfaceDict['Projector'] = Projector
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   

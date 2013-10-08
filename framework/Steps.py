@@ -70,7 +70,7 @@ class SingleRun(Step):
     try:    inDictionary['Output']
     except: raise IOError ('It is not possible a run without an output!!!')    
     #Model initialization
-    if inDictionary['Model'].type!='ROM': inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
+    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
     if self.debug: print('The model '+inDictionary['Model'].name+' has been initialized')
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
@@ -81,7 +81,7 @@ class SingleRun(Step):
   def takeAstepRun(self,inDictionary):
     '''main driver for a step'''
     jobHandler = inDictionary['jobHandler']
-    inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler'])
+    inDictionary["Model"].run(inDictionary['Input'],inDictionary['jobHandler'])
     if inDictionary["Model"].type == 'Code': 
       while True:
         finishedJobs = jobHandler.getFinished()
@@ -94,6 +94,8 @@ class SingleRun(Step):
     else:
       for output in inDictionary['Output']:
         inDictionary['Model'].collectOutput(None,output)
+
+
 class MultiRun(SingleRun):
   '''this class implement one step of the simulation pattern' where several runs are needed without being adaptive'''
   def __init__(self):
@@ -115,7 +117,7 @@ class MultiRun(SingleRun):
     inDictionary['Sampler'].initialize()
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for newInput in newInputs:
-      inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
+      inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       
   def takeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -131,7 +133,7 @@ class MultiRun(SingleRun):
         for freeSpot in xrange(jobHandler.howManyFreeSpots()):
           if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
             newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-            inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
+            inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(0.1)
@@ -188,7 +190,7 @@ class Adaptive(MultiRun):
           for freeSpot in xrange(jobHandler.howManyFreeSpots()):
             if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
               newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'],inDictionary['Projector'])
-              inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
+              inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
         elif converged:
           jobHandler.terminateAll()
           break
@@ -370,17 +372,17 @@ class SCRun(Step):
     #if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
 
 
+InterfaceDict = {}
+InterfaceDict['SingleRun'        ] = SingleRun
+InterfaceDict['MultiRun'         ] = MultiRun
+InterfaceDict['SCRun'            ] = SCRun
+InterfaceDict['Adaptive'         ] = Adaptive
+InterfaceDict['InOutFromDataBase'] = InOutFromDataBase 
+InterfaceDict['RomTrainer'       ] = RomTrainer
+InterfaceDict['Plotting'         ] = PlottingStep
+base = 'Step'
 
 def returnInstance(Type):
-  base = 'Step'
-  InterfaceDict = {}
-  InterfaceDict['SingleRun'     ] = SingleRun
-  InterfaceDict['MultiRun'      ] = MultiRun
-  InterfaceDict['SCRun'            ] = SCRun
-  InterfaceDict['Adaptive'         ] = Adaptive
-  InterfaceDict['InOutFromDataBase'] = InOutFromDataBase 
-  InterfaceDict['RomTrainer'    ] = RomTrainer
-  InterfaceDict['Plotting'      ] = PlottingStep
   try:   return InterfaceDict[Type]()
   except:raise NameError('not known '+base+' type'+Type)
   

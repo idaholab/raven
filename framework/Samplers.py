@@ -120,7 +120,7 @@ class Sampler(BaseType):
     newInputs = []
     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
       if projector==None: newInputs.append(self.generateInput(model,myInput))
-      else             : newInputs.append(self.generateInput(model,myInput,projector))
+      else              : newInputs.append(self.generateInput(model,myInput,projector))
     return newInputs
 #
 #
@@ -376,7 +376,10 @@ class LatinHyperCube(Sampler):
       upper = self.grid[self.counter][key][1]
       lower = self.grid[self.counter][key][1]
       values[key] = [self.distDict[key].distribution.rvsWithinbounds(lower,upper),lower,upper]
-    return model.createNewInput(myInput,self.type,**values)
+      lower[key+' upper'] = [lower]
+      upper[key+' upper'] = [upper]
+    info = {'sampledVars':values,'lower':lower,'upper':upper}
+    return model.createNewInput(myInput,self.type,**info)
 #
 #
 #
