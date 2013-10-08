@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+  <!--<WorkingDir>/Users/alfoa/projects/trunk/raven/te_stDriver</WorkingDir>-->
+    <WorkingDir>/home/talbpaul/projects/trunk/raven/scripts</WorkingDir>
+    <Files>TMI_test_PRA_transient_less_w_DET.i,TMI_test_PRA_transient_less_w_MC.i,TMI_PRA_trans_MC_control.py,TMI_PRA_trans_DET_control.py,DET_histories_eqPb.csv,DET_histories_eqVar.csv,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w.py,sss.i,DET_histories.csv</Files>
+    <Sequence>DET_RUN_eqPb,extract_hist_from_hdf5_eqPb</Sequence>
+    <!--  -->
+    <batchSize>8</batchSize>
+    <!--<ParallelCommand></ParallelCommand>
+    <ParallelProcNumb></ParallelProcNumb>
+    <ThreadingCommand></ThreadingCommand>
+    <ThreadingProcessor></ThreadingProcessor>
+    <numNode></numNode>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+    <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
+    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
+    <Filter name='Plot1' type='Plot'> 
+      <historyID>ALL</historyID>
+      <variables>ALL</variables>
+    </Filter>
+</Models>
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='auxBackUpTimeDist'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>    
+    <Normal name='Gauss2'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='CladFailureDist'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
+<!--         <lowerBound>0</lowerBound> This is not yet supported
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>  -->
+    </Triangular>
+</Distributions>
+
+
+<Samplers>
+    <MonteCarlo name='NotRAVENmc1' limit='200'>
+        <Variable type ='Normal'     distName='Gaus1'>pippo</Variable>
+        <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
+        <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
+    </MonteCarlo>
+    <MonteCarlo name='MyMC1' limit='400'>
+        <Variable type ='Normal'     distName='Gaus1'>pippo</Variable>
+        <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
+        <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
+    </MonteCarlo>
+    <LatinHyperCube name='MyLHC' limit='50' start='10'>
+        <Variable type ='Normal'     distName='Gaus1'>pippo</Variable>
+        <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
+        <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
+    </LatinHyperCube>
+    <MonteCarlo     name='RAVENmc6'  limit='12'/>
+    <MonteCarlo     name='RAVENmc50' limit='50'/>
+    <LatinHyperCube name='MyLHC'     limit='50' start='10'></LatinHyperCube>
+    <EquallySpaced  name='MyES'      limit='50' start='10'></EquallySpaced>
+    <DynamicEventTree name='DET_equiPb'>
+      <BranchingSettings  CPcut = '1.0E-100'>
+        <Variable type='Normal' distName='auxBackUpTimeDist' BranchProbs='0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9'>auxBackUpTimeDist</Variable>
+        <Variable type='Triangular' distName='CladFailureDist' BranchProbs='0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9'>CladFailureDist</Variable>
+      </BranchingSettings>
+    </DynamicEventTree> 
+    <DynamicEventTree name='DET_equiVar'>
+      <BranchingSettings  CPcut = '1.0E-100'>
+        <Variable type='Normal' distName='auxBackUpTimeDist' BranchProbs='0.034433 0.158987 0.359606 0.594770 0.795389 0.919943 0.976211'>auxBackUpTimeDist</Variable>
+        <Variable type='Triangular' distName='CladFailureDist' BranchProbs='0.020166 0.090665 0.211791 0.383542 0.595750 0.772748 0.899123 0.974873'>CladFailureDist</Variable>
+      </BranchingSettings>
+    </DynamicEventTree>     
+</Samplers>
+<Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+</Tests>
+<Steps>
+    <SimpleRun name='second'>
+        <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.i</Input>
+        <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.py</Input>
+        <Model   type='Models'   subtype='Code'   >MyRAVEN</Model>
+        <Output  type='Datas'    subtype='History'>1story</Output>
+    </SimpleRun>
+    <MultiRun name='FirstMRun'>
+        <Input   type='Files'    subtype=''                >TMI_test_PRA_transient_less_w.i</Input>
+        <Input   type='Files'    subtype=''                >TMI_test_PRA_transient_less_w.py</Input>
+        <Model   type='Models'   subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers' subtype='DynamicEventTree'>DET_equiPb</Sampler>
+        <DataSet type='DataSets' subtype=''                >testDataBase</DataSet>
+        <Output  type='DataSets' subtype='HDF5'            >testDataBase</Output>
+        <Output  type='Datas'    subtype='Histories'       >stories</Output>
+    </MultiRun >
+    <MultiRun name='test_plot'>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_MC.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers'   subtype='MonteCarlo'      >RAVENmc6</Sampler>
+        <Output  type='OutStreams' subtype='Screen'          >testScreen</Output>
+    </MultiRun > 
+    <MultiRun name='DET_RUN_eqPb'>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_DET.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_DET_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers'   subtype='DynamicEventTree'>DET_equiPb</Sampler>
+        <DataSet type='DataSets' subtype=''                  >DET_SBO_RUN_eqPb</DataSet>
+        <Output  type='DataSets' subtype='HDF5'              >DET_SBO_RUN_eqPb</Output>
+    </MultiRun >  
+    <MultiRun name='DET_RUN_eqVar'>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_DET.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_DET_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.ravenaux</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers'   subtype='DynamicEventTree'>DET_equiVar</Sampler>
+        <DataSet type='DataSets' subtype=''                  >DET_SBO_RUN_eqVar</DataSet>
+        <Output  type='DataSets' subtype='HDF5'              >DET_SBO_RUN_eqVar</Output>
+    </MultiRun >          
+    <PostProcessing name='extract_hist_from_hdf5_eqPb'>
+        <Input   type='DataSets' subtype='HDF5'   >DET_SBO_RUN_eqPb</Input>
+        <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
+        <Output  type='Files'    subtype=''       >DET_histories_eqPb.csv</Output>
+    </PostProcessing>  
+    <PostProcessing name='extract_hist_from_hdf5_eqVar'>
+        <Input   type='DataSets' subtype='HDF5'   >DET_SBO_RUN_eqVar</Input>
+        <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
+        <Output  type='Files'    subtype=''       >DET_histories_eqVar.csv</Output>
+    </PostProcessing>       
+    <MultiRun name='MyAdaptiveNoROM'>
+        <Input   type='Files'     subtype=''            >inp.i</Input>
+        <Model   type='Models'    subtype='Code'        >MyRAVEN</Model>
+        <Sampler type='Samplers'  subtype='MonteCarlo'  >MyMC1</Sampler>
+        <Output  type='Datas'     subtype='TimePointSet'>finalPbconverged</Output>
+        <Test    type='Sigma'     subtype=''       >failurePB</Test>
+    </MultiRun>
+    <MultiRun name='MyAdaptiveROM'>
+        <ROM     type='Models'   subtype='ROM'         >MySVM</ROM>
+        <Input   type='Files'    subtype=''            >sss</Input>
+        <Model   type='Models'   subtype='Code'        >MyRAVEN</Model>
+        <Sampler type='Samplers' subtype='MonteCarlo'  >MyMC</Sampler>
+        <Output  type='Datas'    subtype='TimePointSet'>finalPbconverged</Output>
+    </MultiRun>
+    <PostProcessing name='plot'>
+        <Input   type='Datasets'        subtype='HDF5'>testDataBase</Input>
+        <Model   type='Models'          subtype='Filter'>Plot1</Model>
+        <Output  type='outStream'       subtype='screen'></Output>
+        <Output  type='outStream'       subtype='jpeg'>fileName</Output>
+    </PostProcessing>
+</Steps>
+<OutStreams>
+  <Screen name="testScreen">
+    <variable>Head_PumpB,avg_temp_clad_CH1</variable>
+  </Screen> 
+</OutStreams>
+<DataSets>
+    <HDF5 name="DET_SBO_RUN_eqVar" type="DET"/> 
+    <HDF5 name="DET_SBO_RUN_eqPb" type="DET"/> 
+</DataSets>
+
+<Datas>
+    <Histories name='stories'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+   <Histories name='stories_from_database'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+    <TimePointSet name='trainer'          time='end'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+    </TimePointSet>
+    <TimePoint    name='form3stories'     time='0.001'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePoint>
+    <TimePoint    name='form1story'       time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePoint>
+    <TimePointSet name='finalPbconverged' time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+    <TimePointSet name='finalLSconverged' time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+    <TimePointSet name='PbfromROM'        time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+</Datas>
+</Simulatio>
+
+
+

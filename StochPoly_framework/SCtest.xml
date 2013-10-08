@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulatio>
+<RunInfo>
+    <WorkingDir>./inputs</WorkingDir>
+    <Files>TMI_PRA_trans_MC_control.py,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+    <Sequence>set_up_SC,create_ROM</Sequence>
+    <batchSize>8</batchSize>
+</RunInfo>
+
+<Models>
+    <Code name='MyRAVEN' type='RAVEN'>../RAVEN-opt</Code>
+    <ROM  name='SCrom'   type='StochasticPolynomials'>SCrom</ROM>
+</Models>
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>10</mean>
+        <sigma>3</sigma>
+    </Normal>
+</Distributions>
+
+
+<Samplers>
+  <StochasticCollocation name='SC' min_poly_order='2'>
+      <Variable type ='Normal' distName='Gauss1' poly_order='4'>Controlled:power_CH1:value</Variable>
+      <Variable type ='Normal' distName='Gauss1' poly_order='2'>Controlled:power_CH2:value</Variable>
+  </StochasticCollocation>
+</Samplers>
+
+<Steps>
+    <MultiRun name='set_up_SC'>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w.i</Input>
+        <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_control.py</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
+        <Sampler type='Samplers'   subtype='StochasticCollocation'>SC</Sampler>
+        <Output  type='DataBases'  subtype='HDF5'           >SC_RUN</Output>
+    </MultiRun> 
+    <SCRun name='create_ROM'>
+        <Input type='DataBases'  subtype='HDF5'            >SC_RUN</Input>
+        <ROM   type='Models'       subtype='StochasticCollocation'>SCrom</ROM>
+        <!--Output  type='DataBases'  subtype='HDF5'           >SC_RUN</Output-->
+    </SCRun> 
+</Steps>
+<!--OutStreams>
+  <Screen name="testScreen">
+    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+  </Screen> 
+</OutStreams-->
+
+<DataBases>
+  <HDF5 name='SC_RUN' type='MC'/>
+  <HDF5 name='SC_OUT' type='MC'/>
+</DataBases>
+
+<!--Datas>
+    <Histories name='stories'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+   <Histories name='stories_from_database'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+   </Histories>
+    <TimePointSet name='trainer'          time='end'>
+        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
+        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+    </TimePointSet>
+    <TimePoint    name='form3stories'     time='0.001'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePoint>
+    <TimePoint    name='form1story'       time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePoint>
+    <TimePointSet name='finalPbconverged' time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+    <TimePointSet name='finalLSconverged' time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+    <TimePointSet name='PbfromROM'        time='end'>
+        <Input>pippo,pip,pluto</Input>
+        <Output>cladFailure</Output>
+    </TimePointSet>
+</Datas-->
+</Simulatio>
+
+
+
