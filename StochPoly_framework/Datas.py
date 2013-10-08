@@ -104,7 +104,7 @@ class TimePoint(Data):
       tupleVar = ld().csvLoaderForTimePoint(self.toLoadFromList[0],self.time,self.inputs,self.outputs)
       self.inpParametersValues = tupleVar[0]
       self.outParametersValues = tupleVar[1]
-    
+
 class TimePointSet(Data):
   def addOutput(self,toLoadFrom):
     Data.addOutput(self, toLoadFrom)

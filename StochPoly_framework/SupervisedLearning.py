@@ -99,9 +99,9 @@ class StochasticPolynomials(superVisioned):
 
       self.poly_coeffs={}
       for history in M:
-        self.poly_coeffs[tuple(history[1]['exp order'])]=0
-        for partCoeff in history[1]['partial coeffs']:
-          self.poly_coeffs[tuple(history[1]['exp order'])]+=\
+        self.poly_coeffs[tuple(history[1]['exp_order'])]=0
+        for partCoeff in history[1]['partial_coeffs']:
+          self.poly_coeffs[tuple(history[1]['exp_order'])]+=\
                     history[0][0][solnIndex]*partCoeff
       
       #for key in self.poly_coeffs:

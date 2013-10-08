@@ -189,8 +189,8 @@ class StochasticCollocation(Sampler):
     quad_pt_index = self.quad.quad_pt_index[quad_pts]
     values={'prefix'        :str(self.counter),
             'quad_pts'      :quad_pts,
-            'partial coeffs':self.partCoeffs[quad_pts].values(),
-            'exp order'    :self.quad.quad_pt_index[quad_pts]}
+            'partial_coeffs':self.partCoeffs[quad_pts].values(),
+            'exp_order'    :self.quad.quad_pt_index[quad_pts]}
     #values={}
     #values['prefix']={'counter'       :str(self.counter),
     #                  'quad pts'      :str(quad_pts),

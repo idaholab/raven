@@ -2,7 +2,7 @@
 <Simulatio>
 <RunInfo>
     <WorkingDir>./inputs</WorkingDir>
-    <Files>TMI_PRA_trans_MC_control.py,TMI_test_PRA_transient_less_w.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+    <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd,TMI_PRA_trans_MC_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
     <Sequence>set_up_SC,create_ROM</Sequence>
     <batchSize>8</batchSize>
 </RunInfo>
@@ -28,10 +28,11 @@
 
 <Steps>
     <MultiRun name='set_up_SC'>
-        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w.i</Input>
+        <Input   type='Files'      subtype=''                >TMI.i</Input>
         <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_control.py</Input>
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd</Input>
         <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
         <Sampler type='Samplers'   subtype='StochasticCollocation'>SC</Sampler>
         <Output  type='DataBases'  subtype='HDF5'           >SC_RUN</Output>
