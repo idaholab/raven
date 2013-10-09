@@ -15,7 +15,12 @@
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='2'></MonteCarlo>     
+  <MonteCarlo     name='RAVENmc3'  limit='2'></MonteCarlo>
+  <Custom>
+    <pipe1_Area></pipe1_Area>
+    <pipe1_Dh></pipe1_Dh>
+    <pipe1_Hw></pipe1_Hw>
+  </Custom>
 </Samplers>
 <Steps> 
     <MultiRun name='MC_for_rom_trainer'>
