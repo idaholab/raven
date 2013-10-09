@@ -30,16 +30,16 @@ class Distribution(BaseType):
     self.bestQuad = None
     
   def readMoreXML(self,xmlNode):
+    #this is part of the stochastic collocation sampler not of the distribution!!!!!!
+    #FIXME
     try:
-      type = xmlNode.attrib['ExpansionQuadrature']
-      self.bestQuad = Quadrature.returnInstance(type)
+      QuadType = xmlNode.attrib['ExpansionQuadrature']
+      self.bestQuad = Quadrature.returnInstance(QuadType)
     except:
       pass
-
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
-        
     if xmlNode.find('lowerBound')!=None:
       self.lowerBound = float(xmlNode.find('lowerBound').text)
       self.lowerBoundUsed = True
@@ -94,7 +94,7 @@ class Uniform(Distribution):
     except: raise Exception('low value needed for uniform distribution')
     try: self.hi = float(xmlNode.find('hi').text)
     except: raise Exception('hi value needed for uniform distribution')
-    self.inDistr()
+    self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self,tempDict)
@@ -102,7 +102,7 @@ class Uniform(Distribution):
     tempDict['hi'] = self.hi
     # no other additional parameters required
 
-  def inDistr(self):
+  def initializeDistribution(self):
     self.range=self.hi-self.low
     self.distribution = dist.uniform(loc=self.low,scale=self.range)
     #assign associated polynomial types
@@ -151,14 +151,14 @@ class Normal(Distribution):
     except: raise Exception('mean value needed for normal distribution')
     try: self.sigma = float(xmlNode.find('sigma').text)
     except: raise Exception('sigma value needed for normal distribution')
-    self.inDistr()
+    self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['mean' ] = self.mean
     tempDict['sigma'] = self.sigma
 
-  def inDistr(self):
+  def initializeDistribution(self):
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self.distribution = dist.norm(loc=self.mean,scale=self.sigma)
       self.polynomial = polys.hermitenorm
@@ -207,7 +207,7 @@ class Gamma(Distribution):
     except: raise Exception('alpha value needed for Gamma distribution')
     try: self.beta = float(xmlNode.find('beta').text)
     except: self.beta=1.0
-    self.inDistr()
+    self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self,tempDict)
@@ -215,7 +215,7 @@ class Gamma(Distribution):
     tempDict['alpha'] = self.alpha
     tempDict['beta'] = self.beta
 
-  def inDistr(self):
+  def initializeDistribution(self):
     self.distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
     self.polynomial = polys.genlaguerre
     def norm(n):
@@ -260,7 +260,7 @@ class Beta(Distribution):
     except: raise Exception('alpha value needed for Gamma distribution')
     try: self.beta = float(xmlNode.find('beta').text)
     except: raise Exception('beta value needed for Gamma distribution')
-    self.inDistr()
+    self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self,tempDict)
@@ -269,7 +269,7 @@ class Beta(Distribution):
     tempDict['alpha'] = self.alpha
     tempDict['beta'] = self.beta
 
-  def inDistr(self):
+  def initializeDistribution(self):
     self.distribution = dist.beta(self.alpha,self.beta,scale=self.hi-self.low)
 
 #==========================================================\
@@ -297,7 +297,7 @@ class Triangular(Distribution):
     except: raise Exception('min value needed for normal distribution')
     try: self.max = float(xmlNode.find('max').text)
     except: raise Exception('max value needed for normal distribution')
-    self.inDistr()
+    self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
@@ -305,7 +305,7 @@ class Triangular(Distribution):
     tempDict['min'  ] = self.min
     tempDict['max'  ] = self.max
 
-  def inDistr(self):
+  def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       c = (self.apex-self.min)/(self.max-self.min)
       self.distribution = dist.triang(c,loc=self.min,scale=(self.max-self.min))

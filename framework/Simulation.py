@@ -348,7 +348,7 @@ class Simulation(object):
 #          if self.debug: self.whichDict[b][d].printMe()
       inputDict['jobHandler'] = self.jobHandler
       if 'Sampler' in inputDict.keys():
-        inputDict['Sampler'].fillDistribution(self.DistributionsDict)
+        inputDict['Sampler'].generateDistributions(self.DistributionsDict)
         inputDict['jobHandler'].StartingNewStep()
       stepInstance.takeAstep(inputDict)
       for output in inputDict['Output']:

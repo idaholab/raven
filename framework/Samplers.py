@@ -6,42 +6,43 @@ Created on May 8, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
-
+if not 'xrange' in dir(__builtins__): xrange = range
+try  : import cPickle as pk
+except: import pickle as pk
+#external---------
 import sys
 import time
 import Datas
-from BaseType import BaseType
-import xml.etree.ElementTree as ET
 import os
-#import Queue
 import copy
 import numpy as np
-try:
-  import cPickle as pk
-except:
-  import pickle as pk
+import xml.etree.ElementTree as ET
+from BaseType import BaseType
+#internal----------
 import Quadrature
 import Distributions
 from itertools import product as iterproduct
 
 class Sampler(BaseType):
-  ''' this is the base class for samplers'''
-
+  '''
+  This is the base class for samplers
+  Samplers own the sampling strategy (subtype) and they generate the
+  input values using the associate distribution. They do not have distributions inside!!
+  The calling sequence to use a sampler is:
+  1)self.generateDistributions    -from Simulation- 
+  2)self.initialize               -from Steps at the initialization of a step -
+  3)self.amIreadyToProvideAnInput -from Steps before requesting a new input-
+  4)generateInput/                -from Steps
+  '''
   def __init__(self):
-    BaseType.__init__(self)
-    # Counter of the samples performed
-    self.counter = 0
-    # maximum number of Samples (for example, Montecarlo = Number of Histories to run, DET = Unlimited)
-    self.limit   = sys.maxsize 
-    # Working directory (Path of the directory in which all the outputs,etc. are stored)
-    self.workingDir = ""
-    #  Dictionary of sampling variables.
-    #  key=feature to be sampled, value = ['type of distribution to be used', 'name of the distribution']
-    self.toBeSampled = {}  
-    # Contains the instance of the distribution to be used, it is created every time the sampler is initialize
-    self.distDict    = {}  
+    BaseType.__init__(self) 
+    self.counter      = 0           # Counter of the samples performed. It is reset by calling the function self.initialize
+    self.limit        = sys.maxsize # maximum number of Samples (for example, Montecarlo = Number of Histories to run, DET = Unlimited)
+    self.toBeSampled = {}           # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
+    self.distDict    = {}           # Contains the instance of the distribution to be used, it is created every time the sampler is initialized
+    self.values      = {}           # for each variable the current value {'var name':value}
+    self.inputInfo   = {}           # depending on the sampler several different type of keywarded information could be present only one is mandatory..
+    self.inputInfo['SampledVars'] = self.values
 
   def readMoreXML(self,xmlNode):
     '''
@@ -49,22 +50,18 @@ class Sampler(BaseType):
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
+    The text i supposed to contain the info where and which variable to change.
+    In case of a code the syntax is specified by the code interface itself
     '''
     for child in xmlNode:
-      sampleVar = str(child.text).split(':')
-      #self.toBeSampled[sampleVar[0]] = [child.attrib['type'],child.attrib['distName']]
       self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']]
-      # we try to append the position =>  if the user wants to add a position 
-      #(i.e. word number in a RELAP5 card or array position for RAVEN), the sampledVariable would be 
-      # variableName:position (example wolf:6)
-      #try: self.toBeSampled[sampleVar[0]].append(sampleVar[1])
-      #except: self.toBeSampled[child.text].append(0)   #append a default value of the position
 
   def addInitParams(self,tempDict):
     '''
-    Function adds the initial parameter in a temporary dictionary
-    @ In, tempDict
-    @ Out, tempDict 
+    This function is called from the base class to print some of the information inside the class.
+    Whatever is permanent in the class and not inherited from the parent class should be mentioned here
+    The information is passed back in the dictionary
+    @ In/Out tempDict: {'attribute name':value}
     '''
     for value in self.toBeSampled.items():
       tempDict[value[0]] = value[1][0]+'-'+value[1][1]
@@ -72,56 +69,99 @@ class Sampler(BaseType):
 
   def addCurrentSetting(self,tempDict):
     '''
+    This function is called from the base class to print some of the information inside the class.
+    Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
+    The information is passed back in the dictionary
     Function adds the current settings in a temporary dictionary
     @ In, tempDict
     @ Out, tempDict 
     '''
     tempDict['counter' ] = self.counter
+    for key in self.inputInfo:
+      if key!='SampledVars':tempDict[key] = self.inputInfo[key]
+      else:
+        for var in self.inputInfo['SampledVars'].keys():
+          tempDict['Variable: '+var+' has value']=tempDict[key][var]
 
+  def generateDistributions(self,availableDist):
+    '''used to restart the random number generators of the distributions that will be used
+    @in availableDist: {'distribution name':instance}
+    '''
+    for key in self.toBeSampled.keys():
+      self.distDict[key] = availableDist[self.toBeSampled[key][1]]
+      self.distDict[key].initializeDistribution()
+    return
+   
   def initialize(self):
     '''
-    Function used to initialize the Latin Hyper Cube Sampler
+    This function should be called every time a clean sampler is needed.
+    Place here whatever instruction you need for this purpose
+    the call is performed usually by one of the Steps
     @ In, None
     @ Out, None
     '''
     self.counter = 0
 
   def amIreadyToProvideAnInput(self):
-    '''this check if the sampler is ready to generate a new input
-       it might not since it is waiting for more information or has 
-       run out of limit, depends from the type of sampler'''
-    if(self.counter <= self.limit): return True
-    else: return False
-
-  def fillDistribution(self,availableDist):
-    '''generate the instances of the distribution that will be used'''
-    for key in self.toBeSampled.keys():
-      self.distDict[key] = availableDist[self.toBeSampled[key][1]]
-      self.distDict[key].inDistr()
-    return
-
-  def finalizeActualSampling(self,jobObject,model,myInput):
-    ''' This function is used by samplers that need to finalize the just ended sample
-        For example, In a MonteCarlo simulation it can be used to sample parameters at 
-        the end of a previous calculation in order to make the Model aware of the parameters
-        it needs to change. For a Dynamic Event Tree case, this function can be used to retrieve
-        the information from the just finished run of a branch in order to retrieve, for example,
-        the distribution name that caused the trigger, etc.
     '''
-    pass
+    This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
+    This method act as a semaphore for generating a new input.
+    Reason for not being ready could be for example: exceeding number of samples, waiting for other simulation for providing more information etc. etc.
+    @return Boolean
+    '''
+    if(self.counter <= self.limit): return True
+    else                          : return False
 
-  def generateInput(self):
-    '''override this method to place your input generation'''
-    raise IOError('This sampler has not an input generation?!?!')
-    return
+  def generateInput(self,model,oldInput):
+    '''
+    This method have to be overwrote to provide the specialization for the specific sampler
+    The model instance in might be needed since, especially for external codes, 
+    only the code interface possesses the dictionary for reading the variable definition syntax
+    @in model   : it is the instance of a model
+    @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
+    @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model 
+    '''
+    self.counter += 1
+    self.setInputInfo(model,oldInput)
+    return model.createNewInput(oldInput,self.type,**self.inputInfo)
+
+  def setInputInfo(self,model,oldInput):
+    '''
+    This class need to be overwritten since it is here that the magic of the sampler happens.
+    After this method call the self.inputInfo should be ready to be sent to the model
+    @in model   : it is the instance of a model
+    @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
+    '''
+    raise NotImplementedError('The sampler of type '+self.type+' seems not yet capable to decide how to sample (setInputInfo not yet implemented)')
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None):
-    '''for the first set of run a set of run are started in // so we need more than one input '''
+    '''
+    this function provide a mask to create several inputs at the same time
+    It call the generateInput function as many time as needed
+    @in myInput: [] list containing one input set
+    @in model: instance of a model
+    @in batchSize: integer the number of input sets required
+    @in projector used for adaptive sampling to provide the projection of the solution on the success metric
+    @return newInputs: [[]] list of the list of input sets'''
     newInputs = []
     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
       if projector==None: newInputs.append(self.generateInput(model,myInput))
       else              : newInputs.append(self.generateInput(model,myInput,projector))
     return newInputs
+
+  def finalizeActualSampling(self,jobObject,model,myInput):
+    '''
+    Overwrite only if you need something special at the end of each run....
+    This function is used by samplers that need to collect information from the just ended run
+    For example, for a Dynamic Event Tree case, this function can be used to retrieve
+    the information from the just finished run of a branch in order to retrieve, for example,
+    the distribution name that caused the trigger, etc.
+    It is a essentially a place-holder for most of the sampler to remain compatible with the Steps structure
+    @in jobObject: an instance of a JobHandler
+    @in model    : an instance of a model
+    @in myInput  : the generating input    
+    '''
+    pass
 #
 #
 #
@@ -176,7 +216,7 @@ class StochasticCollocation(Sampler):
       raise IOError('No uncertain variables to sample!')
     return
 
-  def generateInput(self,model,myInput):
+  def setInputInfo(self,model,myInput):
     '''
     Function used to generate an input.
     It returns the model.createNewInput() passing into it the type of sampler,
@@ -184,27 +224,25 @@ class StochasticCollocation(Sampler):
     @ In, model: Model object instance
     @ Out, myInputs: Original input files
     '''
-    print('generate input model:',model)
-    self.counter+=1
+    if self.debug: print('generate input model:',model)
     quad_pts=self.quad.quad_pts[self.counter-1]
     quad_pt_index = self.quad.quad_pt_index[quad_pts]
-    values={'prefix'        :str(self.counter),
-            'quad_pts'      :quad_pts,
-            'partial coeffs':self.partCoeffs[quad_pts].values(),
-            'exp order'    :self.quad.quad_pt_index[quad_pts]}
+    self.inputInfo['prefix'  ]       = str(self.counter)
+    self.inputInfo['quad_pts']       = quad_pts
+    self.inputInfo['partial coeffs'] = self.partCoeffs[quad_pts].values()
+    self.inputInfo['exp order']      = self.quad.quad_pt_index[quad_pts]
     #values={}
     #values['prefix']={'counter'       :str(self.counter),
     #                  'quad pts'      :str(quad_pts),
     #                  'partial coeffs':str(self.partCoeffs[quad_pts])}
     #values['prefix']=(('counter'   ,'quad pts','partial coeffs'),
     #                  (self.counter, quad_pts,str(self.partCoeffs[quad_pts].values())))
-    values['vars']={}
     # TODO would be beneficial to pass the orders of quad pt, too?
     for var in self.distDict.keys():
-      values['vars'][var]=self.distDict[var].actual_point(\
+      self.inputInfo['SampledVars'][var]=self.distDict[var].actual_point(\
           quad_pts[self.quad.dict_quads[self.quad.quads[var]]])
       #print('run',self.counter,'for var '+var+' set value',values['vars'][var])
-    return model.createNewInput(myInput,self.type,**values)
+    return
 
   def generateQuadrature(self):
     quads={}
@@ -231,7 +269,7 @@ class StochasticCollocation(Sampler):
         # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
     return
 
-  def fillDistribution(self,availableDist):
+  def initializeDistributions(self,availableDist):
     '''generate the instances of the distribution that will be used'''
     self.availableDist = availableDist
     for key in self.toBeSampled.keys():
@@ -247,8 +285,7 @@ class MonteCarlo(Sampler):
   '''
   def __init__(self):
     Sampler.__init__(self)
-    self.limit       = 0        #maximum number of samples it will perform every time it is used
-    self.init_seed   = 0
+    self.init_seed   = 0  # the initial seed
 
   def readMoreXML(self,xmlNode):
     '''
@@ -257,13 +294,11 @@ class MonteCarlo(Sampler):
     @ In, xmlNode    : Xml element node
     @ Out, None
     '''
+    Sampler.readMoreXML(self, xmlNode)
     try: self.init_seed    = xmlNode.attrib['initial_seed']
     except: self.init_seed = 0 
     try: self.limit    = int(xmlNode.attrib['limit'])
     except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
-    #  stores variables for random sampling  added by nieljw to allow for RELAP5 
-    self.variables={}
-    Sampler.readMoreXML(self, xmlNode)
 
   def addInitParams(self,tempDict):
     '''
@@ -274,20 +309,16 @@ class MonteCarlo(Sampler):
     Sampler.addInitParams(self,tempDict)
     tempDict['initial seed' ] = self.init_seed
 
-  def generateInput(self,model,myInput):
+  def setInputInfo(self,model,myInput):
     '''
     Function used to generate an input 
     @ In, model: Model object instance
     @ Out, myInputs: Original input files
     '''
-    self.counter += 1
-    #evaluate the distributions and fill values{}
-    sampledVar = {}
-    for key in self.distDict: sampledVar[key]=self.distDict[key].distribution.rvs()
+    for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
     # create values dictionary
-    values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed),'sampledVars':sampledVar}
-       #values[key]={'value':value,'position':self.toBeSampled[key][2]}
-    return model.createNewInput(myInput,self.type,**values)
+    self.inputInfo['prefix'      ] = str(self.counter)
+    self.inputInfo['initial_seed'] = str(self.init_seed)
 #
 #
 #
@@ -358,7 +389,7 @@ class LatinHyperCube(Sampler):
             upperBound = self.distDict[distName].ppt(float((indexInterval)/self.limit))
             self.grid[j].distBounds[distName] = [lowerBound,upperBound]
 
-  def generateInput(self,model,myInput):
+  def setInputInfo(self,model,myInput):
     '''
     Function used to generate an input.
     It returns the model.createNewInput() passing into it the type of sampler,
@@ -366,20 +397,22 @@ class LatinHyperCube(Sampler):
     @ In, model: Model object instance
     @ Out, myInputs: Original input files
     '''
-    # increase the counter
-    self.counter += 1
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored    
-    values = {'prefix':str(self.counter),'initial_seed':str(self.init_seed)}
+    self.inputInfo['prefix']=str(self.counter)
+    self.inputInfo['initial_seed']=str(self.init_seed)
     # evaluate the distributions and put the results into values
+    lower = {}
+    upper = {}
     for key in self.distDict:
-      upper = self.grid[self.counter][key][1]
-      lower = self.grid[self.counter][key][1]
-      values[key] = [self.distDict[key].distribution.rvsWithinbounds(lower,upper),lower,upper]
-      lower[key+' upper'] = [lower]
-      upper[key+' upper'] = [upper]
-    info = {'sampledVars':values,'lower':lower,'upper':upper}
-    return model.createNewInput(myInput,self.type,**info)
+      upperVal = self.grid[self.counter][key][1]
+      lowerVal = self.grid[self.counter][key][1]
+      self.values[key] = self.distDict[key].distribution.rvsWithinbounds(lower,upper)
+      lower[key+' upper'] = upperVal
+      upper[key+' upper'] = lowerVal
+    self.inputInfo['upper'] = upper
+    self.inputInfo['lower'] = lower
+    return
 #
 #
 #
@@ -391,12 +424,63 @@ class EquallySpaced(Sampler):
 #
 #
 #
+class Custom(Sampler):
+  '''Samples the model on a given (by input) set of points
+  This class is quite different from the base one
+  self.toBeSampled: {}'''
+  def __init__(self):
+    Sampler.__init__(self)
+    self.gridType = ''
+    
+  def readMoreXML(self,xmlNode):
+    '''
+    the reading here reads also the values to use
+    '''
+    Sampler.readMoreXML(xmlNode)
+    try: self.gridType    = xmlNode.attrib['gridType']
+    except: raise IOError('It should be declared if grid is in probability or real values')
+    if self.gridType != 'Values' and self.gridType != 'Probability': raise IOError ('grid type could be only Values or Probability')
+#    for child in xmlNode:
+      
+#      self.toBeSampled[child.text] = 
+    
+    #  stores variables for random sampling  added by nieljw to allow for RELAP5 
+#    self.variables={}
+#    Sampler.readMoreXML(self, xmlNode)
+
+  def addInitParams(self,tempDict):
+    '''
+    Function adds the initial parameter in a temporary dictionary
+    @ In, tempDict
+    @ Out, tempDict 
+    '''
+    Sampler.addInitParams(self,tempDict)
+    tempDict['sampling is equally space in' ] = self.gridType
+    
+
+  def setInputInfo(self,model,myInput):
+    '''
+    Function used to generate an input 
+    @ In, model: Model object instance
+    @ Out, myInputs: Original input files
+    '''
+    for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
+    # create values dictionary
+    self.inputInfo['prefix'      ] = str(self.counter)
+    self.inputInfo['initial_seed'] = str(self.init_seed)
+
+#
+#
+#
 class DynamicEventTree(Sampler):
   '''
   DYNAMIC EVEN TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET      ) :D
   '''
   def __init__(self):
     Sampler.__init__(self)
+    
+    # Working directory (Path of the directory in which all the outputs,etc. are stored)
+    self.workingDir = ""       
 
     # (optional) if not present, the sampler will not change the relative keyword in the input file
     self.maxSimulTime            = None  
@@ -900,18 +984,26 @@ class DynamicEventTree(Sampler):
     # branchings and we store them
     self.TreeInfo = ET.ElementTree(elm)
 
+
+base = 'Sampler'
+_InterfaceDict = {}
+_InterfaceDict['MonteCarlo'            ] = MonteCarlo
+_InterfaceDict['LatinHyperCube'        ] = LatinHyperCube
+_InterfaceDict['EquallySpaced'         ] = EquallySpaced
+_InterfaceDict['DynamicEventTree'      ] = DynamicEventTree
+_InterfaceDict['StochasticCollocation' ] = StochasticCollocation
+
 def returnInstance(Type):
   '''
   function used to generate a Sampler class
   @ In, Type : Sampler type
   @ Out,Instance of the Specialized Sampler class
   '''
-  base = 'Sampler'
-  InterfaceDict = {}
-  InterfaceDict['MonteCarlo'            ] = MonteCarlo
-  InterfaceDict['LatinHyperCube'        ] = LatinHyperCube
-  InterfaceDict['EquallySpaced'         ] = EquallySpaced
-  InterfaceDict['DynamicEventTree'      ] = DynamicEventTree
-  InterfaceDict['StochasticCollocation' ] = StochasticCollocation
-  try: return InterfaceDict[Type]()
+  try: return _InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
+
+def mandatoryInputs(Type):
+  pass
+
+def optionalInputs(Type):
+  pass 
