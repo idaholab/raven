@@ -75,20 +75,16 @@ class StochasticPolynomials(superVisioned):
     self.solns={}
     
     if data.type=='HDF5':
-      #attr={'filter':['prefix','quad_pts','partial coeffs']}
-      #attr={'prefix':None,'quad_pts':None,'partial coeffs':None}
       attr={}
       hists=data.getEndingGroupNames()
       M=[]
       for i,h in enumerate(hists):
         if h=='':continue
-        #print('h is',h)
         attr['history']=h
         M.append(data.returnHistory(attr))
-      #print('Items in HDF5:',len(M[-1][1]['headers']))
-      #print('\nvalues:',M[0][1]['quad_pts'])
 
       # How to get specific values from solution?
+#TODO this should be an input on the front end; the user should choose the index
       solnIndex=numpy.where(M[0][1]['headers']=='avg_out_temp_sec_A')
 
 
@@ -104,31 +100,10 @@ class StochasticPolynomials(superVisioned):
           self.poly_coeffs[tuple(history[1]['exp_order'])]+=\
                     history[0][0][solnIndex]*partCoeff
       
-      #for key in self.poly_coeffs:
-      #  print(key,self.poly_coeffs[key])
-
-
-      #self.poly_coeffs={}
-      #dictQpCoeffs=pk.load(file('SCweights.pk','r')) take from hdf5
-      #for ords in dictQpCoeffs.keys():
-      #  self.poly_coeffs[ords]=0
-      #  for qp in dictQpCoeffs[ords].keys():
-      #    self.poly_coeffs[ords]+=dictQpCoeffs[ords][qp]*soln[qp]
       print('StochasticPolynomials ROM successfully trained.')
     else:
       print('Reading from non-HDF5 for StochPolys not supported yet...')
     return
-    # loop over all possible combinations of expansion orders in each var
-    #for ords in list(product(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
-    #  self.poly_coeffs[ords]=0
-    #  for qp in quad.indx_ord.keys(): #quadrature points
-    #    poly=wt=probNorm=1.
-    #    for v,var in enumerate(self.distDict):
-    #      poly*=self.distDict[var].quad().evNormPoly(ords[v],qp[v])
-    #      wt*=self.distDict[var].standardToActualWeight(qp2wt[qp[v]])
-    #      #TODO assumes standardToActualWeight is a linear transformation!
-    #      probNorm*=self.distDict[var].probNorm(qp[v])
-    #    self.poly_coeffs[ords]+=solns[qp]*wt*poly*probNorm
 
   def evaluate(self,valDict):
     # valDict is dict of values to evaluate at, keyed on var

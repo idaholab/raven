@@ -13,7 +13,7 @@ from Simulation import Simulation
 import sys
 #import matplotlib.pyplot as plt #FIXME
 
-debug = True
+debug = False
 
 if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''

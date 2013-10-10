@@ -36,7 +36,7 @@ class MOOSEparser:
         else:
 #          name = line.strip(b'[').strip(b']').strip(b'../')
           name = line[line.index(b'[')+1:line.index(b']')].strip(b'../').strip(b'./')
-          print(name)
+          #print(name)
           parents.append(current)
           current      = ET.SubElement(current,name)
           current.tail = []

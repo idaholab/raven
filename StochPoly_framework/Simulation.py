@@ -268,7 +268,7 @@ class Simulation:
   def readRunInfo(self,xmlNode):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
-      print(element.tag)
+      #print(element.tag)
       if   element.tag == 'WorkingDir'        :
         temp_name = element.text
         if os.path.isabs(temp_name):
