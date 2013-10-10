@@ -48,14 +48,23 @@ class Data(BaseType):
     return tempDict
   
   def addSpecializedReadingSettings(self):
+    '''
+      This function is used to add specialized attributes to the data in order to retrieve the data properly.
+      Every specialized data needs to overwrite it!!!!!!!!
+    '''
     raise NotImplementedError('The data of type '+self.type+' seems not to have a addSpecializedReadingSettings method overloaded!!!!')
 
   def checkConsistency(self):
+    '''
+      This function checks the consistency of the data structure... every specialized data needs to overwrite it!!!!!
+    '''
     raise NotImplementedError('The data of type '+self.type+' seems not to have a checkConsistency method overloaded!!!!')
 
   def addOutput(self,toLoadFrom):
-    # this function adds the file name/names to the
-    # filename list
+    ''' 
+        this function adds the file name/names/object to the
+        filename list + it calls the specialized functions to retrieve the differen data
+    '''
     print('DATAS       : toLoadFrom -> ')
     print(toLoadFrom)
     self.toLoadFromList.append(toLoadFrom)
@@ -89,12 +98,11 @@ class Data(BaseType):
 class TimePoint(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
-    try:    
-      if('HDF5' in self.toLoadFromList[0].type):
-         if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
-         self.dataParameters['filter'] = "whole"
-    except: 
-      pass
+    try: sourceType = self.toLoadFromList[0].type
+    except: sourceType = None
+    if('HDF5' == sourceType):
+      if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
+      self.dataParameters['filter'] = "whole"
 
   def checkConsistency(self):
     '''
@@ -110,27 +118,28 @@ class TimePoint(Data):
 class TimePointSet(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
-    try:    
-      if('HDF5' in self.toLoadFromList[0].type):
-         self.dataParameters['histories'] = self.toLoadFromList[0].getEndingGroupNames()
-         self.dataParameters['filter'   ] = "whole"
-    except: 
-      pass
+    try: sourceType = self.toLoadFromList[0].type
+    except: sourceType = None
+    if('HDF5' == sourceType):
+      self.dataParameters['histories'] = self.toLoadFromList[0].getEndingGroupNames()
+      self.dataParameters['filter'   ] = "whole"
 
   def checkConsistency(self):
     '''
       Here we perform the consistency check for the structured data TimePointSet
     '''
-    try:    
-      if('HDF5' in self.toLoadFromList[0].type):
-        eg = self.toLoadFromList[0].getEndingGroupNames()
-        for key in self.inpParametersValues.keys():
-          if (self.inpParametersValues[key].size) != len(eg):
-            raise NotConsistentData('The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.inParametersValues[key].size))
-        for key in self.outParametersValues.keys():
-          if (self.outParametersValues[key].size) != len(eg):
-            raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.outParametersValues[key].size))
-    except: 
+    
+    try:   sourceType = self.toLoadFromList[0].type
+    except:sourceType = None
+    if('HDF5' == sourceType):
+      eg = self.toLoadFromList[0].getEndingGroupNames()
+      for key in self.inpParametersValues.keys():
+        if (self.inpParametersValues[key].size) != len(eg):
+          raise NotConsistentData('The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.inParametersValues[key].size))
+      for key in self.outParametersValues.keys():
+        if (self.outParametersValues[key].size) != len(eg):
+          raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.outParametersValues[key].size))
+    else: 
       for key in self.inpParametersValues.keys():
         if (self.inpParametersValues[key].size) != len(self.toLoadFromList):
           raise NotConsistentData('The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.inParametersValues[key].size))
@@ -141,12 +150,11 @@ class TimePointSet(Data):
 class History(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
-    try:    
-      if('HDF5' in self.toLoadFromList[0].type):
-         if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR: In order to create a History data, history name must be provided')
-         self.dataParameters['filter'] = "whole"
-    except: 
-      pass
+    try: sourceType = self.toLoadFromList[0].type
+    except: sourceType = None
+    if('HDF5' == sourceType):
+      if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR: In order to create a History data, history name must be provided')
+      self.dataParameters['filter'] = "whole"
 
   def checkConsistency(self):
     '''
@@ -163,22 +171,23 @@ class History(Data):
 class Histories(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
-    try:    
-      if('HDF5' in self.toLoadFromList[0].type):
-         self.dataParameters['filter'   ] = "whole"
-    except: 
-      pass
+    try: sourceType = self.toLoadFromList[0].type
+    except: sourceType = None
+    if('HDF5' == sourceType):
+      self.dataParameters['filter'   ] = "whole"
 
   def checkConsistency(self):
     '''
       Here we perform the consistency check for the structured data Histories
     '''
-    try:    
-      if('HDF5' in self.toLoadFromList[0].type):
-        eg = self.toLoadFromList[0].getEndingGroupNames()
-        if(len(eg) != len(self.inpParametersValues.keys())):
-          raise NotConsistentData('Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self.inpParametersValues.keys())))
-    except:
+    try: sourceType = self.toLoadFromList[0].type
+    except: sourceType = None
+    
+    if('HDF5' == sourceType):
+      eg = self.toLoadFromList[0].getEndingGroupNames()
+      if(len(eg) != len(self.inpParametersValues.keys())):
+        raise NotConsistentData('Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self.inpParametersValues.keys())))
+    else:
       if(len(self.toLoadFromList) != len(self.inpParametersValues.keys())):
         raise NotConsistentData('Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self.toLoadFromList)) + ' !=' + str(len(self.inpParametersValues.keys())))
     for key in self.inpParametersValues.keys():
