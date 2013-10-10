@@ -40,6 +40,15 @@ class Data(BaseType):
         try:   self.dataParameters['time'] = float(time)
         except:self.dataParameters['time'] = float(time.split(','))
     except:self.dataParameters['time'] = None
+    
+    try:
+      self.print_CSV = xmlNode.attrib['printCSV']    
+    except:self.print_CSV = False
+    
+    try:
+      self.CSVfilename = xmlNode.attrib['CSVfilename']    
+    except:self.CSVfilename = None
+    
 
   def addInitParams(self,tempDict):
     for i in range(len(self.dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self.dataParameters['inParam' ][i]
@@ -60,6 +69,19 @@ class Data(BaseType):
     '''
     raise NotImplementedError('The data of type '+self.type+' seems not to have a checkConsistency method overloaded!!!!')
 
+  def printCSV(self):
+    # print content of data in a .csv format
+    print('=======================')
+    print('DATAS: print on file(s)')
+    print('=======================')
+    
+    if (self.print_CSV):
+      if (self.CSVfilename):
+        filenameLocal = self.CSVfilename
+      else:
+        filenameLocal = self.name + '_dump.csv'
+      self.specializedPrintCSV(filenameLocal)
+
   def addOutput(self,toLoadFrom):
     ''' 
         this function adds the file name/names/object to the
@@ -78,6 +100,9 @@ class Data(BaseType):
     self.inpParametersValues = tupleVar[0]
     self.outParametersValues = tupleVar[1]
     self.checkConsistency()
+    
+    self.printCSV()
+    
     return
 
   def getInpParametersValues(self):
@@ -94,7 +119,7 @@ class Data(BaseType):
       if keyword in self.outParametersValues.keys(): return self.outParametersValues[keyword]    
       else: raise Exception("parameter " + keyword + " not found in outParametersValues dictionary. Function: Data.getParam")
     else: raise Exception("type " + typeVar + " is not a valid type. Function: Data.getParam")
-
+    
 class TimePoint(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
@@ -115,6 +140,33 @@ class TimePoint(Data):
       if (self.outParametersValues[key].size) != 1:
         raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.outParametersValues[key])))
 
+  def specializedPrintCSV(self,filenameLocal):
+    file = open(filenameLocal + '.csv', 'wb')
+    
+    #Print input values
+    inpKeys   = self.inpParametersValues.keys()
+    inpValues = self.inpParametersValues.values()
+    for i in range(len(inpKeys)):
+      file.write(inpKeys[i] + ',')
+    file.write('\n')
+    
+    for i in range(len(inpKeys)):
+      file.write(str(inpValues[i]) + ',')
+    file.write('\n')
+    
+    #Print time + output values
+    outKeys   = self.outParametersValues.keys()
+    outValues = self.outParametersValues.values()
+    for i in range(len(outKeys)):
+      file.write(outKeys[i] + ',')
+    file.write('\n')
+    
+    for i in range(len(outKeys)):
+      file.write(str(outValues[i]) + ',')
+    file.write('\n')
+    
+    file.close()
+    
 class TimePointSet(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
@@ -147,6 +199,38 @@ class TimePointSet(Data):
         if (self.outParametersValues[key].size) != len(self.toLoadFromList):
           raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.outParametersValues[key].size))
 
+  def specializedPrintCSV(self,filenameLocal): 
+    
+    inpKeys   = self.inpParametersValues.keys()
+    inpValues = self.inpParametersValues.values()
+    
+    outKeys   = self.outParametersValues.keys()
+    outValues = self.outParametersValues.values()
+    
+    for j in range(outValues[0].size):
+      file = open(filenameLocal + '_'+ str(j) + '.csv', 'wb')
+      
+      for i in range(len(inpKeys)):
+        file.write(inpKeys[i] + ',')
+      file.write('\n')
+      
+      for i in range(len(inpKeys)):
+        file.write(str(inpValues[i][j]) + ',')
+      file.write('\n')
+      
+      #Print time + output values
+
+      for i in range(len(outKeys)):
+        file.write(outKeys[i] + ',')
+      file.write('\n')
+      
+      for i in range(len(outKeys)):
+        file.write(str(outValues[i][j]) + ',')
+      file.write('\n')
+      
+      file.close()
+
+
 class History(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
@@ -167,7 +251,34 @@ class History(Data):
       if (self.outParametersValues[key].ndim) != 1:
         raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self.outParametersValues[key].ndim))
 
+  def specializedPrintCSV(self,filenameLocal):
+    file = open(filenameLocal + '.csv', 'wb')
+    
+    #Print input values
+    inpKeys   = self.inpParametersValues.keys()
+    inpValues = self.inpParametersValues.values()
+    for i in range(len(inpKeys)):
+      file.write(inpKeys[i] + ',')
+    file.write('\n')
+    
+    for i in range(len(inpKeys)):
+      file.write(str(inpValues[i]) + ',')
+    file.write('\n')
+    
+    #Print time + output values
+    outKeys   = self.outParametersValues.keys()
+    outValues = self.outParametersValues.values()
+    for i in range(len(outKeys)):
+      file.write(outKeys[i] + ',')
+    file.write('\n')
 
+    for j in range(outValues[0].size):
+      for i in range(len(outKeys)):
+        file.write(str(outValues[i][j]) + ',')
+      file.write('\n')
+    
+    file.close()
+    
 class Histories(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
@@ -198,7 +309,44 @@ class Histories(Data):
       for key2 in self.outParametersValues[key].keys():
         if (self.outParametersValues[key][key2].ndim) != 1:
           raise NotConsistentData('The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self.outParametersValues[key][key2].ndim))
-   
+
+  def specializedPrintCSV(self,filenameLocal):
+    
+    inpKeys   = self.inpParametersValues.keys()
+    inpValues = self.inpParametersValues.values()
+    outKeys   = self.outParametersValues.keys()
+    outValues = self.outParametersValues.values()
+    
+    for n in range(len(outKeys)):
+      file = open(filenameLocal + '_'+ str(n) + '.csv', 'wb')
+  
+      inpKeys_h   = inpValues[n].keys()
+      inpValues_h = inpValues[n].values()
+      outKeys_h   = outValues[n].keys()
+      outValues_h = outValues[n].values()
+
+
+      for i in range(len(inpKeys_h)):
+        file.write(inpKeys_h[i] + ',')
+      file.write('\n')
+      
+      for i in range(len(inpKeys_h)):
+        file.write(str(inpValues_h[i]) + ',')
+      file.write('\n')
+      
+      #Print time + output values
+      for i in range(len(outKeys_h)):
+        file.write(outKeys_h[i] + ',')
+      file.write('\n')
+  
+      for j in range(outValues_h[0].size):
+        for i in range(len(outKeys_h)):
+          file.write(str(outValues_h[i][j]) + ',')
+        file.write('\n')    
+      
+      file.close()
+      
+        
 def returnInstance(Type):
   base = 'Data'
   InterfaceDict = {}
