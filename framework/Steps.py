@@ -209,7 +209,7 @@ class InOutFromDataBase(Step):
   def initializeStep(self,inDictionary):
     avail_out = 'TimePoint-TimePointSet-History-Histories'
     print('STEPS         : beginning of step named: ' + self.name)
-    self.initializeStep(inDictionary)
+    #self.initializeStep(inDictionary)
     # check if #inputs == #outputs
     if len(inDictionary['Input']) != len(inDictionary['Output']):
       raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')

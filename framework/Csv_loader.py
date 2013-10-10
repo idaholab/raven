@@ -66,8 +66,28 @@ class CsvLoader:
           NtimeSteps = countTimeSteps
     return (NtimeSteps,maxNumOfParams,NSamples)  
  
+  def csvLoadData(self,filein,options):
+    if   options['type'] == 'TimePoint':
+      return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'])
+    elif options['type'] == 'TimePointSet':
+      return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'])
+    elif options['type'] == 'History':
+      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'])
+    elif options['type'] == 'Histories':
+      listhist_in  = {}
+      listhist_out = {}
+      for index in xrange(len(filein)):
+        tupleVar = self.__csvLoaderForHistory(filein[index],options['time'],options['inParam'],options['outParam'])
+        # dictionary of dictionary key = i => ith history ParameterValues dictionary
+        listhist_in[index]  = tupleVar[0]
+        listhist_out[index] = tupleVar[1]
+        del tupleVar
+      return(listhist_in,listhist_out)
+    else:
+      raise IOError ('CSV LOADER : ******ERROR Type ' + options['type'] + 'unknown')
+    
   # loader for time point data type
-  def csvLoaderForTimePoint(self,filein,time,inParam,outParam):
+  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam):
     '''
     filein = file name
     time   = time
@@ -81,7 +101,7 @@ class CsvLoader:
     else:
       self.all_out_param = False
     
-    if time == 'end':
+    if (time == 'end') or (not time):
       time_end = True
       time_float = -1.0
     else:
@@ -154,7 +174,7 @@ class CsvLoader:
                 raise Exception("ERROR: the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def csvLoaderForTimePointSet(self,filesin,time,inParam,outParam):
+  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam):
     '''
     loader for time point set data type
     filesin = file names
@@ -167,7 +187,7 @@ class CsvLoader:
     else:
       self.all_out_param = False
     
-    if time == 'end':
+    if (time == 'end') or (not time):
       time_end = True
       time_float = -1.0
     else:
@@ -269,7 +289,7 @@ class CsvLoader:
       del data 
     return (inDict,outDict)
 
-  def csvLoaderForHistory(self,filein,time,inParam,outParam):
+  def __csvLoaderForHistory(self,filein,time,inParam,outParam):
     '''
     loader for history data type
     filein = file name

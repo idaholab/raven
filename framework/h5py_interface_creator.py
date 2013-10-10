@@ -19,7 +19,7 @@ from utils import *
   *  HDF5 DATABASE CLASS  *
   *************************
 '''
-class hdf5Database:
+class hdf5Database(object):
     '''
     class to create a h5py (hdf5) database
     '''
@@ -177,8 +177,7 @@ class hdf5Database:
       # If so, error (Deleting already present information is not desiderable) 
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
-        if gname in comparisonName:
-          raise IOError("Group named " + gname + " already present in database " + self.name)
+        if gname in comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
       if source['type'] == 'csv':
         # Source in CSV format
         f = open(source['name'],'rb')
@@ -200,34 +199,28 @@ class hdf5Database:
               parent_group_name = self.allGroupPaths[index]
               break
           # Retrieve the parent group from the HDF5 database
-          if parent_group_name in self.h5_file_w:
-            rootgrp = self.h5_file_w.require_group(parent_group_name)
-          else:
-            raise ValueError("NOT FOUND group named " + parent_group_name)
+          if parent_group_name in self.h5_file_w: rootgrp = self.h5_file_w.require_group(parent_group_name)
+          else: raise ValueError("NOT FOUND group named " + parent_group_name)
           grp = rootgrp.create_group(gname)
-        else:
-          grp = self.h5_file_w.create_group(gname)
+        else: grp = self.h5_file_w.create_group(gname)
 
         print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
         # Create dataset in this newly added group
         dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
         # Add metadata
-        grp.attrs["headers"]    = headers
-        grp.attrs["n_params"]   = data[0,:].size
-        grp.attrs["parent_id"]  = "root"
+        grp.attrs["headers"   ] = headers
+        grp.attrs["n_params"  ] = data[0,:].size
+        grp.attrs["parent_id" ] = "root"
         grp.attrs["start_time"] = data[0,0]
-        grp.attrs["end_time"]   = data[data[:,0].size-1,0]
-        grp.attrs["n_ts"]       = data[:,0].size
-        grp.attrs["EndGroup"]   = True
+        grp.attrs["end_time"  ] = data[data[:,0].size-1,0]
+        grp.attrs["n_ts"      ] = data[:,0].size
+        grp.attrs["EndGroup"  ] = True
         #FIXME should all the exceptions below be except KeyError to allow for other errors to break code?
-        try:
-          grp.attrs["input_file"] = attributes["input_file"]
-        except:
-          pass        
+        try: grp.attrs["input_file"] = attributes["input_file"]
+        except: pass        
         grp.attrs["source_type"] = source['type']
             
-        if source['type'] == 'csv':
-          grp.attrs["source_file"] = source['name']
+        if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
 
         #look for keyword attributes from the sampler
         attempt_attr= {'branch_changed_param'      :'branch_changed_param',
@@ -240,11 +233,63 @@ class hdf5Database:
                        'exp_order'                 :'exp_order',
                        }
         for attr in attempt_attr.keys():
-          try:
-            grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
-            #grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
-          except KeyError:
-            pass
+          try: grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
+          except KeyError: pass
+      elif source['type'] == 'Datas':
+        # get input parameters
+        inputSpace  = source['name'].getInpParametersValues()
+        outputSpace = source['name'].getOutParametersValues()
+        # Retrieve the headers from the data (inputs and outputs)
+        headers_in  = inputSpace.keys()
+        headers_out = outputSpace.keys()
+        #print(repr(headers))
+        # Load the csv into a numpy array(n time steps, n parameters) 
+        data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
+        # First parent group is the root name
+        parent_name = self.parent_group_name.replace('/', '')
+        # Create the group
+        if parent_name != '/':
+          parent_group_name = '-$' # control variable
+          for index in xrange(len(self.allGroupPaths)):
+            test_list = self.allGroupPaths[index].split('/')
+            if test_list[len(test_list)-1] == parent_name:
+              parent_group_name = self.allGroupPaths[index]
+              break
+          # Retrieve the parent group from the HDF5 database
+          if parent_group_name in self.h5_file_w: rootgrp = self.h5_file_w.require_group(parent_group_name)
+          else: raise ValueError("NOT FOUND group named " + parent_group_name)
+          grp = rootgrp.create_group(gname)
+        else: grp = self.h5_file_w.create_group(gname)
+
+        print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
+        # Create dataset in this newly added group
+        dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
+        # Add metadata
+        grp.attrs["headers"   ] = headers
+        grp.attrs["n_params"  ] = data[0,:].size
+        grp.attrs["parent_id" ] = "root"
+        grp.attrs["start_time"] = data[0,0]
+        grp.attrs["end_time"  ] = data[data[:,0].size-1,0]
+        grp.attrs["n_ts"      ] = data[:,0].size
+        grp.attrs["EndGroup"  ] = True
+        #FIXME should all the exceptions below be except KeyError to allow for other errors to break code?
+        try: grp.attrs["input_file"] = attributes["input_file"]
+        except: pass        
+        grp.attrs["source_type"] = source['type']
+        if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
+        #look for keyword attributes from the sampler
+        attempt_attr= {'branch_changed_param'      :'branch_changed_param',
+                       'branch_changed_param_value':'branch_changed_param_value',
+                       'conditional_prb'           :'conditional_prb',
+                       'initiator_distribution'    :'initiator_distribution',
+                       'Probability_threshold'     :'PbThreshold',
+                       'quad_pts'                  :'quad_pts',
+                       'partial_coeffs'            :'partial_coeffs',
+                       'exp_order'                 :'exp_order',
+                       }
+        for attr in attempt_attr.keys():
+          try: grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
+          except KeyError: pass
       else:
         # do something else
         pass
@@ -276,10 +321,8 @@ class hdf5Database:
         # Check if the parent attribute is not null
         # In this case append a subgroup to the parent group
         # Otherwise => it's the main group
-        try:
-          parent_name = attributes["parent_id"]
-        except:
-          raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
+        try: parent_name = attributes["parent_id"]
+        except: raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
         # Find parent group path
         if parent_name != '/':
           for index in xrange(len(self.allGroupPaths)):
@@ -287,75 +330,44 @@ class hdf5Database:
             if test_list[len(test_list)-1] == parent_name:
               parent_group_name = self.allGroupPaths[index]
               break
-        else:
-          parent_group_name = parent_name   
+        else: parent_group_name = parent_name   
         # Retrieve the parent group from the HDF5 database
-        if parent_group_name in self.h5_file_w:
-          grp = self.h5_file_w.require_group(parent_group_name)
-        else:
-          raise ValueError("NOT FOUND group named " + parent_group_name)  
+        if parent_group_name in self.h5_file_w: grp = self.h5_file_w.require_group(parent_group_name)
+        else: raise ValueError("NOT FOUND group named " + parent_group_name)  
         # The parent group is not the endgroup for this branch
         self.allGroupEnds[parent_group_name] = False
         grp.attrs["EndGroup"]   = False
-               
         print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
         # Create the sub-group
         sgrp = grp.create_group(gname)
         # Create data set in this new group
         dataset = sgrp.create_dataset(gname+"_data", dtype="float", data=data)
         # Add the metadata
-        sgrp.attrs["headers"]    = headers
-        sgrp.attrs["n_params"]   = data[0,:].size
-        sgrp.attrs["parent"]     = "root"
+        sgrp.attrs["headers"   ] = headers
+        sgrp.attrs["n_params"  ] = data[0,:].size
+        sgrp.attrs["parent"    ] = "root"
         sgrp.attrs["start_time"] = data[0,0]
-        sgrp.attrs["end_time"]   = data[data[:,0].size-1,0]
-        sgrp.attrs["n_ts"]       = data[:,0].size
-        sgrp.attrs["EndGroup"]   = True
+        sgrp.attrs["end_time"  ] = data[data[:,0].size-1,0]
+        sgrp.attrs["n_ts"      ] = data[:,0].size
+        sgrp.attrs["EndGroup"  ] = True
 
-        try:
-          # Add input files
-          sgrp.attrs["input_file"] = attributes["input_file"]
-        except:
-          pass
+        try: sgrp.attrs["input_file"] = attributes["input_file"]
+        except: pass
         sgrp.attrs["source_type"] = source['type']
-        if source['type'] == 'csv':
-          sgrp.attrs["source_file"] = source['name']
-        try:
-          # parameter that has been changed
-          sgrp.attrs["branch_changed_param"] = attributes["branch_changed_param"]
-          testget = sgrp.attrs["branch_changed_param"]
-        except:
-          # no branching information
-          pass
-        try:
-          # parameter that caused the branching 
-          sgrp.attrs["branch_changed_param_value"] = attributes["branch_changed_param_value"]
-        except:
-          # no branching information
-          pass        
-        try:
-          sgrp.attrs["conditional_prb"] = attributes["conditional_prb"]
-        except:
-          # no branching information => i.e. MonteCarlo data
-          pass
-        try:
-          # initiator distribution
-          sgrp.attrs["initiator_distribution"] = attributes["initiator_distribution"]
-        except:
-          # no branching information
-          pass        
-        try:
-          # initiator distribution Prbability Threshold
-          sgrp.attrs["Probability_threshold"] = attributes["PbThreshold"]
-        except:
-          # no branching information
-          pass
-        try:
-          # End time step
-          sgrp.attrs["end_timestep"] = attributes["end_ts"]
-        except:
-          # no branching information
-          pass        
+        if source['type'] == 'csv': sgrp.attrs["source_file"] = source['name']
+        #look for keyword attributes from the sampler
+        attempt_attr= {'branch_changed_param'      :'branch_changed_param',
+                       'branch_changed_param_value':'branch_changed_param_value',
+                       'conditional_prb'           :'conditional_prb',
+                       'initiator_distribution'    :'initiator_distribution',
+                       'Probability_threshold'     :'PbThreshold',
+                       'quad_pts'                  :'quad_pts',
+                       'partial_coeffs'            :'partial_coeffs',
+                       'exp_order'                 :'exp_order',
+                       }
+        for attr in attempt_attr.keys():
+          try: sgrp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
+          except KeyError: pass
       else:
         # do something else
         pass
@@ -388,11 +400,8 @@ class hdf5Database:
           found = True
           path  = self.allGroupPaths[i]
           break      
-      if not found:
-        raise Exception("ERROR: Group named " + nameTo + " not found in the HDF5 database" + self.filenameAndPath)
-      else:
-        # Split the path in order to create a list of the groups in this history
-        listGroups = path.split("/")
+      if not found: raise Exception("ERROR: Group named " + nameTo + " not found in the HDF5 database" + self.filenameAndPath)
+      else: listGroups = path.split("/")  # Split the path in order to create a list of the groups in this history
       # Retrieve indeces of groups "nameFrom" and "nameTo" v
       fr = listGroups.index(nameFrom)
       to = listGroups.index(nameTo)
@@ -406,13 +415,9 @@ class hdf5Database:
       @ In,  None
       @ Out, List of the histories' paths
       '''
-      if not self.fileOpen:
-        # Create the "self.allGroupPaths" list from the existing database
-        self.__createObjFromFile()
+      if not self.fileOpen: self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
       # Check database type
-      if self.type == 'MC':
-        # Parallel structure => "self.allGroupPaths" already contains the histories' paths
-        return self.allGroupPaths
+      if self.type == 'MC': return self.allGroupPaths  # Parallel structure => "self.allGroupPaths" already contains the histories' paths
       else:
         # Tree structure => construct the histories' paths
         workingList = []
@@ -427,9 +432,8 @@ class hdf5Database:
       @ In,  None
       @ Out, List of the histories' names
       '''
-      if not self.fileOpen:
-        # Create the "self.allGroupPaths" list from the existing database
-        self.__createObjFromFile()
+      if not self.fileOpen: self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
+
       # Check database type
       #if self.type == 'MC':
         # Parallel structure => "self.allGroupPaths" already contains the histories' paths
@@ -470,8 +474,7 @@ class hdf5Database:
       
       # Check if the h5 file is already open, if not, open it
       # and create the "self.allGroupPaths" list from the existing database
-      if not self.fileOpen:
-        self.__createObjFromFile()
+      if not self.fileOpen: self.__createObjFromFile()
       # Find the endgroup that coresponds to the given name
       for i in xrange(len(self.allGroupPaths)):
         list_str_w = self.allGroupPaths[i].split("/")
@@ -500,14 +503,11 @@ class hdf5Database:
           name_list  = []
           if self.parent_group_name != '/': back = len(list_path)-2
           else: back = len(list_path)-1
-          if back <= 0:
-            back = 1
+          if back <= 0: back = 1
             
           i=0
-          try:
-            list_path.remove("")
-          except:
-            pass
+          try: list_path.remove("")
+          except: pass
           # Find the paths for the completed history
           while (i < back):
             path_w = ''

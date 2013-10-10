@@ -219,7 +219,7 @@ class HDF5(DateBase):
       else:
         all_out_param = False
     
-      if attributes['time'] == 'end':
+      if attributes['time'] == 'end' or (not attributes['time']):
         time_end = True
         time_float = -1.0
       else:
@@ -314,7 +314,7 @@ class HDF5(DateBase):
       else:
         all_out_param = False
     
-      if attributes['time'] == 'end':
+      if attributes['time'] == 'end' or (not attributes['time']):
         time_end = True
         time_float = -1.0
       else:
@@ -517,8 +517,18 @@ class HDF5(DateBase):
       elif attributes["type"] == "History":
         # History case
         data = self.__retrieveDataHistory(attributes)
-#      elif attributes["type"] == "Histories":
-#        data = self.__retrieveDataHistories(attributes)
+      elif attributes["type"] == "Histories":
+        listhist_in  = {}
+        listhist_out = {}
+        endGroupNames = self.getEndingGroupNames()
+        for index in xrange(len(endGroupNames)):
+          attributes['history'] = endGroupNames[index]
+          tupleVar = self.__retrieveDataHistory(attributes)
+          # dictionary of dictionary key = i => ith history ParameterValues dictionary
+          listhist_in[index]  = tupleVar[0]
+          listhist_out[index] = tupleVar[1]
+          del tupleVar
+        return(listhist_in,listhist_out)
       else:
         raise Exception("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData")
       # return data
