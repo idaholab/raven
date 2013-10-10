@@ -22,12 +22,12 @@ class Distribution(BaseType):
   '''
   def __init__(self):
     BaseType.__init__(self)
-    self.upperBoundUsed = False
-    self.lowerBoundUsed = False
-    self.upperBound       = 0.0
-    self.lowerBound       = 0.0
-    self.adjustmentType   = ''
-    self.bestQuad = None
+    self.upperBoundUsed = False  #True if the distribution is right truncated
+    self.lowerBoundUsed = False  #True if the distribution is left truncated
+    self.upperBound       = 0.0  #Right bound
+    self.lowerBound       = 0.0  #Left bound
+    self.adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
+    self.bestQuad         = None #the quadrature that best integrate the distribution
     
   def readMoreXML(self,xmlNode):
     #this is part of the stochastic collocation sampler not of the distribution!!!!!!
@@ -54,10 +54,11 @@ class Distribution(BaseType):
     tempDict['upperBound'    ] = self.upperBound
     tempDict['lowerBound'    ] = self.lowerBound
     tempDict['adjustmentType'] = self.adjustmentType
+    tempDict['bestQuad'      ] = self.bestQuad
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
     point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
-    return self.distribution.ppt(point)
+    return self.distribution.ppf(point)
 
   def rvsWithinbounds(self,LowerBound,upperBound):
     CDFupper = self.distribution.cdf(upperBound)
@@ -94,17 +95,8 @@ class Uniform(Distribution):
     except: raise Exception('low value needed for uniform distribution')
     try: self.hi = float(xmlNode.find('hi').text)
     except: raise Exception('hi value needed for uniform distribution')
-    self.initializeDistribution()
-
-  def addInitParams(self,tempDict):
-    Distribution.addInitParams(self,tempDict)
-    tempDict['low'] = self.low
-    tempDict['hi'] = self.hi
-    # no other additional parameters required
-
-  def initializeDistribution(self):
+#    self.initializeDistribution() this call is done by the sampler each time a new step start
     self.range=self.hi-self.low
-    self.distribution = dist.uniform(loc=self.low,scale=self.range)
     #assign associated polynomial types
     self.polynomial = polys.legendre
     #define functions locally, then point to them
@@ -134,6 +126,17 @@ class Uniform(Distribution):
     self.std_point = actualToStandardPoint
     self.actual_weight = standardToActualWeight
     self.probability_norm = probNorm
+
+
+
+  def addInitParams(self,tempDict):
+    Distribution.addInitParams(self,tempDict)
+    tempDict['low'] = self.low
+    tempDict['hi'] = self.hi
+    # no other additional parameters required
+
+  def initializeDistribution(self):
+    self.distribution = dist.uniform(loc=self.low,scale=self.range)
 
 
 
@@ -278,8 +281,41 @@ class Beta(Distribution):
 
 
 # Add polynomials, shifting, zero-to-one to these!
+class Custom(Distribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.apex = 0.0
+    self.min  = 0.0
+    self.max  = 0.0
+    self.type = 'Triangular'
+    self.bestQuad = None
 
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    try: self.apex = float(xmlNode.find('apex').text)
+    except: raise Exception('apex value needed for normal distribution')
+    try: self.min = float(xmlNode.find('min').text)
+    except: raise Exception('min value needed for normal distribution')
+    try: self.max = float(xmlNode.find('max').text)
+    except: raise Exception('max value needed for normal distribution')
+    self.initializeDistribution()
 
+  def addInitParams(self,tempDict):
+    Distribution.addInitParams(self, tempDict)
+    tempDict['apex' ] = self.apex
+    tempDict['min'  ] = self.min
+    tempDict['max'  ] = self.max
+
+  def initializeDistribution(self):
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      c = (self.apex-self.min)/(self.max-self.min)
+      self.distribution = dist.triang(c,loc=self.min,scale=(self.max-self.min))
+    else:
+      raise IOError ('Truncated triangular not yet implemented')
+
+#
+#
+#
 class Triangular(Distribution):
   def __init__(self):
     Distribution.__init__(self)

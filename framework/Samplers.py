@@ -38,11 +38,14 @@ class Sampler(BaseType):
     BaseType.__init__(self) 
     self.counter      = 0           # Counter of the samples performed. It is reset by calling the function self.initialize
     self.limit        = sys.maxsize # maximum number of Samples (for example, Montecarlo = Number of Histories to run, DET = Unlimited)
-    self.toBeSampled = {}           # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
-    self.distDict    = {}           # Contains the instance of the distribution to be used, it is created every time the sampler is initialized
-    self.values      = {}           # for each variable the current value {'var name':value}
-    self.inputInfo   = {}           # depending on the sampler several different type of keywarded information could be present only one is mandatory..
+    self.toBeSampled  = {}           # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
+    self.distDict     = {}           # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
+    self.values       = {}           # for each variable the current value {'var name':value}
+    self.inputInfo    = {}           # depending on the sampler several different type of keywarded information could be present only one is mandatory..
     self.inputInfo['SampledVars'] = self.values
+    self.initSeed     = None         #Every time the sampler is call if he possesses a seed it going to reinitialize the seed for the hole environment 
+                                     #(if not read remains none meaning the seeds will be the one of the previous run)
+    self.gridInfo     = {}           #since many sampler are based on grids this is a general storing place for this info {'name of the variable':('grid type',[values])}
 
   def readMoreXML(self,xmlNode):
     '''
@@ -53,8 +56,16 @@ class Sampler(BaseType):
     The text i supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
     '''
+    try:    self.initSeed = int(xmlNode.attrib['initial_seed'])
+    except: pass
+    try:    self.limit    = int(xmlNode.attrib['limit'])
+    except: pass
     for child in xmlNode:
-      self.toBeSampled[child.text] = [child.attrib['type'],child.attrib['distName']]
+      for childChild in child:
+        if childChild.tag =='distribution':
+          self.toBeSampled[child.attrib('name')] = [childChild.attrib['type'],childChild.text]
+        if childChild.tag =='grid':
+          self.gridInfo[child.attrib('name')] = (childChild.attrib['type'],childChild.text.split())
 
   def addInitParams(self,tempDict):
     '''
@@ -63,9 +74,13 @@ class Sampler(BaseType):
     The information is passed back in the dictionary
     @ In/Out tempDict: {'attribute name':value}
     '''
-    for value in self.toBeSampled.items():
-      tempDict[value[0]] = value[1][0]+'-'+value[1][1]
+    for variable in self.toBeSampled.items():
+      tempDict[variable[0]+' is sampled using the distribution'] = variable[1][0]+'-'+variable[1][1]
+    for variable in self.gridInfo.items():
+      tempDict[variable[0]+' is sampled using the grid'] = variable[0][0]+', points:'+variable[1][1].join(' ')
     tempDict['limit' ]        = self.limit
+    tempDict['initial seed' ] = self.initSeed
+
 
   def addCurrentSetting(self,tempDict):
     '''
@@ -87,6 +102,9 @@ class Sampler(BaseType):
     '''used to restart the random number generators of the distributions that will be used
     @in availableDist: {'distribution name':instance}
     '''
+    if self.initSeed==None:
+      self.initSeed = np.random.random_integers(0,sys.maxint.bit_length())
+    np.random.seed(self.initSeed)
     for key in self.toBeSampled.keys():
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]
       self.distDict[key].initializeDistribution()
@@ -100,7 +118,8 @@ class Sampler(BaseType):
     @ In, None
     @ Out, None
     '''
-    self.counter = 0
+    self.counter = 0    
+    
 
   def amIreadyToProvideAnInput(self):
     '''
@@ -121,7 +140,8 @@ class Sampler(BaseType):
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
     @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model 
     '''
-    self.counter += 1
+    self.counter            += 1
+    self.inputInfo['prefix'] = str(self.counter)
     self.setInputInfo(model,oldInput)
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
@@ -227,7 +247,6 @@ class StochasticCollocation(Sampler):
     if self.debug: print('generate input model:',model)
     quad_pts=self.quad.quad_pts[self.counter-1]
     quad_pt_index = self.quad.quad_pt_index[quad_pts]
-    self.inputInfo['prefix'  ]       = str(self.counter)
     self.inputInfo['quad_pts']       = quad_pts
     self.inputInfo['partial coeffs'] = self.partCoeffs[quad_pts].values()
     self.inputInfo['exp order']      = self.quad.quad_pt_index[quad_pts]
@@ -280,70 +299,38 @@ class StochasticCollocation(Sampler):
 #
 #
 class MonteCarlo(Sampler):
-  '''
-  MONTE CARLO Sampler 
-  '''
-  def __init__(self):
-    Sampler.__init__(self)
-    self.init_seed   = 0  # the initial seed
-
+  '''MONTE CARLO Sampler '''
+  
   def readMoreXML(self,xmlNode):
-    '''
-    Function to read the portion of the xml input that belongs to this specialized class
-    and initialize some stuff based on the inputs got
-    @ In, xmlNode    : Xml element node
-    @ Out, None
-    '''
     Sampler.readMoreXML(self, xmlNode)
-    try: self.init_seed    = xmlNode.attrib['initial_seed']
-    except: self.init_seed = 0 
-    try: self.limit    = int(xmlNode.attrib['limit'])
+    try: xmlNode.attrib['limit']
     except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
-  def addInitParams(self,tempDict):
-    '''
-    Function adds the initial parameter in a temporary dictionary
-    @ In, tempDict
-    @ Out, tempDict 
-    '''
-    Sampler.addInitParams(self,tempDict)
-    tempDict['initial seed' ] = self.init_seed
-
   def setInputInfo(self,model,myInput):
-    '''
-    Function used to generate an input 
-    @ In, model: Model object instance
-    @ Out, myInputs: Original input files
-    '''
+    '''set up self.inputInfo before being sent to the model'''
     for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
     # create values dictionary
-    self.inputInfo['prefix'      ] = str(self.counter)
-    self.inputInfo['initial_seed'] = str(self.init_seed)
+    self.inputInfo['initial_seed'] = str(self.initSeed)
 #
 #
 #
 class LatinHyperCube(Sampler):
   '''
   LATIN HYPER CUBE Sampler 
-  implement a latin hyper cube approach only with random picking of the intervals'''
-
+  implement a latin hyper cube approach only with random picking of the intervals
+  '''
   def __init__(self):
     Sampler.__init__(self)
-    # maximum number of sampler it will perform every time it is used 
-    self.limit        = 0
     # is a list that for each point in the grid return a dictionary of the 
     #  distributions where values are the bounds in terms of the random variate 
-    self.grid         = []       #
-    self.init_seed    = 0
+    self.grid         = []
 
-  def addInitParams(self,tempDict):
-    '''
-    Function adds the initial parameter in a temporary dictionary
-    @ In, tempDict
-    @ Out, tempDict 
-    '''
-    Sampler.addInitParams(self,tempDict)
-    tempDict['initial seed' ] = self.init_seed
+  def readMoreXML(self,xmlNode):
+    '''check if the limit is provided'''
+    Sampler.readMoreXML(self, xmlNode)
+    try: xmlNode.attrib['limit']
+    except: raise IOError('LATIN HYPER CUBE sampling needs the attribute limit (number of samplings)')
+    
 
   def addCurrentSetting(self,tempDict):
     '''
@@ -354,6 +341,7 @@ class LatinHyperCube(Sampler):
     i = 0
     for distribution in self.distDict.keys():
       tempDict['interval '+ int(i) + ', distribution ' +distribution+' is in range'] = self.grid[i].distBounds[distribution]
+      i += 1
 
   def initialize(self):
     '''
@@ -361,7 +349,6 @@ class LatinHyperCube(Sampler):
     @ In, None
     @ Out, None
     '''
-    # Initialize Sampler 
     Sampler.initialize(self)
     #Initialize the grid to have a size equal to the max number of samplings 
     self.grid = [None]*self.limit
@@ -390,17 +377,10 @@ class LatinHyperCube(Sampler):
             self.grid[j].distBounds[distName] = [lowerBound,upperBound]
 
   def setInputInfo(self,model,myInput):
-    '''
-    Function used to generate an input.
-    It returns the model.createNewInput() passing into it the type of sampler,
-    the values to be used and the some add info in the values dict
-    @ In, model: Model object instance
-    @ Out, myInputs: Original input files
-    '''
+    '''finalize the self.inputInfo'''
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored    
-    self.inputInfo['prefix']=str(self.counter)
-    self.inputInfo['initial_seed']=str(self.init_seed)
+    self.inputInfo['initial_seed']=str(self.initSeed)
     # evaluate the distributions and put the results into values
     lower = {}
     upper = {}
@@ -417,58 +397,44 @@ class LatinHyperCube(Sampler):
 #
 #
 class EquallySpaced(Sampler):
-  '''
-  EQUALLY SPACED Sampler - TO BE IMPLEMENTED 
-  '''
+  '''EQUALLY SPACED Sampler - TO BE IMPLEMENTED '''
   pass
+#  Sampler.__init__(self)
 #
 #
 #
 class Custom(Sampler):
-  '''Samples the model on a given (by input) set of points
-  This class is quite different from the base one
-  self.toBeSampled: {}'''
-  def __init__(self):
-    Sampler.__init__(self)
-    self.gridType = ''
-    
+  '''Samples the model on a given (by input) set of points'''
+  def __init(self):
+    Sampler.__init__(self) 
+    self.gridCoordinate = [] #the grid point to be used for each distribution (changes at each step)
+    self.axisName       = [] #the name of each axis (variable)
+  
   def readMoreXML(self,xmlNode):
-    '''
-    the reading here reads also the values to use
-    '''
-    Sampler.readMoreXML(xmlNode)
-    try: self.gridType    = xmlNode.attrib['gridType']
-    except: raise IOError('It should be declared if grid is in probability or real values')
-    if self.gridType != 'Values' and self.gridType != 'Probability': raise IOError ('grid type could be only Values or Probability')
-#    for child in xmlNode:
-      
-#      self.toBeSampled[child.text] = 
-    
-    #  stores variables for random sampling  added by nieljw to allow for RELAP5 
-#    self.variables={}
-#    Sampler.readMoreXML(self, xmlNode)
+    Sampler.readMoreXML(self,xmlNode)
+    #generate the grid
+    self.limit = 1
+    for variable in self.gridInfo.keys():
+      self.limit = self.limit*len(self.gridInfo[variable][1][0])
+      self.axisName.append(variable)
+    self.gridCoordinate = [None]*len(self.axisName)
 
-  def addInitParams(self,tempDict):
-    '''
-    Function adds the initial parameter in a temporary dictionary
-    @ In, tempDict
-    @ Out, tempDict 
-    '''
-    Sampler.addInitParams(self,tempDict)
-    tempDict['sampling is equally space in' ] = self.gridType
-    
-
+  def addCurrentSetting(self,tempDict):
+    Sampler.addCurrentSetting(self,tempDict)
+    for (var, value) in (self.axisName, self.gridCoordinate):
+      tempDict['coordinate '+var+' has value'] = value
+           
   def setInputInfo(self,model,myInput):
-    '''
-    Function used to generate an input 
-    @ In, model: Model object instance
-    @ Out, myInputs: Original input files
-    '''
-    for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
-    # create values dictionary
-    self.inputInfo['prefix'      ] = str(self.counter)
-    self.inputInfo['initial_seed'] = str(self.init_seed)
-
+    ''' '''
+    remainder = self.counter
+    for i in len(self.gridCoordinate):
+      varName = self.axisName[i]
+      temp, remainder = divmod(remainder, len(self.gridInfo[varName][1]))
+      self.gridCoordinate[i] = temp+1
+      if self.gridInfo[varName][0]=='probability':
+        self.values[varName] = self.distDict[varName].ppt(self.gridInfo[varName][1][self.gridCoordinate[i]])
+      else:
+        self.values[varName] = self.gridInfo[varName][1][self.gridCoordinate[i]]
 #
 #
 #
@@ -992,6 +958,7 @@ _InterfaceDict['LatinHyperCube'        ] = LatinHyperCube
 _InterfaceDict['EquallySpaced'         ] = EquallySpaced
 _InterfaceDict['DynamicEventTree'      ] = DynamicEventTree
 _InterfaceDict['StochasticCollocation' ] = StochasticCollocation
+_InterfaceDict['Custom'                ] = Custom
 
 def returnInstance(Type):
   '''
