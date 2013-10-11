@@ -18,7 +18,6 @@ import copy
 import numpy as np
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
-from sets import Set
 #internal----------
 import Quadrature
 import Distributions
