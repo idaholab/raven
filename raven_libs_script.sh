@@ -13,7 +13,30 @@ update_python_path ()
 {
     if ls -d $INSTALL_DIR/*/python*/site-packages/
     then
-        export PYTHONPATH=`ls -d $INSTALL_DIR/*/python*/site-packages/`:"$ORIGPYTHONPATH"
+        export PYTHONPATH=`ls -d $INSTALL_DIR/*/python*/site-packages/ | tr '\n' :`:"$ORIGPYTHONPATH"
+    fi
+}
+
+download_files ()
+{
+    DL_FILENAME=$1 
+    SHA_SUM=$2
+    URL=$3
+    if test -f $DL_FILENAME; then
+        NEW_SHA_SUM=`shasum $DL_FILENAME | cut -d " " -f 1`
+    else
+        NEW_SHA_SUM=no_file
+    fi
+    if test $SHA_SUM = $NEW_SHA_SUM; then 
+        echo $DL_FILENAME already downloaded
+    else
+        rm -f $DL_FILENAME
+        $DOWNLOADER $URL
+        if test $SHA_SUM != `shasum $DL_FILENAME | cut -d " " -f 1`; then 
+            echo Download of $URL failed
+        else
+            echo Download of $URL succeeded 
+        fi
     fi
 }
 
@@ -46,13 +69,13 @@ else
 #numpy
 #no dependencies
     cd $BUILD_DIR
-    $DOWNLOADER http://www.netlib.org/blas/blas.tgz
+    download_files blas.tgz a643b737c30a0a5b823e11e33c9d46a605122c61 http://www.netlib.org/blas/blas.tgz
     tar -xvzf blas.tgz
     export BLAS_SRC=$BUILD_DIR/BLAS
-    $DOWNLOADER http://www.netlib.org/lapack/lapack-3.4.2.tgz
+    download_files lapack-3.4.2.tgz 93a6e4e6639aaf00571d53a580ddc415416e868b http://www.netlib.org/lapack/lapack-3.4.2.tgz
     tar -xvzf lapack-3.4.2.tgz
     export LAPACK_SRC=$BUILD_DIR/lapack-3.4.2
-    $DOWNLOADER http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
+    download_files numpy-1.7.0.tar.gz ba328985f20390b0f969a5be2a6e1141d5752cf9 http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
     tar -xvzf numpy-1.7.0.tar.gz
     cd numpy-1.7.0
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
@@ -69,7 +92,7 @@ else
 #no dependencies
     cd $BUILD_DIR
     rm -Rvf hdf5-1.8.11
-    $DOWNLOADER http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
+    download_files hdf5-1.8.11.tar.bz2 87ded0894b104cf23a4b965f4ac0a567f8612e5e http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
     tar -xvjf hdf5-1.8.11.tar.bz2
     cd hdf5-1.8.11
     pwd; ls -l
@@ -81,7 +104,7 @@ else
 #cython
 #no dependencies
     cd $BUILD_DIR
-    $DOWNLOADER http://www.cython.org/release/Cython-0.18.tar.gz
+    download_files Cython-0.18.tar.gz 03e18d5551ece9b4e3a43d4d96ad9f98c5cf6c43 http://www.cython.org/release/Cython-0.18.tar.gz
     tar -xvzf Cython-0.18.tar.gz
     cd Cython-0.18
 #Python works badly with mpicc and mpicxx
@@ -90,7 +113,7 @@ else
 #h5py
 #depends on numpy, hdf5, cython
     cd $BUILD_DIR
-    $DOWNLOADER http://h5py.googlecode.com/files/h5py-2.2.0.tar.gz
+    download_files h5py-2.2.0.tar.gz 65e5d6cc83d9c1cb562265a77a46def22e9e6593 http://h5py.googlecode.com/files/h5py-2.2.0.tar.gz
     tar -xvzf h5py-2.2.0.tar.gz
     cd h5py-2.2.0
     (unset CC CXX; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
@@ -105,7 +128,7 @@ else
 #scipy
 #depends on numpy
     cd $BUILD_DIR
-    $DOWNLOADER http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
+    download_files scipy-0.12.0.tar.gz 1ba2e2fc49ba321f62d6f78a5351336ed2509af3 http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
     tar -xvzf scipy-0.12.0.tar.gz
     cd scipy-0.12.0
     patch -p1 << PATCH_SCIPY
@@ -138,7 +161,7 @@ else
 #scikit
 #depends on numpy, scipy
     cd $BUILD_DIR
-    $DOWNLOADER https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
+    download_files scikit-learn-0.13.1.tar.gz f06a15abb107fecf7b58ef0a7057444e2d7f1369 https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
     tar -xvzf scikit-learn-0.13.1.tar.gz
     cd scikit-learn-0.13.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
@@ -151,7 +174,7 @@ else
 #freetype
 #no dependencies
     cd $BUILD_DIR
-    $DOWNLOADER http://downloads.sourceforge.net/project/freetype/freetype2/2.4.12/freetype-2.4.12.tar.bz2
+    download_files freetype-2.4.12.tar.bz2 382479336faefbc77e4b63c9ce4a96cf5d2c3585 http://downloads.sourceforge.net/project/freetype/freetype2/2.4.12/freetype-2.4.12.tar.bz2
     tar -xvjf freetype-2.4.12.tar.bz2
     cd freetype-2.4.12
     (unset CC CXX; ./configure --prefix=$INSTALL_DIR)
@@ -161,7 +184,7 @@ else
 #matplotlib
 #depends on numpy, freetype
     cd $BUILD_DIR
-    $DOWNLOADER http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz
+    download_files matplotlib-1.2.1.tar.gz 82fc44d0047a713c1b0b1b4ea2503e6a41c57f98 http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz
     tar -xvzf matplotlib-1.2.1.tar.gz
     cd matplotlib-1.2.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
