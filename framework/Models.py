@@ -63,8 +63,27 @@ class Model(BaseType):
       try   : storeTo.addOutput(collectFrom)
       except: raise IOError('The place where to store the output '+type(storeTo)+' was not compatible with the addOutput of '+type(collectFrom))
     else: raise IOError('The place where to store the output has not a addOutput method')
-     
-
+#
+#
+#
+class Dummy(Model):
+  '''this is a dummy model that just return the input in the data
+  it suppose to get a datas as input in and send back the input from the sampler added to it'''
+  def createNewInput(self,myInput,samplerType,**Kwargs):
+    newInput = copy.deepcopy(myInput[0])
+    if newInput.type != 'TimePointSet' and newInput.type != 'TimePoint': raise IOError('wrong input data passed to Dummy model')
+    for key in Kwargs['SampledVars'].keys():
+      if key in newInput.getInpParametersValues().keys(): newInput.getInpParametersValues()[key] =  np.concatenate(newInput.getInpParametersValues()[key], Kwargs['SampledVars'][key])
+      else: newInput.getInpParametersValues()[key] = np.array([Kwargs['SampledVars'][key]],copy=True,dtype=float)
+    print (newInput.getInpParametersValues())
+    return [newInput]
+  
+  def run(self,Input,jobHandler):
+    pass
+  
+  def collectOutput(self,collectFrom,storeTo):
+    pass
+  
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
   def __init__(self):
@@ -352,14 +371,15 @@ class Filter(Model):
 
 
 base = 'model'
-InterfaceDict = {}
-InterfaceDict['ROM'      ] = ROM
-InterfaceDict['Code'     ] = Code
-InterfaceDict['Filter'   ] = Filter
-InterfaceDict['Projector'] = Projector
+__InterfaceDict = {}
+__InterfaceDict['ROM'      ] = ROM
+__InterfaceDict['Code'     ] = Code
+__InterfaceDict['Filter'   ] = Filter
+__InterfaceDict['Projector'] = Projector
+__InterfaceDict['Dummy'    ] = Dummy
 
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
-  try: return InterfaceDict[Type]()
+  try: return __InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   

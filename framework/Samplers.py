@@ -18,6 +18,7 @@ import copy
 import numpy as np
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
+from sets import Set
 #internal----------
 import Quadrature
 import Distributions
@@ -45,7 +46,6 @@ class Sampler(BaseType):
     self.inputInfo['SampledVars'] = self.values
     self.initSeed     = None         #Every time the sampler is call if he possesses a seed it going to reinitialize the seed for the hole environment 
                                      #(if not read remains none meaning the seeds will be the one of the previous run)
-    self.gridInfo     = {}           #since many sampler are based on grids this is a general storing place for this info {'name of the variable':('grid type',[values])}
 
   def readMoreXML(self,xmlNode):
     '''
@@ -63,9 +63,10 @@ class Sampler(BaseType):
     for child in xmlNode:
       for childChild in child:
         if childChild.tag =='distribution':
-          self.toBeSampled[child.attrib('name')] = [childChild.attrib['type'],childChild.text]
+          self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
         if childChild.tag =='grid':
-          self.gridInfo[child.attrib('name')] = (childChild.attrib['type'],childChild.text.split())
+          tempList = [float(i) for i in childChild.text.split()]
+          self.gridInfo[child.attrib['name']] = (childChild.attrib['type'],tempList)
 
   def addInitParams(self,tempDict):
     '''
@@ -75,9 +76,7 @@ class Sampler(BaseType):
     @ In/Out tempDict: {'attribute name':value}
     '''
     for variable in self.toBeSampled.items():
-      tempDict[variable[0]+' is sampled using the distribution'] = variable[1][0]+'-'+variable[1][1]
-    for variable in self.gridInfo.items():
-      tempDict[variable[0]+' is sampled using the grid'] = variable[0][0]+', points:'+variable[1][1].join(' ')
+      tempDict[variable[0]+' is sampled using the distribution'] = variable[1][0]+' - '+variable[1][1]
     tempDict['limit' ]        = self.limit
     tempDict['initial seed' ] = self.initSeed
 
@@ -314,127 +313,132 @@ class MonteCarlo(Sampler):
 #
 #
 #
-class LatinHyperCube(Sampler):
-  '''
-  LATIN HYPER CUBE Sampler 
-  implement a latin hyper cube approach only with random picking of the intervals
-  '''
+class Grid(Sampler):
+  '''Samples the model on a given (by input) set of points'''
   def __init__(self):
-    Sampler.__init__(self)
-    # is a list that for each point in the grid return a dictionary of the 
-    #  distributions where values are the bounds in terms of the random variate 
-    self.grid         = []
-
-  def readMoreXML(self,xmlNode):
-    '''check if the limit is provided'''
-    Sampler.readMoreXML(self, xmlNode)
-    try: xmlNode.attrib['limit']
-    except: raise IOError('LATIN HYPER CUBE sampling needs the attribute limit (number of samplings)')
+    Sampler.__init__(self) 
+    self.gridCoordinate       = [] #the grid point to be used for each distribution (changes at each step)
+    self.axisName             = [] #the name of each axis (variable)
+    self.gridInfo             = {} # {'name of the variable':('grid type',[values])} grid type could be either probability or value
+    self.gridBuild            = {} #mapping to retrive the proper grid builder
+    self.gridBuild['custom' ] = self.gridCustom
+    self.gridBuild['Equally'] = self.gridEqual
+    self.gridFilling          = {}
+    self.gridFilling['full' ] = self.setInputInfoFull 
+    self.gridFilling['LHS'  ] = self.setInputInfoLHS
+    self.gridBuildingFlag     = ''
+    self.gridFillingFlag      = ''
+    self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
     
 
-  def addCurrentSetting(self,tempDict):
-    '''
-    Function adds the current settings in a temporary dictionary
-    @ In, tempDict
-    @ Out, tempDict 
-    '''
-    i = 0
-    for distribution in self.distDict.keys():
-      tempDict['interval '+ int(i) + ', distribution ' +distribution+' is in range'] = self.grid[i].distBounds[distribution]
-      i += 1
-
-  def initialize(self):
-    '''
-    Function used to initialize the Latin Hyper Cube Sampler
-    @ In, None
-    @ Out, None
-    '''
-    Sampler.initialize(self)
-    #Initialize the grid to have a size equal to the max number of samplings 
-    self.grid = [None]*self.limit
-    # Grep number of distributions for sampling 
-    nDimension = len(self.distDict)
-    takenGlobal = np.zeros((self.limit,nDimension),ndmin=2,dtype=int)
-    # Create a list of the distributions' names 
-    distList = list(self.distDict.keys())
-    # Initialize the grid dictionary to a set of 
-    # dictionaries with keys = distribution keys and 
-    # a value container size of 2 (Lower and Upper bounds)
-    for i in range(self.grid):
-      self.grid[i] = dict.fromkeys(self.distDict.keys(),[None]*2)
-    # Construct the grid
-    for j in range(self.limit):
-      for i in range(nDimension):
-        placed = False
-        while placed == False:
-          indexInterval = int(np.random.rand(1)*self.limit)
-          if takenGlobal[indexInterval][i] == 0:
-            takenGlobal[indexInterval][i] = 1
-            distName = distList[i]
-            # if equally spaced do not use ppt
-            lowerBound = self.distDict[distName].ppt(float((indexInterval-1)/self.limit))
-            upperBound = self.distDict[distName].ppt(float((indexInterval)/self.limit))
-            self.grid[j].distBounds[distName] = [lowerBound,upperBound]
-
-  def setInputInfo(self,model,myInput):
-    '''finalize the self.inputInfo'''
-    # Fill the values dictionary that will be passed into the model in order to create an input
-    # In this dictionary the info for changing the original input is stored    
-    self.inputInfo['initial_seed']=str(self.initSeed)
-    # evaluate the distributions and put the results into values
-    lower = {}
-    upper = {}
-    for key in self.distDict:
-      upperVal = self.grid[self.counter][key][1]
-      lowerVal = self.grid[self.counter][key][1]
-      self.values[key] = self.distDict[key].distribution.rvsWithinbounds(lower,upper)
-      lower[key+' upper'] = upperVal
-      upper[key+' upper'] = lowerVal
-    self.inputInfo['upper'] = upper
-    self.inputInfo['lower'] = lower
-    return
-#
-#
-#
-class EquallySpaced(Sampler):
-  '''EQUALLY SPACED Sampler - TO BE IMPLEMENTED '''
-  pass
-#  Sampler.__init__(self)
-#
-#
-#
-class Custom(Sampler):
-  '''Samples the model on a given (by input) set of points'''
-  def __init(self):
-    Sampler.__init__(self) 
-    self.gridCoordinate = [] #the grid point to be used for each distribution (changes at each step)
-    self.axisName       = [] #the name of each axis (variable)
-  
   def readMoreXML(self,xmlNode):
+    try: self.gridBuildingflag = xmlNode.attrib['gridConstruction']
+    except: raise IOError('not specified the grid construction type')
+    try: self.gridFilling = xmlNode.attrib['gridFilling']
+    except: raise IOError('not specified the grid filling type')
+    self.gridBuild[self.gridBuildingFlag](xmlNode)
+    if self.gridFillingFlag == 'LHS':
+      self.setInputInfo = self.setInputInfoLHS
+      self.checkGridLHS()
+    else:
+      self.setInputInfo = self.setInputInfoFull
+
+  def gridCustom(self,xmlNode):
     Sampler.readMoreXML(self,xmlNode)
-    #generate the grid
     self.limit = 1
     for variable in self.gridInfo.keys():
-      self.limit = self.limit*len(self.gridInfo[variable][1][0])
+      self.limit = self.limit*len(self.gridInfo[variable][1])
       self.axisName.append(variable)
     self.gridCoordinate = [None]*len(self.axisName)
+    self.limit += -1
 
+  def gridEqual(self,xmlNode):
+    self.limit = 1
+    for child in xmlNode:
+      self.axisName.append(child.attrib['name'])
+      for childChild in child:
+        if childChild.tag =='distribution':
+          self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]        
+        elif childChild.tag == 'grid':
+          self.limit = self.limit*(int(childChild.attrib['steps'])+1)
+          if   'lowerBound' in childChild.attrib.keys():
+            self.gridInfo[child.attrib['name']] = (childChild.attrib['type'], [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+          elif 'upperBound' in childChild.attrib.keys():
+            self.gridInfo[child.attrib['name']] = (childChild.attrib['type'], [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])    
+          else: raise IOError('no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+        #generate the grid
+    self.limit += -1
+    self.gridCoordinate = [None]*len(self.axisName)
+
+    def checkGridLHS(self):
+      pointByVar  = [len(self.gridInfo[variable][1]) for variable in self.gridInfo.keys()]
+      self.pointByVar = set(pointByVar)
+      if len(self.pointByVar)!=1: raise IOError('the latin Hyper Cube requires the same number of point in each dimension')
+      self.pointByVar = self.pointByVar[0]
+      self.inputInfo['upper'] = {}
+      self.inputInfo['lower'] = {}
+  
+  def buildLHSSamplingPatter(self):
+    tempFillingCheck = [None]*len(self.axisName) #for all variables
+    for i in range(len(tempFillingCheck)):
+      tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
+      tempFillingCheck[i][:] = np.random.sample(range(self.pointByVar-1), self.pointByVar-1) #pick a random interval sequence
+    self.sampledCoordinate = [None]*(self.pointByVar-1)
+    for i in range(self.pointByVar-1):
+      self.sampledCoordinate[i] = [None]*len(self.axisName)
+      self.sampledCoordinate[i][:] = tempFillingCheck[:][i]
+
+  def addInitParams(self,tempDict):
+    Sampler.readMoreXML(self,tempDict)
+    for variable in self.gridInfo.items():
+      tempList = [str(i) for i in variable[1][1]]
+      tempDict[variable[0]+' is sampled using the grid'] = variable[1][0]+', points: '+' '.join(tempList)
+      
+
+  def initialize(self):
+    Sampler.initialize(self)
+    if self.gridFillingFlag == 'LHS':
+      self.sampledCoordinate = []
+      self.buildLHSSamplingPatter()
+      
   def addCurrentSetting(self,tempDict):
     Sampler.addCurrentSetting(self,tempDict)
-    for (var, value) in (self.axisName, self.gridCoordinate):
+    for var, value in zip(self.axisName, self.gridCoordinate):
       tempDict['coordinate '+var+' has value'] = value
            
-  def setInputInfo(self,model,myInput):
+  def setInputInfoFull(self,model,myInput):
     ''' '''
     remainder = self.counter
-    for i in len(self.gridCoordinate):
+    total = self.limit+1
+    for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
-      temp, remainder = divmod(remainder, len(self.gridInfo[varName][1]))
-      self.gridCoordinate[i] = temp+1
-      if self.gridInfo[varName][0]=='probability':
-        self.values[varName] = self.distDict[varName].ppt(self.gridInfo[varName][1][self.gridCoordinate[i]])
-      else:
+      temp, remainder = divmod(remainder, int(total/len(self.gridInfo[varName][1])))
+      total = total/len(self.gridInfo[varName][1])
+      if   remainder == 0 and temp != 0 : self.gridCoordinate[i] = temp-1
+      elif remainder == 0 and temp == 0 : self.gridCoordinate[i] = len(self.gridInfo[varName][1])-1
+      else: self.gridCoordinate[i] = temp
+      if self.gridInfo[varName][0]=='CDF':
+        self.values[varName] = self.distDict[varName].distribution.ppf(self.gridInfo[varName][1][self.gridCoordinate[i]])
+      elif self.gridInfo[varName][0]=='value':
         self.values[varName] = self.gridInfo[varName][1][self.gridCoordinate[i]]
+
+  def setInputInfoLHS(self,model,myInput):
+    sampling = self.limit+1
+    j=0
+    for varName in self.axisName:
+      upper = self.gridInfo[varName][1][self.sampledCoordinate[j][sampling]+1]
+      lower = self.gridInfo[varName][1][self.sampledCoordinate[j][sampling]  ]
+      j +=1
+      intervalFraction = np.random.random()
+      coordinate = lower + (upper-lower)*intervalFraction
+      if self.gridInfo[varName][0] =='CDF':
+        self.values[varName] = self.distDict[varName].distribution.ppf(coordinate)
+        self.inputInfo['upper'][varName] = self.distDict[varName].distribution.ppf(max(upper,lower))
+        self.inputInfo['lower'][varName] = self.distDict[varName].distribution.ppf(min(upper,lower))
+      elif self.gridInfo[varName][0]=='value':
+        self.values[varName] = coordinate
+        self.inputInfo['upper'][varName] = max(upper,lower)
+        self.inputInfo['lower'][varName] = min(upper,lower)
 #
 #
 #
@@ -954,12 +958,12 @@ class DynamicEventTree(Sampler):
 base = 'Sampler'
 _InterfaceDict = {}
 _InterfaceDict['MonteCarlo'            ] = MonteCarlo
-_InterfaceDict['LatinHyperCube'        ] = LatinHyperCube
-_InterfaceDict['EquallySpaced'         ] = EquallySpaced
+#_InterfaceDict['LatinHyperCube'        ] = LatinHyperCube
+#_InterfaceDict['EquallySpaced'         ] = EquallySpaced
 _InterfaceDict['DynamicEventTree'      ] = DynamicEventTree
 _InterfaceDict['StochasticCollocation' ] = StochasticCollocation
-_InterfaceDict['Custom'                ] = Custom
-
+#_InterfaceDict['Custom'                ] = Custom
+_InterfaceDict['Grid'                ] = Grid
 def returnInstance(Type):
   '''
   function used to generate a Sampler class
