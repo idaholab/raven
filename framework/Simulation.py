@@ -50,6 +50,8 @@ class SimulationMode:
   def modifySimulation(self):
     """modifySimulation is called after the runInfoDict has been setup.
     This allows the mode to change any parameters that need changing.
+    This typically modifies the precommand and the postcommand that 
+    are put infront of the command and after the command.
     """
     import multiprocessing
     try:
@@ -62,6 +64,7 @@ class PBSSimulationMode(SimulationMode):
   
   def __init__(self,simulation):
     self.__simulation = simulation
+    #Check if in pbs by seeing if environmental variable exists
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     
   def doOverrideRun(self):
@@ -69,11 +72,13 @@ class PBSSimulationMode(SimulationMode):
     return not self.__in_pbs
 
   def runOverride(self):
+    #Check and see if this is being accidently run
     assert self.__simulation.runInfoDict['mode'] == 'pbs' and not self.__in_pbs
     # Check if the simulation has been run in PBS mode and, in case, construct the proper command
     batchSize = self.__simulation.runInfoDict['batchSize']
     frameworkDir = self.__simulation.runInfoDict["FrameworkDir"]
-    ncpus = self.__simulation.runInfoDict['ParallelProcNumb']
+    ncpus = self.__simulation.runInfoDict['NumThreads']
+    #Generate the qsub command needed to run input
     command = ["qsub","-l",
                "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
                "-l","walltime="+self.__simulation.runInfoDict["expectedTime"],
@@ -81,6 +86,7 @@ class PBSSimulationMode(SimulationMode):
                'COMMAND="python Driver.py '+
                self.__simulation.runInfoDict["SimulationFile"]+'"',
                os.path.join(frameworkDir,"raven_qsub_command.sh")]
+    #Change to frameworkDir so we find raven_qsub_command.sh
     os.chdir(frameworkDir)
     print(os.getcwd(),command)
     subprocess.call(command)
@@ -91,18 +97,22 @@ class PBSSimulationMode(SimulationMode):
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
       oldBatchsize =  self.__simulation.runInfoDict['batchSize']
-      newBatchsize = len(lines)
+      newBatchsize = len(lines) #the batchsize is just the number of nodes
+      # of which there are one per line in the nodefile
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       print("DRIVER        : Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
+      #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.__simulation.runInfoDict['precommand']
-      if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
+      if(self.__simulation.runInfoDict['NumThreads'] > 1):
+        #Add the MOOSE --n-threads command afterwards
         self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
     self.__simulation = simulation
+    #Figure out if we are in PBS
     self.__in_pbs = "PBS_NODEFILE" in os.environ
 
   def modifySimulation(self):
@@ -110,18 +120,21 @@ class MPISimulationMode(SimulationMode):
       #Figure out number of nodes and use for batchsize
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
-      numNode = self.__simulation.runInfoDict['numNode']
+      numMPI = self.__simulation.runInfoDict['NumMPI']
       oldBatchsize = self.__simulation.runInfoDict['batchSize']
-      newBatchsize = max(int(math.floor(len(lines)/numNode)),1)
+      #the batchsize is just the number of nodes of which there is one 
+      # per line in the nodefile divided by the numMPI (which is per run)
+      # and the floor and int and max make sure that the numbers are reasonable
+      newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
         print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       if newBatchsize > 1:
-        #need to split node lines
+        #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
         for i in range(newBatchsize):
           node_file = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numNode:(i+1)*numNode]:
+          for line in lines[i*numMPI:(i+1)*numMPI]:
             node_file.write(line)
           node_file.close()
         #then give each index a separate file.
@@ -132,11 +145,15 @@ class MPISimulationMode(SimulationMode):
     else:
       #Not in PBS, so can't look at PBS_NODEFILE
       newBatchsize = self.__simulation.runInfoDict['batchSize']
-      numNode = self.__simulation.runInfoDict['numNode']
+      numMPI = self.__simulation.runInfoDict['NumMPI']
+      #TODO, we don't have a way to know which machines it can run on
+      # when not in PBS so just distribute it over the local machine:
       nodeCommand = " "
 
-    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numNode)+" "+self.__simulation.runInfoDict['precommand']
-    if(self.__simulation.runInfoDict['ParallelProcNumb'] > 1):
+    # Create the mpiexec pre command 
+    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
+    if(self.__simulation.runInfoDict['NumThreads'] > 1):
+      #add number of threads to the post command.
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
 
@@ -153,8 +170,8 @@ class Simulation(object):
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
-    self.runInfoDict['ParallelProcNumb'  ] = 1            # the number of mpi process by run
-    self.runInfoDict['ThreadingProcessor'] = 1            # Number of Threats by run
+    self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
+    self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threats by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
@@ -253,7 +270,7 @@ class Simulation(object):
     #move the full simulation environment in the working directory
     os.chdir(self.runInfoDict['WorkingDir'])
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
-    self.runInfoDict['numProcByRun'] = self.runInfoDict['ParallelProcNumb']*self.runInfoDict['ThreadingProcessor']
+    self.runInfoDict['numProcByRun'] = self.runInfoDict['NumMPI']*self.runInfoDict['NumThreads']
     self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
     #transform all files in absolute path
     for key in self.filesDict.keys():
@@ -279,12 +296,12 @@ class Simulation(object):
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
-      elif element.tag == 'ThreadingProcessor': self.runInfoDict['ThreadingProcessor'] = int(element.text)
+      elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
       elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
       elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text)
       elif element.tag == 'totNumbCores'      : self.runInfoDict['totNumbCores'      ] = int(element.text)
-      elif element.tag == 'ParallelProcNumb'  : self.runInfoDict['ParallelProcNumb'  ] = int(element.text)
+      elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'  ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
