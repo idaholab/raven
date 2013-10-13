@@ -3,24 +3,29 @@
 <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd,TMI_PRA_trans_MC_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
-    <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer</Sequence>
+    <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC</Sequence>
     <batchSize>3</batchSize>
 </RunInfo>
+<Distributions>
+    <Uniform name='auxbackup'>
+        <low>0</low>
+        <hi>2000</hi>
+    </Uniform>
+</Distributions>
 <Models>
     <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
-    <ROM  name='ROM1' type='SVMscikitLearn'>
+    <ROM  name='ROM1' type='SVMscikitLearn' target_response_name='CladTempBranched'>
       <SVMtype>LinearSVC</SVMtype>
       <C>1.0</C>
       <tol>0.0001</tol>
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='2'></MonteCarlo>
-  <Custom>
-    <pipe1_Area></pipe1_Area>
-    <pipe1_Dh></pipe1_Dh>
-    <pipe1_Hw></pipe1_Hw>
-  </Custom>
+  <MonteCarlo     name='RAVENmc3'  limit='2' initial_seed='200286'>
+    <Variable name='DeltaTimeScramToAux'>
+      <distribution type='Uniform'>auxbackup</distribution>
+    </Variable>
+  </MonteCarlo>
 </Samplers>
 <Steps> 
     <MultiRun name='MC_for_rom_trainer'>
@@ -35,19 +40,35 @@
     </MultiRun>  
     <InOutFromDataBase name='test_extract_for_rom_trainer'>
         <Input   type='DataBases' subtype='HDF5'       >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+        <Input   type='DataBases' subtype='HDF5'       >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
         <Output  type='Datas'    subtype='TimePointSet'>timepointset_from_database_for_rom_trainer</Output>
+        <Output  type='Datas'    subtype='TimePoint' hist_name = ''>data_for_sampling_empty_at_begin</Output>
     </InOutFromDataBase>  
     <RomTrainer name='test_rom_trainer'>
         <Input   type='Datas' subtype='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
         <Output  type='Models'    subtype='ROM'     >ROM1</Output>
-    </RomTrainer>  
+    </RomTrainer> 
+    <MultiRun name='rom_MC'>
+        <Input   type='Datas'    subtype='TimePoint' >data_for_sampling_empty_at_begin</Input>
+        <Model   type='Models'   subtype='ROM'         >ROM1</Model>
+        <Sampler type='Samplers' subtype='MonteCarlo'  >RAVENmc3</Sampler>
+        <Output  type='Datas'    subtype='TimePointSet'>outputMontecarloRom</Output>
+    </MultiRun>
 </Steps>
 <DataBases>
         <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
 </DataBases>
 <Datas>
    <TimePointSet name='timepointset_from_database_for_rom_trainer'>
-        <Input>DeltaTimeScramToAux</Input>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>CladTempBranched</Output>
+   </TimePointSet>
+   <TimePoint name='data_for_sampling_empty_at_begin'>
+        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>CladTempBranched</Output>
+   </TimePoint>
+   <TimePointSet name='outputMontecarloRom' printCSV='t'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempBranched</Output>
    </TimePointSet>
 </Datas>

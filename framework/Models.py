@@ -188,10 +188,18 @@ class ROM(Model):
     self.initializzationOptionDict = {}
     self.inputNames = []
     self.outputName = ''
+    self.admittedData = []
+    self.admittedData.append('TimePoint')
+    self.admittedData.append('TimePointSet')
+
+  def __returnAdmittedData(self):
+    return self.admittedData
 
   def readMoreXML(self,xmlNode):
     '''read the additional input needed and create an instance the underlying ROM'''
     Model.readMoreXML(self, xmlNode)
+    try:    self.outputName = xmlNode.attrib['target_response_name']
+    except: pass
     for child in xmlNode:
       try: self.initializzationOptionDict[child.tag] = int(child.text)
       except:
@@ -212,12 +220,12 @@ class ROM(Model):
 
   def initializeTrain(self,runInfoDict,loadFrom):
     '''just provide an internal pointer to the external data and check compatibility'''
-    if loadFrom.type not in self.ROM.admittedData: raise IOError('type '+loadFrom.type+' is not compatible with the ROM '+self.ROM.type)
+    if loadFrom.type not in self.__returnAdmittedData(): raise IOError('type '+loadFrom.type+' is not compatible with the ROM '+self.name)
     else: self.toLoadFrom = loadFrom
-
+  
   def close(self):
     '''remember to call this function to decouple the data owned by the ROM and the environment data after each training'''
-    self.toLoadFrom = copy.deepcopy(self.toLoadFrom)
+    self.toLoadFrom = copy.copy(self.toLoadFrom)
 
   def train(self):
     '''Here we do the training of the ROM'''
@@ -225,11 +233,12 @@ class ROM(Model):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    self.inputNames, inputsValues = self.toLoadFrom.getInpParametersValues().items()
+
+    self.inputNames, inputsValues  = self.toLoadFrom.getInpParametersValues().keys(), self.toLoadFrom.getInpParametersValues().values()
     try: outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
     except: raise IOError('The output sought '+self.outputName+' is not in the training set')
-    self.inputsValues = np.zeros(shape=(inputsValues[1].size,len(self.inputNames)))
-    self.outputValues = np.zeros(shape=(inputsValues[1].size))
+    self.inputsValues = np.zeros(shape=(inputsValues[0].size,len(self.inputNames)))
+    self.outputValues = np.zeros(shape=(inputsValues[0].size))
     for i in range(len(self.inputNames)):
       self.inputsValues[:,i] = inputsValues[i][:]
     self.outputValues[:] = outputValues[:]
@@ -240,24 +249,33 @@ class ROM(Model):
         It is called from a sampler to get the implementation specific for this model
         it support string input
         dictionary input and datas input'''
+    import itertools
+    
     if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
     else: currentInput =currentInput[0]
     if  type(currentInput)==str:#one input point requested a as a string
       inputNames  = [component.split('=')[0] for component in currentInput.split(',')]
       inputValues = [component.split('=')[1] for component in currentInput.split(',')]
-      for name, newValue in Kwargs['sampledVars'].items(): inputValues[inputNames.index(name)] = newValue
+      for name, newValue in itertools.izip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
+        inputValues[inputNames.index(name)] = newValue
       newInput = [inputNames[i]+'='+inputValues[i] for i in range(inputNames)]
       newInput = newInput.join(',')
     elif type(currentInput)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      for name, newValue in Kwargs['sampledVars'].items(): currentInput[name] = newValue
+      for name, newValue in itertools.izip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
+        currentInput[name] = newValue
+      newInput = copy.deepcopy(currentInput)
     else:#as a internal data type
       try: #try is used to be sure input.type exist
-        if currentInput.type in self.ROM.admittedData:
-          for name, newValue in Kwargs['sampledVars'].items():
-            try   : self.currentInput.getInpParametersValues()[name] = np.array(newValue)
+        if currentInput.type in self.__returnAdmittedData():
+          newInput = Datas.returnInstance(currentInput.type)
+          newInput.type = currentInput.type
+          for name,value in itertools.izip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,np.atleast_1d(np.array(value)))
+          for name, newValue in itertools.izip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()):
+            # for now, even if the ROM accepts a TimePointSet, we create a TimePoint
+            try   : newInput.updateInputValue(name,np.atleast_1d(np.array(newValue)))
             except: raise IOError('trying to sample '+name+' that is not in the original input')
       except: raise IOError('the request of ROM evaluation is done via a not compatible input')
-    currentInput = [currentInput]
+    currentInput = [newInput]
     return currentInput
 
   def run(self,request,jobHandler):
@@ -269,17 +287,18 @@ class ROM(Model):
     -as a dictionary where keys are the input names and the values the corresponding values (it should be either vector or list)
     -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''
     if len(request)>1: raise IOError('ROM accepts only one input not a list of inputs')
-    else: request =request[0]
+    else: self.request =request[0]
     #first we extract the input names and the corresponding values (it is an implicit mapping)
-    if  type(request)==str:#one input point requested a as a string
-      inputNames  = [entry.split('=')[0]  for entry in request.split(',')]
-      inputValues = [entry.split('=')[1]  for entry in request.split(',')]
-    elif type(request)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      inputNames, inputValues = request.items()[:][0], request.items()[:][1]
+    if  type(self.request)==str:#one input point requested a as a string
+      inputNames  = [entry.split('=')[0]  for entry in self.request.split(',')]
+      inputValues = [entry.split('=')[1]  for entry in self.request.split(',')]
+    elif type(self.request)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
+      inputNames, inputValues = self.request.keys(), self.request.values()
     else:#as a internal data type
       try: #try is used to be sure input.type exist
-        if input.type in self.ROM.admittedData:
-          inputNames, inputValues = self.request.getInpParametersValues().items()[:][0], self.request.getInpParametersValues().items()[:][1]
+        print(self.request.type)
+        if self.request.type in self.__returnAdmittedData():
+          inputNames, inputValues = self.request.getInpParametersValues().keys(), self.request.getInpParametersValues().values()
       except: raise IOError('the request of ROM evaluation is done via a not compatible data')
     #now that the prediction points are read we check the compatibility with the ROM input-output set
     lenght = len(set(inputNames).intersection(self.inputNames))
@@ -290,20 +309,21 @@ class ROM(Model):
     for local in self.inputNames:
       self.requestToLocalOrdering.append(inputNames.index(local))
     #building the arrays to send in for the prediction by the ROM
-    self.request = np.array([inputValues[index] for index in self.requestToLocalOrdering]).T
+    self.request = np.array([inputValues[index] for index in self.requestToLocalOrdering]).T[0]
     ############################------FIXME----------#######################################################
     # we need to submit self.ROM.evaluate(self.request) to the job handler
-    self.output = self.ROM.evaluate(self.request)
+    self.output = self.SupervisedEngine.evaluate(self.request)
 #    raise IOError('the multi treading is not yet in place neither the appending')
   
   def collectOutput(self,finishedJob,output):
     '''This method append the ROM evaluation into the output'''
     try: #try is used to be sure input.type exist
-      if output.type in self.ROM.admittedData:
+      if output.type in self.__returnAdmittedData():
         for inputName in self.inputNames:
-          self.request.getInpParametersValues[inputName] = np.concatenate((self.request.getInpParametersValues[inputName], self.request[self.inputNames.index(inputName)][:]))
+          output.updateInputValue(inputName,self.request[self.inputNames.index(inputName)])
     except: raise IOError('the output of the ROM is requested on a not compatible data')
-    self.request.getOutParametersValues[self.outputName] = np.concatenate((self.request.getOutParametersValues[inputName], self.output))
+    output.updateOutputValue(self.outputName,self.output)
+    output.printCSV()
   
 class Projector(Model):
   '''Projector is a data manipulator'''

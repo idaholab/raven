@@ -351,7 +351,10 @@ class Simulation(object):
           #if the input is a file, check if it exists 
           if b == 'Files':
             self.__checkExistPath(d)
-          inputDict[key].append(self.whichDict[b][d])
+          if b != 'Values':
+            inputDict[key].append(self.whichDict[b][d])
+          else:
+            inputDict[key].append(d)
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
         elif key == 'Output':
           inputDict[key].append(self.whichDict[b][d])

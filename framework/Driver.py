@@ -31,7 +31,7 @@ if __name__ == '__main__':
   if len(sys.argv) == 1:
     #NOTE: This can be overriden at the command line:
     # python Driver.py anotherFile.xml
-    inputFile = os.path.join(workingDir,'test.xml')
+    inputFile = os.path.join(workingDir,'/Users/alfoa/projects/trunk/raven/framework/terom.xml')
   else:
     inputFile = sys.argv[1]
     if not os.path.isabs(inputFile): inputFile = os.path.join(workingDir,inputFile)

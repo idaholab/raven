@@ -11,6 +11,7 @@ if not 'xrange' in dir(__builtins__):
 import numpy as np
 import h5py  as h5
 import os
+import copy
 
 from utils import *
 
@@ -490,7 +491,7 @@ class hdf5Database(object):
           # Grep only History from group "name"
           grp = self.h5_file_w.require_group(path)
           # Retrieve dataset
-          dataset = grp.require_dataset(name+"_data", (grp.attrs['n_ts'],grp.attrs['n_params']), dtype='float')          
+          dataset = grp.require_dataset(name+"_data", (grp.attrs['n_ts'],grp.attrs['n_params']), dtype='float').value          
 #          dataset = grp.require_dataset(name=name +'_data', (grp.attrs('n_params'),grp.attrs('n_ts')), dtype='float', exact=True)
           # Get numpy array
           result = dataset[:,:]
@@ -530,7 +531,8 @@ class hdf5Database(object):
           for i in xrange(len(where_list)):
             grp = self.h5_file_w.require_group(where_list[i])
             namel = name_list[i] +'_data'
-            dataset = grp.require_dataset(namel, (int(grp.attrs['n_ts']),int(grp.attrs['n_params'])), dtype='float')
+            dataset = grp.require_dataset(namel, (int(grp.attrs['n_ts']),int(grp.attrs['n_params'])), dtype='float').value
+            
             if i == 0:
               n_params = int(grp.attrs['n_params'])
             
@@ -546,7 +548,7 @@ class hdf5Database(object):
           # Retrieve the metadata
           for key in gb_res:
             arr = gb_res[key]
-            result[ts:ts+arr[:,0].size,:] = arr[:,:]
+            result[ts:ts+arr[:,0].size,:] = arr
             ts = ts + arr[:,0].size
             # must be checked if overlapping of time (branching for example)
           
@@ -666,7 +668,7 @@ class hdf5Database(object):
             for i in xrange(len(where_list)):
               grp = self.h5_file_w.require_group(where_list[i])
               namel = name_list[i] +'_data'
-              dataset = grp.require_dataset(namel, (int(grp.attrs['n_ts']),int(grp.attrs['n_params'])), dtype='float')
+              dataset = grp.require_dataset(namel, (int(grp.attrs['n_ts']),int(grp.attrs['n_params'])), dtype='float').value
               if i == 0:
                 n_params = int(grp.attrs['n_params'])
               
@@ -764,7 +766,8 @@ class hdf5Database(object):
             raise Exception("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 
       else:
         raise Exception("History named " + name + "not found in database")
-      return(result,attrs)
+      
+      return(copy.deepcopy(result),copy.deepcopy(attrs))
 
     def closeDataBaseW(self):
       '''

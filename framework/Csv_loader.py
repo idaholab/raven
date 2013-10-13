@@ -124,7 +124,7 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = data[0,ix]
+          inDict[key] = np.atleast_1d(np.array(data[0,ix]))
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     
@@ -135,11 +135,11 @@ class CsvLoader:
       last_row = data[:,0].size - 1
       if self.all_out_param:
         for key in self.all_field_names:
-          outDict[key] = data[last_row,self.all_field_names.index(key)]
+          outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))
       else:
         for key in outParam:
           if key in self.all_field_names:
-            outDict[key] = data[last_row,self.all_field_names.index(key)]        
+            outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))       
           else:
             raise Exception("ERROR: the parameter " + key + " has not been found")
     else:
@@ -155,20 +155,20 @@ class CsvLoader:
           if self.all_out_param:
             for key in self.all_field_names:
               if(actual_time == previous_time):
-                outDict[key] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
+                outDict[key] = np.atleast_1d(np.array((data[i,self.all_field_names.index(key)]  - time_float) / actual_time)) 
               else:
                 actual_value   = data[i,self.all_field_names.index(key)]
                 previous_value = data[i-1,self.all_field_names.index(key)] 
-                outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
           else:
             for key in outParam:
               if key in self.all_field_names:
                 if(actual_time == previous_time):
-                  outDict[key] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
+                  outDict[key] = np.atleast_1d(np.array((data[i,self.all_field_names.index(key)]  - time_float) / actual_time)) 
                 else:
                   actual_value   = data[i,self.all_field_names.index(key)]
                   previous_value = data[i-1,self.all_field_names.index(key)] 
-                  outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
                          
               else:
                 raise Exception("ERROR: the parameter " + key + " has not been found")
@@ -332,7 +332,7 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = data[0,ix]
+          inDict[key] = np.atleast_1d(np.array(data[0,ix]))
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     

@@ -11,7 +11,9 @@ import numpy as np
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
+import copy
 import os
+import gc
 
 class DateBase(BaseType):
     '''
@@ -201,7 +203,7 @@ class HDF5(DateBase):
         tupleVar = self.database.retrieveHistory(attributes["history"],attributes['filter'])
       else:
         tupleVar = self.database.retrieveHistory(attributes["history"])
-      return tupleVar
+      return copy.deepcopy(tupleVar)
 
     def __retrieveDataTimePoint(self,attributes):
       '''
@@ -245,7 +247,7 @@ class HDF5(DateBase):
       for key in attributes['inParam']:
           if key in histVar[1]["headers"]:
             ix = histVar[1]["headers"].index(key)
-            inDict[key] = histVar[0][0,ix]
+            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
           else:
             raise Exception("ERROR: the parameter " + key + " has not been found")
     
@@ -256,12 +258,12 @@ class HDF5(DateBase):
         if all_out_param:
           # Retrieve all the parameters 
           for key in histVar[1]["headers"]:
-            outDict[key] = histVar[0][last_row,histVar[1]["headers"].index(key)]
+            outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["headers"].index(key)]))
         else:
           # Retrieve only some parameters 
           for key in attributes['outParam']:
             if key in histVar[1]["headers"]:
-              outDict[key] = histVar[0][last_row,histVar[1]["headers"].index(key)]        
+              outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["headers"].index(key)]))      
             else:
               raise Exception("ERROR: the parameter " + key + " has not been found")
       else:
@@ -279,26 +281,26 @@ class HDF5(DateBase):
               # Retrieve all the parameters 
               for key in histVar[1]["headers"]:
                 if(actual_time == previous_time):
-                  outDict[key] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time 
+                  outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time)) 
                 else:
                   actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
                   previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
-                  outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
             else:
               # Retrieve only some parameters
               for key in attributes['outParam']:
                 if key in histVar[1]["headers"]:
                   if(actual_time == previous_time):
-                    outDict[key] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time 
+                    outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time))
                   else:
                     actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
                     previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
-                    outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                    outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
                            
                 else:
                   raise Exception("ERROR: the parameter " + key + " has not been found")
-      # return tuple of dictionaries 
-      return (inDict,outDict)
+      # return tuple of dictionaries
+      return (copy.deepcopy(inDict),copy.deepcopy(outDict))
 
     def __retrieveDataTimePointSet(self,attributes):
       '''
@@ -422,7 +424,7 @@ class HDF5(DateBase):
                     raise Exception("ERROR: the parameter " + key + " has not been found")      
         del histVar
       # return tuple of timepointSet
-      return (inDict,outDict)
+      return (copy.deepcopy(inDict),copy.deepcopy(outDict))
 
     def __retrieveDataHistory(self,attributes):
       '''
@@ -469,7 +471,7 @@ class HDF5(DateBase):
       for key in attributes["inParam"]:
           if key in histVar[1]["headers"]:
             ix = histVar[1]["headers"].index(key)
-            inDict[key] = histVar[0][0,ix]
+            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
           else:
             raise Exception("ERROR: the parameter " + key + " has not been found")
       # Time all case => The history is completed (from start_time to end_time)
@@ -498,7 +500,7 @@ class HDF5(DateBase):
             else:
               raise Exception("ERROR: the parameter " + key + " has not been found")
       # Return tuple of dictionaries containing the histories
-      return (inDict,outDict)
+      return (copy.deepcopy(inDict),copy.deepcopy(outDict))
 
     def retrieveData(self,attributes):
       '''
@@ -528,11 +530,12 @@ class HDF5(DateBase):
           listhist_in[index]  = tupleVar[0]
           listhist_out[index] = tupleVar[1]
           del tupleVar
-        return(listhist_in,listhist_out)
+        data = (listhist_in,listhist_out)
       else:
         raise Exception("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData")
       # return data
-      return data
+      gc.collect()
+      return copy.deepcopy(data) 
 
 def returnInstance(Type,debug=False):
   '''

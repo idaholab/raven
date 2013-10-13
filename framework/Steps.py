@@ -118,7 +118,10 @@ class MultiRun(SingleRun):
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for newInput in newInputs:
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
-      
+      if inDictionary["Model"].type != 'Code': 
+        for output in inDictionary['Output']:  
+          inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
+
   def takeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
     while True:
@@ -252,13 +255,14 @@ class RomTrainer(Step):
   def initializeStep(self,inDictionary):
     '''The initialization step  for a ROM is copying the data out to the ROM (it is a copy not a reference) '''
     for i in xrange(len(inDictionary['Output'])):
-      inDictionary['Output'][i].initialize(inDictionary['Input'])
+      inDictionary['Output'][i].initializeTrain(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'][0])
 
   def takeAstepIni(self,inDictionary):
     print('STEPS         : beginning of step named: ' + self.name)
     for i in xrange(len(inDictionary['Output'])):
       if (inDictionary['Output'][i].type != 'ROM'):
         raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts a ROM as Output only. Got ' + inDictionary['Output'][i].type)
+    if len(inDictionary['Input']) > 1: raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts an Input Only. Number of Inputs = ' + str(len(inDictionary['Input'])))
     self.initializeStep(inDictionary)
     
   def takeAstepRun(self,inDictionary):

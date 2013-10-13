@@ -42,9 +42,6 @@ except:
 class superVisioned():
   def __init__(self,**kwargs):
     self.initializzationOptionDict = kwargs
-    self.admittedData = []
-    self.admittedData.append('TimePointSet')
-    self.admittedData.append('TimePoint')
 
   def train(self,obj):
     '''override this method to train the ROM'''
@@ -57,7 +54,7 @@ class superVisioned():
   def evaluate(self):
     '''override this method to get the prediction from the ROM'''
     return
-
+    
   def returnInitialParamters(self):
     '''override this method to pass the fix set of parameters of the ROM'''
     InitialParamtersDict={}
@@ -71,7 +68,6 @@ class superVisioned():
 class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
-    self.admittedData = ['']
 
   def train(self,inDictionary):
     data=inDictionary['Input'][0]
@@ -166,44 +162,23 @@ class SVMsciKitLearn(superVisioned):
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
     kwargs.pop('SVMtype')
     self.SVM.set_params(**kwargs)
-    self.admittedData.append('TimePointSet')
 
   def train(self,X,y):
+    """Perform training on samples in X with responses y.
+        For an one-class model, +1 or -1 is returned.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+        Returns
+        -------
+        y : array, shape = [n_samples]
+    """
     self.SVM.fit(X,y)
-#    """Fit the model according to the given training data.
-#        Parameters
-#        ----------
-#        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
-#            Training vector, where n_samples in the number of samples and
-#            n_features is the number of features.
-#        y : array-like, shape = [n_samples]
-#            Target vector relative to X
-#        class_weight : {dict, 'auto'}, optional
-#            Weights associated with classes. If not given, all classes
-#            are supposed to have weight one.
-#        Returns
-#        -------
-#        self : object
-#            Returns self.
-#        fit( X, y, sample_weight=None):"""
-#    self.trainInputs = data.getInpParametersValues().items()
-#    self.trainTarget = data.getOutParametersValues().items()
-#    X = np.zeros(shape=(self.trainInputs[0][1].size,len(self.trainInputs)))
-#    y = np.zeros(shape=(self.trainTarget[0][1].size))
-#    for i in range(len(self.trainInputs)):
-#      X[:,i] = self.trainInputs[i][1]
-#    y[:] = self.trainTarget[0][1]
-#
-#    print('SVM           : Training ' + self.initializzationOptionDict['SVMtype'])
-#    self.SVM.fit(X,y)
-#    print('SVM           : '+ self.initializzationOptionDict['SVMtype'] + ' trained!')
-#    
-#    return
 
   def returnInitialParamters(self):
     return self.SVM.get_params()
 
-  def evaluate(self,data):
+  def evaluate(self,X):
     """Perform regression on samples in X.
         For an one-class model, +1 or -1 is returned.
         Parameters
@@ -213,15 +188,10 @@ class SVMsciKitLearn(superVisioned):
         -------
         y_pred : array, shape = [n_samples]
         predict(self, X)"""
-    if(data.type != 'TimePointSet'):
-      raise IOError('The SVM type ' + self.initializzationOptionDict['SVMtype'] + 'requires a TimePointSet to be trained')
-    trainInputs = data.getInpParametersValues().items()
-    X = np.zeros(shape=(trainInputs[0][1].size,len(trainInputs)))
-    for i in range(len(trainInputs)):
-      X[:,i] = self.trainInputs[i][1]
-    print('SVM           : Predicting by ' + self.initializzationOptionDict['SVMtype'])
-    return self.SVM.predict(X)
-
+    prediction = self.SVM.predict(X)
+    print('SVM           : Prediction by ' + self.initializzationOptionDict['SVMtype'] + '. Predicted value is ' + str(prediction))
+    return prediction
+  
   def reset(self):
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']](self.initializzationOptionDict)
 
