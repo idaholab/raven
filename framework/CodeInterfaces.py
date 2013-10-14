@@ -81,7 +81,7 @@ class RavenInterface:
     except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
     try: init_seed = Kwargs['initial_seed']
     except: init_seed = 1
-    
+
     listDict = []
     modifDict = {}
     modifDict['name'] = ['Distributions']

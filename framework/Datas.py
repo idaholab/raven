@@ -89,6 +89,7 @@ class Data(BaseType):
       This function checks the consistency of the data structure... every specialized data needs to overwrite it!!!!!
     '''
     raise NotImplementedError('The data of type '+self.type+' seems not to have a checkConsistency method overloaded!!!!')
+
   def printCSV(self):
     # print content of data in a .csv format
     print('=======================')
@@ -105,7 +106,7 @@ class Data(BaseType):
   def addOutput(self,toLoadFrom):
     ''' 
         this function adds the file name/names/object to the
-        filename list + it calls the specialized functions to retrieve the differen data
+        filename list + it calls the specialized functions to retrieve the different data
     '''
     print('DATAS       : toLoadFrom -> ')
     print(toLoadFrom)
@@ -247,23 +248,23 @@ class TimePointSet(Data):
     
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
-    file = open(filenameLocal + '.csv', 'wb')
-    file.write('counter')
+    myFile = open(filenameLocal + '.csv', 'wb')
+    myFile.write('counter')
     for i in range(len(inpKeys)):
-        file.write(',' + inpKeys[i])
+        myFile.write(',' + inpKeys[i])
     for i in range(len(outKeys)):
-        file.write(',' + outKeys[i])
-    file.write('\n')
+        myFile.write(',' + outKeys[i])
+    myFile.write('\n')
     
     for j in range(outValues[0].size):
-      file.write(str(j))
+      myFile.write(str(j))
       for i in range(len(inpKeys)):
-        file.write(',' + str(inpValues[i][j]))
+        myFile.write(',' + str(inpValues[i][j]))
       for i in range(len(outKeys)):
-        file.write(',' + str(outValues[i][j]))
-      file.write('\n')
+        myFile.write(',' + str(outValues[i][j]))
+      myFile.write('\n')
       
-    file.close()
+    myFile.close()
 
 class History(Data):
   def addSpecializedReadingSettings(self):

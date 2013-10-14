@@ -69,21 +69,37 @@ class Model(BaseType):
 class Dummy(Model):
   '''this is a dummy model that just return the input in the data
   it suppose to get a datas as input in and send back the input from the sampler added to it'''
+  def initialize(self,runInfo,inputs):
+    self.counter=0
+    self.localOutput = copy.deepcopy(inputs[0])
+    
   def createNewInput(self,myInput,samplerType,**Kwargs):
     newInput = copy.deepcopy(myInput[0])
     if newInput.type != 'TimePointSet' and newInput.type != 'TimePoint': raise IOError('wrong input data passed to Dummy model')
     for key in Kwargs['SampledVars'].keys():
-      if key in newInput.getInpParametersValues().keys(): newInput.getInpParametersValues()[key] =  np.concatenate(newInput.getInpParametersValues()[key], Kwargs['SampledVars'][key])
-      else: newInput.getInpParametersValues()[key] = np.array([Kwargs['SampledVars'][key]],copy=True,dtype=float)
-    print (newInput.getInpParametersValues())
+      newInput.getInpParametersValues()[key] = np.array([Kwargs['SampledVars'][key]],copy=True,dtype=float)
     return [newInput]
+
+  def readMoreXML(self,xmlNode):
+    Model.readMoreXML(self, xmlNode)
+    if 'file' in xmlNode.attrib.keys(): self.fileOut = xmlNode.attrib['file']
+    else: self.fileOut = None
   
   def run(self,Input,jobHandler):
-    pass
-  
+    for inputName in Input[0].getInpParametersValues().keys():
+      if inputName in self.localOutput.getInpParametersValues().keys():
+        self.localOutput.getInpParametersValues()[inputName] = np.hstack([self.localOutput.getInpParametersValues()[inputName], Input[0].getInpParametersValues()[inputName]])
+      else:
+        self.localOutput.getInpParametersValues()[inputName] = np.array(Input[0].getInpParametersValues()[inputName],copy=True,dtype=float)
+    if 'status' in self.localOutput.getOutParametersValues().keys():
+      self.localOutput.getOutParametersValues()['status'] = np.hstack([self.localOutput.getOutParametersValues()['status'], 'done'])
+    else:
+      self.localOutput.getOutParametersValues()['status'] = np.array(['done'],copy=True,dtype=object)
+      
   def collectOutput(self,collectFrom,storeTo):
-    pass
-  
+    if self.fileOut!=None:
+      self.localOutput.printCSV(fileOut=self.fileOut)
+      
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
   def __init__(self):

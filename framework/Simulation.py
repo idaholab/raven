@@ -1,21 +1,19 @@
 '''
-Created on Feb 19, 2013
-
-@author: crisr
+Module that contains the driver for the whole the simulation flow (Simulation Class)
 '''
-#for future compatibility with Python 3
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#End compatibility block for Python 3
+#End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules
+#External Modules------------------------------------------------------------------------------------
 import xml.etree.ElementTree as ET
 import os,subprocess
 import math
-#External Modules
+#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules
+#Internal Modules------------------------------------------------------------------------------------
 import Steps
 import Datas
 import Samplers
@@ -25,9 +23,10 @@ import Distributions
 import DataBases
 import OutStreams
 from JobHandler import JobHandler
-#Internal Modules
+#Internal Modules End--------------------------------------------------------------------------------
 
-#----------------------------------------------------------------------------------------------------------
+
+#----------------------------------------------------------------------------------------------------
 class SimulationMode:
   """SimulationMode allows changes to the how the simulation 
   runs are done.  modifySimulation lets the mode change runInfoDict
@@ -60,6 +59,8 @@ class SimulationMode:
     except:
       pass
 
+
+#-----------------------------------------------------------------------------------------------------
 class PBSSimulationMode(SimulationMode):
   
   def __init__(self,simulation):
@@ -158,9 +159,32 @@ class MPISimulationMode(SimulationMode):
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
 
     
-
+#-----------------------------------------------------------------------------------------------------
 class Simulation(object):
-  '''This is a class that contain all the object needed to run the simulation'''
+  '''This is a class that contain all the object needed to run the simulation
+  --Instance--
+  myInstance = Simulation()
+  myInstance.XMLread(xml.etree.ElementTree.Element) This method generate all the objects living in the simulation
+
+  --usage--
+  myInstance = Simulation()
+  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all the objects living in the simulation
+  myInstance.initialize()                            This method takes care of setting up the directory/file environment with proper checks
+
+  --Other external methods--
+  myInstance.printDicts prints the dictionaries representing the whole simulation
+  myInstance.whoAreYou()                 -see BaseType class-
+  myInstance.myInitializzationParams()   -see BaseType class-
+  myInstance.myClassmyCurrentSetting()           -see BaseType class-
+
+  --how to add a <MyType> of component to the simulation--
+  import the module <MyModule> where the new type of component is defined, you can name you module as you wish but so far we added an 's' t the class name (see Datas...)
+  The module should possess a function <MyModule>.returnInstance('<MyType>') that returns a pointer to the class
+  add to the class in the __init__: self.<MyType>Dict = {}
+  add to the class in the __init__: self.whichDict['<MyType>']=<MyModule>.returnInstance
+  add to the class in the __init__: self.whichDict['<MyType>'] = self.<MyType>Dict
+  '''
+  
   def __init__(self,inputfile,frameworkDir,debug=False):
     self.debug= debug
     #this dictionary contains the general info to run the simulation
@@ -201,7 +225,7 @@ class Simulation(object):
     
     self.stepSequenceList  = [] #the list of step of the simulation
     
-    #list of supported quequing software:
+    #list of supported queue-ing software:
     self.knownQuequingSoftware = []
     self.knownQuequingSoftware.append('None')
     self.knownQuequingSoftware.append('PBS Professional')
@@ -231,7 +255,7 @@ class Simulation(object):
     self.whichDict['DataBases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.OutStreamsDict
     
-    self.jobHandler = JobHandler()
+    self.jobHandler    = JobHandler()
     self.__modeHandler = SimulationMode(self)
 
   def __createAbsPath(self,filein):
@@ -240,12 +264,11 @@ class Simulation(object):
     elif not os.path.isabs(filein)   : self.filesDict[filein] = os.path.abspath(filein)
   
   def __checkExistPath(self,filein):
-    '''assuming that the file in is already in the self.filesDict it checks the esistence'''
+    '''assuming that the file in is already in the self.filesDict it checks the existence'''
     if not os.path.exists(self.filesDict[filein]): raise IOError('The file '+ filein +' has not been found')
 
   def XMLread(self,xmlNode):
-    '''parses the xml input file, instances the classes need to represent all objects in the simulation,
-       and call for the initialization of the simulation'''
+    '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
     for child in xmlNode:
       if child.tag in self.whichDict.keys():
         Type = child.tag
@@ -260,11 +283,11 @@ class Simulation(object):
               self.whichDict[Type][name].readXML(childChild)
               if self.debug: self.whichDict[Type][name].printMe()
             else: raise IOError('not found name attribute for one '+Type)
-        else: self.readRunInfo(child)
+        else: self.__readRunInfo(child)
       else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     
   def initialize(self):
-    '''gets simulation ready to run'''
+    '''check/created working directory, check/set up the parallel environment'''
     #check/generate the existence of the working directory 
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
     #move the full simulation environment in the working directory
@@ -275,7 +298,7 @@ class Simulation(object):
     #transform all files in absolute path
     for key in self.filesDict.keys():
       self.__createAbsPath(key)
-    # 
+    #parallel environment
     if self.runInfoDict['mode'] == 'pbs':
       self.__modeHandler = PBSSimulationMode(self)
     elif self.runInfoDict['mode'] == 'mpi':
@@ -286,7 +309,7 @@ class Simulation(object):
     
     if self.debug: self.printDicts()
 
-  def readRunInfo(self,xmlNode):
+  def __readRunInfo(self,xmlNode):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       if   element.tag == 'WorkingDir'        :
@@ -296,12 +319,12 @@ class Simulation(object):
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
-      elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'] = int(element.text)
+      elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
       elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
       elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text)
       elif element.tag == 'totNumbCores'      : self.runInfoDict['totNumbCores'      ] = int(element.text)
-      elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'  ] = int(element.text)
+      elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
@@ -315,63 +338,55 @@ class Simulation(object):
 
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''
-    def prntDict(Dict):
+    def __prntDict(Dict):
       '''utility function capable to print a dictionary'''
       for key in Dict:
         print(key+'= '+str(Dict[key]))
-    prntDict(self.runInfoDict)
-    prntDict(self.stepsDict)
-    prntDict(self.dataDict)
-    prntDict(self.samplersDict)
-    prntDict(self.modelsDict)
-    prntDict(self.testsDict)
-    prntDict(self.filesDict)
-    prntDict(self.dataBasesDict)
-    prntDict(self.OutStreamsDict)
-    prntDict(self.addWhatDict)
-    prntDict(self.whichDict)
+    __prntDict(self.runInfoDict)
+    __prntDict(self.stepsDict)
+    __prntDict(self.dataDict)
+    __prntDict(self.samplersDict)
+    __prntDict(self.modelsDict)
+    __prntDict(self.testsDict)
+    __prntDict(self.filesDict)
+    __prntDict(self.dataBasesDict)
+    __prntDict(self.OutStreamsDict)
+    __prntDict(self.addWhatDict)
+    __prntDict(self.whichDict)
 
   def run(self):
     '''run the simulation'''
+    #to do list
+    #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
+    #
     if self.debug: print('entering in the run')
+    #controlling the PBS environment
     if self.__modeHandler.doOverrideRun():
       self.__modeHandler.runOverride()
       return
-    for stepName in self.stepSequenceList:                #loop over the the steps
-      stepInstance                 = self.stepsDict[stepName]   #retrieve the instance of the step
-      self.runInfoDict['stepName'] = stepName                   #provide the name of the step to runInfoDict
+    #loop over the steps of the simulation
+    for stepName in self.stepSequenceList:
+      stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
+      self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
       if self.debug: print('starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
-      inputDict                    = {}                         #initialize the input dictionary
-      inputDict['Input' ]          = []                         #set the Input to an empty list
-      inputDict['Output']          = []                         #set the Output to an empty list
-      for [key,b,c,d] in stepInstance.parList: #fill the take a a step input dictionary
-#        if self.debug: print(a+' is:')
-        #if self.debug:print([key,b,c,d])
-        if key == 'Input':
-          #if the input is a file, check if it exists 
-          if b == 'Files':
-            self.__checkExistPath(d)
-          if b != 'Values':
-            inputDict[key].append(self.whichDict[b][d])
-          else:
-            inputDict[key].append(d)
-#          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
-        elif key == 'Output':
-          inputDict[key].append(self.whichDict[b][d])
-          
-#          if self.debug: self.whichDict[b][d].printMe()
+      stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!! 
+      stepInputDict['Input' ]          = []                         #set the Input to an empty list
+      stepInputDict['Output']          = []                         #set the Output to an empty list
+      #fill the take a a step input dictionary just to reacall key= role played in the step b= type, c= subtype, d= user given name
+      for [key,b,c,d] in stepInstance.parList: 
+        if key == 'Input' or key == 'Output':                        #Only for input and output we allow more than one object passed to the step, so for those we build a list
+          stepInputDict[key].append(self.whichDict[b][d])        
         else:
-          #Create extra dictionary entry
-          #print('keys',inputDict.keys(),self.whichDict.keys())
-          #print(key,b,d,self.whichDict.keys())
-          inputDict[key] = self.whichDict[b][d]
-#          if self.debug: self.whichDict[b][d].printMe()
-      inputDict['jobHandler'] = self.jobHandler
-      if 'Sampler' in inputDict.keys():
-        inputDict['Sampler'].generateDistributions(self.DistributionsDict)
-        inputDict['jobHandler'].StartingNewStep()
-      stepInstance.takeAstep(inputDict)
-      for output in inputDict['Output']:
+          stepInputDict[key] = self.whichDict[b][d]
+        if key == 'Input' and b == 'Files': self.__checkExistPath(d) #if the input is a file, check if it exists 
+      #add the global objects
+      stepInputDict['jobHandler'] = self.jobHandler
+      #generate the needed distributions to send to the step
+      if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.DistributionsDict)
+      #running a step
+      stepInstance.takeAstep(stepInputDict)
+      #---------------here what is going on? Please add comments-----------------
+      for output in stepInputDict['Output']:
         if "finalize" in dir(output):
           output.finalize()
       

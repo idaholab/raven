@@ -8,7 +8,6 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys
-import xml.etree.ElementTree as ET
 import scipy.stats.distributions  as dist
 import numpy as np
 from BaseType import BaseType
