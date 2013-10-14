@@ -43,8 +43,14 @@
     <SCRun name='create_ROM'>
         <Input type='DataBases'  subtype='HDF5'            >SC_RUN</Input>
         <ROM   type='Models'       subtype='StochasticCollocation'>SCrom</ROM>
-        <!--Output  type='DataBases'  subtype='HDF5'           >SC_RUN</Output-->
+        <Output  type='Models'  subtype='ROM'           >SC_RUN</Output>
     </SCRun> 
+    <Multirun name='sample_SC_ROM'>
+        <Input   type='Datas'       subtype='TimePoint' >data_for_sampling_empty_at_begin</Input>
+        <Input   type='Models'      subtype='ROM'             >SCrom</Input>
+        <Sampler type='Samplers'    subtype='MonteCarlo'      >RAVENmc3</Sampler>
+        <Output  type='Datas'       subtype='TimePointSet' >outputMontecarloRom</Output>
+    </Multirun>
     <MultiRun name='solve_MC'>
         <Input   type='Files'      subtype=''                >TMI.i</Input>
         <Input   type='Files'      subtype=''                >TMI_PRA_trans_MC_control.py</Input>
@@ -56,10 +62,6 @@
         <!--Output  type='DataBases'  subtype='HDF5'            >MC_RUN</Output-->
         <Output  type='OutStreams' subtype='Screen'          >MCScreen</Output>
     </MultiRun> 
-    <!--Multirun name='sample_SC_ROM'>
-        <Input   type='Models'      subtype='ROM'             >SCrom</Input>
-        <Sampler type='Samplers'    subtype='RAVENmc6'        >MCSC</Sampler>
-    </Multirun-->
 </Steps>
 <OutStreams>
   <Screen name="MCScreen">
