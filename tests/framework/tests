@@ -11,7 +11,7 @@
   input = 'test_output.xml'
   output = 'output_check/pdf_graph.pdf output_check/eps_graph_18.eps output_check/png_graph_18.png'
 #  skip = 'Cannot run headless'
-  skip = 'waiting for restart new capability'
+#  skip = 'waiting for restart new capability'
  [../]
 
 [./test_branch]

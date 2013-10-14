@@ -2,7 +2,7 @@
 <Simulatio>
 <RunInfo>
     <WorkingDir>./output_check</WorkingDir>
-    <Files>second,TMI_test_PRA_transient_less_w.i,TMI_PRA_trans_MC_control.py,sss.i,TMI_DEMO_PRA_Steady_out_restart_0267.xda</Files>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
     <!--<ParallelCommand></ParallelCommand>
@@ -17,7 +17,7 @@
 </RunInfo>
 
 <Models>
-    <Code name='MyRAVEN' type='RAVEN'>%SCRIPT_DIR%/../RAVEN-%METHOD%</Code>
+    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
     <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
     <Filter name='Plot1' type='Plot'> 
       <historyID>ALL</historyID>
@@ -68,15 +68,15 @@
         <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
         <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
     </MonteCarlo>
-    <LatinHyperCube name='MyLHC' limit='50' start='10'>
+    <!-- <LatinHyperCube name='MyLHC' limit='50' start='10'>
         <Variable type ='Normal'     distName='Gaus1'>pippo</Variable>
         <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
         <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
-    </LatinHyperCube>
+    </LatinHyperCube> -->
     <MonteCarlo     name='RAVENmc6'  limit='6'/>
     <MonteCarlo     name='RAVENmc50' limit='50'/>
-    <LatinHyperCube name='MyLHC'     limit='50' start='10'></LatinHyperCube>
-    <EquallySpaced  name='MyES'      limit='50' start='10'></EquallySpaced>
+    <!-- <LatinHyperCube name='MyLHC'     limit='50' start='10'></LatinHyperCube> -->
+    <!-- <EquallySpaced  name='MyES'      limit='50' start='10'></EquallySpaced> -->
     <DynamicEventTree name='testDET'>
       <BranchingSettings  CPcut = '1.0E-99'>
         <Variable type='Normal' distName='auxBackUpTimeDist' BranchProbs='0.05 0.20 0.5 0.75'>auxBackUpTimeDist</Variable>
@@ -94,28 +94,27 @@
     <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
   </Screen>  -->
   <Pdf name="testPdf">
-    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+    <variable>pipe1_Area,pipe1_Dh,pipe1_Hw,pipe1_aw</variable>
     <fileNameRoot>pdf_graph</fileNameRoot>
   </Pdf>
   <Png name="testPng">
-    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+    <variable>pipe1_Area,pipe1_Dh,pipe1_Hw,pipe1_aw</variable>
     <fileNameRoot>png_graph</fileNameRoot>
   </Png>
   <!-- <Jpeg name="testJpeg">
-    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+    <variable>pipe1_Area,pipe1_Dh,pipe1_Hw,pipe1_aw</variable>
     <fileNameRoot>jpeg_graph</fileNameRoot>
   </Jpeg> -->
   <Eps name="testEps">
-    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
+    <variable>pipe1_Area,pipe1_Dh,pipe1_Hw,pipe1_aw</variable>
     <fileNameRoot>eps_graph</fileNameRoot>
   </Eps>
 </OutStreams>
 
 <Steps>
     <MultiRun name='FirstMRun'>
-        <Input   type='Files'    subtype=''       >TMI_test_PRA_transient_less_w.i</Input>
-        <Input   type='Files'    subtype=''       >TMI_PRA_trans_MC_control.py</Input>
-        <Input   type='Files'    subtype=''       >TMI_DEMO_PRA_Steady_out_restart_0267.xda</Input>
+        <Input   type='Files'    subtype=''>ideal_pump.i</Input>
+        <Input   type='Files'    subtype=''>ideal_pump_control.py</Input>
         <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
         <Sampler type = 'Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
         <DataBases type='DataBases' subtype=''        >testOutputDataBase</DataBases>
@@ -133,33 +132,9 @@
 </DataBases>
 <Datas>
     <Histories name='stories'>
-        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+        <Input>pipe1_Area,pipe1_Dh</Input>
+        <Output>pipe1_Hw,pipe1_aw</Output>
    </Histories>
-    <TimePointSet name='trainer'          time='end'>
-        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>avg_temp_clad_CH2,CladDamaged</Output>
-    </TimePointSet>
-    <TimePoint    name='form3stories'     time='0.001'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePoint>
-    <TimePoint    name='form1story'       time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePoint>
-    <TimePointSet name='finalPbconverged' time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
-    <TimePointSet name='finalLSconverged' time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
-    <TimePointSet name='PbfromROM'        time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
 </Datas>
 </Simulatio>
 
