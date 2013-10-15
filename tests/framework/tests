@@ -20,6 +20,7 @@
   skip = 'waiting for restart new capability'
   output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv' 
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
+  skip = 'waiting for Relap-7 restart'
  [../]
 
 [./test_branch_heavy]
@@ -44,7 +45,7 @@
  [./test_extract_data_s_from_hdf5]
   type = 'RavenFramework'
   input = 'test_extract_data_s_from_hdf5.xml'
-  #skip = 'waiting for restart new capability'
+  skip = 'waiting for Relap-7 restart'
   output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
   csv = 'test_extract_data_s_from_hdf5/MonteCarlo/out~2~TMI.csv'
   max_time = 500
@@ -54,7 +55,7 @@
  [./test_rom_trainer]
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'
-  #skip = 'waiting for new rom interface'
+  skip = 'waiting for Relap-7 restart'
   output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI.e test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
   csv = 'test_rom_trainer/outputMontecarloRom_dump.csv'
   max_time = 500
