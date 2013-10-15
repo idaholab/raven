@@ -261,7 +261,7 @@ def part_ndenum(arr,lvl):
     yield i,arr[i]
 
 
-def returnInstance(Type):
+def returnInstance(Type,debug=False):
   base = 'Quadrature'
   InterfaceDict = {}
   InterfaceDict['Legendre'       ] = Legendre
@@ -271,5 +271,5 @@ def returnInstance(Type):
   InterfaceDict['StatHermite'    ] = StatHermite
   InterfaceDict['Hermite'        ] = Hermite
   InterfaceDict['ShiftLegendre'  ] = ShiftLegendre  
-  try: return InterfaceDict[Type]()
+  try: return InterfaceDict[Type](debug=debug)
   except: raise NameError('not known '+base+' type '+Type)

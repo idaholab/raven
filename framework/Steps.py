@@ -37,8 +37,8 @@ class Step(BaseType):
   myInstance.myInitializzationParams()   -see BaseType class-
   myInstance.myCurrentSetting()          -see BaseType class-
 
-  --Adding a new step--  
-  <MyClass> should inherit at least from Step or might be from another step already presents
+  --Adding a new step subclass--  
+  <MyClass> should inherit at least from Step or from another step already presents
 
   DO NOT OVERRIDE any of the class method that are not starting with self.local*
 

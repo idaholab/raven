@@ -82,8 +82,8 @@ class Dummy(Model):
 
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
-    if 'file' in xmlNode.attrib.keys(): self.fileOut = xmlNode.attrib['file']
-    else: self.fileOut = None
+    if 'print' in xmlNode.attrib.keys(): self.fileOut = bool(xmlNode.attrib['print'])
+    else: self.fileOut = False
   
   def run(self,Input,jobHandler):
     for inputName in Input[0].getInpParametersValues().keys():
@@ -92,13 +92,13 @@ class Dummy(Model):
       else:
         self.localOutput.getInpParametersValues()[inputName] = np.array(Input[0].getInpParametersValues()[inputName],copy=True,dtype=float)
     if 'status' in self.localOutput.getOutParametersValues().keys():
-      self.localOutput.getOutParametersValues()['status'] = np.hstack([self.localOutput.getOutParametersValues()['status'], 'done'])
+      self.localOutput.getOutParametersValues()['status'] = np.hstack([self.localOutput.getOutParametersValues()['status'], 1])
     else:
-      self.localOutput.getOutParametersValues()['status'] = np.array(['done'],copy=True,dtype=object)
+      self.localOutput.getOutParametersValues()['status'] = np.array([1],copy=True,dtype=object)
       
   def collectOutput(self,collectFrom,storeTo):
-    if self.fileOut!=None:
-      self.localOutput.printCSV(fileOut=self.fileOut)
+    if self.fileOut:
+      self.localOutput.printCSV()
       
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
@@ -406,7 +406,7 @@ class Filter(Model):
 
 
 
-base = 'model'
+__base = 'model'
 __InterfaceDict = {}
 __InterfaceDict['ROM'      ] = ROM
 __InterfaceDict['Code'     ] = Code
@@ -414,8 +414,8 @@ __InterfaceDict['Filter'   ] = Filter
 __InterfaceDict['Projector'] = Projector
 __InterfaceDict['Dummy'    ] = Dummy
 
-def returnInstance(Type):
+def returnInstance(Type,debug=False):
   '''This function return an instance of the request model type'''
   try: return __InterfaceDict[Type]()
-  except: raise NameError('not known '+base+' type '+Type)
+  except: raise NameError('not known '+__base+' type '+Type)
   

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulatio>
+<Simulation>
 <RunInfo>
     <WorkingDir>./revirD_tset</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
@@ -58,7 +58,7 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='RAVENmc6'  limit='6'/>
+    <MonteCarlo     name='RAVENmc6'  limit='6' initial_seed='1'/>
 </Samplers>
 <Tests>
     <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
@@ -83,7 +83,7 @@
         <Output>pipe1_Hw,pipe1_aw</Output>
    </Histories>
 </Datas>
-</Simulatio>
+</Simulation>
 
 
 

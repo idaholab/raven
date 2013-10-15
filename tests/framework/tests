@@ -61,5 +61,21 @@
   max_time = 500
   rel_err = 0.001
  [../]
+ [./testGrid]
+  type = 'RavenFramework'
+  input = 'test_Grid_Sampler.xml'
+  output = 'GridTest/outGrid_dump.csv'
+  csv = 'GridTest/outGrid_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+ [./testLHS]
+  type = 'RavenFramework'
+  input = 'test_LHS_Sampler.xml'
+  output = 'LHStest/outLHS_dump.csv'
+  csv = 'LHStest/outLHS_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
 
 []

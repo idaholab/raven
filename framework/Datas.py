@@ -92,16 +92,16 @@ class Data(BaseType):
 
   def printCSV(self):
     # print content of data in a .csv format
-    print('=======================')
-    print('DATAS: print on file(s)')
-    print('=======================')
-    
-    if (self.print_CSV):
-      if (self.CSVfilename):
-        filenameLocal = self.CSVfilename
-      else:
-        filenameLocal = self.name + '_dump'
-      self.specializedPrintCSV(filenameLocal)
+    if self.debug:
+      print('=======================')
+      print('DATAS: print on file(s)')
+      print('=======================')
+
+    if (self.CSVfilename):
+      filenameLocal = self.CSVfilename
+    else:
+      filenameLocal = self.name + '_dump'
+    self.specializedPrintCSV(filenameLocal)
 
   def addOutput(self,toLoadFrom):
     ''' 
@@ -257,7 +257,7 @@ class TimePointSet(Data):
     myFile.write('\n')
     
     for j in range(outValues[0].size):
-      myFile.write(str(j))
+      myFile.write(str(j+1))
       for i in range(len(inpKeys)):
         myFile.write(',' + str(inpValues[i][j]))
       for i in range(len(outKeys)):

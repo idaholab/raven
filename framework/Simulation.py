@@ -164,7 +164,7 @@ class Simulation(object):
   '''This is a class that contain all the object needed to run the simulation
   --Instance--
   myInstance = Simulation()
-  myInstance.XMLread(xml.etree.ElementTree.Element) This method generate all the objects living in the simulation
+  myInstance.XMLread(xml.etree.ElementTree.Element) This method generates all the objects living in the simulation
 
   --usage--
   myInstance = Simulation()

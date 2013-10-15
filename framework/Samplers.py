@@ -26,13 +26,40 @@ class Sampler(BaseType):
   '''
   This is the base class for samplers
   Samplers own the sampling strategy (subtype) and they generate the
-  input values using the associate distribution. They do not have distributions inside!!
-  The calling sequence to use a sampler is:
-  1)self.generateDistributions    -from Simulation- 
-  2)self.initialize               -from Steps at the initialization of a step -
-  3)self.amIreadyToProvideAnInput -from Steps before requesting a new input-
-  4)generateInput/                -from Steps
+  input values using the associate distribution. They do not have distributions inside!!!!
+  
+  --Instance--
+  myInstance = Sampler()
+  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
+  
+  --usage--
+  myInstance = Sampler()
+  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object
+  myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and 
+                                                     initialized. The method is called come from Simulation since it is the only one possess all the distributions.
+  myInstance.initialize()                            This method is called from the Step before the Step process start. In the base class it reset the counter to 0
+  myInstance.amIreadyToProvideAnInput                Requested from Step used to verify that the sampler is available to generate a new input
+  myInstance.generateInput(self,model,oldInput)      Requested from Step to generate a new input. Generate the new values and request to model to modify according the input and returning it back
+
+  --Other external methods--
+  myInstance.whoAreYou()                            -see BaseType class-
+  myInstance.myInitializzationParams()              -see BaseType class-
+  myInstance.myCurrentSetting()                     -see BaseType class-
+
+  --Adding a new step subclass--  
+  <MyClass> should inherit at least from Sampler or from another step already presents
+
+  DO NOT OVERRIDE any of the class method that are not starting with self.local*
+
+  The following method overriding is MANDATORY:  
+  self.localInitialization(inDictionary): called after this call the step should be able the accept the call self.takeAstep(inDictionary):
+  self.takeAstepRun(inDictionary)       : this is where the step happens, after this call the output is ready
+
+  the following methods could be overrode:
+  self.localInputAndChecks(xmlNode)
+  self.localAddInitParams(tempDict)
   '''
+
   def __init__(self):
     BaseType.__init__(self) 
     self.counter      = 0           # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
@@ -62,11 +89,11 @@ class Sampler(BaseType):
       for childChild in child:
         if childChild.tag =='distribution':
           self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
-    self.moreInputAndChecks(xmlNode)
+    self.localInputAndChecks(xmlNode)
 
-  def moreInputAndChecks(self,xmlNode):
-    '''place here the additional reading, remember to add initial paramters in the method addLocalInitParams'''
-    raise NotImplementedError('The sampler of type '+self.type+' is not implementing moreInputAndChecks')
+  def localInputAndChecks(self,xmlNode):
+    '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
+    raise NotImplementedError('The sampler of type '+self.type+' is not implementing localInputAndChecks')
   
   def addInitParams(self,tempDict):
     '''
@@ -79,11 +106,11 @@ class Sampler(BaseType):
       tempDict[variable[0]+' is sampled using the distribution'] = variable[1][0]+' - '+variable[1][1]
     tempDict['limit' ]        = self.limit
     tempDict['initial seed' ] = self.initSeed
-    self.addLocalInitParams(tempDict)
+    self.localAddInitParams(tempDict)
     
-  def addLocalInitParams(self,tempDict):
+  def localAddInitParams(self,tempDict):
     '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
-    raise NotImplementedError('The sampler of type '+self.type+' is not implementing addLocalInitParams')
+    raise NotImplementedError('The sampler of type '+self.type+' is not implementing localAddInitParams')
 
   def addCurrentSetting(self,tempDict):
     '''
@@ -100,10 +127,15 @@ class Sampler(BaseType):
       else:
         for var in self.inputInfo['SampledVars'].keys():
           tempDict['Variable: '+var+' has value']=tempDict[key][var]
+    self.localAddCurrentSetting(tempDict)
+
+  def localAddCurrentSetting(self,tempDict):
+    '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
+    raise NotImplementedError('The sampler of type '+self.type+' is not implementing localAddCurrentSetting')
 
   def generateDistributions(self,availableDist):
     '''used to restart the random number generators of the distributions that will be used
-    the trick is that if you want to add two step of Monte Carlo, to be uncorrelated the second sampler either have a different seed either none.
+    the trick is that if you want to add two step of MonteCarlo, to be uncorrelated the second sampler either have a different seed either none.
     In case no seed is specified a random seed is used.
     @in availableDist: {'distribution name':instance}
     '''
@@ -113,15 +145,12 @@ class Sampler(BaseType):
     for key in self.toBeSampled.keys():
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]
       self.distDict[key].initializeDistribution()
-    return
    
   def initialize(self):
     '''
-    This function should be called every time a clean sampler is needed.
-    Place here whatever instruction you need for this purpose
-    the call is performed usually by one of the Steps
-    @ In, None
-    @ Out, None
+    This function should be called every time a clean sampler is needed. Called before takeAstep in Step
+    Place here whatever instruction you need for this purpose the call is performed usually by one of the Steps
+    @ In/Out, None
     '''
     self.counter = 0    
     
@@ -306,10 +335,13 @@ class StochasticCollocation(Sampler):
 class MonteCarlo(Sampler):
   '''MONTE CARLO Sampler '''
   
-  def moreInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode):
     if 'limit' not in  xmlNode.attrib.keys(): raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
-  def addLocalInitParams(self,tempDict):
+  def localAddInitParams(self,tempDict):
+    pass
+
+  def localAddCurrentSetting(self,tempDict):
     pass
 
   def setInputInfo(self,model,myInput):
@@ -328,7 +360,7 @@ class Grid(Sampler):
     self.axisName             = [] #the name of each axis (variable)
     self.gridInfo             = {} # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal    
 
-  def moreInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode):
     self.limit = 1
     for child in xmlNode:
       varName = child.attrib['name']
@@ -352,13 +384,12 @@ class Grid(Sampler):
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError('inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
 
-  def addLocalInitParams(self,tempDict):
+  def localAddInitParams(self,tempDict):
     for variable in self.gridInfo.items():
       tempList = [str(i) for i in variable[1][2]]
       tempDict[variable[0]+' is sampled using the grid'] = variable[1][0]+' with spacing '+variable[1][1]+', points: '+' '.join(tempList)
             
-  def addCurrentSetting(self,tempDict):
-    Sampler.addCurrentSetting(self,tempDict)
+  def localAddCurrentSetting(self,tempDict):
     for var, value in zip(self.axisName, self.gridCoordinate):
       tempDict['coordinate '+var+' has value'] = value
            
@@ -386,8 +417,8 @@ class LHS(Grid):
     Grid.__init__(self) 
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
 
-  def moreInputAndChecks(self,xmlNode):
-    Grid.moreInputAndChecks(self,xmlNode)
+  def localInputAndChecks(self,xmlNode):
+    Grid.localInputAndChecks(self,xmlNode)
     pointByVar  = [len(self.gridInfo[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: raise IOError('the latin Hyper Cube requires the same number of point in each dimension')
     self.pointByVar = pointByVar[0]
@@ -941,10 +972,13 @@ class DynamicEventTree(Sampler):
     # branchings and we store them
     self.TreeInfo = ET.ElementTree(elm)
 
-  def moreInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self,xmlNode):
     pass
   
-  def addLocalInitParams(self,tempDict):
+  def localAddInitParams(self,tempDict):
+    pass
+
+  def localAddCurrentSetting(self,tempDict):
     pass
 
 __base = 'Sampler'

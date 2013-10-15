@@ -42,6 +42,7 @@ if __name__ == '__main__':
   #except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
   if debug: print('opened file '+inputFile)
   root = tree.getroot()
+  if root.tag != 'Simulation': raise IOError ('The outermost block of the input file it is not Simulation')
   #generate all the components of the simulation
   simulation = Simulation(inputFile, frameworkDir,debug=debug)
   #Call the function to read and construct each single module of the simulation 

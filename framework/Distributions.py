@@ -280,41 +280,6 @@ class Beta(Distribution):
 
 
 # Add polynomials, shifting, zero-to-one to these!
-class Custom(Distribution):
-  def __init__(self):
-    Distribution.__init__(self)
-    self.apex = 0.0
-    self.min  = 0.0
-    self.max  = 0.0
-    self.type = 'Triangular'
-    self.bestQuad = None
-
-  def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
-    try: self.apex = float(xmlNode.find('apex').text)
-    except: raise Exception('apex value needed for normal distribution')
-    try: self.min = float(xmlNode.find('min').text)
-    except: raise Exception('min value needed for normal distribution')
-    try: self.max = float(xmlNode.find('max').text)
-    except: raise Exception('max value needed for normal distribution')
-    self.initializeDistribution()
-
-  def addInitParams(self,tempDict):
-    Distribution.addInitParams(self, tempDict)
-    tempDict['apex' ] = self.apex
-    tempDict['min'  ] = self.min
-    tempDict['max'  ] = self.max
-
-  def initializeDistribution(self):
-    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      c = (self.apex-self.min)/(self.max-self.min)
-      self.distribution = dist.triang(c,loc=self.min,scale=(self.max-self.min))
-    else:
-      raise IOError ('Truncated triangular not yet implemented')
-
-#
-#
-#
 class Triangular(Distribution):
   def __init__(self):
     Distribution.__init__(self)

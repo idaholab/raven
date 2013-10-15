@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulatio>
+<Simulation>
 <RunInfo>
     <WorkingDir>./output_check</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
@@ -136,7 +136,7 @@
         <Output>pipe1_Hw,pipe1_aw</Output>
    </Histories>
 </Datas>
-</Simulatio>
+</Simulation>
 
 
 

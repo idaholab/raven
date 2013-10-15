@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulatio>
+<Simulation>
 <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd,TMI_PRA_trans_MC_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
@@ -72,7 +72,7 @@
         <Output>CladTempBranched</Output>
    </TimePointSet>
 </Datas>
-</Simulatio>
+</Simulation>
 
 
 

@@ -8,10 +8,10 @@ warnings.simplefilter('default',DeprecationWarning)
 
 class BaseType(object):
   '''this is the base class for each general type used by the simulation'''
-  def __init__(self,debug=False):
+  def __init__(self):
     self.name    = ''      # name of this istance (alias)
     self.type    = ''      # specific type within this class
-    self.debug   = debug   #set up the debug status of the code
+    self.debug   = False   #set up the debug status of the code
 
   def readXML(self,xmlNode):
     '''
@@ -26,6 +26,8 @@ class BaseType(object):
     try: self.type = xmlNode.tag
     except: raise IOError('not found type for the '+self.__class__.__name__+' named '+self.name)
     self.readMoreXML(xmlNode)
+    try: self.debug = bool(xmlNode.attrib['debug'])
+    except: pass
 
   def readMoreXML(self,xmlNode):
     '''method to be overloaded to collect the additional input'''

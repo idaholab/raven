@@ -537,7 +537,7 @@ class HDF5(DateBase):
       gc.collect()
       return copy.deepcopy(data) 
 
-def returnInstance(Type,debug=False):
+def returnInstance(Type):
   '''
   Function interface for creating an instance to a database specialized class (for example, HDF5)
   @ In, type                : class type (string)
