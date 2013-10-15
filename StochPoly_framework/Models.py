@@ -199,23 +199,91 @@ class ROM(Model):
       self.SupervisedEngine.train(self.toLoadFrom)
     return
 
-  def run(self,inputFiles,outputDatas,jobHandler):
-    '''return an instance of external runner'''
-    self.currentInputFiles = inputFiles
-    executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
-#    for inputFile in self.currentInputFiles: shutil.copy(inputFile,self.workingDir)
-    self.process = jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
-    #XXX what does this if block do?  Should it be a for loop and look thru the array?
-    if self.currentInputFiles[0].endswith('.i'): index = 0
-    else: index = 1
-    print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
-    return self.process
+  def fillDistribution(self,distributions):
+    self.distDict = distributions
+    self.SupervisedEngine.fillDist(distributions)
 
-#  def collectOutput(self,collectFrom,storeTo):
-#    storeTo.addOutput(collectFrom)
-#  def createNewInput(self,myInput,samplerType,**Kwargs):
-#    raise IOError('for this model the createNewInput has not yet being implemented')
-#  TODO how is ROM tied to Supervised Learning?  "train" method in Model isn't overwritten...
+  def createNewInput(self,currentInput,samplerType,**Kwargs):
+    ''' This function creates a new input
+        It is called from a sampler to get the implementation specific for this model
+        it support string input
+        dictionary input and datas input'''
+    import itertools
+    
+    if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
+    else: currentInput =currentInput[0]
+    if  type(currentInput)==str:#one input point requested a as a string
+      inputNames  = [component.split('=')[0] for component in currentInput.split(',')]
+      inputValues = [component.split('=')[1] for component in currentInput.split(',')]
+      for name, newValue in itertools.izip(Kwargs['sampledVars'].keys(),Kwargs['sampledVars'].values()): 
+        inputValues[inputNames.index(name)] = newValue
+      newInput = [inputNames[i]+'='+inputValues[i] for i in range(inputNames)]
+      newInput = newInput.join(',')
+    elif type(currentInput)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
+      for name, newValue in itertools.izip(Kwargs['sampledVars'].keys(),Kwargs['sampledVars'].values()): 
+        currentInput[name] = newValue
+      newInput = copy.deepcopy(currentInput)
+    else:#as a internal data type
+      try: #try is used to be sure input.type exist
+        if currentInput.type in ['TimePoint','TimePointSet']:
+          newInput = Datas.returnInstance(currentInput.type)
+          newInput.type = currentInput.type
+          for name,value in itertools.izip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,np.atleast_1d(np.array(value)))
+          for name, newValue in itertools.izip(Kwargs['sampledVars'].keys(),Kwargs['sampledVars'].values()):
+            # for now, even if the ROM accepts a TimePointSet, we create a TimePoint
+            try   : newInput.updateInputValue(name,np.atleast_1d(np.array(newValue)))
+            except: raise IOError('trying to sample '+name+' that is not in the original input')
+      except: raise IOError('the request of ROM evaluation is done via a not compatible input')
+    currentInput = [newInput]
+    return currentInput
+
+  def run(self,request,output,jobHandler):
+    '''This call run a ROM as a model
+    The input should be translated in to a set of coordinate where to perform the predictions
+    It is possible either to send in just one point in the input space or a set of points
+    input are accepted in the following form:
+    -as a strings: 'input_name=value,input_name=value,..' this supports only one point in the input space
+    -as a dictionary where keys are the input names and the values the corresponding values (it should be either vector or list)
+    -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''
+    if len(request)>1: raise IOError('ROM accepts only one input not a list of inputs')
+    else: self.request =request[0]
+    #first we extract the input names and the corresponding values (it is an implicit mapping)
+    if  type(self.request)==str:#one input point requested a as a string
+      inputNames  = [entry.split('=')[0]  for entry in self.request.split(',')]
+      inputValues = [entry.split('=')[1]  for entry in self.request.split(',')]
+    elif type(self.request)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
+      inputNames, inputValues = self.request.keys(), self.request.values()
+    else:#as a internal data type
+      try: #try is used to be sure input.type exist
+        print(self.request.type)
+        if self.request.type in ['TimePoint','TimePointSet']:
+          inputNames, inputValues = self.request.getInpParametersValues().keys(), self.request.getInpParametersValues().values()
+      except: raise IOError('the request of ROM evaluation is done via a not compatible data')
+    #now that the prediction points are read we check the compatibility with the ROM input-output set
+    #lenght = len(set(inputNames).intersection(self.inputNames))
+    #if lenght!=len(self.inputNames) or lenght!=len(inputNames):
+    #  raise IOError ('there is a mismatch between the provided request and the ROM structure')
+    #build a mapping from the ordering of the input sent in and the ordering inside the ROM
+    #self.requestToLocalOrdering = []
+    #for local in self.inputNames:
+    #  self.requestToLocalOrdering.append(inputNames.index(local))
+    #building the arrays to send in for the prediction by the ROM
+    #self.request = np.array([inputValues[index] for index in self.requestToLocalOrdering]).T[0]
+    ############################------FIXME----------#######################################################
+    # we need to submit self.ROM.evaluate(self.request) to the job handler
+    self.output = self.SupervisedEngine.evaluate(self.request)
+#    raise IOError('the multi treading is not yet in place neither the appending')
+  
+  def collectOutput(self,finishedJob,output):
+    '''This method append the ROM evaluation into the output'''
+    try: #try is used to be sure input.type exist
+      if output.type in self.__returnAdmittedData():
+        for inputName in self.inputNames:
+          output.updateInputValue(inputName,self.request[self.inputNames.index(inputName)])
+    except: raise IOError('the output of the ROM is requested on a not compatible data')
+    output.updateOutputValue(self.outputName,self.output)
+    output.printCSV()
+
 
 class Filter(Model):
   '''Filter is an Action System. All the models here, take an input and perform an action'''

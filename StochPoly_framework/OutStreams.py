@@ -443,7 +443,6 @@ class JpegPlot(OutStream):
     '''
     return
 
-
 class EpsPlot(OutStream):
   '''
   Specialized OutStream class EpsPlot: Create of EPS picture of data
@@ -513,7 +512,6 @@ class EpsPlot(OutStream):
     @ Out, None 
     '''
     return
-
 
 def returnInstance(Type):
   '''

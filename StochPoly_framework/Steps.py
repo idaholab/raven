@@ -138,6 +138,9 @@ class MultiRun(Step):
       newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
       for newInput in newInputs:
         inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
+        if inDictionary['Model'].type != 'Code':
+          for output in inDictionary['Output']:                                                      #for all expected outputs
+            inDictionary['Model'].collectOutput(finishedJob,output) 
     else:
       #we start the only case we have
       inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler'])
@@ -234,6 +237,10 @@ class SCRun(Step):
   def takeAstepRun(self,inDictionary):
     #print('At takeAstepRun',inDictionary['Input'])
     inDictionary['ROM'].train(inDictionary)
+    #VERY WRONG... IT IS GOING TO BE RESTRUCTURED SOON!!!!!!!!! ANDREA
+    
+    
+    inDictionary['ROM'].fillDistribution(inDictionary['Sampler'].distDict)
 #    converged = False
 #    jobHandler = inDictionary['jobHandler']
 #    while not converged:

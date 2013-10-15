@@ -18,7 +18,7 @@ from utils import *
   ********************************
 '''
 
-class PrintCSV:
+class PrintCSV(object):
   '''
     PrintCSV filter class. It prints a CSV file loading data from a hdf5 database or other sources 
   '''

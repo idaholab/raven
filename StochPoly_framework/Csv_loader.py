@@ -66,8 +66,28 @@ class CsvLoader:
           NtimeSteps = countTimeSteps
     return (NtimeSteps,maxNumOfParams,NSamples)  
  
+  def csvLoadData(self,filein,options):
+    if   options['type'] == 'TimePoint':
+      return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'])
+    elif options['type'] == 'TimePointSet':
+      return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'])
+    elif options['type'] == 'History':
+      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'])
+    elif options['type'] == 'Histories':
+      listhist_in  = {}
+      listhist_out = {}
+      for index in xrange(len(filein)):
+        tupleVar = self.__csvLoaderForHistory(filein[index],options['time'],options['inParam'],options['outParam'])
+        # dictionary of dictionary key = i => ith history ParameterValues dictionary
+        listhist_in[index]  = tupleVar[0]
+        listhist_out[index] = tupleVar[1]
+        del tupleVar
+      return(listhist_in,listhist_out)
+    else:
+      raise IOError ('CSV LOADER : ******ERROR Type ' + options['type'] + 'unknown')
+    
   # loader for time point data type
-  def csvLoaderForTimePoint(self,filein,time,inParam,outParam):
+  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam):
     '''
     filein = file name
     time   = time
@@ -81,7 +101,7 @@ class CsvLoader:
     else:
       self.all_out_param = False
     
-    if time == 'end':
+    if (time == 'end') or (not time):
       time_end = True
       time_float = -1.0
     else:
@@ -104,7 +124,7 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = data[0,ix]
+          inDict[key] = np.atleast_1d(np.array(data[0,ix]))
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     
@@ -115,11 +135,11 @@ class CsvLoader:
       last_row = data[:,0].size - 1
       if self.all_out_param:
         for key in self.all_field_names:
-          outDict[key] = data[last_row,self.all_field_names.index(key)]
+          outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))
       else:
         for key in outParam:
           if key in self.all_field_names:
-            outDict[key] = data[last_row,self.all_field_names.index(key)]        
+            outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))       
           else:
             raise Exception("ERROR: the parameter " + key + " has not been found")
     else:
@@ -135,26 +155,26 @@ class CsvLoader:
           if self.all_out_param:
             for key in self.all_field_names:
               if(actual_time == previous_time):
-                outDict[key] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
+                outDict[key] = np.atleast_1d(np.array((data[i,self.all_field_names.index(key)]  - time_float) / actual_time)) 
               else:
                 actual_value   = data[i,self.all_field_names.index(key)]
                 previous_value = data[i-1,self.all_field_names.index(key)] 
-                outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
           else:
             for key in outParam:
               if key in self.all_field_names:
                 if(actual_time == previous_time):
-                  outDict[key] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
+                  outDict[key] = np.atleast_1d(np.array((data[i,self.all_field_names.index(key)]  - time_float) / actual_time)) 
                 else:
                   actual_value   = data[i,self.all_field_names.index(key)]
                   previous_value = data[i-1,self.all_field_names.index(key)] 
-                  outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
                          
               else:
                 raise Exception("ERROR: the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def csvLoaderForTimePointSet(self,filesin,time,inParam,outParam):
+  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam):
     '''
     loader for time point set data type
     filesin = file names
@@ -167,7 +187,7 @@ class CsvLoader:
     else:
       self.all_out_param = False
     
-    if time == 'end':
+    if (time == 'end') or (not time):
       time_end = True
       time_float = -1.0
     else:
@@ -181,7 +201,7 @@ class CsvLoader:
     for i in range(len(filesin)): 
       #load the data into the numpy array
       data = self.loadCsvFile(filesin[i])
-      #print(data.shape)
+      print(data.shape)
       if i == 0:
         if(self.all_out_param):
           self.field_names = self.all_field_names
@@ -190,8 +210,8 @@ class CsvLoader:
           self.field_names.insert(0, 'time')       
       #fill input param dictionary
       for key in inParam:
-        #print(key)
-        #print(self.all_field_names)
+        print(key)
+        print(self.all_field_names)
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
           if i == 0:
@@ -269,7 +289,7 @@ class CsvLoader:
       del data 
     return (inDict,outDict)
 
-  def csvLoaderForHistory(self,filein,time,inParam,outParam):
+  def __csvLoaderForHistory(self,filein,time,inParam,outParam):
     '''
     loader for history data type
     filein = file name
@@ -312,7 +332,7 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = data[0,ix]
+          inDict[key] = np.atleast_1d(np.array(data[0,ix]))
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     

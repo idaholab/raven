@@ -42,7 +42,10 @@ except:
 class superVisioned():
   def __init__(self,**kwargs):
     self.initializzationOptionDict = kwargs
-
+  
+  def fillDist(self,distributions):
+    self.distDict = distributions
+  
   def train(self,obj):
     '''override this method to train the ROM'''
     return
@@ -68,6 +71,7 @@ class superVisioned():
 class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
+    self.poly_coeffs={}
 
   def train(self,inDictionary):
     data=inDictionary['Input'][0]
@@ -82,10 +86,14 @@ class StochasticPolynomials(superVisioned):
         if h=='':continue
         attr['history']=h
         M.append(data.returnHistory(attr))
-
+      
+      if data.targetParam:
+        self.targetParam = data.targetParam
+      else:
+        raise IOError('No target Parameter for ROM Stochastic Polynomials')
       # How to get specific values from solution?
 #TODO this should be an input on the front end; the user should choose the index
-      solnIndex=numpy.where(M[0][1]['headers']=='avg_out_temp_sec_A')
+      self.solnIndex=numpy.where(M[0][1]['headers']==self.targetParam)
 
 
       # for each run, sampler passes the values (quad pt) to eval at, as well as
@@ -93,33 +101,42 @@ class StochasticPolynomials(superVisioned):
       # we simply need to sum over each partCoeff[quad_pt][ord]*soln[quad_pt]
       # to construct poly_coeff[ord]
 
-      self.poly_coeffs={}
+      
       for history in M:
         self.poly_coeffs[tuple(history[1]['exp_order'])]=0
         for partCoeff in history[1]['partial_coeffs']:
           self.poly_coeffs[tuple(history[1]['exp_order'])]+=\
-                    history[0][0][solnIndex]*partCoeff
+                    history[0][0][self.solnIndex]*partCoeff
       
       print('StochasticPolynomials ROM successfully trained.')
     else:
       print('Reading from non-HDF5 for StochPolys not supported yet...')
     return
 
-  def evaluate(self,valDict):
+  def evaluate(self,data):
     # valDict is dict of values to evaluate at, keyed on var
     #FIXME these need to be adjusted for changes in train()
     tot=0
-    for ords,coeff in self.poly_coeff:
+    if type(data) == 'dict':
+      valDict = data
+    else:
+      valDict = data.getInpParametersValues()
+      # other temporary fix -.-
+      for k in valDict.keys():
+        for ke in self.distDict.keys():
+          if k in ke:
+            temp = valDict.pop(k)
+            valDict[ke] = temp
+      
+    
+    for ords,coeff in self.poly_coeffs:
       tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
               ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
       #TODO revertPt may not always be straightforward to implement!
     return tot
 
   def reset(self,*args):
-    try:
-      del self.poly_coeffs
-      del self.distDict
-    except: pass
+    pass
 
 
 
