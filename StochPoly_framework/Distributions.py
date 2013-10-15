@@ -31,8 +31,7 @@ class Distribution(BaseType):
     
   def readMoreXML(self,xmlNode):
     try:
-      type = xmlNode.attrib['ExpansionQuadrature']
-      self.bestQuad = Quadrature.returnInstance(type)
+      self.bestQuad = Quadrature.returnInstance(xmlNode.attrib['ExpansionQuadrature'])
     except:
       pass
 
@@ -69,7 +68,7 @@ class Distribution(BaseType):
     self.exp_order=exp_order
 
   def quad(self):
-    try: return self.distQuad
+    try: return self.bestQuad
     except: raise IOError ('No quadrature has been set for this distr. yet.')
 
   def polyOrder(self):

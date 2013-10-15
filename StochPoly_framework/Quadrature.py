@@ -271,5 +271,6 @@ def returnInstance(Type):
   InterfaceDict['StatHermite'    ] = StatHermite
   InterfaceDict['Hermite'        ] = Hermite
   InterfaceDict['ShiftLegendre'  ] = ShiftLegendre  
+  print(Type)
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)

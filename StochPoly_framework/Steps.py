@@ -238,8 +238,6 @@ class SCRun(Step):
     #print('At takeAstepRun',inDictionary['Input'])
     inDictionary['ROM'].train(inDictionary)
     #VERY WRONG... IT IS GOING TO BE RESTRUCTURED SOON!!!!!!!!! ANDREA
-    
-    
     inDictionary['ROM'].fillDistribution(inDictionary['Sampler'].distDict)
 #    converged = False
 #    jobHandler = inDictionary['jobHandler']

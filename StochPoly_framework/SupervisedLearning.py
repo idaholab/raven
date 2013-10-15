@@ -130,8 +130,10 @@ class StochasticPolynomials(superVisioned):
       
     
     for ords,coeff in self.poly_coeffs:
+#      tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
+#              ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
       tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
-              ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
+              ords,self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
       #TODO revertPt may not always be straightforward to implement!
     return tot
 
