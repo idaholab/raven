@@ -148,6 +148,8 @@ class StochasticCollocation(Sampler):
         for key in r_keys:
           self.var_poly_order[key]=int(round(0.5+r_order/(len(r_keys))))
     self.limit=np.product(self.var_poly_order.values())-1
+    
+    
     #TODO Shouldn't need to -1 here; where should it happen?
     #tried to put it in Steps, MultiRun.initializeStep, set maxNumberIteration, didn't work.
       
@@ -213,7 +215,9 @@ class StochasticCollocation(Sampler):
       #  create a dict for addl params lists to *add to quadrature init call?
       #  this for sure works, even if it's empty!
       quads[var]=self.distDict[var].bestQuad(self.var_poly_order[var])
+      self.distDict[var].setQuad(quads[var],self.var_poly_order[var])
     self.quad=Quadrature.MultiQuad(quads)
+    
     self.partCoeffs={}
     for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
       self.partCoeffs[quad_pt]={}

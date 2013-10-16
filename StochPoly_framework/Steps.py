@@ -140,7 +140,7 @@ class MultiRun(Step):
         inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
         if inDictionary['Model'].type != 'Code':
           for output in inDictionary['Output']:                                                      #for all expected outputs
-            inDictionary['Model'].collectOutput(finishedJob,output) 
+            inDictionary['Model'].collectOutput(None,output) 
     else:
       #we start the only case we have
       inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler'])

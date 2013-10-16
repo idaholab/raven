@@ -22,7 +22,7 @@ class Quadrature():
   '''
   Base class for developing quadrature of any dimension.
   '''
-  def __init__(self,order):
+  def __init__(self,order=2):
     self.type = '' #string of quadrature type
     self.order = order #quadrature order
     self.quad_pts = np.zeros(self.order) #points in quadrature

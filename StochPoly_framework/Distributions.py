@@ -68,7 +68,7 @@ class Distribution(BaseType):
     self.exp_order=exp_order
 
   def quad(self):
-    try: return self.bestQuad
+    try: return self.distQuad
     except: raise IOError ('No quadrature has been set for this distr. yet.')
 
   def polyOrder(self):

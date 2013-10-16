@@ -68,9 +68,9 @@ class RavenInterface:
     #vals = ast.literal_eval(var
     #qps   = ast.literal_eval(qps)
     for key in varValDict.keys():
-      modifDict={}
-      modifDict['name']=key.split(':')
-      modifDict['value']=varValDict[key]
+      modifDict = {}
+      modifDict['name'] = key.split('|')[:-1]
+      modifDict[key.split('|')[-1]] = varValDict[key]
       #print('interface: set',key.split(':'),'to',varValDict[key])
       listDict.append(modifDict)
       del modifDict

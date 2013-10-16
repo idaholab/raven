@@ -195,6 +195,9 @@ class ROM(Model):
     #self.test.type
     if trainingSet:
       self.SupervisedEngine.train(trainingSet)
+      try:
+        if trainingSet['Input'][0].type == 'HDF5': self.outputName = trainingSet['Input'][0].targetParam
+      except: pass
     else:
       self.SupervisedEngine.train(self.toLoadFrom)
     return
@@ -258,6 +261,7 @@ class ROM(Model):
         print(self.request.type)
         if self.request.type in ['TimePoint','TimePointSet']:
           inputNames, inputValues = self.request.getInpParametersValues().keys(), self.request.getInpParametersValues().values()
+          self.inputNames = inputNames
       except: raise IOError('the request of ROM evaluation is done via a not compatible data')
     #now that the prediction points are read we check the compatibility with the ROM input-output set
     #lenght = len(set(inputNames).intersection(self.inputNames))
@@ -277,9 +281,20 @@ class ROM(Model):
   def collectOutput(self,finishedJob,output):
     '''This method append the ROM evaluation into the output'''
     try: #try is used to be sure input.type exist
-      if output.type in self.__returnAdmittedData():
+      if output.type in ['TimePoint','TimePointSet']:
         for inputName in self.inputNames:
-          output.updateInputValue(inputName,self.request[self.inputNames.index(inputName)])
+          if type(self.request) == 'numpy.ndarray':
+            output.updateInputValue(inputName,self.request[self.inputNames.index(inputName)])
+          else:
+            test = self.request.getInpParametersValues().keys()
+            found = False
+            for i in range(len(test)):
+              if inputName in test[i]:
+                nametouse = test[i]
+                found = True
+            if not found:
+              raise IOError( 'inputName ' + inputName + 'not contained into data used in training of the ROM')
+            output.updateInputValue(inputName,self.request.getInpParametersValues()[nametouse])
     except: raise IOError('the output of the ROM is requested on a not compatible data')
     output.updateOutputValue(self.outputName,self.output)
     output.printCSV()

@@ -13,21 +13,29 @@
 </Models>
 <Distributions>
     <Normal name='Gauss1'>
-        <mean>10</mean>
-        <sigma>3</sigma>
+        <mean>800</mean>
+        <sigma>200</sigma>
+        <!-- <upperBound>2500</upperBound> -->
+        <!-- <lowerBound>0</lowerBound> -->
+    </Normal>
+    <Normal name='Gauss2'>
+        <mean>1400</mean>
+        <sigma>400</sigma>
+        <!-- <upperBound>10000000000000000</upperBound> -->
+        <!-- <lowerBound>0</lowerBound> -->
     </Normal>
 </Distributions>
 
 
 <Samplers>
-  <StochasticCollocation name='SC' min_poly_order='2'>
-      <Variable type ='Normal' distName='Gauss1' poly_order='4'>Controlled:power_CH1:value</Variable>
-      <Variable type ='Normal' distName='Gauss1' poly_order='2'>Controlled:power_CH2:value</Variable>
+  <StochasticCollocation name='SC' min_poly_order='2' limit='6'>
+      <Variable type ='Normal' distName='Gauss1' poly_order='4'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
+      <Variable type ='Normal' distName='Gauss2' poly_order='2'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
   <MonteCarlo     name='MC'    limit='6'/>
   <MonteCarlo     name='MCSC'  limit='6'>
-      <Variable type ='Normal' distName='Gauss1' >power_CH1</Variable>
-      <Variable type ='Normal' distName='Gauss1' >power_CH2</Variable>
+      <Variable type ='Normal' distName='Gauss1' >DG1recoveryTime</Variable>
+      <Variable type ='Normal' distName='Gauss1' >SecPGrecoveryTime</Variable>
   </MonteCarlo>
 </Samplers>
 
@@ -83,15 +91,15 @@
 
 <Datas>
    <TimePointSet name='timepointset_from_database_for_rom_trainer'>
-        <Input>power_CH1,power_CH2</Input>
+        <Input>SecPGrecoveryTime,DG1recoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
    <TimePoint name='data_for_sampling_empty_at_begin'>
-        <Input name="1">power_CH1,power_CH2</Input>
+        <Input name="1">SecPGrecoveryTime,DG1recoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePoint>
    <TimePointSet name='outputMontecarloRom' printCSV='t'>
-        <Input>power_CH1,power_CH2</Input>
+        <Input>SecPGrecoveryTime,DG1recoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
 </Datas>
