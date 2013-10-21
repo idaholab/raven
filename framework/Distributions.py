@@ -331,7 +331,7 @@ class Poisson(Distribution):
     
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self.distribution = dist.poisson(mu=self.mu)
+      self.distribution = dist.poisson(self.mu)
     else:
       raise IOError ('Truncated poisson not yet implemented')    
     

@@ -113,12 +113,14 @@ class ExternalModule(Model):
   def initialize(self,runInfo,inputs):
     self.counter=0
     if 'initialize' in dir(self.sim):
-      self.sim.initialize(runInfo,inputs)
+      self.sim.initialize(self,runInfo,inputs)
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
     if 'createNewInput' in dir(self.sim):
-      self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
-    return [newInput] 
+      newInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
+      return [newInput] 
+    else:
+      return [None]
   
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
@@ -131,10 +133,10 @@ class ExternalModule(Model):
       self.sim.readMoreXML(self,xmlNode)
  
   def run(self,Input,jobHandler):
-    self.sim.run(Input,jobHandler)
+    self.sim.run(self,Input,jobHandler)
     
   def collectOutput(self,finisishedjob,output):
-    self.sim.collectOutput(finisishedjob,output)
+    self.sim.collectOutput(self,finisishedjob,output)
     
     
   
