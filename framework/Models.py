@@ -447,13 +447,14 @@ class Filter(Model):
 
 __base = 'model'
 __interFaceDict = {}
-__interFaceDict['ROM'      ] = ROM
-__interFaceDict['Code'     ] = Code
-__interFaceDict['Filter'   ] = Filter
-__interFaceDict['Projector'] = Projector
-__interFaceDict['Dummy'    ] = Dummy
-__knownTypes                 = __interFaceDict.keys()
-__InterfaceDict['ExternalModule'] = ExternalModule
+__interFaceDict['ROM'           ] = ROM
+__interFaceDict['Code'          ] = Code
+__interFaceDict['Filter'        ] = Filter
+__interFaceDict['Projector'     ] = Projector
+__interFaceDict['Dummy'         ] = Dummy
+__interFaceDict['ExternalModule'] = ExternalModule
+__knownTypes                      = __interFaceDict.keys()
+
 
 def knonwnTypes():
   return __knownTypes
