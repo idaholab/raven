@@ -8,7 +8,7 @@
 </RunInfo>
 
 <Models>
-    <Dummy name='MyDummy' type='' print='True'/>
+    <Dummy name='MyDummy' subType='' print='True'/>
 </Models>
 
 <Distributions>
@@ -62,10 +62,10 @@
 
 <Steps>
     <MultiRun name='myLHS'>
-        <Input   type='Datas'    subtype='TimePointSet'>outLHS</Input>
-        <Model   type='Models'   subtype='Dummy'       >MyDummy</Model>
-        <Sampler type='Samplers' subtype='LHS'         >myLHS</Sampler>
-        <Output  type='Datas'    subtype='Histories'   >dummyIN</Output>
+        <Input   class='Datas'    type='TimePointSet'>outLHS</Input>
+        <Model   class='Models'   type='Dummy'       >MyDummy</Model>
+        <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
+        <Output  class='Datas'    type='Histories'   >dummyIN</Output>
     </MultiRun >
 </Steps>
 

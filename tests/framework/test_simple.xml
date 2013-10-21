@@ -17,9 +17,9 @@
 </RunInfo>
 
 <Models>
-    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
-    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
-    <Filter name='Plot1' type='Plot'> 
+    <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+    <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter>
+    <Filter name='Plot1' subType='Plot'> 
       <historyID>ALL</historyID>
       <variables>ALL</variables>
     </Filter>
@@ -66,12 +66,12 @@
 </Tests>
 <Steps>
     <MultiRun name='FirstMRun'>
-        <Input   type='Files'    subtype=''>ideal_pump.i</Input>
-        <Input   type='Files'    subtype=''>ideal_pump_control.py</Input>
-        <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
-        <Sampler type = 'Samplers' subtype='MonteCarlo'>RAVENmc6</Sampler>
-        <Output  type='DataBases'  subtype='HDF5' >testMCDataBase</Output>
-        <Output  type='Datas'      subtype='Histories' >stories</Output>
+        <Input   class='Files'     type=''>ideal_pump.i</Input>
+        <Input   class='Files'     type=''>ideal_pump_control.py</Input>
+        <Model   class='Models'    type='Code'      >MyRAVEN</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'>RAVENmc6</Sampler>
+        <Output  class='DataBases' type='HDF5' >testMCDataBase</Output>
+        <Output  class='Datas'     type='Histories' >stories</Output>
     </MultiRun >
 </Steps>
 <DataBases>

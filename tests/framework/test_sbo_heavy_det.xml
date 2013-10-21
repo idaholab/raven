@@ -7,8 +7,8 @@
     <batchSize>8</batchSize>
 </RunInfo>
 <Models>
-    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
-    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
+    <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+    <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter>
 </Models>
 <Distributions>
     <Normal name='crewSecPG'>
@@ -46,9 +46,9 @@
 <Samplers>
     <DynamicEventTree name='DET' print_end_xml='yes'>
       <BranchingSettings>
-        <Variable type='Normal' distName='crew1DG1' BranchProbs='0.8 0.9'>crew1DG1</Variable>
-        <Variable type='Normal' distName='crew1DG2CoupledDG1' BranchProbs='0.8 0.9'>crew1DG2CoupledDG1</Variable>
-        <Variable type='Normal' distName='crewSecPG' BranchProbs='0.8 0.9'>crewSecPG</Variable>
+        <Variable type='Normal'     distName='crew1DG1' BranchProbs='0.8 0.9'>crew1DG1</Variable>
+        <Variable type='Normal'     distName='crew1DG2CoupledDG1' BranchProbs='0.8 0.9'>crew1DG2CoupledDG1</Variable>
+        <Variable type='Normal'     distName='crewSecPG' BranchProbs='0.8 0.9'>crewSecPG</Variable>
         <Variable type='Triangular' distName='PrimPGrecovery' BranchProbs='0.9'>PrimPGrecovery</Variable>
         <Variable type='Triangular' distName='CladFailureDist' BranchProbs='0.05 0.1 0.15'>CladFailureDist</Variable>
       </BranchingSettings>
@@ -56,19 +56,19 @@
 </Samplers>
 <Steps> 
     <MultiRun name='DET'>
-        <Input   type='Files'      subtype=''                >TMI.i</Input>
-        <Input   type='Files'      subtype=''                >TMI_PRA_trans_DET_control.py</Input>
-        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
-        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
-        <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd</Input>        
-        <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
-        <Sampler type='Samplers'   subtype='DynamicEventTree'>DET</Sampler>
-        <Output  type='DataBases' subtype='HDF5'              >DET_SBO_RUN_eqPb</Output>
+        <Input   class='Files'     type=''                >TMI.i</Input>
+        <Input   class='Files'     type=''                >TMI_PRA_trans_DET_control.py</Input>
+        <Input   class='Files'     type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
+        <Input   class='Files'     type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
+        <Input   class='Files'     type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd</Input>
+        <Model   class='Models'    type='Code'            >MyRAVEN</Model>
+        <Sampler class='Samplers'  type='DynamicEventTree'>DET</Sampler>
+        <Output  class='DataBases' type='HDF5'              >DET_SBO_RUN_eqPb</Output>
     </MultiRun>  
     <SingleRun name='extract_hist_from_hdf5_eqPb'>
-        <Input   type='DataBases' subtype='HDF5'   >DET_SBO_RUN_eqPb</Input>
-        <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
-        <Output  type='Files'    subtype=''       >DET_histories_eqPb.csv</Output>
+        <Input   class='DataBases' type='HDF5'   >DET_SBO_RUN_eqPb</Input>
+        <Model   class='Models'    type='Filter' >csv_from_hdf5</Model>
+        <Output  class='Files'     type=''       >DET_histories_eqPb.csv</Output>
     </SingleRun>       
 </Steps>
 <DataBases>

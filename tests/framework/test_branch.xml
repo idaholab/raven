@@ -17,7 +17,7 @@
 </RunInfo>
 
 <Models>
-    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+    <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
     <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
     <Filter name='Plot1' type='Plot'> 
       <historyID>ALL</historyID>
@@ -46,18 +46,18 @@
 </Tests>
 <Steps>
     <MultiRun name='DETrunTest'>
-        <Input   type='Files'    subtype=''>ideal_pump.i</Input>
-        <Input   type='Files'    subtype=''>ideal_pump_control.py</Input>
-        <Model   type='Models'   subtype='Code'      >MyRAVEN</Model>
-        <Sampler type = 'Samplers' subtype='DynamicEventTree'>DET_test</Sampler>
-        <DataBases type='DataBases' subtype=''        >testBranchDataBase</DataBases>
-        <Output  type='DataBases' subtype='HDF5' >testBranchDataBase</Output>
-        <Output  type='Datas'    subtype='Histories' >stories</Output>
+        <Input      class='Files'      type=''>ideal_pump.i</Input>
+        <Input      class='Files'      type=''>ideal_pump_control.py</Input>
+        <Model      class='Models'     type='Code'      >MyRAVEN</Model>
+        <Sampler    class = 'Samplers' type='DynamicEventTree'>DET_test</Sampler>
+        <DataBases  class='DataBases'  type=''        >testBranchDataBase</DataBases>
+        <Output     class='DataBases'  type='HDF5' >testBranchDataBase</Output>
+        <Output     class='Datas'      type='Histories' >stories</Output>
     </MultiRun >
     <SingleRun name='extract_hist_example'>
-        <Input   type='DataBases' subtype='HDF5'   >testBranchDataBase</Input>
-        <Model   type='Models'   subtype='Filter' >csv_from_hdf5</Model>
-        <Output  type='Files'    subtype=''       >DET_histories.csv</Output>
+        <Input   class='DataBases' type='HDF5'   >testBranchDataBase</Input>
+        <Model   class='Models'    type='Filter' >csv_from_hdf5</Model>
+        <Output  class='Files'     type=''       >DET_histories.csv</Output>
     </SingleRun>      
 </Steps>
 <DataBases>

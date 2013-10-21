@@ -7,7 +7,7 @@
     <batchSize>3</batchSize>
 </RunInfo>
 <Models>
-    <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+    <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
 </Models>
 <Samplers>
   <MonteCarlo     name='RAVENmc3'  limit='2' initial_seed='1'></MonteCarlo>     
@@ -21,17 +21,17 @@
         <Input   type='Files'      subtype=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd</Input>        
         <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
         <Sampler type='Samplers'   subtype='MonteCarlo'>RAVENmc3</Sampler>
-        <Output  type='DataBases' subtype='HDF5'              >MC_TEST_EXTRACT_STEP</Output>
+        <Output  type='DataBases'  subtype='HDF5'              >MC_TEST_EXTRACT_STEP</Output>
     </MultiRun>  
     <InOutFromDataBase name='test_extract'>
         <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
-        <Output  type='Datas'    subtype='Histories'>histories_from_database</Output>
+        <Output  type='Datas'     subtype='Histories'>histories_from_database</Output>
         <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
-        <Output  type='Datas'    subtype='TimePoint'>timepoint_from_database</Output>
+        <Output  type='Datas'     subtype='TimePoint'>timepoint_from_database</Output>
         <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
-        <Output  type='Datas'    subtype='History'>history_from_database</Output>
+        <Output  type='Datas'     subtype='History'>history_from_database</Output>
         <Input   type='DataBases' subtype='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
-        <Output  type='Datas'    subtype='TimePointSet'>timepointset_from_database</Output>
+        <Output  type='Datas'     subtype='TimePointSet'>timepointset_from_database</Output>
     </InOutFromDataBase>  
 </Steps>
 <DataBases>

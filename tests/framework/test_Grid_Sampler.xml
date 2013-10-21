@@ -8,7 +8,7 @@
 </RunInfo>
 
 <Models>
-    <Dummy name='MyDummy' type='' print='True'/>
+    <Dummy name='MyDummy' subType='' print='True'/>
 </Models>
 
 <Distributions>
@@ -62,10 +62,10 @@
 
 <Steps>
      <MultiRun name='CustomSampler'>
-        <Input   type='Datas'    subtype='TimePointSet'>outGrid</Input>
-        <Model   type='Models'   subtype='Dummy'       >MyDummy</Model>
-        <Sampler type='Samplers' subtype='Grid'        >myGrid</Sampler>
-        <Output  type='Datas'    subtype='TimePointSet'>dummyIN</Output>
+        <Input   class='Datas'    type='TimePointSet'>outGrid</Input>
+        <Model   class='Models'   type='Dummy'       >MyDummy</Model>
+        <Sampler class='Samplers' type='Grid'        >myGrid</Sampler>
+        <Output  class='Datas'    type='TimePointSet'>dummyIN</Output>
     </MultiRun >
 </Steps>
 
