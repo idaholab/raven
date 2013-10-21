@@ -69,9 +69,10 @@ class Model(BaseType):
 class Dummy(Model):
   '''this is a dummy model that just return the input in the data
   it suppose to get a datas as input in and send back the input from the sampler added to it'''
+  
   def initialize(self,runInfo,inputs):
     self.counter=0
-    self.localOutput = copy.deepcopy(inputs[0])
+    self.localOutput = copy.deepcopy(inputs[0])    
     
   def createNewInput(self,myInput,samplerType,**Kwargs):
     newInput = copy.deepcopy(myInput[0])
@@ -99,7 +100,39 @@ class Dummy(Model):
   def collectOutput(self,collectFrom,storeTo):
     if self.fileOut:
       self.localOutput.printCSV()
+   
+   
       
+class ExternalModule(Model):
+  ''' External module class: this module allows to interface with an external module (for example written in python)'''
+  
+  def initialize(self,runInfo,inputs):
+    self.counter=0
+  
+  def createNewInput(self,myInput,samplerType,**Kwargs):
+    if 'createNewInput' in dir(self.sim):
+      self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
+    return [newInput] 
+  
+  def readMoreXML(self,xmlNode):
+    Model.readMoreXML(self, xmlNode)
+    if 'ModuleToLoad' in xmlNode.attrib.keys(): 
+      self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
+    else: print('Error: ModuleToLoad not provided for module externalModule')
+    exec('import ' + self.ModuleToLoad + ' as sim')
+    self.sim=sim
+    
+    if 'readMoreXML' in dir(sim):
+      sim.readMoreXML(self,xmlNode)
+ 
+  def run(self,Input,jobHandler):
+    sim.run(Input,samplerType)
+    
+  def collectOutput(self,collectFrom,storeTo):
+    sim.collectOutput(collectFrom,storeTo)
+    
+    
+  
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
   def __init__(self):
@@ -413,6 +446,7 @@ __InterfaceDict['Code'     ] = Code
 __InterfaceDict['Filter'   ] = Filter
 __InterfaceDict['Projector'] = Projector
 __InterfaceDict['Dummy'    ] = Dummy
+__InterfaceDict['ExternalModule'] = ExternalModule
 
 def returnInstance(Type,debug=False):
   '''This function return an instance of the request model type'''
