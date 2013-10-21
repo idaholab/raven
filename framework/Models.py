@@ -112,6 +112,8 @@ class ExternalModule(Model):
   
   def initialize(self,runInfo,inputs):
     self.counter=0
+    if 'initialize' in dir(self.sim):
+      self.sim.initialize(runInfo,inputs)
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
     if 'createNewInput' in dir(self.sim):
@@ -125,15 +127,14 @@ class ExternalModule(Model):
     else: print('Error: ModuleToLoad not provided for module externalModule')
     exec('import ' + self.ModuleToLoad + ' as sim')
     self.sim=sim
-    
     if 'readMoreXML' in dir(sim):
-      sim.readMoreXML(self,xmlNode)
+      self.sim.readMoreXML(self,xmlNode)
  
   def run(self,Input,jobHandler):
-    sim.run(Input,samplerType)
+    self.sim.run(Input,jobHandler)
     
-  def collectOutput(self,collectFrom,storeTo):
-    sim.collectOutput(collectFrom,storeTo)
+  def collectOutput(self,finisishedjob,output):
+    self.sim.collectOutput(finisishedjob,output)
     
     
   
