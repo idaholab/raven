@@ -55,16 +55,24 @@ class Sigma(Test):
 class Integral(Test):
   pass
 
+'''
+ Interface Dictionary (factory) (private)
+'''
+__base                      = 'Data'
+__interFaceDict             = {}
+__interFaceDict['Sigma'   ] = Sigma
+__interFaceDict['Integral'] = Integral
+__knownTypes                = __interFaceDict.keys()
 
-#function used to generate a Model class
+def knonwnTypes():
+  return __knownTypes
+
 def returnInstance(Type):
-  base = 'Test'
-  InterfaceDict = {}
-  InterfaceDict['Sigma'   ] = Sigma
-  InterfaceDict['Integral'] = Integral
-  try: return InterfaceDict[Type]()
-  except: raise NameError('not known '+base+' type '+Type)
-  
+  '''return one instance of Type''' 
+  try: return __interFaceDict[Type]()
+  except: raise NameError('not known '+__base+' type '+Type)  
+
+
   
   
   

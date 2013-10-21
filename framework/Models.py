@@ -14,9 +14,7 @@ import Datas
 import numpy as np
 from BaseType import BaseType
 import SupervisedLearning
-from Filters import *
-#import Postprocessors
-#import ROM interfaces
+from Filters import returnFilterInterface
 
 class Model(BaseType):
   ''' a model is something that given an input will return an output reproducing some physical model
@@ -27,11 +25,17 @@ class Model(BaseType):
     self.runQueue = []
 
   def readMoreXML(self,xmlNode):
-    try: self.subType = xmlNode.attrib['type']
+    try: self.subType = xmlNode.attrib['subType']
     except: raise 'missed type for the model'+self.name
+  
+  def localInputAndChecks(self,xmlNode):
+    '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
 
   def addInitParams(self,tempDict):
     tempDict['subType'] = self.subType
+
+  def localAddInitParams(self,tempDict):
+    '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
 
   def initialize(self,runInfo,inputs):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
@@ -83,8 +87,8 @@ class Dummy(Model):
 
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
-    if 'print' in xmlNode.attrib.keys(): self.fileOut = bool(xmlNode.attrib['print'])
-    else: self.fileOut = False
+    if 'print' in xmlNode.attrib.keys(): self.printFile = bool(xmlNode.attrib['print'])
+    else: self.printFile = False
   
   def run(self,Input,jobHandler):
     for inputName in Input[0].getInpParametersValues().keys():
@@ -98,7 +102,7 @@ class Dummy(Model):
       self.localOutput.getOutParametersValues()['status'] = np.array([1],copy=True,dtype=object)
       
   def collectOutput(self,collectFrom,storeTo):
-    if self.fileOut:
+    if self.printFile:
       self.localOutput.printCSV()
    
    
@@ -437,19 +441,25 @@ class Filter(Model):
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(output)
 
-
+'''
+ Interface Dictionary (factory) (private)
+'''
 
 __base = 'model'
-__InterfaceDict = {}
-__InterfaceDict['ROM'      ] = ROM
-__InterfaceDict['Code'     ] = Code
-__InterfaceDict['Filter'   ] = Filter
-__InterfaceDict['Projector'] = Projector
-__InterfaceDict['Dummy'    ] = Dummy
+__interFaceDict = {}
+__interFaceDict['ROM'      ] = ROM
+__interFaceDict['Code'     ] = Code
+__interFaceDict['Filter'   ] = Filter
+__interFaceDict['Projector'] = Projector
+__interFaceDict['Dummy'    ] = Dummy
+__knownTypes                 = __interFaceDict.keys()
 __InterfaceDict['ExternalModule'] = ExternalModule
+
+def knonwnTypes():
+  return __knownTypes
 
 def returnInstance(Type,debug=False):
   '''This function return an instance of the request model type'''
-  try: return __InterfaceDict[Type]()
+  try: return __interFaceDict[Type]()
   except: raise NameError('not known '+__base+' type '+Type)
   

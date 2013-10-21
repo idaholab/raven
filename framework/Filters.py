@@ -7,7 +7,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import Datas
+#import Datas
 import numpy as np
 import os
 from utils import *
@@ -225,8 +225,8 @@ class Plot:
       @ In, xmlNode    : Xml element node
       @ Out, None
     '''
-    param = ''
-    param = xmlNode.text
+ #   param = ''
+ #   param = xmlNode.text
     return
 
   def finalizeFilter(self,inObj,outObj,workingDir=None):
@@ -253,7 +253,8 @@ class Plot:
       pass
     else:
       raise NameError ('Filter Plot for input type ' + inObj.type + ' not yet implemented.')
-    #  Plot the histories 
+    #  Plot the histories
+    fig = [None]*len(endGroupNames)
     for i in range (len(endGroupNames)):
       fig[i]=plt.figure()
       plt.plot(histories[endGroupNames[1]],histories[endGroupNames[i]])
@@ -278,17 +279,27 @@ class Plot:
         raise NameError ('Filter Plot for output type ' + outObj.type + ' not implemented.')  
     return
 
+
+'''
+ Interface Dictionary (factory) (private)
+'''
+__base                          = 'Filter'
+__interFaceDict                 = {}
+__interFaceDict['PrintCSV'] = PrintCSV
+__interFaceDict['Plot'    ] = Plot
+__knownTypes                    = __interFaceDict.keys()
+
+def knonwnTypes():
+  return __knownTypes
+
 def returnFilterInterface(Type):
   '''
     function used to generate a Filter class
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
-  '''
-  base = 'Filter'
-  filterInterfaceDict = {}
-  filterInterfaceDict['PrintCSV'] = PrintCSV
-  filterInterfaceDict['Plot'] = Plot
-  try: return filterInterfaceDict[Type]()
-  except: raise NameError('not known '+base+' type '+Type)
+  '''  
+  try: return __interFaceDict[Type]()
+  except: raise NameError('not known '+__base+' type '+Type)  
+
 
   

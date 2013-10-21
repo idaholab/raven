@@ -25,9 +25,9 @@ class BaseType(object):
     except: raise IOError('not found name for a '+self.__class__.__name__)
     try: self.type = xmlNode.tag
     except: raise IOError('not found type for the '+self.__class__.__name__+' named '+self.name)
-    self.readMoreXML(xmlNode)
     try: self.debug = bool(xmlNode.attrib['debug'])
     except: pass
+    self.readMoreXML(xmlNode)
 
   def readMoreXML(self,xmlNode):
     '''method to be overloaded to collect the additional input'''

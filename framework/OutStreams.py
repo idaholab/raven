@@ -7,11 +7,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import xml.etree.ElementTree as ET
+#import xml.etree.ElementTree as ET
 import numpy as np
 from BaseType import BaseType
-from Csv_loader import CsvLoader as ld
-import DataBases
+#from Csv_loader import CsvLoader as ld
+#import DataBases
 
 #from hdf5_manager import hdf5Manager as AAFManager
 #import h5py as h5
@@ -127,7 +127,7 @@ class OutStream(BaseType):
       for index in xrange(len(self.toLoadFromList)):
         groupname = self.toLoadFromList[index].split('~')[1]
         if not groupname in self.alreadyRead:
-           # open file
+          # open file
           myFile = open (self.toLoadFromList[index],'rb')
           # read the field names
           all_field_names = myFile.readline().split(',')
@@ -184,7 +184,7 @@ class ScreenPlot(OutStream):
       OutStream.retrieveHistories(self)
     # Retrieve the headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
-    timeVar = ''
+#    timeVar = ''
     # Find where the time evolution is stored
     for i in xrange(len(headers)):
       if headers[i].lower() == 'time':
@@ -259,7 +259,7 @@ class PdfPlot(OutStream):
       OutStream.retrieveHistories(self)
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
-    timeVar = ''
+#    timeVar = ''
     # Find where the time evolution is stored
     for i in xrange(len(headers)):
       if headers[i].lower() == 'time':
@@ -329,7 +329,7 @@ class PngPlot(OutStream):
       OutStream.retrieveHistories(self)
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
-    timeVar = ''
+#    timeVar = ''
     # Find where the time evolution is stored
     for i in xrange(len(headers)):
       if headers[i].lower() == 'time':
@@ -401,7 +401,7 @@ class JpegPlot(OutStream):
       OutStream.retrieveHistories(self)
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
-    timeVar = ''
+#    timeVar = ''
     # Find where the time evolution is stored
     for i in xrange(len(headers)):
       if headers[i].lower() == 'time':
@@ -475,7 +475,7 @@ class EpsPlot(OutStream):
       OutStream.retrieveHistories(self)
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
-    timeVar = ''
+#    timeVar = ''
     # Find where the time evolution is stored
     for i in xrange(len(headers)):
       if headers[i].lower() == 'time':
@@ -514,6 +514,20 @@ class EpsPlot(OutStream):
     '''
     return
 
+'''
+ Interface Dictionary (factory) (private)
+'''
+__base                    = 'OutStream'
+__interFaceDict           = {}
+__interFaceDict['Screen'] = ScreenPlot
+__interFaceDict['Pdf'   ] = PdfPlot
+__interFaceDict['Png'   ] = PngPlot
+__interFaceDict['Jpeg'  ] = JpegPlot
+__interFaceDict['Eps'   ] = EpsPlot
+__knownTypes              = __interFaceDict.keys()
+
+def knonwnTypes():
+  return __knownTypes
 
 def returnInstance(Type):
   '''
@@ -521,15 +535,11 @@ def returnInstance(Type):
   @ In, Type : OutStream type
   @ Out,Instance of the Specialized OutStream class
   '''
-  base = 'OutStream'
-  InterfaceDict = {}
-  InterfaceDict['Screen'   ]    = ScreenPlot
-  InterfaceDict['Pdf'      ]    = PdfPlot
-  InterfaceDict['Png'      ]    = PngPlot
-  InterfaceDict['Jpeg'     ]    = JpegPlot
-  InterfaceDict['Eps'      ]    = EpsPlot
-  try:
-    if Type in InterfaceDict.keys():
-      return InterfaceDict[Type]()
-  except KeyError:
-    raise NameError('not known '+base+' type'+Type)
+  try: return __interFaceDict[Type]()
+  except: raise NameError('not known '+__base+' type '+Type)  
+
+
+
+
+
+

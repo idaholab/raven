@@ -9,11 +9,6 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
-import shutil
-import Datas
-import numpy as np
-import ast
-from BaseType import BaseType
 
 class RavenInterface:
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
@@ -33,7 +28,6 @@ class RavenInterface:
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
-    newInputFiles = []
     self.samplersDictionary                          = {}
     self.samplersDictionary['MonteCarlo']            = self.MonteCarloForRAVEN
     self.samplersDictionary['EquallySpaced']         = self.EquallySpacedForRAVEN
@@ -56,8 +50,8 @@ class RavenInterface:
     return newInputFiles
 
   def StochasticCollocationForRAVEN(self,**Kwargs):
-    try: counter = Kwargs['prefix']
-    except: raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
+    if 'prefix' not in Kwargs['prefix']:
+      raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
     #try: qps = Kwargs['qps']
     #except: raise IOError('a qp index is required for the StochColl sampler for RAVEN')
     listDict = []
@@ -191,7 +185,6 @@ class MooseBasedAppInterface:
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
-    newInputFiles = []
     self.samplersDictionary                          = {}
     self.samplersDictionary['MonteCarlo']            = self.MonteCarloForMooseBasedApp
     self.samplersDictionary['EquallySpaced']         = self.EquallySpacedForMooseBasedApp
@@ -274,7 +267,6 @@ class RelapInterface:
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
     import RELAPparser
-    newInputFiles = []
     self.samplersDictionary                     = {}
     self.samplersDictionary['MonteCarlo']       = self.MonteCarloForRELAP
     self.samplersDictionary['EquallySpaced']    = self.EquallySpacedForRELAP
@@ -322,16 +314,25 @@ class ExternalTest:
 
   def findOutputFile(self,command):
     return ''
-  
+ 
+'''
+ Interface Dictionary (factory) (private)
+'''
+__base                          = 'Code'
+__interFaceDict                 = {}
+__interFaceDict['RAVEN'        ] = RavenInterface
+__interFaceDict['MooseBasedApp'] = MooseBasedAppInterface
+__interFaceDict['ExternalTest' ] = ExternalTest
+__interFaceDict['RELAP5'       ] = RelapInterface
+__knownTypes                    = __interFaceDict.keys()
+
+def knonwnTypes():
+  return __knownTypes
+
 def returnCodeInterface(Type):
   '''this allow to the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module'''
-  base = 'Code'
-  codeInterfaceDict = {}
-  codeInterfaceDict['RAVEN'        ] = RavenInterface
-  codeInterfaceDict['MooseBasedApp'] = MooseBasedAppInterface
-  codeInterfaceDict['ExternalTest' ] = ExternalTest
-  codeInterfaceDict['RELAP5'       ] = RelapInterface
-  try: return codeInterfaceDict[Type]()
-  except: raise NameError('not known '+base+' type '+Type)
+  try: return __interFaceDict[Type]()
+  except: raise NameError('not known '+__base+' type '+Type)  
+ 
 

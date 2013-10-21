@@ -177,12 +177,24 @@ class Simulation(object):
   myInstance.myInitializzationParams()   -see BaseType class-
   myInstance.myClassmyCurrentSetting()           -see BaseType class-
 
-  --how to add a <MyType> of component to the simulation--
+  --how to add a <myClass> of component to the simulation--
   import the module <MyModule> where the new type of component is defined, you can name you module as you wish but so far we added an 's' t the class name (see Datas...)
-  The module should possess a function <MyModule>.returnInstance('<MyType>') that returns a pointer to the class
-  add to the class in the __init__: self.<MyType>Dict = {}
-  add to the class in the __init__: self.whichDict['<MyType>']=<MyModule>.returnInstance
-  add to the class in the __init__: self.whichDict['<MyType>'] = self.<MyType>Dict
+  The module should possess a function <MyModule>.returnInstance('<myClass>') that returns a pointer to the class
+  add to the class in the __init__: self.<myClass>Dict = {}
+  add to the class in the __init__: self.whichDict['<myClass>']=<MyModule>.returnInstance
+  add to the class in the __init__: self.whichDict['<myClass>'] = self.<myClass>Dict
+  
+  Comments on the simulation environment
+  -every type of element living in the simulation should be uniquely identified by type and name not by sub-type
+  !!!!Wrong:
+  Class: distribution, subtype: normal,     name: myDistribution
+  Class: distribution, subtype: triangular, name: myDistribution
+  Correct:
+  type: distribution, subtype: normal,     name: myNormalDist
+  type: distribution, subtype: triangular, name: myTriDist
+  
+  it is therefore discouraged to use the attribute type and sub-type in the xml since they are naming inferred from the tags of the xml
+  
   '''
   
   def __init__(self,inputfile,frameworkDir,debug=False):
@@ -232,15 +244,25 @@ class Simulation(object):
 
     #Class Dictionary when a new function is added to the simulation this dictionary need to be expanded
     #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
+#    self.addWhatDict  = {}
+#    self.addWhatDict['Steps'         ] = Steps.returnInstance
+#    self.addWhatDict['Datas'         ] = Datas.returnInstance
+#    self.addWhatDict['Samplers'      ] = Samplers.returnInstance
+#    self.addWhatDict['Models'        ] = Models.returnInstance
+#    self.addWhatDict['Tests'         ] = Tests.returnInstance
+#    self.addWhatDict['Distributions' ] = Distributions.returnInstance
+#    self.addWhatDict['DataBases'     ] = DataBases.returnInstance
+#    self.addWhatDict['OutStreams'    ] = OutStreams.returnInstance
+
     self.addWhatDict  = {}
-    self.addWhatDict['Steps'         ] = Steps.returnInstance
-    self.addWhatDict['Datas'         ] = Datas.returnInstance
-    self.addWhatDict['Samplers'      ] = Samplers.returnInstance
-    self.addWhatDict['Models'        ] = Models.returnInstance
-    self.addWhatDict['Tests'         ] = Tests.returnInstance
-    self.addWhatDict['Distributions' ] = Distributions.returnInstance
-    self.addWhatDict['DataBases'     ] = DataBases.returnInstance
-    self.addWhatDict['OutStreams'    ] = OutStreams.returnInstance
+    self.addWhatDict['Steps'         ] = Steps
+    self.addWhatDict['Datas'         ] = Datas
+    self.addWhatDict['Samplers'      ] = Samplers
+    self.addWhatDict['Models'        ] = Models
+    self.addWhatDict['Tests'         ] = Tests
+    self.addWhatDict['Distributions' ] = Distributions
+    self.addWhatDict['DataBases'     ] = DataBases
+    self.addWhatDict['OutStreams'    ] = OutStreams
 
     #Mapping between a class type and the dictionary containing the instances for the simulation
     self.whichDict = {}
@@ -257,6 +279,7 @@ class Simulation(object):
     
     self.jobHandler    = JobHandler()
     self.__modeHandler = SimulationMode(self)
+    self.knownTypes    = self.whichDict.keys()
 
   def __createAbsPath(self,filein):
     '''assuming that the file in is already in the self.filesDict it place as the value the absolute path'''
@@ -270,21 +293,24 @@ class Simulation(object):
   def XMLread(self,xmlNode):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
     for child in xmlNode:
-      if child.tag in self.whichDict.keys():
-        Type = child.tag
-        if Type != 'RunInfo':
+      if child.tag in self.knownTypes:
+        print('reading Class '+str(child.tag))
+        Class = child.tag
+        if Class != 'RunInfo':
           for childChild in child:
             if childChild.attrib['name'] != None:
               name = childChild.attrib['name']
+              print('Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-              self.whichDict[Type][name] = self.addWhatDict[Type](childChild.tag)
+              if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
+              else: raise IOError('Redundant  naming in the input for class '+Class+' and name '+name)
               #now we can read the info for this object
-              self.whichDict[Type][name].readXML(childChild)
-              if self.debug: self.whichDict[Type][name].printMe()
-            else: raise IOError('not found name attribute for one '+Type)
+              self.whichDict[Class][name].readXML(childChild)
+              if self.debug: self.whichDict[Class][name].printMe()
+            else: raise IOError('not found name attribute for one '+Class)
         else: self.__readRunInfo(child)
-      else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
+      else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))    
     
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment'''
@@ -308,6 +334,7 @@ class Simulation(object):
     self.jobHandler.initialize(self.runInfoDict)
     
     if self.debug: self.printDicts()
+    
 
   def __readRunInfo(self,xmlNode):
     '''reads the xml input file for the RunInfo block'''
@@ -372,7 +399,7 @@ class Simulation(object):
       stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!! 
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
       stepInputDict['Output']          = []                         #set the Output to an empty list
-      #fill the take a a step input dictionary just to reacall key= role played in the step b= type, c= subtype, d= user given name
+      #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
       for [key,b,c,d] in stepInstance.parList: 
         if key == 'Input' or key == 'Output':                        #Only for input and output we allow more than one object passed to the step, so for those we build a list
           stepInputDict[key].append(self.whichDict[b][d])        

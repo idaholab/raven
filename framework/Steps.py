@@ -41,20 +41,19 @@ class Step(BaseType):
   <MyClass> should inherit at least from Step or from another step already presents
 
   DO NOT OVERRIDE any of the class method that are not starting with self.local*
+  
+  ADD your class to the dictionary __InterfaceDict at the end of the module
 
-  The following method overriding is MANDATORY:  
-  self.localInitialization(inDictionary): called after this call the step should be able the accept the call self.takeAstep(inDictionary):
-  self.takeAstepRun(inDictionary)       : this is where the step happens, after this call the output is ready
-
-  the following methods could be overrode:
-  self.localInputAndChecks(xmlNode)
-  self.localAddInitParams(tempDict)
+  The following method overriding is MANDATORY:
+  self.localInputAndChecks(xmlNode)     : used to specialize the xml reading
+  self.localAddInitParams(tempDict)     : used to add the local parameters and values to be printed
+  self.localInitializeStep(inDictionary): called after this call the step should be able the accept the call self.takeAstep(inDictionary):
+  self.localTakeAstepRun(inDictionary)  : this is where the step happens, after this call the output is ready
   '''
   
   def __init__(self):
-    self.debug = True
     BaseType.__init__(self)
-    self.parList  = []    #list of list [[role played in the step, type, subtype, global name (user assigned by the input)]]
+    self.parList  = []    #list of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.typeDict = {}    #for each role of the step the corresponding  used type
 
   def readMoreXML(self,xmlNode):
@@ -63,7 +62,7 @@ class Step(BaseType):
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
     '''
     for child in xmlNode:
-      self.parList.append([child.tag,child.attrib['type'],child.attrib['subtype'],child.text])
+      self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.localInputAndChecks(xmlNode)
 
   def localInputAndChecks(self,xmlNode):
@@ -74,39 +73,42 @@ class Step(BaseType):
     pass
   
   def addInitParams(self,tempDict):
-    '''the list that explain who does what in the step is added to the initial parameters'''
+    '''Export to tempDict the information that will stay constant during the existence of the instance of this class'''
     for List in self.parList:
       tempDict[List[0]] = ' type: '+List[1]+' SubType: '+List[2]+'  Global name: '+List[3]
     self.localAddInitParams(tempDict)
 
   def localAddInitParams(self,tempDict):
-    '''place here a specialization of the exporting of what in the step is added to the initial parameters'''
+    '''place here a specialization of the exporting of what in the step is added to the initial parameters
+    the printing format of tempDict is key: tempDict[key]'''
     pass
 
-  def initializeStep(self,inDictionary):
-    '''In this method place the housekeeping that you want to be sure done before a new start'''
+  def __initializeStep(self,inDictionary):
+    '''the job handler is restarted'''
     inDictionary['jobHandler'].StartingNewStep()
-    self.localInitialization(inDictionary)
+    self.localInitializeStep(inDictionary)
   
-  def localInitialization(self,inDictionary):
-    raise NotImplementedError('Model: initializeStep')
+  def localInitializeStep(self,inDictionary):
+    '''this is the API for the local initialization of the children classes'''
+    raise NotImplementedError('Model: localInitializeStep')
 
-  def takeAstepRun(self,inDictionary):
-    '''In this method place the run driver'''
-    raise NotImplementedError('Model: takeAstepRun')
+  def localTakeAstepRun(self,inDictionary):
+    '''this is the API for the local run of a step for the children classes'''
+    raise NotImplementedError('Model: localTakeAstepRun')
 
   def takeAstep(self,inDictionary):
-    '''this should work for everybody just split the step in an initialization and the run itself'''
+    '''this should work for everybody just split the step in an initialization and the run itself
+    inDictionary[role]=instance or list of instance'''
     if self.debug: print('Initializing....')
-    self.initializeStep(inDictionary)
+    self.__initializeStep(inDictionary)
     if self.debug: print('Initialization done starting the run....')
-    self.takeAstepRun(inDictionary)
+    self.localTakeAstepRun(inDictionary)
 
 
 #----------------------------------------------------------------------------------------------------
 class SingleRun(Step):
   '''This is the step that will perform just one evaluation'''
-  def localInitialization(self,inDictionary):
+  def localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
     #checks
     if 'Model'  not in inDictionary.keys(): raise IOError ('It is not possible a run without a model!!!')
@@ -121,7 +123,7 @@ class SingleRun(Step):
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
       except: pass
     
-  def takeAstepRun(self,inDictionary):
+  def localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
     jobHandler = inDictionary['jobHandler']
     inDictionary["Model"].run(inDictionary['Input'],inDictionary['jobHandler'])
@@ -149,8 +151,8 @@ class MultiRun(SingleRun):
   def addCurrentSetting(self,originalDict):
     originalDict['max number of iteration'] = self.maxNumberIteration
 
-  def localInitialization(self,inDictionary):
-    SingleRun.localInitialization(self,inDictionary)
+  def localInitializeStep(self,inDictionary):
+    SingleRun.localInitializeStep(self,inDictionary)
     #checks
     if 'Sampler'  not in inDictionary.keys(): raise IOError ('It is not possible a multi-run without a Sampler!!!')
     #get the max number of iteration in the step
@@ -164,7 +166,7 @@ class MultiRun(SingleRun):
         for output in inDictionary['Output']:  
           inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
 
-  def takeAstepRun(self,inDictionary):
+  def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
     while True:
       if inDictionary["Model"].type == 'Code': 
@@ -188,7 +190,8 @@ class MultiRun(SingleRun):
         if inDictionary['Sampler'].amIreadyToProvideAnInput():
           newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
           inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
-          for output in inDictionary['Output']: inDictionary['Model'].collectOutput(finishedJob,output) 
+          for output in inDictionary['Output']:
+            inDictionary['Model'].collectOutput(finishedJob,output) 
         else:
           break
         time.sleep(0.1)
@@ -215,8 +218,8 @@ class Adaptive(MultiRun):
     MultiRun.addInitParams(self, tempDict)
     tempDict['ProjectorSource'] = 'type: '+self.parList[self.projectorFromIndex][0]+'SubType :'+self.parList[self.projectorFromIndex][1]+'Global name :'+self.parList[self.projectorFromIndex][2]
 
-  def localInitialization(self,inDictionary):
-    MultiRun.localInitialization(self,inDictionary)
+  def localInitializeStep(self,inDictionary):
+    MultiRun.localInitializeStep(self,inDictionary)
     #point the projector to its input
     inDictionary['Tester'].reset()
     notYet = True
@@ -228,7 +231,7 @@ class Adaptive(MultiRun):
             notYet = False
         except: pass
 
-  def takeAstepRun(self,inDictionary):
+  def localTakeAstepRun(self,inDictionary):
     converged = False
     jobHandler = inDictionary['jobHandler']
     while True:
@@ -264,7 +267,7 @@ class InOutFromDataBase(Step):
     @Input, DataBase (for example, HDF5)
     @Output,Data(s) (for example, History)
   '''
-  def localInitialization(self,inDictionary):
+  def localInitializeStep(self,inDictionary):
     avail_out = 'TimePoint-TimePointSet-History-Histories'
     print('STEPS         : beginning of step named: ' + self.name)
     #self.initializeStep(inDictionary)
@@ -279,7 +282,7 @@ class InOutFromDataBase(Step):
         raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts ' + avail_out + ' as Output only. Got ' + inDictionary['Output'][i].type)
     return    
     
-  def takeAstepRun(self,inDictionary):
+  def localTakeAstepRun(self,inDictionary):
     for i in xrange(len(inDictionary['Output'])):
       #link the output to the database and construct the Data(s)
       inDictionary['Output'][i].addOutput(inDictionary['Input'][i])
@@ -297,7 +300,7 @@ class RomTrainer(Step):
   def addCurrentSetting(self,originalDict):
     Step.addCurrentSetting(self,originalDict)
 
-  def localInitialization(self,inDictionary):
+  def localInitializeStep(self,inDictionary):
     '''The initialization step  for a ROM is copying the data out to the ROM (it is a copy not a reference) '''
     for i in xrange(len(inDictionary['Output'])):
       inDictionary['Output'][i].initializeTrain(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'][0])
@@ -310,7 +313,7 @@ class RomTrainer(Step):
     if len(inDictionary['Input']) > 1: raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts an Input Only. Number of Inputs = ' + str(len(inDictionary['Input'])))
     self.initializeStep(inDictionary)
     
-  def takeAstepRun(self,inDictionary):
+  def localTakeAstepRun(self,inDictionary):
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
     for i in xrange(len(inDictionary['Output'])):
       inDictionary['Output'][i].train()
@@ -327,7 +330,7 @@ class PlottingStep(Step):
   def addCurrentSetting(self,originalDict):
     Step.addCurrentSetting()
 
-  def localInitialization(self,inDictionary):
+  def localInitializeStep(self,inDictionary):
     pass
 
   def takeAstepIni(self,inDictionary):
@@ -335,7 +338,7 @@ class PlottingStep(Step):
     print('STEPS         : beginning of the step: '+self.name)
     self.initializeStep(inDictionary)
 
-  def takeAstepRun(self,inDictionary):
+  def localTakeAstepRun(self,inDictionary):
     pass
    
 
@@ -350,7 +353,7 @@ class SCRun(Step):
   def addCurrentSetting(self,originalDict):
     originalDict['max number of iteration'] = self.maxNumberIteration
 
-  def localInitialization(self,inDictionary):
+  def localInitializeStep(self,inDictionary):
     # TODO is this necessary? Step.initializeStep(self,inDictionary)
     #get the max number of iteration in the step
     #if 'Sampler' in inDictionary.keys(): self.maxNumberIteration = inDictionary['Sampler'].limit
@@ -437,19 +440,19 @@ class SCRun(Step):
     #if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
 
 
-__InterfaceDict = {}
-__InterfaceDict['SingleRun'        ] = SingleRun
-__InterfaceDict['MultiRun'         ] = MultiRun
-__InterfaceDict['SCRun'            ] = SCRun
-__InterfaceDict['Adaptive'         ] = Adaptive
-__InterfaceDict['InOutFromDataBase'] = InOutFromDataBase 
-__InterfaceDict['RomTrainer'       ] = RomTrainer
-__InterfaceDict['Plotting'         ] = PlottingStep
-__base = 'Step'
+__interFaceDict                      = {}
+__interFaceDict['SingleRun'        ] = SingleRun
+__interFaceDict['MultiRun'         ] = MultiRun
+__interFaceDict['SCRun'            ] = SCRun
+__interFaceDict['Adaptive'         ] = Adaptive
+__interFaceDict['InOutFromDataBase'] = InOutFromDataBase 
+__interFaceDict['RomTrainer'       ] = RomTrainer
+__interFaceDict['Plotting'         ] = PlottingStep
+__base                               = 'Step'
 
 def returnInstance(Type):
-  try:   return __InterfaceDict[Type]()
-  except:raise NameError('not known '+__base+' type'+Type)
+  return __interFaceDict[Type]()
+  raise NameError('not known '+__base+' type '+Type)
   
   
   

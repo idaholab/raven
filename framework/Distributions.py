@@ -361,19 +361,28 @@ class Binomial(Distribution):
       self.distribution = dist.binom(n=self.n,p=self.p)
     else:
       raise IOError ('Truncated Binomial not yet implemented')   
-    
+
+
+
+__base                        = 'Distribution'
+__interFaceDict               = {}
+__interFaceDict['Uniform'   ] = Uniform
+__interFaceDict['Normal'    ] = Normal
+__interFaceDict['Gamma'     ] = Gamma
+__interFaceDict['Beta'      ] = Beta
+__interFaceDict['Triangular'] = Triangular
+__interFaceDict['Poisson'   ] = Poisson
+__interFaceDict['Binomial'  ] = Binomial
+__knownTypes                  = __interFaceDict.keys()
+
+def knonwnTypes():
+  return __knownTypes
+
 def returnInstance(Type):
-  base = 'Distribution'
-  InterfaceDict = {}
-  InterfaceDict['Uniform'  ]  = Uniform
-  InterfaceDict['Normal'   ]  = Normal
-  InterfaceDict['Gamma'    ]  = Gamma
-  InterfaceDict['Beta'     ]  = Beta
-  InterfaceDict['Triangular'] = Triangular
-  InterfaceDict['Poisson']    = Poisson
-  InterfaceDict['Binomial']    = Binomial
-  try: return InterfaceDict[Type]()
-  except: raise NameError('not known '+base+' type '+Type)
+  try: return __interFaceDict[Type]()
+  except: raise NameError('not known '+__base+' type '+Type)  
+
+
   
   
   

@@ -5,7 +5,7 @@ Module where the base class and the specializzation of different type of sampler
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__): xrange = range
+#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ import Quadrature
 class Sampler(BaseType):
   '''
   This is the base class for samplers
-  Samplers own the sampling strategy (subtype) and they generate the
+  Samplers own the sampling strategy (Type) and they generate the
   input values using the associate distribution. They do not have distributions inside!!!!
   
   --Instance--
@@ -34,36 +34,42 @@ class Sampler(BaseType):
   
   --usage--
   myInstance = Sampler()
-  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object
+  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
   myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and 
-                                                     initialized. The method is called come from Simulation since it is the only one possess all the distributions.
-  myInstance.initialize()                            This method is called from the Step before the Step process start. In the base class it reset the counter to 0
-  myInstance.amIreadyToProvideAnInput                Requested from Step used to verify that the sampler is available to generate a new input
-  myInstance.generateInput(self,model,oldInput)      Requested from Step to generate a new input. Generate the new values and request to model to modify according the input and returning it back
+                                                     initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
+  myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
+  myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
+  myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
 
   --Other external methods--
   myInstance.whoAreYou()                            -see BaseType class-
   myInstance.myInitializzationParams()              -see BaseType class-
   myInstance.myCurrentSetting()                     -see BaseType class-
 
-  --Adding a new step subclass--  
+  --Adding a new Sampler subclass--  
   <MyClass> should inherit at least from Sampler or from another step already presents
 
   DO NOT OVERRIDE any of the class method that are not starting with self.local*
+  
+  ADD your class to the dictionary __InterfaceDict at the end of the module
 
   The following method overriding is MANDATORY:  
-  self.localInitialization(inDictionary): called after this call the step should be able the accept the call self.takeAstep(inDictionary):
-  self.takeAstepRun(inDictionary)       : this is where the step happens, after this call the output is ready
+  self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
 
   the following methods could be overrode:
   self.localInputAndChecks(xmlNode)
   self.localAddInitParams(tempDict)
+  self.localAddCurrentSetting(tempDict)
+  self.localInitialize()
+  self.localStillReady(ready)
+  self.localFinalizeActualSampling(jobObject,model,myInput):
+  
   '''
 
   def __init__(self):
     BaseType.__init__(self) 
     self.counter      = 0           # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.limit        = sys.maxsize # maximum number of Samples (for example, Montecarlo = Number of Histories to run, DET = Unlimited)
+    self.limit        = sys.maxsize # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
     self.toBeSampled  = {}           # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
     self.distDict     = {}           # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values       = {}           # for each variable the current value {'var name':value}
@@ -93,7 +99,6 @@ class Sampler(BaseType):
 
   def localInputAndChecks(self,xmlNode):
     '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
-    raise NotImplementedError('The sampler of type '+self.type+' is not implementing localInputAndChecks')
   
   def addInitParams(self,tempDict):
     '''
@@ -110,7 +115,6 @@ class Sampler(BaseType):
     
   def localAddInitParams(self,tempDict):
     '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
-    raise NotImplementedError('The sampler of type '+self.type+' is not implementing localAddInitParams')
 
   def addCurrentSetting(self,tempDict):
     '''
@@ -131,7 +135,6 @@ class Sampler(BaseType):
 
   def localAddCurrentSetting(self,tempDict):
     '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
-    raise NotImplementedError('The sampler of type '+self.type+' is not implementing localAddCurrentSetting')
 
   def generateDistributions(self,availableDist):
     '''used to restart the random number generators of the distributions that will be used
@@ -139,8 +142,7 @@ class Sampler(BaseType):
     In case no seed is specified a random seed is used.
     @in availableDist: {'distribution name':instance}
     '''
-    if self.initSeed==None:
-      self.initSeed = np.random.random_integers(0,sys.maxint.bit_length())
+    if self.initSeed==None: self.initSeed = np.random.random_integers(0,sys.maxint.bit_length())
     np.random.seed(self.initSeed)
     for key in self.toBeSampled.keys():
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]
@@ -148,13 +150,16 @@ class Sampler(BaseType):
    
   def initialize(self):
     '''
-    This function should be called every time a clean sampler is needed. Called before takeAstep in Step
-    Place here whatever instruction you need for this purpose the call is performed usually by one of the Steps
+    This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
     @ In/Out, None
     '''
-    self.counter = 0    
+    self.counter = 0
+    self.localInitialize()
     
-
+  def localInitialize(self):
+    '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
+    pass
+    
   def amIreadyToProvideAnInput(self):
     '''
     This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
@@ -162,8 +167,15 @@ class Sampler(BaseType):
     Reason for not being ready could be for example: exceeding number of samples, waiting for other simulation for providing more information etc. etc.
     @return Boolean
     '''
-    if(self.counter < self.limit): return True
-    else                         : return False
+    if(self.counter < self.limit): ready = True
+    else                         : ready = False
+    ready = self.localStillReady(ready)
+    return ready
+  
+  def localStillReady(self,ready):
+    '''Use this function to change the ready status'''
+    return ready
+    
 
   def generateInput(self,model,oldInput):
     '''
@@ -176,17 +188,17 @@ class Sampler(BaseType):
     '''
     self.counter +=1                              #since we are creating the input for the next run we increase the counter
     self.inputInfo['prefix'] = str(self.counter)
-    self.setInputInfo(model,oldInput)
+    self.localGenerateInput(model,oldInput)
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
-  def setInputInfo(self,model,oldInput):
+  def localGenerateInput(self,model,oldInput):
     '''
     This class need to be overwritten since it is here that the magic of the sampler happens.
     After this method call the self.inputInfo should be ready to be sent to the model
     @in model   : it is the instance of a model
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
     '''
-    raise NotImplementedError('The sampler of type '+self.type+' seems not yet capable to decide how to sample (setInputInfo not yet implemented)')
+    raise NotImplementedError('The sampler of type '+self.type+' seems not yet capable to decide how to sample (localGenerateInput not yet implemented)')
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None):
     '''
@@ -203,7 +215,12 @@ class Sampler(BaseType):
       else              : newInputs.append(self.generateInput(model,myInput,projector))
     return newInputs
 
+
   def finalizeActualSampling(self,jobObject,model,myInput):
+    '''just an API'''
+    self.localFinalizeActualSampling(jobObject,model,myInput)
+  
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''
     Overwrite only if you need something special at the end of each run....
     This function is used by samplers that need to collect information from the just ended run
@@ -215,6 +232,7 @@ class Sampler(BaseType):
     @in model    : an instance of a model
     @in myInput  : the generating input    
     '''
+
     pass
 #
 #
@@ -230,8 +248,7 @@ class StochasticCollocation(Sampler):
     self.var_poly_order = dict() #stores poly orders for each var
     self.availableDist = None #container of all available distributions
 
-  def initialize(self):
-    Sampler.initialize(self)
+  def localInitialize(self):
     # assign values to undefined order variables
     if self.min_poly_order>0:
       if len( set(self.var_poly_order) ^ set(self.distDict) )==0: #keys correspond exactly
@@ -270,7 +287,7 @@ class StochasticCollocation(Sampler):
       raise IOError('No uncertain variables to sample!')
     return
 
-  def setInputInfo(self,model,myInput):
+  def GenerateInput(self,model,myInput):
     '''
     Function used to generate an input.
     It returns the model.createNewInput() passing into it the type of sampler,
@@ -338,13 +355,8 @@ class MonteCarlo(Sampler):
   def localInputAndChecks(self,xmlNode):
     if 'limit' not in  xmlNode.attrib.keys(): raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
-  def localAddInitParams(self,tempDict):
-    pass
 
-  def localAddCurrentSetting(self,tempDict):
-    pass
-
-  def setInputInfo(self,model,myInput):
+  def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
     # create values dictionary
@@ -393,7 +405,7 @@ class Grid(Sampler):
     for var, value in zip(self.axisName, self.gridCoordinate):
       tempDict['coordinate '+var+' has value'] = value
            
-  def setInputInfo(self,model,myInput):
+  def localGenerateInput(self,model,myInput):
     ''' '''
     remainder = self.counter - 1
     total = self.limit+1
@@ -427,8 +439,7 @@ class LHS(Grid):
     self.limit = (self.pointByVar-1)
 
 
-  def initialize(self):
-    Sampler.initialize(self)
+  def localInitialize(self):
     self.buildLHSSamplingPatter()
   
   def buildLHSSamplingPatter(self):
@@ -441,7 +452,7 @@ class LHS(Grid):
       self.sampledCoordinate[i] = [None]*len(self.axisName)
       self.sampledCoordinate[i][:] = tempFillingCheck[:][i]
 
-  def setInputInfo(self,model,myInput):
+  def localGenerateInput(self,model,myInput):
     j=0
     for varName in self.axisName:
       upper = self.gridInfo[varName][2][self.sampledCoordinate[j][self.counter-2]+1]
@@ -525,7 +536,7 @@ class DynamicEventTree(Sampler):
     else:
       return False
 
-  def finalizeActualSampling(self,jobObject,model,myInput):
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''
     General function (available to all samplers) that finalize the sampling calculation just ended 
     In this case (DET), The function reads the information from the ended calculation, updates the
@@ -563,15 +574,15 @@ class DynamicEventTree(Sampler):
         #  Multi-Branch mode => the resulting branches from this parent calculation (just ended)
         # will be more then 2
         # unchanged_pb = probablity (not conditional probability yet) that the event does not occur  
-         unchanged_pb = 0.0
-         try:
-           # changed_pb = probablity (not conditional probability yet) that the event A occurs and the final state is 'alpha' ''' 
-           for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])):
-             unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
-         except:
+        unchanged_pb = 0.0
+        try:
+          # changed_pb = probablity (not conditional probability yet) that the event A occurs and the final state is 'alpha' ''' 
+          for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])):
+            unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
+        except:
           pass
-         if(unchanged_pb <= 1):
-           endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
+        if(unchanged_pb <= 1):
+          endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
       else:
         # Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
         if branchedLevel[endInfo['branch_dist']] > len(self.branchProbabilities[endInfo['branch_dist']])-1:
@@ -981,14 +992,21 @@ class DynamicEventTree(Sampler):
   def localAddCurrentSetting(self,tempDict):
     pass
 
-__base = 'Sampler'
-__InterfaceDict = {}
-__InterfaceDict['MonteCarlo'            ] = MonteCarlo
-__InterfaceDict['DynamicEventTree'      ] = DynamicEventTree
-__InterfaceDict['StochasticCollocation' ] = StochasticCollocation
-__InterfaceDict['LHS'                   ] = LHS
-__InterfaceDict['Grid'                  ] = Grid
 
+'''
+ Interface Dictionary (factory) (private)
+'''
+__base = 'Sampler'
+__interFaceDict = {}
+__interFaceDict['MonteCarlo'            ] = MonteCarlo
+__interFaceDict['DynamicEventTree'      ] = DynamicEventTree
+__interFaceDict['StochasticCollocation' ] = StochasticCollocation
+__interFaceDict['LHS'                   ] = LHS
+__interFaceDict['Grid'                  ] = Grid
+__knownTypes = __interFaceDict.keys()
+
+def knonwnTypes():
+  return __knownTypes
 
 def returnInstance(Type):
   '''
@@ -996,11 +1014,15 @@ def returnInstance(Type):
   @ In, Type : Sampler type
   @ Out,Instance of the Specialized Sampler class
   '''
-  try: return __InterfaceDict[Type]()
+  try: return __interFaceDict[Type]()
   except: raise NameError('not known '+__base+' type '+Type)
+
+def optionalInputs(Type):
+  pass
 
 def mandatoryInputs(Type):
   pass
 
-def optionalInputs(Type):
-  pass 
+
+
+

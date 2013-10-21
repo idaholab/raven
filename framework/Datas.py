@@ -36,6 +36,7 @@ class Data(BaseType):
     self.toLoadFromList = []                # loading source
   
   def readMoreXML(self,xmlNode):
+    print('here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     # retrieve input parameters' keywords
     self.dataParameters['inParam']  = xmlNode.find('Input' ).text.strip().split(',')
     # retrieve output parameters' keywords
@@ -404,20 +405,25 @@ class Histories(Data):
 '''
  Interface Dictionary (factory) (private)
 '''
+__base                          = 'Data'
+__interFaceDict                 = {}
+__interFaceDict['TimePoint'   ] = TimePoint
+__interFaceDict['TimePointSet'] = TimePointSet
+__interFaceDict['History'     ] = History
+__interFaceDict['Histories'   ] = Histories
+__knownTypes                    = __interFaceDict.keys()
 
-base = 'Data'
-__InterfaceDict = {}
-__InterfaceDict['TimePoint'   ] = TimePoint
-__InterfaceDict['TimePointSet'] = TimePointSet
-__InterfaceDict['History'     ] = History
-__InterfaceDict['Histories'   ] = Histories
+def knonwnTypes():
+  return __knownTypes
 
 def returnInstance(Type):
-  try:
-    if Type in __InterfaceDict.keys():
-      return __InterfaceDict[Type]()
-  except:
-    raise NameError('not known '+base+' type'+Type)
-  
-# 
+  try: return __interFaceDict[Type]()
+  except: raise NameError('not known '+__base+' type '+Type)  
+
+
+
+
+
+
+
   
