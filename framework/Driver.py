@@ -31,22 +31,26 @@ if __name__ == '__main__':
   if len(sys.argv) == 1:
     #NOTE: This can be overriden at the command line:
     # python Driver.py anotherFile.xml
-    inputFile = os.path.join(workingDir,'/Users/crisr/projects/trunk/raven/framework/test_LHS_Sampler.xml')
+    inputFiles = [os.path.join(workingDir,'test.xml')]
   else:
-    inputFile = sys.argv[1]
-    if not os.path.isabs(inputFile): inputFile = os.path.join(workingDir,inputFile)
+    inputFiles = sys.argv[1:]
+    for i in range(len(inputFiles)):
+      if not os.path.isabs(inputFiles[i]): 
+        inputFiles[i] = os.path.join(workingDir,inputFiles[i])
 
+  simulation = Simulation(inputFiles, frameworkDir,debug=debug)
   #Parse the input
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
-  tree = ET.parse(inputFile)
-  #except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
-  if debug: print('opened file '+inputFile)
-  root = tree.getroot()
-  if root.tag != 'Simulation': raise IOError ('The outermost block of the input file it is not Simulation')
-  #generate all the components of the simulation
-  simulation = Simulation(inputFile, frameworkDir,debug=debug)
-  #Call the function to read and construct each single module of the simulation 
-  simulation.XMLread(root)
+  for inputFile in inputFiles:
+    tree = ET.parse(inputFile)
+    #except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
+    if debug: print('opened file '+inputFile)
+    root = tree.getroot()
+    if root.tag != 'Simulation': raise IOError ('The outermost block of the input file '+inputFile+' it is not Simulation')
+    #generate all the components of the simulation
+  
+    #Call the function to read and construct each single module of the simulation 
+    simulation.XMLread(root)
   # Initialize the simulation 
   simulation.initialize()
   # Run the simulation 

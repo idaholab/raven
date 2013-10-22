@@ -85,7 +85,7 @@ class PBSSimulationMode(SimulationMode):
                "-l","walltime="+self.__simulation.runInfoDict["expectedTime"],
                "-l","place=free","-v",
                'COMMAND="python Driver.py '+
-               self.__simulation.runInfoDict["SimulationFile"]+'"',
+               " ".join(self.__simulation.runInfoDict["SimulationFiles"])+'"',
                os.path.join(frameworkDir,"raven_qsub_command.sh")]
     #Change to frameworkDir so we find raven_qsub_command.sh
     os.chdir(frameworkDir)
@@ -197,18 +197,18 @@ class Simulation(object):
   
   '''
   
-  def __init__(self,inputfile,frameworkDir,debug=False):
+  def __init__(self,inputfiles,frameworkDir,debug=False):
     self.debug= debug
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
-    self.runInfoDict['SimulationFile'    ] = inputfile    #the xml input file
+    self.runInfoDict['SimulationFiles'   ] = inputfiles    #the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaves
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
     self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
-    self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threats by number of mpi)
+    self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threads by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded  
@@ -218,8 +218,8 @@ class Simulation(object):
     self.runInfoDict['quequingSoftware'  ] = ''           # quequing software name 
     self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
-    self.runInfoDict['postcommand'       ] = ''           # Added after the command is run.
-    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only mode supported is pbs
+    self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.
+    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbs and mpi
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
