@@ -13,14 +13,14 @@
 </Models>
 <Distributions>
     <Normal name='Gauss1'>
-        <mean>800</mean>
-        <sigma>200</sigma>
+        <mean>8</mean>
+        <sigma>2</sigma>
         <!-- <upperBound>2500</upperBound> -->
         <!-- <lowerBound>0</lowerBound> -->
     </Normal>
     <Normal name='Gauss2'>
-        <mean>1400</mean>
-        <sigma>400</sigma>
+        <mean>14</mean>
+        <sigma>4</sigma>
         <!-- <upperBound>10000000000000000</upperBound> -->
         <!-- <lowerBound>0</lowerBound> -->
     </Normal>
@@ -50,7 +50,7 @@
         <Model   type='Models'     subtype='Code'            >MyRAVEN</Model>
         <Sampler type='Samplers'   subtype='StochasticCollocation'>SC</Sampler>
         <Output  type='DataBases'  subtype='HDF5'           >SC_RUN</Output>
-        <OutStream type = 'OutStreams' subtype='Screen'>MCScreen</OutStream>
+        <Output  type='Datas'  subtype='TimePointSet'           >output_set_up_SCC</Output>
     </MultiRun> 
     <SCRun name='create_ROM'>
         <Input type='DataBases'  subtype='HDF5'            >SC_RUN</Input>
@@ -103,6 +103,10 @@
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
     <TimePointSet name='output_solve_MC' printCSV='t'>
+        <Input>SecPGrecoveryTime,DG1recoveryTime</Input>
+        <Output>avg_temp_clad_CH1</Output>
+   </TimePointSet>
+    <TimePointSet name='output_set_up_SCC' printCSV='t'>
         <Input>SecPGrecoveryTime,DG1recoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>

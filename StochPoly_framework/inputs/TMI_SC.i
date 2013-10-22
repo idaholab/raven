@@ -644,7 +644,7 @@
   petsc_options_iname = -pc_type
   e_tol = 10.0
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
-  end_time = 110.0
+  end_time = 130.0
   e_max = 99999.
   [./TimeStepper]
     type = FunctionDT
@@ -1136,7 +1136,8 @@
  [RavenTools]
  [./PumpCoastDown]
  type = pumpCoastdownExponential
- coefficient = 26.5
+ #coefficient = 26.5
+ coefficient = 1
  initial_flow_rate = 8.9
  [../]
  [./DecayHeatScalingFactor]
@@ -1148,7 +1149,8 @@
  [../]
  [./PumpCoastDownSec]
  type = pumpCoastdownExponential
- coefficient = 10.5
+ #coefficient = 10.5
+ coefficient = 1
  initial_flow_rate = 1.0
  [../]
  []

@@ -17,7 +17,7 @@ toolcont  = raventools.RavenToolsContainer.Instance()
 def restart_function(monitored, controlled, auxiliary):
     auxiliary.scram_start_time = 101.0
     random_n_1 = distcont.random()
-    auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
+    auxiliary.DG1recoveryTime = distcont.randGen('crew1DG1',random_n_1) 
     
     
     #random_n_2 = distcont.random()
@@ -25,7 +25,7 @@ def restart_function(monitored, controlled, auxiliary):
     
     
     random_n_3 = distcont.random()
-    auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
+    auxiliary.SecPGrecoveryTime = distcont.randGen('crewSecPG',random_n_3) 
     
     
     #random_n_4 = distcont.random()
@@ -38,7 +38,7 @@ def restart_function(monitored, controlled, auxiliary):
 def initial_function(monitored, controlled, auxiliary):    
     auxiliary.scram_start_time = 101.0
     random_n_1 = distcont.random()
-    auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
+    auxiliary.DG1recoveryTime = distcont.randGen('crew1DG1',random_n_1) 
     
     
     #random_n_2 = distcont.random()
@@ -46,7 +46,7 @@ def initial_function(monitored, controlled, auxiliary):
     
     
     random_n_3 = distcont.random()
-    auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
+    auxiliary.SecPGrecoveryTime = distcont.randGen('crewSecPG',random_n_3) 
     
     
     #random_n_4 = distcont.random()
@@ -82,7 +82,7 @@ def control_function(monitored, controlled, auxiliary):
         #auxiliary.PrimPGrecoveryTime = distcont.randGen('PrimPGrecovery',random_n_5)
 
     
-        auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime, auxiliary.PrimPGrecoveryTime)
+        auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime, auxiliary.SecPGrecoveryTime)
     
         auxiliary.auxAbsolute = auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux
     

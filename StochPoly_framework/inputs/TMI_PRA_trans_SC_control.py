@@ -41,7 +41,7 @@ def control_function(monitored, controlled, auxiliary):
         #auxiliary.PrimPGrecoveryTime = distcont.randGen('PrimPGrecovery',random_n_5)
 
     
-        auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime, auxiliary.PrimPGrecoveryTime)
+        auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime, auxiliary.SecPGrecoveryTime)
     
         auxiliary.auxAbsolute = auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux
     

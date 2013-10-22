@@ -644,7 +644,7 @@
   petsc_options_iname = -pc_type
   e_tol = 10.0
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
-  end_time = 110.0
+  end_time = 130.0
   e_max = 99999.
   [./TimeStepper]
     type = FunctionDT
@@ -861,8 +861,8 @@
  RNG_seed = 1
  [./crew1DG1]
  type = NormalDistribution
- mu = 800
- sigma = 200
+ mu = 8
+ sigma = 2
  xMin = 0.0
  xMax = 2500
  [../]
@@ -873,8 +873,8 @@
  [../]
  [./crewSecPG]
  type = NormalDistribution
- mu = 1400
- sigma = 400
+ mu = 14
+ sigma = 4
  [../]
  [./PrimPGrecovery]
  type = NormalDistribution
