@@ -107,9 +107,13 @@ class Dummy(Model):
    
    
       
-class ExternalModule(Model):
-  ''' External module class: this module allows to interface with an external module (for example written in python)'''
-  
+class ExternalModel(Model):
+  ''' External model class: this model allows to interface with an external python module'''
+  def __init__(self):
+    Model.__init__(self)
+    self.modelVariableValues = {}
+    self.modelVariableType   = {}
+    self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
   def initialize(self,runInfo,inputs):
     self.counter=0
     if 'initialize' in dir(self.sim):
@@ -126,20 +130,47 @@ class ExternalModule(Model):
     Model.readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys(): 
       self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
-    else: print('Error: ModuleToLoad not provided for module externalModule')
+    else: raise IOError('MODEL EXTERNAL: ERROR -> ModuleToLoad not provided for module externalModule')
     exec('import ' + self.ModuleToLoad + ' as sim')
+    # point to the external module
     self.sim=sim
-    if 'readMoreXML' in dir(sim):
+    # check if there are variables and, in case, load them
+    for son in xmlNode:
+      if son.tag=='variable':
+        self.modelVariableValues[son.text] = None
+        exec('self.'+son.text+' = self.modelVariableValues['+'son.text'+']')
+        if 'type' in son.attrib.keys():
+          if not (son.attrib['type'].lower() in self.__availableVariableTypes):
+            raise IOError('MODEL EXTERNAL: ERROR -> the "type" of variable ' + son.text + 'not')
+          self.modelVariableType[son.text] = son.attrib['type']
+        else                          : 
+          raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
+    # check if there are other information that the external module wants to load
+    if 'readMoreXML' in dir(self.sim):
       self.sim.readMoreXML(self,xmlNode)
+
  
   def run(self,Input,jobHandler):
     self.sim.run(self,Input,jobHandler)
     
+    
   def collectOutput(self,finisishedjob,output):
-    self.sim.collectOutput(self,finisishedjob,output)
+    if 'collectOutput' in dir(self.sim):
+      self.sim.collectOutput(self,finisishedjob,output)
+    self.__pointSolution()
+    if 'HDF5' in output.type: raise NotImplementedError('MODEL EXTERNAL: ERROR -> output type HDF5 not implemented yet for externalModel') 
+
+    if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
+    for inputName in output.dataParameters['inParam']:
+      exec('if not (type(self.modelVariableValues[inputName]) == ' + self.modelVariableType[inputName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' mismatches with respect to the inputted one!!!")')
+      output.updateInputValue(inputName,self.modelVariableValues[inputName])
+    for outName in output.dataParameters['outParam']:
+      output.updateOutputValue(outName,self.modelVariableValues[outName])
+    output.printCSV()    
     
-    
-  
+  def __pointSolution(self):
+    for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
+
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
   def __init__(self):
@@ -455,7 +486,7 @@ __interFaceDict['Code'          ] = Code
 __interFaceDict['Filter'        ] = Filter
 __interFaceDict['Projector'     ] = Projector
 __interFaceDict['Dummy'         ] = Dummy
-__interFaceDict['ExternalModule'] = ExternalModule
+__interFaceDict['ExternalModel' ] = ExternalModel
 __knownTypes                      = __interFaceDict.keys()
 
 

@@ -34,10 +34,8 @@ class PrintCSV:
     '''
     param = ''
     param = xmlNode.text
-    if(param.lower() != 'all'):
-      self.paramters = param.strip().split(',')
-    else:
-      self.paramters.append(param) 
+    if(param.lower() != 'all'): self.paramters = param.strip().split(',')
+    else: self.paramters.append(param) 
     return
 
   def finalizeFilter(self,inObj,outObj,workingDir=None):
@@ -59,8 +57,7 @@ class PrintCSV:
       histories = {}
 
       #  Construct a dictionary of all the histories
-      for index in range(len(endGroupNames)):
-        histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
+      for index in range(len(endGroupNames)): histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
       
       try:
         # not yet implemented 
@@ -86,8 +83,7 @@ class PrintCSV:
             hist = key
           #  If file, split the strings and add the working directory if present
           if workingDir:
-            if os.path.split(outObj)[1] == '':
-              outObj = outObj[:-1]
+            if os.path.split(outObj)[1] == '': outObj = outObj[:-1]
             splitted_1 = os.path.split(outObj)
             outObj = splitted_1[1]
           splitted = outObj.split('.')
@@ -128,8 +124,7 @@ class PrintCSV:
               string_work = ''
               for i in xrange(len(init_dist)):
                 string_work_2 = ''
-                for j in init_dist[i]:
-                  string_work_2 = string_work_2 + str(j) + ' '
+                for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','          
               addcsvfile.write('#initiator distributions,\n')
               addcsvfile.write(toBytes(string_work)+b'\n')
@@ -138,72 +133,58 @@ class PrintCSV:
             try:
               string_work = ''
               end_ts = attributes['end_timestep']
-              for i in xrange(len(end_ts)):
-                string_work = string_work + str(end_ts[i]) + ','          
+              for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','          
               addcsvfile.write('#end time step,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except:
-              pass             
+            except: pass             
             try:
               string_work = ''
               branch_changed_param = attributes['branch_changed_param']
               for i in xrange(len(branch_changed_param)):
                 string_work_2 = ''
                 for j in branch_changed_param[i]:
-                  if not j:
-                    string_work_2 = string_work_2 + 'None' + ' '
-                  else:
-                    string_work_2 = string_work_2 + str(j) + ' '
+                  if not j: string_work_2 = string_work_2 + 'None' + ' '
+                  else: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','          
               addcsvfile.write('#changed parameters,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except:
-              pass
+            except: pass
             try:
               string_work = ''
               branch_changed_param_value = attributes['branch_changed_param_value']
               for i in xrange(len(branch_changed_param_value)):
                 string_work_2 = ''
                 for j in branch_changed_param_value[i]:
-                  if not j:
-                    string_work_2 = string_work_2 + 'None' + ' '
-                  else:
-                    string_work_2 = string_work_2 + str(j) + ' '
+                  if not j: string_work_2 = string_work_2 + 'None' + ' '
+                  else: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','                          
               addcsvfile.write('#changed parameters values,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except:
-              pass
+            except: pass
             try:
               string_work = ''
               cond_pbs = attributes['conditional_prb']
               for i in xrange(len(cond_pbs)):
                 string_work_2 = ''
                 for j in cond_pbs[i]:
-                  if not j:
-                    string_work_2 = string_work_2 + 'None' + ' '
-                  else:
-                    string_work_2 = string_work_2 + str(j) + ' '
+                  if not j: string_work_2 = string_work_2 + 'None' + ' '
+                  else: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','                
               addcsvfile.write('#conditional probability,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except:
-              pass
+            except: pass
             try:
               string_work = ''
               pb_thresholds = attributes['Probability_threshold']
               for i in xrange(len(pb_thresholds)):
                 string_work_2 = ''
                 for j in pb_thresholds[i]:
-                  if not j:
-                    string_work_2 = string_work_2 + 'None' + ' '
-                  else:
-                    string_work_2 = string_work_2 + str(j) + ' '
+                  if not j: string_work_2 = string_work_2 + 'None' + ' '
+                  else: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','
               addcsvfile.write('#Probability threshold,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except:
-              pass            
+            except: pass            
             addcsvfile.write(b' \n')
             
     elif(inObj.type == "Datas"):

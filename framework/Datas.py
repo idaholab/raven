@@ -34,7 +34,7 @@ class Data(BaseType):
       self.outParametersValues = outParamValues
     self.outParametersValues   = {}         # output variables as keys, corresponding values
     self.toLoadFromList = []                # loading source
-  
+    
   def readMoreXML(self,xmlNode):
     print('here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     # retrieve input parameters' keywords

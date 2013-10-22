@@ -162,9 +162,9 @@ class MultiRun(SingleRun):
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for newInput in newInputs:
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
-      if inDictionary["Model"].type != 'Code': 
-        for output in inDictionary['Output']:  
-          inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
+      if inDictionary["Model"].type != 'Code':
+        # if the model is not a code, collect the output right after the evaluation => the response is overwritten at each "run"
+        for output in inDictionary['Output']: inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
 
   def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -184,7 +184,7 @@ class MultiRun(SingleRun):
               inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
           break
-        time.sleep(0.1)
+        time.sleep(0.001)
       else:
         finishedJob = 'empty'
         if inDictionary['Sampler'].amIreadyToProvideAnInput():
@@ -194,7 +194,7 @@ class MultiRun(SingleRun):
             inDictionary['Model'].collectOutput(finishedJob,output) 
         else:
           break
-        time.sleep(0.1)
+        time.sleep(0.001)
     #remember to close the rom to decouple the data stroed in the rom from the framework
     if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
 
@@ -264,28 +264,39 @@ class Adaptive(MultiRun):
 class InOutFromDataBase(Step):
   '''
     This step type is used only to extract information from a DataBase
-    @Input, DataBase (for example, HDF5)
-    @Output,Data(s) (for example, History)
+    @Input, DataBase (for example, HDF5) OR Datas
+    @Output,Data(s) (for example, History) or DataBase
   '''
   def localInitializeStep(self,inDictionary):
-    avail_out = 'TimePoint-TimePointSet-History-Histories'
+    avail_out = ['TimePoint','TimePointSet','History','Histories']
     print('STEPS         : beginning of step named: ' + self.name)
     #self.initializeStep(inDictionary)
     # check if #inputs == #outputs
     if len(inDictionary['Input']) != len(inDictionary['Output']):
       raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
+    else:
+      self.actionType = []
     for i in xrange(len(inDictionary['Input'])):
-      if (inDictionary['Input'][i].type != "HDF5"):
-        raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
-    for i in xrange(len(inDictionary['Output'])):
-      if (not inDictionary['Output'][i].type in avail_out.split('-')):
-        raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts ' + avail_out + ' as Output only. Got ' + inDictionary['Output'][i].type)
-    return    
+      if (inDictionary['Input'][i].type != 'HDF5'):
+        if (not (inDictionary['Input'][i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
+        else:
+          if(inDictionary['Output'][i].type != 'HDF5'): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
+          else: self.actionType.append('DATAS-HDF5')
+      else:
+        if (not (inDictionary['Output'][i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
+        else: self.actionType.append('HDF5-DATAS')
+    try: #try is used since files for the moment have no type attribute
+      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
+    except: pass    
     
   def localTakeAstepRun(self,inDictionary):
     for i in xrange(len(inDictionary['Output'])):
       #link the output to the database and construct the Data(s)
-      inDictionary['Output'][i].addOutput(inDictionary['Input'][i])
+      # I have to change it
+      if self.actionType[i] == 'HDF5-DATAS':
+        inDictionary['Output'][i].addOutput(inDictionary['Input'][i])
+      else:
+        inDictionary['Output'][i].addGroupDatas(inDictionary['Input'][i])
     return
 
 
@@ -304,6 +315,9 @@ class RomTrainer(Step):
     '''The initialization step  for a ROM is copying the data out to the ROM (it is a copy not a reference) '''
     for i in xrange(len(inDictionary['Output'])):
       inDictionary['Output'][i].initializeTrain(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'][0])
+    try: #try is used since files for the moment have no type attribute
+      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
+    except: pass
 
   def takeAstepIni(self,inDictionary):
     print('STEPS         : beginning of step named: ' + self.name)
