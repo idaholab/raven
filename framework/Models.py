@@ -26,7 +26,9 @@ class Model(BaseType):
 
   def readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
-    except: raise 'missed type for the model'+self.name
+    except KeyError: 
+      print("Failed in Node: ",xmlNode)
+      raise Exception('missed type for the model '+self.name)
   
   def localInputAndChecks(self,xmlNode):
     '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
