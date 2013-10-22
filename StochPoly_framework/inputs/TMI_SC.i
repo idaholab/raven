@@ -683,7 +683,7 @@
   # data_type = double
   # component_name = high_pressure_seconday_B
   # [../]
-  control_logic_input = TMI_PRA_trans_MC_control
+  control_logic_input = TMI_PRA_trans_SC_control
   [./power_CH1]
     print_csv =  true
     data_type =  double

@@ -120,6 +120,7 @@ class Data(BaseType):
     self.inpParametersValues = copy.deepcopy(tupleVar[0])
     self.outParametersValues = copy.deepcopy(tupleVar[1])
     self.checkConsistency()
+    self.printCSV()
     return
 
   def getInpParametersValues(self):

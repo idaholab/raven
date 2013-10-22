@@ -14,8 +14,49 @@ toolcont  = raventools.RavenToolsContainer.Instance()
 #PumpCoastDownSec           = raventools.pumpCoastdown(10.5,1)
 
 
+def restart_function(monitored, controlled, auxiliary):
+    auxiliary.scram_start_time = 101.0
+    random_n_1 = distcont.random()
+    auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
+    
+    
+    #random_n_2 = distcont.random()
+    #auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
+    
+    
+    random_n_3 = distcont.random()
+    auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
+    
+    
+    #random_n_4 = distcont.random()
+    #auxiliary.CladTempTreshold = distcont.randGen('CladFailureDist',random_n_4)
+    
+    
+    #random_n_5 = distcont.random() # primary offsite power recovery
+    #auxiliary.PrimPGrecoveryTime = distcont.randGen('PrimPGrecovery',random_n_5)
+
 def initial_function(monitored, controlled, auxiliary):    
+    auxiliary.scram_start_time = 101.0
+    random_n_1 = distcont.random()
+    auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
+    
+    
+    #random_n_2 = distcont.random()
+    #auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
+    
+    
+    random_n_3 = distcont.random()
+    auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
+    
+    
+    #random_n_4 = distcont.random()
+    #auxiliary.CladTempTreshold = distcont.randGen('CladFailureDist',random_n_4)
+    
+    
+    #random_n_5 = distcont.random() # primary offsite power recovery
+    
     return
+
 
 def control_function(monitored, controlled, auxiliary):
     #we use aux var in order to keep track of variables' values must be transfered from a calculation to the others

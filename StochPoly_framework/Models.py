@@ -140,6 +140,7 @@ class Code(Model):
       pass
     #print('this:',output)
     output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
+    
     return
 
   def __addDataBaseGroup(self,finisishedjob,database):
