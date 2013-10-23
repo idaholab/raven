@@ -20,7 +20,7 @@
     <ExternalModel name='PythonModule' type='' ModuleToLoad='./inputs/test_poly'>  
        <variable type='float'>x</variable>
        <variable type='float'>y</variable>
-       <variable type='float'>f</variable>
+       <variable type='float'>outcome</variable>
        <initialize>
        </initialize>
     </ExternalModel>
@@ -38,7 +38,7 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='MC_external'  limit='10' >
+    <MonteCarlo     name='MC_external'  limit='1000' >
       <Variable type ='Uniform' distName='distx'>x</Variable>
       <Variable type ='Uniform' distName='distx'>y</Variable>
     </MonteCarlo>
@@ -59,12 +59,12 @@
     <TimePointSet name='outcome_poly' printCSV='t'>
         <Input>x</Input>
         <Input>y</Input>
-        <Output>f</Output>
+        <Output>outcome</Output>
    </TimePointSet>
     <Histories name='test_poly_histories' printCSV='t'>
         <Input>x</Input>
         <Input>y</Input>
-        <Output>f</Output>
+        <Output>outcome</Output>
    </Histories>
 </Datas>
 

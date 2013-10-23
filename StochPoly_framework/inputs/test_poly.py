@@ -4,7 +4,7 @@ import copy
 #import random
 
 def initialize(self,runInfoDict,inputFiles):
-  self.SampledVars = []
+  self.SampledVars = None
   #self.p_detector     = 0.05
   #self.p_signalCondit = 0.01
   #self.p_starter      = 0.08
@@ -12,7 +12,7 @@ def initialize(self,runInfoDict,inputFiles):
   self.counter = 0
   return
 def createNewInput(self,myInput,samplerType,**Kwargs):
-  self.SampledVars.append(Kwargs['sampledVars'])
+  self.SampledVars = Kwargs['sampledVars']
   return None
 
 def readMoreXML(self,xmlNode):
@@ -21,6 +21,6 @@ def readMoreXML(self,xmlNode):
     exec('self.'+son.tag + ' =  float(son.text)')
 
 def run(self,Input,jobHandler):
-  self.x = self.SampledVars.pop()['x']
-  self.y = self.SampledVars.pop()['y']
+  self.x = self.SampledVars['x']
+  self.y = self.SampledVars['y']
   self.outcome = self.x*self.x + self.y
