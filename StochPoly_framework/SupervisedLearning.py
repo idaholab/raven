@@ -91,8 +91,6 @@ class StochasticPolynomials(superVisioned):
         self.targetParam = data.targetParam
       else:
         raise IOError('No target Parameter for ROM Stochastic Polynomials')
-      # How to get specific values from solution?
-#TODO this should be an input on the front end; the user should choose the index
       self.solnIndex=numpy.where(M[0][1]['headers']==self.targetParam)
 
 
@@ -101,8 +99,12 @@ class StochasticPolynomials(superVisioned):
       # we simply need to sum over each partCoeff[quad_pt][ord]*soln[quad_pt]
       # to construct poly_coeff[ord]
 
+      #FIXME partCoeffs stored as partCoeffs[exp_ord][quad_pt] now, as it should be!
+
       
+      print ('\n\nDebug!  Histories:')
       for history in M:
+        print (history[1]['exp_order'],history[1]['quad_pts'],history[1]['partial_coeffs'])
         self.poly_coeffs[tuple(history[1]['exp_order'])]=0
         for partCoeff in history[1]['partial_coeffs']:
           self.poly_coeffs[tuple(history[1]['exp_order'])]+=\

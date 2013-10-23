@@ -234,6 +234,7 @@ class hdf5Database(object):
                        'exp_order'                 :'exp_order',
                        }
         for attr in attempt_attr.keys():
+          print('attr is',attr)
           try: grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
           except KeyError: pass
       elif source['type'] == 'Datas':

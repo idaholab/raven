@@ -3,7 +3,8 @@
 <RunInfo>
     <WorkingDir>./inputs</WorkingDir>
     <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd-0,TMI_PRA_trans_MC_control.py,TMI_PRA_trans_SC_control.py,TMI.i,TMI_SC.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
-    <Sequence>set_up_SC,create_ROM,solve_MC,sample_SC_ROM</Sequence>
+    <Sequence>set_up_SC,create_ROM</Sequence>
+    <!--Sequence>set_up_SC,create_ROM,solve_MC,sample_SC_ROM</Sequence-->
     <batchSize>8</batchSize>
 </RunInfo>
 
@@ -28,8 +29,8 @@
 
 
 <Samplers>
-  <StochasticCollocation name='SC' min_poly_order='2' limit='6'>
-      <Variable type ='Normal' distName='Gauss1' poly_order='4'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
+  <StochasticCollocation name='SC' min_poly_order='2' limit='8'>
+      <Variable type ='Normal' distName='Gauss1' poly_order='2'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
       <Variable type ='Normal' distName='Gauss2' poly_order='2'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
   <MonteCarlo     name='MC'    limit='6'/>

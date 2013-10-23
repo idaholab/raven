@@ -134,6 +134,8 @@ class StochasticCollocation(Sampler):
     self.min_poly_order = 0 #lowest acceptable polynomial order
     self.var_poly_order = dict() #stores poly orders for each var
     self.availableDist = None #container of all available distributions
+    self.exp_ctr=0 #helps to get right exp_ord for sampling
+    self.quad_ctr=-1 #same, for quadrature
 
   def initialize(self):
     Sampler.initialize(self)
@@ -147,12 +149,11 @@ class StochasticCollocation(Sampler):
         r_order = min(len(r_keys),self.min_poly_order-sum(self.var_poly_order.values())) #min remaining order needed
         for key in r_keys:
           self.var_poly_order[key]=int(round(0.5+r_order/(len(r_keys))))
-    self.limit=np.product(self.var_poly_order.values())-1
-    
-    
+    self.limit=(np.product(self.var_poly_order.values()))**2
+    print ('limit is ACTUALLY',self.limit)
     #TODO Shouldn't need to -1 here; where should it happen?
     #tried to put it in Steps, MultiRun.initializeStep, set maxNumberIteration, didn't work.
-      
+
     self.generateQuadrature()
     
   def readMoreXML(self,xmlNode):
@@ -169,7 +170,7 @@ class StochasticCollocation(Sampler):
     
     # attempt to set polynomial expansion order for individual params
     for child in xmlNode:
-      self.toBeSampled[child.text]    = [child.attrib['type'],child.attrib['distName']] 
+      self.toBeSampled[child.text]    = [child.attrib['type'],child.attrib['distName']]
       self.var_poly_order[child.text] = int(child.attrib['poly_order'])
     
     # won't work if there's no uncertain variables!
@@ -187,12 +188,17 @@ class StochasticCollocation(Sampler):
     '''
     print('generate input model:',model)
     self.counter+=1
-    quad_pts=self.quad.quad_pts[self.counter-1]
-    quad_pt_index = self.quad.quad_pt_index[quad_pts]
+    self.quad_ctr+=1
+    if self.quad_ctr==len(self.quad.quad_pts):
+      self.quad_ctr=0
+      self.exp_ctr+=1
+    exp_ords = self.partCoeffs.keys()[self.exp_ctr]
+    quad_pts = self.partCoeffs[exp_ords].keys()[self.quad_ctr]
     values={'prefix'        :str(self.counter),
             'quad_pts'      :quad_pts,
-            'partial_coeffs':self.partCoeffs[quad_pts].values(),
-            'exp_order'    :self.quad.quad_pt_index[quad_pts]}
+            'partial_coeffs':self.partCoeffs[exp_ords][quad_pts],
+            'exp_order'     :exp_ords,
+           }
     #values={}
     #values['prefix']={'counter'       :str(self.counter),
     #                  'quad pts'      :str(quad_pts),
@@ -204,7 +210,7 @@ class StochasticCollocation(Sampler):
     for var in self.distDict.keys():
       values['vars'][var]=self.distDict[var].actual_point(\
           quad_pts[self.quad.dict_quads[self.quad.quads[var]]])
-      #print('run',self.counter,'for var '+var+' set value',values['vars'][var])
+    print('\nRUN: counter',self.counter,' | expord',exp_ords,' | quad pts',quad_pts)
     return model.createNewInput(myInput,self.type,**values)
 
   def generateQuadrature(self):
@@ -219,19 +225,33 @@ class StochasticCollocation(Sampler):
     self.quad=Quadrature.MultiQuad(quads)
     
     self.partCoeffs={}
-    for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
-      self.partCoeffs[quad_pt]={}
-      for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])):
-        self.partCoeffs[quad_pt][ords]=0
+    self.exp_ords=[]
+    for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])): #combinations of expansion orders
+      self.partCoeffs[ords]={}
+      for quad_pt in self.quad.indx_quad_pt.values(): #combinations of quadrature points
+        self.partCoeffs[ords][quad_pt]=0
         poly=weight=probNorm=1.
         for v,var in enumerate(self.distDict):
           actVar=self.distDict[var]
           poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
-          # Note we this assumes standardToActualWeight is linear!
           probNorm*=actVar.probability_norm(quad_pt[v])
         weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
-        self.partCoeffs[quad_pt][ords]=weight*poly*probNorm
-        # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
+        self.partCoeffs[ords][quad_pt]=weight*poly*probNorm
+        # summing over each partCoeffs[ords][quad_pt]*soln[quad_pt] will give poly_coeff[ords]
+    #print ('partCoeffs size:',len(self.partCoeffs),len(self.partCoeffs[self.partCoeffs.keys()[0]]))
+#    for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
+#      self.partCoeffs[quad_pt]={}
+#      for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])):
+#        self.partCoeffs[quad_pt][ords]=0
+#        poly=weight=probNorm=1.
+#        for v,var in enumerate(self.distDict):
+#          actVar=self.distDict[var]
+#          poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
+#          # Note we this assumes standardToActualWeight is linear!
+#          probNorm*=actVar.probability_norm(quad_pt[v])
+#        weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
+#        self.partCoeffs[quad_pt][ords]=weight*poly*probNorm
+#        # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
     return
 
   def fillDistribution(self,availableDist):
