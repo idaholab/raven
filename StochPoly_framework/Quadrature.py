@@ -220,6 +220,7 @@ class MultiQuad(Quadrature):
       self.type+=q.type+'('+str(self.order[q])+')'
       self.type+='-' #seperator for quad type name
     self.type=self.type[:-1]
+    print('Quads are:',self.type)
 
     #use itertools.product to get all possible quad_pt tuples from individual quad lists
     self.indices=list(product(*[range(len(quad.quad_pts)) for quad in self.quads.values()]))

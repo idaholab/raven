@@ -385,7 +385,9 @@ class Histories(Data):
       self.inpParametersValues[hisn] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
 
   def updateSpecializedOutputValue(self,name,value):
-    if not isinstance(value,np.ndarray): raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
+    if not isinstance(value,np.ndarray): 
+      print ('value is',value)
+      raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
     if type(name) == 'list':
       # there are info regarding the history number
       if name[0] in self.outParametersValues.keys():

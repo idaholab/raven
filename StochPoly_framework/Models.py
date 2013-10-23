@@ -100,7 +100,7 @@ class Code(Model):
       shutil.copy(inputFile,self.workingDir)
     print('MODEL CODE    : original input files copied in the current working dir: '+self.workingDir)
     print('MODEL CODE    : files copied:')
-    print(inputFiles)
+    for f in inputFiles:print(f)
     self.oriInputFiles = []
     for i in range(len(inputFiles)):
       self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
