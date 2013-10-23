@@ -378,7 +378,6 @@ class ExternalModel(Model):
 
  
   def run(self,Input,output,jobHandler):
-    self.counter += 1
     self.sim.run(self,Input,jobHandler)
     
   def collectOutput(self,finisishedjob,output):

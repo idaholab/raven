@@ -235,8 +235,12 @@ class hdf5Database(object):
                        }
         for attr in attempt_attr.keys():
           print('attr is',attr)
-          try: grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
-          except KeyError: pass
+          if not attr in attributes.keys():continue
+          if type(attributes[attempt_attr[attr]]) == 'list':
+            try: grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
+            except KeyError: pass
+          else:
+            grp.attrs[toBytes(attr)] = attributes[attempt_attr[attr]]
       elif source['type'] == 'Datas':
         # get input parameters
         inputSpace  = source['name'].getInpParametersValues()

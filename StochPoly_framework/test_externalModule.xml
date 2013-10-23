@@ -38,7 +38,7 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='MC_external'  limit='10000' >
+    <MonteCarlo     name='MC_external'  limit='10' >
       <Variable type ='Poisson' distName='numberOfFires'>numberOfFires</Variable>
     </MonteCarlo>
 </Samplers>

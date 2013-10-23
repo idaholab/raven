@@ -23,7 +23,7 @@ if __name__ == '__main__':
   # open the XML input
   if len(sys.argv) == 1:
     #inputFile = '/Users/alfoa/projects/trunk/raven/StochPoly_framework/SCtest.xml'
-    inputFile = os.path.join(workingDir,'test_externalModule.xml')
+    inputFile = os.path.join(workingDir,'SCtest.xml')
   else:
     inputFile = sys.argv[1]
     if not os.path.isabs(inputFile): inputFile = os.path.join(workingDir,inputFile)
