@@ -27,18 +27,31 @@ if __name__ == '__main__':
   # Retrieve the framework directory path and working dir
   frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
   workingDir = os.getcwd()
-  # open the XML input
+
+  simulation = Simulation(frameworkDir,debug=debug)
+  #If a configuration file exists, read it in
+  configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
+  if os.path.exists(configFile):
+    tree = ET.parse(configFile)
+    root = tree.getroot()
+    if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
+      simulation.XMLread(root)
+    else:
+      print('WARNING:',configFile,' should only have Simulation and inside it RunInfo')
+
+  # Find the XML input file
   if len(sys.argv) == 1:
     #NOTE: This can be overriden at the command line:
     # python Driver.py anotherFile.xml
-    inputFiles = [os.path.join(workingDir,'test.xml')]
+    # or in the configuration file by DefaultInputFile
+    inputFiles = [simulation.getDefaultInputFile()]
   else:
     inputFiles = sys.argv[1:]
-    for i in range(len(inputFiles)):
-      if not os.path.isabs(inputFiles[i]): 
-        inputFiles[i] = os.path.join(workingDir,inputFiles[i])
+  for i in range(len(inputFiles)):
+    if not os.path.isabs(inputFiles[i]): 
+      inputFiles[i] = os.path.join(workingDir,inputFiles[i])
 
-  simulation = Simulation(inputFiles, frameworkDir,debug=debug)
+  simulation.setInputFiles(inputFiles)
   #Parse the input
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
   for inputFile in inputFiles:

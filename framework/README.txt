@@ -118,3 +118,17 @@ module load moose-dev-gcc python/3.2
 
 
 python Driver.py ../inputs/mpi_driver_test/test_mpi.xml
+
+
+-- Defaults file --
+
+The Driver will look for a file ~/.raven/default_runinfo.xml and will
+use it for default values for the data in RunInfo.  These will be
+overridden by values in the input file. Example:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+  <DefaultInputFile>test.xml</DefaultInputFile>
+</RunInfo>
+</Simulation> 

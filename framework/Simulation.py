@@ -197,12 +197,13 @@ class Simulation(object):
   
   '''
   
-  def __init__(self,inputfiles,frameworkDir,debug=False):
+  def __init__(self,frameworkDir,debug=False):
     self.debug= debug
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
-    self.runInfoDict['SimulationFiles'   ] = inputfiles    #the xml input file
-    self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaves
+    self.runInfoDict['DefaultInputFile'  ] = 'test.xml'   #Default input file to use
+    self.runInfoDict['SimulationFiles'   ] = []           #the xml input file
+    self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
     self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
     self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
@@ -280,6 +281,16 @@ class Simulation(object):
     self.jobHandler    = JobHandler()
     self.__modeHandler = SimulationMode(self)
     self.knownTypes    = self.whichDict.keys()
+
+  def setInputFiles(self,inputFiles):
+    '''Can be used to set the input files that the program received.  
+    These are currently used for cluster running where the program 
+    needs to be restarted on a different node.'''
+    self.runInfoDict['SimulationFiles'   ] = inputFiles    
+
+  def getDefaultInputFile(self):
+    '''Returns the default input file to read'''
+    return self.runInfoDict['DefaultInputFile']
 
   def __createAbsPath(self,filein):
     '''assuming that the file in is already in the self.filesDict it place as the value the absolute path'''
@@ -362,6 +373,9 @@ class Simulation(object):
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
       elif element.tag == 'Files':
         for fileName in element.text.split(','): self.filesDict[fileName] = fileName.strip()
+      elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
+      else:
+        print("WARNING: Unhandled element ",element.tag)
 
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''
