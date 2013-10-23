@@ -15,6 +15,12 @@ from Csv_loader import CsvLoader as ld
 import DataBases
 import copy
 import numpy as np
+
+# Custom exceptions
+class NotConsistentData(Exception):
+    pass
+class ConstructError(Exception):
+    pass
 #from hdf5_manager import hdf5Manager as AAFManager
 #import h5py as h5
 
@@ -24,13 +30,13 @@ class Data(BaseType):
     self.dataParameters = {}                # in here we store all the data parameters (inputs params, output params,etc) 
     if inParamValues: 
       if type(inParamValues) != 'dict':
-        raise ConstructError('ERROR in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
+        raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
       self.inpParametersValues = inParamValues
     else:
       self.inpParametersValues   = {}         # input parameters as keys, corresponding values 
     if outParamValues: 
       if type(outParamValues) != 'dict':
-        raise ConstructError('ERROR in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
+        raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
       self.outParametersValues = outParamValues
     self.outParametersValues   = {}         # output variables as keys, corresponding values
     self.toLoadFromList = []                # loading source
@@ -83,13 +89,13 @@ class Data(BaseType):
       This function is used to add specialized attributes to the data in order to retrieve the data properly.
       Every specialized data needs to overwrite it!!!!!!!!
     '''
-    raise NotImplementedError('The data of type '+self.type+' seems not to have a addSpecializedReadingSettings method overloaded!!!!')
+    raise NotImplementedError('DATAS     : ERROR -> The data of type '+self.type+' seems not to have a addSpecializedReadingSettings method overloaded!!!!')
 
   def checkConsistency(self):
     '''
       This function checks the consistency of the data structure... every specialized data needs to overwrite it!!!!!
     '''
-    raise NotImplementedError('The data of type '+self.type+' seems not to have a checkConsistency method overloaded!!!!')
+    raise NotImplementedError('DATAS     : ERROR -> The data of type '+self.type+' seems not to have a checkConsistency method overloaded!!!!')
 
   def printCSV(self):
     # print content of data in a .csv format
@@ -133,11 +139,11 @@ class Data(BaseType):
   def getParam(self,typeVar,keyword):
     if typeVar == "input":
       if keyword in self.inpParametersValues.keys(): return self.inpParametersValues[keyword]
-      else: raise Exception("parameter " + keyword + " not found in inpParametersValues dictionary. Function: Data.getParam")    
+      else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in inpParametersValues dictionary. Function: Data.getParam")    
     elif typeVar == "output":
       if keyword in self.outParametersValues.keys(): return self.outParametersValues[keyword]    
-      else: raise Exception("parameter " + keyword + " not found in outParametersValues dictionary. Function: Data.getParam")
-    else: raise Exception("type " + typeVar + " is not a valid type. Function: Data.getParam")
+      else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in outParametersValues dictionary. Function: Data.getParam")
+    else: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
 
 class TimePoint(Data):
   def addSpecializedReadingSettings(self):
@@ -145,7 +151,7 @@ class TimePoint(Data):
     try: sourceType = self.toLoadFromList[0].type
     except: sourceType = None
     if('HDF5' == sourceType):
-      if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
+      if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR -> DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
       self.dataParameters['filter'] = "whole"
 
   def checkConsistency(self):
@@ -154,10 +160,10 @@ class TimePoint(Data):
     '''
     for key in self.inpParametersValues.keys():
       if (self.inpParametersValues[key].size) != 1:
-        raise NotConsistentData('The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.inpParametersValues[key])))
+        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.inpParametersValues[key])))
     for key in self.outParametersValues.keys():
       if (self.outParametersValues[key].size) != 1:
-        raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.outParametersValues[key])))
+        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.outParametersValues[key])))
 
   def updateSpecializedInputValue(self,name,value):
     if name in self.inpParametersValues.keys():
@@ -216,17 +222,17 @@ class TimePointSet(Data):
       eg = self.toLoadFromList[0].getEndingGroupNames()
       for key in self.inpParametersValues.keys():
         if (self.inpParametersValues[key].size) != len(eg):
-          raise NotConsistentData('The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.inParametersValues[key].size))
+          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.inParametersValues[key].size))
       for key in self.outParametersValues.keys():
         if (self.outParametersValues[key].size) != len(eg):
-          raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.outParametersValues[key].size))
+          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.outParametersValues[key].size))
     else: 
       for key in self.inpParametersValues.keys():
         if (self.inpParametersValues[key].size) != len(self.toLoadFromList):
-          raise NotConsistentData('The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.inParametersValues[key].size))
+          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.inParametersValues[key].size))
       for key in self.outParametersValues.keys():
         if (self.outParametersValues[key].size) != len(self.toLoadFromList):
-          raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.outParametersValues[key].size))
+          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.outParametersValues[key].size))
 
   def updateSpecializedInputValue(self,name,value):
     if name in self.inpParametersValues.keys():
@@ -273,7 +279,7 @@ class History(Data):
     try: sourceType = self.toLoadFromList[0].type
     except: sourceType = None
     if('HDF5' == sourceType):
-      if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR: In order to create a History data, history name must be provided')
+      if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR -> In order to create a History data, history name must be provided')
       self.dataParameters['filter'] = "whole"
 
   def checkConsistency(self):
@@ -282,17 +288,15 @@ class History(Data):
     '''
     for key in self.inpParametersValues.keys():
       if (self.inpParametersValues[key].size) != 1:
-        raise NotConsistentData('The input parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.inpParametersValues[key])))
+        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.inpParametersValues[key])))
     for key in self.outParametersValues.keys():
       if (self.outParametersValues[key].ndim) != 1:
-        raise NotConsistentData('The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self.outParametersValues[key].ndim))
+        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self.outParametersValues[key].ndim))
 
   def updateSpecializedInputValue(self,name,value):
     if name in self.inpParametersValues.keys():
-      popped = self.inpParametersValues.pop(name)
-      self.inpParametersValues[name] = copy.deepcopy(np.concatenate((np.array(popped), np.atleast_1d(np.array(value)))))
-    else:
-      self.inpParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+      self.inpParametersValues.pop(name)
+    self.inpParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def updateSpecializedOutputValue(self,name,value):
     if name in self.outParametersValues.keys():
@@ -345,27 +349,59 @@ class Histories(Data):
     if('HDF5' == sourceType):
       eg = self.toLoadFromList[0].getEndingGroupNames()
       if(len(eg) != len(self.inpParametersValues.keys())):
-        raise NotConsistentData('Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self.inpParametersValues.keys())))
+        raise NotConsistentData('DATAS     : ERROR -> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self.inpParametersValues.keys())))
     else:
       if(len(self.toLoadFromList) != len(self.inpParametersValues.keys())):
-        raise NotConsistentData('Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self.toLoadFromList)) + ' !=' + str(len(self.inpParametersValues.keys())))
+        raise NotConsistentData('DATAS     : ERROR -> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self.toLoadFromList)) + ' !=' + str(len(self.inpParametersValues.keys())))
     for key in self.inpParametersValues.keys():
       for key2 in self.inpParametersValues[key].keys():
         if (self.inpParametersValues[key][key2].size) != 1:
-          raise NotConsistentData('The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self.inpParametersValues[key][key2])))
+          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self.inpParametersValues[key][key2])))
     for key in self.outParametersValues.keys():
       for key2 in self.outParametersValues[key].keys():
         if (self.outParametersValues[key][key2].ndim) != 1:
-          raise NotConsistentData('The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self.outParametersValues[key][key2].ndim))
+          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self.outParametersValues[key][key2].ndim))
 
   def updateSpecializedInputValue(self,name,value):
-    #FIXME... The Actual structure is not ok.. fix it
-    pass
+    if (not isinstance(value,(float,int,bool,np.ndarray))):
+      raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array (dim 1) or a single value for method "updateSpecializedInputValue". Got type ' + str(type(value)))
+    if isinstance(value,np.ndarray): 
+      if value.size != 1: raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array of dim 1 or a single value for method "updateSpecializedInputValue". Size is ' + str(value.size))
+    
+    if type(name) == 'list':
+      # there are info regarding the history number
+      if name[0] in self.inpParametersValues.keys():
+        gethistory = self.inpParametersValues.pop(name[0])
+        popped = gethistory[name[1]]
+        if name[1] in popped.keys():
+          gethistory[name[1]] = copy.deepcopy(np.atleast_1d(np.array(value)))
+          self.inpParametersValues[name[0]] = copy.deepcopy(gethistory)
+      else:
+        self.inpParametersValues[name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
+    else:
+      # no info regarding the history number => use internal counter
+      if len(self.inpParametersValues.keys()) == 0: hisn = 1
+      else: hisn = max(self.inpParametersValues.keys())
+      self.inpParametersValues[hisn] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
 
   def updateSpecializedOutputValue(self,name,value):
-    #FIXME... The Actual structure is not ok.. fix it
-    pass
-
+    if not isinstance(value,np.ndarray): raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
+    if type(name) == 'list':
+      # there are info regarding the history number
+      if name[0] in self.outParametersValues.keys():
+        gethistory = self.outParametersValues.pop(name[0])
+        popped = gethistory[name[1]]
+        if name[1] in popped.keys():
+          gethistory[name[1]] = copy.deepcopy(np.atleast_1d(np.array(value)))
+          self.outParametersValues[name[0]] = copy.deepcopy(gethistory)
+      else:
+        self.outParametersValues[name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
+    else:
+      # no info regarding the history number => use internal counter
+      if len(self.outParametersValues.keys()) == 0: hisn = 1
+      else: hisn = max(self.outParametersValues.keys())
+      self.outParametersValues[hisn] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+      
   def specializedPrintCSV(self,filenameLocal):
     
     inpKeys   = self.inpParametersValues.keys()
@@ -383,21 +419,29 @@ class Histories(Data):
 
 
       for i in range(len(inpKeys_h)):
-        file.write(',' + inpKeys_h[i])
+        if i == 0 : prefix = ''
+        else:       prefix = ','
+        file.write(prefix + inpKeys_h[i])
       file.write('\n')
       
       for i in range(len(inpKeys_h)):
-        file.write(',' + str(inpValues_h[i]))
+        if i == 0 : prefix = ''
+        else:       prefix = ','
+        file.write(prefix + str(inpValues_h[i][0]))
       file.write('\n')
       
       #Print time + output values
       for i in range(len(outKeys_h)):
+        if i == 0 : prefix = ''
+        else:       prefix = ','
         file.write(outKeys_h[i] + ',')
       file.write('\n')
   
       for j in range(outValues_h[0].size):
         for i in range(len(outKeys_h)):
-          file.write(',' + str(outValues_h[i][j]))
+          if i == 0 : prefix = ''
+          else:       prefix = ','
+          file.write(prefix+ str(outValues_h[i][j]))
         file.write('\n')    
       
       file.close()

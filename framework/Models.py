@@ -131,7 +131,11 @@ class ExternalModel(Model):
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys(): 
-      self.ModuleToLoad = str(xmlNode.attrib['ModuleToLoad'])
+      self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
+      if (os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0] != ''):
+        abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
+        if os.path.exists(abspath): os.sys.path.append(abspath)
+        else: raise IOError('MODEL EXTERNAL: ERROR -> The path provided for the external model does not exist!!! Got ' + abspath)
     else: raise IOError('MODEL EXTERNAL: ERROR -> ModuleToLoad not provided for module externalModule')
     exec('import ' + self.ModuleToLoad + ' as sim')
     # point to the external module
@@ -153,8 +157,8 @@ class ExternalModel(Model):
 
  
   def run(self,Input,jobHandler):
+    self.counter += 1
     self.sim.run(self,Input,jobHandler)
-    
     
   def collectOutput(self,finisishedjob,output):
     if 'collectOutput' in dir(self.sim):
