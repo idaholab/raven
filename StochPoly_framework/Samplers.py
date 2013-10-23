@@ -199,18 +199,11 @@ class StochasticCollocation(Sampler):
             'partial_coeffs':self.partCoeffs[exp_ords][quad_pts],
             'exp_order'     :exp_ords,
            }
-    #values={}
-    #values['prefix']={'counter'       :str(self.counter),
-    #                  'quad pts'      :str(quad_pts),
-    #                  'partial coeffs':str(self.partCoeffs[quad_pts])}
-    #values['prefix']=(('counter'   ,'quad pts','partial coeffs'),
-    #                  (self.counter, quad_pts,str(self.partCoeffs[quad_pts].values())))
     values['vars']={}
-    # TODO would be beneficial to pass the orders of quad pt, too?
     for var in self.distDict.keys():
       values['vars'][var]=self.distDict[var].actual_point(\
           quad_pts[self.quad.dict_quads[self.quad.quads[var]]])
-    print('\nRUN: counter',self.counter,' | expord',exp_ords,' | quad pts',quad_pts)
+    print('RUN: counter',self.counter,' | expord',exp_ords,' | quad pts',quad_pts,'\n')
     return model.createNewInput(myInput,self.type,**values)
 
   def generateQuadrature(self):

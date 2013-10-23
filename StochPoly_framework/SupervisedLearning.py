@@ -99,16 +99,30 @@ class StochasticPolynomials(superVisioned):
       # we simply need to sum over each partCoeff[quad_pt][ord]*soln[quad_pt]
       # to construct poly_coeff[ord]
 
-      #FIXME partCoeffs stored as partCoeffs[exp_ord][quad_pt] now, as it should be!
 
       
+      #TODO this can be done in one loop; in two right now for simplicity
+      partCoeffs={}
+      solns={}
       print ('\n\nDebug!  Histories:')
       for history in M:
-        print (history[1]['exp_order'],history[1]['quad_pts'],history[1]['partial_coeffs'])
-        self.poly_coeffs[tuple(history[1]['exp_order'])]=0
-        for partCoeff in history[1]['partial_coeffs']:
-          self.poly_coeffs[tuple(history[1]['exp_order'])]+=\
-                    history[0][0][self.solnIndex]*partCoeff
+        exp_order = tuple(history[1]['exp_order'])
+        quad_pts = tuple(history[1]['quad_pts'])
+        pcof = float(history[1]['partial_coeffs'])
+        ans = float(history[0][0][self.solnIndex])
+        print ('exp ord',exp_order,'|quad pts',quad_pts,'|part coeff',pcof,'|soln',ans)
+        if exp_order not in partCoeffs: partCoeffs[exp_order] = {}
+        if exp_order not in solns: solns[exp_order] = {}
+        partCoeffs[exp_order][quad_pts] = pcof
+        solns[exp_order][quad_pts] = ans
+
+
+      self.poly_coeffs={}
+      for exp_order in partCoeffs.keys():
+        self.poly_coeffs[exp_order]=0
+        for quad_pts in partCoeffs[exp_order].keys():
+          self.poly_coeffs[exp_order] += partCoeffs[exp_order][quad_pts]*solns[exp_order][quad_pts]
+        print('Coeff for exp order',exp_order,':',self.poly_coeffs[exp_order])
       
       print('StochasticPolynomials ROM successfully trained.')
     else:
