@@ -117,7 +117,6 @@ class ExternalModel(Model):
     self.modelVariableType   = {}
     self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
   def initialize(self,runInfo,inputs):
-    self.counter=0
     if 'initialize' in dir(self.sim):
       self.sim.initialize(self,runInfo,inputs)
   
@@ -157,7 +156,7 @@ class ExternalModel(Model):
 
  
   def run(self,Input,jobHandler):
-    self.counter += 1
+    
     self.sim.run(self,Input,jobHandler)
     
   def collectOutput(self,finisishedjob,output):

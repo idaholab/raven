@@ -380,9 +380,13 @@ class Histories(Data):
         self.inpParametersValues[name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
     else:
       # no info regarding the history number => use internal counter
-      if len(self.inpParametersValues.keys()) == 0: hisn = 1
-      else: hisn = max(self.inpParametersValues.keys())
-      self.inpParametersValues[hisn] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+      if len(self.inpParametersValues.keys()) == 0: self.inpParametersValues[1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+      else:
+        hisn = max(self.inpParametersValues.keys())
+        if self.inpParametersValues.values()[-1].has_key(name): 
+          hisn += 1
+          self.inpParametersValues[hisn] = {}
+        self.inpParametersValues[hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def updateSpecializedOutputValue(self,name,value):
     if not isinstance(value,np.ndarray): raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
@@ -398,9 +402,13 @@ class Histories(Data):
         self.outParametersValues[name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
     else:
       # no info regarding the history number => use internal counter
-      if len(self.outParametersValues.keys()) == 0: hisn = 1
-      else: hisn = max(self.outParametersValues.keys())
-      self.outParametersValues[hisn] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+      if len(self.outParametersValues.keys()) == 0: self.outParametersValues[1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+      else:
+        hisn = max(self.outParametersValues.keys())
+        if self.outParametersValues.values()[-1].has_key(name): 
+          hisn += 1
+          self.outParametersValues[hisn] = {}
+        self.outParametersValues[hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
       
   def specializedPrintCSV(self,filenameLocal):
     
