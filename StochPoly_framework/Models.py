@@ -330,6 +330,74 @@ class Filter(Model):
     '''run calls the interface finalizer'''
     self.interface.finalizeFilter(inObj,outObj,self.workingDir)
 
+class ExternalModel(Model):
+  ''' External model class: this model allows to interface with an external python module'''
+  def __init__(self):
+    Model.__init__(self)
+    self.modelVariableValues = {}
+    self.modelVariableType   = {}
+    self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
+  def reset(self,runInfo,inputs):
+    self.counter=0
+    if 'initialize' in dir(self.sim):
+      self.sim.initialize(self,runInfo,inputs)
+  
+  def createNewInput(self,myInput,samplerType,**Kwargs):
+    if 'createNewInput' in dir(self.sim):
+      newInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
+      return [newInput] 
+    else:
+      return [None]
+  
+  def readMoreXML(self,xmlNode):
+    Model.readMoreXML(self, xmlNode)
+    if 'ModuleToLoad' in xmlNode.attrib.keys(): 
+      self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
+      if (os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0] != ''):
+        abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
+        if os.path.exists(abspath): os.sys.path.append(abspath)
+        else: raise IOError('MODEL EXTERNAL: ERROR -> The path provided for the external model does not exist!!! Got ' + abspath)
+    else: raise IOError('MODEL EXTERNAL: ERROR -> ModuleToLoad not provided for module externalModule')
+    exec('import ' + self.ModuleToLoad + ' as sim')
+    # point to the external module
+    self.sim=sim
+    # check if there are variables and, in case, load them
+    for son in xmlNode:
+      if son.tag=='variable':
+        self.modelVariableValues[son.text] = None
+        exec('self.'+son.text+' = self.modelVariableValues['+'son.text'+']')
+        if 'type' in son.attrib.keys():
+          if not (son.attrib['type'].lower() in self.__availableVariableTypes):
+            raise IOError('MODEL EXTERNAL: ERROR -> the "type" of variable ' + son.text + 'not')
+          self.modelVariableType[son.text] = son.attrib['type']
+        else                          : 
+          raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
+    # check if there are other information that the external module wants to load
+    if 'readMoreXML' in dir(self.sim):
+      self.sim.readMoreXML(self,xmlNode)
+
+ 
+  def run(self,Input,output,jobHandler):
+    self.counter += 1
+    self.sim.run(self,Input,jobHandler)
+    
+  def collectOutput(self,finisishedjob,output):
+    if 'collectOutput' in dir(self.sim):
+      self.sim.collectOutput(self,finisishedjob,output)
+    self.__pointSolution()
+    if 'HDF5' in output.type: raise NotImplementedError('MODEL EXTERNAL: ERROR -> output type HDF5 not implemented yet for externalModel') 
+
+    if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
+    for inputName in output.dataParameters['inParam']:
+      exec('if not (type(self.modelVariableValues[inputName]) == ' + self.modelVariableType[inputName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' mismatches with respect to the inputted one!!!")')
+      output.updateInputValue(inputName,self.modelVariableValues[inputName])
+    for outName in output.dataParameters['outParam']:
+      output.updateOutputValue(outName,self.modelVariableValues[outName])
+    output.printCSV()    
+    
+  def __pointSolution(self):
+    for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
+    
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
   base = 'model'
@@ -337,6 +405,7 @@ def returnInstance(Type):
   InterfaceDict['ROM'   ] = ROM
   InterfaceDict['Code'  ] = Code
   InterfaceDict['Filter'] = Filter
+  InterfaceDict['ExternalModel'] = ExternalModel
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
   

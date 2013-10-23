@@ -149,31 +149,47 @@ class MultiRun(Step):
     converged = False
     jobHandler = inDictionary['jobHandler']
     while True:
-      finishedJobs = jobHandler.getFinished()
-      #loop on the finished jobs
-      for finishedJob in finishedJobs:
-        if 'Sampler' in inDictionary.keys():
-          inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
-        for output in inDictionary['Output']:                                                      #for all expected outputs
-            inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
-        if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-        #the harvesting process is done moving forward with the convergence checks
-        if 'Tester' in inDictionary.keys():
-          if 'ROM' in inDictionary.keys():
-            converged = inDictionary['Tester'].testROM(inDictionary['ROM'])                           #the check is performed on the information content of the ROM
-          else:
-            converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
-        if not converged:
-          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
-            if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
-              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-              inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
-        elif converged:
-          jobHandler.terminateAll()
+      if inDictionary["Model"].type == 'Code':
+        finishedJobs = jobHandler.getFinished()
+        #loop on the finished jobs
+        for finishedJob in finishedJobs:
+          if 'Sampler' in inDictionary.keys():
+            inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
+          for output in inDictionary['Output']:                                                      #for all expected outputs
+              inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
+          if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
+          #the harvesting process is done moving forward with the convergence checks
+          if 'Tester' in inDictionary.keys():
+            if 'ROM' in inDictionary.keys():
+              converged = inDictionary['Tester'].testROM(inDictionary['ROM'])                           #the check is performed on the information content of the ROM
+            else:
+              converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
+          if not converged:
+            for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+              if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
+                newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+                inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
+          elif converged:
+            jobHandler.terminateAll()
+            break
+        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
           break
-      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
-        break
-      time.sleep(0.1)
+        time.sleep(0.001)
+      else:
+        finishedJob = 'empty'
+        if inDictionary['Sampler'].amIreadyToProvideAnInput():
+          newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+          inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
+          for output in inDictionary['Output']:
+            inDictionary['Model'].collectOutput(finishedJob,output) 
+        else:
+          break
+        time.sleep(0.001)
+   
+   
+   
+   
+   
    
 
 class SCRun(Step):

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>inputs</WorkingDir>
+    <Files>test_fire.py</Files>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>2</batchSize>
+    <!--<ParallelCommand></ParallelCommand>
+    <NumMPI></NumMPI>
+    <ThreadingCommand></ThreadingCommand>
+    <NumThreads></NumThreads>
+    <numNode></numNode>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+    <ExternalModel name='PythonModule' type='' ModuleToLoad='./inputs/test_fire'>  
+       <variable type='float'>p_detector</variable>
+       <variable type='float'>p_signalCondit</variable>
+       <variable type='float'>p_starter</variable>
+       <variable type='float'>p_pump</variable>
+       <variable type='float'>outcome</variable>
+       <variable type='int'>NumberOfFires</variable>
+       <variable type='numpy.ndarray'>testHistOut</variable>
+       <initialize>
+         <p_detector>0.05</p_detector>
+       </initialize>
+    </ExternalModel>
+</Models> 
+
+<Distributions>
+    <Poisson name='numberOfFires'>
+        <mu>1.5</mu>
+    </Poisson>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo     name='MC_external'  limit='10000' >
+      <Variable type ='Poisson' distName='numberOfFires'>numberOfFires</Variable>
+    </MonteCarlo>
+</Samplers>
+
+<Steps>
+    <MultiRun name='FirstMRun'>
+        <Input   type='Files'     subtype=''            >test_fire.py</Input>
+        <Model   type='Models'    subtype='ExternalModule' >PythonModule</Model>
+        <Sampler type='Samplers'  subtype='MonteCarlo'   >MC_external</Sampler>
+        <Output  type='Datas'     subtype='TimePointSet'>outcome_fire_flames_hell_noHeaven_Caronte_occhiDiBragia_Stupido_chi_legge_tutto</Output>
+        <Output  type='Datas'     subtype='Histories'>test_histories</Output>
+    </MultiRun>
+</Steps>
+
+
+<Datas>
+    <TimePointSet name='outcome_fire_flames_hell_noHeaven_Caronte_occhiDiBragia_Stupido_chi_legge_tutto' printCSV='t'>
+        <Input>NumberOfFires</Input>
+        <Output>outcome</Output>
+   </TimePointSet>
+    <Histories name='test_histories' printCSV='t'>
+        <Input>NumberOfFires</Input>
+        <Output>testHistOut</Output>
+   </Histories>
+</Datas>
+
+
+
+</Simulation>
+
+
+

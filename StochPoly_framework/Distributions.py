@@ -278,6 +278,29 @@ class Beta(Distribution):
 
 # Add polynomials, shifting, zero-to-one to these!
 
+class Poisson(Distribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.mu  = 0.0
+    self.type = 'Poisson'
+    
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    try: self.mu = float(xmlNode.find('mu').text)
+    except: raise Exception('mu value needed for poisson distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    Distribution.addInitParams(self, tempDict)
+    tempDict['mu'  ] = self.mu
+    
+  def initializeDistribution(self):
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self.distribution = dist.poisson(self.mu)
+    else:
+      raise IOError ('Truncated poisson not yet implemented') 
+  def inDistr(self):
+    pass
 
 class Triangular(Distribution):
   def __init__(self):
@@ -311,6 +334,35 @@ class Triangular(Distribution):
     else:
       raise IOError ('Truncated triangular not yet implemented')
 
+class Binomial(Distribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.n  = 0.0
+    self.p  = 0.0
+    self.type = 'Binomial'
+    
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    try: self.n = float(xmlNode.find('n').text)
+    except: raise Exception('n value needed for Binomial distribution')
+    try: self.p = float(xmlNode.find('p').text)
+    except: raise Exception('p value needed for Binomial distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    Distribution.addInitParams(self, tempDict)
+    tempDict['n'  ] = self.n
+    tempDict['p'  ] = self.p
+    
+  def initializeDistribution(self):
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self.distribution = dist.binom(n=self.n,p=self.p)
+    else:
+      raise IOError ('Truncated Binomial not yet implemented')   
+  def inDistr(self):
+    pass
+
+
 def returnInstance(Type):
   base = 'Distribution'
   InterfaceDict = {}
@@ -319,5 +371,7 @@ def returnInstance(Type):
   InterfaceDict['Gamma'    ]  = Gamma
   InterfaceDict['Beta'     ]  = Beta
   InterfaceDict['Triangular'] = Triangular
+  InterfaceDict['Poisson'] = Poisson
+  InterfaceDict['Binomial'] = Binomial
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
