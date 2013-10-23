@@ -90,7 +90,7 @@ class Sampler(BaseType):
     '''this check if the sampler is ready to generate a new input
        it might not since it is waiting for more information or has 
        run out of limit, depends from the type of sampler'''
-    if(self.counter <= self.limit): return True
+    if(self.counter < self.limit): return True
     else: return False
 
   def fillDistribution(self,availableDist):
