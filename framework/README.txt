@@ -135,6 +135,10 @@ module load moose-dev-gcc python/3.2
 
 python Driver.py ../inputs/mpi_driver_test/test_mpi.xml
 
+If <runQSUB/> is part of the mode, the mpi mode will try and create a
+qsub command.  Example:
+
+<mode>mpi<runQSUB/></mode>
 
 -- Defaults file --
 

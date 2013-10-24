@@ -65,6 +65,24 @@ class SimulationMode:
     """
     pass
 
+def createAndRunQSUB(simulation):
+  # Check if the simulation has been run in PBS mode and, in case, construct the proper command
+  batchSize = simulation.runInfoDict['batchSize']
+  frameworkDir = simulation.runInfoDict["FrameworkDir"]
+  ncpus = simulation.runInfoDict['NumThreads']
+  #Generate the qsub command needed to run input
+  command = ["qsub","-l",
+             "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
+             "-l","walltime="+simulation.runInfoDict["expectedTime"],
+             "-l","place=free","-v",
+             'COMMAND="python Driver.py '+
+             " ".join(simulation.runInfoDict["SimulationFiles"])+'"',
+             os.path.join(frameworkDir,"raven_qsub_command.sh")]
+  #Change to frameworkDir so we find raven_qsub_command.sh
+  os.chdir(frameworkDir)
+  print(os.getcwd(),command)
+  subprocess.call(command)
+  
 
 #-----------------------------------------------------------------------------------------------------
 class PBSDSHSimulationMode(SimulationMode):
@@ -81,22 +99,7 @@ class PBSDSHSimulationMode(SimulationMode):
   def runOverride(self):
     #Check and see if this is being accidently run
     assert self.__simulation.runInfoDict['mode'] == 'pbsdsh' and not self.__in_pbs
-    # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-    batchSize = self.__simulation.runInfoDict['batchSize']
-    frameworkDir = self.__simulation.runInfoDict["FrameworkDir"]
-    ncpus = self.__simulation.runInfoDict['NumThreads']
-    #Generate the qsub command needed to run input
-    command = ["qsub","-l",
-               "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
-               "-l","walltime="+self.__simulation.runInfoDict["expectedTime"],
-               "-l","place=free","-v",
-               'COMMAND="python Driver.py '+
-               " ".join(self.__simulation.runInfoDict["SimulationFiles"])+'"',
-               os.path.join(frameworkDir,"raven_qsub_command.sh")]
-    #Change to frameworkDir so we find raven_qsub_command.sh
-    os.chdir(frameworkDir)
-    print(os.getcwd(),command)
-    subprocess.call(command)
+    createAndRunQSUB(self.__simulation)
 
   def modifySimulation(self):
     if self.__in_pbs:
@@ -116,12 +119,15 @@ class PBSDSHSimulationMode(SimulationMode):
         #Add the MOOSE --n-threads command afterwards
         self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
 
+#----------------------------------------------------------------------
+
 class MPISimulationMode(SimulationMode):
   def __init__(self,simulation):
     self.__simulation = simulation
     #Figure out if we are in PBS
     self.__in_pbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False
+    self.__runQsub = False
 
   def modifySimulation(self):
     if self.__nodefile or self.__in_pbs:
@@ -168,12 +174,25 @@ class MPISimulationMode(SimulationMode):
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
 
+  def doOverrideRun(self):
+    # Check if the simulation has been run in PBS mode and if run QSUB
+    # has been requested, in case, construct the proper command
+    return (not self.__in_pbs) and self.__runQsub
+
+  def runOverride(self):
+    #Check and see if this is being accidently run
+    assert self.__runQsub and not self.__in_pbs
+    createAndRunQSUB(self.__simulation)
+
+
   def XMLread(self, xmlNode):
     for child in xmlNode:
       if child.tag == "nodefileenv":
         self.__nodefile = os.environ[child.text.strip()]
       elif child.tag == "nodefile":
         self.__nodefile = child.text.strip()
+      elif child.tag.lower() == "runqsub":
+        self.__runQsub = True
       else:
         print("We should do something with child",child)
     return
