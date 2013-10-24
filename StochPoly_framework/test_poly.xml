@@ -3,7 +3,7 @@
 <RunInfo>
     <WorkingDir>inputs</WorkingDir>
     <Files>test_poly.py</Files>
-    <Sequence>FirstMRun</Sequence>
+    <Sequence>FirstMRun,create_ROM</Sequence>
     <batchSize>2</batchSize>
     <!--<ParallelCommand></ParallelCommand>
     <NumMPI></NumMPI>
@@ -42,16 +42,26 @@
       <Variable type ='Uniform' distName='distx'>x</Variable>
       <Variable type ='Uniform' distName='distx'>y</Variable>
     </MonteCarlo>
+    <StochasticCollocation name='SC' min_poly_order='2' limit='8'>
+        <Variable type ='Uniform' distName='distx' poly_order='2'>x</Variable>
+        <Variable type ='Uniform' distName='disty' poly_order='2'>y</Variable>
+    </StochasticCollocation>
 </Samplers>
 
 <Steps>
     <MultiRun name='FirstMRun'>
         <Input   type='Files'     subtype=''            >test_poly.py</Input>
         <Model   type='Models'    subtype='ExternalModule' >PythonModule</Model>
-        <Sampler type='Samplers'  subtype='MonteCarlo'   >MC_external</Sampler>
+        <Sampler type='Samplers'  subtype='StochasticCollocation'   >SC</Sampler>
+        <Output  type='DataBases' subtype='HDF5'        >SC_HDF5</Output>
         <Output  type='Datas'     subtype='TimePointSet'>outcome_poly</Output>
         <!--Output  type='Datas'     subtype='Histories'>test_poly_histories</Output-->
     </MultiRun>
+    <SCRun name='create_ROM'>
+        <Input type='DataBases' subtype='HDF5' >SC_HDF5</Input>
+        <ROM type='Models' subtype='StochasticCollocation'>SCrom</ROM>
+        <Sampler type='Samplers' subtype='StochasticCollocation'>SCrom</Sampler>
+    </SCRun>
 </Steps>
 
 
@@ -68,6 +78,9 @@
    </Histories>
 </Datas>
 
+<DataBases>
+  <HDF5 name='SC_HDF5' type='MC' targetParam='outcome'/>
+</DataBases>
 
 
 </Simulation>

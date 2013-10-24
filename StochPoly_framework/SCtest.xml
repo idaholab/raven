@@ -15,7 +15,7 @@
 <Distributions>
     <Uniform name='Uni1'>
         <low>0</low>
-        <hi>1</hi>
+        <hi>2</hi>
     </Uniform>
     <Uniform name='Uni2'>
         <low>0</low>
@@ -38,8 +38,8 @@
 
 <Samplers>
   <StochasticCollocation name='SC' min_poly_order='2' limit='8'>
-      <Variable type ='Normal' distName='Uni1' poly_order='2'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
-      <Variable type ='Normal' distName='Uni2' poly_order='2'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
+      <Variable type ='Uniform' distName='Uni1' poly_order='2'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
+      <Variable type ='Uniform' distName='Uni2' poly_order='1'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
   <MonteCarlo     name='MC'    limit='6'/>
   <MonteCarlo     name='MCSC'  limit='6'>
