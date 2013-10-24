@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>externalModule</WorkingDir>
+    <Files>lorentzAttractor.py</Files>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>2</batchSize>
+    <!--<ParallelCommand></ParallelCommand>
+    <NumMPI></NumMPI>
+    <ThreadingCommand></ThreadingCommand>
+    <NumThreads></NumThreads>
+    <numNode></numNode>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModule/lorentzAttractor'>  
+       <variable type='float'>sigma</variable>
+       <variable type='float'>rho</variable>
+       <variable type='float'>beta</variable>
+       <variable type='numpy.ndarray'>x</variable>
+       <variable type='numpy.ndarray'>y</variable>
+       <variable type='numpy.ndarray'>z</variable>
+       <variable type='float'>time</variable>
+       <variable type='float'>x0</variable>
+       <variable type='float'>y0</variable>
+       <variable type='float'>z0</variable>
+    </ExternalModel>
+</Models> 
+
+<Distributions>
+    <Normal name='x0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='y0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='z0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo name='MC_external'  limit='3' initial_seed='25061978' >
+      <variable name='x0' >
+        <distribution type='Normal' >x0_distrib</distribution>
+      </variable>
+      <variable name='y0' >
+        <distribution type='Normal' >y0_distrib</distribution>
+      </variable>
+      <variable name='z0' >
+        <distribution type='Normal' >z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+</Samplers>
+
+<Steps>
+    <MultiRun name='FirstMRun'>
+        <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
+        <Model   class='Models'    type='ExternalModule' >PythonModule</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
+        <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
+    </MultiRun>
+</Steps>
+
+<Datas>
+    <Histories name='testPrintHistories' printCSV='t'>
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+   </Histories>
+</Datas>
+
+
+</Simulation>
+
+
+

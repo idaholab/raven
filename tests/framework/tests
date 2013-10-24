@@ -78,4 +78,12 @@
   rel_err = 0.001
  [../]
 
+ [./testExternalModule]
+  type = 'RavenFramework'
+  input = 'test_Lorentz.xml'
+  output = 'externalModule/testPrintHistories_dump_0.csv externalModule/testPrintHistories_dump_1.csv externalModule/testPrintHistories_dump_2.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
 []
