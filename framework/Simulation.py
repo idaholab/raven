@@ -59,6 +59,12 @@ class SimulationMode:
     except:
       pass
 
+  def XMLread(self,xmlNode):
+    """XMLread is called with the mode node, and can be used to 
+    get extra parameters needed for the simulation mode.
+    """
+    pass
+
 
 #-----------------------------------------------------------------------------------------------------
 class PBSDSHSimulationMode(SimulationMode):
@@ -115,11 +121,15 @@ class MPISimulationMode(SimulationMode):
     self.__simulation = simulation
     #Figure out if we are in PBS
     self.__in_pbs = "PBS_NODEFILE" in os.environ
+    self.__nodefile = False
 
   def modifySimulation(self):
-    if self.__in_pbs:
-      #Figure out number of nodes and use for batchsize
-      nodefile = os.environ["PBS_NODEFILE"]
+    if self.__nodefile or self.__in_pbs:
+      if not self.__nodefile:
+        #Figure out number of nodes and use for batchsize
+        nodefile = os.environ["PBS_NODEFILE"]
+      else:
+        nodefile = self.__nodefile
       lines = open(nodefile,"r").readlines()
       numMPI = self.__simulation.runInfoDict['NumMPI']
       oldBatchsize = self.__simulation.runInfoDict['batchSize']
@@ -142,9 +152,9 @@ class MPISimulationMode(SimulationMode):
         nodeCommand = "-f %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
-        nodeCommand = "-f $PBS_NODEFILE "
+        nodeCommand = "-f "+nodefile
     else:
-      #Not in PBS, so can't look at PBS_NODEFILE
+      #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
       newBatchsize = self.__simulation.runInfoDict['batchSize']
       numMPI = self.__simulation.runInfoDict['NumMPI']
       #TODO, we don't have a way to know which machines it can run on
@@ -157,6 +167,16 @@ class MPISimulationMode(SimulationMode):
       #add number of threads to the post command.
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
+
+  def XMLread(self, xmlNode):
+    for child in xmlNode:
+      if child.tag == "nodefileenv":
+        self.__nodefile = os.environ[child.text.strip()]
+      elif child.tag == "nodefile":
+        self.__nodefile = child.text.strip()
+      else:
+        print("We should do something with child",child)
+    return
 
     
 #-----------------------------------------------------------------------------------------------------
@@ -335,11 +355,6 @@ class Simulation(object):
     #transform all files in absolute path
     for key in self.filesDict.keys():
       self.__createAbsPath(key)
-    #parallel environment
-    if self.runInfoDict['mode'] == 'pbsdsh':
-      self.__modeHandler = PBSDSHSimulationMode(self)
-    elif self.runInfoDict['mode'] == 'mpi':
-      self.__modeHandler = MPISimulationMode(self)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)
@@ -367,7 +382,14 @@ class Simulation(object):
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
       elif element.tag == 'postcommand'       : self.runInfoDict['postcommand'       ] = element.text
-      elif element.tag == 'mode'              : self.runInfoDict['mode'              ] = element.text.strip().lower()
+      elif element.tag == 'mode'              : 
+        self.runInfoDict['mode'] = element.text.strip().lower()
+        #parallel environment
+        if self.runInfoDict['mode'] == 'pbsdsh':
+          self.__modeHandler = PBSDSHSimulationMode(self)
+        elif self.runInfoDict['mode'] == 'mpi':
+          self.__modeHandler = MPISimulationMode(self)
+        self.__modeHandler.XMLread(element)
       elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())

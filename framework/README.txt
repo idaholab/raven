@@ -100,10 +100,26 @@ python Driver.py ../inputs/test_simple5.xml
 
 --- Running MPI mode from an interactive node ---
 
-Currently in MPI mode, the framework needs to be run from a node that 
-supports mpiexec.   It uses the variable $PBS_NODEFILE to find a list of nodes
-that it can run on, otherwise it will just run on the local node.  Here is 
-an example qsub command and other things needed to run:
+Currently in MPI mode, the framework needs to be run from a node that
+supports mpiexec.  
+
+---- Figuring out nodes to run on ----
+
+A file needs to be provided that includes a list of nodes to run on.
+This can be specified in the input by changing the mode line to
+include a nodefile element:
+
+<mode>mpi<nodefile>/tmp/nodes</nodefile></mode>
+
+Alternatively the name of an environmental variable can be given and
+that environmental variable will be used:
+
+<mode>mpi<nodefileenv>NODEFILE</nodefileenv></mode>
+
+If no node file is specified it uses the variable
+$PBS_NODEFILE to find a list of nodes that it can run on, otherwise it
+will just run on the local node.  Here is an example qsub command and
+other things needed to run:
 
 qsub -I -l select=13:ncpus=4:mpiprocs=1 -l walltime=10:00:00 -l place=free
 
