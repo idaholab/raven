@@ -121,11 +121,13 @@ class Uniform(Distribution):
 
     def standardToActualWeight(x): #standard -> actual
       '''Given normal quadrature weight, returns adjusted weight.'''
-      return x/(self.range/2.)
+      print ('StA wt for',self,'w_st =',x,'is',x/(self.range/2.))
+      return x/np.sqrt((self.range/2.))
 
     def probNorm(x): #normalizes probability if total != 1
       '''Returns the poly factor to scale by so that sum(probability)=1.'''
-      return self.range
+      #print ('probNorm for',self,'is',self.range)
+      return 1.0/self.range
 
     # point to functions
     self.poly_norm = norm
@@ -165,10 +167,10 @@ class Normal(Distribution):
         return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
 
       def standardToActualPoint(x): #standard -> actual
-        return x*self.sigma**2/2.+self.distribution.mean()
+        return x*self.sigma*np.sqrt(2.)+self.distribution.mean()
 
       def actualToStandardPoint(x): #actual -> standard
-        return (x-self.distribution.mean())/(self.sigma**2/2.)
+        return (x-self.distribution.mean())/(self.sigma*np.sqrt(2.))
 
       def standardToActualWeight(x): #standard -> actual
         return x/(self.sigma**2/2.)

@@ -73,6 +73,7 @@ class Legendre(Quadrature):
   def setQuad(self):
     self.type='Legendre'
     self.quad_pts,self.weights = orth.p_roots(self.order) #points and weights from scipy
+    print ('Weights for quad',self,'are',self.weights)
     self.quad_pts = self.keepReal(self.quad_pts)
     self.keepReal = self.keepReal(self.weights)
 
