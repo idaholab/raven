@@ -20,7 +20,7 @@ can be used.
 %METHOD% - Expands to the environmental variable $METHOD
 %NUM_CPUS% - Expands to the number of cpus to use per single batch.  This is ParallelProcNumb in the XML file.
 
-As an example, in pbs mode, the Simulation class add this to the start
+As an example, in pbsdsh mode, the Simulation class add this to the start
 of every command:  
 
 pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR%
@@ -42,7 +42,7 @@ already submitted interactive qsub command.
 --- Changing input ---
 
 In order to run on the cluster, the RunInfo block needs to have the
-mode element set to pbs.  If the Driver will be used to create the 
+mode element set to pbsbsh.  If the Driver will be used to create the 
 qsub command, then it needs a batchSize parameter to tell how many
 nodes to reserve, and an expected time to tell the queuing system
 how long the problem should take to run.  The ParallelProcNumb tells
@@ -50,7 +50,7 @@ how many threads an individual command should have.
 
 <RunInfo>
 ...
-    <mode>pbs</mode>
+    <mode>pbsdsh</mode>
     <batchSize>5</batchSize>
     <expectedTime>0:30:00</expectedTime>
     <ParallelProcNumb>1</ParallelProcNumb>

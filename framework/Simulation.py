@@ -61,7 +61,7 @@ class SimulationMode:
 
 
 #-----------------------------------------------------------------------------------------------------
-class PBSSimulationMode(SimulationMode):
+class PBSDSHSimulationMode(SimulationMode):
   
   def __init__(self,simulation):
     self.__simulation = simulation
@@ -74,7 +74,7 @@ class PBSSimulationMode(SimulationMode):
 
   def runOverride(self):
     #Check and see if this is being accidently run
-    assert self.__simulation.runInfoDict['mode'] == 'pbs' and not self.__in_pbs
+    assert self.__simulation.runInfoDict['mode'] == 'pbsdsh' and not self.__in_pbs
     # Check if the simulation has been run in PBS mode and, in case, construct the proper command
     batchSize = self.__simulation.runInfoDict['batchSize']
     frameworkDir = self.__simulation.runInfoDict["FrameworkDir"]
@@ -220,7 +220,7 @@ class Simulation(object):
     self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
     self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.
-    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbs and mpi
+    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbsdsh and mpi
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
@@ -336,8 +336,8 @@ class Simulation(object):
     for key in self.filesDict.keys():
       self.__createAbsPath(key)
     #parallel environment
-    if self.runInfoDict['mode'] == 'pbs':
-      self.__modeHandler = PBSSimulationMode(self)
+    if self.runInfoDict['mode'] == 'pbsdsh':
+      self.__modeHandler = PBSDSHSimulationMode(self)
     elif self.runInfoDict['mode'] == 'mpi':
       self.__modeHandler = MPISimulationMode(self)
     #Let the mode handler do any modification here

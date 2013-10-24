@@ -28,7 +28,7 @@ class Model(BaseType):
     try: self.subType = xmlNode.attrib['subType']
     except KeyError: 
       print("Failed in Node: ",xmlNode)
-      raise Exception('missed type for the model '+self.name)
+      raise Exception('missed subType for the model '+self.name)
   
   def localInputAndChecks(self,xmlNode):
     '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
