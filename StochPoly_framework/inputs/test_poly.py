@@ -12,6 +12,7 @@ def initialize(self,runInfoDict,inputFiles):
   self.counter = 0
   return
 def createNewInput(self,myInput,samplerType,**Kwargs):
+  print(Kwargs)
   self.SampledVars = Kwargs['sampledVars']
   return None
 

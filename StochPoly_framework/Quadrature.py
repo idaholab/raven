@@ -69,7 +69,7 @@ class Legendre(Quadrature):
     self.a = a #lower bound, default -1
     self.b = b #upper bound, default  1
     Quadrature.__init__(self,order=order)
-
+    
   def setQuad(self):
     self.type='Legendre'
     self.quad_pts,self.weights = orth.p_roots(self.order) #points and weights from scipy
@@ -85,8 +85,6 @@ class Legendre(Quadrature):
   def evNormPoly(self,o,x):
     '''Evaluates normalized associated polynomials of order o at point x.'''
     return sps.eval_legendre(o,x)*np.sqrt((2.*o+1.)/2.)
-
-
 
 class ShiftLegendre(Quadrature):
   def setQuad(self):
@@ -116,13 +114,14 @@ class Hermite(Quadrature):
     self.poly=sps.hermite
 
   def evNormPoly(self,o,x):
-    return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(np.pi)*2.**o*factorial(o))
+    return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(np.pi**2.)**o*factorial(o))
 
 
 
 
 class StatHermite(Quadrature):
   def setQuad(self):
+
     self.type='StatisticianHermite'
     self.quad_pts,self.weights = orth.he_roots(self.order)
     self.quad_pts = self.keepReal(self.quad_pts)
@@ -139,7 +138,6 @@ class StatHermite(Quadrature):
     except:
       print(self,'.evNormPoly tried to convert to real but it failed.  Moving on.')    
     return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(2.*np.pi)*factorial(o))
-
 
 
 

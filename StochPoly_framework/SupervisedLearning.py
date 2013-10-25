@@ -116,7 +116,10 @@ class StochasticPolynomials(superVisioned):
       for history in M:   #loop over the sampled point
         pointIndex = int(history[1]['exp_order'])-1#     history[1]['exp_order'][0] #get the cumulative id of the point
 #        print('reading point '+str(pointIndex))
-        ans = float(history[0][0][self.solnIndex])  #get the solution
+
+        ans = float(history[0][history[0][:,0].size - 1][self.solnIndex])  #get the solution
+        print('seen solution '+str(ans))
+        print(history)
         coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
         ans = 1
 #        print('Solution '+str(ans))
@@ -134,7 +137,7 @@ class StochasticPolynomials(superVisioned):
             varValue = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][indexVar]
             pointContrib *= inDictionary['Sampler'].distDict[varName].evNormPoly(myPolyOrder,varValue)
           self.moments[absIndex] += pointContrib
-
+ 
       self.moments.shape = orderTuple
       self.totNumMatrixEntries = totNumMatrixEntries
       self.varList = inDictionary['Sampler'].varList

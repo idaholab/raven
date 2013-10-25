@@ -178,7 +178,7 @@ class hdf5Database(object):
       # If so, error (Deleting already present information is not desiderable) 
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
-        if gname in comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
+        if gname == comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
       if source['type'] == 'csv':
         # Source in CSV format
         f = open(source['name'],'rb')
