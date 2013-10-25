@@ -10,7 +10,7 @@ def restart_function(monitored, controlled, auxiliary):
 
     auxiliary.scram_start_time = 101.0
     random_n_1 = distcont.random()
-    auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
+    auxiliary.DG1recoveryTime = distcont.randGen('crew1DG1',random_n_1) 
     
     
     random_n_2 = distcont.random()
@@ -18,7 +18,7 @@ def restart_function(monitored, controlled, auxiliary):
     
     
     random_n_3 = distcont.random()
-    auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
+    auxiliary.SecPGrecoveryTime = distcont.randGen('crewSecPG',random_n_3) 
     
     
     random_n_4 = distcont.random()
@@ -30,7 +30,8 @@ def restart_function(monitored, controlled, auxiliary):
     
     
     auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime, auxiliary.PrimPGrecoveryTime)
-    
+    if auxiliary.DeltaTimeScramToAux < 0:
+        auxiliary.DeltaTimeScramToAux = 0 
     auxiliary.auxAbsolute = auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux
 
 def initial_function(monitored, controlled, auxiliary):    

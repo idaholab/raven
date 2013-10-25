@@ -9,12 +9,11 @@ toolcont  = raventools.RavenToolsContainer.Instance()
 def restart_function(monitored, controlled, auxiliary):
     
     auxiliary.scram_start_time = 101.0
-    auxiliary.DG1recoveryTime = 100.0 + auxiliary.DG1recoveryTime
     auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * auxiliary.crew1DG2CoupledDG1 
-    auxiliary.SecPGrecoveryTime = 400.0 + auxiliary.SecPGrecoveryTime
     
     auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime, auxiliary.PrimPGrecoveryTime)
-    
+    if auxiliary.DeltaTimeScramToAux < 0:
+        auxiliary.DeltaTimeScramToAux = 0  
     auxiliary.auxAbsolute = auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux
 
 def initial_function(monitored, controlled, auxiliary):    
