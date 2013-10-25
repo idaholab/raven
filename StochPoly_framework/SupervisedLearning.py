@@ -132,7 +132,7 @@ class StochasticPolynomials(superVisioned):
         print('seen solution '+str(ans))
         print(history)
         coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
-        ans = 1
+#        ans = 1
 #        print('Solution '+str(ans))
         for absIndex in range(totNumMatrixEntries): #loop over all moments
 #          print('Moment absolute index '+str(absIndex))

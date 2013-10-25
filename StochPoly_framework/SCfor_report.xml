@@ -108,7 +108,7 @@
 </OutStreams>
 
 <Datas>
-   <TimePointSet name='timepointset_from_database_for_rom_trainer'>
+   <TimePointSet name='timepointset_from_database_for_rom_trainer' printCSV='t'>
         <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
