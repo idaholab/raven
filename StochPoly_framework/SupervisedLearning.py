@@ -74,6 +74,7 @@ class StochasticPolynomials(superVisioned):
     self.poly_coeffs={}
 
   def train(self,inDictionary):
+    
     data=inDictionary['Input'][0]
     print('\n\n\ndata:',data,'\n\n\n')
     self.solns={}
@@ -98,36 +99,92 @@ class StochasticPolynomials(superVisioned):
       # the partial coefficients for that _quad point_.  Here, for each of those,
       # we simply need to sum over each partCoeff[quad_pt][ord]*soln[quad_pt]
       # to construct poly_coeff[ord]
-
-
+ 
       
-      #TODO this can be done in one loop; in two right now for simplicity
-      partCoeffs={}
-      solns={}
-      print ('\n\nDebug!  Histories:')
-      for history in M:
-        exp_order = tuple(history[1]['exp_order'])
-        quad_pts = tuple(history[1]['quad_pts'])
-        pcof = float(history[1]['partial_coeffs'])
-        ans = float(history[0][0][self.solnIndex])
-        print ('exp ord',exp_order,'|quad pts',quad_pts,'|part coeff',pcof,'|soln',ans)
-        if exp_order not in partCoeffs: partCoeffs[exp_order] = {}
-        if exp_order not in solns: solns[exp_order] = {}
-        partCoeffs[exp_order][quad_pts] = pcof
-        solns[exp_order][quad_pts] = ans
-
-
-      self.poly_coeffs={}
-      for exp_order in partCoeffs.keys():
-        self.poly_coeffs[exp_order]=0
-        for quad_pts in partCoeffs[exp_order].keys():
-          self.poly_coeffs[exp_order] += partCoeffs[exp_order][quad_pts]*solns[exp_order][quad_pts]
-        print('Coeff for exp order',exp_order,':',self.poly_coeffs[exp_order])
+      for varName in inDictionary['Sampler'].varList:
+        print('[inDictionary[Sampler].var_poly_order[varName]+1'+str(inDictionary['Sampler'].var_poly_order[varName]+1))
+      orderList  = [inDictionary['Sampler'].var_poly_order[varName]+1   for varName in inDictionary['Sampler'].varList]
+      print('orderList '+str(orderList))
+      orderTuple = (orderList)
+      print('orderTuple '+str(orderTuple))
+      self.moments = np.zeros(orderTuple)
+      totNumMatrixEntries = 1
+      for i in orderTuple: totNumMatrixEntries *=i
+      print('totNumMatrixEntries '+str(totNumMatrixEntries))
+      self.moments.shape= (totNumMatrixEntries)
       
-      print('StochasticPolynomials ROM successfully trained.')
-    else:
-      print('Reading from non-HDF5 for StochPolys not supported yet...')
-    return
+      for history in M:   #loop over the sampled point
+        pointIndex = int(history[1]['exp_order'])-1#     history[1]['exp_order'][0] #get the cumulative id of the point
+#        print('reading point '+str(pointIndex))
+        ans = float(history[0][0][self.solnIndex])  #get the solution
+#        ans = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][1]
+#        print('Solution '+str(ans))
+        for absIndex in range(totNumMatrixEntries): #loop over all moments
+#          print('Moment absolute index '+str(absIndex))
+          left         = absIndex
+          pointContrib = inDictionary['Sampler'].pointInfo[pointIndex]['Total Weight']*ans
+#          print('Weight '+str(pointContrib))
+          for indexVar in range(len(inDictionary['Sampler'].varList)):
+#            print('indexVar '+str(indexVar))
+            varName = inDictionary['Sampler'].varList[indexVar]
+#            print('varName '+str(varName))
+            left, myPolyOrder = divmod(left,inDictionary['Sampler'].var_poly_order[varName]+1)
+#            print('myPolyOrder '+str(myPolyOrder))
+            varValue = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][indexVar]
+            pointContrib *= inDictionary['Sampler'].distDict[varName].evNormPoly(myPolyOrder,varValue)
+          self.moments[absIndex] += pointContrib
+
+      self.moments.shape = orderTuple
+      self.totNumMatrixEntries = totNumMatrixEntries
+      self.varList = inDictionary['Sampler'].varList
+      print(self.moments)
+      
+#      quit()
+
+        
+        
+#        absIndex  = totNumMatrixEntries
+#        remainder = absIndex
+#        for indexVar in range len(inDictionary['Sampler'].varList):
+#          numPoly = inDictionary['Sampler'].var_poly_order[inDictionary['Sampler'].varList[indexVar]]+1
+#          absIndex remainder = 
+#          for indexPol in range(inDictionary['Sampler'].var_poly_order[inDictionary['Sampler'].varList[indexVar]]+1):
+#            self.moments
+#          
+#        
+        
+        
+ #       print(self.solnIndex[])  
+
+
+#      
+#      #TODO this can be done in one loop; in two right now for simplicity
+#      partCoeffs={}
+#      solns={}
+#      print ('\n\nDebug!  Histories:')
+#      for history in M:
+#        exp_order = tuple(history[1]['exp_order'])
+#        quad_pts = tuple(history[1]['quad_pts'])
+#        pcof = float(history[1]['partial_coeffs'])
+#        ans = float(history[0][0][self.solnIndex])
+#        print ('exp ord',exp_order,'|quad pts',quad_pts,'|part coeff',pcof,'|soln',ans)
+#        if exp_order not in partCoeffs: partCoeffs[exp_order] = {}
+#        if exp_order not in solns: solns[exp_order] = {}
+#        partCoeffs[exp_order][quad_pts] = pcof
+#        solns[exp_order][quad_pts] = ans
+#
+#
+#      self.poly_coeffs={}
+#      for exp_order in partCoeffs.keys():
+#        self.poly_coeffs[exp_order]=0
+#        for quad_pts in partCoeffs[exp_order].keys():
+#          self.poly_coeffs[exp_order] += partCoeffs[exp_order][quad_pts]*solns[exp_order][quad_pts]
+#        print('Coeff for exp order',exp_order,':',self.poly_coeffs[exp_order])
+#      
+#      print('StochasticPolynomials ROM successfully trained.')
+#    else:
+#      print('Reading from non-HDF5 for StochPolys not supported yet...')
+#    return
 
   def evaluate(self,data):
     # valDict is dict of values to evaluate at, keyed on var
@@ -143,12 +200,33 @@ class StochasticPolynomials(superVisioned):
           if k in ke:
             temp = valDict.pop(k)
             valDict[ke] = temp
+
+    tot = 0
+    matrixStructure = np.shape(self.moments)
+    self.moments.shape = (self.totNumMatrixEntries)
+    for absIndex in range(self.totNumMatrixEntries):
+      left = absIndex
+      contribution = 1
+      for indexVar in range(len(self.varList)):
+        varName = self.varList[indexVar]
+        left, myPolyOrder = divmod(left,matrixStructure[indexVar])
+        contribution *= self.distDict[varName].evNormPoly(myPolyOrder,valDict[varName])
+      tot += contribution*self.moments[absIndex]
+    self.moments.shape = matrixStructure
+    
+    print(valDict)
+    print(tot)
+
+
+          
+      
       
     
-    for ords,coeff in self.poly_coeffs:
-#      tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
-#              ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
-      tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(ords,self.distDict[var].std_point(valDict[var])) for v,var in enumerate(valDict)])
+    
+#    for ords,coeff in self.poly_coeffs:
+##      tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
+##              ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
+ #     tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(ords,self.distDict[var].std_point(valDict[var])) for v,var in enumerate(valDict)])
       #TODO revertPt may not always be straightforward to implement!
     return tot
 

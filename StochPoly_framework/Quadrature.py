@@ -74,6 +74,7 @@ class Legendre(Quadrature):
     self.type='Legendre'
     self.quad_pts,self.weights = orth.p_roots(self.order) #points and weights from scipy
     print ('Weights for quad',self,'are',self.weights)
+    print ('Points for quad',self,'are',self.quad_pts)
     self.quad_pts = self.keepReal(self.quad_pts)
     self.keepReal = self.keepReal(self.weights)
 
@@ -146,7 +147,7 @@ class StatHermite(Quadrature):
 class Laguerre(Quadrature):
   def __init__(self,alpha,order):
     self.alpha=alpha
-    Quadrature.__init__(self,order)
+    Quadrature.__init__(self,order=order)
 
   def setQuad(self):
     self.quadType='GenLaguerre'

@@ -3,9 +3,9 @@
 <RunInfo>
     <WorkingDir>./inputs</WorkingDir>
     <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd-0,TMI_PRA_trans_MC_control.py,TMI_PRA_trans_SC_control.py,TMI.i,TMI_SC.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
-    <Sequence>set_up_SC,create_ROM</Sequence>
+    <Sequence>set_up_SC,create_ROM,sample_SC_ROM</Sequence>
     <!--Sequence>set_up_SC,create_ROM,solve_MC,sample_SC_ROM</Sequence-->
-    <batchSize>16</batchSize>
+    <batchSize>8</batchSize>
 </RunInfo>
 
 <Models>
@@ -14,12 +14,12 @@
 </Models>
 <Distributions>
     <Uniform name='Uni1'>
-        <low>-1</low>
-        <hi>1</hi>
+        <low>-2</low>
+        <hi>0</hi>
     </Uniform>
     <Uniform name='Uni2'>
-        <low>-1</low>
-        <hi>1</hi>
+        <low>-2</low>
+        <hi>0</hi>
     </Uniform>
     <Normal name='Gauss1'>
         <mean>8</mean>
@@ -37,9 +37,9 @@
 
 
 <Samplers>
-  <StochasticCollocation name='SC' min_poly_order='2' limit='8'>
-      <Variable type ='Uniform' distName='Uni1' poly_order='2'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
-      <!--Variable type ='Uniform' distName='Uni2' poly_order='2'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable-->
+  <StochasticCollocation name='SC'>
+      <Variable type ='Uniform' distName='Uni1' polyOrder='2'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
+      <Variable type ='Uniform' distName='Uni2' polyOrder='2'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
   <MonteCarlo     name='MC'    limit='6'/>
   <MonteCarlo     name='MCSC'  limit='6'>

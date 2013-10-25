@@ -129,12 +129,28 @@ class Uniform(Distribution):
       #print ('probNorm for',self,'is',self.range)
       return 1.0/self.range
 
+    def getMePoint(pointIndex):
+      return standardToActualPoint(self.distQuad.quad_pts[pointIndex])
+    
+    def actualWeights(pointIndex):
+      return self.distQuad.weights[pointIndex]*self.range/2.
+
+    def evNormPoly(order,coord):
+      return standardToActualWeight(self.distQuad.evNormPoly(order,actualToStandardPoint(coord)))
+
+    self.point=getMePoint
+    self.actualWeights=actualWeights
+    self.evNormPoly=evNormPoly
+
     # point to functions
     self.poly_norm = norm
     self.actual_point = standardToActualPoint
     self.std_point = actualToStandardPoint
     self.actual_weight = standardToActualWeight
     self.probability_norm = probNorm
+    self.point=getMePoint
+    self.actualWeights=actualWeights
+    
 
 
 
@@ -177,6 +193,21 @@ class Normal(Distribution):
 
       def probNorm(x): #normalizes if total prob. != 1
         return 1.0
+
+    
+      def getMePoint(pointIndex):
+        return standardToActualPoint(self.distQuad.quad_pts[pointIndex])
+    
+      def actualWeights(pointIndex):
+        return self.distQuad.weights[pointIndex]/(self.sigma*np.sqrt(2))
+
+      def evNormPoly(order,coord):
+        return standardToActualWeight(self.distQuad.evNormPoly(order,actualToStandardPoint(coord)))
+
+      self.point=getMePoint
+      self.actualWeights=actualWeights
+      self.evNormPoly=evNormPoly
+
 
       self.poly_norm = norm
       self.actual_point = standardToActualPoint

@@ -15,6 +15,7 @@ import Datas
 from BaseType import BaseType
 import xml.etree.ElementTree as ET
 import os
+import math
 #import Queue
 import copy
 import numpy as np
@@ -131,7 +132,7 @@ class StochasticCollocation(Sampler):
   
   def __init__(self):
     Sampler.__init__(self)
-    self.min_poly_order = 0 #lowest acceptable polynomial order
+    self.min_poly_order = 1 #lowest acceptable polynomial order
     self.var_poly_order = dict() #stores poly orders for each var
     self.availableDist = None #container of all available distributions
     self.exp_ctr=0 #helps to get right exp_ord for sampling
@@ -139,17 +140,24 @@ class StochasticCollocation(Sampler):
 
   def initialize(self):
     Sampler.initialize(self)
-    # assign values to undefined order variables
-    if self.min_poly_order>0:
-      if len( set(self.var_poly_order) ^ set(self.distDict) )==0: #keys correspond exactly
-        if sum(self.var_poly_order.values())<self.min_poly_order:
-          raise IOError('Minimum total polynomial order is set greater than sum of all variable orders!')
-      else:
-        r_keys = set(self.distDict) - set(self.var_poly_order) #var orders not set yet
-        r_order = min(len(r_keys),self.min_poly_order-sum(self.var_poly_order.values())) #min remaining order needed
-        for key in r_keys:
-          self.var_poly_order[key]=int(round(0.5+r_order/(len(r_keys))))
-    self.limit=(np.product(self.var_poly_order.values()))**2
+    self.limit =1 
+    for (varName, order) in self.var_poly_order.items():
+      if order < self.min_poly_order: raise IOError ('the order for variable '+str(varName)+' is below the minimum allowed order')
+      #attention here we use the order has the order that should be exactly represented therefore in the moments integral 
+      #it is requested the double of it. If N=number of points 2N-1=2*order so N=ceiling(order+1/2)
+      self.limit *= math.ceil(order+1/2)
+    self.limit = int(self.limit)
+#    # assign values to undefined order variables
+#    if self.min_poly_order>0:
+#      if len( set(self.var_poly_order) ^ set(self.distDict) )==0: #keys correspond exactly
+#        if sum(self.var_poly_order.values())<self.min_poly_order:
+#          raise IOError('Minimum total polynomial order is set greater than sum of all variable orders!')
+#      else:
+#        r_keys = set(self.distDict) - set(self.var_poly_order) #var orders not set yet
+#        r_order = min(len(r_keys),self.min_poly_order-sum(self.var_poly_order.values())) #min remaining order needed
+#        for key in r_keys:
+#          self.var_poly_order[key]=int(round(0.5+r_order/(len(r_keys))))
+#    self.limit=(np.product(self.var_poly_order.values()))**2
     print ('limit is ACTUALLY',self.limit)
     #TODO Shouldn't need to -1 here; where should it happen?
     #tried to put it in Steps, MultiRun.initializeStep, set maxNumberIteration, didn't work.
@@ -165,14 +173,21 @@ class StochasticCollocation(Sampler):
     '''
     #Sampler.readMoreXML(self,xmlNode) # overwritten
     # attempt to set minimum total function polynomial expansion order
-    try: self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
-    except: self.min_poly_order = 0
+    if 'globalPolyOrder' in xmlNode.attrib.keys():
+      self.globalPolyOrder = int(xmlNode.attrib['globalPolyOrder'])
+      providedGlobalPolyOrder = True
+    else:
+      providedGlobalPolyOrder = False
     
     # attempt to set polynomial expansion order for individual params
     for child in xmlNode:
       self.toBeSampled[child.text]    = [child.attrib['type'],child.attrib['distName']]
-      self.var_poly_order[child.text] = int(child.attrib['poly_order'])
-    
+      if providedGlobalPolyOrder and 'polyOrder' in child.attrib.keys():
+        raise IOError('Both by variable and global polynomial order has been provided for sampler '+str(self.name)+' of type '+str(self.type))
+      elif not providedGlobalPolyOrder and 'polyOrder' in child.attrib.keys():
+        self.var_poly_order[child.text] = int(child.attrib['polyOrder'])
+      else:
+        raise IOError('Both by variable and global polynomial order has not been provided for sampler '+str(self.name)+' of type '+str(self.type))    
     # won't work if there's no uncertain variables!
     if len(self.toBeSampled.keys()) == 0:
       raise IOError('No uncertain variables to sample!')
@@ -193,30 +208,71 @@ class StochasticCollocation(Sampler):
       self.quad_ctr=0
       self.exp_ctr+=1
     exp_ords = self.partCoeffs.keys()[self.exp_ctr]
-    quad_pts = self.partCoeffs[exp_ords].keys()[self.quad_ctr]
+#    quad_pts = self.partCoeffs[exp_ords].keys()[self.quad_ctr]
     values={'prefix'        :str(self.counter),
-            'quad_pts'      :quad_pts,
-            'partial_coeffs':self.partCoeffs[exp_ords][quad_pts],
-            'exp_order'     :exp_ords,
+            'quad_pts'      :(self.counter),
+            'partial_coeffs':0,
+            'exp_order'     :self.counter,
            }
+
+#    values={'prefix'        :str(self.counter),
+#            'quad_pts'      :quad_pts,
+#            'partial_coeffs':self.partCoeffs[exp_ords][quad_pts],
+#            'exp_order'     :exp_ords,
+#           }
+#    for var in self.distDict.keys():
+#      values['vars'][var]=self.distDict[var].actual_point(\
+#          quad_pts[self.quad.dict_quads[self.quad.quads[var]]])
+
+    #####################################################################
+#    quad_pts['quad_pts'] = self.counter
     values['vars']={}
-    for var in self.distDict.keys():
-      values['vars'][var]=self.distDict[var].actual_point(\
-          quad_pts[self.quad.dict_quads[self.quad.quads[var]]])
-    print('RUN: counter',self.counter,' | expord',exp_ords,' | quad pts',quad_pts,'\n')
+    for varIndex in range(len(self.varList)):
+      values['vars'][self.varList[varIndex]] = self.pointInfo[self.counter-1]['Coordinate'][varIndex]
+    #####################################################################    
+#    print('RUN: counter',self.counter,' | expord',exp_ords,' | quad pts',quad_pts,'\n')
     return model.createNewInput(myInput,self.type,**values)
 
   def generateQuadrature(self):
     quads={}
+    self.varList=[] #used to generate the sweeping sequence
     for var in self.distDict.keys():
       #TODO see above, this won't work for quads that need addl params
       #  Example: Laguerre, Jacobi
       #  create a dict for addl params lists to *add to quadrature init call?
       #  this for sure works, even if it's empty!
-      quads[var]=self.distDict[var].bestQuad(self.var_poly_order[var])
+      quads[var]=self.distDict[var].bestQuad(order=math.ceil(self.var_poly_order[var]+1/2))
       self.distDict[var].setQuad(quads[var],self.var_poly_order[var])
+      self.varList.append(var)
     self.quad=Quadrature.MultiQuad(quads)
     
+
+    self.pointInfo = [None]*(self.limit)
+    for pointIndex in range(self.limit):
+      pointDict  ={}
+      self.pointInfo[pointIndex] = pointDict
+      left = pointIndex
+      pointDict['Coordinate']   = [None]*len(self.varList)
+      pointDict['Total Weight'] = 1
+      for indexVar in range(len(self.varList)):
+        varName = self.varList[indexVar]
+        left, myCoordinateIndex = divmod(left, math.ceil(self.var_poly_order[varName]+1/2) )
+        pointDict['Coordinate'][indexVar] = self.distDict[varName].point(myCoordinateIndex)
+        pointDict['Total Weight'] *= self.distDict[varName].actualWeights(myCoordinateIndex)#*self.distDict[varName].range/2.
+    
+    print(self.varList)
+    myString = [longName.split('|')[-1] for longName in  self.varList]
+    myString  = '      '.join(myString)
+    myString+='      weight'
+    print(myString)
+    for pointIndex in range(self.limit):
+      valList = ["{:9.6f}".format(val) for val in self.pointInfo[pointIndex]['Coordinate'] ]#      print ('Point '+str(pointIndex+1)+' has total weight '+str(self.pointInfo[pointIndex]['Total Weight'])+' and coordinate')
+      print('          '.join(valList)+'          '+str(self.pointInfo[pointIndex]['Total Weight']))
+      
+
+
+    ##########################################################################################################################################
+    #not needed anymore     
     self.partCoeffs={}
     self.exp_ords=[]
     for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])): #combinations of expansion orders
@@ -232,20 +288,19 @@ class StochasticCollocation(Sampler):
         self.partCoeffs[ords][quad_pt]=weight*poly*probNorm
         # summing over each partCoeffs[ords][quad_pt]*soln[quad_pt] will give poly_coeff[ords]
     #print ('partCoeffs size:',len(self.partCoeffs),len(self.partCoeffs[self.partCoeffs.keys()[0]]))
-#    for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
-#      self.partCoeffs[quad_pt]={}
-#      for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])):
-#        self.partCoeffs[quad_pt][ords]=0
-#        poly=weight=probNorm=1.
-#        for v,var in enumerate(self.distDict):
-#          actVar=self.distDict[var]
-#          poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
-#          # Note we this assumes standardToActualWeight is linear!
-#          probNorm*=actVar.probability_norm(quad_pt[v])
-#        weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
-#        self.partCoeffs[quad_pt][ords]=weight*poly*probNorm
-#        # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
-    return
+    for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
+      self.partCoeffs[quad_pt]={}
+      for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])):
+        self.partCoeffs[quad_pt][ords]=0
+        poly=weight=probNorm=1.
+        for v,var in enumerate(self.distDict):
+          actVar=self.distDict[var]
+          poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
+          # Note we this assumes standardToActualWeight is linear!
+          probNorm*=actVar.probability_norm(quad_pt[v])
+        weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
+        self.partCoeffs[quad_pt][ords]=weight*poly*probNorm
+        # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
 
   def fillDistribution(self,availableDist):
     '''generate the instances of the distribution that will be used'''
