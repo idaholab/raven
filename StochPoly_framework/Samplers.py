@@ -237,10 +237,12 @@ class StochasticCollocation(Sampler):
     quads={}
     self.varList=[] #used to generate the sweeping sequence
     for var in self.distDict.keys():
+      print('variable '+var)
       #TODO see above, this won't work for quads that need addl params
       #  Example: Laguerre, Jacobi
       #  create a dict for addl params lists to *add to quadrature init call?
       #  this for sure works, even if it's empty!
+      print(self.distDict[var].bestQuad)
       quads[var]=self.distDict[var].bestQuad(order=math.ceil(self.var_poly_order[var]+1/2))
       self.distDict[var].setQuad(quads[var],self.var_poly_order[var])
       self.varList.append(var)
@@ -329,7 +331,8 @@ class MonteCarlo(Sampler):
     @ Out, None
     '''
     try: self.init_seed    = xmlNode.attrib['initial_seed']
-    except: self.init_seed = 0 
+    except: self.init_seed = 0
+    np.random.seed(5)
     try: self.limit    = int(xmlNode.attrib['limit'])
     except: raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
     #  stores variables for random sampling  added by nieljw to allow for RELAP5 

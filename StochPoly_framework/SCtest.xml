@@ -22,14 +22,14 @@
         <hi>0</hi>
     </Uniform>
     <Normal name='Gauss1'>
-        <mean>8</mean>
-        <sigma>2</sigma>
+        <mean>2</mean>
+        <sigma>3</sigma>
         <!-- <upperBound>2500</upperBound> -->
         <!-- <lowerBound>0</lowerBound> -->
     </Normal>
     <Normal name='Gauss2'>
-        <mean>14</mean>
-        <sigma>4</sigma>
+        <mean>-3</mean>
+        <sigma>1</sigma>
         <!-- <upperBound>10000000000000000</upperBound> -->
         <!-- <lowerBound>0</lowerBound> -->
     </Normal>
@@ -38,11 +38,13 @@
 
 <Samplers>
   <StochasticCollocation name='SC'>
-      <Variable type ='Uniform' distName='Uni1' polyOrder='2'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
+      <!-- Variable type ='Normal' distName='Gauss1' polyOrder='2'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable-->
+      <!--Variable type ='Normal' distName='Gauss2' polyOrder='3'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable-->
+      <Variable type ='Uniform' distName='Uni1' polyOrder='3'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
       <Variable type ='Uniform' distName='Uni2' polyOrder='2'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
-  <MonteCarlo     name='MC'    limit='6'/>
-  <MonteCarlo     name='MCSC'  limit='6'>
+  <MonteCarlo     name='MC'    initial_seed ='0' limit='6'/>
+  <MonteCarlo     name='MCSC'  initial_seed ='0' limit='6'>
       <Variable type ='Normal' distName='Uni1' >DG1recoveryTime</Variable>
       <Variable type ='Normal' distName='Uni2' >SecPGrecoveryTime</Variable>
   </MonteCarlo>

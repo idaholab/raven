@@ -189,20 +189,21 @@ class Normal(Distribution):
         return (x-self.distribution.mean())/(self.sigma*np.sqrt(2.))
 
       def standardToActualWeight(x): #standard -> actual
-        return x/(self.sigma**2/2.)
+        return x/(self.sigma**2)
 
       def probNorm(x): #normalizes if total prob. != 1
-        return 1.0
+        return 1.0/(np.sqrt(2*np.pi)*self.sigma)
 
     
       def getMePoint(pointIndex):
         return standardToActualPoint(self.distQuad.quad_pts[pointIndex])
     
       def actualWeights(pointIndex):
-        return self.distQuad.weights[pointIndex]/(self.sigma*np.sqrt(2))
+        return self.distQuad.weights[pointIndex]/(self.sigma)
 
       def evNormPoly(order,coord):
-        return standardToActualWeight(self.distQuad.evNormPoly(order,actualToStandardPoint(coord)))
+        return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))*np.sqrt((self.sigma))
+#        return standardToActualWeight(self.distQuad.evNormPoly(order,actualToStandardPoint(coord)))*np.exp(-coord*coord/2.)
 
       self.point=getMePoint
       self.actualWeights=actualWeights

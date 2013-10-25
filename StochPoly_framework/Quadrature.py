@@ -137,7 +137,7 @@ class StatHermite(Quadrature):
       o=np.real(o)
       x=np.real(x)
     except:
-      print(self,'.evNormPoly tried to convert to real but it failed.  Moving on.')
+      print(self,'.evNormPoly tried to convert to real but it failed.  Moving on.')    
     return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(2.*np.pi)*factorial(o))
 
 
