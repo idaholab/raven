@@ -42,10 +42,15 @@ class DateBase(BaseType):
         self.databaseDir = xmlNode.attrib['directory']
       except:
         self.databaseDir = os.path.join(os.getcwd(),'DataBaseStorage')
+      # no sense target param here and operator
       try:
         self.targetParam = str(xmlNode.attrib['targetParam'])
       except:
         self.targetParam = None
+      try:
+        self.operator = str(xmlNode.attrib['operator'])
+      except:
+        self.operator = None
       return
 
     def addInitParams(self,tempDict):

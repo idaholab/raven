@@ -92,6 +92,12 @@ class StochasticPolynomials(superVisioned):
         self.targetParam = data.targetParam
       else:
         raise IOError('No target Parameter for ROM Stochastic Polynomials')
+      if data.operator:
+        self.operator = data.operator
+      else:
+        self.operator = 'end'
+        print ('No operator for ROM Stochastic Polynomials -> assumed "end"')
+
       self.solnIndex=numpy.where(M[0][1]['headers']==self.targetParam)
 
 
@@ -116,8 +122,13 @@ class StochasticPolynomials(superVisioned):
       for history in M:   #loop over the sampled point
         pointIndex = int(history[1]['exp_order'])-1#     history[1]['exp_order'][0] #get the cumulative id of the point
 #        print('reading point '+str(pointIndex))
-
-        ans = float(history[0][history[0][:,0].size - 1][self.solnIndex])  #get the solution
+        #get the solution
+        # here no sense the operator....
+        if self.operator.lower() == 'max':     ans = float(max(history[0][:][self.solnIndex])) 
+        elif self.operator.lower() == 'min':   ans = float(min(history[0][:][self.solnIndex])) 
+        elif self.operator.lower() == 'begin': ans = float(history[0][0][self.solnIndex])  
+        else:                                  ans = float(history[0][history[0][:,0].size - 1][self.solnIndex]) 
+        print('operator '+str(self.operator))
         print('seen solution '+str(ans))
         print(history)
         coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]

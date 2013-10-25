@@ -37,23 +37,31 @@
 
 
 <Samplers>
-  <StochasticCollocation name='SC' min_poly_order='6' initial_seed='5'>
-      <Variable type ='Normal'  distName='crew1DG1'            polyOrder='6'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
-      <Variable type ='Uniform' distName='crew1DG2CoupledDG1'  polyOrder='6'>RavenAuxiliary|crew1DG2CoupledDG1|initial_value</Variable>
-      <Variable type ='Normal'  distName='crewSecPG'           polyOrder='6'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
-      <Variable type ='Normal'  distName='CladFailureDist'     polyOrder='6'>RavenAuxiliary|CladTempBranched|initial_value</Variable>
-      <Variable type ='Normal'  distName='PrimPGrecovery'      polyOrder='6'>RavenAuxiliary|PrimPGrecoveryTime|initial_value</Variable>
-      
+  <StochasticCollocation name='SC' min_poly_order='6'>
+      <Variable type ='Normal'  distName='crew1DG1'            polyOrder='3'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
+      <Variable type ='Uniform' distName='crew1DG2CoupledDG1'  polyOrder='2'>RavenAuxiliary|crew1DG2CoupledDG1|initial_value</Variable>
+      <Variable type ='Normal'  distName='crewSecPG'           polyOrder='3'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
+      <!-- 
+        As input space for the ROM, the Clad FailureDist does not make a lot of sense... But for future pps we want
+        to have this info (in order to compare with the MC calculation). For this reason, in the RAVEN/RELAP7 input 
+        we do not make the code fail when the max temperature of the clad > of the sampled FailureDist, the response of the ROM
+        will not depend on this parameter (even if we set a bool variable to true when maxTemp>LimitTemp)
+      -->
+      <Variable type ='Normal'  distName='CladFailureDist'     polyOrder='3'>RavenAuxiliary|CladTempBranched|initial_value</Variable>
+      <Variable type ='Normal'  distName='PrimPGrecovery'      polyOrder='3'>RavenAuxiliary|PrimPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
-  <MonteCarlo     name='MC'    limit='400' initial_seed='5'>
+  <MonteCarlo     name='MC'    limit='400' initial_seed='20'>
       <!-- 
       <Variable type ='Uniform' distName='Uni1' >RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
       <Variable type ='Uniform' distName='Uni2' >RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
       -->
   </MonteCarlo>
-  <MonteCarlo     name='MCSC'  limit='400' initial_seed='5'>
-      <Variable type ='Uniform' distName='Uni1' >DG1recoveryTime</Variable>
-      <Variable type ='Uniform' distName='Uni2' >SecPGrecoveryTime</Variable>
+  <MonteCarlo     name='MCSC'  limit='400' initial_seed='20'>
+      <Variable type ='Normal'  distName='crew1DG1'            >DG1recoveryTime</Variable>
+      <Variable type ='Uniform' distName='crew1DG2CoupledDG1'  >crew1DG2CoupledDG1</Variable>
+      <Variable type ='Normal'  distName='crewSecPG'           >SecPGrecoveryTime</Variable>
+      <Variable type ='Normal'  distName='CladFailureDist'     >CladTempBranched</Variable>
+      <Variable type ='Normal'  distName='PrimPGrecovery'      >PrimPGrecoveryTime</Variable>
   </MonteCarlo>
 </Samplers>
 
@@ -123,8 +131,8 @@
 </Datas>
 
 <DataBases>
-  <HDF5 name='SC_RUN' type='MC' targetParam='avg_temp_clad_CH1'/>
-  <HDF5 name='SC_OUT' type='MC' targetParam='avg_temp_clad_CH1'/>
+  <HDF5 name='SC_RUN' type='MC' targetParam='avg_temp_clad_CH1' operator='max'/>
+  <HDF5 name='SC_OUT' type='MC' targetParam='avg_temp_clad_CH1' operator='max'/>
 </DataBases>
 
 
