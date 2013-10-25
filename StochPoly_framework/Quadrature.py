@@ -114,7 +114,7 @@ class Hermite(Quadrature):
     self.poly=sps.hermite
 
   def evNormPoly(self,o,x):
-    return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(np.pi**2.)**o*factorial(o))
+    return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(np.pi)*2.**o*factorial(o))
 
 
 
