@@ -190,6 +190,8 @@ class hdf5Database(object):
         # Load the csv into a numpy array(n time steps, n parameters) 
         data = np.loadtxt(f,dtype='float',delimiter=',',ndmin=2)
         # First parent group is the root name
+        testmax = data[:,34]
+        a = max(testmax)
         parent_name = self.parent_group_name.replace('/', '')
         # Create the group
         if parent_name != '/':

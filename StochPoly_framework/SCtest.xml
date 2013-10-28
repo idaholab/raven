@@ -18,6 +18,12 @@
         <low>0</low>
         <hi>30</hi>
     </Uniform>
+    <!--
+    <Gamma name='Uni1'>
+        <low>0</low>
+        <alpha>1</alpha>
+        <beta>1</beta>
+    </Gamma> -->
     <Uniform name='Uni2'>
         <low>0</low>
         <hi>30</hi>
@@ -46,7 +52,7 @@
   </StochasticCollocation>
   <MonteCarlo     name='MC'    initial_seed ='0' limit='6'/>
   <MonteCarlo     name='MCSC'  initial_seed ='0' limit='6'>
-      <Variable type ='Normal' distName='Uni1' >DG1recoveryTime</Variable>
+      <Variable type ='Gamma' distName='Uni1' >DG1recoveryTime</Variable>
       <Variable type ='Normal' distName='Uni2' >SecPGrecoveryTime</Variable>
   </MonteCarlo>
   <MonteCarlo     name='MCSC'  limit='6' initial_seed='5'>
@@ -131,8 +137,8 @@
 </Datas>
 
 <DataBases>
-  <HDF5 name='SC_RUN' type='MC' targetParam='avg_temp_clad_CH1'/>
-  <HDF5 name='SC_OUT' type='MC' targetParam='avg_temp_clad_CH1'/>
+  <HDF5 name='SC_RUN' type='MC' targetParam='avg_temp_clad_CH1' operator='max'/>
+  <HDF5 name='SC_OUT' type='MC' targetParam='avg_temp_clad_CH1' operator='max'/>
 </DataBases>
 
 
