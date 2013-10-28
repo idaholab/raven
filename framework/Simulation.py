@@ -340,7 +340,7 @@ class Simulation(object):
     '''assuming that the file in is already in the self.filesDict it checks the existence'''
     if not os.path.exists(self.filesDict[filein]): raise IOError('The file '+ filein +' has not been found')
 
-  def XMLread(self,xmlNode):
+  def XMLread(self,xmlNode,runInfoSkip = set()):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
     for child in xmlNode:
       if child.tag in self.knownTypes:
@@ -359,7 +359,7 @@ class Simulation(object):
               self.whichDict[Class][name].readXML(childChild)
               if self.debug: self.whichDict[Class][name].printMe()
             else: raise IOError('not found name attribute for one '+Class)
-        else: self.__readRunInfo(child)
+        else: self.__readRunInfo(child,runInfoSkip)
       else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))    
     
   def initialize(self):
@@ -381,10 +381,12 @@ class Simulation(object):
     if self.debug: self.printDicts()
     
 
-  def __readRunInfo(self,xmlNode):
+  def __readRunInfo(self,xmlNode,runInfoSkip):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
-      if   element.tag == 'WorkingDir'        :
+      if element.tag in runInfoSkip:
+        print("WARNING: Skipped element ",element.tag)
+      elif   element.tag == 'WorkingDir'        :
         temp_name = element.text
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = element.text
         else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(element.text)

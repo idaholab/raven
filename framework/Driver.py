@@ -35,7 +35,7 @@ if __name__ == '__main__':
     tree = ET.parse(configFile)
     root = tree.getroot()
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
-      simulation.XMLread(root)
+      simulation.XMLread(root,runInfoSkip=set(["totNumbCores"]))
     else:
       print('WARNING:',configFile,' should only have Simulation and inside it RunInfo')
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     #generate all the components of the simulation
   
     #Call the function to read and construct each single module of the simulation 
-    simulation.XMLread(root)
+    simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]))
   # Initialize the simulation 
   simulation.initialize()
   # Run the simulation 
