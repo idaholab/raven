@@ -138,7 +138,6 @@ class Uniform(Distribution):
     self.distribution = dist.uniform(loc=self.low,scale=self.range)
 
 
-
 class Normal(Distribution):
   def __init__(self):
     Distribution.__init__(self)

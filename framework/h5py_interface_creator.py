@@ -197,12 +197,7 @@ class hdf5Database(object):
       parent_name = self.parent_group_name.replace('/', '')
       # Create the group
       if parent_name != '/':
-        parent_group_name = '-$' # control variable
-        for index in xrange(len(self.allGroupPaths)):
-          test_list = self.allGroupPaths[index].split('/')
-          if test_list[len(test_list)-1] == parent_name:
-            parent_group_name = self.allGroupPaths[index]
-            break
+        parent_group_name = self.__returnParentGroupPath(parent_name)
         # Retrieve the parent group from the HDF5 database
         if parent_group_name in self.h5_file_w: rootgrp = self.h5_file_w.require_group(parent_group_name)
         else: raise ValueError("NOT FOUND group named " + parent_group_name)
@@ -269,28 +264,48 @@ class hdf5Database(object):
     
     # Create the group
     if parent_name != '/':
-      parent_group_name = '-$' # control variable
-      for index in xrange(len(self.allGroupPaths)):
-        test_list = self.allGroupPaths[index].split('/')
-        if test_list[len(test_list)-1] == parent_name:
-          parent_group_name = self.allGroupPaths[index]
-          break
+      parent_group_name = self.__returnParentGroupPath(parent_name)
       # Retrieve the parent group from the HDF5 database
-      if parent_group_name in self.h5_file_w: rootgrp = self.h5_file_w.require_group(parent_group_name)
-      else: raise ValueError("NOT FOUND group named " + parent_group_name)
-      grp_in  = rootgrp.create_group(gname + b'|input_space' )
-      grp_out = rootgrp.create_group(gname + b'|output_space')
+      if parent_group_name in self.h5_file_w: parentgroup_obj = self.h5_file_w.require_group(parent_group_name)
+      else: raise ValueError("NOT FOUND group named " + parentgroup_obj)
+      #grp_in  = rootgrp.create_group(gname + b'|input_space' )
+      #grp_out = rootgrp.create_group(gname + b'|output_space')
     else: 
-      grp_in  = self.h5_file_w.create_group(gname + b'|input_space' )
-      grp_out = self.h5_file_w.create_group(gname + b'|output_space')
-    
+      parentgroup = self.h5_file_w
+      #grp_in  = self.h5_file_w.create_group(gname + b'|input_space' )
+      #grp_out = self.h5_file_w.create_group(gname + b'|output_space')
+    # for a "histories" type we create a number of groups = number of histories (compatibility with loading structure)
     data_in = inputSpace.values()
+    if source['name'].type in ['Histories','TimePointSet']:
+      groups = []
+      for run in range(len(data_in)): 
+        groups.append(parentgroup_obj.create_group(gname + '|' +str(run)))
+        
+        groups[run].attrs['input_space'] = [[headers_in[x].encode() for x in range(len(headers_in))],]
+      
+      
+      
+      
+    elif toaddDictionaryCase:
+      pass
+    else:
+      groups = parentgroup_obj.create_group(gname)
+    
+    
+    
     if isinstance(data_in[0], dict):
       #it is an Histories type
       datain = np.zeros((len(data_in),len(data_in[0].values())))
       headers_in = data_in[0].keys()
+      
       for run in range(len(data_in)):
         for param in range(len(data_in[run].values())): datain[int(run),param] = copy.deepcopy(data_in[run].values()[param])
+
+        
+       
+      
+      
+      
     else:
       data_in = inputSpace.values()
       datain = np.zeros((data_in[0].size,len(data_in)))
@@ -373,11 +388,7 @@ class hdf5Database(object):
       except: raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
       # Find parent group path
       if parent_name != '/':
-        for index in xrange(len(self.allGroupPaths)):
-          test_list = self.allGroupPaths[index].split('/')
-          if test_list[len(test_list)-1] == parent_name:
-            parent_group_name = self.allGroupPaths[index]
-            break
+        parent_group_name = self.__returnParentGroupPath(parent_name)
       else: parent_group_name = parent_name   
       # Retrieve the parent group from the HDF5 database
       if parent_group_name in self.h5_file_w: grp = self.h5_file_w.require_group(parent_group_name)
@@ -762,6 +773,18 @@ class hdf5Database(object):
     fh5 = h5.File(filename,mode)
     self.fileOpen       = True
     return fh5
+  
+  def __returnParentGroupPath(self,parent_name):
+    if parent_name != '/':
+      parent_group_name = '-$' # control variable
+      for index in xrange(len(self.allGroupPaths)):
+        test_list = self.allGroupPaths[index].split('/')
+        if test_list[len(test_list)-1] == parent_name:
+          parent_group_name = self.allGroupPaths[index]
+          break
+    else: parent_group_name = None
+    return parent_group_name
+    
   
 def is_number(s):
   try:

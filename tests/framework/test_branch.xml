@@ -18,12 +18,12 @@
 
 <Models>
     <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
-    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
-    <Filter name='Plot1' type='Plot'> 
+    <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter>
+    <Filter name='Plot1' subType='Plot'> 
       <historyID>ALL</historyID>
       <variables>ALL</variables>
     </Filter>
-    <Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>
+    <!--<Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>-->
 </Models>
 
 <Distributions>
@@ -35,9 +35,9 @@
 
 <Samplers>
   <DynamicEventTree name='DET_test'>
-    <BranchingSettings CPcut='1.0e-100'>
-      <Variable type="Uniform" distName="zeroToOne" BranchProbs='0.1 0.5'>zeroToOne</Variable>
-    </BranchingSettings>
+      <varibale name='zeroToOne' >
+        <distribution type='Uniform' ProbabilityThresholds='0.1 0.5'>zeroToOne</distribution>
+      </varibale>  
   </DynamicEventTree>   
 </Samplers>
 <Tests>
