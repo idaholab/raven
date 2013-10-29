@@ -13,7 +13,7 @@
     <quequingSoftware></quequingSoftware>
     <procByNode></procByNode>
     <numProcByRun></numProcByRun>
-    <totNumbCores></totNumbCores>-->
+    <totalNumCoresUsed></totalNumCoresUsed>-->
 </RunInfo>
 
 <Models>

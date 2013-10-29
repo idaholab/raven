@@ -35,7 +35,7 @@ if __name__ == '__main__':
     tree = ET.parse(configFile)
     root = tree.getroot()
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
-      simulation.XMLread(root,runInfoSkip=set(["totNumbCores"]))
+      simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]))
     else:
       print('WARNING:',configFile,' should only have Simulation and inside it RunInfo')
 

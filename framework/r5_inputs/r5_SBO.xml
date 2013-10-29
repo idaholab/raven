@@ -8,7 +8,7 @@
     <numNode>4</numNode>
     <procByNode>32</procByNode>
     <mode>pbs</mode>
-    <totNumbCores>128</totNumbCores>
+    <totalNumCoresUsed>128</totalNumCoresUsed>
 </RunInfo>
 <Models>
     <Code name='MyRELAP' type='RELAP5'>python RELAP5run.py</Code>

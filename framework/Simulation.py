@@ -66,6 +66,7 @@ class SimulationMode:
     pass
 
 def createAndRunQSUB(simulation):
+  """Generates a PBS qsub command to run the simulation"""
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
   batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
@@ -254,7 +255,7 @@ class Simulation(object):
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded  
     self.runInfoDict['numNode'           ] = 1            # number of nodes
     self.runInfoDict['procByNode'        ] = 1            # number of processors by node
-    self.runInfoDict['totNumbCores'      ] = 1            # total number of cores available
+    self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver 
     self.runInfoDict['quequingSoftware'  ] = ''           # quequing software name 
     self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
@@ -370,7 +371,14 @@ class Simulation(object):
     os.chdir(self.runInfoDict['WorkingDir'])
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
     self.runInfoDict['numProcByRun'] = self.runInfoDict['NumMPI']*self.runInfoDict['NumThreads']
-    self.runInfoDict['totNumbCores'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
+    oldTotalNumCoresUsed = self.runInfoDict['totalNumCoresUsed']
+    self.runInfoDict['totalNumCoresUsed'] = self.runInfoDict['numProcByRun']*self.runInfoDict['batchSize']
+    if self.runInfoDict['totalNumCoresUsed'] < oldTotalNumCoresUsed:
+      #This is used to reserve some cores
+      self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
+    elif oldTotalNumCoresUsed > 1: #If 1, probably just default
+      print("WARNING: overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to",
+            self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
     for key in self.filesDict.keys():
       self.__createAbsPath(key)
@@ -396,8 +404,8 @@ class Simulation(object):
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
       elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
-      elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text)
-      elif element.tag == 'totNumbCores'      : self.runInfoDict['totNumbCores'      ] = int(element.text)
+      #elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text) #Always calculated.
+      elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
