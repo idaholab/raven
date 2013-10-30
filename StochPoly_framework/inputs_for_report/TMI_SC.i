@@ -664,7 +664,6 @@
   output_displaced = false
   exodus = false 
   file_base = TMI_test_PRA_transient_less_w_out
-  exodus = true
   postprocessor_csv = true
   max_pps_rows_screen = 25
 []

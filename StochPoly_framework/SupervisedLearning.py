@@ -124,9 +124,13 @@ class StochasticPolynomials(superVisioned):
 #        print('reading point '+str(pointIndex))
         #get the solution
         # here no sense the operator....
-        if self.operator.lower() == 'max':     ans = float(max(history[0][:,self.solnIndex])) 
-        elif self.operator.lower() == 'min':   ans = float(min(history[0][:,self.solnIndex]))
-        elif self.operator.lower() == 'begin': ans = float(history[0][0,self.solnIndex])  
+        if self.operator.lower() == 'max':
+          temp = history[0][:,self.solnIndex]
+          print(temp)
+          maximum = max(temp)     
+          ans = float(maximum) 
+        elif self.operator.lower() == 'min':   ans = float(min(history[0][:][self.solnIndex])) 
+        elif self.operator.lower() == 'begin': ans = float(history[0][0][self.solnIndex])  
         else:                                  ans = float(history[0][history[0][:,0].size - 1][self.solnIndex]) 
         print('operator '+str(self.operator))
         print('seen solution '+str(ans))

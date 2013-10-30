@@ -140,8 +140,12 @@ class Code(Model):
       pass
     #print('this:',output)
     output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
-    output.printCSV()
+    
     return
+  
+  def finalizeOutput(self,output):
+    output.finalizeOut()
+    output.printCSV()
 
   def __addDataBaseGroup(self,finisishedjob,database):
     # add a group into the database

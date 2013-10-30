@@ -59,6 +59,11 @@ class Data(BaseType):
         except:self.dataParameters['time'] = float(time.split(','))
     except:self.dataParameters['time'] = None
     try:
+      # check if operator information are present... in case, store it
+      operator = xmlNode.attrib['operator']
+      if operator == 'max' or operator == 'min': self.dataParameters['operator'] = operator
+    except:self.dataParameters['operator'] = None
+    try:
       self.print_CSV = bool(xmlNode.attrib['printCSV'])
     except:self.print_CSV = False
     
@@ -118,18 +123,30 @@ class Data(BaseType):
     print('DATAS       : toLoadFrom -> ')
     print(toLoadFrom)
     self.toLoadFromList.append(toLoadFrom)
+    #self.addSpecializedReadingSettings()
+    #sourceType = None
+    #try:    sourceType =  self.toLoadFromList[0].type
+    #except: pass
+        
+    #if(sourceType == 'HDF5'): tupleVar = self.toLoadFromList[0].retrieveData(self.dataParameters)
+    #else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters) 
+    #self.inpParametersValues = copy.deepcopy(tupleVar[0])
+    #self.outParametersValues = copy.deepcopy(tupleVar[1])
+    #self.checkConsistency()
+    return
+  
+  def finalizeOut(self):
     self.addSpecializedReadingSettings()
     sourceType = None
     try:    sourceType =  self.toLoadFromList[0].type
     except: pass
-    
+        
     if(sourceType == 'HDF5'): tupleVar = self.toLoadFromList[0].retrieveData(self.dataParameters)
     else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters) 
     self.inpParametersValues = copy.deepcopy(tupleVar[0])
     self.outParametersValues = copy.deepcopy(tupleVar[1])
     self.checkConsistency()
-    return
-
+    
   def getInpParametersValues(self):
     return self.inpParametersValues  
 

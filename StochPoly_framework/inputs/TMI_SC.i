@@ -644,7 +644,7 @@
   petsc_options_iname = -pc_type
   e_tol = 10.0
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
-  end_time = 130.0
+  end_time = 105.0
   e_max = 99999.
   [./TimeStepper]
     type = FunctionDT

@@ -3,9 +3,10 @@
 <RunInfo>
     <WorkingDir>./inputs_for_report</WorkingDir>
     <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd-0,TMI_PRA_trans_MC_control.py,TMI_PRA_trans_SC_control.py,TMI.i,TMI_SC.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
-    <Sequence>set_up_StochCollocation,create_ROM,solve_MC,sample_SC_ROM</Sequence>
-    <!--Sequence>set_up_SC,create_ROM,solve_MC,sample_SC_ROM</Sequence-->
-    <batchSize>8</batchSize>
+    <Sequence>set_up_StochCollocation,create_ROM,sample_SC_ROM,solve_MC</Sequence>
+    <!--Sequence>set_up_SC,create_ROM,sample_SC_ROM,solve_MC</Sequence-->
+    <mode>pbs</mode>
+    <batchSize>400</batchSize>
 </RunInfo>
 
 <Models>
@@ -108,7 +109,7 @@
 </OutStreams>
 
 <Datas>
-   <TimePointSet name='timepointset_from_database_for_rom_trainer' printCSV='t'>
+   <TimePointSet name='timepointset_from_database_for_rom_trainer' printCSV='t' operator='max'>
         <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
@@ -116,15 +117,15 @@
         <Input name="1">DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePoint>
-   <TimePointSet name='outputMontecarloRom' printCSV='t'>
+   <TimePointSet name='outputMontecarloRom' printCSV='t' operator='max'>
         <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
-    <TimePointSet name='output_solve_MC' printCSV='t'>
+    <TimePointSet name='output_solve_MC' printCSV='t' operator='max'>
         <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
-    <TimePointSet name='output_set_up_StochCollocation' printCSV='t'>
+    <TimePointSet name='output_set_up_StochCollocation' printCSV='t' operator='max'>
         <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>

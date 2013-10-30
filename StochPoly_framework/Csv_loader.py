@@ -70,7 +70,7 @@ class CsvLoader:
     if   options['type'] == 'TimePoint':
       return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'])
     elif options['type'] == 'TimePointSet':
-      return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'])
+      return self.__csvLoaderForTimePointSet(filein,options,options['inParam'],options['outParam'])
     elif options['type'] == 'History':
       return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'])
     elif options['type'] == 'Histories':
@@ -174,11 +174,16 @@ class CsvLoader:
                 raise Exception("ERROR: the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam):
+  def __csvLoaderForTimePointSet(self,filesin,options,inParam,outParam):
     '''
     loader for time point set data type
     filesin = file names
-    time   = time
+    time   = options['time']
+    if not time:
+      time = 'end'
+    operator = options['operator']
+    if operator:
+      time = None
     inParam = parameters to be picked up 
     outParam = parameters to be picked up    
     '''
@@ -186,14 +191,23 @@ class CsvLoader:
       self.all_out_param  = True
     else:
       self.all_out_param = False
-    
-    if (time == 'end') or (not time):
+
+    time   = options['time']
+    operator = options['operator']
+    if operator:
+      time = None 
+   
+    if not time:
       time_end = True
       time_float = -1.0
     else:
-      # convert the time in float
-      time_end = False
-      time_float = float(time)
+      if (time == 'end'):
+        time_end = True
+        time_float = -1.0
+      else:
+        # convert the time in float
+        time_end = False
+        time_float = float(time)
       
     inDict  = {}
     outDict = {}    
@@ -223,6 +237,37 @@ class CsvLoader:
         else:
           raise Exception("ERROR: the parameter " + str(key) + " has not been found")
       # time end case
+      if operator:
+        if self.all_out_param:
+          for key in self.all_field_names:
+            if i == 0:
+              #create numpy array
+              outDict[key] = np.zeros(len(filesin))  
+            if operator.lower() == 'min':
+              temp = data[:,self.all_field_names.index(key)]
+              result  = min(temp)
+            else:
+              temp = data[:,self.all_field_names.index(key)]
+              result  = max(temp)   
+            outDict[key][i] = result
+          continue
+        else:
+          for key in outParam:
+            if key in self.all_field_names:
+              if i == 0:
+                #create numpy array
+                outDict[key] = np.zeros(len(filesin))
+              if operator.lower() == 'min':
+                temp = data[:,self.all_field_names.index(key)]
+                result  = min(temp)
+              else:
+                temp = data[:,self.all_field_names.index(key)]
+                result  = max(temp) 
+
+              outDict[key][i] = result
+            else:
+              raise Exception("ERROR: the parameter " + str(key) + " has not been found")
+          continue   
       if time_end:
         last_row = data[:,0].size - 1
         if self.all_out_param:
