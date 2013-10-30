@@ -222,6 +222,18 @@ DistributionContainer::randGen(std::string DistAlias, double RNG){
      return -1.0;
 
 }
+
+double 
+DistributionContainer::inverseCdf(std::string DistAlias, double RNG) {
+  return randGen(DistAlias,RNG);
+};
+
+double 
+DistributionContainer::inverseCdf(char * DistAlias, double RNG) {
+  return randGen(DistAlias,RNG);
+};
+
+
 std::string DistributionContainer::lastDistributionTriggered(){
   if(atLeastADistTriggered()){
     return _last_dist_triggered;

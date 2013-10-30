@@ -81,6 +81,10 @@ class DistributionContainer{
       */
      double randGen(char * DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
+     /* the inverseCdf functions are just another name for randGen */
+     double inverseCdf(std::string DistAlias, double RNG);
+     double inverseCdf(char * DistAlias, double RNG);
+
      double random(); // return a random number
 
      bool checkCdf(std::string DistAlias, double value);
