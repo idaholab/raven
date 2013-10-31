@@ -136,12 +136,13 @@ class StochasticPolynomials(superVisioned):
 #        print('operator '+str(self.operator))
 #        print('seen solution '+str(ans))
         
-#        coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
+        coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
 #        coord2 = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][1]
 #        sigma = 2
 #        mean = -4
 #        ans = np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
-#        ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
+#        ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((2*np.pi)**(1./4.))*(coord**2-1)
+        ans=coord**2
 #        print('Solution '+str(ans))
         for absIndex in range(totNumMatrixEntries): #loop over all moments
           print('Moment absolute index '+str(absIndex))
@@ -249,15 +250,20 @@ class StochasticPolynomials(superVisioned):
     
 #    coord = valDict[self.varList[0]]
 #    print(coord)
-#    print(tot)
-#    coord = valDict[self.varList[0]]
+    print(tot)
+    coord = valDict[self.varList[0]]
 #    coord2 = valDict[self.varList[1]]
 #    sigma = 2
 #    mean  = -4
 #    ans   = np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
-#    ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
+#    ans = np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
+#    ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((2*np.pi)**(1./4.))*(coord**2-1)
+#    ans=500
+    ans = coord**2
+
 #
-#    print(ans-tot)
+    print(ans)
+    print(ans-tot)
 
 
           

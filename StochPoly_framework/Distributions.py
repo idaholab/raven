@@ -220,13 +220,12 @@ class Normal(Distribution):
         return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))*a
 
       
-      self.gaussPoint        = getMeGaussPoint
-      self.actualWeights     = actualWeights
-      self.evNormPolyonGauss = evNormPolyonGauss
-      self.evNormPolyonHerm  = evNormPolyonInterp
-      self.evNormPolyonInterp = evNormPolyonInterp
-      self.std_Point         = actualToStandardPoint
-      self.actual_Point      = standardToActualPoint
+      self.gaussPoint          = getMeGaussPoint
+      self.actualWeights       = actualWeights
+      self.evNormPolyonGauss   = evNormPolyonGauss
+      self.evNormPolyonInterp  = evNormPolyonInterp
+      self.std_Point           = actualToStandardPoint
+      self.actual_Point        = standardToActualPoint
       
 #here, this are the only function used.......
 
