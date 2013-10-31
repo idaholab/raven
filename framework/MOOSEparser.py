@@ -62,9 +62,8 @@ class MOOSEparser:
     IOfile = open(outfile,'wb')
     for child in self.root:
       IOfile.write(b'['+toBytes(child.tag)+b']\n')
-      try:
+      if child.tail:
         for string in child.tail:IOfile.write(b'  '+string+b'\n')
-      except: pass
       for key in child.attrib.keys(): 
         IOfile.write(b'  '+key+b' = '+toBytes(str(child.attrib[key]))+b'\n')
       for childChild in child:

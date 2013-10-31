@@ -216,7 +216,7 @@ class hdf5Database(object):
       grp.attrs["n_ts"      ] = data[:,0].size
       grp.attrs["EndGroup"  ] = True
       #FIXME should all the exceptions below be except KeyError to allow for other errors to break code?
-      try: grp.attrs["input_file"] = attributes["input_file"]
+      try: grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
       except: pass        
       grp.attrs["source_type"] = source['type']
           

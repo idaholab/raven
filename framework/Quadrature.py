@@ -272,4 +272,4 @@ def returnInstance(Type,debug=False):
   InterfaceDict['Hermite'        ] = Hermite
   InterfaceDict['ShiftLegendre'  ] = ShiftLegendre  
   try: return InterfaceDict[Type](debug=debug)
-  except: raise NameError('not known '+base+' type '+Type)
+  except KeyError: raise NameError('not known '+base+' type '+Type)

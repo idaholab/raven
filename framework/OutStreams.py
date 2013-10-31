@@ -121,7 +121,7 @@ class OutStream(BaseType):
           if not endGroupNames[index] in self.alreadyRead:
             self.histories[endGroupNames[index]] = self.toLoadFromList[0].returnHistory({'history':endGroupNames[index],'filter':'whole'})
             self.alreadyRead.append(endGroupNames[index])
-    except:
+    except AttributeError:
       # loading from file (csv) 
       # Retrieve histories from CSV files
       for index in xrange(len(self.toLoadFromList)):
@@ -536,7 +536,7 @@ def returnInstance(Type):
   @ Out,Instance of the Specialized OutStream class
   '''
   try: return __interFaceDict[Type]()
-  except: raise NameError('not known '+__base+' type '+Type)  
+  except KeyError: raise NameError('not known '+__base+' type '+Type)  
 
 
 

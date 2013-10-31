@@ -70,7 +70,7 @@ def knonwnTypes():
 def returnInstance(Type):
   '''return one instance of Type''' 
   try: return __interFaceDict[Type]()
-  except: raise NameError('not known '+__base+' type '+Type)  
+  except KeyError: raise NameError('not known '+__base+' type '+Type)  
 
 
   

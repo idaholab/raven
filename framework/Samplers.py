@@ -89,9 +89,9 @@ class Sampler(BaseType):
     In case of a code the syntax is specified by the code interface itself
     '''
     try:    self.initSeed = int(xmlNode.attrib['initial_seed'])
-    except: pass
+    except KeyError: pass
     try:    self.limit    = int(xmlNode.attrib['limit'])
-    except: pass
+    except KeyError: pass
     for child in xmlNode:
       for childChild in child:
         if childChild.tag =='distribution':
@@ -896,11 +896,11 @@ class DynamicEventTree(Sampler):
   def localInputAndChecks(self,xmlNode):
 
     try:    self.print_end_xml = (xmlNode.attrib['print_end_xml'].lower() in ['true','t','yes','si','y'])
-    except: self.print_end_xml = False
+    except KeyError: self.print_end_xml = False
 
     # retrieve max simulation time, if inputted
     try:    self.maxSimulTime = children.attrib['maxSimulationTime']
-    except: self.maxSimulTime = None
+    except (KeyError,NameError): self.maxSimulTime = None
     
     # Read branching settings
     #children = xmlNode.find("BranchingSettings")

@@ -280,7 +280,7 @@ def returnFilterInterface(Type):
     @ Out,Instance of the Specialized Filter class
   '''  
   try: return __interFaceDict[Type]()
-  except: raise NameError('not known '+__base+' type '+Type)  
+  except KeyError: raise NameError('not known '+__base+' type '+Type)  
 
 
   

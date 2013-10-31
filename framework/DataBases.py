@@ -41,7 +41,7 @@ class DateBase(BaseType):
     '''
     # Check if a directory has been provided
     try:    self.databaseDir = xmlNode.attrib['directory']
-    except: self.databaseDir = os.path.join(os.getcwd(),'DataBaseStorage')
+    except KeyError: self.databaseDir = os.path.join(os.getcwd(),'DataBaseStorage')
     return
 
   def addInitParams(self,tempDict):
@@ -94,6 +94,7 @@ class HDF5(DateBase):
     self.subtype  = None
     self.exist = False
     self.built = False
+    self.type = "HDF5"
 
   def readMoreXML(self,xmlNode):
     '''
@@ -115,7 +116,7 @@ class HDF5(DateBase):
       file_name = xmlNode.attrib['filename']
       self.database = h5Data(self.name,self.databaseDir,file_name)
       self.exist   = True
-    except:
+    except KeyError:
       self.database = h5Data(self.name,self.databaseDir) 
       self.exist   = False
       
@@ -490,4 +491,6 @@ def returnInstance(Type):
   @ In, type                : class type (string)
   @ Out, class Instance     : instance to that class
   Note: Interface function
-  '''  try: return __interFaceDict[Type]()  except: raise NameError('not known '+__base+' type '+Type)
+  '''
+  try: return __interFaceDict[Type]()
+  except KeyError: raise NameError('not known '+__base+' type '+Type)

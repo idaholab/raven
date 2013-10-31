@@ -218,7 +218,7 @@ class Code(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except: print('MODEL CODE    : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except OSError: print('MODEL CODE    : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles:
       shutil.copy(inputFile,self.workingDir)
     if self.debug: print('MODEL CODE    : original input files copied in the current working dir: '+self.workingDir)
@@ -501,5 +501,5 @@ def knonwnTypes():
 def returnInstance(Type,debug=False):
   '''This function return an instance of the request model type'''
   try: return __interFaceDict[Type]()
-  except: raise NameError('not known '+__base+' type '+Type)
+  except KeyError: raise NameError('not known '+__base+' type '+Type)
   

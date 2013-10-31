@@ -9,7 +9,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 try:
   import Queue as queue
-except:
+except ImportError:
   import queue
 import subprocess
 import os

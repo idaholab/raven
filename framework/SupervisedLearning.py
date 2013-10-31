@@ -15,7 +15,7 @@ import h5py
 from itertools import product as itprod
 try:
   import cPickle as pk
-except:
+except ImportError:
   import pickle as pk
 
 #import DataBases #TODO shouldn't need this, see StochPoly.train() for instance check
@@ -202,5 +202,5 @@ def returnInstance(Type):
   InterfaceDict['SVMscikitLearn'       ] = SVMsciKitLearn
   InterfaceDict['StochasticPolynomials'] = StochasticPolynomials
   try: return InterfaceDict[Type]
-  except: raise NameError('not known '+base+' type '+Type)
+  except KeyError: raise NameError('not known '+base+' type '+Type)
   

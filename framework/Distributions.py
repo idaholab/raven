@@ -34,7 +34,7 @@ class Distribution(BaseType):
     try:
       QuadType = xmlNode.attrib['ExpansionQuadrature']
       self.bestQuad = Quadrature.returnInstance(QuadType)
-    except:
+    except KeyError:
       pass
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
@@ -379,7 +379,7 @@ def knonwnTypes():
 
 def returnInstance(Type):
   try: return __interFaceDict[Type]()
-  except: raise NameError('not known '+__base+' type '+Type)  
+  except KeyError: raise NameError('not known '+__base+' type '+Type)  
 
 
   

@@ -26,7 +26,7 @@ class BaseType(object):
     try: self.type = xmlNode.tag
     except: raise IOError('not found type for the '+self.__class__.__name__+' named '+self.name)
     try: self.debug = bool(xmlNode.attrib['debug'])
-    except: pass
+    except KeyError: pass
     self.readMoreXML(xmlNode)
 
   def readMoreXML(self,xmlNode):

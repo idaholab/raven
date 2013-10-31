@@ -49,7 +49,7 @@ class Data(BaseType):
     self.dataParameters['outParam'] = xmlNode.find('Output').text.strip().split(',')
     # retrieve history name if present
     try:   self.dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
-    except:self.dataParameters['history'] = None
+    except KeyError:self.dataParameters['history'] = None
     try:
       # check if time information are present... in case, store it
       time = xmlNode.attrib['time']
@@ -57,14 +57,14 @@ class Data(BaseType):
       else:
         try:   self.dataParameters['time'] = float(time)
         except:self.dataParameters['time'] = float(time.split(','))
-    except:self.dataParameters['time'] = None
+    except KeyError:self.dataParameters['time'] = None
     try:
       self.print_CSV = bool(xmlNode.attrib['printCSV'])
-    except:self.print_CSV = False
+    except KeyError:self.print_CSV = False
     
     try:
       self.CSVfilename = xmlNode.attrib['CSVfilename']    
-    except:self.CSVfilename = None
+    except KeyError:self.CSVfilename = None
 
   def addInitParams(self,tempDict):
     for i in range(len(self.dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self.dataParameters['inParam' ][i]
@@ -121,7 +121,7 @@ class Data(BaseType):
     self.addSpecializedReadingSettings()
     sourceType = None
     try:    sourceType =  self.toLoadFromList[0].type
-    except: pass
+    except AttributeError: pass
     
     if(sourceType == 'HDF5'): tupleVar = self.toLoadFromList[0].retrieveData(self.dataParameters)
     else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters) 
@@ -335,7 +335,7 @@ class Histories(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
     try: sourceType = self.toLoadFromList[0].type
-    except: sourceType = None
+    except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       self.dataParameters['filter'   ] = "whole"
 
@@ -344,7 +344,7 @@ class Histories(Data):
       Here we perform the consistency check for the structured data Histories
     '''
     try: sourceType = self.toLoadFromList[0].type
-    except: sourceType = None
+    except AttributeError: sourceType = None
     
     if('HDF5' == sourceType):
       eg = self.toLoadFromList[0].getEndingGroupNames()
@@ -470,7 +470,7 @@ def knonwnTypes():
 
 def returnInstance(Type):
   try: return __interFaceDict[Type]()
-  except: raise NameError('not known '+__base+' type '+Type)  
+  except KeyError: raise NameError('not known '+__base+' type '+Type)  
 
 
 
