@@ -40,7 +40,7 @@ class MOOSEparser:
           parents.append(current)
           current      = ET.SubElement(current,name)
           current.tail = []
-          if '#' in line[line.index(']'):]: current.tail.append(line[line.index(b']')+1:].strip(b'\n').lstrip())
+          if b'#' in line[line.index(b']'):]: current.tail.append(line[line.index(b']')+1:].strip(b'\n').lstrip())
       elif len(line)!=0:
         if not line.startswith(b'#'):
           listline = line.split(b'=')
@@ -56,7 +56,7 @@ class MOOSEparser:
       for string in xmlnode.tail if xmlnode.tail else []:
         IOfile.write(b'    '*indentMultiplier+string+b'\n')
       for key in xmlnode.attrib.keys(): 
-        IOfile.write(b'    '*indentMultiplier+toBytes(str(key))+b' = '+toBytes(str(xmlnode.attrib[key]))+b'\n')
+        IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(xmlnode.attrib[key])+b'\n')
 
     if outfile==None: outfile =self.inputfile
     IOfile = open(outfile,'wb')
@@ -65,7 +65,7 @@ class MOOSEparser:
       if child.tail:
         for string in child.tail:IOfile.write(b'  '+string+b'\n')
       for key in child.attrib.keys(): 
-        IOfile.write(b'  '+key+b' = '+toBytes(str(child.attrib[key]))+b'\n')
+        IOfile.write(b'  '+key+b' = '+toBytes(child.attrib[key])+b'\n')
       for childChild in child:
         printSubLevels(childChild,IOfile,1)
         for childChildChild in childChild:

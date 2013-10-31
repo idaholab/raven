@@ -7,6 +7,8 @@ data from csv files
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+if not 'xrange' in dir(__builtins__):
+  xrange = range
 
 import numpy as np
 import csv
