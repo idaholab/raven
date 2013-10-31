@@ -224,6 +224,7 @@ class Normal(Distribution):
       self.actualWeights     = actualWeights
       self.evNormPolyonGauss = evNormPolyonGauss
       self.evNormPolyonHerm  = evNormPolyonInterp
+      self.evNormPolyonInterp = evNormPolyonInterp
       self.std_Point         = actualToStandardPoint
       self.actual_Point      = standardToActualPoint
       

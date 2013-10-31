@@ -5,6 +5,7 @@
     <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd-0,TMI_PRA_trans_MC_control.py,TMI_PRA_trans_SC_control.py,TMI.i,TMI_SC.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
     <Sequence>set_up_SC,create_ROM,sample_SC_ROM</Sequence>
     <!--Sequence>set_up_SC,create_ROM,solve_MC,sample_SC_ROM</Sequence-->
+    <mode>pbs</mode>
     <batchSize>16</batchSize>
 </RunInfo>
 
@@ -50,14 +51,18 @@
       <!--Variable type ='Uniform' distName='Uni1' polyOrder='3'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable-->
       <Variable type ='Uniform' distName='Uni2' polyOrder='2'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
-  <MonteCarlo     name='MC'    initial_seed ='0' limit='6'/>
-  <MonteCarlo     name='MCSC'  initial_seed ='0' limit='6'>
-      <Variable type ='Gamma' distName='Uni1' >DG1recoveryTime</Variable>
-      <Variable type ='Normal' distName='Uni2' >SecPGrecoveryTime</Variable>
+  <MonteCarlo     name='MC'    initial_seed ='5' limit='6'>
+      <Variable type ='Uniform' distName='Uni1' polyOrder='3'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
+      <Variable type ='Uniform' distName='Uni2' polyOrder='2'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
   </MonteCarlo>
-  <MonteCarlo     name='MCSC'  limit='6' initial_seed='5'>
+  <MonteCarlo     name='MCSC'  initial_seed ='5' limit='6'>
+      <Variable type ='Uniform' distName='Uni1' >DG1recoveryTime</Variable>
+      <Variable type ='Uniform' distName='Uni2' >SecPGrecoveryTime</Variable>
+  </MonteCarlo>
+
+<!--  <MonteCarlo     name='MCSC'  limit='6' initial_seed='5'>
       <Variable type ='Normal' distName='Gauss1' polyOrder='2'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
-  </MonteCarlo>
+  </MonteCarlo> -->
 </Samplers>
 
 

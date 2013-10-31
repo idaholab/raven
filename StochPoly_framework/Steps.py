@@ -185,11 +185,12 @@ class MultiRun(Step):
         else:
           break
         time.sleep(0.001)
-    for output in inDictionary['Output']:
-      if "finalizeOut" in dir(output):
-        output.finalizeOut()
-      if "printCSV" in dir(output):
-        output.printCSV()
+    if inDictionary['Model'].type == 'Code':
+      for output in inDictionary['Output']:
+        if "finalizeOut" in dir(output):
+          output.finalizeOut()
+        if "printCSV" in dir(output):
+          output.printCSV()
 
 class SCRun(Step):
   '''this class implement one step of the simulation pattern' where several runs are needed'''

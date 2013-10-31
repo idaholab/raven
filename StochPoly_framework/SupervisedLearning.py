@@ -221,6 +221,7 @@ class StochasticPolynomials(superVisioned):
       valDict = data
     else:
       valDict = data.getInpParametersValues()
+      print(valDict)
       # other temporary fix -.-
       for k in valDict.keys():
         for ke in self.distDict.keys():
@@ -236,6 +237,11 @@ class StochasticPolynomials(superVisioned):
       contribution = 1
       for indexVar in range(len(self.varList)):
         varName = self.varList[indexVar]
+        print('varNAME ====> ' + str(varName))
+        print('self.distDict.keys()')
+        print(self.distDict.keys())
+        print('valDict.keys()')
+        print(valDict.keys())
         left, myPolyOrder = divmod(left,matrixStructure[indexVar])
         contribution *= self.distDict[varName].evNormPolyonInterp(myPolyOrder,valDict[varName])
       tot += contribution*self.moments[absIndex]

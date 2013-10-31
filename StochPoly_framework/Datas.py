@@ -279,7 +279,9 @@ class TimePointSet(Data):
     for i in range(len(outKeys)):
         myFile.write(',' + outKeys[i])
     myFile.write('\n')
-    
+    print('in Datas')
+    print(outValues)
+    print(outValues[0])
     for j in range(outValues[0].size):
       myFile.write(str(j+1))
       for i in range(len(inpKeys)):

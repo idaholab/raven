@@ -110,23 +110,23 @@
 
 <Datas>
    <TimePointSet name='timepointset_from_database_for_rom_trainer' printCSV='t' operator='max'>
-        <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
+        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
    <TimePoint name='data_for_sampling_empty_at_begin'>
-        <Input name="1">DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
+        <Input name="1">DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePoint>
    <TimePointSet name='outputMontecarloRom' printCSV='t' operator='max'>
-        <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
+        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
     <TimePointSet name='output_solve_MC' printCSV='t' operator='max'>
-        <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
+        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
     <TimePointSet name='output_set_up_StochCollocation' printCSV='t' operator='max'>
-        <Input>DG1recoveryTime,DG1recoveryTime,crew1DG2CoupledDG1,DG2recoveryTime,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
+        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,CladTempBranched,PrimPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
 </Datas>

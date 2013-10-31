@@ -353,10 +353,10 @@ class MonteCarlo(Sampler):
     @ In, model: Model object instance
     @ Out, myInputs: Original input files
     '''
+    self.counter += 1
     if self.counter == 1: 
       print('reseeding samplerrrrrr')
       np.random.seed(int(self.init_seed))
-    self.counter += 1
     #evaluate the distributions and fill values{}
     sampledVar = {}
     for key in self.distDict: sampledVar[key]=self.distDict[key].distribution.rvs()

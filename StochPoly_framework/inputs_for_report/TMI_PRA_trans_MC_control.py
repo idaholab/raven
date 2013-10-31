@@ -14,7 +14,8 @@ def restart_function(monitored, controlled, auxiliary):
     
     
     random_n_2 = distcont.random()
-    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
+    auxiliary.crew1DG2CoupledDG1 = distcont.randGen('crew1DG2CoupledDG1',random_n_2)
+    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime*auxiliary.crew1DG2CoupledDG1
     
     
     random_n_3 = distcont.random()
