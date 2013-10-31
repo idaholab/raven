@@ -207,7 +207,7 @@ class StochasticCollocation(Sampler):
     if self.quad_ctr==len(self.quad.quad_pts):
       self.quad_ctr=0
       self.exp_ctr+=1
-    exp_ords = self.partCoeffs.keys()[self.exp_ctr]
+#    exp_ords = self.partCoeffs.keys()[self.exp_ctr]
 #    quad_pts = self.partCoeffs[exp_ords].keys()[self.quad_ctr]
     values={'prefix'        :str(self.counter),
             'quad_pts'      :(self.counter),
@@ -257,7 +257,7 @@ class StochasticCollocation(Sampler):
       for indexVar in range(len(self.varList)):
         varName = self.varList[indexVar]
         left, myCoordinateIndex = divmod(left, math.ceil(self.var_poly_order[varName]+1/2) )
-        pointDict['Coordinate'][indexVar] = self.distDict[varName].point(myCoordinateIndex)
+        pointDict['Coordinate'][indexVar] = self.distDict[varName].gaussPoint(myCoordinateIndex)
         pointDict['Total Weight'] *= self.distDict[varName].actualWeights(myCoordinateIndex)#*self.distDict[varName].range/2.
     
     print(self.varList)
@@ -273,34 +273,34 @@ class StochasticCollocation(Sampler):
 
     ##########################################################################################################################################
     #not needed anymore     
-    self.partCoeffs={}
-    self.exp_ords=[]
-    for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])): #combinations of expansion orders
-      self.partCoeffs[ords]={}
-      for quad_pt in self.quad.indx_quad_pt.values(): #combinations of quadrature points
-        self.partCoeffs[ords][quad_pt]=0
-        poly=weight=probNorm=1.
-        for v,var in enumerate(self.distDict):
-          actVar=self.distDict[var]
-          poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
-          probNorm*=actVar.probability_norm(quad_pt[v])
-        weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
-        self.partCoeffs[ords][quad_pt]=weight*poly*probNorm
-        # summing over each partCoeffs[ords][quad_pt]*soln[quad_pt] will give poly_coeff[ords]
-    #print ('partCoeffs size:',len(self.partCoeffs),len(self.partCoeffs[self.partCoeffs.keys()[0]]))
-    for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
-      self.partCoeffs[quad_pt]={}
-      for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])):
-        self.partCoeffs[quad_pt][ords]=0
-        poly=weight=probNorm=1.
-        for v,var in enumerate(self.distDict):
-          actVar=self.distDict[var]
-          poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
-          # Note we this assumes standardToActualWeight is linear!
-          probNorm*=actVar.probability_norm(quad_pt[v])
-        weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
-        self.partCoeffs[quad_pt][ords]=weight*poly*probNorm
-        # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
+#    self.partCoeffs={}
+#    self.exp_ords=[]
+#    for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])): #combinations of expansion orders
+#      self.partCoeffs[ords]={}
+#      for quad_pt in self.quad.indx_quad_pt.values(): #combinations of quadrature points
+#        self.partCoeffs[ords][quad_pt]=0
+#        poly=weight=probNorm=1.
+#        for v,var in enumerate(self.distDict):
+#          actVar=self.distDict[var]
+#          poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
+#          probNorm*=actVar.probability_norm(quad_pt[v])
+#        weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
+#        self.partCoeffs[ords][quad_pt]=weight*poly*probNorm
+#        # summing over each partCoeffs[ords][quad_pt]*soln[quad_pt] will give poly_coeff[ords]
+#    #print ('partCoeffs size:',len(self.partCoeffs),len(self.partCoeffs[self.partCoeffs.keys()[0]]))
+#    for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
+#      self.partCoeffs[quad_pt]={}
+#      for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])):
+#        self.partCoeffs[quad_pt][ords]=0
+#        poly=weight=probNorm=1.
+#        for v,var in enumerate(self.distDict):
+#          actVar=self.distDict[var]
+#          poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
+#          # Note we this assumes standardToActualWeight is linear!
+#          probNorm*=actVar.probability_norm(quad_pt[v])
+#        weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
+#        self.partCoeffs[quad_pt][ords]=weight*poly*probNorm
+#        # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
 
   def fillDistribution(self,availableDist):
     '''generate the instances of the distribution that will be used'''

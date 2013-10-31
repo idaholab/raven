@@ -111,6 +111,16 @@ class Uniform(Distribution):
       '''Returns normalization constant for polynomial type, given the poly ordeir'''
       return np.sqrt((2.*n+1.)/2.)
 
+#    def standardToActualWeight(x): #standard -> actual
+#      '''Given normal quadrature weight, returns adjusted weight.'''
+#      print ('StA wt for',self,'w_st =',x,'is',x/(self.range/2.))
+#      return x/np.sqrt((self.range/2.))
+
+    def probNorm(x): #normalizes probability if total != 1
+      '''Returns the poly factor to scale by so that sum(probability)=1.'''
+      #print ('probNorm for',self,'is',self.range)
+      return 1.0/self.range
+#from here up to .......
     def standardToActualPoint(x): #standard -> actual
       '''Given a [-1,1] point, converts to parameter value.'''
       return x*self.range/2.+self.distribution.mean()
@@ -119,37 +129,34 @@ class Uniform(Distribution):
       '''Given a parameter value, converts to [-1,1] point.'''
       return (x-self.distribution.mean())/(self.range/2.)
 
-    def standardToActualWeight(x): #standard -> actual
-      '''Given normal quadrature weight, returns adjusted weight.'''
-      print ('StA wt for',self,'w_st =',x,'is',x/(self.range/2.))
-      return x/np.sqrt((self.range/2.))
-
-    def probNorm(x): #normalizes probability if total != 1
-      '''Returns the poly factor to scale by so that sum(probability)=1.'''
-      #print ('probNorm for',self,'is',self.range)
-      return 1.0/self.range
-
-    def getMePoint(pointIndex):
+    def getMeGaussPoint(pointIndex):
+      '''for a given index of the quadrature it return the point value in the standard system'''
       return standardToActualPoint(self.distQuad.quad_pts[pointIndex])
     
     def actualWeights(pointIndex):
-      return self.distQuad.weights[pointIndex]*self.range/2.
+      '''returns the weights on the actual reference system'''
+      return self.distQuad.weights[pointIndex]*np.sqrt(self.range/2.)
 
-    def evNormPoly(order,coord):
-      return standardToActualWeight(self.distQuad.evNormPoly(order,actualToStandardPoint(coord)))
+    def evNormPolyonInterp(order,coord):
+      return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))/np.sqrt(self.range/2.)
 
-    self.point=getMePoint
-    self.actualWeights=actualWeights
-    self.evNormPoly=evNormPoly
+    def evNormPolyonGauss(order,coord):
+      return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))#/np.sqrt(self.range/2.)
 
-    # point to functions
-    self.poly_norm = norm
-    self.actual_point = standardToActualPoint
-    self.std_point = actualToStandardPoint
-    self.actual_weight = standardToActualWeight
-    self.probability_norm = probNorm
-    self.point=getMePoint
-    self.actualWeights=actualWeights
+
+    self.gaussPoint         = getMeGaussPoint
+    self.actualWeights      = actualWeights
+    self.evNormPolyonGauss  = evNormPolyonGauss
+    self.evNormPolyonInterp = evNormPolyonInterp
+    self.std_Point          = actualToStandardPoint
+    self.actual_Point       = standardToActualPoint
+
+
+#here, this are the only function used.......
+#
+#    # point to functions
+#    self.poly_norm = norm
+#    self.probability_norm = probNorm
     
 
 
@@ -179,42 +186,49 @@ class Normal(Distribution):
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self.distribution = dist.norm(loc=self.mean,scale=self.sigma)
       self.polynomial = polys.hermitenorm
-      def norm(n):
-        return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
-
+#      def norm(n):
+#        return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
+#
+#      def standardToActualWeight(x): #standard -> actual
+#        return x/(self.sigma**2)
+#
+#      def probNorm(x): #normalizes if total prob. != 1
+#        return 1.0/(np.sqrt(2*np.pi)*self.sigma)
+      
+#from here up to .......
       def standardToActualPoint(x): #standard -> actual
+        print('standard '+str(x))
+        print('Actual '+str(x*self.sigma*np.sqrt(2.)+self.distribution.mean()))
         return x*self.sigma*np.sqrt(2.)+self.distribution.mean()
 
       def actualToStandardPoint(x): #actual -> standard
         return (x-self.distribution.mean())/(self.sigma*np.sqrt(2.))
-
-      def standardToActualWeight(x): #standard -> actual
-        return x/(self.sigma**2)
-
-      def probNorm(x): #normalizes if total prob. != 1
-        return 1.0/(np.sqrt(2*np.pi)*self.sigma)
-
-    
-      def getMePoint(pointIndex):
+        
+      def getMeGaussPoint(pointIndex):
         return standardToActualPoint(self.distQuad.quad_pts[pointIndex])
     
+    
       def actualWeights(pointIndex):
-        return self.distQuad.weights[pointIndex]/(self.sigma)
+        return self.distQuad.weights[pointIndex]*np.sqrt(self.sigma)/(2**(1./4.))
 
-      def evNormPoly(order,coord):
-        return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))*np.sqrt((self.sigma))
-#        return standardToActualWeight(self.distQuad.evNormPoly(order,actualToStandardPoint(coord)))*np.exp(-coord*coord/2.)
+      def evNormPolyonGauss(order,coord):
+        a=np.exp((coord-self.mean)**2/2./self.sigma**2)
+        return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))*a
 
-      self.point=getMePoint
-      self.actualWeights=actualWeights
-      self.evNormPoly=evNormPoly
+      def evNormPolyonInterp(order,coord):
+        a=np.exp(-(coord-self.mean)**2/2./self.sigma**2)*(2.**(1./4.))/np.sqrt(self.sigma)
+        return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))*a
 
+      
+      self.gaussPoint        = getMeGaussPoint
+      self.actualWeights     = actualWeights
+      self.evNormPolyonGauss = evNormPolyonGauss
+      self.evNormPolyonHerm  = evNormPolyonInterp
+      self.std_Point         = actualToStandardPoint
+      self.actual_Point      = standardToActualPoint
+      
+#here, this are the only function used.......
 
-      self.poly_norm = norm
-      self.actual_point = standardToActualPoint
-      self.std_point = actualToStandardPoint
-      self.actual_weight = standardToActualWeight
-      self.probability_norm = probNorm
     else:
       #FIXME special case distribution for stoch collocation
       if self.lowerBoundUsed == False: a = -sys.float_info[max]

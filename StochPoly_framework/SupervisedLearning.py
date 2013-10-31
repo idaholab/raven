@@ -121,36 +121,45 @@ class StochasticPolynomials(superVisioned):
       
       for history in M:   #loop over the sampled point
         pointIndex = int(history[1]['exp_order'])-1#     history[1]['exp_order'][0] #get the cumulative id of the point
+        print('pointIndex'+str(pointIndex))
 #        print('reading point '+str(pointIndex))
         #get the solution
         # here no sense the operator....
         if self.operator.lower() == 'max':
           temp = history[0][:,self.solnIndex]
-          print(temp)
+#          print(temp)
           maximum = max(temp)     
           ans = float(maximum) 
         elif self.operator.lower() == 'min':   ans = float(min(history[0][:][self.solnIndex])) 
         elif self.operator.lower() == 'begin': ans = float(history[0][0][self.solnIndex])  
         else:                                  ans = float(history[0][history[0][:,0].size - 1][self.solnIndex]) 
-        print('operator '+str(self.operator))
-        print('seen solution '+str(ans))
+#        print('operator '+str(self.operator))
+#        print('seen solution '+str(ans))
         
-        coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
-#        ans = 1
+#        coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
+#        coord2 = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][1]
+#        sigma = 2
+#        mean = -4
+#        ans = np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
+#        ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
 #        print('Solution '+str(ans))
         for absIndex in range(totNumMatrixEntries): #loop over all moments
-#          print('Moment absolute index '+str(absIndex))
+          print('Moment absolute index '+str(absIndex))
           left         = absIndex
           pointContrib = inDictionary['Sampler'].pointInfo[pointIndex]['Total Weight']*ans
-#          print('Weight '+str(pointContrib))
+          print('Weight '+str(pointContrib))
           for indexVar in range(len(inDictionary['Sampler'].varList)):
-#            print('indexVar '+str(indexVar))
+            print('indexVar '+str(indexVar))
             varName = inDictionary['Sampler'].varList[indexVar]
-#            print('varName '+str(varName))
+            print('varName '+str(varName))
             left, myPolyOrder = divmod(left,inDictionary['Sampler'].var_poly_order[varName]+1)
-#            print('myPolyOrder '+str(myPolyOrder))
+            print('myPolyOrder '+str(myPolyOrder))
             varValue = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][indexVar]
-            pointContrib *= inDictionary['Sampler'].distDict[varName].evNormPoly(myPolyOrder,varValue)
+            pointContrib *= inDictionary['Sampler'].distDict[varName].evNormPolyonGauss(myPolyOrder,varValue)
+            print('varName '+str(varName))
+            print('varValue '+str(varValue))
+            print('polyValue '+str(inDictionary['Sampler'].distDict[varName].evNormPolyonGauss(myPolyOrder,varValue)))
+            
           self.moments[absIndex] += pointContrib
  
       self.moments.shape = orderTuple
@@ -208,7 +217,6 @@ class StochasticPolynomials(superVisioned):
   def evaluate(self,data):
     # valDict is dict of values to evaluate at, keyed on var
     #FIXME these need to be adjusted for changes in train()
-    tot=0
     if type(data) == 'dict':
       valDict = data
     else:
@@ -229,13 +237,21 @@ class StochasticPolynomials(superVisioned):
       for indexVar in range(len(self.varList)):
         varName = self.varList[indexVar]
         left, myPolyOrder = divmod(left,matrixStructure[indexVar])
-        contribution *= self.distDict[varName].evNormPoly(myPolyOrder,valDict[varName])
+        contribution *= self.distDict[varName].evNormPolyonInterp(myPolyOrder,valDict[varName])
       tot += contribution*self.moments[absIndex]
     self.moments.shape = matrixStructure
     
-    coord = valDict[self.varList[0]]
-    print(coord)
-    print(tot)
+#    coord = valDict[self.varList[0]]
+#    print(coord)
+#    print(tot)
+#    coord = valDict[self.varList[0]]
+#    coord2 = valDict[self.varList[1]]
+#    sigma = 2
+#    mean  = -4
+#    ans   = np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
+#    ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
+#
+#    print(ans-tot)
 
 
           

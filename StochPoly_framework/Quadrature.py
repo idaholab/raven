@@ -126,6 +126,8 @@ class StatHermite(Quadrature):
     self.quad_pts,self.weights = orth.he_roots(self.order)
     self.quad_pts = self.keepReal(self.quad_pts)
     self.keepReal = self.keepReal(self.weights)
+    print('StatHermite.self.quad_pts'+str(self.quad_pts))
+    print('StatHermite.self.weights'+str(self.weights))
 
   def setDist(self):
   #  self.dist=spst.norm()
