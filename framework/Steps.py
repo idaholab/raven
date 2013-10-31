@@ -12,15 +12,17 @@ if not 'xrange' in dir(__builtins__):
 
 #External Modules------------------------------------------------------------------------------------
 import time
+import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
+from utils import metaclass_insert
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 #----------------------------------------------------------------------------------------------------
-class Step(BaseType):
+class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   '''this class implement one step of the simulation pattern.
   Initialization happens when the method self is called
   A step could be used more times during the same simulation, if it make sense.
@@ -88,13 +90,15 @@ class Step(BaseType):
     inDictionary['jobHandler'].StartingNewStep()
     self.localInitializeStep(inDictionary)
   
+  @abc.abstractmethod
   def localInitializeStep(self,inDictionary):
     '''this is the API for the local initialization of the children classes'''
-    raise NotImplementedError('Model: localInitializeStep')
+    pass
 
+  @abc.abstractmethod
   def localTakeAstepRun(self,inDictionary):
     '''this is the API for the local run of a step for the children classes'''
-    raise NotImplementedError('Model: localTakeAstepRun')
+    pass
 
   def takeAstep(self,inDictionary):
     '''this should work for everybody just split the step in an initialization and the run itself
