@@ -141,15 +141,18 @@ class Uniform(Distribution):
       return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))/np.sqrt(self.range/2.)
 
     def evNormPolyonGauss(order,coord):
-      return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))#/np.sqrt(self.range/2.)
+      return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))
 
-
+    def measure():
+      return 1./(self.range)
+      
     self.gaussPoint         = getMeGaussPoint
     self.actualWeights      = actualWeights
     self.evNormPolyonGauss  = evNormPolyonGauss
     self.evNormPolyonInterp = evNormPolyonInterp
     self.std_Point          = actualToStandardPoint
     self.actual_Point       = standardToActualPoint
+    self.measure            = measure
 
 
 #here, this are the only function used.......
@@ -199,25 +202,29 @@ class Normal(Distribution):
       def standardToActualPoint(x): #standard -> actual
         print('standard '+str(x))
         print('Actual '+str(x*self.sigma*np.sqrt(2.)+self.distribution.mean()))
-        return x*self.sigma*np.sqrt(2.)+self.distribution.mean()
+        return x*self.sigma/np.sqrt(2.)+self.distribution.mean()
 
       def actualToStandardPoint(x): #actual -> standard
-        return (x-self.distribution.mean())/(self.sigma*np.sqrt(2.))
+        return (x-self.distribution.mean())/(self.sigma)*np.sqrt(2.)
         
       def getMeGaussPoint(pointIndex):
         return standardToActualPoint(self.distQuad.quad_pts[pointIndex])
     
     
       def actualWeights(pointIndex):
-        return self.distQuad.weights[pointIndex]*np.sqrt(self.sigma)/(2**(1./4.))
+        print('self.distQuad.weights[pointIndex]/np.sqrt(2.*np.pi*self.sigma*np.sqrt(2.)) '+str(self.distQuad.weights[pointIndex]/np.sqrt(2.*np.pi*self.sigma*np.sqrt(2.))))
+        return self.distQuad.weights[pointIndex]*np.sqrt(self.sigma/np.sqrt(2))
 
       def evNormPolyonGauss(order,coord):
-        a=np.exp((coord-self.mean)**2/2./self.sigma**2)
+        a=np.exp((actualToStandardPoint(coord)/2.)**2)
         return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))*a
 
       def evNormPolyonInterp(order,coord):
-        a=np.exp(-(coord-self.mean)**2/2./self.sigma**2)*(2.**(1./4.))/np.sqrt(self.sigma)
+        a=np.exp(  -(coord-self.distribution.mean())**2/((self.sigma)**2)/2. )*np.sqrt(np.sqrt(2)/self.sigma)
         return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))*a
+      
+      def measure():
+        return 1./self.sigma/2./np.sqrt(np.pi)
 
       
       self.gaussPoint          = getMeGaussPoint
@@ -226,6 +233,7 @@ class Normal(Distribution):
       self.evNormPolyonInterp  = evNormPolyonInterp
       self.std_Point           = actualToStandardPoint
       self.actual_Point        = standardToActualPoint
+      self.measure             = measure
       
 #here, this are the only function used.......
 

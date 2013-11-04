@@ -110,110 +110,57 @@ class StochasticPolynomials(superVisioned):
       for varName in inDictionary['Sampler'].varList:
         print('[inDictionary[Sampler].var_poly_order[varName]+1'+str(inDictionary['Sampler'].var_poly_order[varName]+1))
       orderList  = [inDictionary['Sampler'].var_poly_order[varName]+1   for varName in inDictionary['Sampler'].varList]
-      print('orderList '+str(orderList))
       orderTuple = (orderList)
-      print('orderTuple '+str(orderTuple))
       self.moments = np.zeros(orderTuple)
       totNumMatrixEntries = 1
       for i in orderTuple: totNumMatrixEntries *=i
-      print('totNumMatrixEntries '+str(totNumMatrixEntries))
       self.moments.shape= (totNumMatrixEntries)
       
       for history in M:   #loop over the sampled point
         pointIndex = int(history[1]['exp_order'])-1#     history[1]['exp_order'][0] #get the cumulative id of the point
-        print('pointIndex'+str(pointIndex))
-#        print('reading point '+str(pointIndex))
         #get the solution
         # here no sense the operator....
         if self.operator.lower() == 'max':
           temp = history[0][:,self.solnIndex]
-#          print(temp)
           maximum = max(temp)     
           ans = float(maximum) 
         elif self.operator.lower() == 'min':   ans = float(min(history[0][:][self.solnIndex])) 
         elif self.operator.lower() == 'begin': ans = float(history[0][0][self.solnIndex])  
         else:                                  ans = float(history[0][history[0][:,0].size - 1][self.solnIndex]) 
-#        print('operator '+str(self.operator))
-#        print('seen solution '+str(ans))
-        
-        coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
-#        coord2 = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][1]
-#        sigma = 2
-#        mean = -4
-#        ans = np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
+       
+#        coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
+##        coord2 = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][1]
+#        sigma = 2.
+#        mean = -4.
+#        polFirstOrder = inDictionary['Sampler'].distDict[inDictionary['Sampler'].varList[0]].std_Point(coord)
+#        ans = np.exp(  -(coord-mean)**2/((sigma)**2)/2. )*np.sqrt(np.sqrt(2)/sigma)/((2.*np.pi)**(1/4.))*polFirstOrder
+#        ans = 1
 #        ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((2*np.pi)**(1./4.))*(coord**2-1)
-        ans=coord**2
+#        ans=10
 #        print('Solution '+str(ans))
+
         for absIndex in range(totNumMatrixEntries): #loop over all moments
-          print('Moment absolute index '+str(absIndex))
           left         = absIndex
           pointContrib = inDictionary['Sampler'].pointInfo[pointIndex]['Total Weight']*ans
-          print('Weight '+str(pointContrib))
           for indexVar in range(len(inDictionary['Sampler'].varList)):
-            print('indexVar '+str(indexVar))
             varName = inDictionary['Sampler'].varList[indexVar]
-            print('varName '+str(varName))
             left, myPolyOrder = divmod(left,inDictionary['Sampler'].var_poly_order[varName]+1)
-            print('myPolyOrder '+str(myPolyOrder))
             varValue = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][indexVar]
             pointContrib *= inDictionary['Sampler'].distDict[varName].evNormPolyonGauss(myPolyOrder,varValue)
-            print('varName '+str(varName))
-            print('varValue '+str(varValue))
-            print('polyValue '+str(inDictionary['Sampler'].distDict[varName].evNormPolyonGauss(myPolyOrder,varValue)))
             
           self.moments[absIndex] += pointContrib
+      
+      avg = self.moments[0]
+      for indexVar in range(len(inDictionary['Sampler'].varList)):
+        varName = inDictionary['Sampler'].varList[indexVar]
+        avg *= np.sqrt(inDictionary['Sampler'].distDict[varName].measure())
+      print('The mean value is '+str(avg))
  
       self.moments.shape = orderTuple
       self.totNumMatrixEntries = totNumMatrixEntries
       self.varList = inDictionary['Sampler'].varList
       print(self.moments)
       
-#      quit()
-
-        
-        
-#        absIndex  = totNumMatrixEntries
-#        remainder = absIndex
-#        for indexVar in range len(inDictionary['Sampler'].varList):
-#          numPoly = inDictionary['Sampler'].var_poly_order[inDictionary['Sampler'].varList[indexVar]]+1
-#          absIndex remainder = 
-#          for indexPol in range(inDictionary['Sampler'].var_poly_order[inDictionary['Sampler'].varList[indexVar]]+1):
-#            self.moments
-#          
-#        
-        
-        
- #       print(self.solnIndex[])  
-
-
-#      
-#      #TODO this can be done in one loop; in two right now for simplicity
-#      partCoeffs={}
-#      solns={}
-#      print ('\n\nDebug!  Histories:')
-#      for history in M:
-#        exp_order = tuple(history[1]['exp_order'])
-#        quad_pts = tuple(history[1]['quad_pts'])
-#        pcof = float(history[1]['partial_coeffs'])
-#        ans = float(history[0][0][self.solnIndex])
-#        print ('exp ord',exp_order,'|quad pts',quad_pts,'|part coeff',pcof,'|soln',ans)
-#        if exp_order not in partCoeffs: partCoeffs[exp_order] = {}
-#        if exp_order not in solns: solns[exp_order] = {}
-#        partCoeffs[exp_order][quad_pts] = pcof
-#        solns[exp_order][quad_pts] = ans
-#
-#
-#      self.poly_coeffs={}
-#      for exp_order in partCoeffs.keys():
-#        self.poly_coeffs[exp_order]=0
-#        for quad_pts in partCoeffs[exp_order].keys():
-#          self.poly_coeffs[exp_order] += partCoeffs[exp_order][quad_pts]*solns[exp_order][quad_pts]
-#        print('Coeff for exp order',exp_order,':',self.poly_coeffs[exp_order])
-#      
-#      print('StochasticPolynomials ROM successfully trained.')
-#    else:
-#      print('Reading from non-HDF5 for StochPolys not supported yet...')
-#    return
 
   def evaluate(self,data):
     # valDict is dict of values to evaluate at, keyed on var
@@ -238,44 +185,22 @@ class StochasticPolynomials(superVisioned):
       contribution = 1
       for indexVar in range(len(self.varList)):
         varName = self.varList[indexVar]
-        print('varNAME ====> ' + str(varName))
-        print('self.distDict.keys()')
-        print(self.distDict.keys())
-        print('valDict.keys()')
-        print(valDict.keys())
         left, myPolyOrder = divmod(left,matrixStructure[indexVar])
         contribution *= self.distDict[varName].evNormPolyonInterp(myPolyOrder,valDict[varName])
       tot += contribution*self.moments[absIndex]
     self.moments.shape = matrixStructure
     
 #    coord = valDict[self.varList[0]]
-#    print(coord)
-    print(tot)
-    coord = valDict[self.varList[0]]
-#    coord2 = valDict[self.varList[1]]
-#    sigma = 2
-#    mean  = -4
-#    ans   = np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
-#    ans = np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((np.pi)**(1./4.))*(coord**2-1)
-#    ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((2*np.pi)**(1./4.))*(coord**2-1)
-#    ans=500
-    ans = coord**2
-
+#    print('tot'+str(tot))
+#    print('coord'+str(coord))
+#    sigma = 2.
+#    mean = -4.
+#    ans = np.exp(  -(coord-mean)**2/((sigma)**2)/2. )*np.sqrt(np.sqrt(2)/sigma)/((2.*np.pi)**(1/4.))
+#    ans=1
 #
-    print(ans)
-    print(ans-tot)
-
-
-          
-      
-      
-    
-    
-#    for ords,coeff in self.poly_coeffs:
-##      tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
-##              ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
- #     tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(ords,self.distDict[var].std_point(valDict[var])) for v,var in enumerate(valDict)])
-      #TODO revertPt may not always be straightforward to implement!
+##
+#    print(ans)
+    print('tot '+str(tot))
     return tot
 
   def reset(self,*args):
