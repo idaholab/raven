@@ -472,7 +472,3 @@ def returnInstance(Type):
   return __interFaceDict[Type]()
   raise NameError('not known '+__base+' type '+Type)
   
-  
-  
-  
-  

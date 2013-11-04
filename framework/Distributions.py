@@ -381,7 +381,3 @@ def returnInstance(Type):
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)  
 
-
-  
-  
-  

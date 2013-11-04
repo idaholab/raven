@@ -195,12 +195,14 @@ class SVMsciKitLearn(superVisioned):
   def reset(self):
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']](self.initializzationOptionDict)
 
+__interfaceDict                          = {}
+__interfaceDict['SVMscikitLearn'       ] = SVMsciKitLearn
+__interfaceDict['StochasticPolynomials'] = StochasticPolynomials
+__base                                   = 'superVisioned'
+
+
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
-  base = 'superVisioned'
-  InterfaceDict = {}
-  InterfaceDict['SVMscikitLearn'       ] = SVMsciKitLearn
-  InterfaceDict['StochasticPolynomials'] = StochasticPolynomials
-  try: return InterfaceDict[Type]
-  except KeyError: raise NameError('not known '+base+' type '+Type)
+  try: return __interfaceDict[Type]
+  except KeyError: raise NameError('not known '+__base+' type '+Type)
   

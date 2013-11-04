@@ -260,16 +260,16 @@ def part_ndenum(arr,lvl):
   for i in idx:
     yield i,arr[i]
 
+__interfaceDict                    =  {}
+__interfaceDict['Legendre'       ] = Legendre
+__interfaceDict['MultiQuad'      ] = MultiQuad
+__interfaceDict['Jacobi'         ] = Jacobi
+__interfaceDict['Laguerre'       ] = Laguerre
+__interfaceDict['StatHermite'    ] = StatHermite
+__interfaceDict['Hermite'        ] = Hermite
+__interfaceDict['ShiftLegendre'  ] = ShiftLegendre  
+__base                             = 'Quadrature'
 
 def returnInstance(Type,debug=False):
-  base = 'Quadrature'
-  InterfaceDict = {}
-  InterfaceDict['Legendre'       ] = Legendre
-  InterfaceDict['MultiQuad'      ] = MultiQuad
-  InterfaceDict['Jacobi'         ] = Jacobi
-  InterfaceDict['Laguerre'       ] = Laguerre
-  InterfaceDict['StatHermite'    ] = StatHermite
-  InterfaceDict['Hermite'        ] = Hermite
-  InterfaceDict['ShiftLegendre'  ] = ShiftLegendre  
-  try: return InterfaceDict[Type](debug=debug)
-  except KeyError: raise NameError('not known '+base+' type '+Type)
+  try: return __interfaceDict[Type](debug=debug)
+  except KeyError: raise NameError('not known '+__base+' type '+Type)
