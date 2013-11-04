@@ -127,18 +127,6 @@ class StochasticPolynomials(superVisioned):
         elif self.operator.lower() == 'min':   ans = float(min(history[0][:][self.solnIndex])) 
         elif self.operator.lower() == 'begin': ans = float(history[0][0][self.solnIndex])  
         else:                                  ans = float(history[0][history[0][:,0].size - 1][self.solnIndex]) 
-       
-#        coord = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][0]
-##        coord2 = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][1]
-#        sigma = 2.
-#        mean = -4.
-#        polFirstOrder = inDictionary['Sampler'].distDict[inDictionary['Sampler'].varList[0]].std_Point(coord)
-#        ans = np.exp(  -(coord-mean)**2/((sigma)**2)/2. )*np.sqrt(np.sqrt(2)/sigma)/((2.*np.pi)**(1/4.))*polFirstOrder
-#        ans = 1
-#        ans = coord2**2*np.exp(-((coord-mean)/sigma)**2/2.)/np.sqrt(sigma)/((2*np.pi)**(1./4.))*(coord**2-1)
-#        ans=10
-#        print('Solution '+str(ans))
-
         for absIndex in range(totNumMatrixEntries): #loop over all moments
           left         = absIndex
           pointContrib = inDictionary['Sampler'].pointInfo[pointIndex]['Total Weight']*ans
@@ -190,17 +178,9 @@ class StochasticPolynomials(superVisioned):
       tot += contribution*self.moments[absIndex]
     self.moments.shape = matrixStructure
     
-#    coord = valDict[self.varList[0]]
-#    print('tot'+str(tot))
-#    print('coord'+str(coord))
-#    sigma = 2.
-#    mean = -4.
-#    ans = np.exp(  -(coord-mean)**2/((sigma)**2)/2. )*np.sqrt(np.sqrt(2)/sigma)/((2.*np.pi)**(1/4.))
-#    ans=1
-#
-##
-#    print(ans)
-    print('tot '+str(tot))
+    print('returned value from the sampling of the StPoly .....................')
+    print('input requested .....................'+str(data))
+    print('output computed .....................'+str(tot))
     return tot
 
   def reset(self,*args):
