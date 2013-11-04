@@ -31,7 +31,7 @@ class MOOSEparser:
       line = line.lstrip().strip(b'\n')
       if line.startswith(b'['):
         line = line.strip()
-        if line =='[]' or line =='[../]':
+        if line ==b'[]' or line ==b'[../]':
           current = parents.pop(len(parents)-1)
         else:
 #          name = line.strip(b'[').strip(b']').strip(b'../')
