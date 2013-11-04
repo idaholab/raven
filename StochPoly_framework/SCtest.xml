@@ -5,8 +5,9 @@
     <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd-0,TMI_PRA_trans_MC_control.py,TMI_PRA_trans_SC_control.py,TMI.i,TMI_SC.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
     <Sequence>set_up_SC,create_ROM,sample_SC_ROM</Sequence>
     <!--Sequence>set_up_SC,create_ROM,solve_MC,sample_SC_ROM</Sequence-->
-    <mode>pbs</mode>
+   <!-- <mode>pbs</mode> -->
     <batchSize>16</batchSize>
+   <!-- <mode>pbs</mode> -->
 </RunInfo>
 
 <Models>

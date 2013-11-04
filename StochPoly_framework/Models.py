@@ -145,7 +145,6 @@ class Code(Model):
   
   def finalizeOutput(self,output):
     output.finalizeOut()
-    output.printCSV()
 
   def __addDataBaseGroup(self,finisishedjob,database):
     # add a group into the database
@@ -287,6 +286,7 @@ class ROM(Model):
     '''This method append the ROM evaluation into the output'''
     try: #try is used to be sure input.type exist
       if output.type in ['TimePoint','TimePointSet']:
+        print('IN COLLECT OUTPUT ROM!!!!!!!! for output ' + str(output.name))
         for inputName in self.inputNames:
           if type(self.request) == 'numpy.ndarray':
             output.updateInputValue(inputName,self.request[self.inputNames.index(inputName)])
@@ -302,7 +302,7 @@ class ROM(Model):
             output.updateInputValue(inputName,self.request.getInpParametersValues()[nametouse])
     except: raise IOError('the output of the ROM is requested on a not compatible data')
     output.updateOutputValue(self.outputName,self.output)
-    output.printCSV()
+    print(str(self.output))
 
 
 class Filter(Model):
@@ -395,8 +395,7 @@ class ExternalModel(Model):
       exec('if not (type(self.modelVariableValues[inputName]) == ' + self.modelVariableType[inputName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' mismatches with respect to the inputted one!!!")')
       output.updateInputValue(inputName,self.modelVariableValues[inputName])
     for outName in output.dataParameters['outParam']:
-      output.updateOutputValue(outName,self.modelVariableValues[outName])
-    output.printCSV()    
+      output.updateOutputValue(outName,self.modelVariableValues[outName])   
     
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)

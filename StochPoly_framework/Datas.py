@@ -269,7 +269,15 @@ class TimePointSet(Data):
     
     inpKeys   = self.inpParametersValues.keys()
     inpValues = self.inpParametersValues.values()
+    print('DATAS NAME ' + self.name)
+    print('DATAS inputs ')
+    print(self.inpParametersValues.keys())
+    print(self.inpParametersValues.values())
+    print('DATAS outputs ')
+    print(self.outParametersValues.keys())
+    print(self.outParametersValues.values())
     
+
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
     myFile = open(filenameLocal + '.csv', 'wb')
@@ -279,8 +287,12 @@ class TimePointSet(Data):
     for i in range(len(outKeys)):
         myFile.write(',' + outKeys[i])
     myFile.write('\n')
-    print('in Datas')
+    print('OUTVALUES')
+    print(str(type(outValues)))
     print(outValues)
+    print('OUTVALUES[0]')
+    print(str(type(outValues[0])))
+   
     print(outValues[0])
     for j in range(outValues[0].size):
       myFile.write(str(j+1))
