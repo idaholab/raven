@@ -360,6 +360,7 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
+    #self.inputInfo['sampledVars'] =  self.values
     # create values dictionary
     self.inputInfo['initial_seed'] = str(self.initSeed)
 #
