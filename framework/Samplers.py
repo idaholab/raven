@@ -12,6 +12,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys
 import os
 import copy
+import abc
 import numpy as np
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
@@ -20,9 +21,10 @@ from itertools import product as iterproduct
 
 #Internal Modules------------------------------------------------------------------------------------
 import Quadrature
+from utils import metaclass_insert
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Sampler(BaseType):
+class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   '''
   This is the base class for samplers
   Samplers own the sampling strategy (Type) and they generate the
@@ -100,6 +102,7 @@ class Sampler(BaseType):
 
   def localInputAndChecks(self,xmlNode):
     '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
+    pass
   
   def addInitParams(self,tempDict):
     '''
@@ -136,6 +139,7 @@ class Sampler(BaseType):
 
   def localAddCurrentSetting(self,tempDict):
     '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
+    pass
 
   def generateDistributions(self,availableDist):
     '''used to restart the random number generators of the distributions that will be used
@@ -192,6 +196,7 @@ class Sampler(BaseType):
     self.localGenerateInput(model,oldInput)
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
 
+  @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
     '''
     This class need to be overwritten since it is here that the magic of the sampler happens.
@@ -199,7 +204,7 @@ class Sampler(BaseType):
     @in model   : it is the instance of a model
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
     '''
-    raise NotImplementedError('The sampler of type '+self.type+' seems not yet capable to decide how to sample (localGenerateInput not yet implemented)')
+    pass
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None):
     '''

@@ -67,6 +67,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
       self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.localInputAndChecks(xmlNode)
 
+  #TODO should be abstract
   def localInputAndChecks(self,xmlNode):
     '''place here specialized reading, input consistency check and 
     initialization of what will not change during the whole life of the object
@@ -80,6 +81,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
       tempDict[List[0]] = ' type: '+List[1]+' SubType: '+List[2]+'  Global name: '+List[3]
     self.localAddInitParams(tempDict)
 
+  #TODO should be abstract
   def localAddInitParams(self,tempDict):
     '''place here a specialization of the exporting of what in the step is added to the initial parameters
     the printing format of tempDict is key: tempDict[key]'''

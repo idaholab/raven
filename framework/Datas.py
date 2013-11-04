@@ -14,6 +14,7 @@ from BaseType import BaseType
 from Csv_loader import CsvLoader as ld
 import DataBases
 import copy
+import abc
 import numpy as np
 import utils
 
@@ -25,7 +26,7 @@ class ConstructError(Exception):
 #from hdf5_manager import hdf5Manager as AAFManager
 #import h5py as h5
 
-class Data(BaseType):
+class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def __init__(self,inParamValues = None, outParamValues = None):
     BaseType.__init__(self)
     self.dataParameters = {}                # in here we store all the data parameters (inputs params, output params,etc) 
@@ -85,18 +86,20 @@ class Data(BaseType):
   def updateOutputValue(self,name,value):
     self.updateSpecializedOutputValue(name,value)
 
+  @abc.abstractmethod
   def addSpecializedReadingSettings(self):
     '''
       This function is used to add specialized attributes to the data in order to retrieve the data properly.
       Every specialized data needs to overwrite it!!!!!!!!
     '''
-    raise NotImplementedError('DATAS     : ERROR -> The data of type '+self.type+' seems not to have a addSpecializedReadingSettings method overloaded!!!!')
+    pass
 
+  @abc.abstractmethod
   def checkConsistency(self):
     '''
       This function checks the consistency of the data structure... every specialized data needs to overwrite it!!!!!
     '''
-    raise NotImplementedError('DATAS     : ERROR -> The data of type '+self.type+' seems not to have a checkConsistency method overloaded!!!!')
+    pass
 
   def printCSV(self):
     # print content of data in a .csv format
