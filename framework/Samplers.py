@@ -143,7 +143,7 @@ class Sampler(BaseType):
     In case no seed is specified a random seed is used.
     @in availableDist: {'distribution name':instance}
     '''
-    if self.initSeed==None: self.initSeed = np.random.random_integers(0,sys.maxint.bit_length())
+    if self.initSeed==None: self.initSeed = np.random.random_integers(0,sys.maxsize.bit_length())
     np.random.seed(self.initSeed)
     for key in self.toBeSampled.keys():
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]

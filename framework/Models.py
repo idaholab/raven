@@ -136,9 +136,8 @@ class ExternalModel(Model):
         if os.path.exists(abspath): os.sys.path.append(abspath)
         else: raise IOError('MODEL EXTERNAL: ERROR -> The path provided for the external model does not exist!!! Got ' + abspath)
     else: raise IOError('MODEL EXTERNAL: ERROR -> ModuleToLoad not provided for module externalModule')
-    exec('import ' + self.ModuleToLoad + ' as sim')
-    # point to the external module
-    self.sim=sim
+    # load the external module and point it to self.sim
+    self.sim=__import__(self.ModuleToLoad)
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':

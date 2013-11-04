@@ -3,9 +3,14 @@ Created on May 8, 2013
 
 @author: mandd
 '''
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+if not 'xrange' in dir(__builtins__):
+  xrange = range
+#End compatibility block for Python 3----------------------------------------------------------------
+
 
 #import xml.etree.ElementTree as ET
 import numpy as np
@@ -130,7 +135,7 @@ class OutStream(BaseType):
           # open file
           myFile = open (self.toLoadFromList[index],'rb')
           # read the field names
-          all_field_names = myFile.readline().split(',')
+          all_field_names = myFile.readline().split(b',')
           # load the table data (from the csv file) into a numpy nd array 
           data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
           # close file

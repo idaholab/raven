@@ -15,6 +15,7 @@ from Csv_loader import CsvLoader as ld
 import DataBases
 import copy
 import numpy as np
+import utils
 
 # Custom exceptions
 class NotConsistentData(Exception):
@@ -250,26 +251,26 @@ class TimePointSet(Data):
 
   def specializedPrintCSV(self,filenameLocal): 
     
-    inpKeys   = self.inpParametersValues.keys()
-    inpValues = self.inpParametersValues.values()
+    inpKeys   = list(self.inpParametersValues.keys())
+    inpValues = list(self.inpParametersValues.values())
     
-    outKeys   = self.outParametersValues.keys()
-    outValues = self.outParametersValues.values()
+    outKeys   = list(self.outParametersValues.keys())
+    outValues = list(self.outParametersValues.values())
     myFile = open(filenameLocal + '.csv', 'wb')
-    myFile.write('counter')
+    myFile.write(b'counter')
     for i in range(len(inpKeys)):
-        myFile.write(',' + inpKeys[i])
+        myFile.write(b',' + utils.toBytes(inpKeys[i]))
     for i in range(len(outKeys)):
-        myFile.write(',' + outKeys[i])
-    myFile.write('\n')
+        myFile.write(b',' + utils.toBytes(outKeys[i]))
+    myFile.write(b'\n')
     
     for j in range(outValues[0].size):
-      myFile.write(str(j+1))
+      myFile.write(utils.toBytes(str(j+1)))
       for i in range(len(inpKeys)):
-        myFile.write(',' + str(inpValues[i][j]))
+        myFile.write(b',' + utils.toBytes(str(inpValues[i][j])))
       for i in range(len(outKeys)):
-        myFile.write(',' + str(outValues[i][j]))
-      myFile.write('\n')
+        myFile.write(b',' + utils.toBytes(str(outValues[i][j])))
+      myFile.write(b'\n')
       
     myFile.close()
 
@@ -383,7 +384,7 @@ class Histories(Data):
       if len(self.inpParametersValues.keys()) == 0: self.inpParametersValues[1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
       else:
         hisn = max(self.inpParametersValues.keys())
-        if self.inpParametersValues.values()[-1].has_key(name): 
+        if name in list(self.inpParametersValues.values())[-1]: 
           hisn += 1
           self.inpParametersValues[hisn] = {}
         self.inpParametersValues[hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
@@ -405,7 +406,7 @@ class Histories(Data):
       if len(self.outParametersValues.keys()) == 0: self.outParametersValues[1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
       else:
         hisn = max(self.outParametersValues.keys())
-        if self.outParametersValues.values()[-1].has_key(name): 
+        if name in list(self.outParametersValues.values())[-1]: 
           hisn += 1
           self.outParametersValues[hisn] = {}
         self.outParametersValues[hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
@@ -413,44 +414,44 @@ class Histories(Data):
   def specializedPrintCSV(self,filenameLocal):
     
     inpKeys   = self.inpParametersValues.keys()
-    inpValues = self.inpParametersValues.values()
+    inpValues = list(self.inpParametersValues.values())
     outKeys   = self.outParametersValues.keys()
-    outValues = self.outParametersValues.values()
+    outValues = list(self.outParametersValues.values())
     
     for n in range(len(outKeys)):
       file = open(filenameLocal + '_'+ str(n) + '.csv', 'wb')
   
-      inpKeys_h   = inpValues[n].keys()
-      inpValues_h = inpValues[n].values()
-      outKeys_h   = outValues[n].keys()
-      outValues_h = outValues[n].values()
+      inpKeys_h   = list(inpValues[n].keys())
+      inpValues_h = list(inpValues[n].values())
+      outKeys_h   = list(outValues[n].keys())
+      outValues_h = list(outValues[n].values())
 
 
       for i in range(len(inpKeys_h)):
-        if i == 0 : prefix = ''
-        else:       prefix = ','
-        file.write(prefix + inpKeys_h[i])
-      file.write('\n')
+        if i == 0 : prefix = b''
+        else:       prefix = b','
+        file.write(prefix + utils.toBytes(inpKeys_h[i]))
+      file.write(b'\n')
       
       for i in range(len(inpKeys_h)):
-        if i == 0 : prefix = ''
-        else:       prefix = ','
-        file.write(prefix + str(inpValues_h[i][0]))
-      file.write('\n')
+        if i == 0 : prefix = b''
+        else:       prefix = b','
+        file.write(prefix + utils.toBytes(str(inpValues_h[i][0])))
+      file.write(b'\n')
       
       #Print time + output values
       for i in range(len(outKeys_h)):
-        if i == 0 : prefix = ''
-        else:       prefix = ','
-        file.write(outKeys_h[i] + ',')
-      file.write('\n')
+        if i == 0 : prefix = b''
+        else:       prefix = b','
+        file.write(utils.toBytes(outKeys_h[i]) + b',')
+      file.write(b'\n')
   
       for j in range(outValues_h[0].size):
         for i in range(len(outKeys_h)):
-          if i == 0 : prefix = ''
-          else:       prefix = ','
-          file.write(prefix+ str(outValues_h[i][j]))
-        file.write('\n')    
+          if i == 0 : prefix = b''
+          else:       prefix = b','
+          file.write(prefix+ utils.toBytes(str(outValues_h[i][j])))
+        file.write(b'\n')    
       
       file.close()
    
