@@ -637,7 +637,10 @@
   petsc_options_value = lu # '300'
   l_max_its = 100 # Number of linear iterations for each Krylov solve
   start_time = 100.0
-  predictor_scale = 0.6
+  [./Predictor]
+    type = SimplePredictor
+    scale = 0.6
+  [../]
   dtmax = 9999
   nl_rel_step_tol = 1e-3
   dt = 5e-5
