@@ -148,12 +148,11 @@ class CsvLoader:
       
       for i in data:
         if data[i,0] >= time_float and time_float >= 0.0:
-          try:
+          if i-1 >= 0:
             previous_time = data[i-1,0]
-            actual_time   = data[i,0]
-          except:
+          else:
             previous_time = data[i,0]
-            actual_time   = data[i,0]          
+          actual_time   = data[i,0]          
           if self.all_out_param:
             for key in self.all_field_names:
               if(actual_time == previous_time):
@@ -247,12 +246,11 @@ class CsvLoader:
         
         for i in data:
           if data[i,0] >= time_float and time_float >= 0.0:
-            try:
+            if i-1 >= 0:
               previous_time = data[i-1,0]
-              actual_time   = data[i,0]
-            except:
+            else:
               previous_time = data[i,0]
-              actual_time   = data[i,0]          
+            actual_time   = data[i,0]          
             if self.all_out_param:
               for key in self.all_field_names:
                 if(actual_time == previous_time):

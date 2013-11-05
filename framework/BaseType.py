@@ -21,12 +21,13 @@ class BaseType(object):
        Each type supported by the simulation should have:
        name (xml attribute), type (xml tag)
     '''
-    try:    self.name = xmlNode.attrib['name']
-    except: raise IOError('not found name for a '+self.__class__.__name__)
-    try: self.type = xmlNode.tag
-    except: raise IOError('not found type for the '+self.__class__.__name__+' named '+self.name)
-    try: self.debug = bool(xmlNode.attrib['debug'])
-    except KeyError: pass
+    if 'name' in xmlNode.attrib:
+      self.name = xmlNode.attrib['name']
+    else: raise IOError('not found name for a '+self.__class__.__name__)
+    self.type = xmlNode.tag
+    # except? raise IOError('not found type for the '+self.__class__.__name__+' named '+self.name) #If we figure out how this happens, renable with more specific exception
+    if 'debug' in xmlNode.attrib:
+      self.debug = bool(xmlNode.attrib['debug'])
     self.readMoreXML(xmlNode)
 
   def readMoreXML(self,xmlNode):

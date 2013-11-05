@@ -53,7 +53,7 @@ class RavenInterface:
     if 'prefix' not in Kwargs['prefix']:
       raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
     #try: qps = Kwargs['qps']
-    #except: raise IOError('a qp index is required for the StochColl sampler for RAVEN')
+    #except? raise IOError('a qp index is required for the StochColl sampler for RAVEN')
     listDict = []
     varValDict = Kwargs['vars'] #come in as a string of a list, need to re-list
     #print('\nvarValDict type:',type(varValDict),varValDict,'\n')
@@ -71,10 +71,12 @@ class RavenInterface:
     return listDict
 
   def MonteCarloForRAVEN(self,**Kwargs):
-    try: counter = Kwargs['prefix']
-    except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
-    try: init_seed = Kwargs['initial_seed']
-    except: init_seed = 1
+    if 'prefix' in Kwargs: counter = Kwargs['prefix']
+    else: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
+    if 'initial_seed' in Kwargs:
+      init_seed = Kwargs['initial_seed']
+    else:
+      init_seed = 1
 
     listDict = []
     modifDict = {}
@@ -287,8 +289,8 @@ class RelapInterface:
     modifDict = {}
     for keys in Kwargs['SampledVars']:
       key = keys.split(':')
-      try:    Kwargs['SampledVars'][keys]['position'] = int(key[1])
-      except: Kwargs['SampledVars'][keys]['position'] = 0
+      if len(key) > 1:    Kwargs['SampledVars'][keys]['position'] = int(key[1])
+      else: Kwargs['SampledVars'][keys]['position'] = 0
       modifDict[key[0]]=Kwargs['SampledVars'][keys]
     return modifDict
     
