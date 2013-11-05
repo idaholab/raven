@@ -67,7 +67,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
       self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.localInputAndChecks(xmlNode)
 
-  #TODO should be abstract
+  @abc.abstractmethod
   def localInputAndChecks(self,xmlNode):
     '''place here specialized reading, input consistency check and 
     initialization of what will not change during the whole life of the object
@@ -81,7 +81,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
       tempDict[List[0]] = ' type: '+List[1]+' SubType: '+List[2]+'  Global name: '+List[3]
     self.localAddInitParams(tempDict)
 
-  #TODO should be abstract
+  @abc.abstractmethod
   def localAddInitParams(self,tempDict):
     '''place here a specialization of the exporting of what in the step is added to the initial parameters
     the printing format of tempDict is key: tempDict[key]'''
@@ -145,6 +145,14 @@ class SingleRun(Step):
     else:
       for output in inDictionary['Output']:
         inDictionary['Model'].collectOutput(None,output)
+
+  def localInputAndChecks(self,xmlNode):
+    #TODO implement
+    pass
+
+  def localAddInitParams(self,tempDict):
+    #TODO implement
+    pass
 
 
 #----------------------------------------------------------------------------------------------------
@@ -305,6 +313,13 @@ class InOutFromDataBase(Step):
         inDictionary['Output'][i].addGroupDatas(inDictionary['Input'][i])
     return
 
+  def localAddInitParams(self,tempDict):
+    #TODO implement
+    pass
+
+  def localInputAndChecks(self,xmlNode):
+    #TODO implement
+    pass
 
 #----------------------------------------------------------------------------------------------------
 class RomTrainer(Step):
@@ -340,6 +355,13 @@ class RomTrainer(Step):
       inDictionary['Output'][i].close()
     return
 
+  def localAddInitParams(self,tempDict):
+    #TODO implement
+    pass
+
+  def localInputAndChecks(self,xmlNode):
+    #TODO implement
+    pass
 
 #----------------------------------------------------------------------------------------------------
 class PlottingStep(Step):
@@ -361,7 +383,13 @@ class PlottingStep(Step):
   def localTakeAstepRun(self,inDictionary):
     pass
    
+  def localAddInitParams(self,tempDict):
+    #TODO implement
+    pass
 
+  def localInputAndChecks(self,xmlNode):
+    #TODO implement
+    pass
 
 #----------------------------------------------------------------------------------------------------
 class SCRun(Step):
@@ -458,6 +486,14 @@ class SCRun(Step):
 #      output.finalize()
 #    print('HERE',inDictionary.keys())
     #if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
+  
+  def localAddInitParams(self,tempDict):
+    #TODO implement
+    pass
+
+  def localInputAndChecks(self,xmlNode):
+    #TODO implement
+    pass
 
 
 __interFaceDict                      = {}
