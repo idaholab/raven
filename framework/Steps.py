@@ -56,7 +56,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   def __init__(self):
     BaseType.__init__(self)
     self.parList  = []    #list of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
-    self.typeDict = {}    #for each role of the step the corresponding  used type
+    self.__typeDict = {}    #for each role of the step the corresponding  used type
 
   def readMoreXML(self,xmlNode):
     '''add the readings for who plays the step roles

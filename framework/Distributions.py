@@ -25,7 +25,7 @@ class Distribution(BaseType):
     self.lowerBoundUsed = False  #True if the distribution is left truncated
     self.upperBound       = 0.0  #Right bound
     self.lowerBound       = 0.0  #Left bound
-    self.adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
+    self.__adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.bestQuad         = None #the quadrature that best integrate the distribution
     
   def readMoreXML(self,xmlNode):
@@ -43,16 +43,16 @@ class Distribution(BaseType):
       self.lowerBound = float(xmlNode.find('lowerBound').text)
       self.lowerBoundUsed = True
     if xmlNode.find('adjustment') !=None:
-      self.adjustment = xmlNode.find('adjustment').text
+      self.__adjustment = xmlNode.find('adjustment').text
     else:
-      self.adjustment = 'scaling'
+      self.__adjustment = 'scaling'
 
   def addInitParams(self,tempDict):
     tempDict['upperBoundUsed'] = self.upperBoundUsed
     tempDict['lowerBoundUsed'] = self.lowerBoundUsed
     tempDict['upperBound'    ] = self.upperBound
     tempDict['lowerBound'    ] = self.lowerBound
-    tempDict['adjustmentType'] = self.adjustmentType
+    tempDict['adjustmentType'] = self.__adjustmentType
     tempDict['bestQuad'      ] = self.bestQuad
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
@@ -65,15 +65,15 @@ class Distribution(BaseType):
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def setQuad(self,quad,exp_order):
-    self.distQuad=quad
-    self.exp_order=exp_order
+    self.__distQuad=quad
+    self.__exp_order=exp_order
 
   def quad(self):
-    try: return self.distQuad
+    try: return self.__distQuad
     except: raise IOError ('No quadrature has been set for this distr. yet.')
 
   def polyOrder(self):
-    try: return self.exp_order
+    try: return self.__exp_order
     except: raise IOError ('Quadrature has not been set for this distr. yet.')
 
 #==============================================================\
