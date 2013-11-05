@@ -56,7 +56,7 @@ class SimulationMode:
     try:
       if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
         print("WARNING cpu_count",multiprocessing.cpu_count()," < batchSize ",self.__simulation.runInfoDict['batchSize'])
-    except:
+    except NotImplementedError:
       pass
 
   def XMLread(self,xmlNode):

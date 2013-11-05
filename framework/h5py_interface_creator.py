@@ -216,8 +216,8 @@ class hdf5Database(object):
       grp.attrs["n_ts"      ] = data[:,0].size
       grp.attrs["EndGroup"  ] = True
       #FIXME should all the exceptions below be except KeyError to allow for other errors to break code?
-      try: grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
-      except: pass        
+      if "input_file" in attributes:
+        grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
       grp.attrs["source_type"] = source['type']
           
       if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
@@ -233,8 +233,8 @@ class hdf5Database(object):
                      'exp_order'                 :'exp_order',
                      }
       for attr in attempt_attr.keys():
-        try: grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
-        except KeyError: pass
+        if attempt_attr[attr] in attributes:
+          grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
     else:
       # do something else
       pass
@@ -344,8 +344,10 @@ class hdf5Database(object):
       # Check if the parent attribute is not null
       # In this case append a subgroup to the parent group
       # Otherwise => it's the main group
-      try: parent_name = attributes["parent_id"]
-      except: raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
+      if "parent_id" in attributes:
+        parent_name = attributes["parent_id"]
+      else:
+        raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
       # Find parent group path
       if parent_name != '/':
         parent_group_name = self.__returnParentGroupPath(parent_name)
@@ -370,8 +372,8 @@ class hdf5Database(object):
       sgrp.attrs["n_ts"      ] = data[:,0].size
       sgrp.attrs["EndGroup"  ] = True
 
-      try: sgrp.attrs["input_file"] = attributes["input_file"]
-      except: pass
+      if "input_file" in attributes:
+        sgrp.attrs["input_file"] = attributes["input_file"]
       sgrp.attrs["source_type"] = source['type']
       if source['type'] == 'csv': sgrp.attrs["source_file"] = source['name']
       #look for keyword attributes from the sampler
@@ -385,8 +387,8 @@ class hdf5Database(object):
                      'exp_order'                 :'exp_order',
                      }
       for attr in attempt_attr.keys():
-        try: sgrp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
-        except KeyError: pass
+        if attempt_attr[attr] in attributes:
+          sgrp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
     else:
       # do something else
       pass
@@ -516,8 +518,9 @@ class hdf5Database(object):
         if back <= 0: back = 1
           
         i=0
+        #Question, should all the "" be removed, or just the first?
         try: list_path.remove("")
-        except: pass
+        except ValueError:  pass #Not found.
         # Find the paths for the completed history
         while (i < back):
           path_w = ''
@@ -566,46 +569,21 @@ class hdf5Database(object):
         attrs["source_type"]     = gb_attrs[0]["source_type"]
         attrs["input_file"]      = []
         attrs["source_file"]     = []
-        try:
-          par = gb_attrs[0]["branch_changed_param"]
-          attrs["branch_changed_param"]    = []
-        except: pass
-        try:
-          par = gb_attrs[0]["conditional_prb"]
-          attrs["conditional_prb"] = []
-        except: pass
-        try:
-          par2 = gb_attrs[0]["branch_changed_param_value"]
-          attrs["branch_changed_param_value"]    = []
-        except: pass
-        try:
-          par3 = gb_attrs[0]["initiator_distribution"]
-          attrs["initiator_distribution"]    = []
-        except: pass
-        try:
-          par4 = gb_attrs[0]["Probability_threshold"]
-          attrs["Probability_threshold"]    = []
-        except: pass
-        try:
-          par5 = gb_attrs[0]["end_timestep"]
-          attrs["end_timestep"]    = []
-        except: pass                    
+        for param_key in ["branch_changed_param","conditional_prb",
+                          "branch_changed_param_value",
+                          "initiator_distribution","Probability_threshold",
+                          "end_timestep"]:
+          if param_key in gb_attrs[0]:
+            attrs[param_key] = []
         for key in gb_res:
-          try: attrs["input_file"].append(gb_attrs[key]["input_file"])
-          except: pass  
+          for param_key in ["input_file","branch_changed_param",
+                            "conditional_prb","branch_changed_param_value",
+                            "initiator_distribution","Probability_threshold",
+                            "end_timestep"]:
+            if param_key in gb_attrs[key]:
+              attrs[param_key].append(gb_attrs[key][param_key])
           if attrs["source_type"] == 'csv': attrs["source_file"].append(gb_attrs[key]["source_file"])
-          try: attrs["branch_changed_param"].append(gb_attrs[key]["branch_changed_param"])
-          except: pass
-          try: attrs["conditional_prb"].append(gb_attrs[key]["conditional_prb"])
-          except: pass            
-          try: attrs["branch_changed_param_value"].append(gb_attrs[key]["branch_changed_param_value"])
-          except: pass                        
-          try: attrs["initiator_distribution"].append(gb_attrs[key]["initiator_distribution"])
-          except: pass                                    
-          try: attrs["Probability_threshold"].append(gb_attrs[key]["Probability_threshold"])
-          except: pass                                                
-          try: attrs["end_timestep"].append(gb_attrs[key]["end_timestep"])
-          except: pass                                                            
+  
       else:
         # A number of groups' back have been inputted
         # Follow the same strategy used above (filter = whole)
@@ -619,7 +597,7 @@ class hdf5Database(object):
           name_list  = []
           i=0
           try: list_path.remove("")
-          except: pass
+          except ValueError: pass #don't remove if not found.
           # Find the paths for the completed history
           while (i < back):
             path_w = ''
@@ -670,44 +648,23 @@ class hdf5Database(object):
           attrs["source_type"]     = gb_attrs[0]["source_type"]
           attrs["input_file"]      = []
           attrs["source_file"]     = []
-          try:
+          if "branch_changed_param" in gb_attrs[0]:
             par = gb_attrs[0]["branch_changed_param"]
             attrs["branch_changed_param"]    = []
             attrs["conditional_prb"] = []
-          except: pass
-          try:
-            par2 = gb_attrs[0]["branch_changed_param_value"]
-            attrs["branch_changed_param_value"]    = []
-          except: pass
-          try:
-            par3 = gb_attrs[0]["initiator_distribution"]
-            attrs["initiator_distribution"]    = []
-          except: pass
-          try:
-            par4 = gb_attrs[0]["Probability_threshold"]
-            attrs["Probability_threshold"]    = []
-          except: pass
-          try:
-            par5 = gb_attrs[0]["end_timestep"]
-            attrs["end_timestep"]    = []
-          except: pass
+          for param_key in ["branch_changed_param_value","initiator_distribution","Probability_threshold","end_timestep"]:
+            if param_key in gb_attrs[0]:
+              attrs[param_key] = []
           
           for key in gb_res:
-            try: attrs["input_file"].append(gb_attrs[key]["input_file"])
-            except: pass
+            for param_key in ["input_file","branch_changed_param",
+                              "conditional_prb","branch_changed_param_value",
+                              "initiator_distribution","Probability_threshold",
+                              "end_timestep"]:
+              if param_key in gb_attrs[key]:
+                attrs[param_key].append(gb_attrs[key][param_key])
             if attrs["source_type"] == 'csv': attrs["source_file"].append(gb_attrs[key]["source_file"])
-            try: attrs["branch_changed_param"].append(gb_attrs[key]["branch_changed_param"])
-            except: pass
-            try: attrs["conditional_prb"].append(gb_attrs[key]["conditional_prb"])
-            except: pass            
-            try: attrs["branch_changed_param_value"].append(gb_attrs[key]["branch_changed_param_value"])
-            except: pass                        
-            try: attrs["initiator_distribution"].append(gb_attrs[key]["initiator_distribution"])
-            except: pass                                    
-            try: attrs["Probability_threshold"].append(gb_attrs[key]["Probability_threshold"])
-            except: pass                                                
-            try: attrs["end_timestep"].append(gb_attrs[key]["end_timestep"])
-            except: pass                                                                          
+                  
         else: raise RunTimeError("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 
     else: raise RunTimeError("History named " + name + "not found in database")
     
