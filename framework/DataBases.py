@@ -257,12 +257,11 @@ class HDF5(DateBase):
       # start_time <= requested_time_point <= end_time, compute an interpolated value
       for i in histVar[0]:
         if histVar[0][i,0] >= time_float and time_float >= 0.0:
-          try:
+          if i-1 >= 0:
             previous_time = histVar[0][i-1,0]
-            actual_time   = histVar[0][i,0]
-          except:
+          else:
             previous_time = histVar[0][i,0]
-            actual_time   = histVar[0][i,0]          
+          actual_time   = histVar[0][i,0]
           if all_out_param:
             # Retrieve all the parameters 
             for key in histVar[1]["headers"]:
@@ -349,12 +348,11 @@ class HDF5(DateBase):
         # start_time <= requested_time_point <= end_time, compute an interpolated value
         for i in histVar[0]:
           if histVar[0][i,0] >= time_float and time_float >= 0.0:
-            try:
+            if i-1 >= 0:
               previous_time = histVar[0][i-1,0]
-              actual_time   = histVar[0][i,0]
-            except:
+            else:
               previous_time = histVar[0][i,0]
-              actual_time   = histVar[0][i,0]          
+            actual_time   = histVar[0][i,0]          
             if all_out_param:
               # Retrieve all the parameters 
               for key in histVar[1]["headers"]:
@@ -395,15 +393,13 @@ class HDF5(DateBase):
     # Check the outParam variables and the time filters
     if attributes['outParam'] == 'all': all_out_param  = True
     else:  all_out_param = False
-    try:
-      if attributes['time']:
-        if attributes['time'] == 'all': time_all = True
-        else:
-          # convert the time in float
-          time_all = False
-          time_float = [float(x) for x in attributes['time']]
-      else: time_all = True
-    except: time_all = True
+    if 'time' in attributes and attributes['time']:
+      if attributes['time'] == 'all': time_all = True
+      else:
+        # convert the time in float
+        time_all = False
+        time_float = [float(x) for x in attributes['time']]
+    else: time_all = True
                    
     inDict  = {}
     outDict = {}  

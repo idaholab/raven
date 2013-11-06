@@ -58,7 +58,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if time == 'end' or time == 'all': self.dataParameters['time'] = time 
       else:
         try:   self.dataParameters['time'] = float(time)
-        except:self.dataParameters['time'] = float(time.split(','))
+        except ValueError: self.dataParameters['time'] = float(time.split(','))
     except KeyError:self.dataParameters['time'] = None
     try:
       self.print_CSV = bool(xmlNode.attrib['printCSV'])
@@ -153,7 +153,7 @@ class TimePoint(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
     try: sourceType = self.toLoadFromList[0].type
-    except: sourceType = None
+    except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR -> DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
       self.dataParameters['filter'] = "whole"
@@ -210,7 +210,7 @@ class TimePointSet(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
     try: sourceType = self.toLoadFromList[0].type
-    except: sourceType = None
+    except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       self.dataParameters['histories'] = self.toLoadFromList[0].getEndingGroupNames()
       self.dataParameters['filter'   ] = "whole"
@@ -221,7 +221,7 @@ class TimePointSet(Data):
     '''
     
     try:   sourceType = self.toLoadFromList[0].type
-    except:sourceType = None
+    except AttributeError:sourceType = None
     if('HDF5' == sourceType):
       eg = self.toLoadFromList[0].getEndingGroupNames()
       for key in self.inpParametersValues.keys():
@@ -281,7 +281,7 @@ class History(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
     try: sourceType = self.toLoadFromList[0].type
-    except: sourceType = None
+    except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR -> In order to create a History data, history name must be provided')
       self.dataParameters['filter'] = "whole"

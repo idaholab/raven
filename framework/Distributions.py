@@ -70,11 +70,11 @@ class Distribution(BaseType):
 
   def quad(self):
     try: return self.__distQuad
-    except: raise IOError ('No quadrature has been set for this distr. yet.')
+    except AttributeError: raise IOError ('No quadrature has been set for this distr. yet.')
 
   def polyOrder(self):
     try: return self.__exp_order
-    except: raise IOError ('Quadrature has not been set for this distr. yet.')
+    except AttributeError: raise IOError ('Quadrature has not been set for this distr. yet.')
 
 #==============================================================\
 #    Distributions convenient for stochastic collocation
@@ -90,10 +90,12 @@ class Uniform(Distribution):
 
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
-    try: self.low = float(xmlNode.find('low').text)
-    except: raise Exception('low value needed for uniform distribution')
-    try: self.hi = float(xmlNode.find('hi').text)
-    except: raise Exception('hi value needed for uniform distribution')
+    low_find = xmlNode.find('low')
+    if low_find != None: self.low = float(low_find.text)
+    else: raise Exception('low value needed for uniform distribution')
+    hi_find = xmlNode.find('hi')
+    if hi_find != None: self.hi = float(hi_find.text)
+    else: raise Exception('hi value needed for uniform distribution')
 #    self.initializeDistribution() this call is done by the sampler each time a new step start
     self.range=self.hi-self.low
     #assign associated polynomial types
@@ -148,10 +150,12 @@ class Normal(Distribution):
 
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
-    try: self.mean  = float(xmlNode.find('mean' ).text)
-    except: raise Exception('mean value needed for normal distribution')
-    try: self.sigma = float(xmlNode.find('sigma').text)
-    except: raise Exception('sigma value needed for normal distribution')
+    mean_find = xmlNode.find('mean' )
+    if mean_find != None: self.mean  = float(mean_find.text)
+    else: raise Exception('mean value needed for normal distribution')
+    sigma_find = xmlNode.find('sigma')
+    if sigma_find != None: self.sigma = float(sigma_find.text)
+    else: raise Exception('sigma value needed for normal distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -202,12 +206,15 @@ class Gamma(Distribution):
 
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
-    try: self.low = float(xmlNode.find('low').text)
-    except: raise Exception('low value needed for Gamma distribution')
-    try: self.alpha = float(xmlNode.find('alpha').text)
-    except: raise Exception('alpha value needed for Gamma distribution')
-    try: self.beta = float(xmlNode.find('beta').text)
-    except: self.beta=1.0
+    low_find = xmlNode.find('low')
+    if low_find != None: self.low = float(low_find.text)
+    else: raise Exception('low value needed for Gamma distribution')
+    alpha_find = xmlNode.find('alpha')
+    if alpha_find != None: self.alpha = float(alpha_find.text)
+    else: raise Exception('alpha value needed for Gamma distribution')
+    beta_find = xmlNode.find('beta')
+    if beta_find != None: self.beta = float(beta_find.text)
+    else: self.beta=1.0
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -253,14 +260,18 @@ class Beta(Distribution):
 
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self,xmlNode)
-    try: self.low = float(xmlNode.find('low').text)
-    except: raise Exception('low value needed for Gamma distribution')
-    try: self.hi = float(xmlNode.find('hi').text)
-    except: raise Exception('hi value needed for Gamma distribution')
-    try: self.alpha = float(xmlNode.find('alpha').text)
-    except: raise Exception('alpha value needed for Gamma distribution')
-    try: self.beta = float(xmlNode.find('beta').text)
-    except: raise Exception('beta value needed for Gamma distribution')
+    low_find = xmlNode.find('low')
+    if low_find != None: self.low = float(low_find.text)
+    else: raise Exception('low value needed for Gamma distribution')
+    hi_find = xmlNode.find('hi')
+    if hi_find != None: self.hi = float(hi_find.text)
+    else: raise Exception('hi value needed for Gamma distribution')
+    alpha_find = xmlNode.find('alpha')
+    if alpha_find != None: self.alpha = float(alpha_find.text)
+    else: raise Exception('alpha value needed for Gamma distribution')
+    beta_find = xmlNode.find('beta')
+    if beta_find != None: self.beta = float(beta_find.text)
+    else: raise Exception('beta value needed for Gamma distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -290,12 +301,15 @@ class Triangular(Distribution):
 
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
-    try: self.apex = float(xmlNode.find('apex').text)
-    except: raise Exception('apex value needed for normal distribution')
-    try: self.min = float(xmlNode.find('min').text)
-    except: raise Exception('min value needed for normal distribution')
-    try: self.max = float(xmlNode.find('max').text)
-    except: raise Exception('max value needed for normal distribution')
+    apex_find = xmlNode.find('apex')
+    if apex_find != None: self.apex = float(apex_find.text)
+    else: raise Exception('apex value needed for normal distribution')
+    min_find = xmlNode.find('min')
+    if min_find != None: self.min = float(min_find.text)
+    else: raise Exception('min value needed for normal distribution')
+    max_find = xmlNode.find('max')
+    if max_find != None: self.max = float(max_find.text)
+    else: raise Exception('max value needed for normal distribution')
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -320,8 +334,9 @@ class Poisson(Distribution):
     
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
-    try: self.mu = float(xmlNode.find('mu').text)
-    except: raise Exception('mu value needed for poisson distribution')
+    mu_find = xmlNode.find('mu')
+    if mu_find != None: self.mu = float(mu_find.text)
+    else: raise Exception('mu value needed for poisson distribution')
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
@@ -344,10 +359,12 @@ class Binomial(Distribution):
     
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
-    try: self.n = float(xmlNode.find('n').text)
-    except: raise Exception('n value needed for Binomial distribution')
-    try: self.p = float(xmlNode.find('p').text)
-    except: raise Exception('p value needed for Binomial distribution')
+    n_find = xmlNode.find('n')
+    if n_find != None: self.n = float(n_find.text)
+    else: raise Exception('n value needed for Binomial distribution')
+    p_find = xmlNode.find('p')
+    if p_find != None: self.p = float(p_find.text)
+    else: raise Exception('p value needed for Binomial distribution')
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
