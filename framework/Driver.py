@@ -56,7 +56,7 @@ if __name__ == '__main__':
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
   for inputFile in inputFiles:
     tree = ET.parse(inputFile)
-    #except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
+    #except?  raise IOError('not possible to parse (xml based) the input file '+inputFile)
     if debug: print('opened file '+inputFile)
     root = tree.getroot()
     if root.tag != 'Simulation': raise IOError ('The outermost block of the input file '+inputFile+' it is not Simulation')

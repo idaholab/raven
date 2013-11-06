@@ -280,8 +280,9 @@ class StochasticCollocation(Sampler):
     '''
     #Sampler.readMoreXML(self,xmlNode) # overwritten
     # attempt to set minimum total function polynomial expansion order
-    try: self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
-    except: self.min_poly_order = 0
+    if 'min_poly_order' in xmlNode.attrib: 
+      self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
+    else: self.min_poly_order = 0
     
     # attempt to set polynomial expansion order for individual params
     for child in xmlNode:
@@ -580,7 +581,7 @@ class DynamicEventTree(Sampler):
         try:
           # changed_pb = probablity (not conditional probability yet) that the event A occurs and the final state is 'alpha' ''' 
           for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])): unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
-        except: pass
+        except KeyError: pass
         if(unchanged_pb <= 1): endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
       else:
         # Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
@@ -618,21 +619,21 @@ class DynamicEventTree(Sampler):
     '''
     if not index: index = len(self.endInfo)-1
     # parent_cond_pb = associated conditional probability of the Parent branch 
-    parent_cond_pb = 0.0  
+    #parent_cond_pb = 0.0  
     try:
       parent_cond_pb = self.endInfo[index]['parent_node'].get('conditional_pb')
       if not parent_cond_pb: parent_cond_pb = 1.0
-    except: parent_cond_pb = 1.0
+    except KeyError: parent_cond_pb = 1.0
     # for all the branches the conditional pb is computed 
     # unchanged_cond_pb = Conditional Probability of the branches in which the event has not occurred
     # changed_cond_pb   = Conditional Probability of the branches in which the event has occurred  
     for key in self.endInfo[index]['branch_changed_params']:
-       try:
-         self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'] = []
-         testpb = self.endInfo[index]['branch_changed_params'][key]['unchanged_pb']
-         self.endInfo[index]['branch_changed_params'][key]['unchanged_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['unchanged_pb'])
-         for pb in xrange(len(self.endInfo[index]['branch_changed_params'][key]['associated_pb'])): self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'].append(parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb]))
-       except: pass
+      #try:
+      self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'] = []
+      testpb = self.endInfo[index]['branch_changed_params'][key]['unchanged_pb']
+      self.endInfo[index]['branch_changed_params'][key]['unchanged_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['unchanged_pb'])
+      for pb in xrange(len(self.endInfo[index]['branch_changed_params'][key]['associated_pb'])): self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'].append(parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb]))
+      #except? pass
     return  
 
   def __readBranchInfo(self,out_base=None):
@@ -657,16 +658,16 @@ class DynamicEventTree(Sampler):
       branch_present = False
       return branch_present
     # Parse the file and create the xml element tree object
-    try:
-      branch_info_tree = ET.parse(filename)
-      print('SAMPLER DET   : Done parsing '+filename)
-    except:raise IOError ('not able to parse ' + filename)
+    #try:
+    branch_info_tree = ET.parse(filename)
+    print('SAMPLER DET   : Done parsing '+filename)
+    #except? raise IOError ('not able to parse ' + filename)
     root = branch_info_tree.getroot()  
     # Check if end_time and end_ts (time step)  are present... In case store them in the relative working vars 
-    try:
-      self.actual_end_time = float(root.attrib['end_time'])
-      self.actual_end_ts   = int(root.attrib['end_ts'])
-    except: pass
+    #try: #Branch info written out by program, so should always exist.
+    self.actual_end_time = float(root.attrib['end_time'])
+    self.actual_end_ts   = int(root.attrib['end_ts'])
+    #except? pass
     # Store the information in a dictionary that has as keywords the distributions that triggered
     for node in root:
       if node.tag == "Distribution_trigger":
@@ -674,12 +675,11 @@ class DynamicEventTree(Sampler):
         self.actualBranchInfo[dist_name] = {}
         for child in node:
           self.actualBranchInfo[dist_name][child.text.strip()] = {'varType':child.attrib['type'].strip(),'actual_value':child.attrib['actual_value'].strip().split(),'old_value':child.attrib['old_value'].strip()}
-          try:
+          if 'probability' in child.attrib:
             as_pb = child.attrib['probability'].strip().split()
             self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'] = []
             #self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb)) 
             for index in range(len(as_pb)): self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb[index]))
-          except: pass
       # we exit the loop here, because only one trigger at the time can be handled  right now 
       break
     # remove the file
@@ -734,13 +734,15 @@ class DynamicEventTree(Sampler):
           if self.branchCountOnLevel != 1:
             subGroup.set('branch_changed_param_value',copy.deepcopy(endInfo['branch_changed_params'][key]['actual_value'][self.branchCountOnLevel-2]))
             subGroup.set('branch_changed_param_pb',copy.deepcopy(endInfo['branch_changed_params'][key]['associated_pb'][self.branchCountOnLevel-2]))
-            try: cond_pb_c = cond_pb_c + copy.deepcopy(endInfo['branch_changed_params'][key]['changed_cond_pb'][self.branchCountOnLevel-2])
-            except: pass
+            #try: 
+            cond_pb_c = cond_pb_c + copy.deepcopy(endInfo['branch_changed_params'][key]['changed_cond_pb'][self.branchCountOnLevel-2])
+            #except? pass
           else:
             subGroup.set('branch_changed_param_value',copy.deepcopy(endInfo['branch_changed_params'][key]['old_value']))
             subGroup.set('branch_changed_param_pb',copy.deepcopy(endInfo['branch_changed_params'][key]['unchanged_pb']))
-            try:cond_pb_un =  cond_pb_un + copy.deepcopy(endInfo['branch_changed_params'][key]['unchanged_cond_pb'])
-            except: pass
+            #try:
+            cond_pb_un =  cond_pb_un + copy.deepcopy(endInfo['branch_changed_params'][key]['unchanged_cond_pb'])
+            #except? pass
         # add conditional probability
         if self.branchCountOnLevel != 1: subGroup.set('conditional_pb',copy.deepcopy(cond_pb_c))
         else: subGroup.set('conditional_pb',copy.deepcopy(cond_pb_un)) 
@@ -1002,7 +1004,7 @@ def returnInstance(Type):
   @ Out,Instance of the Specialized Sampler class
   '''
   try: return __interFaceDict[Type]()
-  except: raise NameError('not known '+__base+' type '+Type)
+  except KeyError: raise NameError('not known '+__base+' type '+Type)
 
 def optionalInputs(Type):
   pass

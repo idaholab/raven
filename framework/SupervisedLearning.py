@@ -143,7 +143,7 @@ class StochasticPolynomials(superVisioned):
     try:
       del self.poly_coeffs
       del self.distDict
-    except: pass
+    except AttributeError: pass
 
 
 

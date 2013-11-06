@@ -66,8 +66,8 @@ class Model(BaseType):
     '''This call collect the output of the run
     @in collectFrom where the output is located, the form and the type is model dependent but should be compatible with the storeTo.addOutput method'''
     if 'addOutput' in dir(storeTo):
-      try   : storeTo.addOutput(collectFrom)
-      except: raise IOError('The place where to store the output '+type(storeTo)+' was not compatible with the addOutput of '+type(collectFrom))
+      storeTo.addOutput(collectFrom)
+      #except? raise IOError('The place where to store the output '+type(storeTo)+' was not compatible with the addOutput of '+type(collectFrom))
     else: raise IOError('The place where to store the output has not a addOutput method')
 #
 #
@@ -191,12 +191,12 @@ class Code(Model):
     !!!!generate also the code interface for the proper type of code!!!!'''
     import CodeInterfaces
     Model.readMoreXML(self, xmlNode)
-    try:
-      self.executable = xmlNode.text
-      abspath = os.path.abspath(self.executable)
-      if os.path.exists(abspath):
-        self.executable = abspath
-    except: raise IOError('not found executable '+xmlNode.text)
+    
+    self.executable = xmlNode.text
+    abspath = os.path.abspath(self.executable)
+    if os.path.exists(abspath):
+      self.executable = abspath
+    else: print('not found executable '+xmlNode.text)
     self.interface = CodeInterfaces.returnCodeInterface(self.subType)
     
   def addInitParams(self,tempDict):
@@ -289,13 +289,13 @@ class ROM(Model):
   def readMoreXML(self,xmlNode):
     '''read the additional input needed and create an instance the underlying ROM'''
     Model.readMoreXML(self, xmlNode)
-    try:    self.outputName = xmlNode.attrib['target_response_name']
-    except: pass
+    if 'target_response_name' in xmlNode.attrib:    
+      self.outputName = xmlNode.attrib['target_response_name']
     for child in xmlNode:
       try: self.initializzationOptionDict[child.tag] = int(child.text)
-      except:
+      except ValueError:
         try: self.initializzationOptionDict[child.tag] = float(child.text)
-        except: self.initializzationOptionDict[child.tag] = child.text
+        except ValueError: self.initializzationOptionDict[child.tag] = child.text
     self.ROM =  SupervisedLearning.returnInstance(self.subType)
     self.SupervisedEngine = self.ROM(**self.initializzationOptionDict)
     
@@ -326,8 +326,9 @@ class ROM(Model):
             are supposed to have weight one.'''
 
     self.inputNames, inputsValues  = self.toLoadFrom.getInpParametersValues().keys(), self.toLoadFrom.getInpParametersValues().values()
-    try: outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
-    except: raise IOError('The output sought '+self.outputName+' is not in the training set')
+    if self.outputName in self.toLoadFrom.getOutParametersValues(): 
+      outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
+    else: raise IOError('The output sought '+self.outputName+' is not in the training set')
     self.inputsValues = np.zeros(shape=(inputsValues[0].size,len(self.inputNames)))
     self.outputValues = np.zeros(shape=(inputsValues[0].size))
     for i in range(len(self.inputNames)):
@@ -363,9 +364,9 @@ class ROM(Model):
           for name,value in itertools.izip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,np.atleast_1d(np.array(value)))
           for name, newValue in itertools.izip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()):
             # for now, even if the ROM accepts a TimePointSet, we create a TimePoint
-            try   : newInput.updateInputValue(name,np.atleast_1d(np.array(newValue)))
-            except: raise IOError('trying to sample '+name+' that is not in the original input')
-      except: raise IOError('the request of ROM evaluation is done via a not compatible input')
+            newInput.updateInputValue(name,np.atleast_1d(np.array(newValue)))
+            #except? raise IOError('trying to sample '+name+' that is not in the original input')
+      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible input')
     currentInput = [newInput]
     return currentInput
 
@@ -390,7 +391,7 @@ class ROM(Model):
         print(self.request.type)
         if self.request.type in self.__returnAdmittedData():
           inputNames, inputValues = self.request.getInpParametersValues().keys(), self.request.getInpParametersValues().values()
-      except: raise IOError('the request of ROM evaluation is done via a not compatible data')
+      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible data')
     #now that the prediction points are read we check the compatibility with the ROM input-output set
     lenght = len(set(inputNames).intersection(self.inputNames))
     if lenght!=len(self.inputNames) or lenght!=len(inputNames):
@@ -412,7 +413,7 @@ class ROM(Model):
       if output.type in self.__returnAdmittedData():
         for inputName in self.inputNames:
           output.updateInputValue(inputName,self.request[self.inputNames.index(inputName)])
-    except: raise IOError('the output of the ROM is requested on a not compatible data')
+    except AttributeError: raise IOError('the output of the ROM is requested on a not compatible data')
     output.updateOutputValue(self.outputName,self.output)
     output.printCSV()
   
@@ -437,7 +438,7 @@ class Projector(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except FileExistsError: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
   def run(self,inObj,outObj):
@@ -469,7 +470,7 @@ class Filter(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except FileExistsError: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
   def run(self,inObj,outObj):

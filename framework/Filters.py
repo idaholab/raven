@@ -62,7 +62,7 @@ class PrintCSV:
       try:
         # not yet implemented 
         outType = outObj.type
-      except:
+      except AttributeError:
 #        splitted = outObj.split('.')
 #        addfile = splitted[0] + '_additional_info.' + splitted[1]
 #        with open(outObj, 'w') as csvfile, open(addfile, 'w') as addcsvfile:
@@ -75,12 +75,7 @@ class PrintCSV:
           headers = b",".join([histories[key][1]['headers'][i] for i in 
                                range(len(attributes['headers']))])
           #  Construct history name
-          try:
-            hist = ''
-            hist = key
-            #hist = hist.replace(',','_') 
-          except:
-            hist = key
+          hist = key
           #  If file, split the strings and add the working directory if present
           if workingDir:
             if os.path.split(outObj)[1] == '': outObj = outObj[:-1]
@@ -117,7 +112,7 @@ class PrintCSV:
             addcsvfile.write(toBytes(str(attributes['end_time']))+b'\n')
             addcsvfile.write(b'#number of time-steps,\n')
             addcsvfile.write(toBytes(str(attributes['n_ts']))+b'\n')
-            try:
+            if 'initiator_distribution' in attributes:
               init_dist = attributes['initiator_distribution']
               addcsvfile.write('#number of branches in this history,\n')
               addcsvfile.write(str(len(init_dist))+'\n')
@@ -128,16 +123,13 @@ class PrintCSV:
                 string_work = string_work + string_work_2 + ','          
               addcsvfile.write('#initiator distributions,\n')
               addcsvfile.write(toBytes(string_work)+b'\n')
-            except:
-              pass
-            try:
+            if 'end_timestep' in attributes:
               string_work = ''
               end_ts = attributes['end_timestep']
               for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','          
               addcsvfile.write('#end time step,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except: pass             
-            try:
+            if 'branch_changed_param' in attributes:
               string_work = ''
               branch_changed_param = attributes['branch_changed_param']
               for i in xrange(len(branch_changed_param)):
@@ -148,8 +140,7 @@ class PrintCSV:
                 string_work = string_work + string_work_2 + ','          
               addcsvfile.write('#changed parameters,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except: pass
-            try:
+            if 'branch_changed_param_value' in attributes:
               string_work = ''
               branch_changed_param_value = attributes['branch_changed_param_value']
               for i in xrange(len(branch_changed_param_value)):
@@ -160,8 +151,7 @@ class PrintCSV:
                 string_work = string_work + string_work_2 + ','                          
               addcsvfile.write('#changed parameters values,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except: pass
-            try:
+            if 'conditional_prb' in attributes:
               string_work = ''
               cond_pbs = attributes['conditional_prb']
               for i in xrange(len(cond_pbs)):
@@ -172,8 +162,7 @@ class PrintCSV:
                 string_work = string_work + string_work_2 + ','                
               addcsvfile.write('#conditional probability,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except: pass
-            try:
+            if 'Probability_threshold' in attributes:
               string_work = ''
               pb_thresholds = attributes['Probability_threshold']
               for i in xrange(len(pb_thresholds)):
@@ -184,7 +173,6 @@ class PrintCSV:
                 string_work = string_work + string_work_2 + ','
               addcsvfile.write('#Probability threshold,\n')
               addcsvfile.write(str(string_work)+'\n')
-            except: pass            
             addcsvfile.write(b' \n')
             
     elif(inObj.type == "Datas"):

@@ -183,10 +183,7 @@ class ScreenPlot(OutStream):
     # Retrieve histories
     # NB. The finalization of the class is performed here since we want to have the screen output 
     #   during the calculation runs
-    try:
-      self.retrieveHistories()
-    except:  
-      OutStream.retrieveHistories(self)
+    self.retrieveHistories()
     # Retrieve the headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
 #    timeVar = ''
@@ -258,10 +255,7 @@ class PdfPlot(OutStream):
     # Append loading object in the list
     self.toLoadFromList.append(toLoadFrom)
     # Retrieve histories
-    try:
-      self.retrieveHistories()
-    except:  
-      OutStream.retrieveHistories(self)
+    self.retrieveHistories()
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
 #    timeVar = ''
@@ -328,10 +322,7 @@ class PngPlot(OutStream):
     # Append loading object in the list
     self.toLoadFromList.append(toLoadFrom)
     # Retrieve Histories
-    try:
-      self.retrieveHistories()
-    except:  
-      OutStream.retrieveHistories(self)
+    self.retrieveHistories()
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
 #    timeVar = ''
@@ -400,10 +391,7 @@ class JpegPlot(OutStream):
     # Append loading object in the list
     self.toLoadFromList.append(toLoadFrom)
     # Retrieve Histories
-    try:
-      self.retrieveHistories()
-    except:  
-      OutStream.retrieveHistories(self)
+    self.retrieveHistories()
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
 #    timeVar = ''
@@ -474,10 +462,7 @@ class EpsPlot(OutStream):
     # Append loading object in the list
     self.toLoadFromList.append(toLoadFrom)
     # Retrieve Histories
-    try:
-      self.retrieveHistories()
-    except:  
-      OutStream.retrieveHistories(self)
+    self.retrieveHistories()
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
 #    timeVar = ''

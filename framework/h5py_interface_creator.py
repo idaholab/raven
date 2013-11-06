@@ -104,9 +104,9 @@ class hdf5Database(object):
     '''
     if isinstance(obj,h5.Group):
       self.allGroupPaths.append(name)
-      try:
+      if "EndGroup" in obj.attrs:
         self.allGroupEnds[name]  = obj.attrs["EndGroup"]
-      except: 
+      else: 
 
         print('DATABASE HDF5 : not found attribute EndGroup in group ' + name + '.Set True.')
         self.allGroupEnds[name]  = True

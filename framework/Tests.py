@@ -21,10 +21,12 @@ class Test(BaseType):
     self.tolerance = 0.0
 
   def readMoreXML(self,xmlNode):
-    try: self.toBeTested = xmlNode.text.split(',')
-    except: raise IOError('not found variable list to be tested in tester '+self.name)
-    try: self.name = xmlNode.attrib['tolerance']
-    except: raise IOError('not found tolerance for tester '+self.name)
+    #try: 
+    self.toBeTested = xmlNode.text.split(',')
+    #except? raise IOError('not found variable list to be tested in tester '+self.name)
+    #try: 
+    self.name = xmlNode.attrib['tolerance']
+    #except? raise IOError('not found tolerance for tester '+self.name)
 
   def addInitParams(self,tempDict):
     tempDict['toBeTested'] = self.toBeTested

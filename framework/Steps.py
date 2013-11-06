@@ -127,7 +127,7 @@ class SingleRun(Step):
     for i in range(len(inDictionary['Output'])):
       try: #try is used since files for the moment have no type attribute
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
-      except: pass
+      except AttributeError as ae: print("Error: "+repr(ae))
     
   def localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
@@ -243,7 +243,7 @@ class Adaptive(MultiRun):
           if candidate.type == self.parList[self.projectorFromIndex][1] and candidate.subType == self.parList[self.projectorFromIndex][2] and candidate.name == self.parList[self.projectorFromIndex][3]:
             inDictionary['Projector'].initialize(None,candidate)
             notYet = False
-        except: pass
+        except AttributeError as ae: print("Error: "+repr(ae))
 
   def localTakeAstepRun(self,inDictionary):
     converged = False
@@ -301,7 +301,7 @@ class InOutFromDataBase(Step):
         else: self.actionType.append('HDF5-DATAS')
     try: #try is used since files for the moment have no type attribute
       if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
-    except: pass    
+    except AttributeError as ae: print("Error: "+repr(ae))    
     
   def localTakeAstepRun(self,inDictionary):
     for i in xrange(len(inDictionary['Output'])):
@@ -338,7 +338,7 @@ class RomTrainer(Step):
       inDictionary['Output'][i].initializeTrain(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'][0])
     try: #try is used since files for the moment have no type attribute
       if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
-    except: pass
+    except AttributeError as ae: print("Error: "+repr(ae))
 
   def takeAstepIni(self,inDictionary):
     print('STEPS         : beginning of step named: ' + self.name)
