@@ -35,9 +35,11 @@ strace -fo %WORKING_DIR%/strace_%CURRENT_ID% %FRAMEWORK_DIR%/../RAVEN-opt
 
 -- Running on Cluster --
 
-There are two methods of running on a cluster.  The first is to let
-the Driver create the qsub command, and the second is to run from an
-already submitted interactive qsub command.
+There are two methods of running on a cluster.  The first is mpi mode
+and it uses mpiexec to distribute the program running. The second is
+pbsdsh mode and it uses pbsdsh to distribute the program running.
+Both methods can submit a qsub command or can be run from an already
+submitted interactive qsub command.
 
 --- Changing input ---
 
