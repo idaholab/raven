@@ -19,14 +19,6 @@
 
 using namespace std;
 
-
-
-class DistributionContainer;
-
-//class distribution;
-
-class InputParameters;
-
 class DistributionContainer{
      public:
      static DistributionContainer & Instance();
@@ -35,7 +27,6 @@ class DistributionContainer{
       * @
       * @
       */
-     //void addDistributionInContainer(const std::string & type, const std::string & name, InputParameters params);
      void addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist); 
 
      void seedRandom(unsigned int seed);
