@@ -535,7 +535,6 @@
   solve_type = 'PJFNK'
 
 
-  print_linear_residuals = true
   petsc_options = '-ksp_gmres_modifiedgramschmidt'
   petsc_options_iname = '-snes_linesearch_type -ksp_gmres_restart -pc_type  -pc_composite_pcs -sub_0_pc_hypre_type -sub_0_pc_hypre_boomeramg_max_iter -sub_0_pc_hypre_boomeramg_grid_sweeps_all -sub_1_sub_pc_type -pc_composite_type -ksp_type -mat_mffd_type'
   petsc_options_value = 'basic                   201                 composite hypre,asm         boomeramg            2                                  2                                         lu                 multiplicative     fgmres    ds'
@@ -686,6 +685,7 @@
 []
 
 [Output]
+  linear_residuals = true
   # Define output file(s)
   interval = 1
   output_initial = true
