@@ -208,7 +208,7 @@ class hdf5Database(object):
       # Create dataset in this newly added group
       dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
       # Add metadata
-      grp.attrs["headers"   ] = headers
+      grp.attrs["output_space_headers"   ] = headers
       grp.attrs["n_params"  ] = data[0,:].size
       grp.attrs["parent_id" ] = "root"
       grp.attrs["start_time"] = data[0,0]
@@ -279,51 +279,59 @@ class hdf5Database(object):
         groups[run].attrs[b'EndGroup'   ] = True
         groups[run].attrs[b'parent_id'  ] = parent_name
         if source['name'].type == 'Histories': 
-          groups[run].attrs[b'input_space_headers' ] = copy.deepcopy(bytes(data_in[run].keys()))
-          groups[run].attrs[b'output_space_headers'] = copy.deepcopy(bytes(data_out[run].keys()))
+          groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([bytes(data_in[run].keys()[i])  for i in range(len(data_in[run].keys()))]) 
+          groups[run].attrs[b'output_space_headers'] = copy.deepcopy([bytes(data_out[run].keys()[i])  for i in range(len(data_out[run].keys()))]) 
           groups[run].attrs[b'input_space_values'  ] = copy.deepcopy(data_in[run].values())
-          groups[run].attrs[b'n_params'            ] = len(data_in[run].keys()) + len(data_out[run].keys())
+          groups[run].attrs[b'n_params'            ] = len(data_out[run].keys())
           #collect the outputs
           dataout = np.zeros((data_out[run].values()[0].size,len(data_out[run].values())))
           for param in range(len(data_out[run].values())): dataout[:,param] = data_out[run].values()[param][:]
           groups[run].create_dataset(gname +"_data" , dtype="float", data=copy.deepcopy(dataout))
+          groups[run].attrs[b'n_ts'                ] = len(data_out[run].values())
         else:
-          groups[run].attrs[b'input_space_headers' ] = copy.deepcopy(bytes(headers_in))
-          groups[run].attrs[b'output_space_headers'] = copy.deepcopy(bytes(headers_out))
-          groups[run].attrs[b'input_space_values'  ] = copy.deepcopy([np.array(data_in[x][run]) for x in range(len(data_in))])
-          groups[run].attrs[b'n_params'            ] = len(headers_in) + len(headers_out)
+          groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([bytes(headers_in[i])  for i in range(len(headers_in))]) 
+          groups[run].attrs[b'output_space_headers'] = copy.deepcopy([bytes(headers_out[i])  for i in range(len(headers_out))]) 
+          groups[run].attrs[b'input_space_values'  ] = copy.deepcopy([np.atleast_1d(np.array(data_in[x][run])) for x in range(len(data_in))])
+          groups[run].attrs[b'n_params'            ] = len(headers_out)
+          groups[run].attrs[b'n_ts'                ] = 1
           #collect the outputs
           dataout = np.zeros((1,len(data_out)))
           for param in range(len(data_out)): dataout[0,param] = copy.deepcopy(data_out[param][run])
           groups[run].create_dataset(gname +"_data", dtype="float", data=dataout)          
+        if parent_group_name != "/":
+          self.allGroupPaths.append(parent_group_name + "/" + gname + '|' +str(run))
+          self.allGroupEnds[parent_group_name + "/" + gname + '|' +str(run)] = True
+        else:
+          self.allGroupPaths.append("/" + gname + '|' +str(run))
+          self.allGroupEnds["/" + gname + '|' +str(run)] = True   
     elif source['name'].type in ['TimePoint','History']:
       groups = parentgroup_obj.create_group(gname)
       groups.attrs[b'main_class' ] = b'Datas'
       groups.attrs[b'source_type'] = bytes(source['name'].type)
-      groups.attrs[b'n_params'   ] = len(headers_in) + len(headers_out)
-      groups.attrs[b'input_space_headers'] = copy.deepcopy(bytes(headers_in))
-      groups.attrs[b'output_space_headers'] = copy.deepcopy(bytes(headers_out))
-      groups.attrs[b'input_space_values' ] = copy.deepcopy(data_in)
+      groups.attrs[b'n_params'   ] = len(headers_out)
+      groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(headers_in[i])  for i in range(len(headers_in))]) 
+      groups.attrs[b'output_space_headers'] = copy.deepcopy([bytes(headers_out[i])  for i in range(len(headers_out))]) 
+      groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(data_in[i])  for i in range(len(data_in))])
       groups.attrs[b'source_type'] = bytes(source['name'].type)
       groups.attrs[b'EndGroup'   ] = True
       groups.attrs[b'parent_id'  ] = parent_name
       dataout = np.zeros((data_out[0].size,len(data_out)))
+      groups.attrs[b'n_ts'  ] = data_out[0].size
       for run in range(len(data_out)): dataout[:,int(run)] = copy.deepcopy(data_out[run][:])
         #for param in range(data_out[run].size): dataout[param,int(run)] = copy.deepcopy(data_out[run][param])
-      dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)        
+      dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
+      if parent_group_name != "/":
+        self.allGroupPaths.append(parent_group_name + "/" + gname)
+        self.allGroupEnds[parent_group_name + "/" + gname] = True
+      else:
+        self.allGroupPaths.append("/" + gname)
+        self.allGroupEnds["/" + gname] = True   
     elif type(source['name']) == 'dict':
       raise NotYetImplemented('Loading dictionaries into HDF5 not yet implemented')
     else:
       pass
 
-    # Add the group name into the list "self.allGroupPaths" and 
-    # set the relative bool flag into the dictionary "self.allGroupEnds"
-    if parent_group_name != "/":
-      self.allGroupPaths.append(parent_group_name + "/" + gname)
-      self.allGroupEnds[parent_group_name + "/" + gname] = True
-    else:
-      self.allGroupPaths.append("/" + gname)
-      self.allGroupEnds["/" + gname] = True
+
       
   def __addSubGroup(self,gname,attributes,source):
     '''
@@ -364,7 +372,7 @@ class hdf5Database(object):
       # Create data set in this new group
       dataset = sgrp.create_dataset(gname+"_data", dtype="float", data=data)
       # Add the metadata
-      sgrp.attrs["headers"   ] = headers
+      sgrp.attrs["output_space_headers"   ] = headers
       sgrp.attrs["n_params"  ] = data[0,:].size
       sgrp.attrs["parent"    ] = "root"
       sgrp.attrs["start_time"] = data[0,0]
@@ -559,8 +567,16 @@ class hdf5Database(object):
           result[ts:ts+arr[:,0].size,:] = arr
           ts = ts + arr[:,0].size
           # must be checked if overlapping of time (branching for example)
-        
-        attrs["headers"]         = gb_attrs[0]["headers"].tolist()
+        try:    attrs["output_space_headers"]         = gb_attrs[0]["output_space_headers"].tolist()
+        except: attrs["output_space_headers"]         = gb_attrs[0]["output_space_headers"]
+        try:    attrs["input_space_headers"]         = gb_attrs[0]["input_space_headers"].tolist()
+        except: 
+          try:    attrs["input_space_headers"]         = gb_attrs[0]["input_space_headers"]
+          except: pass
+        try:    attrs["input_space_values"]         = gb_attrs[0]["input_space_values"].tolist()
+        except: 
+          try:    attrs["input_space_values"]         = gb_attrs[0]["input_space_values"]
+          except: pass
         attrs["n_params"]        = gb_attrs[0]["n_params"]       
         attrs["parent_id"]       = where_list[0]
         attrs["start_time"]      = result[0,0]
@@ -639,7 +655,16 @@ class hdf5Database(object):
             result[ts:ts+arr[:,0].size,:] = arr[:,:]
             ts = ts + arr[:,0].size
             # must be checked if overlapping of time (branching for example)
-          attrs["headers"]         = gb_attrs[0]["headers"]
+          try:    attrs["output_space_headers"]         = gb_attrs[0]["output_space_headers"].tolist()
+          except: attrs["output_space_headers"]         = gb_attrs[0]["output_space_headers"]
+          try:    attrs["input_space_headers"]         = gb_attrs[0]["input_space_headers"].tolist()
+          except: 
+            try:    attrs["input_space_headers"]         = gb_attrs[0]["input_space_headers"]
+            except: pass
+          try:    attrs["input_space_values"]         = gb_attrs[0]["input_space_values"].tolist()
+          except: 
+            try:    attrs["input_space_values"]         = gb_attrs[0]["input_space_values"]
+            except: pass
           attrs["n_params"]        = gb_attrs[0]["n_params"]       
           attrs["parent"]          = where_list[0]
           attrs["start_time"]      = result[0,0]
@@ -665,8 +690,8 @@ class hdf5Database(object):
                 attrs[param_key].append(gb_attrs[key][param_key])
             if attrs["source_type"] == 'csv': attrs["source_file"].append(gb_attrs[key]["source_file"])
                   
-        else: raise RunTimeError("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 
-    else: raise RunTimeError("History named " + name + "not found in database")
+        else: raise IOError("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 
+    else: raise IOError("History named " + name + " not found in database")
     
     return(copy.deepcopy(result),copy.deepcopy(attrs))
 

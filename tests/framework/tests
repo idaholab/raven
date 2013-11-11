@@ -45,13 +45,21 @@
  [./test_extract_data_s_from_hdf5]
   type = 'RavenFramework'
   input = 'test_extract_data_s_from_hdf5.xml'
-  skip = 'waiting for Relap-7 restart'
+  #skip = 'waiting for Relap-7 restart'
   output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
   csv = 'test_extract_data_s_from_hdf5/MonteCarlo/out~2~TMI.csv'
   max_time = 500
   rel_err = 0.001
  [../]
-
+ [./test_push_into_hdf5]
+  type = 'RavenFramework'
+  input = 'test_push_into_hdf5.xml'
+  #skip = 'waiting for Relap-7 restart'
+  output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
+  csv = 'test_extract_data_s_from_hdf5/timepointset_from_database_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
  [./test_rom_trainer]
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'

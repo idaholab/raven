@@ -189,9 +189,8 @@ class HDF5(DateBase):
     # DET => a Branch from the tail (group name in attributes) to the head (dependent on the filter)
     # MC  => The History named ["group"] (one run)
     '''
-    if (not self.exist) and (not self.built): raise RunTimeError("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
+    if (not self.exist) and (not self.built): raise IOError("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
     if 'filter' in attributes.keys():#attributes['filter']:
-      #FIXME why don't I have 'history' in my database?
       print('in DataBases:',attributes.keys())
       tupleVar = self.database.retrieveHistory(attributes["history"],attributes['filter'])
     else:
@@ -226,19 +225,28 @@ class HDF5(DateBase):
     field_names = []
     #all_field_names = []
     # Retrieve the field_names (aka headers if from CSV)
-    if(all_out_param): field_names = histVar[1]["headers"]
+    if(all_out_param): field_names = histVar[1]["output_space_headers"]
       #all_field_names = field_names
     else:
       field_names = attributes['outParam']
       field_names.insert(0, 'time') 
       #all_field_names = histVar[1]["headers"]
-  
-    # Fill input param dictionary
-    for key in attributes['inParam']:
-        if key in histVar[1]["headers"]:
-          ix = histVar[1]["headers"].index(key)
-          inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
-        else: raise Exception("ERROR: the parameter " + key + " has not been found")
+
+    # fill input param dictionary
+    for key in attributes["inParam"]:
+        if histVar[1].has_key('input_space_headers'):
+          if key in histVar[1]['input_space_headers']:
+            ix = histVar[1]['input_space_headers'].index(key)
+            inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
+          elif key in histVar[1]["output_space_headers"]:
+            ix = histVar[1]["output_space_headers"].index(key)
+            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
+          else: raise Exception("ERROR: the parameter " + key + " has not been found")            
+        else:
+          if key in histVar[1]["output_space_headers"]:
+            ix = histVar[1]["output_space_headers"].index(key)
+            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
+          else: raise Exception("ERROR: the parameter " + key + " has not been found")   
   
     # Fill output param dictionary
     if time_end:
@@ -246,11 +254,11 @@ class HDF5(DateBase):
       last_row = histVar[0][:,0].size - 1
       if all_out_param:
         # Retrieve all the parameters 
-        for key in histVar[1]["headers"]: outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["headers"].index(key)]))
+        for key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]))
       else:
         # Retrieve only some parameters 
         for key in attributes['outParam']:
-          if key in histVar[1]["headers"]: outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["headers"].index(key)]))      
+          if key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]))      
           else: raise RunTimeError("ERROR: the parameter " + key + " has not been found")
     else:
       # Arbitrary point in time case... If the requested time point does not match any of the stored ones and 
@@ -264,20 +272,20 @@ class HDF5(DateBase):
           actual_time   = histVar[0][i,0]
           if all_out_param:
             # Retrieve all the parameters 
-            for key in histVar[1]["headers"]:
-              if(actual_time == previous_time): outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time)) 
+            for key in histVar[1]["output_space_headers"]:
+              if(actual_time == previous_time): outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]["output_space_headers"].index(key)]  - time_float) / actual_time)) 
               else:
-                actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
-                previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
+                actual_value   = histVar[0][i,histVar[1]["output_space_headers"].index(key)]
+                previous_value = histVar[0][i-1,histVar[1]["output_space_headers"].index(key)] 
                 outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
           else:
             # Retrieve only some parameters
             for key in attributes['outParam']:
-              if key in histVar[1]["headers"]:
-                if(actual_time == previous_time): outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time))
+              if key in histVar[1]["output_space_headers"]:
+                if(actual_time == previous_time): outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]["output_space_headers"].index(key)]  - time_float) / actual_time))
                 else:
-                  actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
-                  previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
+                  actual_value   = histVar[0][i,histVar[1]["output_space_headers"].index(key)]
+                  previous_value = histVar[0][i-1,histVar[1]["output_space_headers"].index(key)] 
                   outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
                          
               else: raise Exception("ERROR: the parameter " + key + " has not been found")
@@ -315,33 +323,43 @@ class HDF5(DateBase):
       histVar = self.returnHistory(attributes)
 
       if i == 0:
-        if(all_out_param): field_names = histVar[1]["headers"]
+        if(all_out_param): field_names = histVar[1]["output_space_headers"]
         else:
           field_names = attributes['outParam']
           field_names.insert(0, 'time') 
+
+      for key in attributes["inParam"]:
+        if histVar[1].has_key('input_space_headers'):
+          if key in histVar[1]['input_space_headers']:
+            ix = histVar[1]['input_space_headers'].index(key)
+            if i == 0: inDict[key] = np.zeros(len(hist_list))
+            inDict[key][i] = histVar[1]['input_space_values'][ix][0]
+          elif key in histVar[1]["output_space_headers"]:
+            ix = histVar[1]["output_space_headers"].index(key)
+            if i == 0: inDict[key] = np.zeros(len(hist_list))
+            inDict[key][i] = np.array(histVar[0][0,ix])
+          else: raise Exception("ERROR: the parameter " + key + " has not been found")            
+        else:
+          if key in histVar[1]["output_space_headers"]:
+            ix = histVar[1]["output_space_headers"].index(key)
+            if i == 0: inDict[key] = np.zeros(len(hist_list))
+            inDict[key][i] = histVar[0][0,ix]
+          else: raise Exception("ERROR: the parameter " + key + " has not been found")   
       
-      # Fill input param dictionary 
-      for key in attributes['inParam']:
-        if key in histVar[1]["headers"]:
-          ix = histVar[1]["headers"].index(key)
-          if i == 0: inDict[key] = np.zeros(len(hist_list))
-          inDict[key][i] = histVar[0][0,ix]
-          #inDict[key][i] = 1
-        else: raise RunTimeError("ERROR: the parameter " + str(key) + " has not been found")
       # time end case => TimePointSet is at the final status 
       if time_end:
         last_row = histVar[0][:,0].size - 1
         if all_out_param:
           # Retrieve all the parameters 
-          for key in histVar[1]["headers"]:
+          for key in histVar[1]["output_space_headers"]:
             if i == 0: outDict[key] = np.zeros(len(hist_list))
-            outDict[key][i] = histVar[0][last_row,histVar[1]["headers"].index(key)]
+            outDict[key][i] = histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]
         else:
           # Retrieve only some parameters
           for key in attributes['outParam']:
-            if key in histVar[1]["headers"]:
+            if key in histVar[1]["output_space_headers"]:
               if i == 0: outDict[key] = np.zeros(len(hist_list))
-              outDict[key][i] = histVar[0][last_row,histVar[1]["headers"].index(key)]
+              outDict[key][i] = histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]
             else: raise RunTimeError("ERROR: the parameter " + str(key) + " has not been found")
       else:
         # Arbitrary point in time case... If the requested time point Set does not match any of the stored ones and 
@@ -355,26 +373,26 @@ class HDF5(DateBase):
             actual_time   = histVar[0][i,0]          
             if all_out_param:
               # Retrieve all the parameters 
-              for key in histVar[1]["headers"]:
+              for key in histVar[1]["output_space_headers"]:
                 if(actual_time == previous_time):
                   if i == 0: outDict[key] = np.zeros(np.shape(len(hist_list)))
-                  outDict[key][i] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time 
+                  outDict[key][i] = (histVar[0][i,histVar[1]["output_space_headers"].index(key)]  - time_float) / actual_time 
                 else:
                   if i == 0: outDict[key] = np.zeros(np.shape(len(hist_list)))
-                  actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
-                  previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
+                  actual_value   = histVar[0][i,histVar[1]["output_space_headers"].index(key)]
+                  previous_value = histVar[0][i-1,histVar[1]["output_space_headers"].index(key)] 
                   outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
             else:
               # Retrieve only some parameters
               for key in attributes['outParam']:
-                if key in histVar[1]["headers"]:
+                if key in histVar[1]["output_space_headers"]:
                   if(actual_time == previous_time):
                     if i == 0:outDict[key] = np.zeros(np.shape(len(hist_list))) 
-                    outDict[key][i] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time 
+                    outDict[key][i] = (histVar[0][i,histVar[1]["output_space_headers"].index(key)]  - time_float) / actual_time 
                   else:
                     if i == 0: outDict[key] = np.zeros(np.shape(len(hist_list)))
-                    actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
-                    previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
+                    actual_value   = histVar[0][i,histVar[1]["output_space_headers"].index(key)]
+                    previous_value = histVar[0][i-1,histVar[1]["output_space_headers"].index(key)] 
                     outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
                 else: raise RunTimeError("ERROR: the parameter " + key + " has not been found")      
       del histVar
@@ -407,7 +425,7 @@ class HDF5(DateBase):
     # load the data into the tuple 
     histVar = self.returnHistory(attributes)
     
-    if(all_out_param): field_names = histVar[1]["headers"]
+    if(all_out_param): field_names = histVar[1]["output_space_headers"]
     else:
       # Retrieve only some parameters 
       field_names = attributes["outParam"]
@@ -415,19 +433,29 @@ class HDF5(DateBase):
     
     # fill input param dictionary
     for key in attributes["inParam"]:
-        if key in histVar[1]["headers"]:
-          ix = histVar[1]["headers"].index(key)
-          inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
-        else: raise Exception("ERROR: the parameter " + key + " has not been found")
+        if histVar[1].has_key('input_space_headers'):
+          if key in histVar[1]['input_space_headers']:
+            ix = histVar[1]['input_space_headers'].index(key)
+            inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
+          elif key in histVar[1]["output_space_headers"]:
+            ix = histVar[1]["output_space_headers"].index(key)
+            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
+          else: raise Exception("ERROR: the parameter " + key + " has not been found")            
+        else:
+          if key in histVar[1]["output_space_headers"]:
+            ix = histVar[1]["output_space_headers"].index(key)
+            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
+          else: raise Exception("ERROR: the parameter " + key + " has not been found")   
+
     # Time all case => The history is completed (from start_time to end_time)
     if time_all:
       if all_out_param:
-        for key in histVar[1]["headers"]:
-          outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]
+        for key in histVar[1]["output_space_headers"]:
+          outDict[key] = histVar[0][:,histVar[1]["output_space_headers"].index(key)]
       else:
         for key in attributes["outParam"]:
-          if key in histVar[1]["headers"]:
-            outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]        
+          if key in histVar[1]["output_space_headers"]:
+            outDict[key] = histVar[0][:,histVar[1]["output_space_headers"].index(key)]        
           else:
             raise Exception("ERROR: the parameter " + key + " has not been found")
     else:
@@ -436,11 +464,11 @@ class HDF5(DateBase):
       # * for now it is a copy paste of the time_all case                        *
       # **************************************************************************
       if all_out_param:
-        for key in histVar[1]["headers"]: outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]
+        for key in histVar[1]["output_space_headers"]: outDict[key] = histVar[0][:,histVar[1]["output_space_headers"].index(key)]
       else:
         for key in attributes["outParam"]:
-          if key in histVar[1]["headers"]:
-            outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]        
+          if key in histVar[1]["output_space_headers"]:
+            outDict[key] = histVar[0][:,histVar[1]["output_space_headers"].index(key)]        
           else: raise Exception("ERROR: the parameter " + key + " has not been found")
     # Return tuple of dictionaries containing the histories
     return (copy.deepcopy(inDict),copy.deepcopy(outDict))

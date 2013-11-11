@@ -127,7 +127,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     try:    sourceType =  self.toLoadFromList[0].type
     except AttributeError: pass
     
-    if(sourceType == 'HDF5'): tupleVar = self.toLoadFromList[0].retrieveData(self.dataParameters)
+    if(sourceType == 'HDF5'): tupleVar = self.toLoadFromList[-1].retrieveData(self.dataParameters)
     else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters) 
     self.inpParametersValues = copy.deepcopy(tupleVar[0])
     self.outParametersValues = copy.deepcopy(tupleVar[1])

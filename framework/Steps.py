@@ -106,6 +106,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     '''this should work for everybody just split the step in an initialization and the run itself
     inDictionary[role]=instance or list of instance'''
     if self.debug: print('Initializing....')
+
     self.__initializeStep(inDictionary)
     if self.debug: print('Initialization done starting the run....')
     self.localTakeAstepRun(inDictionary)
@@ -309,6 +310,8 @@ class InOutFromDataBase(Step):
       # I have to change it
       if self.actionType[i] == 'HDF5-DATAS':
         inDictionary['Output'][i].addOutput(inDictionary['Input'][i])
+        # this function is always called, but only when the internal printCSV flag is on, it will do something
+        inDictionary['Output'][i].printCSV()
       else:
         inDictionary['Output'][i].addGroupDatas(inDictionary['Input'][i])
     return
