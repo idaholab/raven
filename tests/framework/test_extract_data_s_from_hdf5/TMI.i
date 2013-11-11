@@ -636,20 +636,21 @@
   max_increase = 3
   petsc_options_value = lu # '300'
   l_max_its = 100 # Number of linear iterations for each Krylov solve
-  start_time = 100.0
+  #start_time = 100.0
   predictor_scale = 0.6
   dtmax = 9999
   nl_rel_step_tol = 1e-3
   dt = 5e-5
   petsc_options_iname = -pc_type
   e_tol = 10.0
+  #num_steps=5
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
-  end_time = 102.5
+  end_time = 150.1
   e_max = 99999.
   [./TimeStepper]
     type = FunctionDT
     time_t = ' 0      1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     100.8    101.5  102.2 120.0  2501.23 1.0e5'
-    time_dt = '1.e-1  0.1        0.15        0.20       0.25      0.30    0.35        0.40    0.45      0.09      0.1      0.008   0.2   0.21   0.2  0.6'
+    time_dt = '1.e-1  0.1        0.15        0.20       0.25      0.30    0.35        0.40    0.45      0.09      0.1      0.008   0.008   0.008   0.2  0.6'
   [../]
   [./Quadrature]
     type = TRAP
