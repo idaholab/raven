@@ -8,7 +8,7 @@
   scaling_factor_var = '1. 1.e-4 1.e-6'
 []
 [EoS]
-  # close Functions section
+
   [./eos]
     type = NonIsothermalEquationOfState
     p_0 = 1.e5 # Pa

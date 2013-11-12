@@ -12,7 +12,7 @@
 []
 
 [EoS]
-  # close Functions section
+
   [./eos]
     e_0 = 3290122.80 # J/kg
     beta = .46e-3 # K^{-1}
