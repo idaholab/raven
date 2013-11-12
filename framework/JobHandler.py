@@ -100,6 +100,9 @@ class ExternalRunner:
   def getWorkingDir(self):
     return self.__workingDir
 
+  def getOutputFilename(self):
+    return os.path.join(self.__workingDir,self.output)
+
 
 class JobHandler:
   def __init__(self):
@@ -168,6 +171,11 @@ class JobHandler:
           returncode = running.getReturnCode()
           if returncode != 0:
             print("JOB HANDLER   : Process Failed",running,running.command," returncode",returncode)
+            outputFilename = running.getOutputFilename()
+            if os.path.exists(outputFilename):
+              print(open(outputFilename,"r").read())
+            else:
+              print("No output ",outputFilename)
           self.__running[i] = None
     if self.__queue.empty():
       return finished
