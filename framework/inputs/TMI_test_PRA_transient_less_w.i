@@ -11,7 +11,6 @@
   scaling_factor_var =  '1.e-1 1.e-5 1.e-8'
 []
 [EoS]
-
   [./eos]
     e_0 =  3290122.80 # J/kg
     beta =  .46e-3 # K^{-1}

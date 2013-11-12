@@ -9,7 +9,6 @@
   stabilization_type = NONE
 []
 [EoS]
-
   [./eos]
     type = NonIsothermalEquationOfState
     p_0 = 1.e5 # Pa

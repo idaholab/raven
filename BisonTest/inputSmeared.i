@@ -234,7 +234,6 @@
     quantity = plasticstrainmag
     execute_on = timestep
   [../]
-
 []
 
 [AuxBCs]
@@ -343,7 +342,6 @@
       output = plenum_pressure                   # coupling to post processor to output plenum/gap pressure
     [../]
   [../]
-
 []
 
 [CoolantChannel]
@@ -681,7 +679,6 @@
     value_type = max
     variable = vonmises
   [../]
-
 []
 
 [Output]
