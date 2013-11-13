@@ -62,13 +62,16 @@
 
 <Steps>
      <MultiRun name='CustomSampler'>
-        <Input   class='Datas'    type='TimePointSet'>outGrid</Input>
-        <Model   class='Models'   type='Dummy'       >MyDummy</Model>
-        <Sampler class='Samplers' type='Grid'        >myGrid</Sampler>
-        <Output  class='Datas'    type='TimePointSet'>dummyIN</Output>
+        <Input   class='Datas'     type='TimePointSet'>outGrid</Input>
+        <Model   class='Models'    type='Dummy'       >MyDummy</Model>
+        <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
+        <Output  class='Datas'     type='TimePointSet'>dummyIN</Output>
+        <Output  class='DataBases' type='HDF5'        >test_DummyModel_db</Output>
     </MultiRun >
 </Steps>
-
+<DataBases>
+        <HDF5 name="test_DummyModel_db"/> 
+</DataBases>
 </Simulation>
 
 

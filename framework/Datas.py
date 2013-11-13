@@ -44,7 +44,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.toLoadFromList = []                # loading source
     
   def readMoreXML(self,xmlNode):
-    print('here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     # retrieve input parameters' keywords
     self.dataParameters['inParam']  = xmlNode.find('Input' ).text.strip().split(',')
     # retrieve output parameters' keywords
@@ -219,7 +218,6 @@ class TimePointSet(Data):
     '''
       Here we perform the consistency check for the structured data TimePointSet
     '''
-    
     try:   sourceType = self.toLoadFromList[0].type
     except AttributeError:sourceType = None
     if('HDF5' == sourceType):

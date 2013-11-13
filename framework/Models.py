@@ -11,7 +11,7 @@ import os
 import copy
 import shutil
 import Datas
-import numpy as np
+import numpy
 from BaseType import BaseType
 import SupervisedLearning
 from Filters import returnFilterInterface
@@ -79,12 +79,18 @@ class Dummy(Model):
   def initialize(self,runInfo,inputs):
     self.counter=0
     self.localOutput = copy.deepcopy(inputs[0])    
+    self.admittedData = []
+    self.admittedData.append('TimePoint')
+    self.admittedData.append('TimePointSet')
+
+  def __returnAdmittedData(self):
+    return self.admittedData
     
   def createNewInput(self,myInput,samplerType,**Kwargs):
     newInput = copy.deepcopy(myInput[0])
-    if newInput.type != 'TimePointSet' and newInput.type != 'TimePoint': raise IOError('wrong input data passed to Dummy model')
+    if newInput.type not in self.__returnAdmittedData(): raise IOError('MODEL DUMMY  : ERROR -> The Dummy Model accepts TimePoint or TimePointSet as input only!!!!')
     for key in Kwargs['SampledVars'].keys():
-      newInput.getInpParametersValues()[key] = np.array([Kwargs['SampledVars'][key]],copy=True,dtype=float)
+      newInput.getInpParametersValues()[key] = numpy.array([Kwargs['SampledVars'][key]],copy=True,dtype=float)
     return [newInput]
 
   def readMoreXML(self,xmlNode):
@@ -95,18 +101,25 @@ class Dummy(Model):
   def run(self,Input,jobHandler):
     for inputName in Input[0].getInpParametersValues().keys():
       if inputName in self.localOutput.getInpParametersValues().keys():
-        self.localOutput.getInpParametersValues()[inputName] = np.hstack([self.localOutput.getInpParametersValues()[inputName], Input[0].getInpParametersValues()[inputName]])
+        self.localOutput.getInpParametersValues()[inputName] = numpy.hstack([self.localOutput.getInpParametersValues()[inputName], Input[0].getInpParametersValues()[inputName]])
       else:
-        self.localOutput.getInpParametersValues()[inputName] = np.array(Input[0].getInpParametersValues()[inputName],copy=True,dtype=float)
+        self.localOutput.getInpParametersValues()[inputName] = numpy.array(Input[0].getInpParametersValues()[inputName],copy=True,dtype=float)
     if 'status' in self.localOutput.getOutParametersValues().keys():
-      self.localOutput.getOutParametersValues()['status'] = np.hstack([self.localOutput.getOutParametersValues()['status'], 1])
+      self.localOutput.getOutParametersValues()['status'] = numpy.hstack([self.localOutput.getOutParametersValues()['status'], 1])
     else:
-      self.localOutput.getOutParametersValues()['status'] = np.array([1],copy=True,dtype=object)
+      self.localOutput.getOutParametersValues()['status'] = numpy.array([1],copy=True,dtype=object)
       
-  def collectOutput(self,collectFrom,storeTo):
+  def collectOutput(self,finisishedjob,output):
+    if output.type not in self.__returnAdmittedData()+['HDF5']: raise IOError('MODEL DUMMY  : ERROR -> The Dummy Model accepts TimePoint, TimePointSet or HDF5 as output only!!!!')
     if self.printFile:
       self.localOutput.printCSV()
-   
+    # collect the actual output    -> the last argument of the HDF5 method is False because we want to update an existing group in case of iterative process and we do not want to check for group presence
+    if   output.type == 'HDF5':                output.addGroupDatas({'group':self.localOutput.name},self.localOutput,True)
+    elif output.type == self.localOutput.type: output = copy.deepcopy(self.localOutput)
+    elif output.type == 'TimePoint':
+      for key in self.localOutput.getInpParametersValues().keys(): output.updateInputValue(key,self.localOutput.getInpParametersValues()[key][-1])
+    else:
+      for key in self.localOutput.getInpParametersValues().keys(): output.updateInputValue(key,self.localOutput.getInpParametersValues()[key])
    
       
 class ExternalModel(Model):
@@ -116,11 +129,14 @@ class ExternalModel(Model):
     self.modelVariableValues = {}
     self.modelVariableType   = {}
     self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
+    self.counter = 0
+    #self.infoForOut         = {}   #it contains the information needed for outputting 
   def initialize(self,runInfo,inputs):
     if 'initialize' in dir(self.sim):
       self.sim.initialize(self,runInfo,inputs)
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
+    #self.infoForOut         = copy.deepcopy(Kwargs)
     if 'createNewInput' in dir(self.sim):
       newInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       return [newInput] 
@@ -155,22 +171,26 @@ class ExternalModel(Model):
 
  
   def run(self,Input,jobHandler):
-    
     self.sim.run(self,Input,jobHandler)
+    self.counter += 1
     
   def collectOutput(self,finisishedjob,output):
     if 'collectOutput' in dir(self.sim):
       self.sim.collectOutput(self,finisishedjob,output)
     self.__pointSolution()
-    if 'HDF5' in output.type: raise NotImplementedError('MODEL EXTERNAL: ERROR -> output type HDF5 not implemented yet for externalModel') 
-
-    if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
-    for inputName in output.dataParameters['inParam']:
-      exec('if not (type(self.modelVariableValues[inputName]) == ' + self.modelVariableType[inputName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' mismatches with respect to the inputted one!!!")')
-      output.updateInputValue(inputName,self.modelVariableValues[inputName])
-    for outName in output.dataParameters['outParam']:
-      output.updateOutputValue(outName,self.modelVariableValues[outName])
-    output.printCSV()    
+    if 'HDF5' in output.type: 
+      for key in self.modelVariableValues: 
+        exec('if not (type(self.modelVariableValues[key]) == '+ self.modelVariableType[key] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[key] +')!!!")')
+      output.addGroupDatas({'group':str(self.counter)},self.modelVariableValues)
+    else:
+      if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
+      for inputName in output.dataParameters['inParam']:
+        exec('if not (type(self.modelVariableValues[inputName]) == '+ self.modelVariableType[inputName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' is ' + str(type(self.modelVariableValues[inputName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[inputName] +')!!!")')
+        output.updateInputValue(inputName,self.modelVariableValues[inputName])
+      for outName in output.dataParameters['outParam']:
+        exec('if not (type(self.modelVariableValues[outName]) == '+ self.modelVariableType[outName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ outName + ' is ' + str(type(self.modelVariableValues[outName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[outName] +')!!!")')
+        output.updateOutputValue(outName,self.modelVariableValues[outName])
+      output.printCSV()    
     
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
@@ -329,8 +349,8 @@ class ROM(Model):
     if self.outputName in self.toLoadFrom.getOutParametersValues(): 
       outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
     else: raise IOError('The output sought '+self.outputName+' is not in the training set')
-    self.inputsValues = np.zeros(shape=(inputsValues[0].size,len(self.inputNames)))
-    self.outputValues = np.zeros(shape=(inputsValues[0].size))
+    self.inputsValues = numpy.zeros(shape=(inputsValues[0].size,len(self.inputNames)))
+    self.outputValues = numpy.zeros(shape=(inputsValues[0].size))
     for i in range(len(self.inputNames)):
       self.inputsValues[:,i] = inputsValues[i][:]
     self.outputValues[:] = outputValues[:]
@@ -361,10 +381,10 @@ class ROM(Model):
         if currentInput.type in self.__returnAdmittedData():
           newInput = Datas.returnInstance(currentInput.type)
           newInput.type = currentInput.type
-          for name,value in itertools.izip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,np.atleast_1d(np.array(value)))
+          for name,value in itertools.izip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(value)))
           for name, newValue in itertools.izip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()):
             # for now, even if the ROM accepts a TimePointSet, we create a TimePoint
-            newInput.updateInputValue(name,np.atleast_1d(np.array(newValue)))
+            newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(newValue)))
             #except? raise IOError('trying to sample '+name+' that is not in the original input')
       except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible input')
     currentInput = [newInput]
@@ -401,7 +421,7 @@ class ROM(Model):
     for local in self.inputNames:
       self.requestToLocalOrdering.append(inputNames.index(local))
     #building the arrays to send in for the prediction by the ROM
-    self.request = np.array([inputValues[index] for index in self.requestToLocalOrdering]).T[0]
+    self.request = numpy.array([inputValues[index] for index in self.requestToLocalOrdering]).T[0]
     ############################------FIXME----------#######################################################
     # we need to submit self.ROM.evaluate(self.request) to the job handler
     self.output = self.SupervisedEngine.evaluate(self.request)

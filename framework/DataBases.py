@@ -146,7 +146,7 @@ class HDF5(DateBase):
     ''' 
     return self.database.retrieveAllHistoryNames()
 
-  def addGroup(self,attributes,loadFrom):
+  def addGroup(self,attributes,loadFrom,upGroup=False):
     '''
     Function to add a group in the HDF5 database
     @ In, attributes : dictionary of attributes (metadata and options)
@@ -154,23 +154,25 @@ class HDF5(DateBase):
     @ Out, None 
     ''' 
     attributes["group"] = attributes['prefix']
-    self.database.addGroup(attributes["group"],attributes,loadFrom)
+    self.database.addGroup(attributes["group"],attributes,loadFrom,upGroup)
     self.built = True
     
-  def addGroupDatas(self,loadFrom):
+  def addGroupDatas(self,attributes,loadFrom,upGroup=False):
+    #### TODO: this function and the function above can be merged together (Andrea)
     '''
     Function to add a group in the HDF5 database
     @ In, attributes : dictionary of attributes (metadata and options)
-    @ In, loadFrom   : source of the data (for example, a csv file)
+    @ In, loadFrom   : source of the data (must be a data(s) or a dictionary)
     @ Out, None 
     ''' 
-    if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']:
-      raise IOError('DATABASE      : ERROR addGroupDatas function needs to have a Datas as imput source')
-    attributes = {'group':loadFrom.name,'type':'Datas','name':loadFrom}
-    self.database.addGroupDatas(attributes["group"],attributes,attributes)
+    if type(loadFrom) != dict:
+      if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: raise IOError('DATABASE      : ERROR addGroupDatas function needs to have a Datas as imput source')
+      attributes['type'] = 'Datas'
+    attributes['name'] = loadFrom
+    self.database.addGroupDatas(attributes["group"],attributes,attributes,upGroup)
     self.built = True
-
-  def addGroupInit(self,gname,attributes=None):
+  
+  def addGroupInit(self,gname,attributes=None,upGroup=False):
     '''
     Function to add an initial root group into the data base...
     This group will not contain a dataset but, eventually, only
@@ -178,7 +180,7 @@ class HDF5(DateBase):
     @ In, gname      : name of the root group
     @ Out, attributes: metadata muste be appended to the root group
     '''
-    self.database.addGroupInit(gname,attributes)
+    self.database.addGroupInit(gname,attributes,upGroup)
   
   def returnHistory(self,attributes):
     '''

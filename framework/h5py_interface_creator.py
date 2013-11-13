@@ -112,7 +112,7 @@ class hdf5Database(object):
         self.allGroupEnds[name]  = True
     return
    
-  def addGroup(self,gname,attributes,source):
+  def addGroup(self,gname,attributes,source,upGroup=False):
     '''
     Function to add a group into the database
     @ In, gname      : group name
@@ -130,7 +130,7 @@ class hdf5Database(object):
         If Hierarchical structure, firstly add the root group 
       '''
       if not self.firstRootGroup:
-        self.__addGroupRootLevel(gname,attributes,source)
+        self.__addGroupRootLevel(gname,attributes,source,upGroup)
         self.firstRootGroup = True
         self.type = 'DET'
       else:
@@ -138,12 +138,12 @@ class hdf5Database(object):
         self.__addSubGroup(gname,attributes,source)
     else:
       # Parallel structure (always root level)
-      self.__addGroupRootLevel(gname,attributes,source)
+      self.__addGroupRootLevel(gname,attributes,source,upGroup)
       self.firstRootGroup = True
       self.type = 'MC'
     return
 
-  def addGroupInit(self,gname,attributes=None):
+  def addGroupInit(self,gname,attributes=None,upGroup=False):
     '''
     Function to add an empty group to the database
     This function is generally used when the user provides a rootname in the input
@@ -151,10 +151,10 @@ class hdf5Database(object):
     @ In, gname      : group name
     @ Out, None
     '''
-    for index in xrange(len(self.allGroupPaths)):
-      comparisonName = self.allGroupPaths[index]
-      if gname in comparisonName:
-        raise IOError("Root Group named " + gname + " already present in database " + self.name)
+    if not upGroup:
+      for index in xrange(len(self.allGroupPaths)):
+        comparisonName = self.allGroupPaths[index]
+        if gname in comparisonName: raise IOError("Root Group named " + gname + " already present in database " + self.name)
     
     self.parent_group_name = "/" + gname 
     # Create the group
@@ -170,7 +170,7 @@ class hdf5Database(object):
     
     return
 
-  def __addGroupRootLevel(self,gname,attributes,source):
+  def __addGroupRootLevel(self,gname,attributes,source,upGroup=False):
     '''
     Function to add a group into the database (root level)
     @ In, gname      : group name
@@ -180,9 +180,10 @@ class hdf5Database(object):
     '''
     # Check in the "self.allGroupPaths" list if a group is already present... 
     # If so, error (Deleting already present information is not desiderable) 
-    for index in xrange(len(self.allGroupPaths)):
-      comparisonName = self.allGroupPaths[index]
-      if gname in comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
+    if not upGroup:
+      for index in xrange(len(self.allGroupPaths)):
+        comparisonName = self.allGroupPaths[index]
+        if gname in comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
     if source['type'] == 'csv':
       # Source in CSV format
       f = open(source['name'],'rb')
@@ -201,8 +202,14 @@ class hdf5Database(object):
         # Retrieve the parent group from the HDF5 database
         if parent_group_name in self.h5_file_w: rootgrp = self.h5_file_w.require_group(parent_group_name)
         else: raise ValueError("NOT FOUND group named " + parent_group_name)
-        grp = rootgrp.create_group(gname)
-      else: grp = self.h5_file_w.create_group(gname)
+        if upGroup: 
+          grp = rootgrp.require_group(gname)
+          del grp[gname+"_data"]
+        else: grp = rootgrp.create_group(gname)
+      else: 
+        if upGroup: grp = self.h5_file_w.require_group(gname)
+        else:       grp = self.h5_file_w.create_group(gname) 
+        
 
       print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
       # Create dataset in this newly added group
@@ -248,18 +255,12 @@ class hdf5Database(object):
       self.allGroupEnds["/" + gname] = True
 
 
-  def addGroupDatas(self,gname,attributes,source):
-    for index in xrange(len(self.allGroupPaths)):
-      comparisonName = self.allGroupPaths[index]
-      if gname in comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
-    # get input parameters
-    inputSpace  = source['name'].getInpParametersValues()
-    outputSpace = source['name'].getOutParametersValues()
-    # Retrieve the headers from the data (inputs and outputs)
-    headers_in  = inputSpace.keys()
-    headers_out = outputSpace.keys()
+  def addGroupDatas(self,gname,attributes,source,upGroup=False):
+    if not upGroup:
+      for index in xrange(len(self.allGroupPaths)):
+        comparisonName = self.allGroupPaths[index]
+        if gname in comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
     parent_name = self.parent_group_name.replace('/', '')
-    
     # Create the group
     if parent_name != '/':
       parent_group_name = self.__returnParentGroupPath(parent_name)
@@ -267,69 +268,127 @@ class hdf5Database(object):
       if parent_group_name in self.h5_file_w: parentgroup_obj = self.h5_file_w.require_group(parent_group_name)
       else: raise ValueError("NOT FOUND group named " + parentgroup_obj)
     else: parentgroup_obj = self.h5_file_w
-    # for a "histories" type we create a number of groups = number of histories (compatibility with loading structure)
-    data_in  = inputSpace.values()
-    data_out = outputSpace.values()
-    if source['name'].type in ['Histories','TimePointSet']:
-      groups = []
-      for run in range(len(data_in)): 
-        groups.append(parentgroup_obj.create_group(gname + '|' +str(run)))
-        groups[run].attrs[b'source_type'] = bytes(source['name'].type)
-        groups[run].attrs[b'main_class' ] = b'Datas'
-        groups[run].attrs[b'EndGroup'   ] = True
-        groups[run].attrs[b'parent_id'  ] = parent_name
-        if source['name'].type == 'Histories': 
-          groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([bytes(data_in[run].keys()[i])  for i in range(len(data_in[run].keys()))]) 
-          groups[run].attrs[b'output_space_headers'] = copy.deepcopy([bytes(data_out[run].keys()[i])  for i in range(len(data_out[run].keys()))]) 
-          groups[run].attrs[b'input_space_values'  ] = copy.deepcopy(data_in[run].values())
-          groups[run].attrs[b'n_params'            ] = len(data_out[run].keys())
-          #collect the outputs
-          dataout = np.zeros((data_out[run].values()[0].size,len(data_out[run].values())))
-          for param in range(len(data_out[run].values())): dataout[:,param] = data_out[run].values()[param][:]
-          groups[run].create_dataset(gname +"_data" , dtype="float", data=copy.deepcopy(dataout))
-          groups[run].attrs[b'n_ts'                ] = len(data_out[run].values())
-        else:
-          groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([bytes(headers_in[i])  for i in range(len(headers_in))]) 
-          groups[run].attrs[b'output_space_headers'] = copy.deepcopy([bytes(headers_out[i])  for i in range(len(headers_out))]) 
-          groups[run].attrs[b'input_space_values'  ] = copy.deepcopy([np.atleast_1d(np.array(data_in[x][run])) for x in range(len(data_in))])
-          groups[run].attrs[b'n_params'            ] = len(headers_out)
-          groups[run].attrs[b'n_ts'                ] = 1
-          #collect the outputs
-          dataout = np.zeros((1,len(data_out)))
-          for param in range(len(data_out)): dataout[0,param] = copy.deepcopy(data_out[param][run])
-          groups[run].create_dataset(gname +"_data", dtype="float", data=dataout)          
-        if parent_group_name != "/":
-          self.allGroupPaths.append(parent_group_name + "/" + gname + '|' +str(run))
-          self.allGroupEnds[parent_group_name + "/" + gname + '|' +str(run)] = True
-        else:
-          self.allGroupPaths.append("/" + gname + '|' +str(run))
-          self.allGroupEnds["/" + gname + '|' +str(run)] = True   
-    elif source['name'].type in ['TimePoint','History']:
-      groups = parentgroup_obj.create_group(gname)
-      groups.attrs[b'main_class' ] = b'Datas'
-      groups.attrs[b'source_type'] = bytes(source['name'].type)
-      groups.attrs[b'n_params'   ] = len(headers_out)
-      groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(headers_in[i])  for i in range(len(headers_in))]) 
-      groups.attrs[b'output_space_headers'] = copy.deepcopy([bytes(headers_out[i])  for i in range(len(headers_out))]) 
-      groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(data_in[i])  for i in range(len(data_in))])
-      groups.attrs[b'source_type'] = bytes(source['name'].type)
+    
+    
+    if type(source['name']) == dict:
+      # create the group
+      if upGroup: 
+        groups = parentgroup_obj.require_group(gname)
+        del groups[gname+"_data"]
+      else: groups = parentgroup_obj.create_group(gname)
+      groups.attrs[b'main_class' ] = b'PythonType'
+      groups.attrs[b'source_type'] = b'Dictionary'
+      if 'input_space_params' in source['name'].keys():
+        groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(source['name'].keys()['input_space_params'].keys()[i])  for i in range(len(source['name'].keys()['input_space_params'].keys()))]) 
+        groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(source['name'].keys()['input_space_params'].values()[i])  for i in range(len(source['name'].keys()['input_space_params'].values()))])
+        out_headers = source['name'].keys()
+        out_headers.remove('input_space_params')
+      else: out_headers = source['name'].keys()
+      groups.attrs[b'n_params'   ] = len(out_headers)  
+      groups.attrs[b'output_space_headers'] = copy.deepcopy([bytes(out_headers[i])  for i in range(len(out_headers))]) 
       groups.attrs[b'EndGroup'   ] = True
       groups.attrs[b'parent_id'  ] = parent_name
-      dataout = np.zeros((data_out[0].size,len(data_out)))
-      groups.attrs[b'n_ts'  ] = data_out[0].size
-      for run in range(len(data_out)): dataout[:,int(run)] = copy.deepcopy(data_out[run][:])
-        #for param in range(data_out[run].size): dataout[param,int(run)] = copy.deepcopy(data_out[run][param])
+      maxsize = 0
+      for key in source['name'].keys():
+        if key == 'input_space_params': continue
+        if type(source['name'][key]) == np.ndarray:
+          if maxsize < source['name'][key].size : actualone = source['name'][key].size
+        elif type(source['name'][key]) in [int,float,bool]: actualone = 1
+        else: raise IOError('DATABASE HDF5 : The type of the dictionary paramaters must be within float,bool,int,numpy.ndarray')
+        if maxsize < actualone: maxsize = actualone
+      groups.attrs[b'n_ts'  ] = maxsize
+      dataout = np.zeros((maxsize,len(out_headers)))
+      cnt = 0
+      for index in range(len(source['name'].keys())):
+        if source['name'].keys()[index]== 'input_space_params': cnt -= cnt  
+        else: 
+          cnt = index
+          if type(source['name'].values()[cnt]) == np.ndarray:  dataout[0:source['name'].values()[cnt].size,cnt] =  copy.deepcopy(source['name'].values()[cnt][:])
+          else: dataout[:,cnt] = copy.deepcopy(source['name'].values()[cnt])
+      # create the data set
       dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
       if parent_group_name != "/":
         self.allGroupPaths.append(parent_group_name + "/" + gname)
         self.allGroupEnds[parent_group_name + "/" + gname] = True
       else:
         self.allGroupPaths.append("/" + gname)
-        self.allGroupEnds["/" + gname] = True   
-    elif type(source['name']) == 'dict':
-      raise NotYetImplemented('Loading dictionaries into HDF5 not yet implemented')
+        self.allGroupEnds["/" + gname] = True         
     else:
-      pass
+      # Retrieve the headers from the data (inputs and outputs)
+      headers_in  = source['name'].getInpParametersValues().keys()
+      headers_out = source['name'].getOutParametersValues().keys()
+      # for a "histories" type we create a number of groups = number of histories (compatibility with loading structure)
+      data_in  = source['name'].getInpParametersValues().values()
+      data_out = source['name'].getOutParametersValues().values()    
+
+
+      if source['name'].type in ['Histories','TimePointSet']:
+        groups = []
+        if 'Histories' in source['name'].type: nruns = len(data_in)
+        else:                                  nruns = data_in[0].size
+        for run in range(nruns): 
+          if upGroup: 
+            groups.append(parentgroup_obj.require_group(gname + b'|' +str(run)))
+            if (gname + "_data") in groups[run] : del groups[run][gname+"_data"]
+          else:groups.append(parentgroup_obj.create_group(gname + b'|' +str(run)))
+          
+          groups[run].attrs[b'source_type'] = bytes(source['name'].type)
+          groups[run].attrs[b'main_class' ] = b'Datas'
+          groups[run].attrs[b'EndGroup'   ] = True
+          groups[run].attrs[b'parent_id'  ] = parent_name
+          if source['name'].type == 'Histories': 
+            groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([bytes(data_in[run].keys()[i])  for i in range(len(data_in[run].keys()))]) 
+            groups[run].attrs[b'output_space_headers'] = copy.deepcopy([bytes(data_out[run].keys()[i])  for i in range(len(data_out[run].keys()))]) 
+            groups[run].attrs[b'input_space_values'  ] = copy.deepcopy(data_in[run].values())
+            groups[run].attrs[b'n_params'            ] = len(data_out[run].keys())
+            #collect the outputs
+            dataout = np.zeros((data_out[run].values()[0].size,len(data_out[run].values())))
+            for param in range(len(data_out[run].values())): dataout[:,param] = data_out[run].values()[param][:]
+            groups[run].create_dataset(gname +"_data" , dtype="float", data=copy.deepcopy(dataout))
+            groups[run].attrs[b'n_ts'                ] = len(data_out[run].values())
+          else:
+            groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([bytes(headers_in[i])  for i in range(len(headers_in))]) 
+            groups[run].attrs[b'output_space_headers'] = copy.deepcopy([bytes(headers_out[i])  for i in range(len(headers_out))]) 
+            groups[run].attrs[b'input_space_values'  ] = copy.deepcopy([np.atleast_1d(np.array(data_in[x][run])) for x in range(len(data_in))])
+            groups[run].attrs[b'n_params'            ] = len(headers_out)
+            groups[run].attrs[b'n_ts'                ] = 1
+            #collect the outputs
+            dataout = np.zeros((1,len(data_out)))
+            for param in range(len(data_out)): dataout[0,param] = copy.deepcopy(data_out[param][run])
+            groups[run].create_dataset(gname +"_data", dtype="float", data=dataout)          
+          if parent_group_name != "/":
+            self.allGroupPaths.append(parent_group_name + "/" + gname + '|' +str(run))
+            self.allGroupEnds[parent_group_name + "/" + gname + '|' +str(run)] = True
+          else:
+            self.allGroupPaths.append("/" + gname + '|' +str(run))
+            self.allGroupEnds["/" + gname + '|' +str(run)] = True   
+      elif source['name'].type in ['TimePoint','History']:
+        if upGroup: 
+          groups = parentgroup_obj.require_group(gname)
+          del groups[gname+"_data"]
+        else: groups = parentgroup_obj.create_group(gname)
+        groups.attrs[b'main_class' ] = b'Datas'
+        groups.attrs[b'source_type'] = bytes(source['name'].type)
+        groups.attrs[b'n_params'   ] = len(headers_out)
+        groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(headers_in[i])  for i in range(len(headers_in))]) 
+        groups.attrs[b'output_space_headers'] = copy.deepcopy([bytes(headers_out[i])  for i in range(len(headers_out))]) 
+        groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(data_in[i])  for i in range(len(data_in))])
+        groups.attrs[b'source_type'] = bytes(source['name'].type)
+        groups.attrs[b'EndGroup'   ] = True
+        groups.attrs[b'parent_id'  ] = parent_name
+        dataout = np.zeros((data_out[0].size,len(data_out)))
+        groups.attrs[b'n_ts'  ] = data_out[0].size
+        for run in range(len(data_out)): dataout[:,int(run)] = copy.deepcopy(data_out[run][:])
+          #for param in range(data_out[run].size): dataout[param,int(run)] = copy.deepcopy(data_out[run][param])
+        dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
+        if parent_group_name != "/":
+          self.allGroupPaths.append(parent_group_name + "/" + gname)
+          self.allGroupEnds[parent_group_name + "/" + gname] = True
+        else:
+          self.allGroupPaths.append("/" + gname)
+          self.allGroupEnds["/" + gname] = True   
+      else:
+        raise IOError('DATABASE HDF5 : The function addGroupDatas accepts Data(s) or dictionaries as inputs only!!!!!')
 
 
       

@@ -310,10 +310,8 @@ class InOutFromDataBase(Step):
       # I have to change it
       if self.actionType[i] == 'HDF5-DATAS':
         inDictionary['Output'][i].addOutput(inDictionary['Input'][i])
-        # this function is always called, but only when the internal printCSV flag is on, it will do something
-        inDictionary['Output'][i].printCSV()
-      else:
-        inDictionary['Output'][i].addGroupDatas(inDictionary['Input'][i])
+        inDictionary['Output'][i].printCSV() # the check on the printing flag is internal
+      else: inDictionary['Output'][i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
     return
 
   def localAddInitParams(self,tempDict):
