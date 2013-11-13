@@ -193,7 +193,6 @@ class HDF5(DateBase):
     '''
     if (not self.exist) and (not self.built): raise IOError("ERROR: Can not retrieve an History from data set" + self.name + ".It has not built yet.")
     if 'filter' in attributes.keys():#attributes['filter']:
-      print('in DataBases:',attributes.keys())
       tupleVar = self.database.retrieveHistory(attributes["history"],attributes['filter'])
     else:
       tupleVar = self.database.retrieveHistory(attributes["history"])

@@ -202,7 +202,7 @@ class CsvLoader:
     for i in range(len(filesin)): 
       #load the data into the numpy array
       data = self.loadCsvFile(filesin[i])
-      print(data.shape)
+     
       if i == 0:
         if(self.all_out_param):
           self.field_names = self.all_field_names
@@ -211,8 +211,6 @@ class CsvLoader:
           self.field_names.insert(0, 'time')       
       #fill input param dictionary
       for key in inParam:
-        print(key)
-        print(self.all_field_names)
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
           if i == 0:

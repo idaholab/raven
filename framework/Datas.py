@@ -42,6 +42,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.outParametersValues = outParamValues
     self.outParametersValues   = {}         # output variables as keys, corresponding values
     self.toLoadFromList = []                # loading source
+                   
     
   def readMoreXML(self,xmlNode):
     # retrieve input parameters' keywords
@@ -118,18 +119,30 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         this function adds the file name/names/object to the
         filename list + it calls the specialized functions to retrieve the different data
     '''
-    print('DATAS       : toLoadFrom -> ')
-    print(toLoadFrom)
     self.toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
     sourceType = None
-    try:    sourceType =  self.toLoadFromList[0].type
-    except AttributeError: pass
-    
+    print('DATAS         : Constructiong data type "' +self.type +'" named "'+ self.name + '" from:')
+    try:    
+      sourceType =  self.toLoadFromList[-1].type
+      print(' '*16 +'Object type "' + self.toLoadFromList[-1].type + '" named "' + self.toLoadFromList[-1].name+ '"')
+    except AttributeError: 
+      print(' '*16 +'CSV "' + toLoadFrom + '"')
+  
     if(sourceType == 'HDF5'): tupleVar = self.toLoadFromList[-1].retrieveData(self.dataParameters)
-    else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters) 
-    self.inpParametersValues = copy.deepcopy(tupleVar[0])
-    self.outParametersValues = copy.deepcopy(tupleVar[1])
+    #else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters) 
+    else:                     tupleVar = ld().csvLoadData([toLoadFrom],self.dataParameters) 
+    
+    for hist in tupleVar[0].keys():
+      if type(tupleVar[0][hist]) == dict:
+        for key in tupleVar[0][hist].keys(): self.updateInputValue(key, tupleVar[0][hist][key])
+      else: self.updateInputValue(hist, tupleVar[0][hist])
+    for hist in tupleVar[1].keys():
+      if type(tupleVar[1][hist]) == dict:
+        for key in tupleVar[1][hist].keys(): self.updateOutputValue(key, tupleVar[1][hist][key])
+      else: self.updateOutputValue(hist, tupleVar[1][hist]) 
+    #self.inpParametersValues = copy.deepcopy(tupleVar[0])
+    #self.outParametersValues = copy.deepcopy(tupleVar[1])
     self.checkConsistency()
     return
 
