@@ -664,7 +664,7 @@
 []
 [Output]
   # xda = true
-  #num_checkpoint_files = 1
+  #num_restart_files = 1
   output_initial =  true
   output_displaced = true
   perf_log =  false
