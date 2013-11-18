@@ -52,15 +52,8 @@ class RavenInterface:
   def StochasticCollocationForRAVEN(self,**Kwargs):
     if 'prefix' not in Kwargs['prefix']:
       raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
-    #try: qps = Kwargs['qps']
-    #except? raise IOError('a qp index is required for the StochColl sampler for RAVEN')
     listDict = []
     varValDict = Kwargs['vars'] #come in as a string of a list, need to re-list
-    #print('\nvarValDict type:',type(varValDict),varValDict,'\n')
-    #qps   = Kwargs['qps']
-    #names = ast.literal_eval(varValDict.keys()) #turns string of list/tuple into list
-    #vals = ast.literal_eval(var
-    #qps   = ast.literal_eval(qps)
     for key in varValDict.keys():
       modifDict={}
       modifDict['name']=key.split(':')
@@ -77,7 +70,6 @@ class RavenInterface:
       init_seed = Kwargs['initial_seed']
     else:
       init_seed = 1
-
     listDict = []
     modifDict = {}
     modifDict['name'] = ['Distributions']
@@ -264,7 +256,6 @@ class RelapInterface:
   def appendLoadFileExtension(self,fileRoot):
     '''  '''
     return fileRoot + '.csv'
-
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''

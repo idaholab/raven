@@ -285,15 +285,6 @@ class Simulation(object):
 
     #Class Dictionary when a new function is added to the simulation this dictionary need to be expanded
     #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
-#    self.addWhatDict  = {}
-#    self.addWhatDict['Steps'         ] = Steps.returnInstance
-#    self.addWhatDict['Datas'         ] = Datas.returnInstance
-#    self.addWhatDict['Samplers'      ] = Samplers.returnInstance
-#    self.addWhatDict['Models'        ] = Models.returnInstance
-#    self.addWhatDict['Tests'         ] = Tests.returnInstance
-#    self.addWhatDict['Distributions' ] = Distributions.returnInstance
-#    self.addWhatDict['DataBases'     ] = DataBases.returnInstance
-#    self.addWhatDict['OutStreams'    ] = OutStreams.returnInstance
 
     self.addWhatDict  = {}
     self.addWhatDict['Steps'         ] = Steps

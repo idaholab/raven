@@ -108,13 +108,16 @@ class Hermite(Quadrature):
     self.quad_pts,self.weights = orth.h_roots(self.order)
     self.quad_pts = self.keepReal(self.quad_pts)
     self.keepReal = self.keepReal(self.weights)
-
+    print('Hermitexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
   def setDist(self):
   #  self.dist=spst.norm() #FIXME is this true?? exp(-x^2/<<2>>)
     self.poly=sps.hermite
 
   def evNormPoly(self,o,x):
-    return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(np.pi)*2.**o*factorial(o))
+#    return sps.eval_hermitenorm(o,x)#/np.sqrt(np.sqrt(np.pi)*2.**o*factorial(o))
+
+    return sps.eval_hermite(o,x)#/np.sqrt(np.sqrt(np.pi)*2.**o*factorial(o))
+  
 
 
 
@@ -125,6 +128,7 @@ class StatHermite(Quadrature):
     self.quad_pts,self.weights = orth.he_roots(self.order)
     self.quad_pts = self.keepReal(self.quad_pts)
     self.keepReal = self.keepReal(self.weights)
+    print('StatisticianHermitexxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
   def setDist(self):
   #  self.dist=spst.norm()
@@ -136,6 +140,10 @@ class StatHermite(Quadrature):
       x=np.real(x)
     except ValueError:
       print(self,'.evNormPoly tried to convert to real but it failed.  Moving on.')
+    print('order '+str(o))
+    print('coordinate '+str(x))
+    print('value '+str(sps.eval_hermite(o,x)/np.sqrt(np.sqrt(2.*np.pi)*factorial(o))))
+    print('value '+str(sps.eval_hermitenorm(o,x)))
     return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(2.*np.pi)*factorial(o))
 
 

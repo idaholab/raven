@@ -53,40 +53,6 @@
   <HDF5 name='SC_OUT' type='MC'/>
 </DataBases>
 
-<!--Datas>
-    <Histories name='stories'>
-        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>avg_temp_clad_CH2,CladDamaged</Output>
-   </Histories>
-   <Histories name='stories_from_database'>
-        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>avg_temp_clad_CH2,CladDamaged</Output>
-   </Histories>
-    <TimePointSet name='trainer'          time='end'>
-        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>avg_temp_clad_CH2,CladDamaged</Output>
-    </TimePointSet>
-    <TimePoint    name='form3stories'     time='0.001'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePoint>
-    <TimePoint    name='form1story'       time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePoint>
-    <TimePointSet name='finalPbconverged' time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
-    <TimePointSet name='finalLSconverged' time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
-    <TimePointSet name='PbfromROM'        time='end'>
-        <Input>pippo,pip,pluto</Input>
-        <Output>cladFailure</Output>
-    </TimePointSet>
-</Datas-->
 </Simulatio>
 
 

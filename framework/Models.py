@@ -120,8 +120,9 @@ class Dummy(Model):
       for key in self.localOutput.getInpParametersValues().keys(): output.updateInputValue(key,self.localOutput.getInpParametersValues()[key][-1])
     else:
       for key in self.localOutput.getInpParametersValues().keys(): output.updateInputValue(key,self.localOutput.getInpParametersValues()[key])
-   
-      
+#
+#
+#
 class ExternalModel(Model):
   ''' External model class: this model allows to interface with an external python module'''
   def __init__(self):
@@ -130,13 +131,12 @@ class ExternalModel(Model):
     self.modelVariableType   = {}
     self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
     self.counter = 0
-    #self.infoForOut         = {}   #it contains the information needed for outputting 
+
   def initialize(self,runInfo,inputs):
     if 'initialize' in dir(self.sim):
       self.sim.initialize(self,runInfo,inputs)
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    #self.infoForOut         = copy.deepcopy(Kwargs)
     if 'createNewInput' in dir(self.sim):
       newInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       return [newInput] 
@@ -169,7 +169,6 @@ class ExternalModel(Model):
     if 'readMoreXML' in dir(self.sim):
       self.sim.readMoreXML(self,xmlNode)
 
- 
   def run(self,Input,jobHandler):
     self.sim.run(self,Input,jobHandler)
     self.counter += 1
@@ -194,7 +193,9 @@ class ExternalModel(Model):
     
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
-
+#
+#
+#
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
   def __init__(self):
@@ -290,8 +291,9 @@ class Code(Model):
       for key in infoForOut:
         attributes[key] = infoForOut[key]
     database.addGroup(attributes,attributes)
-
-
+#
+#
+#
 class ROM(Model):
   '''ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome'''
   def __init__(self):
@@ -344,7 +346,6 @@ class ROM(Model):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-
     self.inputNames, inputsValues  = self.toLoadFrom.getInpParametersValues().keys(), self.toLoadFrom.getInpParametersValues().values()
     if self.outputName in self.toLoadFrom.getOutParametersValues(): 
       outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
@@ -362,7 +363,6 @@ class ROM(Model):
         it support string input
         dictionary input and datas input'''
     import itertools
-    
     if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
     else: currentInput =currentInput[0]
     if  type(currentInput)==str:#one input point requested a as a string
@@ -425,8 +425,7 @@ class ROM(Model):
     ############################------FIXME----------#######################################################
     # we need to submit self.ROM.evaluate(self.request) to the job handler
     self.output = self.SupervisedEngine.evaluate(self.request)
-#    raise IOError('the multi treading is not yet in place neither the appending')
-  
+
   def collectOutput(self,finishedJob,output):
     '''This method append the ROM evaluation into the output'''
     try: #try is used to be sure input.type exist
@@ -436,7 +435,9 @@ class ROM(Model):
     except AttributeError: raise IOError('the output of the ROM is requested on a not compatible data')
     output.updateOutputValue(self.outputName,self.output)
     output.printCSV()
-  
+#
+#
+#  
 class Projector(Model):
   '''Projector is a data manipulator'''
   def __init__(self):
@@ -464,10 +465,9 @@ class Projector(Model):
   def run(self,inObj,outObj):
     '''run calls the interface finalizer'''
     self.interface.finalizeFilter(inObj,outObj,self.workingDir)
-    
-    
-    
-
+#
+#
+#
 class Filter(Model):
   '''Filter is an Action System. All the models here, take an input and perform an action'''
   def __init__(self):

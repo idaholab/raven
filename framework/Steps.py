@@ -106,7 +106,6 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     '''this should work for everybody just split the step in an initialization and the run itself
     inDictionary[role]=instance or list of instance'''
     if self.debug: print('Initializing....')
-
     self.__initializeStep(inDictionary)
     if self.debug: print('Initialization done starting the run....')
     self.localTakeAstepRun(inDictionary)
@@ -148,7 +147,6 @@ class SingleRun(Step):
         inDictionary['Model'].collectOutput(None,output)
 
   def localInputAndChecks(self,xmlNode):
-    #TODO implement
     pass
 
   def localAddInitParams(self,tempDict):
@@ -327,8 +325,6 @@ class RomTrainer(Step):
   '''This step type is used only to train a ROM
     @Input, DataBase (for example, HDF5)
   '''
-  def __init__(self):
-    Step.__init__(self)
 
   def addCurrentSetting(self,originalDict):
     Step.addCurrentSetting(self,originalDict)

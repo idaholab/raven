@@ -43,7 +43,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
   myInstance.generateInput(self,model,oldInput)      Requested from <Step> to generate a new input. Generate the new values and request to model to modify according the input and returning it back
 
-  --Other external methods--
+  --Other inherited methods--
   myInstance.whoAreYou()                            -see BaseType class-
   myInstance.myInitializzationParams()              -see BaseType class-
   myInstance.myCurrentSetting()                     -see BaseType class-
@@ -64,8 +64,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   self.localAddCurrentSetting(tempDict)
   self.localInitialize()
   self.localStillReady(ready)
-  self.localFinalizeActualSampling(jobObject,model,myInput):
-  
+  self.localFinalizeActualSampling(jobObject,model,myInput)
   '''
 
   def __init__(self):
@@ -181,7 +180,6 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''Use this function to change the ready status'''
     return ready
     
-
   def generateInput(self,model,oldInput):
     '''
     This method have to be overwrote to provide the specialization for the specific sampler
@@ -247,7 +245,6 @@ class StochasticCollocation(Sampler):
   '''
   STOCHASTIC COLLOCATION Sampler 
   '''
-  
   def __init__(self):
     Sampler.__init__(self)
     self.min_poly_order = 0 #lowest acceptable polynomial order
@@ -304,7 +301,7 @@ class StochasticCollocation(Sampler):
     '''
     if self.debug: print('generate input model:',model)
     quad_pts=self.quad.quad_pts[self.counter-1]
-    quad_pt_index = self.quad.quad_pt_index[quad_pts]
+#    quad_pt_index = self.quad.quad_pt_index[quad_pts]
     self.inputInfo['quad_pts']       = quad_pts
     self.inputInfo['partial coeffs'] = self.partCoeffs[quad_pts].values()
     self.inputInfo['exp order']      = self.quad.quad_pt_index[quad_pts]
@@ -357,23 +354,24 @@ class StochasticCollocation(Sampler):
 #
 #
 class MonteCarlo(Sampler):
-  '''MONTE CARLO Sampler '''
-  
+  '''
+  MONTE CARLO Sampler
+  '''
   def localInputAndChecks(self,xmlNode):
     if 'limit' not in  xmlNode.attrib.keys(): raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
-
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
-    for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
-    #self.inputInfo['sampledVars'] =  self.values
     # create values dictionary
+    for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
     self.inputInfo['initial_seed'] = str(self.initSeed)
 #
 #
 #
 class Grid(Sampler):
-  '''Samples the model on a given (by input) set of points'''
+  '''
+  Samples the model on a given (by input) set of points
+  '''
   def __init__(self):
     Sampler.__init__(self) 
     self.gridCoordinate       = [] #the grid point to be used for each distribution (changes at each step)
@@ -414,7 +412,6 @@ class Grid(Sampler):
       tempDict['coordinate '+var+' has value'] = value
            
   def localGenerateInput(self,model,myInput):
-    ''' '''
     remainder = self.counter - 1
     total = self.limit+1
     for i in range(len(self.gridCoordinate)):
@@ -433,6 +430,9 @@ class Grid(Sampler):
 #
 #
 class LHS(Grid):
+  '''
+  Latin hyper Cube based sampler. Currently no special filling method are implemented
+  '''
   def __init__(self):
     Grid.__init__(self) 
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
@@ -446,11 +446,10 @@ class LHS(Grid):
     self.inputInfo['lower'] = {}
     self.limit = (self.pointByVar-1)
 
-
   def localInitialize(self):
-    self.buildLHSSamplingPatter()
-  
-  def buildLHSSamplingPatter(self):
+    '''
+    the local initialize is used to generate the filling mapping of the hyper cube.
+    '''
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
       tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
@@ -630,7 +629,6 @@ class DynamicEventTree(Sampler):
     for key in self.endInfo[index]['branch_changed_params']:
       #try:
       self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'] = []
-      testpb = self.endInfo[index]['branch_changed_params'][key]['unchanged_pb']
       self.endInfo[index]['branch_changed_params'][key]['unchanged_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['unchanged_pb'])
       for pb in xrange(len(self.endInfo[index]['branch_changed_params'][key]['associated_pb'])): self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'].append(parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb]))
       #except? pass
@@ -906,7 +904,7 @@ class DynamicEventTree(Sampler):
     try:    self.print_end_xml = (xmlNode.attrib['print_end_xml'].lower() in ['true','t','yes','si','y'])
     except KeyError: self.print_end_xml = False
 
-    # retrieve max simulation time, if inputted
+    # retrieve max simulation time, if input
     try:    self.maxSimulTime = xmlNode.attrib['maxSimulationTime']
     except (KeyError,NameError): self.maxSimulTime = None
     
