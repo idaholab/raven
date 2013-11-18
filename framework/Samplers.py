@@ -907,7 +907,7 @@ class DynamicEventTree(Sampler):
     except KeyError: self.print_end_xml = False
 
     # retrieve max simulation time, if inputted
-    try:    self.maxSimulTime = children.attrib['maxSimulationTime']
+    try:    self.maxSimulTime = xmlNode.attrib['maxSimulationTime']
     except (KeyError,NameError): self.maxSimulTime = None
     
     # Read branching settings
@@ -938,8 +938,7 @@ class DynamicEventTree(Sampler):
                 print("SAMPLER DET   : ERROR -> In distribution " + str(childChild.text) + " the Threshold " + str(sorted(self.branchValues[childChild.text], key=float)[index])+" appears multiple times!!")
                 error_found = True
             # the associated CDF of the branchValues are computed in the initialize method (called right before the Sampler gets used)
-          else:      
-            raise IOError('The DynamicEventTree sampler needs that all distributions have either Probability Thresholds or Value Thresholds!!!!')
+          else: raise IOError('The DynamicEventTree sampler needs that all distributions have either Probability Thresholds or Value Thresholds!!!!')
     if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )     
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
