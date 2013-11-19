@@ -5,15 +5,6 @@
     <Files>lorentzAttractor.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>2</batchSize>
-    <!--<ParallelCommand></ParallelCommand>
-    <NumMPI></NumMPI>
-    <ThreadingCommand></ThreadingCommand>
-    <NumThreads></NumThreads>
-    <numNode></numNode>
-    <quequingSoftware></quequingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totalNumCoresUsed></totalNumCoresUsed>-->
 </RunInfo>
 
 <Models>
