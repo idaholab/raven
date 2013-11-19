@@ -180,11 +180,11 @@ class MooseBasedAppInterface:
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
     self.samplersDictionary                          = {}
-    self.samplersDictionary['MonteCarlo']            = self.MonteCarloForMooseBasedApp
-    self.samplersDictionary['EquallySpaced']         = self.EquallySpacedForMooseBasedApp
-    self.samplersDictionary['LatinHyperCube']        = self.LatinHyperCubeForMooseBasedApp
+    self.samplersDictionary['MonteCarlo']            = self.pointSamplerForMooseBasedApp
+    self.samplersDictionary['EquallySpaced']         = self.pointSamplerForMooseBasedApp
+    self.samplersDictionary['LatinHyperCube']        = self.pointSamplerForMooseBasedApp
     self.samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForMooseBasedApp
-    self.samplersDictionary['StochasticCollocation'] = self.StochasticCollocationForMooseBasedApp
+    self.samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
@@ -205,7 +205,7 @@ class MooseBasedAppInterface:
     listDict = []
     return listDict
 
-  def MonteCarloForMooseBasedApp(self,**Kwargs):
+  def pointSamplerForMooseBasedApp(self,**Kwargs):
     listDict = []
     modifDict = {}
     # the position in, eventually, a vector variable is not available yet...
@@ -240,7 +240,7 @@ class MooseBasedAppInterface:
     return listDict
   
 
-class RelapInterface:
+class Relap5Interface:
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
   def generateCommand(self,inputFiles,executable):
     '''seek which is which of the input files and generate According the running command'''
@@ -260,11 +260,12 @@ class RelapInterface:
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
     import RELAPparser
-    self.samplersDictionary                     = {}
-    self.samplersDictionary['MonteCarlo']       = self.MonteCarloForRELAP
-    self.samplersDictionary['EquallySpaced']    = self.EquallySpacedForRELAP
-    self.samplersDictionary['LatinHyperCube']   = self.LatinHyperCubeForRELAP
-    self.samplersDictionary['DynamicEventTree'] = self.DynamicEventTreeForRELAP
+    self.samplersDictionary                          = {}
+    self.samplersDictionary['MonteCarlo']            = self.pointSamplerForRELAP5
+    self.samplersDictionary['EquallySpaced']         = self.pointSamplerForRELAP5
+    self.samplersDictionary['LatinHyperCube']        = self.pointSamplerForRELAP5
+    self.samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForRELAP5
+    self.samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = RELAPparser.RELAPparser(currentInputFiles[index])
@@ -276,7 +277,7 @@ class RelapInterface:
     parser.printInput(newInputFiles[index])
     return newInputFiles
     
-  def MonteCarloForRELAP(self,**Kwargs):
+  def pointSamplerForRELAP5(self,**Kwargs):
     modifDict = {}
     for keys in Kwargs['SampledVars']:
       key = keys.split(':')
@@ -285,20 +286,11 @@ class RelapInterface:
       modifDict[key[0]]=Kwargs['SampledVars'][keys]
     return modifDict
     
-  def DynamicEventTreeForRELAP(self,**Kwargs):
+  def DynamicEventTreeForRELAP5(self,**Kwargs):
     raise IOError('DynamicEventTreeForRELAP not yet implemented')
     listDict = []
     return listDict
 
-  def EquallySpacedForRELAP(self,**Kwargs):
-    raise IOError('EquallySpacedForRAVEN not yet implemented')
-    listDict = []
-    return listDict
-  
-  def LatinHyperCubeForRELAP(self,**Kwargs):
-    raise IOError('LatinHyperCubeForRAVEN not yet implemented')
-    listDict = []
-    return listDict
 
   
 class ExternalTest:
@@ -316,7 +308,7 @@ __interFaceDict                 = {}
 __interFaceDict['RAVEN'        ] = RavenInterface
 __interFaceDict['MooseBasedApp'] = MooseBasedAppInterface
 __interFaceDict['ExternalTest' ] = ExternalTest
-__interFaceDict['RELAP5'       ] = RelapInterface
+__interFaceDict['RELAP5'       ] = Relap5Interface
 __knownTypes                    = __interFaceDict.keys()
 
 def knonwnTypes():
