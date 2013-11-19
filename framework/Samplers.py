@@ -863,16 +863,16 @@ class DynamicEventTree(Sampler):
     else:
       # Pop out the first input in queue
       jobInput = self.RunQueue['queue'].pop(0)
-      id       = self.RunQueue['identifiers'].pop(0)
+      jobId     = self.RunQueue['identifiers'].pop(0)
       #set running flags in self.TreeInfo
       root = self.TreeInfo.getroot()
       # Update the run information flags
-      if (root.tag == id):
+      if (root.tag == jobId):
         root.set('runEnded',str(False))
         root.set('running',str(True)) 
         root.set('queue',str(False))
       else:
-        subElm = list(root.iter(id))[0]
+        subElm = list(root.iter(jobId))[0]
         if(subElm is not None):
           subElm.set('runEnded',str(False))
           subElm.set('running',str(True))
@@ -885,19 +885,19 @@ class DynamicEventTree(Sampler):
     Function used to generate a input. In this case it just calls 
     the function '__getQueueElement' to retrieve the first input
     in the queue
-    @ In, model    : Model object instance
-    @ In, myInput  : Original input files
-    @ Out, input   : First input in the queue 
+    @ In, model         : Model object instance
+    @ In, myInput       : Original input files
+    @ Out, newerinput   : First input in the queue 
     '''
     if self.counter <= 1:
       # If first branch input, create the queue 
       self.__createRunningQueue(model, myInput)
     # retrieve the input from the queue
-    input = self.__getQueueElement()
-    if not input:
+    newerinput = self.__getQueueElement()
+    if not newerinput:
       # If no inputs are present in the queue => a branch is finished 
       print("SAMPLER DET   : A Branch ended!!!!")
-    return input
+    return newerinput
 
   def localInputAndChecks(self,xmlNode):
 
