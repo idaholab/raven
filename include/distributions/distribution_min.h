@@ -10,7 +10,7 @@ double getDistributionVariable(distribution & dist, std::string & variableName);
 void DistributionUpdateVariable(distribution & dist, std::string & variableName, double & newValue);
 double DistributionPdf(distribution & dist,double & x);
 double DistributionCdf(distribution & dist,double & x);
-double DistributionRandomNumberGenerator(distribution & dist);
+double DistributionRandomNumberGenerator(distribution & dist, double & RNG);
 std::string getDistributionType(distribution & dist);
 std::vector<std::string> getDistributionVariableNames(distribution & dist);
 
