@@ -15,7 +15,8 @@
 #include <stdlib.h>
 #include <vector>
 #include <map>
-#include <MooseRandom.h>
+//#include <MooseRandom.h>
+#include <boost/random/mersenne_twister.hpp>
 
 using namespace std;
 
@@ -25,13 +26,28 @@ using namespace std;
 
 class DistributionContainer;
 
+class RandomClass {
+  boost::random::mt19937 rng; 
+  const double range;
+public:
+  RandomClass() : range(rng.max() - rng.min()) {};
+  void seed(unsigned int seed) {
+    rng.seed(seed);
+  }
+  double random() {
+    return (rng()-rng.min())/range;
+  }
+};
+
 DistributionContainer::DistributionContainer()
 {
+  _random = new RandomClass();
   _at_least_a_dist_triggered = false;
   _last_dist_triggered = "";
 }
 DistributionContainer::~DistributionContainer()
 {
+  delete _random;
 }
 
 
@@ -76,15 +92,19 @@ DistributionContainer::getType(std::string DistAlias){
 
 void
 DistributionContainer::seedRandom(unsigned int seed){
+  std::cout << "seedRandom " << seed << std::endl;
   //srand( seed );
   //_random.seed(seed);
-  MooseRandom::seed(seed);
+  //MooseRandom::seed(seed);
+  _random->seed(seed);
+  
 }
 double
 DistributionContainer::random(){
   //return (static_cast<double>(rand())/static_cast<double>(RAND_MAX));
   //return _random.rand();
-  return MooseRandom::rand();
+  //return MooseRandom::rand();
+  return _random->random();
 }
 
 bool DistributionContainer::checkCdf(std::string DistAlias, double value){
@@ -227,12 +247,12 @@ DistributionContainer::randGen(std::string DistAlias, double RNG){
 double 
 DistributionContainer::inverseCdf(std::string DistAlias, double RNG) {
   return randGen(DistAlias,RNG);
-};
+}
 
 double 
 DistributionContainer::inverseCdf(char * DistAlias, double RNG) {
   return randGen(DistAlias,RNG);
-};
+}
 
 
 std::string DistributionContainer::lastDistributionTriggered(){

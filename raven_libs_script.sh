@@ -193,6 +193,19 @@ fi
 
 update_python_path
 
+#boost
+
+if test ! -e $INSTALL_DIR/include/boost/random/mersenne_twister.hpp
+then
+    cd $BUILD_DIR
+    download_files boost_1_55_0.tar.gz 61ed0e57d3c7c8985805bb0682de3f4c65f4b6e5  http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.gz
+    tar -xvzf boost_1_55_0.tar.gz
+    mkdir -p $INSTALL_DIR/include
+    cp -Rp boost_1_55_0/boost $INSTALL_DIR/include
+else
+    echo boost already installed
+fi
+
 
 $PYTHON_CMD <<PYTHON_SCRIPT
 from __future__ import print_function

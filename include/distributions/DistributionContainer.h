@@ -16,8 +16,12 @@
 #include "distribution.h"
 #include "Interpolation_Functions.h"
 //#include <MooseRandom.h>
+//#include <boost/random/mersenne_twister.hpp>
+
 
 using namespace std;
+
+class RandomClass;
 
 class DistributionContainer{
      public:
@@ -103,6 +107,7 @@ class DistributionContainer{
      std::string _last_dist_triggered;
      bool _at_least_a_dist_triggered;
 
+     RandomClass * _random; 
      //MooseRandom _random;
 
 //     /*
