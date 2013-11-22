@@ -160,6 +160,90 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if keyword in self.outParametersValues.keys(): return self.outParametersValues[keyword]    
       else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in outParametersValues dictionary. Function: Data.getParam")
     else: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
+    
+  def extractValue(self,varTyp,varName,varID=None,stepID=None):
+    '''
+    this a method that is used to extract a value (both array or scalar) attempting an implicit conversion for scalars
+    the value is returned without link to the original
+    @in varType is the requested type of the variable to be returned
+    @in varName is the name of the variable that should be recovered
+    @in varID is the ID of the value that should be retrieved within a set
+    @in time is the time coordinate at which the value should be retrieved.
+        if time.type=float it retrieves a point
+        if time.type=tuple then it should be time=(startTime:float, endTime:float)
+             if time=(None, endTime:float) retrieve from start to endTime
+             if time=(startTime:float, None) retrieve from startTime to end
+             if time=(None, None) retrieve from start to end and it is equivalent to not providing time
+    @in time is the time coordinate id at which the value should be retrieved.
+        if time.type!=tuple it retrieves a point
+        if time.type=tuple then it should be time=(startID:int, endID:int) and is used as [startID:endID] (negative values are allowed for endID)
+             if time=(None, endID) retrieve [:endID]
+             if time=(startID, None) retrieve [startID:]
+             if time=(None, None) retrieve from start to end and it is equivalent to not providing timeID
+    '''
+    myType=self.type
+    if   varName in self.dataParameters['inParam' ]: target = lambda x: self.getParam('input' ,x)
+    elif varName in self.dataParameters['outParam']: target = lambda x: self.getParam('output',x)
+    else: raise 'the variable named '+varName+' was not found in the data: '+self.name
+
+    if myType=='TimePoint':
+      if varTyp!='numpy.ndarray': exec ('return varTyp(target('+varName+')[0])')
+      else: return target(varName)
+
+    elif myType=='TimePointSet':
+      if varTyp!='numpy.ndarray':
+        if varID!=None: exec ('return varTyp(target['+varName+'][varID]')
+        else: raise 'trying to extract a scalar value from a time point set without an index'
+      else: return target(varName)
+
+    elif myType=='History':
+      if varTyp!='numpy.ndarray':
+        if varName in self.dataParameters['inParam']: exec ('return varTyp(target('+varName+')[0])')
+        else:
+          if stepID!=None and type(stepID)!=tuple: exec ('return target('+varName+')['+str(stepID)+']')
+          else: raise 'To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name
+      else:
+        if stepID==None : return target(varName)
+        elif stepID!=None and type(stepID)==tuple: return target(varName)[stepID[0]:stepID[1]]
+        else: raise 'trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID)
+
+    elif myType=='Histories':
+      if varTyp!='numpy.ndarray':
+        if varName in self.dataParameters['inParam']:
+          if varID!=None: exec ('return varTyp(target('+str(varID)+')[varName]')
+          else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)'
+        else:
+          if varID!=None:
+            if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(target('+str(varID)+')[varName][stepID]')
+            else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)'
+          else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)'
+      else:
+        if varName in self.dataParameters['inParam']:
+          myOut=np.zeros(len(self.getInpParametersValues().keys()))
+          for key in self.getInpParametersValues().keys():
+            myOut[int(key)]=target(key)[varName][0]
+          return myOut
+        else:
+          if varID!=None:
+            if stepID==None:
+              return target(varID)[varName]
+            elif type(stepID)==tuple:
+              if stepID[1]==None: return target(varID)[varName][stepID[0]:]
+              else: return target(varID)[varName][stepID[0]:stepID[1]]
+            else: return target(varID)[varName][stepID]
+          else:
+            if stepID==None: raise 'more info needed trying to extract '+varName+' from data '+self.name
+            elif type(stepID)==tuple:
+              if stepID[1]!=None:
+                myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
+                for key in self.getOutParametersValues().keys():
+                  myOut[int(key),:]=target(key)[varName][stepID[0]:stepID[1]]
+              else: raise 'more info needed trying to extract '+varName+' from data '+self.name
+            else:
+              myOut=np.zeros(len(self.getOutParametersValues().keys()))
+              for key in self.getOutParametersValues().keys():
+                myOut[int(key)]=target(key)[varName][stepID]
+              return myOut
 
 class TimePoint(Data):
   def addSpecializedReadingSettings(self):
@@ -192,31 +276,31 @@ class TimePoint(Data):
     self.outParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def specializedPrintCSV(self,filenameLocal):
-    file = open(filenameLocal + '.csv', 'wb')
+    myFile = open(filenameLocal + '.csv', 'wb')
     
     #Print input values
     inpKeys   = self.inpParametersValues.keys()
     inpValues = self.inpParametersValues.values()
     for i in range(len(inpKeys)):
-      file.write(',' + inpKeys[i])
-    file.write('\n')
+      myFile.write(',' + inpKeys[i])
+    myFile.write('\n')
     
     for i in range(len(inpKeys)):
-      file.write(',' + str(inpValues[i][0]))
-    file.write('\n')
+      myFile.write(',' + str(inpValues[i][0]))
+    myFile.write('\n')
     
     #Print time + output values
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
     for i in range(len(outKeys)):
-      file.write(',' + outKeys[i])
-    file.write('\n')
+      myFile.write(',' + outKeys[i])
+    myFile.write('\n')
     
     for i in range(len(outKeys)):
-      file.write(',' + str(outValues[i][0]))
-    file.write('\n')
+      myFile.write(',' + str(outValues[i][0]))
+    myFile.write('\n')
     
-    file.close()
+    myFile.close()
     
 class TimePointSet(Data):
   def addSpecializedReadingSettings(self):
@@ -319,32 +403,32 @@ class History(Data):
     self.outParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def specializedPrintCSV(self,filenameLocal):
-    file = open(filenameLocal + '.csv', 'wb')
+    myFile = open(filenameLocal + '.csv', 'wb')
     
     #Print input values
     inpKeys   = self.inpParametersValues.keys()
     inpValues = self.inpParametersValues.values()
     for i in range(len(inpKeys)):
-      file.write(',' + inpKeys[i])
-    file.write('\n')
+      myFile.write(',' + inpKeys[i])
+    myFile.write('\n')
     
     for i in range(len(inpKeys)):
-      file.write(',' + str(inpValues[i][0]))
-    file.write('\n')
+      myFile.write(',' + str(inpValues[i][0]))
+    myFile.write('\n')
     
     #Print time + output values
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
     for i in range(len(outKeys)):
-      file.write(',' + outKeys[i])
-    file.write('\n')
+      myFile.write(',' + outKeys[i])
+    myFile.write('\n')
 
     for j in range(outValues[0].size):
       for i in range(len(outKeys)):
-        file.write(',' + str(outValues[i][j]))
-      file.write('\n')
+        myFile.write(',' + str(outValues[i][j]))
+      myFile.write('\n')
     
-    file.close()
+    myFile.close()
 
 class Histories(Data):
   def addSpecializedReadingSettings(self):
@@ -427,13 +511,12 @@ class Histories(Data):
       
   def specializedPrintCSV(self,filenameLocal):
     
-    inpKeys   = self.inpParametersValues.keys()
     inpValues = list(self.inpParametersValues.values())
     outKeys   = self.outParametersValues.keys()
     outValues = list(self.outParametersValues.values())
     
     for n in range(len(outKeys)):
-      file = open(filenameLocal + '_'+ str(n) + '.csv', 'wb')
+      myFile = open(filenameLocal + '_'+ str(n) + '.csv', 'wb')
   
       inpKeys_h   = list(inpValues[n].keys())
       inpValues_h = list(inpValues[n].values())
@@ -444,30 +527,30 @@ class Histories(Data):
       for i in range(len(inpKeys_h)):
         if i == 0 : prefix = b''
         else:       prefix = b','
-        file.write(prefix + utils.toBytes(inpKeys_h[i]))
-      file.write(b'\n')
+        myFile.write(prefix + utils.toBytes(inpKeys_h[i]))
+      myFile.write(b'\n')
       
       for i in range(len(inpKeys_h)):
         if i == 0 : prefix = b''
         else:       prefix = b','
-        file.write(prefix + utils.toBytes(str(inpValues_h[i][0])))
-      file.write(b'\n')
+        myFile.write(prefix + utils.toBytes(str(inpValues_h[i][0])))
+      myFile.write(b'\n')
       
       #Print time + output values
       for i in range(len(outKeys_h)):
         if i == 0 : prefix = b''
         else:       prefix = b','
-        file.write(utils.toBytes(outKeys_h[i]) + b',')
-      file.write(b'\n')
+        myFile.write(utils.toBytes(outKeys_h[i]) + b',')
+      myFile.write(b'\n')
   
       for j in range(outValues_h[0].size):
         for i in range(len(outKeys_h)):
           if i == 0 : prefix = b''
           else:       prefix = b','
-          file.write(prefix+ utils.toBytes(str(outValues_h[i][j])))
-        file.write(b'\n')    
+          myFile.write(prefix+ utils.toBytes(str(outValues_h[i][j])))
+        myFile.write(b'\n')    
       
-      file.close()
+      myFile.close()
    
 '''
  Interface Dictionary (factory) (private)
