@@ -182,67 +182,67 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
              if time=(None, None) retrieve from start to end and it is equivalent to not providing timeID
     '''
     myType=self.type
-    if   varName in self.dataParameters['inParam' ]: target = lambda x: self.getParam('input' ,x)
-    elif varName in self.dataParameters['outParam']: target = lambda x: self.getParam('output',x)
+    if   varName in self.dataParameters['inParam' ]: inOutType = 'input'  #target = lambda x: self.getParam('input' ,x)
+    elif varName in self.dataParameters['outParam']: inOutType = 'output' #target = lambda x: self.getParam('output',x)
     else: raise 'the variable named '+varName+' was not found in the data: '+self.name
 
     if myType=='TimePoint':
-      if varTyp!='numpy.ndarray': exec ('return varTyp(target('+varName+')[0])')
-      else: return target(varName)
+      if varTyp!='numpy.ndarray':exec ('return varTyp(self.getParam(inOutType,'+varName+')[0])')
+      else: return self.getParam(inOutType,varName)
 
     elif myType=='TimePointSet':
       if varTyp!='numpy.ndarray':
-        if varID!=None: exec ('return varTyp(target['+varName+'][varID]')
+        if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID]')
         else: raise 'trying to extract a scalar value from a time point set without an index'
-      else: return target(varName)
+      else: return self.getParam(inOutType,varName)
 
     elif myType=='History':
       if varTyp!='numpy.ndarray':
-        if varName in self.dataParameters['inParam']: exec ('return varTyp(target('+varName+')[0])')
+        if varName in self.dataParameters['inParam']: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[0])')
         else:
-          if stepID!=None and type(stepID)!=tuple: exec ('return target('+varName+')['+str(stepID)+']')
+          if stepID!=None and type(stepID)!=tuple: exec ('return self.getParam('+inOutType+','+varName+')['+str(stepID)+']')
           else: raise 'To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name
       else:
-        if stepID==None : return target(varName)
-        elif stepID!=None and type(stepID)==tuple: return target(varName)[stepID[0]:stepID[1]]
+        if stepID==None : return self.getParam(inOutType,varName)
+        elif stepID!=None and type(stepID)==tuple: return self.getParam(inOutType,varName)[stepID[0]:stepID[1]]
         else: raise 'trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID)
 
     elif myType=='Histories':
       if varTyp!='numpy.ndarray':
         if varName in self.dataParameters['inParam']:
-          if varID!=None: exec ('return varTyp(target('+str(varID)+')[varName]')
+          if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
           else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)'
         else:
           if varID!=None:
-            if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(target('+str(varID)+')[varName][stepID]')
+            if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
             else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)'
           else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)'
       else:
         if varName in self.dataParameters['inParam']:
           myOut=np.zeros(len(self.getInpParametersValues().keys()))
           for key in self.getInpParametersValues().keys():
-            myOut[int(key)]=target(key)[varName][0]
+            myOut[int(key)]=self.getParam(inOutType,key)[varName][0]
           return myOut
         else:
           if varID!=None:
             if stepID==None:
-              return target(varID)[varName]
+              return self.getParam(inOutType,varID)[varName]
             elif type(stepID)==tuple:
-              if stepID[1]==None: return target(varID)[varName][stepID[0]:]
-              else: return target(varID)[varName][stepID[0]:stepID[1]]
-            else: return target(varID)[varName][stepID]
+              if stepID[1]==None: return self.getParam(inOutType,varID)[varName][stepID[0]:]
+              else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
+            else: return self.getParam(inOutType,varID)[varName][stepID]
           else:
             if stepID==None: raise 'more info needed trying to extract '+varName+' from data '+self.name
             elif type(stepID)==tuple:
               if stepID[1]!=None:
                 myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
                 for key in self.getOutParametersValues().keys():
-                  myOut[int(key),:]=target(key)[varName][stepID[0]:stepID[1]]
+                  myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
               else: raise 'more info needed trying to extract '+varName+' from data '+self.name
             else:
               myOut=np.zeros(len(self.getOutParametersValues().keys()))
               for key in self.getOutParametersValues().keys():
-                myOut[int(key)]=target(key)[varName][stepID]
+                myOut[int(key)]=self.getParam(inOutType,key)[varName][stepID]
               return myOut
 
 class TimePoint(Data):
