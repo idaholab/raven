@@ -322,27 +322,29 @@ class AdaptiveSampler(Sampler):
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering
     index=0
     if self.tolleranceWeight!='probability':
-      stepParam = lambda x: stepLenght*(self.distDict[x].upperBoundValue-self.distDict[x].lowerBoundValue), self.distDict[x].lowerBoundValue, self.distDict[x].upperBoundValue
-    else: stepParam = lambda x: stepLenght*(self.distDict[x].upperBoundValue-self.distDict[x].lowerBoundValue), 0.0, 1.0
-
+      stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
+    else: stepParam = lambda x: [stepLenght, 0.0, 1.0]
+    pointByVar = [None]*len(self.distDict.keys())
     for varName in self.distDict.keys():
-      myStepLenght, start, end = stepParam(varName)
+      [myStepLenght, start, end] = stepParam(varName)
       start += 0.5*myStepLenght
       self.axisName.append(varName)
       self.gridStepSize[index] = myStepLenght
       self.gridInfo[varName]   = np.arange(start,end,myStepLenght)
-      self.pointByVar[index]   = np.shape(self.gridInfo[varName])[0]
+      pointByVar[index]        = np.shape(self.gridInfo[varName])[0]
       index +=1 
-    dimSizeTuple        = tuple   (self.pointByVar)
-    self.testMatrix     = np.zeros(dimSizeTuple   )
-    self.oldTestMatrix  = np.zeros(dimSizeTuple   )
-    self.testGridLenght = np.prod (self.pointByVar)
+    dimSizeTuple        = tuple   (pointByVar  )
+    self.testMatrix     = np.zeros(dimSizeTuple)
+    self.oldTestMatrix  = np.zeros(dimSizeTuple)
+    self.testGridLenght = np.prod (pointByVar  )
+    self.printMe()
   
   def localStillReady(self,ready,lastOutput=None,ROM=None):
     if ready == False: return ready #if we exceeded the limit just return that we are done
     if self.forceIteration and self.counter < self.limit: #if we are force to reach the limit why bother to check the error
       ready=True
       return ready
+    
     #first evaluate the goal function on the sampled points and store them in self.functionTestOut
     self.functionTestOut.append(self.goalFunction.evaluate(self,'residualSign',lastOutput))
     #generate the values in the test matrix (here use the ROM)

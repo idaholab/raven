@@ -228,7 +228,7 @@ class Adaptive(MultiRun):
       if   role[0] == 'Sampler'         :
         foundSampler    =True
         samplCounter   +=1
-        if not(role[1]=='Sampler' and role[2]=='Adaptive'): raise Exception('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
+        if not(role[1]=='Samplers' and role[2]=='Adaptive'): raise Exception('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
       elif role[0] == 'TargetEvaluation':
         foundTargEval   = True
         targEvalCounter+=1

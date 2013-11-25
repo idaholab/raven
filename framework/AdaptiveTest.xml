@@ -29,12 +29,21 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
 <Samplers>
   <Adaptive name='myAdaptive' adaptiveAlgorithm='leastDistance' norm='relL2' tolerance='10E-4' limit='100' forceIteration='False'>
     <Convergence norm='relL2' limit='100' forceIteration='False' weight='probability'>10E-4</Convergence>
-    <Variable type ='Normal' distName='X_distrib'>X</Variable>
-    <Variable type ='Normal' distName='Y_distrib'>Y</Variable>
-    <Variable type ='Normal' distName='Z_distrib'>Z</Variable>
+    <varibale name='X' >
+      <distribution type ='Normal'>X_distrib</distribution>
+    </varibale>
+    <varibale name='Y' >
+      <distribution type ='Normal'>Y_distrib</distribution>
+    </varibale>
+    <varibale name='Z' >
+      <distribution type ='Normal'>Z_distrib</distribution>
+    </varibale>
   </Adaptive>
 </Samplers>
-
+<Functions>
+  <External name='myFunction' file='myFunction.py'>
+  </External>
+</Functions>
 <Datas>
     <TimePoint name='adaptiveOut'>
         <Input>X,Y,Z</Input>
@@ -56,7 +65,7 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
         <Sampler           class='Samplers'  type='Adaptive'    >myAdaptive</Sampler>
         <TargetEvaluation  class='Datas'     type='TimePointSet'>adaptiveOut</TargetEvaluation>
         <SolutionExport    class='Datas'     type='TimePointSet'>adaptiveOut</SolutionExport>
-        <Function          class='Functions' type='External'    >MyFunction</Function>
+        <Function          class='Functions' type='External'    >myFunction</Function>
         <Model             class='Models'    type='Dummy'       >MyDummy</Model>
         <Output            class='Datas'     type='TimePointSet'>adaptiveOut</Output>
     </Adaptive> 

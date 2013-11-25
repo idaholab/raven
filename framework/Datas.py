@@ -553,7 +553,7 @@ class Histories(Data):
               myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
               for key in self.getOutParametersValues().keys():
                 myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
-            else: raise 'more info needed trying to extract '+varName+' from data '+self.name
+            else: raise Exception('more info needed trying to extract '+varName+' from data '+self.name)
           else:
             myOut=np.zeros(len(self.getOutParametersValues().keys()))
             for key in self.getOutParametersValues().keys():

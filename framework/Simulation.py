@@ -22,6 +22,7 @@ import Tests
 import Distributions
 import DataBases
 import OutStreams
+import Functions
 from JobHandler import JobHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -271,9 +272,10 @@ class Simulation(object):
     self.samplersDict      = {}
     self.modelsDict        = {}
     self.testsDict         = {}
-    self.DistributionsDict = {}
+    self.distributionsDict = {}
     self.dataBasesDict     = {}
-    self.OutStreamsDict    = {}
+    self.outStreamsDict    = {}
+    self.functionsDict     = {}
     self.filesDict         = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
     
     self.stepSequenceList  = [] #the list of step of the simulation
@@ -285,7 +287,6 @@ class Simulation(object):
 
     #Class Dictionary when a new function is added to the simulation this dictionary need to be expanded
     #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
-
     self.addWhatDict  = {}
     self.addWhatDict['Steps'         ] = Steps
     self.addWhatDict['Datas'         ] = Datas
@@ -294,9 +295,11 @@ class Simulation(object):
     self.addWhatDict['Tests'         ] = Tests
     self.addWhatDict['Distributions' ] = Distributions
     self.addWhatDict['DataBases'     ] = DataBases
+    self.addWhatDict['Functions'     ] = Functions
     self.addWhatDict['OutStreams'    ] = OutStreams
 
     #Mapping between a class type and the dictionary containing the instances for the simulation
+    #the dictionary keyword should match the subnodes of a step definition so that the step can find the instances
     self.whichDict = {}
     self.whichDict['Steps'        ] = self.stepsDict
     self.whichDict['Datas'        ] = self.dataDict
@@ -305,9 +308,10 @@ class Simulation(object):
     self.whichDict['Tests'        ] = self.testsDict
     self.whichDict['RunInfo'      ] = self.runInfoDict
     self.whichDict['Files'        ] = self.filesDict
-    self.whichDict['Distributions'] = self.DistributionsDict
+    self.whichDict['Distributions'] = self.distributionsDict
     self.whichDict['DataBases'    ] = self.dataBasesDict
-    self.whichDict['OutStreams'   ] = self.OutStreamsDict
+    self.whichDict['OutStreams'   ] = self.outStreamsDict
+    self.whichDict['Functions'    ] = self.functionsDict
     
     self.jobHandler    = JobHandler()
     self.__modeHandler = SimulationMode(self)
@@ -395,7 +399,6 @@ class Simulation(object):
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
       elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
-      #elif element.tag == 'numProcByRun'      : self.runInfoDict['numProcByRun'      ] = int(element.text) #Always calculated.
       elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
@@ -433,7 +436,7 @@ class Simulation(object):
     __prntDict(self.testsDict)
     __prntDict(self.filesDict)
     __prntDict(self.dataBasesDict)
-    __prntDict(self.OutStreamsDict)
+    __prntDict(self.outStreamsDict)
     __prntDict(self.addWhatDict)
     __prntDict(self.whichDict)
 
@@ -465,7 +468,7 @@ class Simulation(object):
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
       #generate the needed distributions to send to the step
-      if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.DistributionsDict)
+      if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.distributionsDict)
       #running a step
       stepInstance.takeAstep(stepInputDict)
       #---------------here what is going on? Please add comments-----------------
