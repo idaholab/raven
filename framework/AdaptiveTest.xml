@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<!--
+this is a test for the adaptive sampling that uses an adaptive sampling over the dummy model
+-->
+<RunInfo>
+    <WorkingDir>AdaptiveTest</WorkingDir>
+    <Files>myModel.py</Files>
+    <Files>myFunction.py</Files>
+    <Sequence>firstAdaptive</Sequence>
+    <batchSize>8</batchSize>
+</RunInfo>
+
+<Distributions>
+    <Normal name='X_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='Y_distrib'>
+        <mean>4</mean>
+        <sigma>10</sigma>
+    </Normal>
+    <Normal name='Z_distrib'>
+        <mean>-4</mean>
+        <sigma>1</sigma>
+    </Normal>
+</Distributions>
+
+<Samplers>
+  <Adaptive name='myAdaptive' adaptiveAlgorithm='leastDistance' norm='relL2' tolerance='10E-4' limit='100' forceIteration='False'>
+    <Convergence norm='relL2' limit='100' forceIteration='False' weight='probability'>10E-4</Convergence>
+    <Variable type ='Normal' distName='X_distrib'>X</Variable>
+    <Variable type ='Normal' distName='Y_distrib'>Y</Variable>
+    <Variable type ='Normal' distName='Z_distrib'>Z</Variable>
+  </Adaptive>
+</Samplers>
+
+<Datas>
+    <TimePoint name='adaptiveOut'>
+        <Input>X,Y,Z</Input>
+        <Output>whatEver</Output>
+   </TimePoint>
+   <TimePointSet name='dummyIN'>
+      <Input>X,Y,Z</Input>
+      <Output>whatEver</Output>
+   </TimePointSet>
+</Datas>
+
+<Models>
+  <Dummy name='MyDummy' subType='' print='True'/>
+</Models>
+
+<Steps>
+    <Adaptive name='firstAdaptive', sleepTime=0.01>
+        <Input             class='Datas'     type='TimePoint'   >dummyIN.i</Input    >
+        <Sampler           class='Sampler'   type='Adaptive'    >myAdaptive</Sampler >
+        <TargetEvaluation  class='Datas'     type='TimePointSet'>adaptiveOut</Target >
+        <SolutionExport    class='Datas'     type='TimePointSet'></SolutionExport    >
+        <Function          class='Functions' type='External'    >MyFunction</Function>
+        <Model             class='Models'    type='Dummy'       >MyDummy</Model      >
+        <Output            class='Datas'     type='TimePointSet'>adaptiveOut</Output >
+    </Adaptive> 
+</Steps>
+</Simulation>
+
+
+

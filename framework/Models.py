@@ -1,22 +1,29 @@
 '''
-Created on Feb 19, 2013
-
-@author: crisr
+Module where the base class and the specialization of different type of Model are
 '''
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
 
+#External Modules------------------------------------------------------------------------------------
 import os
 import copy
 import shutil
-import Datas
 import numpy
+from utils import metaclass_insert
+import abc
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+import Datas
 from BaseType import BaseType
 import SupervisedLearning
 from Filters import returnFilterInterface
+#Internal Modules End--------------------------------------------------------------------------------
 
-class Model(BaseType):
+class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   ''' a model is something that given an input will return an output reproducing some physical model
       it could as complex as a stand alone code or a reduced order model trained somehow'''
   def __init__(self):
@@ -46,6 +53,7 @@ class Model(BaseType):
     @in inputs is a list containing whatever is passed with an input role in the step'''
     pass
 
+  @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''this function have to return a new input that will be submitted to the model, it is called by the sampler
     @in myInput the inputs (list) to start from to generate the new one
@@ -53,14 +61,15 @@ class Model(BaseType):
     @in **Kwargs is a dictionary that contains the information coming from the sampler,
          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
     @return the new input (list)'''
-    raise IOError('for this model the createNewInput has not yet being implemented')
-
+    pass
+  
+  @abc.abstractmethod
   def run(self,Input,jobHandler):
     '''This call should be over loaded and should not return any results,
         possible it places a run one of the jobhadler lists!!!
         @in inputs is a list containing whatever is passed with an input role in the step
         @in jobHandler an instance of jobhandler that might be possible used to append a job for parallel running'''
-    raise IOError('the model '+self.name+' that has no run method' )
+    pass
   
   def collectOutput(self,collectFrom,storeTo):
     '''This call collect the output of the run
@@ -73,12 +82,16 @@ class Model(BaseType):
 #
 #
 class Dummy(Model):
-  '''this is a dummy model that just return the input in the data
-  it suppose to get a datas as input in and send back the input from the sampler added to it'''
-  
+  '''
+  this is a dummy model that just return the input in the data
+  it suppose to get a TimePoint or TimePointSet as input and also a TimePoint or TimePointSet or HDF5 as output
+  The input is changed following the sampler info and than reported in the output
+  '''
   def initialize(self,runInfo,inputs):
-    self.counter=0
-    self.localOutput = copy.deepcopy(inputs[0])    
+    self.counterInput =0
+    self.counterOutput=0
+    self.inputDict    ={}
+    self.outputDict   ={}
     self.admittedData = []
     self.admittedData.append('TimePoint')
     self.admittedData.append('TimePointSet')
@@ -87,11 +100,23 @@ class Dummy(Model):
     return self.admittedData
     
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    newInput = copy.deepcopy(myInput[0])
-    if newInput.type not in self.__returnAdmittedData(): raise IOError('MODEL DUMMY  : ERROR -> The Dummy Model accepts TimePoint or TimePointSet as input only!!!!')
+    '''
+    here only TimePoint and TimePointSet are accepted a local copy of the values is performed.
+    For a TimePoint all value are copied, for a TimePointSet only the last set of entry
+    The copied values are returned as a dictionary back
+    '''
+    inputDict    = {}
+    outputDict   = {}
+    if myInput[0].type not in self.__returnAdmittedData(): raise IOError('MODEL DUMMY  : ERROR -> The Dummy Model accepts only '+str(self.__returnAdmittedData())+' as input only!!!!')
+    for key in myInput[0].getInpParametersValues().keys()  : inputDict[key] = copy.deepcopy(myInput[0].getInpParametersValues()[key][-1])
+    if len(myInput[0].getOutParametersValues().keys())!=0:
+      for key in myInput[0].getOutParametersValues().keys(): outputDict[key] = copy.deepcopy(myInput[0].getOutParametersValues()[key][-1])
+    else:
+      for key in myInput[0].dataParameters['outParam']: outputDict[key] = self.counterInput
     for key in Kwargs['SampledVars'].keys():
-      newInput.getInpParametersValues()[key] = numpy.array([Kwargs['SampledVars'][key]],copy=True,dtype=float)
-    return [newInput]
+      inputDict[key] = Kwargs['SampledVars'][key]
+    self.counterInput+=1
+    return [(inputDict,outputDict)]
 
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
@@ -99,27 +124,23 @@ class Dummy(Model):
     else: self.printFile = False
   
   def run(self,Input,jobHandler):
-    for inputName in Input[0].getInpParametersValues().keys():
-      if inputName in self.localOutput.getInpParametersValues().keys():
-        self.localOutput.getInpParametersValues()[inputName] = numpy.hstack([self.localOutput.getInpParametersValues()[inputName], Input[0].getInpParametersValues()[inputName]])
-      else:
-        self.localOutput.getInpParametersValues()[inputName] = numpy.array(Input[0].getInpParametersValues()[inputName],copy=True,dtype=float)
-    if 'status' in self.localOutput.getOutParametersValues().keys():
-      self.localOutput.getOutParametersValues()['status'] = numpy.hstack([self.localOutput.getOutParametersValues()['status'], 1])
-    else:
-      self.localOutput.getOutParametersValues()['status'] = numpy.array([1],copy=True,dtype=object)
-      
+    '''The input should be under the form of a tuple of dictionary. The dictionary are copied and ready to be sent to the output'''
+    self.inputDict  = copy.deepcopy(Input[0][0])
+    self.outputDict = copy.deepcopy(Input[0][1])
+  
   def collectOutput(self,finisishedjob,output):
+    '''the input and output are sent back by the output'''
+    self.counterOutput += 1
     if output.type not in self.__returnAdmittedData()+['HDF5']: raise IOError('MODEL DUMMY  : ERROR -> The Dummy Model accepts TimePoint, TimePointSet or HDF5 as output only!!!!')
-    if self.printFile:
-      self.localOutput.printCSV()
-    # collect the actual output    -> the last argument of the HDF5 method is False because we want to update an existing group in case of iterative process and we do not want to check for group presence
-    if   output.type == 'HDF5':                output.addGroupDatas({'group':self.localOutput.name},self.localOutput,True)
-    elif output.type == self.localOutput.type: output = copy.deepcopy(self.localOutput)
-    elif output.type == 'TimePoint':
-      for key in self.localOutput.getInpParametersValues().keys(): output.updateInputValue(key,self.localOutput.getInpParametersValues()[key][-1])
+    if   output.type == 'HDF5':
+      exportDict = copy.deepcopy(self.outputDict)
+      exportDict['input_space_params'] = copy.deepcopy(self.inputDict)
+      output.addGroupDatas({'group':self.name+str(self.counterOutput)},exportDict,False)
     else:
-      for key in self.localOutput.getInpParametersValues().keys(): output.updateInputValue(key,self.localOutput.getInpParametersValues()[key])
+      for key in self.inputDict.keys() : output.updateInputValue(key,self.inputDict[key])
+      for key in self.outputDict.keys(): output.updateOutputValue(key,self.outputDict[key])
+      if self.printFile:
+        output.printCSV()
 #
 #
 #
@@ -179,7 +200,7 @@ class ExternalModel(Model):
     self.__pointSolution()
     if 'HDF5' in output.type: 
       for key in self.modelVariableValues: 
-        exec('if not (type(self.modelVariableValues[key]) == '+ self.modelVariableType[key] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[key] +')!!!")')
+        exec('if not (type(self.modelVariableValues[key]) == '+ self.modelVariableType[key] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!")')
       output.addGroupDatas({'group':str(self.counter)},self.modelVariableValues)
     else:
       if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
@@ -451,8 +472,8 @@ class Projector(Model):
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
 
-  def reset(self,runInfoDict,input):
-    if input.type == 'ROM':
+  def reset(self,runInfoDict,myInput):
+    if myInput.type == 'ROM':
       pass
     #initialize some of the current setting for the runs and generate the working 
     #   directory with the starting input files
@@ -499,6 +520,9 @@ class Filter(Model):
       self.interface.finalizeFilter(inObj[i],outObj[i],self.workingDir)
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(output)
+  def createNewInput(self,myInput,samplerType,**Kwargs):
+    '''just for compatibility'''
+    pass
 
 '''
  Interface Dictionary (factory) (private)

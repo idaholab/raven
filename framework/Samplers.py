@@ -1,5 +1,5 @@
 '''
-Module where the base class and the specializzation of different type of sampler are
+Module where the base class and the specialization of different type of sampler are
 '''
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -152,31 +152,39 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]
       self.distDict[key].initializeDistribution()
    
-  def initialize(self):
+  def initialize(self,solutionExport=None,goalFunction=None):
     '''
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
     @ In/Out, None
     '''
     self.counter = 0
-    self.localInitialize()
+    #specializing the self.localInitialize() to account for adaptive sampling
+    if goalFunction!=None:
+      self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction)
+    elif (solutionExport!=None and goalFunction==None): raise 'not consistent call to the smapler.initialize since the SolutionExport is provided but not the goalFunction'
+    else: self.localInitialize()
     
   def localInitialize(self):
-    '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
+    '''
+    use this function to add initialization features to the derived class
+    it is call at the beginning of each step
+    '''
     pass
     
-  def amIreadyToProvideAnInput(self):
+  def amIreadyToProvideAnInput(self,lastOutput=None):
     '''
     This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
     This method act as a semaphore for generating a new input.
     Reason for not being ready could be for example: exceeding number of samples, waiting for other simulation for providing more information etc. etc.
+    @in lastOutput is used for adaptive methodologies when the the last output is used to decide if convergence is achived
     @return Boolean
     '''
     if(self.counter < self.limit): ready = True
     else                         : ready = False
-    ready = self.localStillReady(ready)
+    ready = self.localStillReady(ready,lastOutput=lastOutput)
     return ready
   
-  def localStillReady(self,ready):
+  def localStillReady(self,ready,lastOutput=None):
     '''Use this function to change the ready status'''
     return ready
     
@@ -236,7 +244,161 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in model    : an instance of a model
     @in myInput  : the generating input    
     '''
+    pass
+#
+#
+#
+class AdaptiveSampler(metaclass_insert(abc.ABCMeta,BaseType)):
+  '''This is a general adaptive sampler'''
+  def __init__(self):
+    Sampler.__init__(self)
+    self.testFunction     = None             #this is the pointer to the function defining the goal
+    self.adaptAlgo        = None             #this is a pointer to the adaptive algorithm
+    self.adaptAlgoType    = ''               #this is the type of adaptive algorithm
+    self.normType         = ''               #this is the norm type used
+    self.norm             = None             #this is the pointer to the norm function
+    self.tolerance        = None             #this is norm of the error threshold
+    self.tolleranceWeight = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
+    self.forceIteration   = False            #this flag control if at least a self.limit number of iteration should be done
+    self.gridInfo         = {}               # {'name of the variable':[values]}
+    self.testGridLenght   = 0                #this the total number of point in the testing grid
+    self.testMatrix       = None             #This is the n-dimensional matrix representing the testing grid
+    self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
+    self.gridStepSize     = None             #For each coordinate the size of the step in the testing grid
+    self.axisName         = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
+    self.functionTestOut  = []               #This is the list of the outcome of the function evaluation for the point already sampled
 
+  def localInputAndChecks(self,xmlNode):
+    #setting up the adaptive algorithm
+    if 'adaptiveAlgorithm' in xmlNode.attrib.keys():
+      self.adaptAlgoType = xmlNode.attrib['adaptiveAlgorithm']
+      import AdaptiveAlgoLib
+      if self.adaptAlgoType in AdaptiveAlgoLib.knonwnTypes(): self.adaptAlgo = AdaptiveAlgoLib.returnInstance(self.adaptAlgoType)
+      else                                                  : raise 'the '+self.adaptAlgoType+'is not a known type of adaptive search algorithm'
+    else: raise 'the attribute adaptiveAlgorithm was missed in the definition of the adaptive sampler'+self.name
+    #setting up the Convergence characteristc
+    convergenceNode = xmlNode.find('Convergence')
+    if convergenceNode!=None:
+      if 'norm'          in convergenceNode.attrib.keys():
+        self.normType = xmlNode.attrib['norm']
+        import NormLib
+        if self.normType in NormLib.knonwnTypes():self.norm = NormLib.returnInstance(self.normType)
+        else: raise 'the '+self.normType+'is not a known type of norm'
+      if 'limit'          in convergenceNode.attrib.keys(): self.limit            = int (xmlNode.attrib['limit'         ])
+      if 'forceIteration' in convergenceNode.attrib.keys(): self.forceIteration   = bool(xmlNode.attrib['forceIteration'])
+      if 'weight'         in convergenceNode.attrib.keys(): self.tolleranceWeight = str (xmlNode.attrib['forceIteration'])
+      else                                                : self.tolleranceWeight = 'probability'
+      self.tolerance=float(convergenceNode.text)      
+    else: raise 'the node Convergence was missed in the definition of the adaptive sampler '+self.name
+      
+  def localAddInitParams(self,tempDict):
+    tempDict['The adaptive algorithm type is '                ] = self.adaptAlgoType
+    tempDict['The norm type is '                              ] = self.normType
+    tempDict['Force the sampler to reach the iteration limit '] = str(self.forceIteration)
+    tempDict['The norm tolerance is '                         ] = str(self.tolerance)
+    tempDict['The type of weighting for the error is '        ] = str(self.tolleranceWeight)
+         
+  def localAddCurrentSetting(self,tempDict):
+    tempDict['The data used is '    ] = 'Name: ' + self.dataContainer.name + 'Type: ' + self.dataContainer.type
+    tempDict['The function used is '] = self.goalFunction.name
+    for varName in self.distDict.keys():
+      tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridInfo[varName])
+   
+  def localInitialize(self,goalFunction=None,solutionExport=None):
+    self.goalFunction   = goalFunction
+    self.solutionExport = solutionExport
+    #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
+    if self.tolleranceWeight!='probability':
+      for varName in self.distDict.keys():
+        if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
+          raise 'It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name
+    #setup the grid. The grid is build such as each element has a volume equal to the tolerance
+    #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
+    nVariables        = len(self.distDict.keys())              #Total number of varibales 
+    stepLenght        = self.tolerance**(1./float(nVariables)) #build the step size in 0-1 range
+    self.gridStepSize = np.zeros(nVariables)                   #the step size for each grid dimension
+    self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering
+    index=0
+    if self.tolleranceWeight!='probability':
+      stepParam = lambda x: stepLenght*(self.distDict[x].upperBoundValue-self.distDict[x].lowerBoundValue), self.distDict[x].lowerBoundValue, self.distDict[x].upperBoundValue
+    else: stepParam = lambda x: stepLenght*(self.distDict[x].upperBoundValue-self.distDict[x].lowerBoundValue), 0.0, 1.0
+
+    for varName in self.distDict.keys():
+      myStepLenght, start, end = stepParam(varName)
+      start += 0.5*myStepLenght
+      self.axisName.append(varName)
+      self.gridStepSize[index] = myStepLenght
+      self.gridInfo[varName]   = np.arange(start,end,myStepLenght)
+      self.pointByVar[index]   = np.shape(self.gridInfo[varName])[0]
+      index +=1 
+    dimSizeTuple        = tuple   (self.pointByVar)
+    self.testMatrix     = np.zeros(dimSizeTuple   )
+    self.oldTestMatrix  = np.zeros(dimSizeTuple   )
+    self.testGridLenght = np.prod (self.pointByVar)
+  
+  def localStillReady(self,ready,lastOutput=None,ROM=None):
+    if ready == False: return ready #if we exceeded the limit just return that we are done
+    if self.forceIteration and self.counter < self.limit: #if we are force to reach the limit why bother to check the error
+      ready=True
+      return ready
+    #first evaluate the goal function on the sampled points and store them in self.functionTestOut
+    self.functionTestOut.append(self.goalFunction.evaluate(self,'residualSign',lastOutput))
+    #generate the values in the test matrix (here use the ROM)
+    self.oldTestMatrix[:] = self.testMatrix
+    inputset  = np.zeros((len(self.axisName),self.counter))
+    for varName in self.axisName:
+      inputset[int(varName),:]=lastOutput.extractValue('numpy.ndarray',varName)
+    myIterator     = np.nditer(self.testMatrix,flags=['multi_index'])
+    diffArray      = np.zeros(len(self.axisName))
+    gridCoordinate = np.ndarray(len(self.axisName))
+    while not myIterator.finished:
+      gridCoordinate[:] = np.multiply(myIterator.index, self.gridStepSize)
+      distance          = sys.float_info.max
+      for i in range(self.counter):
+        diffArray         = np.diff(gridCoordinate,inputset[:,i])
+        myDistance        = np.sum(np.square(diffArray))
+        if myDistance<distance:
+          distance=myDistance
+          self.testMatrix[myIterator.index]=self.functionTestOut[i]
+
+    testError = np.sum(np.absolute(np.diff(self.testMatrix,self.oldTestMatrix)))
+    if (testError > 0) and ready :  ready = False
+    #generate limit surface
+    listSurfPoint = []
+    nVar          = len(self.axisName)
+    if self.solutionExport!=None:
+      myIterator     = np.nditer(self.testMatrix,flags=['multi_index'])
+      while not myIterator.finished:
+        if self.testMatrix[myIterator.index]==-1:
+          for iVar in range(nVar):
+            myIdList = list(myIterator.index)
+            myIdList[iVar] +=1
+            if self.testMatrix[myIdList[iVar]]!=-1:
+              listSurfPoint.append(np.asarray(myIterator.index))
+              exit
+            myIdList[iVar] -=2
+            if self.testMatrix[myIdList[iVar]]!=-1:
+              listSurfPoint.append(np.asarray(myIterator.index))
+              exit
+      for key in self.solutionExport.dataParameters['inParam'].keys():
+        if key in self.axisName:
+          self.solutionExport.inpParametersValues[key]=np.ndarray(self.counter,listSurfPoint[:][int(key)]*self.gridStepSize)+self.gridStepSize/2.0
+          if self.tolleranceWeight=='probability': self.solutionExport.inpParametersValues[key] = map(self.distDict[key].distribution.ppf,self.solutionExport.inpParametersValues[key])
+    return ready
+    
+  def localGenerateInput(self,model,oldInput):
+    
+    #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
+    # create values dictionary
+    for key in self.distDict:
+      self.values[key]=self.distDict[key].distribution.ppf(float(np.random.rand()))
+    self.inputInfo['initial_seed'] = str(self.initSeed)
+
+  
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    '''
+    generate representation of goal function
+    '''
     pass
 #
 #
@@ -379,6 +541,7 @@ class Grid(Sampler):
     self.gridInfo             = {} # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal    
 
   def localInputAndChecks(self,xmlNode):
+    '''reading and construction of the grid'''
     self.limit = 1
     for child in xmlNode:
       varName = child.attrib['name']
@@ -410,7 +573,18 @@ class Grid(Sampler):
   def localAddCurrentSetting(self,tempDict):
     for var, value in zip(self.axisName, self.gridCoordinate):
       tempDict['coordinate '+var+' has value'] = value
-           
+
+  def localInitialize(self):
+    '''This is used to check if the points and bounds are compatible with the distribution provided'''
+    for varName in self.gridInfo.keys():
+      if self.gridInfo[varName][0]=='value':
+        if self.distDict[varName].upperBoundUsed:
+          if max(self.gridInfo[varName][2])>self.distDict[varName].upperBound:
+            raise 'the variable '+varName+'can not be sampled at '+str(max(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution'
+        if self.distDict[varName].lowerBoundUsed:
+          if min(self.gridInfo[varName][2])<self.distDict[varName].lowerBound:
+            raise 'the variable '+varName+'can not be sampled at '+str(min(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution'
+        
   def localGenerateInput(self,model,myInput):
     remainder = self.counter - 1
     total = self.limit+1
@@ -448,8 +622,10 @@ class LHS(Grid):
 
   def localInitialize(self):
     '''
-    the local initialize is used to generate the filling mapping of the hyper cube.
+    the local initialize is used to generate test the box being within the distribution upper/lower bound
+    and filling mapping of the hyper cube.
     '''
+    Grid.localInitialize(self)
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
       tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1

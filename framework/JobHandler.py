@@ -206,7 +206,7 @@ class JobHandler:
   def getNumSubmitted(self):
     return self.__numSubmitted
 
-  def StartingNewStep(self):
+  def startingNewStep(self):
     self.__numSubmitted = 0
 
   def addInternal(self):

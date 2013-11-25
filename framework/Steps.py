@@ -78,7 +78,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   def addInitParams(self,tempDict):
     '''Export to tempDict the information that will stay constant during the existence of the instance of this class'''
     for List in self.parList:
-      tempDict[List[0]] = ' type: '+List[1]+' SubType: '+List[2]+'  Global name: '+List[3]
+      tempDict[List[0]] = ' Class: '+List[1]+' Type: '+List[2]+'  Global name: '+List[3]
     self.localAddInitParams(tempDict)
 
   @abc.abstractmethod
@@ -89,7 +89,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
 
   def __initializeStep(self,inDictionary):
     '''the job handler is restarted'''
-    inDictionary['jobHandler'].StartingNewStep()
+    inDictionary['jobHandler'].startingNewStep()
     self.localInitializeStep(inDictionary)
   
   @abc.abstractmethod
@@ -109,9 +109,9 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     self.__initializeStep(inDictionary)
     if self.debug: print('Initialization done starting the run....')
     self.localTakeAstepRun(inDictionary)
-
-
-#----------------------------------------------------------------------------------------------------
+#
+#
+#
 class SingleRun(Step):
   '''This is the step that will perform just one evaluation'''
   def localInitializeStep(self,inDictionary):
@@ -152,9 +152,9 @@ class SingleRun(Step):
   def localAddInitParams(self,tempDict):
     #TODO implement
     pass
-
-
-#----------------------------------------------------------------------------------------------------
+#
+#
+#
 class MultiRun(SingleRun):
   '''this class implement one step of the simulation pattern' where several runs are needed without being adaptive'''
   def __init__(self):
@@ -170,7 +170,6 @@ class MultiRun(SingleRun):
     if 'Sampler'  not in inDictionary.keys(): raise IOError ('It is not possible a multi-run without a Sampler!!!')
     #get the max number of iteration in the step
     if self.debug: print('The max the number of simulation is: '+str(self.maxNumberIteration))
-    if 'ROM' in inDictionary.keys(): inDictionary['ROM'].addLoadingSource(inDictionary['Output'])
     inDictionary['Sampler'].initialize()
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for newInput in newInputs:
@@ -188,10 +187,9 @@ class MultiRun(SingleRun):
         for finishedJob in finishedJobs:
           if 'Sampler' in inDictionary.keys(): inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
           for output in inDictionary['Output']:                                                      #for all expected outputs
-              inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
+              inDictionary['Model'].collectOutput(finishedJob,output)                                #the model is tasked to provide the needed info to harvest the output
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-          #the harvesting process is done moving forward with the convergence checks
-          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+          for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
             if inDictionary['Sampler'].amIreadyToProvideAnInput():
               newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
               inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
@@ -210,39 +208,77 @@ class MultiRun(SingleRun):
         time.sleep(0.001)
     #remember to close the rom to decouple the data stroed in the rom from the framework
     if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
-
-
-#----------------------------------------------------------------------------------------------------
+#
+#
+#
 class Adaptive(MultiRun):
   '''this class implement one step of the simulation pattern' where several runs are needed in an adaptive scheme'''
-  def readMoreXML(self,xmlNode):
-    '''we add the information where the projector should take the output'''
-    MultiRun.readMoreXML(self, xmlNode)
-    #checks
-    if xmlNode.find('Tester') == None: raise IOError('it is not possible to define an adaptive step without a tester')
-    if xmlNode.find('Projector') == None: raise IOError('it is not possible to define an adaptive step without a projector')
-    #find out where in the self.parList is the source of the projector
-    for string in self.parList:
-      if string[1:] == xmlNode.find('Tester').attrib('From').split('|'):
-        self.projectorFromIndex = self.parList.index(string)
+  def localInputAndChecks(self,xmlNode):
+    '''we check coherence of Sampler, Functions and Solution Output'''
+    #test sampler information:
+    foundSampler    = False
+    samplCounter    = 0
+    foundTargEval   = False
+    targEvalCounter = 0
+    solExpCounter   = 0
+    functionCounter = 0
+    foundFunction   = False
+    for role in self.parList:
+      if   role[0] == 'Sampler'         :
+        foundSampler    =True
+        samplCounter   +=1
+        if not(role[1]=='Sampler' and role[2]=='Adaptive'): raise 'The type of sampler used for the step '+self.name+' is not coherent with and adaptive strategy'
+      elif role[0] == 'TargetEvaluation':
+        foundTargEval   = True
+        targEvalCounter+=1
+        if role[1]!='Datas'                               : raise 'The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name
+        if not(['Output']+role[1:] in self.parList[:])    : raise 'The data chosen for the evaluation of the adaptive strategy is not in the output list for step'+self.name
+      elif role[0] == 'SolutionExport'  :
+        solExpCounter  +=1
+        if role[1]!='Datas'                               : raise 'The data chosen for exporting the goal function solution is not compatible, in the step '+self.name
+      elif role[0] == 'Function'       :
+        functionCounter+=1
+        foundFunction   = True
+        if role[1]!='Functions'                           : raise 'A class function is required as function in an adaptive step, in the step '+self.name
+    if foundSampler ==False: raise 'It is not possible to run an adaptive step without a sampler in step '           +self.name
+    if foundTargEval==False: raise 'It is not possible to run an adaptive step without a target output in step '     +self.name
+    if foundFunction==False: raise 'It is not possible to run an adaptive step without a proper function, in step '  +self.name
+    if samplCounter   >1   : raise 'More than one sampler found in step '                                            +self.name
+    if targEvalCounter>1   : raise 'More than one target defined for the adaptive sampler found in step '            +self.name
+    if solExpCounter  >1   : raise 'More than one output to export the solution of the goal function, found in step '+self.name
+    if functionCounter>1   : raise 'More than one function defined in the step '                                     +self.name
     
-  def addInitParams(self,tempDict):
-    '''we add the capability to print to projector source'''
-    MultiRun.addInitParams(self, tempDict)
-    tempDict['ProjectorSource'] = 'type: '+self.parList[self.projectorFromIndex][0]+'SubType :'+self.parList[self.projectorFromIndex][1]+'Global name :'+self.parList[self.projectorFromIndex][2]
-
   def localInitializeStep(self,inDictionary):
-    MultiRun.localInitializeStep(self,inDictionary)
-    #point the projector to its input
-    inDictionary['Tester'].reset()
-    notYet = True
-    while notYet:
-      for candidate in inDictionary[self.parList[self.projectorFromIndex]]:
-        try:
-          if candidate.type == self.parList[self.projectorFromIndex][1] and candidate.subType == self.parList[self.projectorFromIndex][2] and candidate.name == self.parList[self.projectorFromIndex][3]:
-            inDictionary['Projector'].initialize(None,candidate)
-            notYet = False
-        except AttributeError as ae: print("Error: "+repr(ae))
+    '''this is the initialization for a generic step performing runs '''
+    #checks
+    if 'Model'            not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without a model!'                     )
+    if 'Input'            not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Input!'                    )
+    if 'Output'           not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Output!'                   )
+    if 'Sampler'          not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Sampler!'                  )
+    if 'TargetEvaluation' not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an a target for the function!')
+    if 'Function'         not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an a function!'               )
+    #Initialize model
+    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
+    if self.debug: print('The model '+inDictionary['Model'].name+' has been initialized')
+    #Initialize sampler
+    if 'SolutionExport' in inDictionary.keys(): inDictionary['Sampler'].initialize(goalFunction=inDictionary['Function'],solutionExport=inDictionary['SolutionExport'])
+    else                                      : inDictionary['Sampler'].initialize(goalFunction=inDictionary['Function'])
+    if self.debug: print('The sampler '+inDictionary['Sampler'].name+' has been initialized')
+    #HDF5 initialization
+    for i in range(len(inDictionary['Output'])):
+      try: #try is used since files for the moment have no type attribute
+        if 'HDF5' in inDictionary['Output'][i].type:
+          inDictionary['Output'][i].addGroupInit(self.name)
+          if self.debug: print('The HDF5 '+inDictionary['Output'][i].name+' has been initialized')
+      except AttributeError as ae: print("Error: "+repr(ae))    
+    #the first batch of input is generated (and run if the model is not a code)
+    newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
+    for newInput in newInputs:
+      inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
+      if inDictionary["Model"].type != 'Code':
+        # if the model is not a code, collect the output right after the evaluation => the response is overwritten at each "run"
+        for output in inDictionary['Output']: inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
+    
 
   def localTakeAstepRun(self,inDictionary):
     converged = False
@@ -271,9 +307,9 @@ class Adaptive(MultiRun):
         break
       time.sleep(0.1)
     if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
-
-
-#----------------------------------------------------------------------------------------------------
+#
+#
+#
 class InOutFromDataBase(Step):
   '''
     This step type is used only to extract information from a DataBase
@@ -319,8 +355,9 @@ class InOutFromDataBase(Step):
   def localInputAndChecks(self,xmlNode):
     #TODO implement
     pass
-
-#----------------------------------------------------------------------------------------------------
+#
+#
+#
 class RomTrainer(Step):
   '''This step type is used only to train a ROM
     @Input, DataBase (for example, HDF5)
@@ -359,8 +396,9 @@ class RomTrainer(Step):
   def localInputAndChecks(self,xmlNode):
     #TODO implement
     pass
-
-#----------------------------------------------------------------------------------------------------
+#
+#
+#
 class PlottingStep(Step):
   '''this class implement one step of the simulation pattern' where several runs are needed'''
   def __init__(self):
@@ -387,116 +425,13 @@ class PlottingStep(Step):
   def localInputAndChecks(self,xmlNode):
     #TODO implement
     pass
-
-#----------------------------------------------------------------------------------------------------
-class SCRun(Step):
-  '''this class implement one step of the simulation pattern' where several runs are needed'''
-  def __init__(self):
-    Step.__init__(self)
-    self.maxNumberIteration = 0
-
-  def addCurrentSetting(self,originalDict):
-    originalDict['max number of iteration'] = self.maxNumberIteration
-
-  def localInitializeStep(self,inDictionary):
-    # TODO is this necessary? Step.initializeStep(self,inDictionary)
-    #get the max number of iteration in the step
-    #if 'Sampler' in inDictionary.keys(): self.maxNumberIteration = inDictionary['Sampler'].limit
-    #else: self.maxNumberIteration = 1
-    #TODO make sure this is getting the right limit
-    print('limit to the number of simulation is: '+str(self.maxNumberIteration))
-    if 'ROM' in inDictionary.keys():
-      inDictionary['ROM'].addLoadingSource(inDictionary['Input'])
-
-  def takeAstep(self,inDictionary):
-    '''this need to be fixed for the moment we branch for Dynamic Event Trees'''
-    self.takeAstepIni(inDictionary)
-    self.takeAstepRun(inDictionary)
-
-  def takeAstepIni(self,inDictionary):
-    '''main driver for a step'''
-    print('STEPS         : beginning of the step: '+self.name)
-    self.initializeStep(inDictionary)
-####ROM
-#    if 'ROM' in inDictionary.keys():
-#      #clean up the ROM, currently we can not add to an already existing ROM
-#      inDictionary['ROM'].reset()
-#      print('the ROM '+inDictionary['ROM'].name+' has been reset')
-#      #train the ROM
-#      inDictionary['ROM'].train(inDictionary['Output'])
-#      print('the ROM '+inDictionary['ROM'].name+' has been trained')
-####Tester
-    if 'Tester' in inDictionary.keys():
-      inDictionary['Tester'].reset()
-      if 'ROM' in inDictionary.keys():
-        inDictionary['Tester'].getROM(inDictionary['ROM'])     #make aware the tester (if present) of the presence of a ROM
-        print('the tester '+ inDictionary['Tester'].name +' have been target on the ROM ' + inDictionary['ROM'].name)
-      inDictionary['Tester'].getOutput(inDictionary['Output'])                                #initialize the output with the tester
-      if self.debug: print('the tester '+inDictionary['Tester'].name+' have been initialized on the output '+ inDictionary['Output'])
-####Sampler and run
-#    if 'Sampler' in inDictionary.keys(): #it shouldn't be
-#      #if a sampler is use it gets initialized & generate new inputs
-#      inDictionary['Sampler'].initialize()
-#      newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
-#      for newInput in newInputs:
-#        #noteToSelf this runs the inputs made by the sampler
-#        inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
-#    else:
-#      pass
-      #we start the only case we have
-      #noteToSelf we don't want to run anything
-      #inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler'])
-
-  def takeAstepRun(self,inDictionary):
-    #print('At takeAstepRun',inDictionary['Input'])
-    inDictionary['ROM'].train(inDictionary)
-#    converged = False
-#    jobHandler = inDictionary['jobHandler']
-#    while not converged:
-#      finishedJobs = jobHandler.getFinished()
-#      converged = len(finishedJobs)==self.maxNumberIteration
-#      #loop on the finished jobs
-#      for finishedJob in finishedJobs:
-#        if 'Sampler' in inDictionary.keys():
-#          inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
-#        for output in inDictionary['Output']:                                                      #for all expected outputs
-#            inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
-#        #if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-#        #the harvesting process is done moving forward with the convergence checks
-#        #if 'Tester' in inDictionary.keys():
-#        #  if 'ROM' in inDictionary.keys():
-#        #    converged = inDictionary['Tester'].testROM(inDictionary['ROM'])                           #the check is performed on the information content of the ROM
-#        #  else:
-#        #    converged = inDictionary['Tester'].testOutput(inDictionary['Output'])                     #the check is done on the information content of the output
-#        if not converged:
-#          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
-#            if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
-#              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-#              inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
-#        #elif converged:
-#        #  jobHandler.terminateAll()
-#        #  break
-#      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
-#        break
-#      time.sleep(0.1)
-#    for output in inDictionary['Output']:
-#      output.finalize()
-#    print('HERE',inDictionary.keys())
-    #if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-  
-  def localAddInitParams(self,tempDict):
-    #TODO implement
-    pass
-
-  def localInputAndChecks(self,xmlNode):
-    #TODO implement
-    pass
-
-
+#
+#
+#
 __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
-__interFaceDict['SCRun'            ] = SCRun
+#__interFaceDict['SCRun'            ] = SCRun
 __interFaceDict['Adaptive'         ] = Adaptive
 __interFaceDict['InOutFromDataBase'] = InOutFromDataBase 
 __interFaceDict['RomTrainer'       ] = RomTrainer

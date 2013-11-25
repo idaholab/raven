@@ -279,10 +279,16 @@ class hdf5Database(object):
       groups.attrs[b'main_class' ] = b'PythonType'
       groups.attrs[b'source_type'] = b'Dictionary'
       if 'input_space_params' in source['name'].keys():
-        groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(source['name'].keys()['input_space_params'].keys()[i])  for i in range(len(source['name'].keys()['input_space_params'].keys()))]) 
-        groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(source['name'].keys()['input_space_params'].values()[i])  for i in range(len(source['name'].keys()['input_space_params'].values()))])
+        testkey   = []
+        testvalue = []
+        for i in range(len(source['name']['input_space_params'].keys())): testkey.append(bytes(source['name']['input_space_params'].keys()[i]))
+        for i in range(len(source['name']['input_space_params'].values())): testvalue.append(bytes(source['name']['input_space_params'].values()[i]))        
+#        groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(source['name']['input_space_params'].keys()[i])  for i in range(len(source['name'].keys()['input_space_params'].keys()))]) 
+#        groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(source['name']['input_space_params'].values()[i])  for i in range(len(source['name'].keys()['input_space_params'].values()))])
+        groups.attrs[b'input_space_headers' ] = copy.deepcopy(testkey) 
+        groups.attrs[b'input_space_values' ] = copy.deepcopy(testvalue)
         out_headers = source['name'].keys()
-        out_headers.remove('input_space_params')
+        #out_headers.remove('input_space_params')
       else: out_headers = source['name'].keys()
       groups.attrs[b'n_params'   ] = len(out_headers)  
       groups.attrs[b'output_space_headers'] = copy.deepcopy([bytes(out_headers[i])  for i in range(len(out_headers))]) 
@@ -304,7 +310,7 @@ class hdf5Database(object):
         else: 
           cnt = index
           if type(source['name'].values()[cnt]) == np.ndarray:  dataout[0:source['name'].values()[cnt].size,cnt] =  copy.deepcopy(source['name'].values()[cnt][:])
-          else: dataout[:,cnt] = copy.deepcopy(source['name'].values()[cnt])
+          else: dataout[0,cnt] = copy.deepcopy(source['name'].values()[cnt])
       # create the data set
       dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
       if parent_group_name != "/":
