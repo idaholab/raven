@@ -66,7 +66,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     for child in xmlNode:
       self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.localInputAndChecks(xmlNode)
-    if None in self.parList: raise ('A problem was found in  the definition of the step '+str(self.name))
+    if None in self.parList: raise Exception ('A problem was found in  the definition of the step '+str(self.name))
 
   @abc.abstractmethod
   def localInputAndChecks(self,xmlNode):
@@ -228,7 +228,7 @@ class Adaptive(MultiRun):
       if   role[0] == 'Sampler'         :
         foundSampler    =True
         samplCounter   +=1
-        if not(role[1]=='Sampler' and role[2]=='Adaptive'): raise ('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
+        if not(role[1]=='Sampler' and role[2]=='Adaptive'): raise Exception ('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
       elif role[0] == 'TargetEvaluation':
         foundTargEval   = True
         targEvalCounter+=1
