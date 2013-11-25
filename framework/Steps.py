@@ -228,26 +228,26 @@ class Adaptive(MultiRun):
       if   role[0] == 'Sampler'         :
         foundSampler    =True
         samplCounter   +=1
-        if not(role[1]=='Sampler' and role[2]=='Adaptive'): raise Exception ('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
+        if not(role[1]=='Sampler' and role[2]=='Adaptive'): raise Exception('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
       elif role[0] == 'TargetEvaluation':
         foundTargEval   = True
         targEvalCounter+=1
-        if role[1]!='Datas'                               : raise ('The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
-        if not(['Output']+role[1:] in self.parList[:])    : raise ('The data chosen for the evaluation of the adaptive strategy is not in the output list for step'+self.name)
+        if role[1]!='Datas'                               : raise Exception('The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
+        if not(['Output']+role[1:] in self.parList[:])    : raise Exception('The data chosen for the evaluation of the adaptive strategy is not in the output list for step'+self.name)
       elif role[0] == 'SolutionExport'  :
         solExpCounter  +=1
-        if role[1]!='Datas'                               : raise ('The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
+        if role[1]!='Datas'                               : raise Exception('The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
       elif role[0] == 'Function'       :
         functionCounter+=1
         foundFunction   = True
-        if role[1]!='Functions'                           : raise ('A class function is required as function in an adaptive step, in the step '+self.name)
-    if foundSampler ==False: raise ('It is not possible to run an adaptive step without a sampler in step '           +self.name)
-    if foundTargEval==False: raise ('It is not possible to run an adaptive step without a target output in step '     +self.name)
-    if foundFunction==False: raise ('It is not possible to run an adaptive step without a proper function, in step '  +self.name)
-    if samplCounter   >1   : raise ('More than one sampler found in step '                                            +self.name)
-    if targEvalCounter>1   : raise ('More than one target defined for the adaptive sampler found in step '            +self.name)
-    if solExpCounter  >1   : raise ('More than one output to export the solution of the goal function, found in step '+self.name)
-    if functionCounter>1   : raise ('More than one function defined in the step '                                     +self.name)
+        if role[1]!='Functions'                           : raise Exception('A class function is required as function in an adaptive step, in the step '+self.name)
+    if foundSampler ==False: raise Exception('It is not possible to run an adaptive step without a sampler in step '           +self.name)
+    if foundTargEval==False: raise Exception('It is not possible to run an adaptive step without a target output in step '     +self.name)
+    if foundFunction==False: raise Exception('It is not possible to run an adaptive step without a proper function, in step '  +self.name)
+    if samplCounter   >1   : raise Exception('More than one sampler found in step '                                            +self.name)
+    if targEvalCounter>1   : raise Exception('More than one target defined for the adaptive sampler found in step '            +self.name)
+    if solExpCounter  >1   : raise Exception('More than one output to export the solution of the goal function, found in step '+self.name)
+    if functionCounter>1   : raise Exception('More than one function defined in the step '                                     +self.name)
     
   def localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''

@@ -178,7 +178,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myType=self.type
     if   varName in self.dataParameters['inParam' ]: inOutType = 'input'
     elif varName in self.dataParameters['outParam']: inOutType = 'output'
-    else: raise 'the variable named '+varName+' was not found in the data: '+self.name
+    else: raise Exception('the variable named '+varName+' was not found in the data: '+self.name)
     self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID=None,stepID=None)
   
   @abc.abstractmethod
@@ -245,7 +245,7 @@ class TimePoint(Data):
   
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None):
     '''override of the method in the base class Datas'''
-    if varID!=None or stepID!=None: raise 'seeking to extract a slice from a TimePoint type of data is not possible. Data name: '+self.name+' variable: '+varName
+    if varID!=None or stepID!=None: raise Exception('seeking to extract a slice from a TimePoint type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':exec ('return varTyp(self.getParam(inOutType,'+varName+')[0])')
     else: return self.getParam(inOutType,varName)
 
@@ -321,10 +321,10 @@ class TimePointSet(Data):
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None):
     '''override of the method in the base class Datas'''
-    if stepID!=None: raise 'seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName    
+    if stepID!=None: raise Exception('seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID]')
-      else: raise 'trying to extract a scalar value from a time point set without an index'
+      else: raise Exception('trying to extract a scalar value from a time point set without an index')
     else: return self.getParam(inOutType,varName)
 
 
@@ -388,16 +388,16 @@ class History(Data):
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None):
     '''override of the method in the base class Datas'''
-    if varID!=None: raise 'seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName
+    if varID!=None: raise Exception('seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varName in self.dataParameters['inParam']: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[0])')
       else:
         if stepID!=None and type(stepID)!=tuple: exec ('return self.getParam('+inOutType+','+varName+')['+str(stepID)+']')
-        else: raise 'To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name
+        else: raise Exception('To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name)
     else:
       if stepID==None : return self.getParam(inOutType,varName)
       elif stepID!=None and type(stepID)==tuple: return self.getParam(inOutType,varName)[stepID[0]:stepID[1]]
-      else: raise 'trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID)
+      else: raise Exception('trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID))
     
 
 class Histories(Data):
@@ -526,12 +526,12 @@ class Histories(Data):
     if varTyp!='numpy.ndarray':
       if varName in self.dataParameters['inParam']:
         if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
-        else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)'
+        else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
       else:
         if varID!=None:
           if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
-          else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)'
-        else: raise 'to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)'
+          else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
+        else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
     else:
       if varName in self.dataParameters['inParam']:
         myOut=np.zeros(len(self.getInpParametersValues().keys()))
@@ -547,7 +547,7 @@ class Histories(Data):
             else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
           else: return self.getParam(inOutType,varID)[varName][stepID]
         else:
-          if stepID==None: raise 'more info needed trying to extract '+varName+' from data '+self.name
+          if stepID==None: raise Exception('more info needed trying to extract '+varName+' from data '+self.name)
           elif type(stepID)==tuple:
             if stepID[1]!=None:
               myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
