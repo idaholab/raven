@@ -114,6 +114,8 @@ class TriangularDistribution;
 template<>
 InputParameters validParams<TriangularDistribution>();
 
+class TriangularDistributionBackend;
+
 class TriangularDistribution : public distribution {
 public:
    TriangularDistribution(const std::string & name, InputParameters parameters);
@@ -128,6 +130,7 @@ public:
    double  untrRandomNumberGenerator(double & RNG);
 
 protected:
+   TriangularDistributionBackend * _triangular;
 };
 
 
@@ -139,6 +142,8 @@ class ExponentialDistribution;
 
 template<>
 InputParameters validParams<ExponentialDistribution>();
+
+class ExponentialDistributionBackend;
 
 class ExponentialDistribution : public distribution {
 public:
@@ -154,6 +159,7 @@ public:
    double  untrRandomNumberGenerator(double & RNG);
 
 protected:
+   ExponentialDistributionBackend * _exponential;
 };
 
 
@@ -165,6 +171,8 @@ class WeibullDistribution;
 
 template<>
 InputParameters validParams<WeibullDistribution>();
+
+class WeibullDistributionBackend;
 
 class WeibullDistribution : public distribution {
 public:
@@ -180,6 +188,7 @@ public:
    double  untrRandomNumberGenerator(double & RNG);
 
 protected:
+   WeibullDistributionBackend * _weibull;
 };
 
 

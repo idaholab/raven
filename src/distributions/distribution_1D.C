@@ -23,6 +23,9 @@
 #include <boost/math/distributions/uniform.hpp>
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/distributions/lognormal.hpp>
+#include <boost/math/distributions/triangular.hpp>
+#include <boost/math/distributions/exponential.hpp>
+#include <boost/math/distributions/weibull.hpp>
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
 
@@ -342,7 +345,7 @@ LogNormalDistribution::untrPdf(double & x){
 
 double
 LogNormalDistribution::untrCdf(double & x){
-  std::cout << "LogNormalDistribution::untrCdf " << x << std::endl;
+  //std::cout << "LogNormalDistribution::untrCdf " << x << std::endl;
   if(x <= 0) {
     return 0.0;
   } else { 
@@ -452,31 +455,42 @@ InputParameters validParams<TriangularDistribution>(){
    return params;
 }
 
-class TriangularDistribution;
+class TriangularDistributionBackend {
+public:
+  TriangularDistributionBackend(double lower, double mode, double upper) :
+    _backend(lower, mode, upper) { }
+  boost::math::triangular _backend;
+};
 
 TriangularDistribution::TriangularDistribution(const std::string & name, InputParameters parameters):
    distribution(name,parameters)
 {
-   _dis_parameters["xPeak"] = getParam<double>("xPeak");
-   _dis_parameters["lowerBound"] = getParam<double>("lowerBound");
-   _dis_parameters["upperBound"] = getParam<double>("upperBound");
+  double xPeak = getParam<double>("xPeak");
+  double lowerBound = getParam<double>("lowerBound");
+  double upperBound = getParam<double>("upperBound");
+  _dis_parameters["xPeak"] = xPeak;
+  _dis_parameters["lowerBound"] = lowerBound;
+  _dis_parameters["upperBound"] = upperBound;
+     
     
-    
-    if (getParam<double>("upperBound") < getParam<double>("lowerBound"))
-        mooseError("ERROR: bounds for triangular distribution are incorrect");  
-    if (getParam<double>("upperBound") < _dis_parameters.find("xMin") ->second)
-      mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
-    if (getParam<double>("lowerBound") > _dis_parameters.find("xMax") ->second)
-      mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
+  if (getParam<double>("upperBound") < getParam<double>("lowerBound"))
+    mooseError("ERROR: bounds for triangular distribution are incorrect");  
+  if (getParam<double>("upperBound") < _dis_parameters.find("xMin") ->second)
+    mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
+  if (getParam<double>("lowerBound") > _dis_parameters.find("xMax") ->second)
+    mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
+  _triangular = new TriangularDistributionBackend(lowerBound, xPeak, upperBound);
 
 }
 TriangularDistribution::~TriangularDistribution()
 {
+  delete _triangular;
 }
 
 double
 TriangularDistribution::untrPdf(double & x){
-   double value;
+  return boost::math::pdf(_triangular->_backend,x);
+  /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
    double ub = _dis_parameters.find("upperBound") ->second;
    double peak = _dis_parameters.find("xPeak") ->second;
@@ -490,11 +504,12 @@ TriangularDistribution::untrPdf(double & x){
    if (x>=ub)
       value=0;
 
-   return value;
+      return value;*/
 }
 
 double  TriangularDistribution::untrCdf(double & x){
-   double value;
+  return boost::math::cdf(_triangular->_backend,x);
+  /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
    double ub = _dis_parameters.find("upperBound") ->second;
    double peak = _dis_parameters.find("xPeak") ->second;
@@ -508,12 +523,13 @@ double  TriangularDistribution::untrCdf(double & x){
    if (x>=ub)
       value=1;
 
-   return value;
+      return value;*/
 }
 
 double
 TriangularDistribution::untrRandomNumberGenerator(double & RNG){
-   double value;
+  return boost::math::quantile(_triangular->_backend,RNG);
+  /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
    double ub = _dis_parameters.find("upperBound") ->second;
    double peak = _dis_parameters.find("xPeak") ->second;
@@ -525,7 +541,7 @@ TriangularDistribution::untrRandomNumberGenerator(double & RNG){
    else
       value=ub-sqrt((1-RNG)*(ub-peak)*(ub-lb));
 
-   return value;
+      return value;*/
 }
 
 double
@@ -608,23 +624,32 @@ InputParameters validParams<ExponentialDistribution>(){
    return params;
 }
 
-class ExponentialDistribution;
+class ExponentialDistributionBackend {
+public:
+  ExponentialDistributionBackend(double lambda) : _backend(lambda) {}
+  boost::math::exponential _backend;
+};
 
 ExponentialDistribution::ExponentialDistribution(const std::string & name, InputParameters parameters):
    distribution(name,parameters)
 {
-   _dis_parameters["lambda"] = getParam<double>("lambda");
+  double lambda = getParam<double>("lambda");
+  _dis_parameters["lambda"] = lambda;
     
-    if (getParam<double>("lambda")<0)
-        mooseError("ERROR: incorrect value of lambda for exponential distribution"); 
+  if (getParam<double>("lambda")<0)
+    mooseError("ERROR: incorrect value of lambda for exponential distribution"); 
+
+  _exponential = new ExponentialDistributionBackend(lambda);
 }
 ExponentialDistribution::~ExponentialDistribution()
 {
+  delete _exponential;
 }
 
 double
 ExponentialDistribution::untrPdf(double & x){
-   double value;
+  return boost::math::pdf(_exponential->_backend, x);
+  /*double value;
    double lambda=_dis_parameters.find("lambda") ->second;
 
    if (x >= 0.0)
@@ -632,12 +657,17 @@ ExponentialDistribution::untrPdf(double & x){
    else
 	   value=0.0;
 
-   return value;
+           return value;*/
 }
 
 double
 ExponentialDistribution::untrCdf(double & x){
-   double value;
+  if(x >= 0.0) {
+    return boost::math::cdf(_exponential->_backend, x);
+  } else {
+    return 0.0;
+  }
+  /*double value;
    double lambda=_dis_parameters.find("lambda") ->second;
 
    if (x >= 0.0)
@@ -645,14 +675,15 @@ ExponentialDistribution::untrCdf(double & x){
    else
       value=0.0;
 
-   return value;
+      return value;*/
 }
 
 double
 ExponentialDistribution::untrRandomNumberGenerator(double & RNG){
-   double lambda=_dis_parameters.find("lambda") ->second;
+  return boost::math::quantile(_exponential->_backend, RNG);
+  /*double lambda=_dis_parameters.find("lambda") ->second;
    double value=-log(1-RNG)/(lambda);
-   return value;
+   return value;*/
 }
 
 double
@@ -750,25 +781,37 @@ InputParameters validParams<WeibullDistribution>(){
    return params;
 }
 
-class WeibullDistribution;
+class WeibullDistributionBackend {
+public:
+  WeibullDistributionBackend(double shape, double scale) : _backend(shape, scale) {
+    
+  }
+  boost::math::weibull _backend;
+};
 
 WeibullDistribution::WeibullDistribution(const std::string & name, InputParameters parameters):
    distribution(name,parameters)
 {
-   _dis_parameters["k"] = getParam<double>("k");
-   _dis_parameters["lambda"] = getParam<double>("lambda");
+  double k = getParam<double>("k"); //shape
+  double lambda = getParam<double>("lambda"); //scale
+  _dis_parameters["k"] = k;
+  _dis_parameters["lambda"] = lambda;
 
-    if ((getParam<double>("lambda")<0) || (getParam<double>("k")<0))
-        mooseError("ERROR: incorrect value of k or lambda for weibull distribution"); 
+  if ((getParam<double>("lambda")<0) || (getParam<double>("k")<0))
+    mooseError("ERROR: incorrect value of k or lambda for weibull distribution");
+
+  _weibull = new WeibullDistributionBackend(k, lambda);
 }
 
 WeibullDistribution::~WeibullDistribution()
 {
+  delete _weibull;
 }
 
 double
 WeibullDistribution::untrPdf(double & x){
-   double lambda = _dis_parameters.find("lambda") ->second;
+  return boost::math::pdf(_weibull->_backend, x);
+  /*double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
    double value;
 
@@ -777,12 +820,17 @@ WeibullDistribution::untrPdf(double & x){
    else
       value=0;
 
-   return value;
+      return value;*/
 }
 
 double
 WeibullDistribution::untrCdf(double & x){
-   double lambda = _dis_parameters.find("lambda") ->second;
+  if(x >= 0) {
+    return boost::math::cdf(_weibull->_backend, x);
+  } else {
+    return 0.0;
+  }
+  /*double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
    double value;
 
@@ -791,16 +839,17 @@ WeibullDistribution::untrCdf(double & x){
    else
 	   value=0.0;
 
-      return value;
+           return value;*/
 }
 
 double
 WeibullDistribution::untrRandomNumberGenerator(double & RNG){
-   double lambda = _dis_parameters.find("lambda") ->second;
+  return boost::math::quantile(_weibull->_backend, RNG);
+  /*double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
 
    double value = lambda * pow(-log(1.0 - RNG),1/k);
-   return value;
+   return value;*/
 }
 
 double
