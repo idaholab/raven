@@ -23,12 +23,13 @@ class Function(BaseType):
   '''
   def __init__(self):
     BaseType.__init__(self)
-    self.__functionFile                  = ''
+    self.__functionFile                  = '' 
+    self.name                            = ''
     self.varType                         = {}
     self.__actionDictionary              = {}
     self.__inputFromWhat                 = {}
     self.__inputFromWhat['dict']         = self.__inputFromDict
-    self.__inputFromWhat['Data']         = self.__inputFromData    
+    self.__inputFromWhat['Data']         = self.__inputFromData
     
   def readMoreXML(self,xmlNode):
     if 'file' in xmlNode.attrib.keys():

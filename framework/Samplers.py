@@ -161,7 +161,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     #specializing the self.localInitialize() to account for adaptive sampling
     if goalFunction!=None:
       self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction)
-    elif (solutionExport!=None and goalFunction==None): raise 'not consistent call to the smapler.initialize since the SolutionExport is provided but not the goalFunction'
+    elif (solutionExport!=None and goalFunction==None): raise ('not consistent call to the smapler.initialize since the SolutionExport is provided but not the goalFunction')
     else: self.localInitialize()
     
   def localInitialize(self):
@@ -248,11 +248,11 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
 #
 #
 #
-class AdaptiveSampler(metaclass_insert(abc.ABCMeta,BaseType)):
+class AdaptiveSampler(Sampler):
   '''This is a general adaptive sampler'''
   def __init__(self):
     Sampler.__init__(self)
-    self.testFunction     = None             #this is the pointer to the function defining the goal
+    self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.adaptAlgo        = None             #this is a pointer to the adaptive algorithm
     self.adaptAlgoType    = ''               #this is the type of adaptive algorithm
     self.normType         = ''               #this is the norm type used
@@ -267,6 +267,7 @@ class AdaptiveSampler(metaclass_insert(abc.ABCMeta,BaseType)):
     self.gridStepSize     = None             #For each coordinate the size of the step in the testing grid
     self.axisName         = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.functionTestOut  = []               #This is the list of the outcome of the function evaluation for the point already sampled
+    self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
 
   def localInputAndChecks(self,xmlNode):
     #setting up the adaptive algorithm
@@ -274,8 +275,8 @@ class AdaptiveSampler(metaclass_insert(abc.ABCMeta,BaseType)):
       self.adaptAlgoType = xmlNode.attrib['adaptiveAlgorithm']
       import AdaptiveAlgoLib
       if self.adaptAlgoType in AdaptiveAlgoLib.knonwnTypes(): self.adaptAlgo = AdaptiveAlgoLib.returnInstance(self.adaptAlgoType)
-      else                                                  : raise 'the '+self.adaptAlgoType+'is not a known type of adaptive search algorithm'
-    else: raise 'the attribute adaptiveAlgorithm was missed in the definition of the adaptive sampler'+self.name
+      else                                                  : raise ('the '+self.adaptAlgoType+'is not a known type of adaptive search algorithm')
+    else: raise ('the attribute adaptiveAlgorithm was missed in the definition of the adaptive sampler '+self.name)
     #setting up the Convergence characteristc
     convergenceNode = xmlNode.find('Convergence')
     if convergenceNode!=None:
@@ -283,13 +284,12 @@ class AdaptiveSampler(metaclass_insert(abc.ABCMeta,BaseType)):
         self.normType = xmlNode.attrib['norm']
         import NormLib
         if self.normType in NormLib.knonwnTypes():self.norm = NormLib.returnInstance(self.normType)
-        else: raise 'the '+self.normType+'is not a known type of norm'
-      if 'limit'          in convergenceNode.attrib.keys(): self.limit            = int (xmlNode.attrib['limit'         ])
-      if 'forceIteration' in convergenceNode.attrib.keys(): self.forceIteration   = bool(xmlNode.attrib['forceIteration'])
-      if 'weight'         in convergenceNode.attrib.keys(): self.tolleranceWeight = str (xmlNode.attrib['forceIteration'])
-      else                                                : self.tolleranceWeight = 'probability'
+        else: raise ('the '+self.normType+'is not a known type of norm')
+      if 'limit'          in convergenceNode.attrib.keys(): self.limit            = int (convergenceNode.attrib['limit'         ])
+      if 'forceIteration' in convergenceNode.attrib.keys(): self.forceIteration   = bool(convergenceNode.attrib['forceIteration'])
+      if 'weight'         in convergenceNode.attrib.keys(): self.tolleranceWeight = str (convergenceNode.attrib['weight'        ])
       self.tolerance=float(convergenceNode.text)      
-    else: raise 'the node Convergence was missed in the definition of the adaptive sampler '+self.name
+    else: raise ('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
       
   def localAddInitParams(self,tempDict):
     tempDict['The adaptive algorithm type is '                ] = self.adaptAlgoType
@@ -299,8 +299,10 @@ class AdaptiveSampler(metaclass_insert(abc.ABCMeta,BaseType)):
     tempDict['The type of weighting for the error is '        ] = str(self.tolleranceWeight)
          
   def localAddCurrentSetting(self,tempDict):
-    tempDict['The data used is '    ] = 'Name: ' + self.dataContainer.name + 'Type: ' + self.dataContainer.type
-    tempDict['The function used is '] = self.goalFunction.name
+    if self.solutionExport!=None:
+      tempDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
+    if self.goalFunction!=None:
+      tempDict['The function used is '] = self.goalFunction.name
     for varName in self.distDict.keys():
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridInfo[varName])
    
@@ -311,7 +313,7 @@ class AdaptiveSampler(metaclass_insert(abc.ABCMeta,BaseType)):
     if self.tolleranceWeight!='probability':
       for varName in self.distDict.keys():
         if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
-          raise 'It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name
+          raise('It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
     #setup the grid. The grid is build such as each element has a volume equal to the tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
     nVariables        = len(self.distDict.keys())              #Total number of varibales 
@@ -580,10 +582,10 @@ class Grid(Sampler):
       if self.gridInfo[varName][0]=='value':
         if self.distDict[varName].upperBoundUsed:
           if max(self.gridInfo[varName][2])>self.distDict[varName].upperBound:
-            raise 'the variable '+varName+'can not be sampled at '+str(max(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution'
+            raise('the variable '+varName+'can not be sampled at '+str(max(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution')
         if self.distDict[varName].lowerBoundUsed:
           if min(self.gridInfo[varName][2])<self.distDict[varName].lowerBound:
-            raise 'the variable '+varName+'can not be sampled at '+str(min(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution'
+            raise ('the variable '+varName+'can not be sampled at '+str(min(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution')
         
   def localGenerateInput(self,model,myInput):
     remainder = self.counter - 1
@@ -1165,6 +1167,7 @@ __interFaceDict['DynamicEventTree'      ] = DynamicEventTree
 __interFaceDict['StochasticCollocation' ] = StochasticCollocation
 __interFaceDict['LHS'                   ] = LHS
 __interFaceDict['Grid'                  ] = Grid
+__interFaceDict['Adaptive'              ] = AdaptiveSampler
 __knownTypes = __interFaceDict.keys()
 
 def knonwnTypes():
