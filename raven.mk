@@ -135,6 +135,10 @@ $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix): $(RAVEN_DIR)
 	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet \
           $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) -I$(RAVEN_LIB_INCLUDE_DIR) $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
 
+$(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix): $(RAVEN_DIR)/src/distributions/distribution_1D.C
+	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet \
+          $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) -I$(RAVEN_LIB_INCLUDE_DIR) $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
+
 
 # TODO[JWP]: Should this use libtool to make a platform-independent shared library?
 #            I could not test it because I don't have python3.

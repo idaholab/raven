@@ -20,7 +20,9 @@
 #include "Interpolation_Functions.h"
 #include <string>
 #include <limits>
-
+#include <boost/math/distributions/uniform.hpp>
+#include <boost/math/distributions/normal.hpp>
+#include <boost/math/distributions/lognormal.hpp>
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
 
@@ -39,38 +41,49 @@ InputParameters validParams<UniformDistribution>(){
    return params;
 }
 
-class UniformDistribution;
+class UniformDistributionBackend {
+public:
+  UniformDistributionBackend(double xMin, double xMax) : _backend(xMin,xMax) {
+    
+  } 
+  boost::math::uniform _backend;
+};
 
 UniformDistribution::UniformDistribution(const std::string & name, InputParameters parameters):
    distribution(name,parameters)
 {
-    _dis_parameters["xMin"] = getParam<double>("xMin");
-    _dis_parameters["xMax"] = getParam<double>("xMax");
+  double xMin = getParam<double>("xMin");
+  double xMax = getParam<double>("xMax");
+  _dis_parameters["xMin"] = xMin;
+  _dis_parameters["xMax"] = xMax;
+  _uniform = new UniformDistributionBackend(xMin, xMax);
     
-    
-    if (getParam<double>("xMin")>getParam<double>("xMax"))
-        mooseError("ERROR: bounds for uniform distribution are incorrect");  
+  if (xMin>xMax)
+    mooseError("ERROR: bounds for uniform distribution are incorrect");  
 }
 
 UniformDistribution::~UniformDistribution()
 {
+  delete _uniform;
 }
 double
 UniformDistribution::Pdf(double & x){
-   double value;
+  return boost::math::pdf(_uniform->_backend,x);
+  /*double value;
    if (x<_dis_parameters.find("xMin") ->second)
       value=0;
    else if (x>_dis_parameters.find("xMax") ->second)
       value=0;
    else
 	   value = 1.0/((_dis_parameters.find("xMax") ->second) - (_dis_parameters.find("xMin") ->second));
-   return value;
+           return value;*/
 }
 double
 UniformDistribution::Cdf(double & x){
-   double value;
+  //double value;
 
-   double xMax = _dis_parameters.find("xMax") ->second;
+  return boost::math::cdf(_uniform->_backend,x); 
+   /*double xMax = _dis_parameters.find("xMax") ->second;
    double xMin = _dis_parameters.find("xMin") ->second;
 
    if (x<xMin)
@@ -80,19 +93,23 @@ UniformDistribution::Cdf(double & x){
    else
 	   value = (x-xMin)/(xMax-xMin);
 
-   return value;
+           return value;*/
 }
 double
 UniformDistribution::RandomNumberGenerator(double & RNG){
-   double value;
+  double value;
     
    if ((RNG<0)&&(RNG>1))
       mooseError("ERROR: in the evaluation of RNG for uniform distribution");   
+
+   value = boost::math::quantile(_uniform->_backend,RNG);//(xMin)+RNG*((xMax)-(xMin));
     
+   /*
    if(_force_dist == 0){
-     value = (_dis_parameters.find("xMin") ->second)+RNG*
-               ((_dis_parameters.find("xMax") ->second)-
-                (_dis_parameters.find("xMin") ->second));
+     xMin = _dis_parameters.find("xMin") ->second;
+     xMax = _dis_parameters.find("xMax") ->second;
+     value = (xMin)+RNG*((xMax)-(xMin));
+ 
    }
    else if(_force_dist == 1){
      value = (_dis_parameters.find("xMin") ->second);
@@ -105,7 +122,7 @@ UniformDistribution::RandomNumberGenerator(double & RNG){
    }
    else{
      mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
-   }
+     }*/
    return value;
 }
 
@@ -125,6 +142,14 @@ double  UniformDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 
+class NormalDistributionBackend {
+public:
+  NormalDistributionBackend(double mean, double sd) : _backend(mean, sd) {
+    
+  }
+  boost::math::normal _backend;
+};
+
 /*
  * CLASS NORMAL DISTRIBUTION
  */
@@ -142,33 +167,43 @@ class NormalDistribution;
 
 NormalDistribution::NormalDistribution(const std::string & name, InputParameters parameters):
    distribution(name,parameters){
-   _dis_parameters["mu"] = getParam<double>("mu");
-   _dis_parameters["sigma"] = getParam<double>("sigma");
+    double mu = getParam<double>("mu");
+    double sigma = getParam<double>("sigma");
+   _dis_parameters["mu"] = mu;
+   _dis_parameters["sigma"] = sigma;
+   _normal = new NormalDistributionBackend(mu, sigma);
+   
 }
 
 NormalDistribution::~NormalDistribution(){
+  delete _normal;
 }
 
 double
 NormalDistribution::untrPdf(double & x){
+  return boost::math::pdf(_normal->_backend, x);
+    /*
    double mu=_dis_parameters.find("mu") ->second;
    double sigma=_dis_parameters.find("sigma") ->second;
 
    double value=1/(sqrt(2.0*M_PI*sigma*sigma))*exp(-(x-mu)*(x-mu)/(2*sigma*sigma));
-   return value;
+   return value;*/
 }
 
 double
 NormalDistribution::untrCdf(double & x){
-   double mu=_dis_parameters.find("mu") ->second;
+  return boost::math::cdf(_normal->_backend, x);
+  /*double mu=_dis_parameters.find("mu") ->second;
    double sigma=_dis_parameters.find("sigma") ->second;
 
    double value=0.5*(1+erf((x-mu)/(sqrt(2*sigma*sigma))));
-   return value;
+   return value;*/
 }
 
 double
 NormalDistribution::untrRandomNumberGenerator(double & RNG){
+  return boost::math::quantile(_normal->_backend, RNG);
+  /*
    double stdNorm;
    double value;
 
@@ -185,7 +220,7 @@ NormalDistribution::untrRandomNumberGenerator(double & RNG){
     if (RNG == 1){
       value = std::numeric_limits<double>::max();
     }
-    return value;
+    return value;*/
 }
 
 double
@@ -248,6 +283,13 @@ NormalDistribution::RandomNumberGenerator(double & RNG){
    return value;
 }
 
+class LogNormalDistributionBackend {
+public:
+  LogNormalDistributionBackend(double mean, double sd) : _backend(mean, sd) {
+  }
+  boost::math::lognormal _backend;
+};
+
 /*
  * CLASS LOG NORMAL DISTRIBUTION
  */
@@ -268,20 +310,25 @@ class LogNormalDistribution;
 LogNormalDistribution::LogNormalDistribution(const std::string & name, InputParameters parameters):
    distribution(name,parameters)
 {
-   _dis_parameters["mu"] = getParam<double>("mu");
-   _dis_parameters["sigma"] = getParam<double>("sigma");
+  double mu = getParam<double>("mu");
+  double sigma = getParam<double>("sigma");
+  _dis_parameters["mu"] = mu;
+  _dis_parameters["sigma"] = sigma;
+  _logNormal = new LogNormalDistributionBackend(mu, sigma);
     
-    if (getParam<double>("mu")<0)
-        mooseError("ERROR: incorrect value of mu for lognormaldistribution");  
+  if (getParam<double>("mu")<0)
+    mooseError("ERROR: incorrect value of mu for lognormaldistribution");  
 }
 
 LogNormalDistribution::~LogNormalDistribution()
 {
+  delete _logNormal;
 }
 
 double
 LogNormalDistribution::untrPdf(double & x){
-   double value;
+  return boost::math::pdf(_logNormal->_backend, x);
+  /*double value;
    double mu=_dis_parameters.find("mu") ->second;
    double sigma=_dis_parameters.find("sigma") ->second;
 
@@ -290,12 +337,18 @@ LogNormalDistribution::untrPdf(double & x){
    else
       value=1/(sqrt(x*x*2.0*M_PI*sigma*sigma))*exp(-(log(x)-mu)*(log(x)-mu)/(2*sigma*sigma));
 
-   return value;
+      return value;*/
 }
 
 double
 LogNormalDistribution::untrCdf(double & x){
-   double value;
+  std::cout << "LogNormalDistribution::untrCdf " << x << std::endl;
+  if(x <= 0) {
+    return 0.0;
+  } else { 
+    return boost::math::cdf(_logNormal->_backend, x);
+  }
+  /*double value;
    double mu=_dis_parameters.find("mu") ->second;
    double sigma=_dis_parameters.find("sigma") ->second;
 
@@ -304,12 +357,13 @@ LogNormalDistribution::untrCdf(double & x){
    else
       value=0.5*(1+erf((log(x)-mu)/(sqrt(2*sigma*sigma))));
 
-   return value;
+      return value;*/
 }
 
 double
 LogNormalDistribution::untrRandomNumberGenerator(double & RNG){
-   double stdNorm;
+  return boost::math::quantile(_logNormal->_backend, RNG);
+  /*  double stdNorm;
    double value;
 
    double mu=_dis_parameters.find("mu") ->second;
@@ -322,7 +376,7 @@ LogNormalDistribution::untrRandomNumberGenerator(double & RNG){
 
    value=exp(mu + sigma * stdNorm);
 
-   return value;
+   return value;*/
 }
 
 double

@@ -32,6 +32,8 @@ class UniformDistribution;
 template<>
 InputParameters validParams<UniformDistribution>();
 
+class UniformDistributionBackend;
+
 class UniformDistribution : public distribution {
 public:
    UniformDistribution(const std::string & name, InputParameters parameters);
@@ -45,6 +47,7 @@ public:
    double  untrRandomNumberGenerator(double & RNG);
 
 protected:
+   UniformDistributionBackend * _uniform;
    // No parameters
 };
 
@@ -55,6 +58,8 @@ class NormalDistribution;
 
 template<>
 InputParameters validParams<NormalDistribution>();
+
+class NormalDistributionBackend;
 
 class NormalDistribution : public distribution {
 public:
@@ -70,6 +75,7 @@ public:
    double  untrRandomNumberGenerator(double & RNG);
 
 protected:
+   NormalDistributionBackend * _normal;
 };
 
 /*
@@ -79,6 +85,8 @@ class LogNormalDistribution;
 
 template<>
 InputParameters validParams<LogNormalDistribution>();
+
+class LogNormalDistributionBackend;
 
 class LogNormalDistribution : public distribution {
 public:
@@ -94,6 +102,7 @@ public:
    double  untrRandomNumberGenerator(double & RNG);
 
 protected:
+   LogNormalDistributionBackend * _logNormal;
 };
 
 /*
