@@ -55,14 +55,16 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   
   def __init__(self):
     BaseType.__init__(self)
-    self.parList  = []    #list of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
+    self.parList    = []    #list of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.__typeDict = {}    #for each role of the step the corresponding  used type
+    self.sleepTime  = 0.001 #waiting time before checking if a run is finished
 
   def readMoreXML(self,xmlNode):
     '''add the readings for who plays the step roles
     after this call everything will not change further in the life of the step object should have been set
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
     '''
+    if 'sleepTime' in xmlNode.attrib.keys(): self.sleepTime = float(xmlNode.attrib['sleepTime'])
     for child in xmlNode:
       self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.localInputAndChecks(xmlNode)
@@ -78,6 +80,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   
   def addInitParams(self,tempDict):
     '''Export to tempDict the information that will stay constant during the existence of the instance of this class'''
+    tempDict['sleep Time'] = 'sleep time between testing the end of a run is '+str(self.sleepTime)
     for List in self.parList:
       tempDict[List[0]] = ' Class: '+str(List[1])+' Type: '+str(List[2])+'  Global name: '+str(List[3])
     self.localAddInitParams(tempDict)
@@ -142,7 +145,7 @@ class SingleRun(Step):
               inDictionary['Model'].collectOutput(finishedJob,output)                   #the model is tasket to provide the needed info to harvest the output
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
           break
-        time.sleep(0.1)
+        time.sleep(self.sleepTime)
     else:
       for output in inDictionary['Output']:
         inDictionary['Model'].collectOutput(None,output)
@@ -196,7 +199,7 @@ class MultiRun(SingleRun):
               inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
           break
-        time.sleep(0.001)
+        time.sleep(self.sleepTime)
       else:
         finishedJob = 'empty'
         if inDictionary['Sampler'].amIreadyToProvideAnInput():
@@ -206,7 +209,7 @@ class MultiRun(SingleRun):
             inDictionary['Model'].collectOutput(finishedJob,output) 
         else:
           break
-        time.sleep(0.001)
+        time.sleep(self.sleepTime)
     #remember to close the rom to decouple the data stroed in the rom from the framework
     if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
 #
@@ -282,32 +285,63 @@ class Adaptive(MultiRun):
     
 
   def localTakeAstepRun(self,inDictionary):
-    converged = False
     jobHandler = inDictionary['jobHandler']
     while True:
-      finishedJobs = jobHandler.getFinished()
-      #loop on the finished jobs
-      for finishedJob in finishedJobs:
-        if 'Sampler' in inDictionary.keys():
-          inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
-        for output in inDictionary['Output']:                                                      #for all expected outputs
-            inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
-        if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-        #the harvesting process is done moving forward with the convergence checks
-        inDictionary['Projector'].evaluate()
-        converged = inDictionary['Tester'].test(inDictionary['Projector'].output)
-        if not converged:
-          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
-            if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
-              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'],inDictionary['Projector'])
+      if inDictionary["Model"].type == 'Code': 
+        finishedJobs = jobHandler.getFinished()
+        #loop on the finished jobs
+        for finishedJob in finishedJobs:
+          if 'Sampler' in inDictionary.keys(): inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
+          for output in inDictionary['Output']:                                                      #for all expected outputs
+              inDictionary['Model'].collectOutput(finishedJob,output)                                #the model is tasked to provide the needed info to harvest the output
+          if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
+          for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
+            if inDictionary['Sampler'].amIreadyToProvideAnInput():
+              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
               inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
-        elif converged:
-          jobHandler.terminateAll()
+        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
           break
-      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
-        break
-      time.sleep(0.1)
+        time.sleep(self.sleepTime)
+      else:
+        finishedJob = 'empty'
+        if inDictionary['Sampler'].amIreadyToProvideAnInput():
+          newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+          inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
+          for output in inDictionary['Output']:
+            inDictionary['Model'].collectOutput(finishedJob,output) 
+        else:
+          break
+        time.sleep(self.sleepTime)
+    #remember to close the rom to decouple the data stroed in the rom from the framework
     if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
+    
+#    print('localTakeAstepRun')
+#    converged = False
+#    jobHandler = inDictionary['jobHandler']
+#    while True:
+#      finishedJobs = jobHandler.getFinished()
+#      #loop on the finished jobs
+#      for finishedJob in finishedJobs:
+#        if 'Sampler' in inDictionary.keys():
+#          inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
+#        for output in inDictionary['Output']:                                                      #for all expected outputs
+#            inDictionary['Model'].collectOutput(finishedJob,output)                                   #the model is tasket to provide the needed info to harvest the output
+#        if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
+#        #the harvesting process is done moving forward with the convergence checks
+#        inDictionary['Projector'].evaluate()
+#        converged = inDictionary['Tester'].test(inDictionary['Projector'].output)
+#        if not converged:
+#          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+#            if (jobHandler.getNumSubmitted() < int(self.maxNumberIteration)) and inDictionary['Sampler'].amIreadyToProvideAnInput():
+#              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'],inDictionary['Projector'])
+#              inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
+#        elif converged:
+#          jobHandler.terminateAll()
+#          break
+#      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
+#        break
+#      time.sleep(self.sleepTime)
+#    if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
 #
 #
 #

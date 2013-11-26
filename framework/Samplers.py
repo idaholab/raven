@@ -340,8 +340,13 @@ class AdaptiveSampler(Sampler):
     self.printMe()
   
   def localStillReady(self,ready,lastOutput=None,ROM=None):
+    print('ready '+str(ready))
+    print('self.counter '+str(self.counter))
+    print('self.limit '+str(self.limit))
+    print('self.forceIteration '+str(self.forceIteration))
     if ready == False: return ready #if we exceeded the limit just return that we are done
     if self.forceIteration and self.counter < self.limit: #if we are force to reach the limit why bother to check the error
+
       ready=True
       return ready
     
@@ -364,8 +369,9 @@ class AdaptiveSampler(Sampler):
         if myDistance<distance:
           distance=myDistance
           self.testMatrix[myIterator.index]=self.functionTestOut[i]
-
+    print('wwwwwwwwwwwwwwwwwwwww')
     testError = np.sum(np.absolute(np.diff(self.testMatrix,self.oldTestMatrix)))
+    print('testError '+str(testError))
     if (testError > 0) and ready :  ready = False
     #generate limit surface
     listSurfPoint = []
@@ -394,6 +400,7 @@ class AdaptiveSampler(Sampler):
     
     #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
     # create values dictionary
+    print('generating input')
     for key in self.distDict:
       self.values[key]=self.distDict[key].distribution.ppf(float(np.random.rand()))
     self.inputInfo['initial_seed'] = str(self.initSeed)
