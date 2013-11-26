@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulatio>
+<Simulation>
 <RunInfo>
-    <WorkingDir>/Users/crisr/projects/trunk/raven/BisonTest</WorkingDir>
+    <WorkingDir>.</WorkingDir>
     <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
     <Sequence>Run0,printCSV</Sequence>
     <batchSize>3</batchSize>
@@ -18,8 +18,8 @@
 </RunInfo>
 
 <Models>
-    <Code name='Bison-opt' type='MooseBasedApp'>/Users/crisr/projects/trunk/bison/bison-opt</Code>
-    <Filter name = 'printing' type = 'PrintCSV'>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
+    <Code name='Bison-opt' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</Code>
+    <Filter name = 'printing' subType = 'PrintCSV'>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
     Materials|fission_gas_release|initial_grain_radius,max_stress</Filter>
 </Models>
 <OutStreams>
@@ -54,20 +54,20 @@
 </Samplers>
 <Steps>
     <MultiRun name='Run0'>
-        <Input   type = 'Files'      subtype=''          >inputSmeared.i</Input>
-        <Input   type = 'Files'      subtype=''          >peakingfactors12.csv</Input>
-        <Input   type = 'Files'      subtype=''          >powerhistory.csv</Input>
-        <Input   type = 'Files'      subtype=''          >smeared.e</Input>
-        <Model   type = 'Models'     subtype='Code'      >Bison-opt</Model>
-        <Sampler type = 'Samplers'   subtype='MonteCarlo'>Bison1</Sampler>
-        <Output  type = 'DataBases'  subtype='HDF5'      >MyDatabase</Output>
-        <Output  type = 'OutStreams' subtype='Screen'    >mypics</Output>
+        <Input   class = 'Files'      type=''          >inputSmeared.i</Input>
+        <Input   class = 'Files'      type=''          >peakingfactors12.csv</Input>
+        <Input   class = 'Files'      type=''          >powerhistory.csv</Input>
+        <Input   class = 'Files'      type=''          >smeared.e</Input>
+        <Model   class = 'Models'     type='Code'      >Bison-opt</Model>
+        <Sampler class = 'Samplers'   type='MonteCarlo'>Bison1</Sampler>
+        <Output  class = 'DataBases'  type='HDF5'      >MyDatabase</Output>
+        <Output  class = 'OutStreams' type='Screen'    >mypics</Output>
     </MultiRun >
-    <PostProcessing name = 'printCSV'>
-        <Input   type = 'DataBases' subtype='HDF5'   >MyDatabase</Input>
-        <Model   type = 'Models'    subtype='Filters'>printing</Model>
-        <Output  type = 'Files'     subtype=''      >BisonOut.csv</Output>
-    </PostProcessing>>
+    <!-- <PostProcessing name = 'printCSV'>
+        <Input   class = 'DataBases' type='HDF5'   >MyDatabase</Input>
+        <Model   class = 'Models'    type='Filters'>printing</Model>
+        <Output  class = 'Files'     type=''      >BisonOut.csv</Output>
+    </PostProcessing> -->
 </Steps>
 <Datas>
     <Histories name='stories'>
@@ -85,7 +85,7 @@
 </Tests>
 -->
 
-</Simulatio>
+</Simulation>
 
 
 
