@@ -31,7 +31,7 @@ class DistributionContainer{
       * @
       * @
       */
-     void addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist); 
+     void addDistributionInContainer(const std::string & type, const std::string & name, BasicDistribution * dist); 
 
      void seedRandom(unsigned int seed);
 
@@ -98,11 +98,11 @@ class DistributionContainer{
 
      protected:
      std::map < std::string, int > _vector_pos_map;
-     std::vector < distribution * > _distribution_cont;
+     std::vector < BasicDistribution * > _distribution_cont;
      /// mapping from distribution name and distribution
-     std::map<std::string, distribution *> _dist_by_name;
+     std::map<std::string, BasicDistribution *> _dist_by_name;
      /// "Buckets" of distribution based on their types
-     std::map<std::string, std::vector<distribution *> > _dist_by_type;
+     std::map<std::string, std::vector<BasicDistribution *> > _dist_by_type;
      std::map<std::string, bool> _dist_by_trigger_status;
      std::string _last_dist_triggered;
      bool _at_least_a_dist_triggered;

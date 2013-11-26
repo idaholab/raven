@@ -70,7 +70,7 @@ distribution::~distribution(){
 
 
 double
-distribution::getVariable(std::string & variableName){
+BasicDistribution::getVariable(std::string & variableName){
    double res;
    if(_dis_parameters.find(variableName) != _dis_parameters.end()){
 	  res = _dis_parameters.find(variableName) ->second;
@@ -82,7 +82,7 @@ distribution::getVariable(std::string & variableName){
 }
 
 std::vector<double>
-distribution::getVariableVector(std::string  variableName){
+BasicDistribution::getVariableVector(std::string  variableName){
 	std::vector<double> res;
    if(_dis_vectorParameters.find(variableName) != _dis_vectorParameters.end()){
 	 res = _dis_vectorParameters.find(variableName) ->second;
@@ -94,7 +94,7 @@ distribution::getVariableVector(std::string  variableName){
 }
 
 void
-distribution::updateVariable(std::string & variableName, double & newValue){
+BasicDistribution::updateVariable(std::string & variableName, double & newValue){
    if(_dis_parameters.find(variableName) != _dis_parameters.end()){
      // we are sure the variableName is already present in the mapping =>
      // we can update it in the following way
@@ -106,12 +106,12 @@ distribution::updateVariable(std::string & variableName, double & newValue){
 }
 
 std::string &
-distribution::getType(){
+BasicDistribution::getType(){
    return _type;
 }
 
 std::vector<std::string>
-distribution::getVariableNames(){
+BasicDistribution::getVariableNames(){
   std::vector<std::string> paramtersNames;
   for (std::map<std::string,double>::iterator it = _dis_parameters.begin(); it!= _dis_parameters.end();it++){
     paramtersNames.push_back(it->first);
@@ -119,23 +119,23 @@ distribution::getVariableNames(){
   return paramtersNames;
 }
 
-double getDistributionVariable(distribution & dist, std::string & variableName){
+double getDistributionVariable(BasicDistribution & dist, std::string & variableName){
   return dist.getVariable(variableName);
 }
 
-void DistributionUpdateVariable(distribution & dist, std::string & variableName, double & newValue){
+void DistributionUpdateVariable(BasicDistribution & dist, std::string & variableName, double & newValue){
   dist.updateVariable(variableName, newValue);
 }
 
-double DistributionPdf(distribution & dist, double & x){
+double DistributionPdf(BasicDistribution & dist, double & x){
   return dist.Pdf(x);
 }
 
-double DistributionCdf(distribution & dist, double & x){
+double DistributionCdf(BasicDistribution & dist, double & x){
   return dist.Cdf(x);
 }
 
-double windowProcessing(distribution & dist, double & RNG){
+double windowProcessing(BasicDistribution & dist, double & RNG){
 	double value;
 
 	if (dist.getVariableVector(std::string("PBwindow")).size()==1) // value Pb window
@@ -159,31 +159,31 @@ double windowProcessing(distribution & dist, double & RNG){
 	return value;
 }
 
-double DistributionRandomNumberGenerator(distribution & dist, double & RNG){
+double DistributionRandomNumberGenerator(BasicDistribution & dist, double & RNG){
   //double standardRNG = dist.RandomNumberGenerator(RNG);
   double windowedRNG = windowProcessing(dist, RNG);
 
   return windowedRNG;
 }
 
-double untrDistributionPdf(distribution & dist, double & x){
+double untrDistributionPdf(BasicDistribution & dist, double & x){
   return dist.untrPdf(x);
 }
 
-double untrDistributionCdf(distribution & dist, double & x){
+double untrDistributionCdf(BasicDistribution & dist, double & x){
   return dist.untrCdf(x);
 }
 
-double untrDistributionRandomNumberGenerator(distribution & dist, double & RNG){
+double untrDistributionRandomNumberGenerator(BasicDistribution & dist, double & RNG){
   return dist.untrRandomNumberGenerator(RNG);
 }
 
-std::string getDistributionType(distribution & dist) {
+std::string getDistributionType(BasicDistribution & dist) {
   return dist.getType();
 }
 
 std::vector<std::string>
-getDistributionVariableNames(distribution & dist)
+getDistributionVariableNames(BasicDistribution & dist)
 {
   return dist.getVariableNames();
 }

@@ -17,17 +17,14 @@ const int _defaultSeed = 1256955321;
 
 enum truncation {MULTIPLICATIVE=1, SUM=2};
 
+class distribution;
 
 template<>
 InputParameters validParams<distribution>();
 
-class distribution : public RavenObject
+class BasicDistribution 
 {
 public:
-   //> constructor for built-in distributions
-   distribution(const std::string & name, InputParameters parameters);
-
-   virtual ~distribution();
 
    double  getVariable(std::string & variableName);                   	///< getVariable from mapping
    std::vector<double>  getVariableVector(std::string  variableName);
@@ -62,6 +59,19 @@ protected:
    std::vector<double> _Vwindow;
 
    bool _checkStatus;
+};
+
+
+
+
+class distribution : public RavenObject, public BasicDistribution
+{
+ public:
+   //> constructor for built-in distributions
+  distribution(const std::string & name, InputParameters parameters);
+
+  virtual ~distribution();
+
 };
 
 

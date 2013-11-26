@@ -52,7 +52,7 @@ DistributionContainer::~DistributionContainer()
 
 
 void
-DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, distribution * dist){
+DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, BasicDistribution * dist){
    // create the distribution type
   //distribution * dist = dynamic_cast<distribution *>(_factory.create(type, name, params));
    if (_dist_by_name.find(name) == _dist_by_name.end())
@@ -76,7 +76,7 @@ std::string
 DistributionContainer::getType(std::string DistAlias){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
-       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        std::string type = getDistributionType(*dist);
        if(type == "DistributionError"){
          mooseError("Type for distribution " << DistAlias << " not found");
@@ -151,7 +151,7 @@ DistributionContainer::getVariable(char * paramName,char *DistAlias){
 double
 DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
-       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        return getDistributionVariable(*dist,paramName);
     }
     mooseError("Distribution " << DistAlias << " not found in distribution container");
@@ -166,7 +166,7 @@ DistributionContainer::updateVariable(char * paramName,double newValue,char *Dis
 void
 DistributionContainer::updateVariable(std::string paramName,double newValue,std::string DistAlias){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
-       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        DistributionUpdateVariable(*dist,paramName,newValue);
     }
     else{
@@ -178,7 +178,7 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
 std::vector<std::string>
 DistributionContainer::getDistributionNames(){
   std::vector<std::string> distsNames;
-  for(std::map<std::string, distribution *>::iterator it = _dist_by_name.begin(); it!= _dist_by_name.end();it++){
+  for(std::map<std::string, BasicDistribution *>::iterator it = _dist_by_name.begin(); it!= _dist_by_name.end();it++){
     distsNames.push_back(it->first);
   }
   return distsNames;
@@ -187,7 +187,7 @@ DistributionContainer::getDistributionNames(){
 std::vector<std::string>
 DistributionContainer::getRavenDistributionVariableNames(std::string DistAlias){
   if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
-     distribution * dist = _dist_by_name.find(DistAlias)->second;
+     BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
      return getDistributionVariableNames(*dist);
   }
   mooseError("Distribution " + DistAlias + " was not found in distribution container.");
@@ -202,7 +202,7 @@ double
 DistributionContainer::Pdf(std::string DistAlias, double x){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
-       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        return DistributionPdf(*dist,x);
     }
     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
@@ -218,7 +218,7 @@ double
 DistributionContainer::Cdf(std::string DistAlias, double x){
 
    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
-       distribution * dist = _dist_by_name.find(DistAlias)->second;
+       BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        return DistributionCdf(*dist,x);
     }
     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
@@ -235,7 +235,7 @@ double
 DistributionContainer::randGen(std::string DistAlias, double RNG){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
-        distribution * dist = _dist_by_name.find(DistAlias)->second;
+        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
         //return dist->RandomNumberGenerator(RNG);
         return DistributionRandomNumberGenerator(*dist,RNG);
      }
