@@ -286,7 +286,10 @@ class AdaptiveSampler(Sampler):
         if self.normType in NormLib.knonwnTypes():self.norm = NormLib.returnInstance(self.normType)
         else: raise Exception('the '+self.normType+'is not a known type of norm')
       if 'limit'          in convergenceNode.attrib.keys(): self.limit            = int (convergenceNode.attrib['limit'         ])
-      if 'forceIteration' in convergenceNode.attrib.keys(): self.forceIteration   = bool(convergenceNode.attrib['forceIteration'])
+      if 'forceIteration' in convergenceNode.attrib.keys():
+        if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
+        elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
+        else: raise Exception('in reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
       if 'weight'         in convergenceNode.attrib.keys(): self.tolleranceWeight = str (convergenceNode.attrib['weight'        ])
       self.tolerance=float(convergenceNode.text)      
     else: raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
@@ -346,7 +349,6 @@ class AdaptiveSampler(Sampler):
     print('self.forceIteration '+str(self.forceIteration))
     if ready == False: return ready #if we exceeded the limit just return that we are done
     if self.forceIteration and self.counter < self.limit: #if we are force to reach the limit why bother to check the error
-
       ready=True
       return ready
     
