@@ -11,6 +11,7 @@ class RavenFramework(Tester):
     params.addParam('output','',"List of output files that the input should create.")
     params.addParam('csv','',"List of csv files to check")
     params.addParam('rel_err','','Relative Error for csv files')
+    params.addParam('required_executable','','Skip test if this executable is not found')
     return params
   getValidParams = staticmethod(getValidParams)
 
@@ -24,6 +25,8 @@ class RavenFramework(Tester):
     for filename in self.check_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
       if os.path.exists(filename):
         os.remove(filename)
+    self.required_executable = self.specs['required_executable']
+    self.required_executable = self.required_executable.replace("%METHOD%",os.environ.get("METHOD","opt"))
     self.specs['scale_refine'] = False
 
   def checkRunnable(self, option):
@@ -51,6 +54,9 @@ class RavenFramework(Tester):
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+    if len(self.required_executable) > 0 and \
+       not os.path.exists(self.required_executable):
+      return (False,'skipped (Missing executable: "'+self.required_executable+'")')
     return (True, '')
 
   def processResults(self, moose_dir,retcode, options, output):

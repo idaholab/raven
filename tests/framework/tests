@@ -4,6 +4,7 @@
   input = 'test_simple.xml'
   output = 'revirD_tset/FirstMRun/out~1~ideal_pump_displaced.e revirD_tset/FirstMRun/out~2~ideal_pump_displaced.e revirD_tset/FirstMRun/out~3~ideal_pump_displaced.e revirD_tset/FirstMRun/out~4~ideal_pump_displaced.e revirD_tset/FirstMRun/out~5~ideal_pump_displaced.e revirD_tset/FirstMRun/out~6~ideal_pump_displaced.e'
   csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
+  required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_output]
