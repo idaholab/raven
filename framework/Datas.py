@@ -179,7 +179,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if   varName in self.dataParameters['inParam' ]: inOutType = 'input'
     elif varName in self.dataParameters['outParam']: inOutType = 'output'
     else: raise Exception('the variable named '+varName+' was not found in the data: '+self.name)
-    self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID=None,stepID=None)
+    return self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID=None,stepID=None)
   
   @abc.abstractmethod
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None):
