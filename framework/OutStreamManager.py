@@ -245,7 +245,7 @@ class OutStreamPlot(OutStreamManager):
       for key in self.x_values.keys():
         if len(self.x_values[key]) == 0: return False
         else:
-          for i in range(self.x_values[key]):
+          for i in range(len(self.x_values[key])):
             if self.x_values[key].size == 0: return False
     if self.z_cordinates:
       if len(self.z_values.keys()) == 0: return False
@@ -253,7 +253,7 @@ class OutStreamPlot(OutStreamManager):
         for key in self.z_values.keys():
           if len(self.z_values[key]) == 0: return False      
           else:
-            for i in range(self.z_values[key]):
+            for i in range(len(self.z_values[key])):
               if self.z_values[key].size == 0: return False   
     if self.y_cordinates:
       if len(self.y_values.keys()) == 0: return False    
@@ -261,7 +261,7 @@ class OutStreamPlot(OutStreamManager):
         for key in self.y_values.keys():
           if len(self.y_values[key]) == 0: return False    
           else:
-            for i in range(self.y_values[key]):
+            for i in range(len(self.y_values[key])):
               if self.y_values[key].size == 0: return False           
     return True    
   def __executeActions(self):
