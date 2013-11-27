@@ -28,7 +28,7 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
 
 <Samplers>
   <Adaptive name='myAdaptive' adaptiveAlgorithm='leastDistance' >
-    <Convergence norm='relL2' limit='100' forceIteration='False' weight='probability'>10E-5</Convergence>
+    <Convergence norm='relL2' limit='100' forceIteration='False' weight='probability'>1E-5</Convergence>
     <varibale name='X' >
       <distribution type ='Normal'>X_distrib</distribution>
     </varibale>

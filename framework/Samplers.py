@@ -14,6 +14,7 @@ import os
 import copy
 import abc
 import numpy as np
+import scipy
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
 from itertools import product as iterproduct
@@ -340,7 +341,13 @@ class AdaptiveSampler(Sampler):
     self.testMatrix     = np.zeros(dimSizeTuple)
     self.oldTestMatrix  = np.zeros(dimSizeTuple)
     self.testGridLenght = np.prod (pointByVar  )
-  
+    dimSizeTuple        = tuple(pointByVar+[len(pointByVar)])
+    self.gridCoord      = np.zeros(dimSizeTuple)
+    myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
+    while not myIterator.finished:
+      self.gridCoord[myIterator.multi_index] = np.multiply(np.asarray(myIterator.multi_index), self.gridStepSize)+self.gridStepSize*0.5
+      myIterator.iternext() 
+
   def localStillReady(self,ready,lastOutput=None,ROM=None):
     if ready == False: return ready #if we exceeded the limit just return that we are done
     if self.forceIteration and self.counter < self.limit: #if we are force to reach the limit why bother to check the error
@@ -349,7 +356,6 @@ class AdaptiveSampler(Sampler):
     if lastOutput==None:
       self.nruns = 0
       return ready #if the last output is not provided I am still generating an input batch  
-
     #first evaluate the goal function on the sampled points and store them in self.functionTestOut
     print('len(self.functionTestOut)'+str(len(self.functionTestOut)))
     print("len(lastOutput.extractValue('numpy.ndarray',self.axisName[0]))"+str(len(lastOutput.extractValue('numpy.ndarray',self.axisName[0]))))
@@ -361,42 +367,24 @@ class AdaptiveSampler(Sampler):
         self.functionTestOut.append(self.goalFunction.evaluate('residualSign',tempDict))
     else:
       self.functionTestOut.append(self.goalFunction.evaluate('residualSign',lastOutput))
-
     #generate the values in the test matrix (here use the ROM)
     self.oldTestMatrix[:] = self.testMatrix                  #be sure that the testMatrixes is generated as such any changes will be detected even if at the first run
-    inputset  = np.zeros((len(self.axisName),self.counter))
+    inputset  = np.zeros((len(self.functionTestOut),len(self.axisName)))
     #recovery the input values so far generated and convert them in pb if needed
     for varID, varName in enumerate(self.axisName):
-      if self.tolleranceWeight=='probability': 
-        inputset[varID,:]=map(self.distDict[varName].distribution.cdf,lastOutput.extractValue('numpy.ndarray',varName))
+      if self.tolleranceWeight=='probability':
+        inputset[:,varID]=map(self.distDict[varName].distribution.cdf,lastOutput.extractValue('numpy.ndarray',varName))
       else:
-        inputset[varID,:]=lastOutput.extractValue('numpy.ndarray',varName)
+        inputset[:,varID]=lastOutput.extractValue('numpy.ndarray',varName)
     #generate the fine grid solution based on proximity with the point sampled
-    myIterator     = np.nditer(self.testMatrix,flags=['multi_index'])
-    diffArray      = np.zeros(len(self.axisName))     #temporary array used to store distance
-    gridCoordinate = np.ndarray(len(self.axisName))   #temporary array used to store grid point coordinate
-    while not myIterator.finished:
-      gridCoordinate[:] = np.multiply(np.asarray(myIterator.multi_index), self.gridStepSize)+self.gridStepSize*0.5
-      distance          = sys.float_info.max
-#      print('myIterator.multi_index '+str(myIterator.multi_index))
-#      print('self.gridStepSize '+str(self.gridStepSize))
-#      print('distance '+str(distance))
-#      print('coordinate '+str(gridCoordinate[:]))
-      
-      for i in range(len(self.functionTestOut)):
-        diffArray         = np.subtract(gridCoordinate,inputset[:,i])
-        myDistance        = np.sum(np.square(diffArray))
-#        print('solution point index '+str(i))
-#        print('solution point coordinate '+str(inputset[:,i]))
-#        print('myDistance '+str(myDistance))
-#        print('diffArray '+str(diffArray))
-        if myDistance<distance:
-          distance=myDistance
-#          print(self.functionTestOut[i])
-#          print(type(self.functionTestOut[i]))
-          self.testMatrix[myIterator.multi_index]=self.functionTestOut[i]
-      myIterator.iternext()
-
+    myTree                = scipy.spatial.cKDTree(inputset)
+    savedShape            = np.shape(self.gridCoord)
+    self.gridCoord.shape  = (self.testGridLenght,len(self.axisName))
+    self.testMatrix.shape = (self.testGridLenght)
+    distnace, outId       =  myTree.query(self.gridCoord)
+    self.testMatrix[:]    = [self.functionTestOut[myID] for myID in outId]
+    self.testMatrix.shape = savedShape[:-1]
+    self.gridCoord.shape  = savedShape
     testError = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))
     print('testError '+str(testError))
     if (testError > 0) and ready : ready = True
@@ -428,8 +416,7 @@ class AdaptiveSampler(Sampler):
           step     = self.gridStepSize[varIndex]
           swapArray[:] = [listSurfPoint[i][varIndex]*step+step*0.5 for i in range(lenghtLimSurf)]
           self.solutionExport.inpParametersValues[varName] = swapArray
-          if self.tolleranceWeight=='probability': self.solutionExport.inpParametersValues[varName] = map(self.distDict[varName].distribution.ppf,self.solutionExport.inpParametersValues[varName])
-        
+          if self.tolleranceWeight=='probability': self.solutionExport.inpParametersValues[varName] = map(self.distDict[varName].distribution.ppf,self.solutionExport.inpParametersValues[varName])  
     return ready
     
   def localGenerateInput(self,model,oldInput):
