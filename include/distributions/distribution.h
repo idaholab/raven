@@ -8,9 +8,8 @@
 #ifndef DISTRIBUTION_H_
 #define DISTRIBUTION_H_
 
-
+#include <map>
 #include "Interpolation_Functions.h"
-#include "RavenObject.h"
 #include "distribution_min.h"
 
 const int _defaultSeed = 1256955321;
@@ -19,8 +18,6 @@ enum truncation {MULTIPLICATIVE=1, SUM=2};
 
 class distribution;
 
-template<>
-InputParameters validParams<distribution>();
 
 class BasicDistribution 
 {
@@ -61,18 +58,6 @@ protected:
    bool _checkStatus;
 };
 
-
-
-
-class distribution : public RavenObject, public virtual BasicDistribution
-{
- public:
-   //> constructor for built-in distributions
-  distribution(const std::string & name, InputParameters parameters);
-
-  virtual ~distribution();
-
-};
 
 
 #endif /* DISTRIBUTION_H_ */

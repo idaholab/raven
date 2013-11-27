@@ -29,8 +29,6 @@
  */
 class UniformDistribution;
 
-template<>
-InputParameters validParams<UniformDistribution>();
 
 class UniformDistributionBackend;
 
@@ -51,28 +49,12 @@ protected:
    // No parameters
 };
 
-class UniformDistribution : public distribution, public BasicUniformDistribution {
- public:
-   UniformDistribution(const std::string & name, InputParameters parameters);
-   virtual ~UniformDistribution();
-   /*double Pdf(double & x) { return BasicUniformDistribution::Pdf(x);}
-   double Cdf(double & x) { return BasicUniformDistribution::Cdf(x);}
-   double RandomNumberGenerator(double & RNG) 
-   { return BasicUniformDistribution::RandomNumberGenerator(RNG);}
-   double untrPdf(double & x) { return BasicUniformDistribution::untrPdf(x);}
-   double untrCdf(double & x) { return BasicUniformDistribution::untrCdf(x);}
-   double untrRandomNumberGenerator(double & RNG) 
-   { return BasicUniformDistribution::untrRandomNumberGenerator(RNG);}*/
-
-};
 
 /*
  * CLASS NORMAL DISTRIBUTION
  */
 class NormalDistribution;
 
-template<>
-InputParameters validParams<NormalDistribution>();
 
 class NormalDistributionBackend;
 
@@ -93,19 +75,11 @@ protected:
    NormalDistributionBackend * _normal;
 };
 
-class NormalDistribution : public distribution, public BasicNormalDistribution {
- public:
-  NormalDistribution(const std::string & name, InputParameters parameters);
-  virtual ~NormalDistribution();  
-};
 
 /*
  * CLASS LOG NORMAL DISTRIBUTION
  */
 class LogNormalDistribution;
-
-template<>
-InputParameters validParams<LogNormalDistribution>();
 
 class LogNormalDistributionBackend;
 
@@ -126,20 +100,11 @@ protected:
    LogNormalDistributionBackend * _logNormal;
 };
 
-class LogNormalDistribution : public distribution, public BasicLogNormalDistribution {
-public:
-   LogNormalDistribution(const std::string & name, InputParameters parameters);
-   virtual ~LogNormalDistribution();
-};
-
 /*
  * CLASS TRIANGULAR DISTRIBUTION
  */
 
 class TriangularDistribution;
-
-template<>
-InputParameters validParams<TriangularDistribution>();
 
 class TriangularDistributionBackend;
 
@@ -160,21 +125,12 @@ protected:
    TriangularDistributionBackend * _triangular;
 };
 
-class TriangularDistribution : public distribution, public BasicTriangularDistribution {
-public:
-   TriangularDistribution(const std::string & name, InputParameters parameters);
-   virtual ~TriangularDistribution();
-};
-
 
 /*
  * CLASS EXPONENTIAL DISTRIBUTION
  */
 
 class ExponentialDistribution;
-
-template<>
-InputParameters validParams<ExponentialDistribution>();
 
 class ExponentialDistributionBackend;
 
@@ -195,20 +151,11 @@ protected:
    ExponentialDistributionBackend * _exponential;
 };
 
-class ExponentialDistribution : public distribution, public BasicExponentialDistribution {
-public:
-	ExponentialDistribution(const std::string & name, InputParameters parameters);
-   virtual ~ExponentialDistribution();
-};
-
 /*
  * CLASS WEIBULL DISTRIBUTION
  */
 
 class WeibullDistribution;
-
-template<>
-InputParameters validParams<WeibullDistribution>();
 
 class WeibullDistributionBackend;
 
@@ -229,20 +176,11 @@ protected:
    WeibullDistributionBackend * _weibull;
 };
 
-class WeibullDistribution : public distribution, public BasicWeibullDistribution {
-public:
-   WeibullDistribution(const std::string & name, InputParameters parameters);
-   virtual ~WeibullDistribution();
-};
-
 /*
  * CLASS CUSTOM DISTRIBUTION
  */
 
 class CustomDistribution;
-
-template<>
-InputParameters validParams<CustomDistribution>();
 
 class BasicCustomDistribution : public virtual BasicDistribution {
 public:
@@ -254,12 +192,6 @@ public:
    double  RandomNumberGenerator(double & RNG);        ///< RNG
 
 protected:
-};
-
-class CustomDistribution : public distribution, public BasicCustomDistribution {
-public:
-   CustomDistribution(const std::string & name, InputParameters parameters);
-   virtual ~CustomDistribution();
 };
 
 #endif

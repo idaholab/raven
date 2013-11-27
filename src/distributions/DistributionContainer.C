@@ -21,7 +21,7 @@
 using namespace std;
 
 #ifndef mooseError
-#define mooseError(msg) { std::cerr << "\n\n" << msg << "\n\n"; }
+#define mooseError(msg) { std::cerr << "\n\n" << msg << "\n\n"; exit(1); }
 #endif
 
 class DistributionContainer;

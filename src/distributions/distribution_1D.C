@@ -29,20 +29,14 @@
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
 
+#ifndef mooseError
+#define mooseError(msg) { std::cerr << "\n\n" << msg << "\n\n"; exit(1); }
+#endif
+
 /*
  * CLASS UNIFORM DISTRIBUTION
  */
 
-template<>
-InputParameters validParams<UniformDistribution>(){
-
-   InputParameters params = validParams<distribution>();
-    
-   params.addRequiredParam<double>("xMin", "Distribution lower bound");
-   params.addRequiredParam<double>("xMax", "Distribution upper bound");
-
-   return params;
-}
 
 class UniformDistributionBackend {
 public:
@@ -52,14 +46,6 @@ public:
   boost::math::uniform _backend;
 };
 
-UniformDistribution::UniformDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), BasicUniformDistribution(getParam<double>("xMin"), getParam<double>("xMax"))
-{
-}
-
-UniformDistribution::~UniformDistribution()
-{
-}
 
 BasicUniformDistribution::BasicUniformDistribution(double xMin, double xMax)
 {
@@ -163,23 +149,6 @@ public:
 /*
  * CLASS NORMAL DISTRIBUTION
  */
-template<>
-InputParameters validParams<NormalDistribution>(){
-
-   InputParameters params = validParams<distribution>();
-
-   params.addRequiredParam<double>("mu", "Mean");
-   params.addRequiredParam<double>("sigma", "Standard deviation");
-   return params;
-}
-
-NormalDistribution::NormalDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
-  BasicNormalDistribution(getParam<double>("mu"),getParam<double>("sigma")) {
-}
-
-NormalDistribution::~NormalDistribution(){
-}
 
 BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma) {
   _dis_parameters["mu"] = mu; //mean
@@ -306,27 +275,6 @@ public:
  * CLASS LOG NORMAL DISTRIBUTION
  */
 
-template<>
-InputParameters validParams<LogNormalDistribution>(){
-
-   InputParameters params = validParams<distribution>();
-
-   params.addRequiredParam<double>("mu", "Mean");
-   params.addRequiredParam<double>("sigma", "Standard deviation");
-    
-   return params;
-}
-
-class LogNormalDistribution;
-
-LogNormalDistribution::LogNormalDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), BasicLogNormalDistribution(getParam<double>("mu"), getParam<double>("sigma"))
-{
-}
-
-LogNormalDistribution::~LogNormalDistribution()
-{
-}
 
 BasicLogNormalDistribution::BasicLogNormalDistribution(double mu, double sigma)
 {
@@ -459,16 +407,6 @@ BasicLogNormalDistribution::RandomNumberGenerator(double & RNG){
  */
 
 
-template<>
-InputParameters validParams<TriangularDistribution>(){
-
-   InputParameters params = validParams<distribution>();
-
-   params.addRequiredParam<double>("xPeak", "Maximum coordinate");
-   params.addRequiredParam<double>("lowerBound", "Lower bound");
-   params.addRequiredParam<double>("upperBound", "Upper bound");
-   return params;
-}
 
 class TriangularDistributionBackend {
 public:
@@ -477,13 +415,6 @@ public:
   boost::math::triangular _backend;
 };
 
-TriangularDistribution::TriangularDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), BasicTriangularDistribution(getParam<double>("xPeak"),getParam<double>("lowerBound"),getParam<double>("upperBound"))
-{
-}
-TriangularDistribution::~TriangularDistribution()
-{
-}
 
 BasicTriangularDistribution::BasicTriangularDistribution(double xPeak, double lowerBound, double upperBound)
 {
@@ -634,14 +565,6 @@ BasicTriangularDistribution::RandomNumberGenerator(double & RNG){
  * CLASS EXPONENTIAL DISTRIBUTION
  */
 
-template<>
-InputParameters validParams<ExponentialDistribution>(){
-
-   InputParameters params = validParams<distribution>();
-
-   params.addRequiredParam<double>("lambda", "lambda");
-   return params;
-}
 
 class ExponentialDistributionBackend {
 public:
@@ -649,13 +572,6 @@ public:
   boost::math::exponential _backend;
 };
 
-ExponentialDistribution::ExponentialDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), BasicExponentialDistribution(getParam<double>("lambda"))
-{
-}
-ExponentialDistribution::~ExponentialDistribution()
-{
-}
 
 BasicExponentialDistribution::BasicExponentialDistribution(double lambda)
 {
@@ -796,15 +712,6 @@ BasicExponentialDistribution::RandomNumberGenerator(double & RNG){
  * CLASS WEIBULL DISTRIBUTION
  */
 
-template<>
-InputParameters validParams<WeibullDistribution>(){
-
-   InputParameters params = validParams<distribution>();
-
-   params.addRequiredParam<double>("k", "shape parameter");
-   params.addRequiredParam<double>("lambda", "scale parameter");
-   return params;
-}
 
 class WeibullDistributionBackend {
 public:
@@ -814,17 +721,6 @@ public:
   boost::math::weibull _backend;
 };
 
-WeibullDistribution::WeibullDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
-  BasicWeibullDistribution(getParam<double>("k"),getParam<double>("lambda"))
-                                                         
-{
-}
-
-WeibullDistribution::~WeibullDistribution()
-{
-  delete _weibull;
-}
 
 BasicWeibullDistribution::BasicWeibullDistribution(double k, double lambda)
 {
@@ -958,33 +854,6 @@ BasicWeibullDistribution::RandomNumberGenerator(double & RNG){
  * CLASS CUSTOM DISTRIBUTION
  */
 
-template<>
-InputParameters validParams<CustomDistribution>(){
-
-   InputParameters params = validParams<distribution>();
-
-   params.addRequiredParam< vector<double> >("x_coordinates", "coordinates along x");
-   params.addRequiredParam< vector<double> >("y_coordinates", "coordinates along y");
-   MooseEnum fitting_enum("step_left=0,step_right=1,linear=2,cubic_spline=3");
-   params.addRequiredParam<MooseEnum>("fitting_type",fitting_enum, "type of fitting");
-   params.addParam<int>("n_points",3,"Number of fitting point (for spline only)");
-   return params;
-}
-
-class CustomDistribution;
-
-CustomDistribution::CustomDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
-  BasicCustomDistribution(getParam<double>("x_coordinates"),
-                          getParam<double>("y_coordinates"),
-                          getParam<MooseEnum>("fitting_type"),
-                          getParam<double>("n_points"))
-{
-}
-
-CustomDistribution::~CustomDistribution()
-{
-}
 
 BasicCustomDistribution::BasicCustomDistribution(double x_coordinates, double y_coordinates, int fitting_type, double n_points)
 {
