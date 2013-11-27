@@ -130,7 +130,8 @@ class SingleRun(Step):
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
       try: #try is used since files for the moment have no type attribute
-        if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
+        if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
+        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
       except AttributeError as ae: print("Error: "+repr(ae))
     
   def localTakeAstepRun(self,inDictionary):
@@ -372,7 +373,8 @@ class InOutFromDataBase(Step):
         if (not (inDictionary['Output'][i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
         else: self.actionType.append('HDF5-DATAS')
     try: #try is used since files for the moment have no type attribute
-      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
+      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
+      if 'Plot' or 'Print' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(inDictionary)
     except AttributeError as ae: print("Error: "+repr(ae))    
     
   def localTakeAstepRun(self,inDictionary):
@@ -408,7 +410,8 @@ class RomTrainer(Step):
     for i in xrange(len(inDictionary['Output'])):
       inDictionary['Output'][i].initializeTrain(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'][0])
     try: #try is used since files for the moment have no type attribute
-      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
+      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
+      if 'Plot' or 'Print' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(inDictionary)
     except AttributeError as ae: print("Error: "+repr(ae))
 
   def takeAstepIni(self,inDictionary):

@@ -292,14 +292,9 @@ class Code(Model):
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
-    try:
-      if output.type == "HDF5":
-        self.__addDataBaseGroup(finisishedjob,output)
-        return
-    except AttributeError:
-      pass
-    output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
-    return
+    #if output.type == "HDF5": self.__addDataBaseGroup(finisishedjob,output)
+    try:self.__addDataBaseGroup(finisishedjob,output)
+    except AttributeError: output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
 
   def __addDataBaseGroup(self,finisishedjob,database):
     # add a group into the database
@@ -309,8 +304,7 @@ class Code(Model):
     attributes["name"] = os.path.join(self.workingDir,finisishedjob.output+'.csv')
     if finisishedjob.identifier in self.infoForOut:
       infoForOut = self.infoForOut.pop(finisishedjob.identifier)
-      for key in infoForOut:
-        attributes[key] = infoForOut[key]
+      for key in infoForOut: attributes[key] = infoForOut[key]
     database.addGroup(attributes,attributes)
 #
 #

@@ -1,7 +1,7 @@
 '''
-Created on May 8, 2013
+Created on Nov 14, 2013
 
-@author: mandd
+@author: alfoa
 '''
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -23,22 +23,25 @@ from BaseType import BaseType
 
 class OutStream(BaseType):
   '''
-  *************************
-  *    OUTSTREAM CLASS    *
-  *************************
+  ********************************************************************
+  *                          OUTSTREAM CLASS                         *
+  ********************************************************************
+  *  This class is a general base class for outstream action classes *
+  *  For example, a matplotlib interface class or Print class, etc.  *
+  ********************************************************************
   '''
   def __init__(self):
     '''
       Init of Base class 
     '''
     BaseType.__init__(self)
-
+    
     # Root of the file name
     self.fileNameRoot   = None
 
     # List of variables that must be displayed
     self.variables      = []
-
+    
     # List of source for retrieving data (for example, list of CSVs or HDF5)
     self.toLoadFromList = []
 
@@ -164,7 +167,6 @@ class ScreenPlot(OutStream):
     #matplotlib.use('PDF')
     import matplotlib.pyplot as plt
     self.plt = plt
-
 
   def addOutput(self,toLoadFrom):
     '''

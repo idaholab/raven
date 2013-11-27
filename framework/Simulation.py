@@ -23,6 +23,7 @@ import Distributions
 import DataBases
 import OutStreams
 import Functions
+import OutStreamManager
 from JobHandler import JobHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ class SimulationMode:
     import multiprocessing
     try:
       if multiprocessing.cpu_count() < self.__simulation.runInfoDict['batchSize']:
-        print("WARNING cpu_count",multiprocessing.cpu_count()," < batchSize ",self.__simulation.runInfoDict['batchSize'])
+        print("SIMULATION    : WARNING cpu_count",multiprocessing.cpu_count()," < batchSize ",self.__simulation.runInfoDict['batchSize'])
     except NotImplementedError:
       pass
 
@@ -113,8 +114,8 @@ class PBSDSHSimulationMode(SimulationMode):
       # of which there are one per line in the nodefile
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
-        print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
-      print("DRIVER        : Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
+        print("SIMULATION    : WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
+      print("SIMULATION    : Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
       #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.__simulation.runInfoDict['precommand']
       if(self.__simulation.runInfoDict['NumThreads'] > 1):
@@ -147,7 +148,7 @@ class MPISimulationMode(SimulationMode):
       newBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
       if newBatchsize != oldBatchsize:
         self.__simulation.runInfoDict['batchSize'] = newBatchsize
-        print("WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
+        print("SIMULATION    : WARNING: changing batchsize from",oldBatchsize,"to",newBatchsize)
       if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = self.__simulation.runInfoDict['WorkingDir']
@@ -196,7 +197,7 @@ class MPISimulationMode(SimulationMode):
       elif child.tag.lower() == "runqsub":
         self.__runQsub = True
       else:
-        print("We should do something with child",child)
+        print("SIMULATION    : We should do something with child",child)
     return
 
     
@@ -277,7 +278,7 @@ class Simulation(object):
     self.outStreamsDict    = {}
     self.functionsDict     = {}
     self.filesDict         = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
-    
+    self.OutStreamManagerDict = {}
     self.stepSequenceList  = [] #the list of step of the simulation
     
     #list of supported queue-ing software:
@@ -297,6 +298,7 @@ class Simulation(object):
     self.addWhatDict['DataBases'     ] = DataBases
     self.addWhatDict['Functions'     ] = Functions
     self.addWhatDict['OutStreams'    ] = OutStreams
+    self.addWhatDict['OutStreamManager'    ] = OutStreamManager
 
     #Mapping between a class type and the dictionary containing the instances for the simulation
     #the dictionary keyword should match the subnodes of a step definition so that the step can find the instances
@@ -312,6 +314,7 @@ class Simulation(object):
     self.whichDict['DataBases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.outStreamsDict
     self.whichDict['Functions'    ] = self.functionsDict
+    self.whichDict['OutStreamManager'   ] = self.OutStreamManagerDict
     
     self.jobHandler    = JobHandler()
     self.__modeHandler = SimulationMode(self)
@@ -346,17 +349,17 @@ class Simulation(object):
           for childChild in child:
             if childChild.attrib['name'] != None:
               name = childChild.attrib['name']
-              print('Reading type '+str(childChild.tag)+' with name '+name)
+              print('SIMULATION    : Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
-              else: raise IOError('Redundant  naming in the input for class '+Class+' and name '+name)
+              else: raise IOError('SIMULATION    : Redundant  naming in the input for class '+Class+' and name '+name)
               #now we can read the info for this object
               self.whichDict[Class][name].readXML(childChild)
               if self.debug: self.whichDict[Class][name].printMe()
-            else: raise IOError('not found name attribute for one '+Class)
+            else: raise IOError('SIMULATION    : not found name attribute for one '+Class)
         else: self.__readRunInfo(child,runInfoSkip)
-      else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))    
+      else: raise IOError('SIMULATION    : the '+child.tag+' is not among the known simulation components '+ET.tostring(child))    
     
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment'''
@@ -372,7 +375,7 @@ class Simulation(object):
       #This is used to reserve some cores
       self.runInfoDict['totalNumCoresUsed'] = oldTotalNumCoresUsed
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
-      print("WARNING: overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to",
+      print("SIMULATION    : WARNING: overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to",
             self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
     for key in self.filesDict.keys():
@@ -388,7 +391,7 @@ class Simulation(object):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       if element.tag in runInfoSkip:
-        print("WARNING: Skipped element ",element.tag)
+        print("SIMULATION    : WARNING: Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
         temp_name = element.text
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = element.text
@@ -420,7 +423,7 @@ class Simulation(object):
         for fileName in element.text.split(','): self.filesDict[fileName] = fileName.strip()
       elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
       else:
-        print("WARNING: Unhandled element ",element.tag)
+        print("SIMULATION    : WARNING: Unhandled element ",element.tag)
 
   def printDicts(self):
     '''utility function capable to print a summary of the dictionaries'''
@@ -437,6 +440,7 @@ class Simulation(object):
     __prntDict(self.filesDict)
     __prntDict(self.dataBasesDict)
     __prntDict(self.outStreamsDict)
+    __prntDict(self.OutStreamManagerDict)
     __prntDict(self.addWhatDict)
     __prntDict(self.whichDict)
 
@@ -445,7 +449,7 @@ class Simulation(object):
     #to do list
     #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
     #
-    if self.debug: print('entering in the run')
+    if self.debug: print('SIMULATION    : entering in the run')
     #controlling the PBS environment
     if self.__modeHandler.doOverrideRun():
       self.__modeHandler.runOverride()
@@ -454,7 +458,7 @@ class Simulation(object):
     for stepName in self.stepSequenceList:
       stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
       self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
-      if self.debug: print('starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
+      if self.debug: print('SIMULATION    : starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
       stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!! 
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
       stepInputDict['Output']          = []                         #set the Output to an empty list

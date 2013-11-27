@@ -172,7 +172,7 @@ class HDF5(DateBase):
     self.database.addGroupDatas(attributes["group"],attributes,attributes,upGroup)
     self.built = True
   
-  def addGroupInit(self,gname,attributes=None,upGroup=False):
+  def initialize(self,gname,attributes=None,upGroup=False):
     '''
     Function to add an initial root group into the data base...
     This group will not contain a dataset but, eventually, only

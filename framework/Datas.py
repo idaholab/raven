@@ -143,6 +143,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.checkConsistency()
     return
 
+  def getParametersValues(self,typeVar):
+    if typeVar.lower() == "input":    return self.getInpParametersValues()
+    elif typeVar.lower() == "output": return self.getOutParametersValues()
+    else: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParametersValues")
+
   def getInpParametersValues(self):
     return self.inpParametersValues  
 
@@ -150,10 +155,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     return self.outParametersValues 
   
   def getParam(self,typeVar,keyword):
-    if typeVar == "input":
+    if typeVar.lower() == "input":
       if keyword in self.inpParametersValues.keys(): return self.inpParametersValues[keyword]
       else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in inpParametersValues dictionary. Function: Data.getParam")    
-    elif typeVar == "output":
+    elif typeVar.lower() == "output":
       if keyword in self.outParametersValues.keys(): return self.outParametersValues[keyword]    
       else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in outParametersValues dictionary. Function: Data.getParam")
     else: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
