@@ -53,8 +53,6 @@ class OutStreamManager(BaseType):
     '''
     BaseType.readMoreXML(self,xmlNode)
     if 'interactive' in xmlNode.attrib.keys(): self.interactive = bool(xmlNode.attrib['interactive'])
-    if xmlNode.attrib['type'] not in self.availableOutStreamTypes: raise IOError('STREAM MANAGER: ERROR -> type "'+ node.attrib['type']+'" not available!')
-    else: self.outStreamType = xmlNode.attrib['type']
   
 #     for node in xmlNode:
 #       self.num_active_outstreams += 1
@@ -89,7 +87,7 @@ class OutStreamManager(BaseType):
     '''
     pass 
 
-  def addOutput(self,toLoadFrom):
+  def addOutput(self):
     '''
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
@@ -183,6 +181,15 @@ class OutStreamPlot(OutStreamManager):
           if inp.name.strip() == self.sourceName:
             self.sourceData = inp
             foundData = True  
+    if not foundData and 'TargetEvaluation' in inDict.keys():
+      if inDict['TargetEvaluation'].name.strip() == self.sourceName:
+        self.sourceData = inDict['TargetEvaluation']
+        foundData = True 
+    if not foundData and 'SolutionExport' in inDict.keys():
+      if inDict['SolutionExport'].name.strip() == self.sourceName:
+        self.sourceData = inDict['SolutionExport']
+        foundData = True 
+     
     if not foundData: raise IOError('STREAM MANAGER: ERROR -> the Data named ' + self.sourceName + 'has not been found!!!!')
     # retrieve all the other plot settings (plot dependent) 
     for key in self.options['plot_settings'].keys():
@@ -207,6 +214,7 @@ class OutStreamPlot(OutStreamManager):
     if 'how' not in self.options.keys(): self.options['how']={'how':'screen'} 
 
   def __fillCoordinatesFromSource(self):
+    if len(self.sourceData.getInpParametersValues().keys()) == 0 and len(self.sourceData.getOutParametersValues().keys()) == 0: return False
     if self.sourceData.type.strip() not in 'Histories': 
       self.x_values = {1:[]}
       if self.y_cordinates: self.y_values = {1:[]}
@@ -231,7 +239,7 @@ class OutStreamPlot(OutStreamManager):
           for i in range(len(self.y_cordinates)): self.y_values[key].append(self.sourceData.getParam(self.y_cordinates[i].split('|')[1],key)[self.y_cordinates[i].split('|')[2]])
         if self.z_cordinates:
           for i in range(len(self.z_cordinates)): self.z_values[key].append(self.sourceData.getParam(self.z_cordinates[i].split('|')[1],key)[self.z_cordinates[i].split('|')[2]])
-  
+    return True    
   def __executeActions(self):
     if self.dim < 3:
       if 'figure_properties' in self.options.keys():
@@ -305,10 +313,12 @@ class OutStreamPlot(OutStreamManager):
           except: self.plt.axis(self.options[key][key]) 
         elif key == 'grid':
           if 'b' not in self.options[key].keys()  : self.options[key]['b'] = None
+          elif self.options[key]['b'].lower() in ['true','t']: self.options[key]['b'] = 'on'
+          elif self.options[key]['b'].lower() in ['false','f']: self.options[key]['b'] = 'off'
           if 'which' not in self.options[key].keys() : self.options[key]['which'] = 'major'
           if 'axis' not in self.options[key].keys() : self.options[key]['axis'] = 'both'
           if 'attributes' in self.options[key].keys(): self.plt.grid(ast.literal_eval(b =self.options[key]['b']),which = ast.literal_eval(self.options[key]['which']), axis=ast.literal_eval(self.options[key]['axis']),**self.options[key]['attributes'])
-          else:self.plt.grid(b=(self.options[key]['b']),which = (self.options[key]['which']), axis=(self.options[key]['axis']))
+          else:self.plt.grid(b=self.options[key]['b'],which = (self.options[key]['which']), axis=(self.options[key]['axis']))
         elif key in ['how','plot_settings']: pass
         else:
           command_args = ''
@@ -412,15 +422,21 @@ class OutStreamPlot(OutStreamManager):
         for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text         
     self.type = 'OutStreamPlot'
     if not 'plot_settings' in self.options.keys(): raise IOError('STREAM MANAGER: ERROR -> For plot named ' + self.name + ' the plot_settings block IS REQUIRED!!')
+    if not 'type' in self.options['plot_settings'].keys(): raise IOErrror('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot type keyword has been found in the plot_settings block!')
+    else: self.outStreamType = self.options['plot_settings']['type']
   
-  def addOutput(self,toLoadFrom):
+  def addOutput(self):
     '''
     Function to add a new output source
     @ In, toLoadFrom, source object
     @ Out, None 
     '''
     self.plt.ioff()
-    self.__fillCoordinatesFromSource()
+    self.plt.close()
+    if not self.__fillCoordinatesFromSource():
+      print('STREAM MANAGER: WARNING -> Nothing to Plot Yet... Returning!!!!')
+      return
+    
     if self.dim == 2:
       if 'xlabel' not in self.plotSettings.keys():
         x_label = ''
@@ -624,7 +640,7 @@ class OutStreamPlot(OutStreamManager):
       self.plt.show()
     for i in range(len(self.options['how']['how'].split(','))):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
-        self.Ax.savefig(self.name+'_' + self.outStreamType+'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
+        self.plt.savefig(self.name+'_' + self.outStreamType+'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
     self.plt.ioff()
 class OutStreamPrint(OutStreamManager):
   def __init(self):

@@ -260,6 +260,7 @@ class AdaptiveSampler(Sampler):
     self.norm             = None             #this is the pointer to the norm function
     self.tolerance        = None             #this is norm of the error threshold
     self.tolleranceWeight = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
+    self.persistence      = 0                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
     self.forceIteration   = False            #this flag control if at least a self.limit number of iteration should be done
     self.gridInfo         = {}               # {'name of the variable':[values]}
     self.testGridLenght   = 0                #this the total number of point in the testing grid
@@ -269,6 +270,7 @@ class AdaptiveSampler(Sampler):
     self.axisName         = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.functionTestOut  = []               #This is the list of the outcome of the function evaluation for the point already sampled
     self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
+    self.persistCnt       = 0                #Counter linked to self.persistence
 
   def localInputAndChecks(self,xmlNode):
     #setting up the adaptive algorithm
@@ -292,6 +294,7 @@ class AdaptiveSampler(Sampler):
         elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
         else: raise Exception('in reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
       if 'weight'         in convergenceNode.attrib.keys(): self.tolleranceWeight = str (convergenceNode.attrib['weight'        ])
+      if 'persistence'    in  convergenceNode.attrib.keys(): self.persistence = int(convergenceNode.attrib['persistence'])
       self.tolerance=float(convergenceNode.text)      
     else: raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
       
@@ -341,6 +344,7 @@ class AdaptiveSampler(Sampler):
     self.testMatrix     = np.zeros(dimSizeTuple)
     self.oldTestMatrix  = np.zeros(dimSizeTuple)
     self.testGridLenght = np.prod (pointByVar  )
+    self.persistCnt     = 0
     dimSizeTuple        = tuple(pointByVar+[len(pointByVar)])
     self.gridCoord      = np.zeros(dimSizeTuple)
     myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
@@ -387,7 +391,9 @@ class AdaptiveSampler(Sampler):
     self.gridCoord.shape  = savedShape
     testError = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))
     if (testError > 0) and ready : ready = True
-    else                         : ready = False
+    else: 
+      self.persistCnt += 1
+      if self.persistCnt > self.persistence: ready = False    
     #generate limit surface
     listSurfPoint = []
     nVar          = len(self.axisName)

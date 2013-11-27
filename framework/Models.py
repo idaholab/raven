@@ -198,7 +198,7 @@ class ExternalModel(Model):
     if 'collectOutput' in dir(self.sim):
       self.sim.collectOutput(self,finisishedjob,output)
     self.__pointSolution()
-    if 'HDF5' in output.type: 
+    if 'HDF5' in output.type:
       for key in self.modelVariableValues: 
         exec('if not (type(self.modelVariableValues[key]) == '+ self.modelVariableType[key] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!")')
       output.addGroupDatas({'group':str(self.counter)},self.modelVariableValues)

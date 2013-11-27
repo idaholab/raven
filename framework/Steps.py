@@ -275,6 +275,7 @@ class Adaptive(MultiRun):
         if 'HDF5' in inDictionary['Output'][i].type:
           inDictionary['Output'][i].addGroupInit(self.name)
           if self.debug: print('The HDF5 '+inDictionary['Output'][i].name+' has been initialized')
+        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPlot']: inDictionary['Output'][i].initialize(inDictionary)
       except AttributeError as ae: print("Error: "+repr(ae))    
     #the first batch of input is generated (and run if the model is not a code)
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
@@ -282,8 +283,9 @@ class Adaptive(MultiRun):
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       if inDictionary["Model"].type != 'Code':
         # if the model is not a code, collect the output right after the evaluation => the response is overwritten at each "run"
-        for output in inDictionary['Output']: inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
-    
+        for output in inDictionary['Output']: 
+          if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
+          else: output.addOutput()
 
   def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -311,7 +313,8 @@ class Adaptive(MultiRun):
           newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
           inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
           for output in inDictionary['Output']:
-            inDictionary['Model'].collectOutput(finishedJob,output) 
+            if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
+            else: output.addOutput()
         else:
           break
         time.sleep(self.sleepTime)

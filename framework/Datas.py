@@ -184,7 +184,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if   varName in self.dataParameters['inParam' ]: inOutType = 'input'
     elif varName in self.dataParameters['outParam']: inOutType = 'output'
     else: raise Exception('the variable named '+varName+' was not found in the data: '+self.name)
-    return self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID=None,stepID=None)
+    return self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID,stepID)
   
   @abc.abstractmethod
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None):
@@ -290,6 +290,7 @@ class TimePointSet(Data):
       popped = self.inpParametersValues.pop(name)
       self.inpParametersValues[name] = copy.deepcopy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.array(value)))))
     else:
+      if name not in self.dataParameters['inParam']: self.dataParameters['inParam'].append(name)
       self.inpParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def updateSpecializedOutputValue(self,name,value):
@@ -297,6 +298,7 @@ class TimePointSet(Data):
       popped = self.outParametersValues.pop(name)
       self.outParametersValues[name] = copy.deepcopy(np.concatenate((np.array(popped), np.atleast_1d(np.array(value)))))
     else:
+      if name not in self.dataParameters['outParam']: self.dataParameters['outParam'].append(name)
       self.outParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def specializedPrintCSV(self,filenameLocal): 
@@ -328,7 +330,10 @@ class TimePointSet(Data):
     '''override of the method in the base class Datas'''
     if stepID!=None: raise Exception('seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
-      if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID]')
+      if varID!=None: 
+        exec('aa ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
+        return aa
+      #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
       else: raise Exception('trying to extract a scalar value from a time point set without an index')
     else: return self.getParam(inOutType,varName)
 
