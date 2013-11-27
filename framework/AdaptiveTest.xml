@@ -27,8 +27,8 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
 </Distributions>
 
 <Samplers>
-  <Adaptive name='myAdaptive' adaptiveAlgorithm='leastDistance' norm='relL2' tolerance='10E-4' limit='100' forceIteration='False'>
-    <Convergence norm='relL2' limit='100' forceIteration='False' weight='probability'>10E-4</Convergence>
+  <Adaptive name='myAdaptive' adaptiveAlgorithm='leastDistance' >
+    <Convergence norm='relL2' limit='100' forceIteration='False' weight='probability'>10E-5</Convergence>
     <varibale name='X' >
       <distribution type ='Normal'>X_distrib</distribution>
     </varibale>
@@ -42,16 +42,23 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
 </Samplers>
 <Functions>
   <External name='myFunction' file='myFunction.py'>
+    <variable type='numpy.ndarray'>X</variable>
+    <variable type='numpy.ndarray'>Y</variable>
+    <variable type='numpy.ndarray'>Z</variable>
   </External>
 </Functions>
 <Datas>
-    <TimePoint name='adaptiveOut'>
+    <TimePointSet name='adaptiveOut'>
         <Input>X,Y,Z</Input>
         <Output>whatEver</Output>
-   </TimePoint>
+   </TimePointSet>
    <TimePointSet name='dummyIN'>
       <Input>X,Y,Z</Input>
       <Output>whatEver</Output>
+   </TimePointSet>
+    <TimePointSet name='limitSurf'>
+        <Input>X,Y,Z</Input>
+        <Output>whatEver</Output>
    </TimePointSet>
 </Datas>
 
@@ -60,11 +67,11 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
 </Models>
 
 <Steps>
-    <Adaptive name='firstAdaptive' sleepTime='0.01'>
+    <Adaptive name='firstAdaptive' sleepTime='0.001'>
         <Input             class='Datas'     type='TimePoint'   >dummyIN</Input>
         <Sampler           class='Samplers'  type='Adaptive'    >myAdaptive</Sampler>
         <TargetEvaluation  class='Datas'     type='TimePointSet'>adaptiveOut</TargetEvaluation>
-        <SolutionExport    class='Datas'     type='TimePointSet'>adaptiveOut</SolutionExport>
+        <SolutionExport    class='Datas'     type='TimePointSet'>limitSurf</SolutionExport>
         <Function          class='Functions' type='External'    >myFunction</Function>
         <Model             class='Models'    type='Dummy'       >MyDummy</Model>
         <Output            class='Datas'     type='TimePointSet'>adaptiveOut</Output>

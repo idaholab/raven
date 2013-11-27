@@ -171,7 +171,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     pass
     
-  def amIreadyToProvideAnInput(self,lastOutput=None):
+  def amIreadyToProvideAnInput(self,lastOutput=None,ROM=None):
     '''
     This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
     This method act as a semaphore for generating a new input.
@@ -184,7 +184,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     ready = self.localStillReady(ready,lastOutput=lastOutput)
     return ready
   
-  def localStillReady(self,ready,lastOutput=None):
+  def localStillReady(self,ready,lastOutput=None,ROM=None):
     '''Use this function to change the ready status'''
     return ready
     
@@ -281,7 +281,7 @@ class AdaptiveSampler(Sampler):
     convergenceNode = xmlNode.find('Convergence')
     if convergenceNode!=None:
       if 'norm'          in convergenceNode.attrib.keys():
-        self.normType = xmlNode.attrib['norm']
+        self.normType = convergenceNode.attrib['norm']
         import NormLib
         if self.normType in NormLib.knonwnTypes():self.norm = NormLib.returnInstance(self.normType)
         else: raise Exception('the '+self.normType+'is not a known type of norm')
@@ -340,62 +340,96 @@ class AdaptiveSampler(Sampler):
     self.testMatrix     = np.zeros(dimSizeTuple)
     self.oldTestMatrix  = np.zeros(dimSizeTuple)
     self.testGridLenght = np.prod (pointByVar  )
-    self.printMe()
   
   def localStillReady(self,ready,lastOutput=None,ROM=None):
-    print('ready '+str(ready))
-    print('self.counter '+str(self.counter))
-    print('self.limit '+str(self.limit))
-    print('self.forceIteration '+str(self.forceIteration))
     if ready == False: return ready #if we exceeded the limit just return that we are done
     if self.forceIteration and self.counter < self.limit: #if we are force to reach the limit why bother to check the error
       ready=True
       return ready
-    
+    if lastOutput==None:
+      self.nruns = 0
+      return ready #if the last output is not provided I am still generating an input batch  
+
     #first evaluate the goal function on the sampled points and store them in self.functionTestOut
-    self.functionTestOut.append(self.goalFunction.evaluate(self,'residualSign',lastOutput))
+    print('len(self.functionTestOut)'+str(len(self.functionTestOut)))
+    print("len(lastOutput.extractValue('numpy.ndarray',self.axisName[0]))"+str(len(lastOutput.extractValue('numpy.ndarray',self.axisName[0]))))
+    if len(self.functionTestOut)<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0]))-1:
+      tempDict = {}
+      while len(self.functionTestOut)<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0])):
+        for varName in self.axisName:
+          tempDict[varName] = lastOutput.extractValue('numpy.ndarray',varName)[0:len(self.functionTestOut)+1]
+        self.functionTestOut.append(self.goalFunction.evaluate('residualSign',tempDict))
+    else:
+      self.functionTestOut.append(self.goalFunction.evaluate('residualSign',lastOutput))
+
     #generate the values in the test matrix (here use the ROM)
-    self.oldTestMatrix[:] = self.testMatrix
+    self.oldTestMatrix[:] = self.testMatrix                  #be sure that the testMatrixes is generated as such any changes will be detected even if at the first run
     inputset  = np.zeros((len(self.axisName),self.counter))
-    for varName in self.axisName:
-      inputset[int(varName),:]=lastOutput.extractValue('numpy.ndarray',varName)
+    #recovery the input values so far generated and convert them in pb if needed
+    for varID, varName in enumerate(self.axisName):
+      if self.tolleranceWeight=='probability': 
+        inputset[varID,:]=map(self.distDict[varName].distribution.cdf,lastOutput.extractValue('numpy.ndarray',varName))
+      else:
+        inputset[varID,:]=lastOutput.extractValue('numpy.ndarray',varName)
+    #generate the fine grid solution based on proximity with the point sampled
     myIterator     = np.nditer(self.testMatrix,flags=['multi_index'])
-    diffArray      = np.zeros(len(self.axisName))
-    gridCoordinate = np.ndarray(len(self.axisName))
+    diffArray      = np.zeros(len(self.axisName))     #temporary array used to store distance
+    gridCoordinate = np.ndarray(len(self.axisName))   #temporary array used to store grid point coordinate
     while not myIterator.finished:
-      gridCoordinate[:] = np.multiply(myIterator.index, self.gridStepSize)
+      gridCoordinate[:] = np.multiply(np.asarray(myIterator.multi_index), self.gridStepSize)+self.gridStepSize*0.5
       distance          = sys.float_info.max
-      for i in range(self.counter):
-        diffArray         = np.diff(gridCoordinate,inputset[:,i])
+#      print('myIterator.multi_index '+str(myIterator.multi_index))
+#      print('self.gridStepSize '+str(self.gridStepSize))
+#      print('distance '+str(distance))
+#      print('coordinate '+str(gridCoordinate[:]))
+      
+      for i in range(len(self.functionTestOut)):
+        diffArray         = np.subtract(gridCoordinate,inputset[:,i])
         myDistance        = np.sum(np.square(diffArray))
+#        print('solution point index '+str(i))
+#        print('solution point coordinate '+str(inputset[:,i]))
+#        print('myDistance '+str(myDistance))
+#        print('diffArray '+str(diffArray))
         if myDistance<distance:
           distance=myDistance
-          self.testMatrix[myIterator.index]=self.functionTestOut[i]
-    print('wwwwwwwwwwwwwwwwwwwww')
-    testError = np.sum(np.absolute(np.diff(self.testMatrix,self.oldTestMatrix)))
+#          print(self.functionTestOut[i])
+#          print(type(self.functionTestOut[i]))
+          self.testMatrix[myIterator.multi_index]=self.functionTestOut[i]
+      myIterator.iternext()
+
+    testError = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))
     print('testError '+str(testError))
-    if (testError > 0) and ready :  ready = False
+    if (testError > 0) and ready : ready = True
+    else                         : ready = False
     #generate limit surface
     listSurfPoint = []
     nVar          = len(self.axisName)
     if self.solutionExport!=None:
+      myshape = self.testMatrix.shape
       myIterator     = np.nditer(self.testMatrix,flags=['multi_index'])
       while not myIterator.finished:
-        if self.testMatrix[myIterator.index]==-1:
+        if self.testMatrix[myIterator.multi_index]==-1:
           for iVar in range(nVar):
-            myIdList = list(myIterator.index)
-            myIdList[iVar] +=1
-            if self.testMatrix[myIdList[iVar]]!=-1:
-              listSurfPoint.append(np.asarray(myIterator.index))
+            myIdList = list(myIterator.multi_index)
+            if myIdList[iVar]<myshape[iVar]-1:myIdList[iVar] +=1
+            if self.testMatrix[tuple(myIdList)]!=-1:
+              listSurfPoint.append(np.asarray(myIterator.multi_index))
               exit
-            myIdList[iVar] -=2
-            if self.testMatrix[myIdList[iVar]]!=-1:
-              listSurfPoint.append(np.asarray(myIterator.index))
+            if myIdList[iVar]>1: myIdList[iVar] -=2
+            if self.testMatrix[tuple(myIdList)]!=-1:
+              listSurfPoint.append(np.asarray(myIterator.multi_index))
               exit
-      for key in self.solutionExport.dataParameters['inParam'].keys():
-        if key in self.axisName:
-          self.solutionExport.inpParametersValues[key]=np.ndarray(self.counter,listSurfPoint[:][int(key)]*self.gridStepSize)+self.gridStepSize/2.0
-          if self.tolleranceWeight=='probability': self.solutionExport.inpParametersValues[key] = map(self.distDict[key].distribution.ppf,self.solutionExport.inpParametersValues[key])
+        myIterator.iternext()
+      lenghtLimSurf = len(listSurfPoint)
+      swapArray = np.ndarray(lenghtLimSurf)
+      for varName in self.solutionExport.dataParameters['inParam']:
+        if varName in self.axisName:
+          varIndex = self.axisName.index(varName)
+          step     = self.gridStepSize[varIndex]
+          swapArray[:] = [listSurfPoint[i][varIndex]*step+step*0.5 for i in range(lenghtLimSurf)]
+          self.solutionExport.inpParametersValues[varName] = swapArray
+          if self.tolleranceWeight=='probability': self.solutionExport.inpParametersValues[varName] = map(self.distDict[varName].distribution.ppf,self.solutionExport.inpParametersValues[varName])
+        
     return ready
     
   def localGenerateInput(self,model,oldInput):

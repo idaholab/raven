@@ -6,7 +6,7 @@ This module contains interfaces to import external functions
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-
+import numpy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -25,12 +25,12 @@ class Function(BaseType):
     BaseType.__init__(self)
     self.__functionFile                  = '' 
     self.name                            = ''
-    self.__varType__                         = {}
+    self.__varType__                     = {}
     self.__actionDictionary__            = {}
     self.__actionImplemented__           = {}
-    self.__inputFromWhat                 = {}
-    self.__inputFromWhat['dict']         = self.__inputFromDict__
-    self.__inputFromWhat['Data']         = self.__inputFromData__
+    self.__inputFromWhat__               = {}
+    self.__inputFromWhat__['dict']       = self.__inputFromDict__
+    self.__inputFromWhat__['Data']       = self.__inputFromData__
     
   def readMoreXML(self,xmlNode):
     if 'file' in xmlNode.attrib.keys():
@@ -64,10 +64,11 @@ class Function(BaseType):
     else: raise IOError('No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
     for child in xmlNode:
       if child.tag=='variable':
-        self.__inVarValues[child.text] = None
-        exec('self.'+child.text+' = self.inVarValues['+'child.text'+']')
+#        exec('self.'+child.text+' = self.inVarValues['+'child.text'+']')
+        exec('self.'+child.text+' = None')
         if 'type' in child.attrib.keys(): self.__varType__[child.text] = child.attrib['type']
         else                            : raise IOError('the type for the variable '+child.text+' is missed')
+    if len(self.__varType__.keys())==0: raise IOError('not variable found in the definition of the function '+self.name)
         
   def addInitParams(self,tempDict):
     '''
@@ -94,21 +95,21 @@ class Function(BaseType):
     @ Out, tempDict 
     '''
     for key in self.__varType__.keys():
-      exec("tempDict['variable '+"+key+"+'has value'] = 'self.'"+key)
-      exec("tempDict['variable '+"+key+"+' is of type'] = 'self.'"+self.__varType__[key])
+      exec("tempDict['variable '+key+' has value'] = self."+key)
+      exec("tempDict['variable '+key+' is of type'] = self.__varType__[key]")
 
 
   def __importValues__(self,myInput):
     '''this makes available the variable values sent in as self.key'''
-    if type(myInput)==dict         :self.__inputFromWhat['dict'](myInput)
-    elif 'Data' in myInput.__base__:self.__inputFromWhat['Data'](myInput)
-    else: raise 'Unknown type of input provided to the function '+str(self.name)
+    if type(myInput)==dict         :self.__inputFromWhat__['dict'](myInput)
+    elif 'Data' in [x.__name__ for x in myInput.__class__.__bases__]:self.__inputFromWhat__['Data'](myInput)
+    else: raise Exception('Unknown type of input provided to the function '+str(self.name))
 
   def __inputFromData__(self,inputData):
     '''
     This is meant to be used to collect the input from a Data. A conversion to the declared type of data is attempted by inputData.extractValue'''
     for key, myType in self.__varType__.items():
-      exec('self.'+key+'=inputData.extractValue('+myType+','+key+')')
+      exec('self.'+key+'=inputData.extractValue(myType,key)')
 
   def __inputFromDict__(self,myInputDict):
     '''
@@ -120,14 +121,16 @@ class Function(BaseType):
     else                                  : inDict = myInputDict
     for name, myType in self.__varType__.items():
       if name in inDict.keys():
-        if myType == type(inDict[name]): exec("self."+name+"=inDict[name]")
-        else: raise 'Not proper type for the variable '+name+' in external function '+self.name
-      else: raise 'The input variable '+name+' in external function seems not to be passed in'
+        if myType.split('.')[-1] == type(inDict[name]).__name__: exec("self."+name+"=inDict[name]")
+        else: raise Exception('Not proper type for the variable '+name+' in external function '+self.name)
+      else: raise Exception('The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):
     '''return the result of the type of action described by 'what' '''
     self.__importValues__(myInput)
-    return self.__actionDictionary__[what]
+    toBeReturned=self.__actionDictionary__[what](self)
+    print('toBeReturned'+str(toBeReturned))
+    return toBeReturned
   
     
     

@@ -246,7 +246,7 @@ class TimePoint(Data):
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None):
     '''override of the method in the base class Datas'''
     if varID!=None or stepID!=None: raise Exception('seeking to extract a slice from a TimePoint type of data is not possible. Data name: '+self.name+' variable: '+varName)
-    if varTyp!='numpy.ndarray':exec ('return varTyp(self.getParam(inOutType,'+varName+')[0])')
+    if varTyp!='numpy.ndarray':exec ('return '+varTyp+'(self.getParam(inOutType,varName)[0])')
     else: return self.getParam(inOutType,varName)
 
 class TimePointSet(Data):
