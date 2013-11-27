@@ -455,7 +455,7 @@ class OutStreamPlot(OutStreamManager):
     @ In, toLoadFrom, source object
     @ Out, None 
     '''
-    self.plt.ioff()
+    if self.interactive:self.plt.ion()
     self.plt.clf()
     if not self.__fillCoordinatesFromSource():
       print('STREAM MANAGER: WARNING -> Nothing to Plot Yet... Returning!!!!')
