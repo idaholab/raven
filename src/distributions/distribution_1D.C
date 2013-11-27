@@ -53,10 +53,16 @@ public:
 };
 
 UniformDistribution::UniformDistribution(const std::string & name, InputParameters parameters):
-   distribution(name,parameters)
+  distribution(name,parameters), BasicUniformDistribution(getParam<double>("xMin"), getParam<double>("xMax"))
 {
-  double xMin = getParam<double>("xMin");
-  double xMax = getParam<double>("xMax");
+}
+
+UniformDistribution::~UniformDistribution()
+{
+}
+
+BasicUniformDistribution::BasicUniformDistribution(double xMin, double xMax)
+{
   _dis_parameters["xMin"] = xMin;
   _dis_parameters["xMax"] = xMax;
   _uniform = new UniformDistributionBackend(xMin, xMax);
@@ -65,12 +71,13 @@ UniformDistribution::UniformDistribution(const std::string & name, InputParamete
     mooseError("ERROR: bounds for uniform distribution are incorrect");  
 }
 
-UniformDistribution::~UniformDistribution()
+BasicUniformDistribution::~BasicUniformDistribution()
 {
   delete _uniform;
 }
+
 double
-UniformDistribution::Pdf(double & x){
+BasicUniformDistribution::Pdf(double & x){
   return boost::math::pdf(_uniform->_backend,x);
   /*double value;
    if (x<_dis_parameters.find("xMin") ->second)
@@ -82,7 +89,7 @@ UniformDistribution::Pdf(double & x){
            return value;*/
 }
 double
-UniformDistribution::Cdf(double & x){
+BasicUniformDistribution::Cdf(double & x){
   //double value;
 
   return boost::math::cdf(_uniform->_backend,x); 
@@ -99,7 +106,7 @@ UniformDistribution::Cdf(double & x){
            return value;*/
 }
 double
-UniformDistribution::RandomNumberGenerator(double & RNG){
+BasicUniformDistribution::RandomNumberGenerator(double & RNG){
   double value;
     
    if ((RNG<0)&&(RNG>1))
@@ -129,18 +136,18 @@ UniformDistribution::RandomNumberGenerator(double & RNG){
    return value;
 }
 
-double  UniformDistribution::untrPdf(double & x){
-   double value=UniformDistribution::Pdf(x);
+double  BasicUniformDistribution::untrPdf(double & x){
+   double value=Pdf(x);
    return value;
 }
 
-double  UniformDistribution::untrCdf(double & x){
-   double value=UniformDistribution::Cdf(x);
+double  BasicUniformDistribution::untrCdf(double & x){
+   double value=Cdf(x);
    return value;
 }
 
-double  UniformDistribution::untrRandomNumberGenerator(double & RNG){
-   double value=UniformDistribution::RandomNumberGenerator(RNG);
+double  BasicUniformDistribution::untrRandomNumberGenerator(double & RNG){
+   double value=RandomNumberGenerator(RNG);
    return value;
 }
 
@@ -166,24 +173,26 @@ InputParameters validParams<NormalDistribution>(){
    return params;
 }
 
-class NormalDistribution;
-
 NormalDistribution::NormalDistribution(const std::string & name, InputParameters parameters):
-   distribution(name,parameters){
-    double mu = getParam<double>("mu");
-    double sigma = getParam<double>("sigma");
-   _dis_parameters["mu"] = mu;
-   _dis_parameters["sigma"] = sigma;
-   _normal = new NormalDistributionBackend(mu, sigma);
-   
+  distribution(name,parameters), 
+  BasicNormalDistribution(getParam<double>("mu"),getParam<double>("sigma")) {
 }
 
 NormalDistribution::~NormalDistribution(){
+}
+
+BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma) {
+  _dis_parameters["mu"] = mu; //mean
+  _dis_parameters["sigma"] = sigma; //sd
+  _normal = new NormalDistributionBackend(mu, sigma);   
+}
+
+BasicNormalDistribution::~BasicNormalDistribution(){
   delete _normal;
 }
 
 double
-NormalDistribution::untrPdf(double & x){
+BasicNormalDistribution::untrPdf(double & x){
   return boost::math::pdf(_normal->_backend, x);
     /*
    double mu=_dis_parameters.find("mu") ->second;
@@ -194,7 +203,7 @@ NormalDistribution::untrPdf(double & x){
 }
 
 double
-NormalDistribution::untrCdf(double & x){
+BasicNormalDistribution::untrCdf(double & x){
   return boost::math::cdf(_normal->_backend, x);
   /*double mu=_dis_parameters.find("mu") ->second;
    double sigma=_dis_parameters.find("sigma") ->second;
@@ -204,7 +213,7 @@ NormalDistribution::untrCdf(double & x){
 }
 
 double
-NormalDistribution::untrRandomNumberGenerator(double & RNG){
+BasicNormalDistribution::untrRandomNumberGenerator(double & RNG){
   return boost::math::quantile(_normal->_backend, RNG);
   /*
    double stdNorm;
@@ -227,13 +236,13 @@ NormalDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-NormalDistribution::Pdf(double & x){
+BasicNormalDistribution::Pdf(double & x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(NormalDistribution::untrCdf(xMax) - NormalDistribution::untrCdf(xMin)) * NormalDistribution::untrPdf(x);
+      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
    else
       value=-1;
 
@@ -241,13 +250,13 @@ NormalDistribution::Pdf(double & x){
 }
 
 double
-NormalDistribution::Cdf(double & x){
+BasicNormalDistribution::Cdf(double & x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(NormalDistribution::untrCdf(xMax) - NormalDistribution::untrCdf(xMin)) * (NormalDistribution::untrCdf(x) - NormalDistribution::untrCdf(xMin));
+      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
    else
       value=-1;
 
@@ -255,14 +264,14 @@ NormalDistribution::Cdf(double & x){
 }
 
 double
-NormalDistribution::RandomNumberGenerator(double & RNG){
+BasicNormalDistribution::RandomNumberGenerator(double & RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
      if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=NormalDistribution::untrCdf(xMin)+RNG*(NormalDistribution::untrCdf(xMax)-NormalDistribution::untrCdf(xMin));
-       value=NormalDistribution::untrRandomNumberGenerator(temp);
+       double temp=untrCdf(xMin)+RNG*(untrCdf(xMax)-untrCdf(xMin));
+       value=untrRandomNumberGenerator(temp);
      }
      else{
        value=-1;
@@ -311,25 +320,31 @@ InputParameters validParams<LogNormalDistribution>(){
 class LogNormalDistribution;
 
 LogNormalDistribution::LogNormalDistribution(const std::string & name, InputParameters parameters):
-   distribution(name,parameters)
+  distribution(name,parameters), BasicLogNormalDistribution(getParam<double>("mu"), getParam<double>("sigma"))
 {
-  double mu = getParam<double>("mu");
-  double sigma = getParam<double>("sigma");
+}
+
+LogNormalDistribution::~LogNormalDistribution()
+{
+}
+
+BasicLogNormalDistribution::BasicLogNormalDistribution(double mu, double sigma)
+{
   _dis_parameters["mu"] = mu;
   _dis_parameters["sigma"] = sigma;
   _logNormal = new LogNormalDistributionBackend(mu, sigma);
     
-  if (getParam<double>("mu")<0)
+  if (mu<0)
     mooseError("ERROR: incorrect value of mu for lognormaldistribution");  
 }
 
-LogNormalDistribution::~LogNormalDistribution()
+BasicLogNormalDistribution::~BasicLogNormalDistribution()
 {
   delete _logNormal;
 }
 
 double
-LogNormalDistribution::untrPdf(double & x){
+BasicLogNormalDistribution::untrPdf(double & x){
   return boost::math::pdf(_logNormal->_backend, x);
   /*double value;
    double mu=_dis_parameters.find("mu") ->second;
@@ -344,7 +359,7 @@ LogNormalDistribution::untrPdf(double & x){
 }
 
 double
-LogNormalDistribution::untrCdf(double & x){
+BasicLogNormalDistribution::untrCdf(double & x){
   //std::cout << "LogNormalDistribution::untrCdf " << x << std::endl;
   if(x <= 0) {
     return 0.0;
@@ -364,7 +379,7 @@ LogNormalDistribution::untrCdf(double & x){
 }
 
 double
-LogNormalDistribution::untrRandomNumberGenerator(double & RNG){
+BasicLogNormalDistribution::untrRandomNumberGenerator(double & RNG){
   return boost::math::quantile(_logNormal->_backend, RNG);
   /*  double stdNorm;
    double value;
@@ -383,13 +398,13 @@ LogNormalDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-LogNormalDistribution::Pdf(double & x){
+BasicLogNormalDistribution::Pdf(double & x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(LogNormalDistribution::untrCdf(xMax) - LogNormalDistribution::untrCdf(xMin)) * LogNormalDistribution::untrPdf(x);
+      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
    else
       value=-1;
 
@@ -397,13 +412,13 @@ LogNormalDistribution::Pdf(double & x){
 }
 
 double
-LogNormalDistribution::Cdf(double & x){
+BasicLogNormalDistribution::Cdf(double & x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(LogNormalDistribution::untrCdf(xMax) - LogNormalDistribution::untrCdf(xMin)) * (LogNormalDistribution::untrCdf(x)- LogNormalDistribution::untrCdf(xMin));
+      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x)- untrCdf(xMin));
    else
       value=-1;
 
@@ -411,15 +426,15 @@ LogNormalDistribution::Cdf(double & x){
 }
 
 double
-LogNormalDistribution::RandomNumberGenerator(double & RNG){
+BasicLogNormalDistribution::RandomNumberGenerator(double & RNG){
   double value;
   double xMin = _dis_parameters.find("xMin") ->second;
   double xMax = _dis_parameters.find("xMax") ->second;
 
    if(_force_dist == 0){
      if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=LogNormalDistribution::untrCdf(xMin) + RNG * (LogNormalDistribution::untrCdf(xMax)-LogNormalDistribution::untrCdf(xMin));
-       value=LogNormalDistribution::untrRandomNumberGenerator(temp);
+       double temp=untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
+       value=untrRandomNumberGenerator(temp);
      }
      else
        value=-1.0;
@@ -463,32 +478,36 @@ public:
 };
 
 TriangularDistribution::TriangularDistribution(const std::string & name, InputParameters parameters):
-   distribution(name,parameters)
+  distribution(name,parameters), BasicTriangularDistribution(getParam<double>("xPeak"),getParam<double>("lowerBound"),getParam<double>("upperBound"))
 {
-  double xPeak = getParam<double>("xPeak");
-  double lowerBound = getParam<double>("lowerBound");
-  double upperBound = getParam<double>("upperBound");
+}
+TriangularDistribution::~TriangularDistribution()
+{
+}
+
+BasicTriangularDistribution::BasicTriangularDistribution(double xPeak, double lowerBound, double upperBound)
+{
   _dis_parameters["xPeak"] = xPeak;
   _dis_parameters["lowerBound"] = lowerBound;
   _dis_parameters["upperBound"] = upperBound;
      
     
-  if (getParam<double>("upperBound") < getParam<double>("lowerBound"))
+  if (upperBound < lowerBound)
     mooseError("ERROR: bounds for triangular distribution are incorrect");  
-  if (getParam<double>("upperBound") < _dis_parameters.find("xMin") ->second)
+  if (upperBound < _dis_parameters.find("xMin") ->second)
     mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
-  if (getParam<double>("lowerBound") > _dis_parameters.find("xMax") ->second)
+  if (lowerBound > _dis_parameters.find("xMax") ->second)
     mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
   _triangular = new TriangularDistributionBackend(lowerBound, xPeak, upperBound);
 
 }
-TriangularDistribution::~TriangularDistribution()
+BasicTriangularDistribution::~BasicTriangularDistribution()
 {
   delete _triangular;
 }
 
 double
-TriangularDistribution::untrPdf(double & x){
+BasicTriangularDistribution::untrPdf(double & x){
   return boost::math::pdf(_triangular->_backend,x);
   /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
@@ -507,7 +526,7 @@ TriangularDistribution::untrPdf(double & x){
       return value;*/
 }
 
-double  TriangularDistribution::untrCdf(double & x){
+double  BasicTriangularDistribution::untrCdf(double & x){
   return boost::math::cdf(_triangular->_backend,x);
   /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
@@ -527,7 +546,7 @@ double  TriangularDistribution::untrCdf(double & x){
 }
 
 double
-TriangularDistribution::untrRandomNumberGenerator(double & RNG){
+BasicTriangularDistribution::untrRandomNumberGenerator(double & RNG){
   return boost::math::quantile(_triangular->_backend,RNG);
   /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
@@ -545,7 +564,7 @@ TriangularDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-TriangularDistribution::Pdf(double & x){
+BasicTriangularDistribution::Pdf(double & x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -554,7 +573,7 @@ TriangularDistribution::Pdf(double & x){
 	   if ((x<xMin)||(x>xMax))
 		   value=0;
 	   else
-		   value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * TriangularDistribution::untrPdf(x);
+		   value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
    else
       value=-1;
 
@@ -562,7 +581,7 @@ TriangularDistribution::Pdf(double & x){
 }
 
 double
-TriangularDistribution::Cdf(double & x){
+BasicTriangularDistribution::Cdf(double & x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -573,7 +592,7 @@ TriangularDistribution::Cdf(double & x){
 	  else if (x>xMax)
 		  value=1;
 	  else{
-		  value = 1/(TriangularDistribution::untrCdf(xMax) - TriangularDistribution::untrCdf(xMin)) * (TriangularDistribution::untrCdf(x)- TriangularDistribution::untrCdf(xMin));
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x)- untrCdf(xMin));
 	  }
    else
       value=-1;
@@ -582,14 +601,14 @@ TriangularDistribution::Cdf(double & x){
    }
 
 double
-TriangularDistribution::RandomNumberGenerator(double & RNG){
+BasicTriangularDistribution::RandomNumberGenerator(double & RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
      if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=TriangularDistribution::untrCdf(xMin)+RNG*(TriangularDistribution::untrCdf(xMax)-TriangularDistribution::untrCdf(xMin));
-       value=TriangularDistribution::untrRandomNumberGenerator(temp);
+       double temp=untrCdf(xMin)+RNG*(untrCdf(xMax)-untrCdf(xMin));
+       value=untrRandomNumberGenerator(temp);
      }
      else
        value=-1;
@@ -631,23 +650,29 @@ public:
 };
 
 ExponentialDistribution::ExponentialDistribution(const std::string & name, InputParameters parameters):
-   distribution(name,parameters)
+  distribution(name,parameters), BasicExponentialDistribution(getParam<double>("lambda"))
 {
-  double lambda = getParam<double>("lambda");
+}
+ExponentialDistribution::~ExponentialDistribution()
+{
+}
+
+BasicExponentialDistribution::BasicExponentialDistribution(double lambda)
+{
   _dis_parameters["lambda"] = lambda;
     
-  if (getParam<double>("lambda")<0)
+  if (lambda<0)
     mooseError("ERROR: incorrect value of lambda for exponential distribution"); 
 
   _exponential = new ExponentialDistributionBackend(lambda);
 }
-ExponentialDistribution::~ExponentialDistribution()
+BasicExponentialDistribution::~BasicExponentialDistribution()
 {
   delete _exponential;
 }
 
 double
-ExponentialDistribution::untrPdf(double & x){
+BasicExponentialDistribution::untrPdf(double & x){
   return boost::math::pdf(_exponential->_backend, x);
   /*double value;
    double lambda=_dis_parameters.find("lambda") ->second;
@@ -661,7 +686,7 @@ ExponentialDistribution::untrPdf(double & x){
 }
 
 double
-ExponentialDistribution::untrCdf(double & x){
+BasicExponentialDistribution::untrCdf(double & x){
   if(x >= 0.0) {
     return boost::math::cdf(_exponential->_backend, x);
   } else {
@@ -679,7 +704,7 @@ ExponentialDistribution::untrCdf(double & x){
 }
 
 double
-ExponentialDistribution::untrRandomNumberGenerator(double & RNG){
+BasicExponentialDistribution::untrRandomNumberGenerator(double & RNG){
   return boost::math::quantile(_exponential->_backend, RNG);
   /*double lambda=_dis_parameters.find("lambda") ->second;
    double value=-log(1-RNG)/(lambda);
@@ -687,7 +712,7 @@ ExponentialDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-ExponentialDistribution::Pdf(double & x){
+BasicExponentialDistribution::Pdf(double & x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
@@ -699,7 +724,7 @@ ExponentialDistribution::Pdf(double & x){
 	  else if (x>xMax)
 		  value =0;
 	  else
-		  value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * ExponentialDistribution::untrPdf(x);
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
    else
       value=-1;
    }
@@ -719,7 +744,7 @@ ExponentialDistribution::Pdf(double & x){
 }
 
 double
-ExponentialDistribution::Cdf(double & x){
+BasicExponentialDistribution::Cdf(double & x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
@@ -731,7 +756,7 @@ ExponentialDistribution::Cdf(double & x){
 	  else if (x>xMax)
 		  value =1;
 	  else
-		  value = 1/(ExponentialDistribution::untrCdf(xMax) - ExponentialDistribution::untrCdf(xMin)) * (ExponentialDistribution::untrCdf(x)- ExponentialDistribution::untrCdf(xMin));
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x)- untrCdf(xMin));
    else
       value=-1;
 
@@ -739,14 +764,14 @@ ExponentialDistribution::Cdf(double & x){
 }
 
 double
-ExponentialDistribution::RandomNumberGenerator(double & RNG){
+BasicExponentialDistribution::RandomNumberGenerator(double & RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = ExponentialDistribution::untrCdf(xMin)+RNG*(ExponentialDistribution::untrCdf(xMax)-ExponentialDistribution::untrCdf(xMin));
-      value=ExponentialDistribution::untrRandomNumberGenerator(temp);
+      double temp = untrCdf(xMin)+RNG*(untrCdf(xMax)-untrCdf(xMin));
+      value=untrRandomNumberGenerator(temp);
    }
    else
       value=-1;
@@ -790,17 +815,10 @@ public:
 };
 
 WeibullDistribution::WeibullDistribution(const std::string & name, InputParameters parameters):
-   distribution(name,parameters)
+  distribution(name,parameters), 
+  BasicWeibullDistribution(getParam<double>("k"),getParam<double>("lambda"))
+                                                         
 {
-  double k = getParam<double>("k"); //shape
-  double lambda = getParam<double>("lambda"); //scale
-  _dis_parameters["k"] = k;
-  _dis_parameters["lambda"] = lambda;
-
-  if ((getParam<double>("lambda")<0) || (getParam<double>("k")<0))
-    mooseError("ERROR: incorrect value of k or lambda for weibull distribution");
-
-  _weibull = new WeibullDistributionBackend(k, lambda);
 }
 
 WeibullDistribution::~WeibullDistribution()
@@ -808,8 +826,24 @@ WeibullDistribution::~WeibullDistribution()
   delete _weibull;
 }
 
+BasicWeibullDistribution::BasicWeibullDistribution(double k, double lambda)
+{
+  _dis_parameters["k"] = k; //shape
+  _dis_parameters["lambda"] = lambda; //scale
+
+  if ((lambda<0) || (k<0))
+    mooseError("ERROR: incorrect value of k or lambda for weibull distribution");
+
+  _weibull = new WeibullDistributionBackend(k, lambda);
+}
+
+BasicWeibullDistribution::~BasicWeibullDistribution()
+{
+  delete _weibull;
+}
+
 double
-WeibullDistribution::untrPdf(double & x){
+BasicWeibullDistribution::untrPdf(double & x){
   return boost::math::pdf(_weibull->_backend, x);
   /*double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
@@ -824,7 +858,7 @@ WeibullDistribution::untrPdf(double & x){
 }
 
 double
-WeibullDistribution::untrCdf(double & x){
+BasicWeibullDistribution::untrCdf(double & x){
   if(x >= 0) {
     return boost::math::cdf(_weibull->_backend, x);
   } else {
@@ -843,7 +877,7 @@ WeibullDistribution::untrCdf(double & x){
 }
 
 double
-WeibullDistribution::untrRandomNumberGenerator(double & RNG){
+BasicWeibullDistribution::untrRandomNumberGenerator(double & RNG){
   return boost::math::quantile(_weibull->_backend, RNG);
   /*double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
@@ -853,7 +887,7 @@ WeibullDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-WeibullDistribution::Pdf(double & x){
+BasicWeibullDistribution::Pdf(double & x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
@@ -865,7 +899,7 @@ WeibullDistribution::Pdf(double & x){
 	  else if (x>xMax)
 		  value=0;
 	  else
-		  value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * WeibullDistribution::untrPdf(x);
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
    else
       value=-1;
 
@@ -873,7 +907,7 @@ WeibullDistribution::Pdf(double & x){
 }
 
 double
-WeibullDistribution::Cdf(double & x){
+BasicWeibullDistribution::Cdf(double & x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
@@ -885,7 +919,7 @@ WeibullDistribution::Cdf(double & x){
 	  else if (x>xMax)
 		  value=1;
 	  else
-		  value = 1/(WeibullDistribution::untrCdf(xMax) - WeibullDistribution::untrCdf(xMin)) * (WeibullDistribution::untrCdf(x) - WeibullDistribution::untrCdf(xMin));
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
    else
       value=-1;
 
@@ -893,14 +927,14 @@ WeibullDistribution::Cdf(double & x){
 }
 
 double
-WeibullDistribution::RandomNumberGenerator(double & RNG){
+BasicWeibullDistribution::RandomNumberGenerator(double & RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = WeibullDistribution::untrCdf(xMin) + RNG * (WeibullDistribution::untrCdf(xMax)-WeibullDistribution::untrCdf(xMin));
-      value=WeibullDistribution::untrRandomNumberGenerator(temp);
+      double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
+      value=untrRandomNumberGenerator(temp);
    }
    else
       value=-1;
@@ -940,35 +974,49 @@ InputParameters validParams<CustomDistribution>(){
 class CustomDistribution;
 
 CustomDistribution::CustomDistribution(const std::string & name, InputParameters parameters):
-   distribution(name,parameters)
+  distribution(name,parameters), 
+  BasicCustomDistribution(getParam<double>("x_coordinates"),
+                          getParam<double>("y_coordinates"),
+                          getParam<MooseEnum>("fitting_type"),
+                          getParam<double>("n_points"))
 {
-   _dis_parameters["x_coordinates"] = getParam<double>("x_coordinates");
-   _dis_parameters["y_coordinates"] = getParam<double>("y_coordinates");
-   _dis_parameters["fitting_type"] = getParam<MooseEnum>("fitting_type");
-   _dis_parameters["n_points"] = getParam<double>("n_points");
-
 }
 
 CustomDistribution::~CustomDistribution()
 {
 }
 
+BasicCustomDistribution::BasicCustomDistribution(double x_coordinates, double y_coordinates, int fitting_type, double n_points)
+{
+   _dis_parameters["x_coordinates"] = x_coordinates;
+   _dis_parameters["y_coordinates"] = y_coordinates;
+   _dis_parameters["fitting_type"] = fitting_type;
+   _dis_parameters["n_points"] = n_points;
+
+}
+
+BasicCustomDistribution::~BasicCustomDistribution()
+{
+}
+
 double
-CustomDistribution::Pdf(double & x){
+BasicCustomDistribution::Pdf(double & x){
    double value=_interpolation.interpolation(x);
 
    return value;
 }
 
 double
-CustomDistribution::Cdf(double & ){
+BasicCustomDistribution::Cdf(double & ){
+  //XXX implement
    double value=-1;
 
    return value;
 }
 
 double
-CustomDistribution::RandomNumberGenerator(double & ){
+BasicCustomDistribution::RandomNumberGenerator(double & ){
+  //XXX implement
    double value=-1;
    return value;
 }

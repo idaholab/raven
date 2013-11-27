@@ -34,10 +34,10 @@ InputParameters validParams<UniformDistribution>();
 
 class UniformDistributionBackend;
 
-class UniformDistribution : public distribution {
+class BasicUniformDistribution : public virtual BasicDistribution {
 public:
-   UniformDistribution(const std::string & name, InputParameters parameters);
-   virtual ~UniformDistribution();
+  BasicUniformDistribution(double xMin, double xMax);
+  ~BasicUniformDistribution();
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
    double  RandomNumberGenerator(double & RNG);        ///< RNG
@@ -51,6 +51,21 @@ protected:
    // No parameters
 };
 
+class UniformDistribution : public distribution, public BasicUniformDistribution {
+ public:
+   UniformDistribution(const std::string & name, InputParameters parameters);
+   virtual ~UniformDistribution();
+   /*double Pdf(double & x) { return BasicUniformDistribution::Pdf(x);}
+   double Cdf(double & x) { return BasicUniformDistribution::Cdf(x);}
+   double RandomNumberGenerator(double & RNG) 
+   { return BasicUniformDistribution::RandomNumberGenerator(RNG);}
+   double untrPdf(double & x) { return BasicUniformDistribution::untrPdf(x);}
+   double untrCdf(double & x) { return BasicUniformDistribution::untrCdf(x);}
+   double untrRandomNumberGenerator(double & RNG) 
+   { return BasicUniformDistribution::untrRandomNumberGenerator(RNG);}*/
+
+};
+
 /*
  * CLASS NORMAL DISTRIBUTION
  */
@@ -61,10 +76,10 @@ InputParameters validParams<NormalDistribution>();
 
 class NormalDistributionBackend;
 
-class NormalDistribution : public distribution {
+class BasicNormalDistribution : public virtual BasicDistribution {
 public:
-   NormalDistribution(const std::string & name, InputParameters parameters);
-   virtual ~NormalDistribution();
+   BasicNormalDistribution(double mu, double sigma);
+   virtual ~BasicNormalDistribution();
 
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
@@ -78,6 +93,12 @@ protected:
    NormalDistributionBackend * _normal;
 };
 
+class NormalDistribution : public distribution, public BasicNormalDistribution {
+ public:
+  NormalDistribution(const std::string & name, InputParameters parameters);
+  virtual ~NormalDistribution();  
+};
+
 /*
  * CLASS LOG NORMAL DISTRIBUTION
  */
@@ -88,10 +109,10 @@ InputParameters validParams<LogNormalDistribution>();
 
 class LogNormalDistributionBackend;
 
-class LogNormalDistribution : public distribution {
+class BasicLogNormalDistribution : public virtual BasicDistribution {
 public:
-   LogNormalDistribution(const std::string & name, InputParameters parameters);
-   virtual ~LogNormalDistribution();
+   BasicLogNormalDistribution(double mu, double sigma);
+   virtual ~BasicLogNormalDistribution();
 
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
@@ -105,6 +126,12 @@ protected:
    LogNormalDistributionBackend * _logNormal;
 };
 
+class LogNormalDistribution : public distribution, public BasicLogNormalDistribution {
+public:
+   LogNormalDistribution(const std::string & name, InputParameters parameters);
+   virtual ~LogNormalDistribution();
+};
+
 /*
  * CLASS TRIANGULAR DISTRIBUTION
  */
@@ -116,10 +143,10 @@ InputParameters validParams<TriangularDistribution>();
 
 class TriangularDistributionBackend;
 
-class TriangularDistribution : public distribution {
+class BasicTriangularDistribution : public virtual BasicDistribution {
 public:
-   TriangularDistribution(const std::string & name, InputParameters parameters);
-   virtual ~TriangularDistribution();
+   BasicTriangularDistribution(double xPeak, double lowerBound, double upperBound);
+   virtual ~BasicTriangularDistribution();
 
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
@@ -131,6 +158,12 @@ public:
 
 protected:
    TriangularDistributionBackend * _triangular;
+};
+
+class TriangularDistribution : public distribution, public BasicTriangularDistribution {
+public:
+   TriangularDistribution(const std::string & name, InputParameters parameters);
+   virtual ~TriangularDistribution();
 };
 
 
@@ -145,10 +178,10 @@ InputParameters validParams<ExponentialDistribution>();
 
 class ExponentialDistributionBackend;
 
-class ExponentialDistribution : public distribution {
+class BasicExponentialDistribution : public virtual BasicDistribution {
 public:
-	ExponentialDistribution(const std::string & name, InputParameters parameters);
-   virtual ~ExponentialDistribution();
+   BasicExponentialDistribution(double lambda);
+   virtual ~BasicExponentialDistribution();
 
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
@@ -162,6 +195,11 @@ protected:
    ExponentialDistributionBackend * _exponential;
 };
 
+class ExponentialDistribution : public distribution, public BasicExponentialDistribution {
+public:
+	ExponentialDistribution(const std::string & name, InputParameters parameters);
+   virtual ~ExponentialDistribution();
+};
 
 /*
  * CLASS WEIBULL DISTRIBUTION
@@ -174,10 +212,10 @@ InputParameters validParams<WeibullDistribution>();
 
 class WeibullDistributionBackend;
 
-class WeibullDistribution : public distribution {
+class BasicWeibullDistribution : public virtual BasicDistribution {
 public:
-   WeibullDistribution(const std::string & name, InputParameters parameters);
-   virtual ~WeibullDistribution();
+   BasicWeibullDistribution(double k, double lambda);
+   virtual ~BasicWeibullDistribution();
 
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
@@ -191,6 +229,11 @@ protected:
    WeibullDistributionBackend * _weibull;
 };
 
+class WeibullDistribution : public distribution, public BasicWeibullDistribution {
+public:
+   WeibullDistribution(const std::string & name, InputParameters parameters);
+   virtual ~WeibullDistribution();
+};
 
 /*
  * CLASS CUSTOM DISTRIBUTION
@@ -201,10 +244,10 @@ class CustomDistribution;
 template<>
 InputParameters validParams<CustomDistribution>();
 
-class CustomDistribution : public distribution {
+class BasicCustomDistribution : public virtual BasicDistribution {
 public:
-   CustomDistribution(const std::string & name, InputParameters parameters);
-   virtual ~CustomDistribution();
+   BasicCustomDistribution(double x_coordinates, double y_coordinates, int fitting_type, double n_points);
+   virtual ~BasicCustomDistribution();
 
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
@@ -213,5 +256,10 @@ public:
 protected:
 };
 
+class CustomDistribution : public distribution, public BasicCustomDistribution {
+public:
+   CustomDistribution(const std::string & name, InputParameters parameters);
+   virtual ~CustomDistribution();
+};
 
 #endif

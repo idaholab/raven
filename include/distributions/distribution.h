@@ -64,7 +64,7 @@ protected:
 
 
 
-class distribution : public RavenObject, public BasicDistribution
+class distribution : public RavenObject, public virtual BasicDistribution
 {
  public:
    //> constructor for built-in distributions
