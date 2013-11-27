@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<!--
+this is a test for the adaptive sampling that uses an adaptive sampling over the dummy model
+-->
+<RunInfo>
+    <WorkingDir>AdaptiveTest</WorkingDir>
+    <Files>test_mode_for_adaptive.py,andrewFunction.py</Files>
+    <Sequence>firstAdaptive</Sequence>
+    <batchSize>8</batchSize>
+</RunInfo>
+
+<Distributions>
+    <Normal name='auxTime_distrib'>
+        <mean>2.5</mean>
+        <sigma>4</sigma>
+    </Normal>
+    <Normal name='tempTH_distrib'>
+        <mean>2.5</mean>
+        <sigma>4</sigma>
+    </Normal>
+    <Normal name='auxTime2_distrib'>
+        <mean>2.5</mean>
+        <sigma>4</sigma>
+    </Normal>
+</Distributions>
+
+<Samplers>
+  <Adaptive name='myAdaptive' adaptiveAlgorithm='leastDistance' >
+    <Convergence norm='relL2' limit='100' forceIteration='False' weight='probability' persistence='3'>1E-5</Convergence>
+    <varibale name='auxTime'>
+      <distribution type ='Normal'>auxTime_distrib</distribution>
+    </varibale>
+    <varibale name='tempTH'>
+      <distribution type ='Normal'>tempTH_distrib</distribution>
+    </varibale>
+    <varibale name='auxTime2'>
+      <distribution type ='Normal'>auxTime2_distrib</distribution>
+    </varibale>
+  </Adaptive>
+</Samplers>
+<Functions>
+  <External name='andrewFunction' file='andrewFunction.py'>
+    <variable type='numpy.ndarray'>auxTime</variable>
+    <variable type='numpy.ndarray'>tempTH</variable>
+    <variable type='numpy.ndarray'>auxTime2</variable>
+  </External>
+</Functions>
+<Datas>
+    <TimePointSet name='adaptiveOut' printCSV='t'>
+        <Input>auxTime,tempTH,auxTime2</Input>
+        <Output>temp</Output>
+   </TimePointSet>
+   <TimePointSet name='dummyIN'>
+      <Input>auxTime,tempTH,auxTime2</Input>
+      <Output>temp</Output>
+   </TimePointSet>
+    <TimePointSet name='limitSurf' printCSV='t'>
+        <Input>auxTime,tempTH,auxTime2</Input>
+        <Output>temp</Output>
+   </TimePointSet>
+</Datas>
+
+<Models>
+  <Dummy name='MyDummy' subType='' print='True'/>
+  <ExternalModel name='test_mode_for_adaptive' subType='' ModuleToLoad='test_mode_for_adaptive'>  
+    <variable type='float'>auxTime</variable>
+    <variable type='float'>auxTime2</variable>
+    <variable type='float'>temp</variable>
+    <variable type='float'>tempTH</variable>
+  </ExternalModel>
+</Models>
+
+<Steps>
+    <Adaptive name='firstAdaptive' sleepTime='0.001'>
+        <Input             class='Datas'     type='TimePoint'   >dummyIN</Input>
+        <Sampler           class='Samplers'  type='Adaptive'    >myAdaptive</Sampler>
+        <TargetEvaluation  class='Datas'     type='TimePointSet'>adaptiveOut</TargetEvaluation>
+        <SolutionExport    class='Datas'     type='TimePointSet'>limitSurf</SolutionExport>
+        <Function          class='Functions' type='External'    >andrewFunction</Function>
+        <Model             class='Models'    type='ExternalModel'       >test_mode_for_adaptive</Model>
+        <Output            class='Datas'     type='TimePointSet'>adaptiveOut</Output>
+        <Output           class='OutStreamManager' type='Plot'>scatterTest1</Output>
+    </Adaptive> 
+</Steps>
+
+
+
+<OutStreamManager>
+     <!-- <Assemble name='assembledScatter1and2' > 
+       <Plot>scatterTest1,scatterTest2</Plot>
+     </Assemble>
+     -->
+     <Plot name='scatterTest1' dim='3'>
+       <plot_settings>
+         <type>surface</type>
+         <x>limitSurf|Input|auxTime</x>
+         <y>limitSurf|Input|auxTime2</y>
+         <z>limitSurf|Input|tempTH</z>    
+         <xlabel>auxTime [s]</xlabel>
+         <ylabel>auxTime2 [s]</ylabel>
+         <zlabel>tempTH [K]</zlabel>
+         <interpPointsY>100</interpPointsY>
+         <interpPointsX>100</interpPointsX>
+       </plot_settings>
+       <!--
+       <figure_properties>
+        <figsize>0.5,1</figsize>
+        <facecolor>red</facecolor>
+        <edgecolor>blue</edgecolor>
+        <frame>on</frame>
+       </figure_properties>
+       -->
+       <actions>
+         <how>screen,pdf,eps</how>
+         <!-- <range>
+           <ymin>300</ymin>
+           <ymax>400</ymax>
+           <xmin>0</xmin>
+           <xmax>25</xmax>
+         </range>
+         -->
+         <grid>
+          <b>True</b>
+         </grid>
+       </actions>
+     </Plot>
+</OutStreamManager>
+
+</Simulation>
+
+
+

@@ -220,11 +220,11 @@ class OutStreamPlot(OutStreamManager):
       if self.y_cordinates: self.y_values = {1:[]}
       if self.z_cordinates: self.z_values = {1:[]}
       for i in range(len(self.x_cordinates)): 
-        self.x_values[1].append(self.sourceData.getParam(self.x_cordinates[i].split('|')[1],self.x_cordinates[i].split('|')[2]))
+        self.x_values[1].append(np.asarray(self.sourceData.getParam(self.x_cordinates[i].split('|')[1],self.x_cordinates[i].split('|')[2])))
       if self.y_cordinates:
-        for i in range(len(self.y_cordinates)): self.y_values[1].append(self.sourceData.getParam(self.y_cordinates[i].split('|')[1],self.y_cordinates[i].split('|')[2]))
+        for i in range(len(self.y_cordinates)): self.y_values[1].append(np.asarray(self.sourceData.getParam(self.y_cordinates[i].split('|')[1],self.y_cordinates[i].split('|')[2])))
       if self.z_cordinates:
-        for i in range(len(self.z_cordinates)): self.z_values[1].append(self.sourceData.getParam(self.z_cordinates[i].split('|')[1],self.z_cordinates[i].split('|')[2]))
+        for i in range(len(self.z_cordinates)): self.z_values[1].append(np.asarray(self.sourceData.getParam(self.z_cordinates[i].split('|')[1],self.z_cordinates[i].split('|')[2])))
     else:
       self.x_values = {}
       if self.y_cordinates: self.y_values = {}
@@ -234,11 +234,35 @@ class OutStreamPlot(OutStreamManager):
         if self.y_cordinates: self.y_values[key] = []
         if self.z_cordinates: self.z_values[key] = []
         for i in range(len(self.x_cordinates)): 
-          self.x_values[key].append(self.sourceData.getParam(self.x_cordinates[i].split('|')[1],key)[self.x_cordinates[i].split('|')[2]])
+          self.x_values[key].append(np.asarray(self.sourceData.getParam(self.x_cordinates[i].split('|')[1],key)[self.x_cordinates[i].split('|')[2]]))
         if self.y_cordinates:
-          for i in range(len(self.y_cordinates)): self.y_values[key].append(self.sourceData.getParam(self.y_cordinates[i].split('|')[1],key)[self.y_cordinates[i].split('|')[2]])
+          for i in range(len(self.y_cordinates)): self.y_values[key].append(np.asarray(self.sourceData.getParam(self.y_cordinates[i].split('|')[1],key)[self.y_cordinates[i].split('|')[2]]))
         if self.z_cordinates:
-          for i in range(len(self.z_cordinates)): self.z_values[key].append(self.sourceData.getParam(self.z_cordinates[i].split('|')[1],key)[self.z_cordinates[i].split('|')[2]])
+          for i in range(len(self.z_cordinates)): self.z_values[key].append(np.asarray(self.sourceData.getParam(self.z_cordinates[i].split('|')[1],key)[self.z_cordinates[i].split('|')[2]]))
+    #check if something has been got
+    if len(self.x_values.keys()) == 0: return False
+    else:
+      for key in self.x_values.keys():
+        if len(self.x_values[key]) == 0: return False
+        else:
+          for i in range(self.x_values[key]):
+            if self.x_values[key].size == 0: return False
+    if self.z_cordinates:
+      if len(self.z_values.keys()) == 0: return False
+      else:
+        for key in self.z_values.keys():
+          if len(self.z_values[key]) == 0: return False      
+          else:
+            for i in range(self.z_values[key]):
+              if self.z_values[key].size == 0: return False   
+    if self.y_cordinates:
+      if len(self.y_values.keys()) == 0: return False    
+      else:
+        for key in self.y_values.keys():
+          if len(self.y_values[key]) == 0: return False    
+          else:
+            for i in range(self.y_values[key]):
+              if self.y_values[key].size == 0: return False           
     return True    
   def __executeActions(self):
     if self.dim < 3:
@@ -432,7 +456,7 @@ class OutStreamPlot(OutStreamManager):
     @ Out, None 
     '''
     self.plt.ioff()
-    self.plt.close()
+    self.plt.clf()
     if not self.__fillCoordinatesFromSource():
       print('STREAM MANAGER: WARNING -> Nothing to Plot Yet... Returning!!!!')
       return
@@ -564,7 +588,7 @@ class OutStreamPlot(OutStreamManager):
             z_label = z_label + self.z_cordinates[index].split('|')[-1] + ','
           self.plt3D.set_zlabel(self.Ax,z_label)
       else:
-        if self.z_cordinates: self.plt3D.ylabel(self.Ax,self.plotSettings['ylabel'])
+        if self.z_cordinates: self.plt3D.set_zlabel(self.Ax,self.plotSettings['zlabel'])
  
       if self.outStreamType == 'scatter':
         if 's' not in self.plotSettings.keys(): self.plotSettings['s'] = '20'
@@ -594,11 +618,13 @@ class OutStreamPlot(OutStreamManager):
         if 'linewidth' not in self.plotSettings.keys():  self.plotSettings['linewidth'] = '0'
         if 'interpolation_type' not in self.plotSettings.keys(): self.plotSettings['interpolation_type'] = 'cubic'
         elif self.plotSettings['interpolation_type'] not in ['nearest','linear','cubic']: raise('STREAM MANAGER: ERROR -> surface interpolation unknown. Available are :' + str(['nearest','linear','cubic']))  
+        if 'interpPointsY' not in self.plotSettings.keys(): self.plotSettings['interpPointsY'] = '100'
+        if 'interpPointsX' not in self.plotSettings.keys(): self.plotSettings['interpPointsX'] = '100'
         for key in self.x_values.keys():
           for x_index in range(len(self.x_values[key])):
-            xi = np.linspace(self.x_values[key][x_index].min(),self.x_values[key][x_index].max(),self.x_values[key][x_index].size)
+            xi = np.linspace(self.x_values[key][x_index].min(),self.x_values[key][x_index].max(),ast.literal_eval(self.plotSettings['interpPointsX']))
             for y_index in range(len(self.y_values[key])):
-              yi = np.linspace(self.y_values[key][y_index].min(),self.y_values[key][y_index].max(),self.y_values[key][y_index].size)
+              yi = np.linspace(self.y_values[key][y_index].min(),self.y_values[key][y_index].max(),ast.literal_eval(self.plotSettings['interpPointsY']))
               xig, yig = np.meshgrid(xi, yi)
               for z_index in range(len(self.z_values[key])):
                 if self.plotSettings['interpolation_type'] != 'nearest' and self.z_values[key][z_index].size > 3: zi = griddata((self.x_values[key][x_index],self.y_values[key][y_index]), self.z_values[key][z_index], (xi[:], yi[:]), method=self.plotSettings['interpolation_type'])
@@ -636,7 +662,6 @@ class OutStreamPlot(OutStreamManager):
       
     if self.interactive: self.plt.ion()
     if 'screen' in self.options['how']['how'].split(','): 
- #     self.plt3D.draw(self.Ax)
       self.plt.show()
     for i in range(len(self.options['how']['how'].split(','))):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
