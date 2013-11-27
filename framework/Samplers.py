@@ -386,7 +386,6 @@ class AdaptiveSampler(Sampler):
     self.testMatrix.shape = savedShape[:-1]
     self.gridCoord.shape  = savedShape
     testError = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))
-    print('testError '+str(testError))
     if (testError > 0) and ready : ready = True
     else                         : ready = False
     #generate limit surface
@@ -416,7 +415,8 @@ class AdaptiveSampler(Sampler):
           step     = self.gridStepSize[varIndex]
           swapArray[:] = [listSurfPoint[i][varIndex]*step+step*0.5 for i in range(lenghtLimSurf)]
           self.solutionExport.inpParametersValues[varName] = swapArray
-          if self.tolleranceWeight=='probability': self.solutionExport.inpParametersValues[varName] = map(self.distDict[varName].distribution.ppf,self.solutionExport.inpParametersValues[varName])  
+          if self.tolleranceWeight=='probability': self.solutionExport.inpParametersValues[varName] = map(self.distDict[varName].distribution.ppf,self.solutionExport.inpParametersValues[varName]) 
+    print(listSurfPoint) 
     return ready
     
   def localGenerateInput(self,model,oldInput):
