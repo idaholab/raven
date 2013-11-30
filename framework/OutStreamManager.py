@@ -52,7 +52,9 @@ class OutStreamManager(BaseType):
     @ Out, None
     '''
     BaseType.readMoreXML(self,xmlNode)
-    if 'interactive' in xmlNode.attrib.keys(): self.interactive = bool(xmlNode.attrib['interactive'])
+    if 'interactive' in xmlNode.attrib.keys():
+      if xmlNode.attrib['interactive'].lower() in ['t','true','on']: self.interactive = True
+      else: self.interactive = False
   
 #     for node in xmlNode:
 #       self.num_active_outstreams += 1
@@ -242,12 +244,12 @@ class OutStreamPlot(OutStreamManager):
           self.x_values[pltindex][1].append(np.asarray(self.sourceData[pltindex].getParam(self.x_cordinates[pltindex][i].split('|')[1],self.x_cordinates[pltindex][i].split('|')[2])))
         if self.y_cordinates:
           for i in range(len(self.y_cordinates[pltindex])): self.y_values[pltindex][1].append(np.asarray(self.sourceData[pltindex].getParam(self.y_cordinates[pltindex][i].split('|')[1],self.y_cordinates[pltindex][i].split('|')[2])))
-        if self.z_cordinates:
+        if self.z_cordinates and self.dim>2:
           for i in range(len(self.z_cordinates[pltindex])): self.z_values[pltindex][1].append(np.asarray(self.sourceData[pltindex].getParam(self.z_cordinates[pltindex][i].split('|')[1],self.z_cordinates[pltindex][i].split('|')[2])))
       else:
         self.x_values[pltindex] = {}
         if self.y_cordinates: self.y_values[pltindex] = {}
-        if self.z_cordinates: self.z_values[pltindex] = {}
+        if self.z_cordinates  and self.dim>2: self.z_values[pltindex] = {}
         for key in self.sourceData[pltindex].getInpParametersValues().keys(): 
           self.x_values[pltindex][key] = []
           if self.y_cordinates: self.y_values[pltindex][key] = []
@@ -256,7 +258,7 @@ class OutStreamPlot(OutStreamManager):
             self.x_values[pltindex][key].append(np.asarray(self.sourceData[pltindex].getParam(self.x_cordinates[pltindex][i].split('|')[1],key)[self.x_cordinates[pltindex][i].split('|')[2]]))
           if self.y_cordinates:
             for i in range(len(self.y_cordinates[pltindex])): self.y_values[pltindex][key].append(np.asarray(self.sourceData[pltindex].getParam(self.y_cordinates[pltindex][i].split('|')[1],key)[self.y_cordinates[pltindex][i].split('|')[2]]))
-          if self.z_cordinates:
+          if self.z_cordinates and self.dim>2:
             for i in range(len(self.z_cordinates[pltindex])): self.z_values[pltindex][key].append(np.asarray(self.sourceData[pltindex].getParam(self.z_cordinates[pltindex][i].split('|')[1],key)[self.z_cordinates[pltindex][i].split('|')[2]]))
       #check if something has been got
       if len(self.x_values[pltindex].keys()) == 0: return False
@@ -269,7 +271,7 @@ class OutStreamPlot(OutStreamManager):
   #             else: 
   #               a = np.isnan(self.x_values[key][i])
   #               self.x_values[key][i][np.isnan(self.x_values[key][i])] = 0.0  
-      if self.z_cordinates:
+      if self.z_cordinates and self.dim>2:
         if len(self.z_values[pltindex].keys()) == 0: return False
         else:
           for key in self.z_values[pltindex].keys():
@@ -453,11 +455,11 @@ class OutStreamPlot(OutStreamManager):
     if self.interactive:self.plt.ion()
     self.fig = self.plt.figure()
     if self.dim == 3:
-      exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
+      exec('from mpl_toolkits.mplot3d import axes3d as ' + 'Ax3D_' + self.name)
       self.plt3D = self.fig.add_subplot(111, projection='3d')
       #exec('self.plt3D = Ax3D_' + self.name)
       exec('self.Ax = Ax3D_' + self.name)
-      self.Ax = self.fig.add_subplot(111, projection='3d')
+      #self.Ax = self.fig.add_subplot(111, projection='3d')
 
 #     from mpl_toolkits.mplot3d import axes3d
 #     import matplotlib.pyplot as plt
@@ -465,11 +467,14 @@ class OutStreamPlot(OutStreamManager):
 # 
 #     fig = plt.figure()
 #     ax = fig.add_subplot(111, projection='3d')
-#     X, Y, Z = axes3d.get_test_data(0.05)
-#     ax.plot_wireframe(X, Y, Z, rstride=10, cstride=10)
-# 
-#     plt.show()
-# 
+#     X, Y, Z = self.Ax.get_test_data(0.05)
+#     X = np.linspace(0, 700, 5000)
+#     Y = np.linspace(0, 500, 5000)
+#     Z = np.linspace(0, 300, 5000)
+#     self.plt3D.scatter(X, Y, Z)
+#     self.plt.draw()
+#     self.plt.show()
+ 
 #     fig = plt.figure()
 #     ax = fig.add_subplot(111, projection='3d')
 #     n = 100
@@ -664,8 +669,8 @@ class OutStreamPlot(OutStreamManager):
             for x_index in range(len(self.x_values[pltindex][key])):
               for y_index in range(len(self.y_values[pltindex][key])):
                 for z_index in range(len(self.z_values[pltindex][key])):
-                  if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.scatter3D(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['s']),c=(self.options['plot_settings']['plot'][pltindex]['c']),marker=(self.options['plot_settings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidths']),**self.options['plot_settings']['plot'][pltindex]['attributes'])
-                  else: self.actPlot = self.plt3D.scatter3D(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index],s=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['s']),rasterized= True,c=(self.options['plot_settings']['plot'][pltindex]['c']),marker=(self.options['plot_settings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidths']))
+                  if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.scatter(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['s']),c=(self.options['plot_settings']['plot'][pltindex]['c']),marker=(self.options['plot_settings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidths']),**self.options['plot_settings']['plot'][pltindex]['attributes'])
+                  else: self.actPlot = self.plt3D.scatter(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index],s=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['s']),rasterized= True,c=(self.options['plot_settings']['plot'][pltindex]['c']),marker=(self.options['plot_settings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidths']))
         elif self.outStreamTypes[pltindex] == 'line':
           for key in self.x_values[pltindex].keys():
             for x_index in range(len(self.x_values[pltindex][key])):
@@ -725,11 +730,12 @@ class OutStreamPlot(OutStreamManager):
           pass      
         
       #if self.interactive: self.plt.ion()
-      if 'screen' in self.options['how']['how'].split(','): 
-        self.fig.canvas.draw()
-      for i in range(len(self.options['how']['how'].split(','))):
-        if self.options['how']['how'].split(',')[i].lower() != 'screen':
-          self.plt.savefig(self.name+'_' + str(self.outStreamTypes)+'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
+    if 'screen' in self.options['how']['how'].split(','): 
+      self.fig.canvas.draw()
+      if not self.interactive:self.plt.show()
+    for i in range(len(self.options['how']['how'].split(','))):
+      if self.options['how']['how'].split(',')[i].lower() != 'screen':
+        self.plt.savefig(self.name+'_' + str(self.outStreamTypes)+'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
     #self.plt.ioff()
 class OutStreamPrint(OutStreamManager):
   def __init(self):

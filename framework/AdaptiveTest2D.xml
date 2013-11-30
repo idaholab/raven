@@ -87,7 +87,8 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
          <plot>
            <type>scatter</type>
            <x>limitSurf|Input|auxTime</x>
-           <y>limitSurf|Input|tempTH</y>    
+           <y>limitSurf|Input|tempTH</y> 
+           <z>limitSurf|Input|tempTH</z>   
            <kwargs>
             <color>g</color>
            </kwargs>

@@ -19,5 +19,6 @@ def __supportBoundingTest__(self):
   return 
 
 def __residualSign__(self):
-  return np.copysign(1, 5-self.auxTime[-1:] -self.tempTH[-1:])
-#  return np.copysign(1, 5-self.auxTime[-1:]+self.auxTime2[-1:]-self.tempTH[-1:])
+#  return np.copysign(1, 5-self.auxTime[-1:] -self.tempTH[-1:])
+  try: return np.copysign(1, 5-self.auxTime[-1:]+self.auxTime2[-1:]-self.tempTH[-1:])
+  except: return np.copysign(1, 5-self.auxTime[-1:] -self.tempTH[-1:])
