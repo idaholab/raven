@@ -11,10 +11,10 @@ def initialize(self,runInfoDict,inputFiles):
   self.SampledVars = None
   self.auxTime  = 0.0
   self.auxTime2 = 0.0
-  self.temp    = 0.0
-  self.tempTH  = 0.0
-  self.m       = 5.0
-  self.q       = 300.0  
+  self.temp     = 0.0
+  self.tempTH   = 0.0
+  self.m        = 5.0
+  self.q        = 300.0  
   return 
 
 def createNewInput(self,myInput,samplerType,**Kwargs):
@@ -31,13 +31,10 @@ def readMoreXML(self,xmlNode):
   return None
 
 def run(self,Input,jobHandler):
-  # where is the model feedbeck used????
-  print(str(self.SampledVars['auxTime']) + ' ' + str(self.SampledVars['tempTH']))
   self.auxTime = float(Input[0][0].extractValue('float','auxTime',varID=-1))
   try:self.auxTime2 = float(Input[0][0].extractValue('float','auxTime2',varID=-1))
   except:pass
   self.tempTH = float(Input[0][0].extractValue('float','tempTH',varID=-1))
-#  self.temp = float(Input[0][0].extractValue('float','tempTH',varID=-1)  + Input[0][0].extractValue('float','auxTime',varID=-1)*self.m)
   try:  self.temp = float(Input[0][0].extractValue('float','tempTH',varID=-1) + Input[0][0].extractValue('float','auxTime2',varID=-1) + Input[0][0].extractValue('float','auxTime',varID=-1)*self.m)
   except: self.temp = float(Input[0][0].extractValue('float','tempTH',varID=-1)  + Input[0][0].extractValue('float','auxTime',varID=-1)*self.m)
   return
