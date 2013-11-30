@@ -18,4 +18,7 @@ def __supportBoundingTest__(self):
   return 
 
 def __residualSign__(self):
-  return np.copysign(1,self.X[-1:]+self.Z[-1:]+self.Y[-1:]-5.0)
+  return np.copysign(1.0,self.X[-1:]**2+self.Y[-1:]**2-25.1)
+
+
+

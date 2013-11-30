@@ -12,31 +12,24 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
 </RunInfo>
 
 <Distributions>
-    <Normal name='X_distrib'>
-        <mean>4</mean>
-        <sigma>1</sigma>
-    </Normal>
-    <Normal name='Y_distrib'>
-        <mean>4</mean>
-        <sigma>10</sigma>
-    </Normal>
-    <Normal name='Z_distrib'>
-        <mean>-4</mean>
-        <sigma>1</sigma>
-    </Normal>
+    <Uniform name='X_distrib'>
+        <low>0</low>
+        <hi>10</hi>
+    </Uniform>
+    <Uniform name='Y_distrib'>
+        <low>0</low>
+        <hi>10</hi>
+    </Uniform>
 </Distributions>
 
 <Samplers>
   <Adaptive name='myAdaptive' adaptiveAlgorithm='leastDistance' >
-    <Convergence norm='relL2' limit='100' forceIteration='False' weight='probability'>1E-5</Convergence>
+    <Convergence norm='relL2' limit='2000' forceIteration='False' weight='probability' persistence='5'>0.001</Convergence>
     <varibale name='X' >
-      <distribution type ='Normal'>X_distrib</distribution>
+      <distribution type ='Uniform'>X_distrib</distribution>
     </varibale>
     <varibale name='Y' >
-      <distribution type ='Normal'>Y_distrib</distribution>
-    </varibale>
-    <varibale name='Z' >
-      <distribution type ='Normal'>Z_distrib</distribution>
+      <distribution type ='Uniform'>Y_distrib</distribution>
     </varibale>
   </Adaptive>
 </Samplers>
@@ -44,20 +37,19 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
   <External name='myFunction' file='myFunction.py'>
     <variable type='numpy.ndarray'>X</variable>
     <variable type='numpy.ndarray'>Y</variable>
-    <variable type='numpy.ndarray'>Z</variable>
   </External>
 </Functions>
 <Datas>
     <TimePointSet name='adaptiveOut'>
-        <Input>X,Y,Z</Input>
+        <Input>X,Y</Input>
         <Output>whatEver</Output>
    </TimePointSet>
    <TimePointSet name='dummyIN'>
-      <Input>X,Y,Z</Input>
+      <Input>X,Y</Input>
       <Output>whatEver</Output>
    </TimePointSet>
     <TimePointSet name='limitSurf'>
-        <Input>X,Y,Z</Input>
+        <Input>X,Y</Input>
         <Output>whatEver</Output>
    </TimePointSet>
 </Datas>

@@ -300,7 +300,7 @@ class Adaptive(MultiRun):
               inDictionary['Model'].collectOutput(finishedJob,output)                                #the model is tasked to provide the needed info to harvest the output
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
           for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
-            if inDictionary['Sampler'].amIreadyToProvideAnInput(lastOutput=inDictionary['TargetEvaluation']):
+            if inDictionary['Sampler'].amIreadyToProvideAnInput(inLastOutput=inDictionary['TargetEvaluation']):
               newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
               inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
@@ -308,8 +308,7 @@ class Adaptive(MultiRun):
         time.sleep(self.sleepTime)
       else:
         finishedJob = 'empty'
-        print('TargetEvaluation'+str(inDictionary['TargetEvaluation']))
-        if inDictionary['Sampler'].amIreadyToProvideAnInput(lastOutput=inDictionary['TargetEvaluation']):
+        if inDictionary['Sampler'].amIreadyToProvideAnInput(inLastOutput=inDictionary['TargetEvaluation']):
           newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
           inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
           for output in inDictionary['Output']:

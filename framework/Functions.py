@@ -129,7 +129,6 @@ class Function(BaseType):
     '''return the result of the type of action described by 'what' '''
     self.__importValues__(myInput)
     toBeReturned=self.__actionDictionary__[what](self)
-    print('toBeReturned'+str(toBeReturned))
     return toBeReturned
   
     
