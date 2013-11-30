@@ -77,16 +77,28 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
 
 
 
-<OutStreamManager>
+<OutStreamManager >
      <!-- <Assemble name='assembledScatter1and2' > 
        <Plot>scatterTest1,scatterTest2</Plot>
      </Assemble>
      -->
      <Plot name='scatterTest1' dim='2'>
        <plot_settings>
-         <type>line</type>
-         <x>limitSurf|Input|auxTime</x>
-         <y>limitSurf|Input|tempTH</y>    
+         <plot>
+           <type>scatter</type>
+           <x>limitSurf|Input|auxTime</x>
+           <y>limitSurf|Input|tempTH</y>    
+           <kwargs>
+            <color>g</color>
+           </kwargs>
+         </plot>
+         <plot>
+           <type>scatter</type>
+           <x>adaptiveOut|Input|auxTime</x>
+           <y>adaptiveOut|Output|temp</y>  
+           <c>r</c>
+           <marker>o</marker> 
+         </plot>
          <xlabel>time [s]</xlabel>
          <ylabel>Temperature [K]</ylabel>
        </plot_settings>

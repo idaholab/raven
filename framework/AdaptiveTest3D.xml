@@ -91,15 +91,15 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
        <Plot>scatterTest1,scatterTest2</Plot>
      </Assemble>
      -->
-     <Plot name='scatterTest1' dim='3'>
+     <Plot name='scatterTest1' dim='3' interactive='False'>
        <plot_settings>
          <type>scatter</type>
          <x>limitSurf|Input|auxTime</x>
          <y>limitSurf|Input|auxTime2</y>
          <z>limitSurf|Input|tempTH</z>    
-         <xlabel>auxTime [s]</xlabel>
-         <ylabel>auxTime2 [s]</ylabel>
-         <zlabel>tempTH [K]</zlabel>
+         <xlabel>auxTime secs</xlabel>
+         <ylabel>auxTime2 secs</ylabel>
+         <zlabel>tempTH K </zlabel>
          <interpPointsY>100</interpPointsY>
          <interpPointsX>100</interpPointsX>
        </plot_settings>
@@ -113,7 +113,7 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
        -->
        <actions>
          <how>screen,pdf,eps</how>
-         <range>
+        <!-- <range>
            <ymin>0</ymin>
            <ymax>20</ymax>
            <xmin>0</xmin>
@@ -121,7 +121,7 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
            <zmin>0</zmin>
            <zmax>20</zmax>
          </range>
-         
+         -->
          <!--grid>
           <b>True</b>
          </grid-->
