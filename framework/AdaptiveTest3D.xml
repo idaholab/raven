@@ -91,9 +91,10 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
        <Plot>scatterTest1,scatterTest2</Plot>
      </Assemble>
      -->
-     <Plot name='scatterTest1' dim='3' interactive='False'>
+     <Plot name='scatterTest1' dim='3' interactive='True' overwrite='False'>
        <plot_settings>
          <plot>
+           <!-- puoi mettere anche type surface se vuoi vedere la surface -->
            <type>scatter</type>
            <x>limitSurf|Input|auxTime</x>
            <y>limitSurf|Input|auxTime2</y>

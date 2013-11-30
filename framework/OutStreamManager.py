@@ -36,6 +36,10 @@ class OutStreamManager(BaseType):
     self.options = {}
     # we are in interactive mode?
     self.interactive = True
+    #counter
+    self.counter = 0
+    #overwrite outstream?
+    self.overwrite = True
 
   def initialize(self,inDict):
     '''
@@ -55,23 +59,9 @@ class OutStreamManager(BaseType):
     if 'interactive' in xmlNode.attrib.keys():
       if xmlNode.attrib['interactive'].lower() in ['t','true','on']: self.interactive = True
       else: self.interactive = False
-  
-#     for node in xmlNode:
-#       self.num_active_outstreams += 1
-#       if node.tag == 'Assemble': pass
-#       elif node.tag == 'Print':
-#         if node.attrib['name'] in self.outstreamDict[node.tag].keys(): raise IOError('STREAM MANAGER: ERROR -> print named "' + node.attrib['name'] +'" appears multiple times!')
-#         else:self.outstreamDict[node.tag][node.attrib['name']]={node.tag:[node.attrib['type']]}
-#         if node.attrib['type'] not in self.__availableOutStreamTypes[node.tag]: raise IOError('STREAM MANAGER: ERROR -> print type "'+ node.attrib['type']+'" not available!')
-#         self.outstreamDict[node.tag][node.attrib['name']]= OutStreamPrint(node.attrib['name'],node.attrib['type'])
-#         self.outstreamDict[node.tag][node.attrib['name']].readMoreXML(node)    
-#       elif node.tag == 'Plot':
-#         if node.attrib['name'] in self.outstreamDict[node.tag].keys(): raise IOError('STREAM MANAGER: ERROR -> plot named "' + node.attrib['name'] +'" appears multiple times')
-#         if node.attrib['type'] not in self.__availableOutStreamTypes[node.tag]: raise IOError('STREAM MANAGER: ERROR -> plot type "'+ node.attrib['type']+'" not available!')
-#         self.outstreamDict[node.tag][node.attrib['name']]= OutStreamPlot(node.attrib['name'],node.attrib['type'],node.attrib['dim'])
-#         self.outstreamDict[node.tag][node.attrib['name']].readMoreXML(node)  
-#       else: raise IOError('STREAM MANAGER: ERROR -> tag "' + node.tag +'" unknown')
-    
+    if 'overwrite' in xmlNode.attrib.keys():
+      if xmlNode.attrib['overwrite'].lower() in ['t','true','on']: self.overwrite = True
+      else: self.overwrite = False    
 
   def addInitParams(self,tempDict):
     '''
@@ -167,6 +157,7 @@ class OutStreamPlot(OutStreamManager):
     self.x_cordinates = []
     self.sourceName   = []
     self.sourceData   = []
+
     for pltindex in range(len(self.options['plot_settings']['plot'])):
       if 'y' in self.options['plot_settings']['plot'][pltindex].keys(): self.y_cordinates = [] 
       if 'z' in self.options['plot_settings']['plot'][pltindex].keys(): self.z_cordinates = [] 
@@ -204,18 +195,13 @@ class OutStreamPlot(OutStreamManager):
     for key in self.options['plot_settings'].keys():
       if key not in ['plot']: self.plotSettings[key] = self.options['plot_settings'][key]
     #execute actions
-    #self.plt.ioff()
-    self.__executeActions()    
+    self.__executeActions() 
+
   def __readPlotActions(self,snode):
     #if snode.find('how') is not None: self.options[snode.tag]['how'] = snode.find('how').text.lower()
     #else: self.options[snode.tag]['how'] = 'screen'
     for node in snode:
       self.options[node.tag] = {}
-      #if any(node.attrib):
-      #  self.options[node.tag]['attributes'] = {}
-      #  for key in node.attrib.keys(): 
-      #    try: self.options[node.tag]['attributes'][key] = ast.literal_eval(node.attrib[key])
-      #    except AttributeError: self.options[node.tag]['attributes'][key] = node.attrib[key]
       if len(node):
         for subnode in node: 
           if subnode.tag != 'kwargs': self.options[node.tag][subnode.tag] = subnode.text
@@ -267,10 +253,7 @@ class OutStreamPlot(OutStreamManager):
           if len(self.x_values[pltindex][key]) == 0: return False
           else:
             for i in range(len(self.x_values[pltindex][key])):
-              if self.x_values[pltindex][key][i].size == 0: return False
-  #             else: 
-  #               a = np.isnan(self.x_values[key][i])
-  #               self.x_values[key][i][np.isnan(self.x_values[key][i])] = 0.0  
+              if self.x_values[pltindex][key][i].size == 0: return False 
       if self.z_cordinates and self.dim>2:
         if len(self.z_values[pltindex].keys()) == 0: return False
         else:
@@ -278,8 +261,7 @@ class OutStreamPlot(OutStreamManager):
             if len(self.z_values[pltindex][key]) == 0: return False      
             else:
               for i in range(len(self.z_values[pltindex][key])):
-                if self.z_values[pltindex][key][i].size == 0: return False   
-  #               else: self.z_values[key][i][np.isnan(self.z_values[key][i])] = 0.0   
+                if self.z_values[pltindex][key][i].size == 0: return False    
       if self.y_cordinates:
         if len(self.y_values[pltindex].keys()) == 0: return False    
         else:
@@ -287,9 +269,7 @@ class OutStreamPlot(OutStreamManager):
             if len(self.y_values[pltindex][key]) == 0: return False    
             else:
               for i in range(len(self.y_values[pltindex][key])):
-                if self.y_values[pltindex][key][i].size == 0: return False 
-  #               else: self.y_values[key][i][np.isnan(self.y_values[key][i])] = 0.0       
-     
+                if self.y_values[pltindex][key][i].size == 0: return False           
     return True    
   def __executeActions(self):
     if self.dim < 3:
@@ -392,22 +372,21 @@ class OutStreamPlot(OutStreamManager):
         elif self.options[key]['frameon'].lower() in ['f','false']: self.options[key]['frameon'] = 'False'           
         if 'attributes' in self.options[key].keys(): self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']),**self.options[key]['attrobutes'])
         else: self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']))
-      if 'title' not in self.options.keys(): self.Ax.set_title(self.name)
+      if 'title' not in self.options.keys(): self.plt3D.set_title(self.name)
       for key in self.options.keys():
         if key == 'range': 
-          if 'xmin' in self.options[key].keys(): self.Ax.set_xlim3d(xmin = ast.literal_eval(self.options[key]['xmin']))
-          if 'xmax' in self.options[key].keys(): self.Ax.set_xlim3d(xmax = ast.literal_eval(self.options[key]['xmax']))
-          # Disabled...bug in MATPLOTLIB
-          #if 'ymin' in self.options[key].keys(): self.Ax.set_ylim3d(ymin = ast.literal_eval(self.options[key]['ymin']))
-          #if 'ymax' in self.options[key].keys(): self.Ax.set_ylim3d(ymax = ast.literal_eval(self.options[key]['ymax']))
+          if 'xmin' in self.options[key].keys(): self.plt3D.set_xlim3d(xmin = ast.literal_eval(self.options[key]['xmin']))
+          if 'xmax' in self.options[key].keys(): self.plt3D.set_xlim3d(xmax = ast.literal_eval(self.options[key]['xmax']))
+          if 'ymin' in self.options[key].keys(): self.plt3D.set_ylim3d(ymin = ast.literal_eval(self.options[key]['ymin']))
+          if 'ymax' in self.options[key].keys(): self.plt3D.set_ylim3d(ymax = ast.literal_eval(self.options[key]['ymax']))
           if 'zmin' in self.options[key].keys(): 
-            self.Ax.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
+            self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
         elif key== 'scale':
-          if 'xscale' in self.options[key].keys(): self.Ax.set_xscale(self.options[key]['xscale'])
-          if 'yscale' in self.options[key].keys(): self.Ax.set_yscale(self.options[key]['yscale'])        
-          if 'zscale' in self.options[key].keys(): self.Ax.set_zscale(self.options[key]['zscale'])
+          if 'xscale' in self.options[key].keys(): self.plt3D.set_xscale(self.options[key]['xscale'])
+          if 'yscale' in self.options[key].keys(): self.plt3D.set_yscale(self.options[key]['yscale'])        
+          if 'zscale' in self.options[key].keys(): self.plt3D.set_zscale(self.options[key]['zscale'])
         elif key == 'title':
-          if 'attributes' in self.options[key].keys(): self.Ax.set_title(self.options[key]['text'],**self.options[key]['attributes'])
+          if 'attributes' in self.options[key].keys(): self.plt3D.set_title(self.options[key]['text'],**self.options[key]['attributes'])
           else: self.plt3D.set_title(self.options[key]['text'])    
         elif key == 'figure_properties': pass
         elif key == 'add_text':
@@ -415,8 +394,8 @@ class OutStreamPlot(OutStreamManager):
           if 'fontdict' not in self.options[key].keys(): self.options[key]['fontdict'] = 'None'
           if 'withdash' not in self.options[key].keys(): self.options[key]['withdash'] = 'False' 
           if len(self.options[key]['position'].split(',')) < 3: raise('STREAM MANAGER: ERROR -> in 3D plot add_text needs an x,y,z coordinate input the position!!!')
-          if 'attributes' in self.options[key].keys(): self.Ax.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),float(self.options[key]['position'].split(',')[2]),self.options[key]['text'],fontdict=ast.literal_eval(self.options[key]['fontdict']),withdash=ast.literal_eval(self.options[key]['withdash']),**self.options[key]['attributes'])
-          else: self.Ax.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),float(self.options[key]['position'].split(',')[2]),self.options[key]['text'],fontdict=ast.literal_eval(self.options[key]['fontdict']),withdash=ast.literal_eval(self.options[key]['withdash']))
+          if 'attributes' in self.options[key].keys(): self.plt3D.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),float(self.options[key]['position'].split(',')[2]),self.options[key]['text'],fontdict=ast.literal_eval(self.options[key]['fontdict']),withdash=ast.literal_eval(self.options[key]['withdash']),**self.options[key]['attributes'])
+          else: self.plt3D.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),float(self.options[key]['position'].split(',')[2]),self.options[key]['text'],fontdict=ast.literal_eval(self.options[key]['fontdict']),withdash=ast.literal_eval(self.options[key]['withdash']))
         elif key in ['vertical_rectangle','vertical_line','horizontal_rectangle','horizontal_line']:pass
         elif key == 'autoscale':
           if 'enable' not in self.options[key].keys(): self.options[key]['enable'] = 'True'
@@ -424,13 +403,13 @@ class OutStreamPlot(OutStreamManager):
           elif self.options[key]['enable'].lower() in ['f','false']: self.options[key]['enable'] = 'False' 
           if 'axis' not in self.options[key].keys()  : self.options[key]['axis'] = 'both'
           if 'tight' not in self.options[key].keys() : self.options[key]['tight'] = 'None'
-          self.Ax.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
+          self.plt3D.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
         elif key == 'grid':
           if 'b' not in self.options[key].keys()  : self.options[key]['b'] = 'True'
           if self.options[key]['b'].lower() in ['on','t','true']: self.options[key]['b'] = 'True'
           elif self.options[key]['b'].lower() in ['off','f','false']: self.options[key]['b'] = 'False'
           if 'attributes' in self.options[key].keys(): self.Ax.grid(b=ast.literal_eval(self.options[key]['b']),**self.options[key]['attributes'])
-          else:self.Ax.grid(b=ast.literal_eval(self.options[key]['b']))
+          else:self.plt3D.grid(b=ast.literal_eval(self.options[key]['b']))
         elif key in ['how','plot_settings']: pass
         else:
           command_args = ''
@@ -440,7 +419,7 @@ class OutStreamPlot(OutStreamManager):
               else: prefix = '' 
               try: command_args = prefix + command_args + kk + '=' + str(ast.literal_eval(self.options[key][kk]))
               except:command_args = prefix + command_args + kk + '="' + str(self.options[key][kk])+'"'  
-          exec('self.Ax.' + key + '(' + command_args + ')')
+          exec('self.plt3D.' + key + '(' + command_args + ')')
 
   def readMoreXML(self,xmlNode):
     OutStreamManager.readMoreXML(self,xmlNode)
@@ -453,42 +432,12 @@ class OutStreamPlot(OutStreamManager):
     exec('import matplotlib.pyplot as ' + 'plt_' + self.name)
     exec('self.plt = plt_' + self.name)
     if self.interactive:self.plt.ion()
-    self.fig = self.plt.figure()
     if self.dim == 3:
-      exec('from mpl_toolkits.mplot3d import axes3d as ' + 'Ax3D_' + self.name)
-      self.plt3D = self.fig.add_subplot(111, projection='3d')
-      #exec('self.plt3D = Ax3D_' + self.name)
-      exec('self.Ax = Ax3D_' + self.name)
-      #self.Ax = self.fig.add_subplot(111, projection='3d')
+      exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
+      #exec('self.Ax = Ax3D_' + self.name)
+    self.fig = self.plt.figure()
+    if self.dim == 3: self.plt3D = self.fig.add_subplot(111, projection='3d')
 
-#     from mpl_toolkits.mplot3d import axes3d
-#     import matplotlib.pyplot as plt
-#     import numpy as np
-# 
-#     fig = plt.figure()
-#     ax = fig.add_subplot(111, projection='3d')
-#     X, Y, Z = self.Ax.get_test_data(0.05)
-#     X = np.linspace(0, 700, 5000)
-#     Y = np.linspace(0, 500, 5000)
-#     Z = np.linspace(0, 300, 5000)
-#     self.plt3D.scatter(X, Y, Z)
-#     self.plt.draw()
-#     self.plt.show()
- 
-#     fig = plt.figure()
-#     ax = fig.add_subplot(111, projection='3d')
-#     n = 100
-#     for c, m, zl, zh in [('r', 'o', -50, -25), ('b', '^', -30, -5)]:
-#         xs = (23-32)*np.random.rand(n)+23 
-#         ys =  (0-100)*np.random.rand(n)+0 
-#         zs =  (zl-zh)*np.random.rand(n)+23 
-#         ax.scatter(xs, ys, zs, c=c, marker=m)
-#     
-#     ax.set_xlabel('X Label')
-#     ax.set_ylabel('Y Label')
-#     ax.set_zlabel('Z Label')
-# 
-#     plt.show()
     foundPlot = False
     for subnode in xmlNode:
       if subnode.tag in ['actions']: self.__readPlotActions(subnode)
@@ -522,18 +471,21 @@ class OutStreamPlot(OutStreamManager):
       if not 'type' in self.options['plot_settings']['plot'][pltindex].keys(): raise IOErrror('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot type keyword has been found in the plot_settings/plot block!')
       else: self.outStreamTypes.append(self.options['plot_settings']['plot'][pltindex]['type']) 
     return
+
   def addOutput(self):
     '''
     Function to add a new output source
     @ In, toLoadFrom, source object
     @ Out, None 
-    '''
-    
-    #self.plt.clf()
+    ''' 
     if not self.__fillCoordinatesFromSource():
       print('STREAM MANAGER: WARNING -> Nothing to Plot Yet... Returning!!!!')
       return
-    self.fig.clear()
+    self.counter += 1
+    if self.counter > 1:
+      if self.dim == 2: self.fig.clear()
+      else: self.actPlot.remove()
+
     for pltindex in range(len(self.outStreamTypes)):
       if self.dim == 2:
         if len(self.outStreamTypes) > 1: self.plt.hold(True)
@@ -634,6 +586,7 @@ class OutStreamPlot(OutStreamManager):
   #             else: self.actPlot = self.plt.pcolormesh(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index])      
       else:
         #3d
+        if len(self.outStreamTypes) > 1: self.plt.hold(True)
         if 'xlabel' not in self.plotSettings.keys():
           x_label = ''
           for index in range(len(self.x_cordinates)) : x_label = x_label + self.x_cordinates[index].split('|')[-1] + ';'
@@ -698,8 +651,8 @@ class OutStreamPlot(OutStreamManager):
                 for z_index in range(len(self.z_values[pltindex][key])):
                   if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.z_values[pltindex][key][z_index].size > 3: zi = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[:], yi[:]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                   else: zi = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[:], yi[:]), method='nearest')
-                  if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.plt3D.plot_surface(xig,yig,zi, rstride = ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['antialiased']),**self.options['plot_settings']['plot'][pltindex]['attributes'])    
-                  else: self.plt3D.plot_surface(xig,yig,zi,rstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['antialiased'])) 
+                  if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot_surface(xig,yig,zi, rstride = ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['antialiased']),**self.options['plot_settings']['plot'][pltindex]['attributes'])    
+                  else: self.actPlot = self.plt3D.plot_surface(xig,yig,zi,rstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['antialiased'])) 
         elif self.outStreamTypes[pltindex] == 'tri-surface':
           if 'rstride' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['rstride'] = '1'
           if 'cstride' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['cstride'] = '1'
@@ -718,8 +671,8 @@ class OutStreamPlot(OutStreamManager):
                 for z_index in range(len(self.z_values[pltindex][key])):
                   if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.z_values[pltindex][key][z_index].size > 3: zi = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[:], yi[:]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                   else: zi = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[:], yi[:]), method='nearest')
-                  if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.plt3D.plot_surface(self.Ax,xig,yig,zi, rstride = ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['antialiased']),**self.options['plot_settings']['plot'][pltindex]['attributes'])    
-                  else: self.plt3D.plot_surface(self.Ax,xig,yig,zi,rstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['antialiased'])) 
+                  if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot_surface(self.Ax,xig,yig,zi, rstride = ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['antialiased']),**self.options['plot_settings']['plot'][pltindex]['attributes'])    
+                  else: self.actPlot = self.plt3D.plot_surface(self.Ax,xig,yig,zi,rstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['antialiased'])) 
               
         
         elif self.outStreamTypes[pltindex] == 'contour':
@@ -731,12 +684,14 @@ class OutStreamPlot(OutStreamManager):
         
       #if self.interactive: self.plt.ion()
     if 'screen' in self.options['how']['how'].split(','): 
-      self.fig.canvas.draw()
+      if self.dim == 2: self.fig.canvas.draw()
+      else: self.plt.draw()
       if not self.interactive:self.plt.show()
     for i in range(len(self.options['how']['how'].split(','))):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
-        self.plt.savefig(self.name+'_' + str(self.outStreamTypes)+'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
-    #self.plt.ioff()
+        if not self.overwrite: prefix = str(self.counter) + '-'
+        else: prefix = ''
+        self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes)+'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
 class OutStreamPrint(OutStreamManager):
   def __init(self):
     self.availableOutStreamTypes = ['csv']
