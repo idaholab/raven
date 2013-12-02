@@ -552,10 +552,10 @@
   start_time = -200
   n_startup_steps = 1
   end_time = 8.0e7
-  num_steps = 2 #5000
+  num_steps = 5000 #5000
 
   dtmax = 2e6
-  dtmin = 1
+  dtmin = 0.1
 
   [./TimeStepper]
     type = AdaptiveDT
