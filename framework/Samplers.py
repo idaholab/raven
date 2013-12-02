@@ -388,7 +388,8 @@ class AdaptiveSampler(Sampler):
       tempDict = {}
       #if there are missed input not collected we chat up and perform the function evaluation on it
       while len(self.functionValue)<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0])):
-        for varName in self.axisName: tempDict[varName] = lastOutput.extractValue('numpy.ndarray',varName)[0:len(self.functionValue)+1]
+        for varName in lastOutput.dataParameters['inParam']+lastOutput.dataParameters['outParam']: 
+          tempDict[varName] = lastOutput.extractValue('numpy.ndarray',varName)[0:len(self.functionValue)+1]
         self.functionValue.append(self.goalFunction.evaluate('residualSign',tempDict))
     else: self.functionValue.append(self.goalFunction.evaluate('residualSign',lastOutput))
     
@@ -453,8 +454,8 @@ class AdaptiveSampler(Sampler):
     listsurfPoint    = []
     myIdList         = np.ndarray(self.nVar)
     for array_slice in np.rollaxis(toBeTested,0):
-      myIdList[:] = array_slice
-      if self.testMatrix[tuple(myIdList)]!=1:
+      myIdList[:] = copy.deepcopy(array_slice)
+      if self.testMatrix[tuple(myIdList)]!=1: #we seek the frontier sitting on the -1 side
         for iVar in range(self.nVar):
           if myIdList[iVar]<self.gridShape[iVar]-1:
             myIdList[iVar] +=1

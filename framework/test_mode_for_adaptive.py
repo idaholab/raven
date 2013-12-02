@@ -18,7 +18,6 @@ def initialize(self,runInfoDict,inputFiles):
   return 
 
 def createNewInput(self,myInput,samplerType,**Kwargs):
-  print(Kwargs['SampledVars'])
   self.SampledVars = copy.deepcopy(Kwargs['SampledVars'])
   newInput = copy.deepcopy(myInput)
   newInput[0].updateInputValue('auxTime',self.SampledVars['auxTime'])

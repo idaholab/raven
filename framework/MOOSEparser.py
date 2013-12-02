@@ -55,7 +55,7 @@ class MOOSEparser:
       for string in xmlnode.tail if xmlnode.tail else []:
         IOfile.write(b'    '*indentMultiplier+string+b'\n')
       for key in xmlnode.attrib.keys(): 
-        IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(xmlnode.attrib[key])+b'\n')
+        IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(str(xmlnode.attrib[key]))+b'\n')
 
     if outfile==None: outfile =self.inputfile
     IOfile = open(outfile,'wb')

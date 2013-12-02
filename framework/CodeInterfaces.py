@@ -185,6 +185,7 @@ class MooseBasedAppInterface:
     self.samplersDictionary['LatinHyperCube']        = self.pointSamplerForMooseBasedApp
     self.samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForMooseBasedApp
     self.samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
+    self.samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
@@ -200,13 +201,8 @@ class MooseBasedAppInterface:
     parser.printInput(newInputFiles[index])
     return newInputFiles
 
-  def StochasticCollocationForMooseBasedApp(self,**Kwargs):
-    raise IOError('StochasticCollocationForMooseBasedApp not yet implemented')
-    listDict = []
-    return listDict
-
   def pointSamplerForMooseBasedApp(self,**Kwargs):
-    listDict = []
+    listDict  = []
     modifDict = {}
     # the position in, eventually, a vector variable is not available yet...
     # the MOOSEparser needs to be modified in order to accept this variable type
@@ -221,7 +217,6 @@ class MooseBasedAppInterface:
         del modifDict
         listDict.append({'name':['Postprocessors',key[0]],'type':'Reporter'})
         listDict.append({'name':['Postprocessors',key[0]],'default':Kwargs['SampledVars'][var]})
-        #print (listDict)
     return listDict
   
   def DynamicEventTreeForMooseBasedApp(self,**Kwargs):
@@ -229,15 +224,6 @@ class MooseBasedAppInterface:
     listDict = []
     return listDict
 
-  def EquallySpacedForMooseBasedApp(self,**Kwargs):
-    raise IOError('EquallySpacedForMooseBasedApp not yet implemented')
-    listDict = []
-    return listDict
-  
-  def LatinHyperCubeForMooseBasedApp(self,**Kwargs):
-    raise IOError('LatinHyperCubeForMooseBasedApp not yet implemented')
-    listDict = []
-    return listDict
   
 
 class Relap5Interface:

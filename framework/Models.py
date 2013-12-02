@@ -114,8 +114,9 @@ class Dummy(Model):
     else:
       for key in myInput[0].dataParameters['outParam']: outputDict[key] = self.counterInput
     for key in Kwargs['SampledVars'].keys():
-      inputDict[key] = Kwargs['SampledVars'][key]
+      inputDict[key] = copy.deepcopy(Kwargs['SampledVars'][key])
     self.counterInput+=1
+    print('returning input')
     return [(inputDict,outputDict)]
 
   def readMoreXML(self,xmlNode):
@@ -127,10 +128,12 @@ class Dummy(Model):
     '''The input should be under the form of a tuple of dictionary. The dictionary are copied and ready to be sent to the output'''
     self.inputDict  = copy.deepcopy(Input[0][0])
     self.outputDict = copy.deepcopy(Input[0][1])
+    print('running')
   
   def collectOutput(self,finisishedjob,output):
     '''the input and output are sent back by the output'''
     self.counterOutput += 1
+    print('looking for output')
     if output.type not in self.__returnAdmittedData()+['HDF5']: raise IOError('MODEL DUMMY  : ERROR -> The Dummy Model accepts TimePoint, TimePointSet or HDF5 as output only!!!!')
     if   output.type == 'HDF5':
       exportDict = copy.deepcopy(self.outputDict)
@@ -141,6 +144,7 @@ class Dummy(Model):
       for key in self.outputDict.keys(): output.updateOutputValue(key,self.outputDict[key])
       if self.printFile:
         output.printCSV()
+    print('collected output')
 #
 #
 #
@@ -227,6 +231,8 @@ class Code(Model):
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
     self.infoForOut         = {}   #it contains the information needed for outputting 
+    self.alias              = {}   #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
+                                   #self.alias[framework variable name] = [input code name]
 
   def readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
@@ -234,7 +240,17 @@ class Code(Model):
     import CodeInterfaces
     Model.readMoreXML(self, xmlNode)
     
-    self.executable = xmlNode.text
+    if 'executable' in xmlNode.attrib.keys():
+      self.executable = xmlNode.attrib['executable']
+    else:
+      if xmlNode.text!=None: self.executable = xmlNode.text
+      else: raise Exception ('not found the attribute executable in the definition of the code model '+str(self.name))
+    for child in xmlNode:
+      if child.tag=='alias':
+        if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
+        else: raise Exception ('not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
+      else: raise Exception ('unknown tag within the definition of the code model '+str(self.name))
+
     abspath = os.path.abspath(self.executable)
     if os.path.exists(abspath):
       self.executable = abspath
@@ -245,7 +261,9 @@ class Code(Model):
     '''extension of addInitParams for the Code(model)'''
     Model.addInitParams(self, tempDict)
     tempDict['executable']=self.executable
-  
+    for key, value in self.alias.items():
+      tempDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
+      
   def addCurrentSetting(self,originalDict):
     '''extension of addInitParams for the Code(model)'''
     originalDict['current working directory'] = self.workingDir

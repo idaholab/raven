@@ -57,7 +57,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.parList    = []    #list of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.__typeDict = {}    #for each role of the step the corresponding  used type
-    self.sleepTime  = 0.001 #waiting time before checking if a run is finished
+    self.sleepTime  = 0.1 #waiting time before checking if a run is finished
 
   def readMoreXML(self,xmlNode):
     '''add the readings for who plays the step roles
@@ -143,7 +143,9 @@ class SingleRun(Step):
         finishedJobs = jobHandler.getFinished()
         for finishedJob in finishedJobs:
           for output in inDictionary['Output']:                                         #for all expected outputs
-              inDictionary['Model'].collectOutput(finishedJob,output)                   #the model is tasket to provide the needed info to harvest the output
+              if output.type not in ['OutStreamPlot','OutStreamPrint']: inDictionary['Model'].collectOutput(finishedJob,output)                   #the model is tasket to provide the needed info to harvest the output
+          for output in inDictionary['Output']:                                                      #for all expected outputs
+            if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                               #the model is tasked to provide the needed info to harvest the output
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
           break
         time.sleep(self.sleepTime)
@@ -180,8 +182,12 @@ class MultiRun(SingleRun):
     for newInput in newInputs:
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       if inDictionary["Model"].type != 'Code':
+        time.sleep(self.sleepTime) #it is here since models that are not codes do not have the quequing system
         # if the model is not a code, collect the output right after the evaluation => the response is overwritten at each "run"
-        for output in inDictionary['Output']: inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
+        for output in inDictionary['Output']:
+          if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
+        for output in inDictionary['Output']: 
+          if output.type in ['OutStreamPlot','OutStreamPrint']     : output.addOutput()
 
   def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -192,7 +198,10 @@ class MultiRun(SingleRun):
         for finishedJob in finishedJobs:
           if 'Sampler' in inDictionary.keys(): inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
           for output in inDictionary['Output']:                                                      #for all expected outputs
-              inDictionary['Model'].collectOutput(finishedJob,output)                                #the model is tasked to provide the needed info to harvest the output
+              if output.type not in ['OutStreamPlot','OutStreamPrint']: inDictionary['Model'].collectOutput(finishedJob,output)                                #the model is tasked to provide the needed info to harvest the output
+          for output in inDictionary['Output']:                                                      #for all expected outputs
+            if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                               #the model is tasked to provide the needed info to harvest the output
+
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
           for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
             if inDictionary['Sampler'].amIreadyToProvideAnInput():
@@ -207,7 +216,9 @@ class MultiRun(SingleRun):
           newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
           inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
           for output in inDictionary['Output']:
-            inDictionary['Model'].collectOutput(finishedJob,output) 
+            if output.type not in ['OutStreamPlot','OutStreamPrint']: inDictionary['Model'].collectOutput(finishedJob,output)
+          for output in inDictionary['Output']:
+            if output.type in ['OutStreamPlot','OutStreamPrint']: output.addOutput()
         else:
           break
         time.sleep(self.sleepTime)
@@ -285,7 +296,8 @@ class Adaptive(MultiRun):
         # if the model is not a code, collect the output right after the evaluation => the response is overwritten at each "run"
         for output in inDictionary['Output']: 
           if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
-          else: output.addOutput()
+        for output in inDictionary['Output']: 
+          if output.type in ['OutStreamPlot','OutStreamPrint'] : output.addOutput()
 
   def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -297,7 +309,9 @@ class Adaptive(MultiRun):
         for finishedJob in finishedJobs:
           if 'Sampler' in inDictionary.keys(): inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
           for output in inDictionary['Output']:                                                      #for all expected outputs
-              inDictionary['Model'].collectOutput(finishedJob,output)                                #the model is tasked to provide the needed info to harvest the output
+            if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(finishedJob,output) #the model is tasked to provide the needed info to harvest the output
+          for output in inDictionary['Output']:                                                      #for all expected outputs
+            if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
           for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
             if inDictionary['Sampler'].amIreadyToProvideAnInput(inLastOutput=inDictionary['TargetEvaluation']):
@@ -313,7 +327,8 @@ class Adaptive(MultiRun):
           inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
           for output in inDictionary['Output']:
             if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
-            else: output.addOutput()
+          for output in inDictionary['Output']:
+            if output.type in ['OutStreamPlot','OutStreamPrint']     : output.addOutput()
         else:
           break
         time.sleep(self.sleepTime)
