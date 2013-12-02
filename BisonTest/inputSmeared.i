@@ -543,16 +543,16 @@
 
 
   l_max_its = 100
-  l_tol = 8e-3
+  l_tol = 8e-2
 
   nl_max_its = 15
-  nl_rel_tol = 1e-4
-  nl_abs_tol = 1e-10
+  nl_rel_tol = 1e-3
+  nl_abs_tol = 1e-9
 
   start_time = -200
   n_startup_steps = 1
   end_time = 8.0e7
-  num_steps = 5 #5000
+  num_steps = 2 #5000
 
   dtmax = 2e6
   dtmin = 1

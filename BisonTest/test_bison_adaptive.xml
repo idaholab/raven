@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
+    <Sequence>Run0</Sequence>
+    <batchSize>3</batchSize>
+    <NumThreads>4</NumThreads>    
+    <mode>mpi</mode>
+    <!--NumMPI>10</NumMPI>
+    <ParallelCommand></ParallelCommand>
+    <ThreadingCommand></ThreadingCommand>
+    <NumThreads></NumThreads>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+    <Code name='Bison-opt' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</Code>
+    <Filter name = 'printing' subType = 'PrintCSV'>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
+    Materials|fission_gas_release|initial_grain_radius,max_stress</Filter>
+</Models>
+
+<Distributions>
+    <Uniform name='FlatPowerHistory'>
+        <low>0.95</low>
+        <hi>1.05</hi>
+    </Uniform>
+    <Uniform name='FlatYoung'>
+        <low>12.74e9</low>
+        <hi>13.26e9</hi>
+    </Uniform>
+    <Uniform name='FlatGrainRadius'>
+        <low>5e-6</low>
+        <hi>10e-6</hi>
+    </Uniform>
+</Distributions>
+
+<Samplers>
+  <Adaptive name='Bison1' adaptiveAlgorithm='leastDistance' initial_seed='10'>
+    <Convergence norm='relL2' limit='500' forceIteration='False' weight='probability' persistence='30'>0.00001</Convergence>
+    <variable name='Functions|power_history|scale_factor' >
+      <distribution type ='Uniform'>FlatPowerHistory</distribution>
+    </variable>
+    <variable name='Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus' >
+      <distribution type ='Uniform'>FlatYoung</distribution>
+    </variable>
+    <variable name='Materials|fission_gas_release|initial_grain_radius' >
+      <distribution type ='Uniform'>FlatGrainRadius</distribution>
+    </variable>
+  </Adaptive>
+</Samplers>
+<Functions>
+  <External name='myFunction' file='myFunction3D_Cris.py'>
+    <variable type='numpy.ndarray'>X</variable>
+    <variable type='numpy.ndarray'>Y</variable>
+    <variable type='numpy.ndarray'>Z</variable>
+  </External>
+</Functions>
+
+
+
+<Samplers>
+    <MonteCarlo name='Bison1' limit='3'>
+        <Variable type ='Uniform'  distName='FlatPowerHistory'>Functions|power_history|scale_factor</Variable>
+        <Variable type ='Uniform'  distName='FlatYoung'       >Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus</Variable> 
+        <Variable type ='Uniform'  distName='FlatGrainRadius' >Materials|fission_gas_release|initial_grain_radius</Variable> 
+    </MonteCarlo>
+</Samplers>
+<Steps>
+    <MultiRun name='Run0'>
+        <Input   class = 'Files'      type=''          >inputSmeared.i</Input>
+        <Input   class = 'Files'      type=''          >peakingfactors12.csv</Input>
+        <Input   class = 'Files'      type=''          >powerhistory.csv</Input>
+        <Input   class = 'Files'      type=''          >smeared.e</Input>
+        <Model   class = 'Models'     type='Code'      >Bison-opt</Model>
+        <Sampler class = 'Samplers'   type='MonteCarlo'>Bison1</Sampler>
+        <Output  class = 'DataBases'  type='HDF5'      >MyDatabase</Output>
+    </MultiRun >
+    <MultiRun name='Run0'>
+        <Input   class = 'Files'      type=''          >inputSmeared.i</Input>
+        <Input   class = 'Files'      type=''          >peakingfactors12.csv</Input>
+        <Input   class = 'Files'      type=''          >powerhistory.csv</Input>
+        <Input   class = 'Files'      type=''          >smeared.e</Input>
+        <Model   class = 'Models'     type='Code'      >Bison-opt</Model>
+        <Sampler class = 'Samplers'   type='MonteCarlo'>Bison1</Sampler>
+        <Output  class = 'DataBases'  type='HDF5'      >MyDatabase</Output>
+    </MultiRun >
+    <!-- <PostProcessing name = 'printCSV'>
+        <Input   class = 'DataBases' type='HDF5'   >MyDatabase</Input>
+        <Model   class = 'Models'    type='Filters'>printing</Model>
+        <Output  class = 'Files'     type=''      >BisonOut.csv</Output>
+    </PostProcessing> -->
+</Steps>
+<Datas>
+    <Histories name='stories'>
+        <Input>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,Materials|fission_gas_release|initial_grain_radius</Input>
+        <Output>max_stress</Output>
+   </Histories>
+</Datas>
+<DataBases>
+    <HDF5 name = 'MyDatabase'/>
+</DataBases>
+<!--
+<Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+</Tests>
+-->
+
+</Simulation>
+
+
+

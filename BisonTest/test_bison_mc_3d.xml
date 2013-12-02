@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>/Users/alfoa/projects/trunk/raven/BisonTest</WorkingDir>
+    <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
+    <Sequence>Run0</Sequence>
+    
+    <batchSize>8</batchSize>
+    <!--<expectedTime>24:00:00</expectedTime>
+    <ParallelProcNumb>1</ParallelProcNumb>
+    <mode>pbsdsh</mode>
+    <NumThreads>1</NumThreads>    
+    <mode>mpi</mode>
+    <NumMPI>4</NumMPI>
+    
+    <ParallelCommand></ParallelCommand>
+    <ThreadingCommand></ThreadingCommand>
+    <NumThreads></NumThreads>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totNumbCores></totNumbCores>-->
+</RunInfo>
+
+<Models>
+    <Code name='Bison-opt' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</Code>
+</Models>
+
+<Distributions>
+    <Uniform name='FlatPowerHistory'>
+        <low>0.95</low>
+        <hi>1.05</hi>
+    </Uniform>
+    <Uniform name='FlatYoung'>
+        <low>12.74e9</low>
+        <hi>13.26e9</hi>
+    </Uniform>
+    <Uniform name='FlatGrainRadius'>
+        <low>5e-6</low>
+        <hi>10e-6</hi>
+    </Uniform>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo name='Bison1' limit='8'>
+      <variable name='Functions|power_history|scale_factor' >
+        <distribution type ='Uniform'>FlatPowerHistory</distribution>
+      </variable>
+      <variable name='Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus' >
+        <distribution type ='Uniform'>FlatYoung</distribution>
+      </variable>
+    </MonteCarlo>
+</Samplers>
+<Steps>
+    <MultiRun name='Run0'>
+        <Input   class = 'Files'      type=''          >inputSmeared.i</Input>
+        <Input   class = 'Files'      type=''          >peakingfactors12.csv</Input>
+        <Input   class = 'Files'      type=''          >powerhistory.csv</Input>
+        <Input   class = 'Files'      type=''          >smeared.e</Input>
+        <Model   class = 'Models'     type='Code'      >Bison-opt</Model>
+        <Sampler class = 'Samplers'   type='MonteCarlo'>Bison1</Sampler>
+        <Output  class = 'Datas'      type='Histories' >stories</Output>
+        <Output  class = 'Datas'      type='TimePointSet' >bisonTPS</Output> 
+        <Output  class = 'OutStreamManager'      type='Plot' >3DmaxStressFigure</Output>
+        
+    </MultiRun >
+    <!-- <PostProcessing name = 'printCSV'>
+        <Input   class = 'DataBases' type='HDF5'   >MyDatabase</Input>
+        <Model   class = 'Models'    type='Filters'>printing</Model>
+        <Output  class = 'Files'     type=''      >BisonOut.csv</Output>
+    </PostProcessing> -->
+</Steps>
+<Datas>
+    <Histories name='stories' printCSV='True'>
+        <Input>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus</Input>
+        <Output>max_stress</Output>
+   </Histories>
+    <TimePointSet name='bisonTPS' printCSV='True'>
+        <Input>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus</Input>
+        <Output>max_stress</Output>
+   </TimePointSet>
+</Datas>
+<DataBases>
+    <HDF5 name = 'MyDatabase'/>
+</DataBases>
+<!--
+<Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+</Tests>
+-->
+
+<OutStreamManager>
+  <Plot name='3DmaxStressFigure' dim='3' interactive='False' overwrite='True'>
+    <plot_settings>
+      <plot>
+        <type>surface</type>
+        <x>bisonTPS|Input|(Functions|power_history|scale_factor)</x>
+        <y>bisonTPS|Input|(Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus)</y> 
+        <z>bisonTPS|Output|max_stress</z>
+        <!-- interpPointsY>50</interpPointsY>
+        <interpPointsX>50</interpPointsX>
+        <interpPointsX>50</interpPointsX-->
+      </plot>
+      <xlabel>Power Scale factor</xlabel>
+      <ylabel>Youngs Modulus</ylabel>
+      <zlabel>Maximum Stress</zlabel>
+    </plot_settings>
+    <actions>
+      <how>pdf</how>
+      <camera> 
+        <azimuth>270</azimuth>
+      </camera>
+    </actions>
+  </Plot>
+</OutStreamManager>
+
+
+</Simulation>
+
+
+
