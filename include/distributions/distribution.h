@@ -22,7 +22,7 @@ class distribution;
 class BasicDistribution 
 {
 public:
-
+   virtual ~BasicDistribution();
    double  getVariable(std::string & variableName);                   	///< getVariable from mapping
    std::vector<double>  getVariableVector(std::string  variableName);
    void updateVariable(std::string & variableName, double & newValue); 	///< update variable into the mapping
@@ -36,7 +36,7 @@ public:
    virtual double untrRandomNumberGenerator(double & RNG) = 0;
 
    std::string & getType();                                       		///< Get distribution type
-   unsigned int & getSeed();                                      		///< Get seed
+   unsigned int getSeed();                                      		///< Get seed
    std::vector<std::string> getVariableNames();
 
    //virtual double windowProcessing(distribution & dist, double & RNG);

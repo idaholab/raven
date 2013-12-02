@@ -35,7 +35,7 @@ class UniformDistributionBackend;
 class BasicUniformDistribution : public virtual BasicDistribution {
 public:
   BasicUniformDistribution(double xMin, double xMax);
-  ~BasicUniformDistribution();
+  virtual ~BasicUniformDistribution();
    double  Pdf(double & x);                ///< Pdf function at coordinate x
    double  Cdf(double & x);                ///< Cdf function at coordinate x
    double  RandomNumberGenerator(double & RNG);        ///< RNG

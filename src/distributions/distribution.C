@@ -10,7 +10,7 @@ using namespace std;
 
 
 
-
+BasicDistribution::~BasicDistribution() {};
 
 double
 BasicDistribution::getVariable(std::string & variableName){
@@ -51,6 +51,10 @@ BasicDistribution::updateVariable(std::string & variableName, double & newValue)
 std::string &
 BasicDistribution::getType(){
    return _type;
+}
+
+unsigned int BasicDistribution::getSeed() {
+  return _seed;
 }
 
 std::vector<std::string>
