@@ -14,6 +14,55 @@
   coord_type = RZ
 []
 
+[BCs]
+# Define boundary conditions
+[./Pressure] #  apply coolant pressure on clad outer walls
+   [./coolantPressure]
+     boundary = '1 2 3'
+     factor = 15.5e6
+     function = pressure_ramp   # use the pressure_ramp function defined above
+   [../]
+[../]
+
+[./no_x_all] # pin pellets and clad along axis of symmetry (y)
+   type = DirichletBC
+   variable = disp_x
+   boundary = 12
+   value = 0.0
+[../]
+
+[./no_y_clad_bottom] # pin clad bottom in the axial direction (y)
+   type = DirichletBC
+   variable = disp_y
+   boundary = '1'
+   value = 0.0
+[../]
+
+[./no_y_fuel_bottom] # pin fuel bottom in the axial direction (y)
+    type = DirichletBC
+    variable = disp_y
+    boundary = '1020'
+    value = 0.0
+[../]
+
+[./PlenumPressure] 
+    #  apply plenum pressure on clad inner walls and pellet surfaces
+    [./plenumPressure]
+        boundary = 9
+        initial_pressure = 2.0e6
+        startup_time = -200
+        R = 8.3143
+        output_initial_moles = initial_moles       # coupling to post processor     to get initial fill gas mass
+        temperature = plenumTemp                   # coupling to post processor to get gas temperature approximation
+        volume = gas_volume                        # coupling to post processor to get gas volume
+        material_input = fis_gas_released          # coupling to post processor to get fission gas added
+        output = plenum_pressure                   # coupling to post processor to output plenum/gap pressure
+    [../]
+[../]
+
+[]
+
+
 [Mesh]
   # Import mesh file
   file = smeared.e
@@ -293,54 +342,6 @@
     gas_released = fis_gas_released     # coupling to a postprocessor which supplies the fission gas addition
     quadrature = true
     contact_pressure = contact_pressure
-  [../]
-[]
-
-[BCs]
-# Define boundary conditions
-
-  [./no_x_all] # pin pellets and clad along axis of symmetry (y)
-    type = DirichletBC
-    variable = disp_x
-    boundary = 12
-    value = 0.0
-  [../]
-
-  [./no_y_clad_bottom] # pin clad bottom in the axial direction (y)
-    type = DirichletBC
-    variable = disp_y
-    boundary = '1'
-    value = 0.0
-  [../]
-
-  [./no_y_fuel_bottom] # pin fuel bottom in the axial direction (y)
-    type = DirichletBC
-    variable = disp_y
-    boundary = '1020'
-    value = 0.0
-  [../]
-
-
-  [./Pressure] #  apply coolant pressure on clad outer walls
-    [./coolantPressure]
-      boundary = '1 2 3'
-      factor = 15.5e6
-      function = pressure_ramp   # use the pressure_ramp function defined above
-    [../]
-  [../]
-
-  [./PlenumPressure] #  apply plenum pressure on clad inner walls and pellet surfaces
-    [./plenumPressure]
-      boundary = 9
-      initial_pressure = 2.0e6
-      startup_time = -200
-      R = 8.3143
-      output_initial_moles = initial_moles       # coupling to post processor to get initial fill gas mass
-      temperature = plenumTemp                   # coupling to post processor to get gas temperature approximation
-      volume = gas_volume                        # coupling to post processor to get gas volume
-      material_input = fis_gas_released          # coupling to post processor to get fission gas added
-      output = plenum_pressure                   # coupling to post processor to output plenum/gap pressure
-    [../]
   [../]
 []
 

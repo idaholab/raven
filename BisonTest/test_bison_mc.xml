@@ -5,10 +5,10 @@
     <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
     <Sequence>Run0,printCSV</Sequence>
     <batchSize>3</batchSize>
-    <NumThreads>32</NumThreads>    
+    <NumThreads>4</NumThreads>    
     <mode>mpi</mode>
-    <NumMPI>10</NumMPI>
-    <!--<ParallelCommand></ParallelCommand>
+    <!--NumMPI>10</NumMPI>
+    <ParallelCommand></ParallelCommand>
     <ThreadingCommand></ThreadingCommand>
     <NumThreads></NumThreads>
     <quequingSoftware></quequingSoftware>
@@ -22,13 +22,6 @@
     <Filter name = 'printing' subType = 'PrintCSV'>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
     Materials|fission_gas_release|initial_grain_radius,max_stress</Filter>
 </Models>
-<OutStreams>
-    <Png name = 'mypics'>
-    <variable>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
-    Materials|fission_gas_release|initial_grain_radius,max_stress</variable>
-    <fileNameRoot>bison_pics</fileNameRoot>
-    </Png>
-</OutStreams>
 
 <Distributions>
     <Uniform name='FlatPowerHistory'>
@@ -46,7 +39,7 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='Bison1' limit='500'>
+    <MonteCarlo name='Bison1' limit='3'>
         <Variable type ='Uniform'  distName='FlatPowerHistory'>Functions|power_history|scale_factor</Variable>
         <Variable type ='Uniform'  distName='FlatYoung'       >Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus</Variable> 
         <Variable type ='Uniform'  distName='FlatGrainRadius' >Materials|fission_gas_release|initial_grain_radius</Variable> 
@@ -61,7 +54,6 @@
         <Model   class = 'Models'     type='Code'      >Bison-opt</Model>
         <Sampler class = 'Samplers'   type='MonteCarlo'>Bison1</Sampler>
         <Output  class = 'DataBases'  type='HDF5'      >MyDatabase</Output>
-        <Output  class = 'OutStreams' type='Screen'    >mypics</Output>
     </MultiRun >
     <!-- <PostProcessing name = 'printCSV'>
         <Input   class = 'DataBases' type='HDF5'   >MyDatabase</Input>
