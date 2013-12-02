@@ -184,7 +184,7 @@ else
 #matplotlib
 #depends on numpy, freetype
     cd $BUILD_DIR
-    download_files matplotlib-1.3.1.tar.gz 82fc44d0047a713c1b0b1b4ea2503e6a41c57f98 http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
+    download_files matplotlib-1.3.1.tar.gz 8578afc86424392591c0ee03f7613ffa9b6f68ee http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
     tar -xvzf matplotlib-1.3.1.tar.gz
     cd matplotlib-1.3.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
