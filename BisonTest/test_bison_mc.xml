@@ -3,7 +3,7 @@
 <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
-    <Sequence>Run0,printCSV</Sequence>
+    <Sequence>Run0</Sequence>
     <batchSize>3</batchSize>
     <NumThreads>4</NumThreads>    
     <mode>mpi</mode>
