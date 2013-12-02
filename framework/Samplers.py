@@ -277,9 +277,12 @@ class AdaptiveSampler(Sampler):
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.persistence      = 5
     self.repetition       = 0
-
+    self.initSeed         = None
+    
   def localInputAndChecks(self,xmlNode):
     #setting up the adaptive algorithm
+    if 'initial_seed' in xmlNode.attrib.keys(): self.initSeed = int(xmlNode.attrib['initial_seed'])
+    
     if 'adaptiveAlgorithm' in xmlNode.attrib.keys():
       self.adaptAlgoType = xmlNode.attrib['adaptiveAlgorithm']
       import AdaptiveAlgoLib
@@ -320,6 +323,8 @@ class AdaptiveSampler(Sampler):
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
    
   def localInitialize(self,goalFunction=None,solutionExport=None):
+    if not self.initSeed: self.initSeed = np.random.random_integers(0,sys.maxsize.bit_length())
+    np.random.seed(self.initSeed)
     self.goalFunction   = goalFunction
     self.solutionExport = solutionExport
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
@@ -370,7 +375,21 @@ class AdaptiveSampler(Sampler):
         print ('Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
       
-
+  def __TemporaryFixFunction(self,inArray,expectedSize):
+    '''
+      Since there is a bug here somewhere, if the array size is != expected size, we trim or extend the array, taking off the exeding values or copying the last available one to the missing ones....
+      i KNOW... it is bad... TO FIX FIXXXXXXXXXXX 
+    '''
+    if inArray.size == expectedSize: return inArray
+    elif inArray.size > expectedSize: return inArray[0:expectedSize]
+    else:
+      print('resizing ARRAY....NOT OK NOT OK')
+      returnArray = np.zeros(expectedSize)
+      lastValue = inArray[-1]
+      returnArray[0:inArray.size] = inArray[:]
+      returnArray[inArray.size:expectedSize] = lastValue
+      return returnArray
+      
   def localStillReady(self,ready,lastOutput=None,ROM=None):
     '''
     first perform some check to understand what it needs to be done possibly perform an early return
@@ -394,14 +413,15 @@ class AdaptiveSampler(Sampler):
     else: self.functionValue.append(self.goalFunction.evaluate('residualSign',lastOutput))
     
     np.copyto(self.oldTestMatrix,self.testMatrix) #copy the old solution into the oldTestMatrix for comparison
-
     #recovery the input values so far generated and convert them in pb if needed
     inputsetandFunctionEval  = np.zeros((len(self.functionValue),self.nVar+1))
     if self.tolleranceWeight=='probability':
       for varID, varName in enumerate(self.axisName):
-        inputsetandFunctionEval[:,varID]=map(self.distDict[varName].distribution.cdf,lastOutput.extractValue('numpy.ndarray',varName))
+        # inputsetandFunctionEval[:,varID]=map(self.distDict[varName].distribution.cdf,lastOutput.extractValue('numpy.ndarray',varName))
+        ###### TEMPORARY FIXX #######
+        inputsetandFunctionEval[:,varID]=map(self.distDict[varName].distribution.cdf,self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size))
     else:
-      for varID, varName in enumerate(self.axisName): inputsetandFunctionEval[:,varID]=lastOutput.extractValue('numpy.ndarray',varName)
+      for varID, varName in enumerate(self.axisName): inputsetandFunctionEval[:,varID]=self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size)
     inputsetandFunctionEval[:,-1]=self.functionValue
 
     #printing 

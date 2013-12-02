@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk/raven/BisonTest</WorkingDir>
+    <WorkingDir>/Users/alfoa/projects/trunk/raven/BisonTest/BisonMC</WorkingDir>
     <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
     <Sequence>Run0</Sequence>
-    
-    <batchSize>8</batchSize>
-    <!--<expectedTime>24:00:00</expectedTime>
+    <batchSize>100</batchSize>
+    <expectedTime>24:00:00</expectedTime>
     <ParallelProcNumb>1</ParallelProcNumb>
     <mode>pbsdsh</mode>
     <NumThreads>1</NumThreads>    
-    <mode>mpi</mode>
+    <!--<mode>mpi</mode>
     <NumMPI>4</NumMPI>
     
     <ParallelCommand></ParallelCommand>
@@ -32,8 +31,8 @@
         <hi>1.05</hi>
     </Uniform>
     <Uniform name='FlatYoung'>
-        <low>12.74e9</low>
-        <hi>13.26e9</hi>
+        <low>9.74e9</low>
+        <hi>16.26e9</hi>
     </Uniform>
     <Uniform name='FlatGrainRadius'>
         <low>5e-6</low>
@@ -42,7 +41,7 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='Bison1' limit='8'>
+    <MonteCarlo name='Bison1' limit='500'>
       <variable name='Functions|power_history|scale_factor' >
         <distribution type ='Uniform'>FlatPowerHistory</distribution>
       </variable>
@@ -80,24 +79,15 @@
         <Output>max_stress</Output>
    </TimePointSet>
 </Datas>
-<DataBases>
-    <HDF5 name = 'MyDatabase'/>
-</DataBases>
-<!--
-<Tests>
-    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
-    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
-</Tests>
--->
-
 <OutStreamManager>
-  <Plot name='3DmaxStressFigure' dim='3' interactive='False' overwrite='True'>
+  <Plot name='3DmaxStressFigure' dim='3' interactive='False' overwrite='False'>
     <plot_settings>
       <plot>
-        <type>surface</type>
+        <type>wireframe</type>
         <x>bisonTPS|Input|(Functions|power_history|scale_factor)</x>
         <y>bisonTPS|Input|(Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus)</y> 
         <z>bisonTPS|Output|max_stress</z>
+        <interpolation_type></interpolation_type>
         <!-- interpPointsY>50</interpPointsY>
         <interpPointsX>50</interpPointsX>
         <interpPointsX>50</interpPointsX-->
@@ -109,8 +99,11 @@
     <actions>
       <how>pdf</how>
       <camera> 
-        <azimuth>270</azimuth>
+        <azimuth>230</azimuth>
       </camera>
+      <title>
+        <text>Max Stress</text>
+      </title>
     </actions>
   </Plot>
 </OutStreamManager>

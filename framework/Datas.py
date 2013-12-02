@@ -180,6 +180,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if stepID=(int,int) the slicing is [stepID[0]:stepID[1]]
           if stepID=(int,None) the slicing is [stepID[0]:]
     '''
+   
     myType=self.type
     if   varName in self.dataParameters['inParam' ]: inOutType = 'input'
     elif varName in self.dataParameters['outParam']: inOutType = 'output'

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk/raven/BisonTest/AdaptiveFixedMaxStress</WorkingDir>
+    <WorkingDir>/Users/alfoa/projects/trunk/raven/BisonTest/AdaptiveSampledMaxStress</WorkingDir>
     <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv</Files>
     <Sequence>adaptiveBison</Sequence>
     <batchSize>100</batchSize>
     <expectedTime>24:00:00</expectedTime>
     <ParallelProcNumb>1</ParallelProcNumb>
     <mode>pbsdsh</mode>
-    <NumThreads>1</NumThreads>    
+    <NumThreads>1</NumThreads>     
     <!--<mode>mpi</mode>
     NumMPI>10</NumMPI>
     <ParallelCommand></ParallelCommand>
@@ -33,9 +33,9 @@
         <low>9.74e9</low>
         <hi>16.26e9</hi>
     </Uniform>
-    <Uniform name='FlatGrainRadius'>
-        <low>5e-6</low>
-        <hi>10e-6</hi>
+    <Uniform name='max_stress_spl_dist'>
+        <low>3.20e5</low>
+        <hi>1.30e6</hi>
     </Uniform>
 </Distributions>
 
@@ -48,16 +48,16 @@
     <variable name='Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus' >
       <distribution type ='Uniform'>FlatYoung</distribution>
     </variable>
-    <variable name='Materials|fission_gas_release|initial_grain_radius' >
-      <distribution type ='Uniform'>FlatGrainRadius</distribution>
+    <variable name='Postprocessors|max_stress_spl|default' >
+      <distribution type ='Uniform'>max_stress_spl_dist</distribution>
     </variable>
   </Adaptive>
 </Samplers>
 <Functions>
-  <External name='bisonFunction' file='bisonFunction.py'>
+  <External name='bisonFunction_sampledStress' file='bisonFunction_sampledStress.py'>
     <variable type='numpy.ndarray'>scale_factor</variable>
     <variable type='numpy.ndarray'>youngs_modulus</variable>
-    <variable type='numpy.ndarray'>initial_grain_radius</variable>
+    <variable type='numpy.ndarray'>max_stress_spl</variable>
     <variable type='numpy.ndarray'>max_stress</variable>
   </External>
 </Functions>
@@ -71,7 +71,7 @@
         <Sampler           class='Samplers'         type='Adaptive'    >Bison1</Sampler>
         <TargetEvaluation  class='Datas'            type='TimePointSet'>adaptiveOut</TargetEvaluation>
         <SolutionExport    class='Datas'            type='TimePointSet'>LimitSurf</SolutionExport>
-        <Function          class='Functions'        type='External'    >bisonFunction</Function>
+        <Function          class='Functions'        type='External'    >bisonFunction_sampledStress</Function>
         <Output            class='Datas'            type='TimePointSet'>adaptiveOut</Output>
         <!-- <Output            class='OutStreamManager' type='Plot'        >2DLimitSurfPlot</Output> -->
         <Output            class='OutStreamManager' type='Plot'        >3DLimitSurfPlot</Output>
@@ -80,11 +80,11 @@
 
 <Datas>
     <TimePointSet name='adaptiveOut'>
-        <Input>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,Materials|fission_gas_release|initial_grain_radius</Input>
+        <Input>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,Postprocessors|max_stress_spl|default</Input>
         <Output>max_stress</Output>
    </TimePointSet>
     <TimePointSet name='LimitSurf'>
-        <Input>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,Materials|fission_gas_release|initial_grain_radius</Input>
+        <Input>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,Postprocessors|max_stress_spl|default</Input>
         <Output>max_stress</Output>
    </TimePointSet>
 </Datas>
@@ -95,14 +95,14 @@
         <type>surface</type>
         <x>LimitSurf|Input|(Functions|power_history|scale_factor)</x>
         <y>LimitSurf|Input|(Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus)</y> 
-        <z>LimitSurf|Input|(Materials|fission_gas_release|initial_grain_radius)</z>
+        <z>LimitSurf|Input|(Postprocessors|max_stress_spl|default)</z>
         <interpolation_type>nearest</interpolation_type>
         <interpPointsY>100</interpPointsY>
         <interpPointsX>100</interpPointsX> 
       </plot>
       <xlabel>power scale factor</xlabel>
       <ylabel>youngs modulus</ylabel>
-      <zlabel>initial grain radius</zlabel>
+      <zlabel>max stress failure</zlabel>
     </plot_settings>
     <actions>
       <how>pdf</how>

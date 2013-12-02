@@ -96,11 +96,11 @@ this is a test for the adaptive sampling that uses an adaptive sampling over the
          <plot>
            <!-- puoi mettere anche type surface se vuoi vedere la surface -->
            <type>scatter</type>
-           <x>limitSurf|Input|auxTime</x>
-           <y>limitSurf|Input|auxTime2</y>
-           <z>limitSurf|Input|tempTH</z>  
-           <interpPointsY>100</interpPointsY>
-           <interpPointsX>100</interpPointsX>
+           <x>adaptiveOut|Input|auxTime</x>
+           <y>adaptiveOut|Input|auxTime2</y>
+           <z>adaptiveOut|Input|tempTH</z>  
+           <!-- <interpPointsY>100</interpPointsY>
+           <interpPointsX>100</interpPointsX> -->
          </plot>  
          <xlabel>auxTime secs</xlabel>
          <ylabel>auxTime2 secs</ylabel>

@@ -109,8 +109,28 @@ class Function(BaseType):
     '''
     This is meant to be used to collect the input from a Data. A conversion to the declared type of data is attempted by inputData.extractValue'''
     for key, myType in self.__varType__.items():
-      exec('self.'+key+'=inputData.extractValue(myType,key)')
-
+      #exec('self.'+key+'=inputData.extractValue(myType,key)')
+      ##### TEMPORARY FIXXXXXXXX - ALIAS NEEDED#######
+      foundperfectly = False
+      for index in range(len(inputData.dataParameters['inParam'])):
+        if key == inputData.dataParameters['inParam'][index]: foundperfectly = True
+      if not foundperfectly:
+        for index in range(len(inputData.dataParameters['outParam'])):
+          if key == inputData.dataParameters['outParam'][index]: foundperfectly = True
+      if foundperfectly: exec('self.'+key+'=inputData.extractValue(myType,key)')
+      if not foundperfectly:
+        semifound = False
+        for index in range(len(inputData.dataParameters['inParam'])):
+          if key in inputData.dataParameters['inParam'][index]: 
+            similarVariable = inputData.dataParameters['inParam'][index]
+            semifound = True
+        if not semifound:
+          for index in range(len(inputData.dataParameters['outParam'])):
+            if key in inputData.dataParameters['outParam'][index]: 
+              similarVariable = inputData.dataParameters['outParam'][index]
+              semifound = True
+        if semifound: exec('self.'+key+'=inputData.extractValue(myType,similarVariable)')     
+        
   def __inputFromDict__(self,myInputDict):
     '''
     This is meant to be used to collect the input directly from a sampler generated input or simply from a generic dictionary
