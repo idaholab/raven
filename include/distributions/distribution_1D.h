@@ -19,7 +19,7 @@
 
 #include <string>
 #include <vector>
-#include "Interpolation_Functions.h"
+//#include "Interpolation_Functions.h"
 #include "distribution.h"
 #include "distributionFunctions.h"
 
@@ -180,18 +180,18 @@ protected:
  * CLASS CUSTOM DISTRIBUTION
  */
 
-class CustomDistribution;
+// class CustomDistribution;
 
-class BasicCustomDistribution : public virtual BasicDistribution {
-public:
-   BasicCustomDistribution(double x_coordinates, double y_coordinates, int fitting_type, double n_points);
-   virtual ~BasicCustomDistribution();
+// class BasicCustomDistribution : public virtual BasicDistribution {
+// public:
+//    BasicCustomDistribution(double x_coordinates, double y_coordinates, int fitting_type, double n_points);
+//    virtual ~BasicCustomDistribution();
 
-   double  Pdf(double & x);                ///< Pdf function at coordinate x
-   double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double & RNG);        ///< RNG
+//    double  Pdf(double & x);                ///< Pdf function at coordinate x
+//    double  Cdf(double & x);                ///< Cdf function at coordinate x
+//    double  RandomNumberGenerator(double & RNG);        ///< RNG
 
-protected:
-};
+// protected:
+// };
 
 #endif

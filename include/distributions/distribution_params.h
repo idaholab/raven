@@ -88,14 +88,14 @@ public:
    virtual ~WeibullDistribution();
 };
 
-template<>
-InputParameters validParams<CustomDistribution>();
+// template<>
+// InputParameters validParams<CustomDistribution>();
 
-class CustomDistribution : public distribution, public BasicCustomDistribution {
-public:
-   CustomDistribution(const std::string & name, InputParameters parameters);
-   virtual ~CustomDistribution();
-};
+// class CustomDistribution : public distribution, public BasicCustomDistribution {
+// public:
+//    CustomDistribution(const std::string & name, InputParameters parameters);
+//    virtual ~CustomDistribution();
+// };
 
 
 

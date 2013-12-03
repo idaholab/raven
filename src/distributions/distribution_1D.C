@@ -17,7 +17,7 @@
 #include "dynamicArray.h"
 #include <ctime>
 #include <cstdlib>
-#include "Interpolation_Functions.h"
+//#include "Interpolation_Functions.h"
 #include <string>
 #include <limits>
 #include <boost/math/distributions/uniform.hpp>
@@ -855,40 +855,40 @@ BasicWeibullDistribution::RandomNumberGenerator(double & RNG){
  */
 
 
-BasicCustomDistribution::BasicCustomDistribution(double x_coordinates, double y_coordinates, int fitting_type, double n_points)
-{
-   _dis_parameters["x_coordinates"] = x_coordinates;
-   _dis_parameters["y_coordinates"] = y_coordinates;
-   _dis_parameters["fitting_type"] = fitting_type;
-   _dis_parameters["n_points"] = n_points;
+// BasicCustomDistribution::BasicCustomDistribution(double x_coordinates, double y_coordinates, int fitting_type, double n_points)
+// {
+//    _dis_parameters["x_coordinates"] = x_coordinates;
+//    _dis_parameters["y_coordinates"] = y_coordinates;
+//    _dis_parameters["fitting_type"] = fitting_type;
+//    _dis_parameters["n_points"] = n_points;
 
-}
+// }
 
-BasicCustomDistribution::~BasicCustomDistribution()
-{
-}
+// BasicCustomDistribution::~BasicCustomDistribution()
+// {
+// }
 
-double
-BasicCustomDistribution::Pdf(double & x){
-   double value=_interpolation.interpolation(x);
+// double
+// BasicCustomDistribution::Pdf(double & x){
+//    double value=_interpolation.interpolation(x);
 
-   return value;
-}
+//    return value;
+// }
 
-double
-BasicCustomDistribution::Cdf(double & ){
-  //XXX implement
-   double value=-1;
+// double
+// BasicCustomDistribution::Cdf(double & ){
+//   //XXX implement
+//    double value=-1;
 
-   return value;
-}
+//    return value;
+// }
 
-double
-BasicCustomDistribution::RandomNumberGenerator(double & ){
-  //XXX implement
-   double value=-1;
-   return value;
-}
+// double
+// BasicCustomDistribution::RandomNumberGenerator(double & ){
+//   //XXX implement
+//    double value=-1;
+//    return value;
+// }
 
 
 

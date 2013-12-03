@@ -45,11 +45,11 @@ distribution::distribution(const std::string & name, InputParameters parameters)
      _dis_parameters["xMin"] = x_coordinates[0];
      _dis_parameters["xMax"] = x_coordinates[x_coordinates.size()-1];
      std::vector<double> y_cordinates = getParam<std::vector<double> >("y_coordinates");
-     custom_dist_fit_type fitting_type = static_cast<custom_dist_fit_type>((int)getParam<MooseEnum>("fitting_type"));
+     //custom_dist_fit_type fitting_type = static_cast<custom_dist_fit_type>((int)getParam<MooseEnum>("fitting_type"));
 
-     _interpolation=Interpolation_Functions(x_coordinates,
-                                            y_cordinates,
-                                            fitting_type);
+     //_interpolation=Interpolation_Functions(x_coordinates,
+     //                                       y_cordinates,
+     //                                       fitting_type);
    }
       _seed = getParam<unsigned int>("seed");
       _force_dist = getParam<unsigned int>("force_distribution");
@@ -214,30 +214,30 @@ WeibullDistribution::~WeibullDistribution()
  * CLASS CUSTOM DISTRIBUTION
  */
 
-template<>
-InputParameters validParams<CustomDistribution>(){
+// template<>
+// InputParameters validParams<CustomDistribution>(){
 
-   InputParameters params = validParams<distribution>();
+//    InputParameters params = validParams<distribution>();
 
-   params.addRequiredParam< vector<double> >("x_coordinates", "coordinates along x");
-   params.addRequiredParam< vector<double> >("y_coordinates", "coordinates along y");
-   MooseEnum fitting_enum("step_left=0,step_right=1,linear=2,cubic_spline=3");
-   params.addRequiredParam<MooseEnum>("fitting_type",fitting_enum, "type of fitting");
-   params.addParam<int>("n_points",3,"Number of fitting point (for spline only)");
-   return params;
-}
+//    params.addRequiredParam< vector<double> >("x_coordinates", "coordinates along x");
+//    params.addRequiredParam< vector<double> >("y_coordinates", "coordinates along y");
+//    MooseEnum fitting_enum("step_left=0,step_right=1,linear=2,cubic_spline=3");
+//    params.addRequiredParam<MooseEnum>("fitting_type",fitting_enum, "type of fitting");
+//    params.addParam<int>("n_points",3,"Number of fitting point (for spline only)");
+//    return params;
+// }
 
-class CustomDistribution;
+// class CustomDistribution;
 
-CustomDistribution::CustomDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
-  BasicCustomDistribution(getParam<double>("x_coordinates"),
-                          getParam<double>("y_coordinates"),
-                          getParam<MooseEnum>("fitting_type"),
-                          getParam<double>("n_points"))
-{
-}
+// CustomDistribution::CustomDistribution(const std::string & name, InputParameters parameters):
+//   distribution(name,parameters), 
+//   BasicCustomDistribution(getParam<double>("x_coordinates"),
+//                           getParam<double>("y_coordinates"),
+//                           getParam<MooseEnum>("fitting_type"),
+//                           getParam<double>("n_points"))
+// {
+// }
 
-CustomDistribution::~CustomDistribution()
-{
-}
+// CustomDistribution::~CustomDistribution()
+// {
+// }
