@@ -215,8 +215,10 @@ class MooseBasedAppInterface:
         modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
         listDict.append(modifDict)
         del modifDict
-        listDict.append({'name':['Postprocessors',key[0]],'type':'Reporter'})
-        listDict.append({'name':['Postprocessors',key[0]],'default':Kwargs['SampledVars'][var]})
+        listDict.append({'name':['AuxVariables',key[0]],'family':'SCALAR'})
+        listDict.append({'name':['AuxVariables',key[0]],'initial_condition':Kwargs['SampledVars'][var]})
+        listDict.append({'name':['Postprocessors',key[0]],'type':'ScalarVariable'})
+        listDict.append({'name':['Postprocessors',key[0]],'variable':key[0]})
     return listDict
   
   def DynamicEventTreeForMooseBasedApp(self,**Kwargs):
