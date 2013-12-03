@@ -91,10 +91,10 @@ else
 #hdf5
 #no dependencies
     cd $BUILD_DIR
-    rm -Rvf hdf5-1.8.11
-    download_files hdf5-1.8.11.tar.bz2 87ded0894b104cf23a4b965f4ac0a567f8612e5e http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.bz2
-    tar -xvjf hdf5-1.8.11.tar.bz2
-    cd hdf5-1.8.11
+    rm -Rvf hdf5-1.8.12
+    download_files hdf5-1.8.12.tar.bz2 8414ca0e6ff7d08e423955960d641ec5f309a55f http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.12.tar.bz2
+    tar -xvjf hdf5-1.8.12.tar.bz2
+    cd hdf5-1.8.12
     pwd; ls -l
     (unset CC CXX FC PARALLEL; ./configure --prefix=$INSTALL_DIR)
     make -j $JOBS
