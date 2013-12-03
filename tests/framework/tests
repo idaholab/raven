@@ -95,4 +95,13 @@
   rel_err = 0.001
  [../]
 
+ [./test_bison_mc_simple]
+  type = 'RavenFramework'
+  input = 'test_bison_mc_simple.xml'
+  output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.e'
+  csv = 'MCTestBison/CustomSampler/out~6~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv'
+  required_executable = '../../../bison/bison-%METHOD%'
+ [../]
+
+
 []

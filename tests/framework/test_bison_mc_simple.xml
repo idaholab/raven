@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+
+<RunInfo>
+    <WorkingDir>MCTestBison</WorkingDir>
+    <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
+    <Sequence>CustomSampler</Sequence>
+    <batchSize>2</batchSize>
+</RunInfo>
+
+<Models>
+    <Code name='Bison' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</Code>
+</Models>
+
+<Distributions>
+    <Uniform name='FlatHeat1'>
+      <low>0.8</low>
+      <hi>1.2</hi>
+    </Uniform>
+    <Uniform name='FlatHeat2'>
+      <low>8.0</low>
+      <hi>12.0</hi>
+    </Uniform>
+</Distributions>
+
+<Samplers>
+  <MonteCarlo name='Bison1' limit='6'>
+    <Variable type='Uniform' distName='FlatHeat1'>Materials|heat1|thermal_conductivity</Variable>
+    <Variable type='Uniform' distName='FlatHeat2'>Materials|heat2|thermal_conductivity</Variable>
+  </MonteCarlo>
+</Samplers>
+
+<Datas>
+    <Histories name='stories'>
+        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
+        <Output>aveTempLeft,aveTempRight</Output>
+   </Histories>
+</Datas>
+
+
+<Steps>
+  <MultiRun name='CustomSampler'>
+    <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.i</Input>
+    <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.e</Input>
+    <Model   class = 'Models'     type='Code'      >Bison</Model>
+    <Sampler class='Samplers'  type='MonteCarlo'        >Bison1</Sampler>
+    <Output  class='DataBases' type='HDF5'        >test_bison_mc_simple</Output>
+  </MultiRun >
+</Steps>
+
+<DataBases>
+        <HDF5 name="test_bison_mc_simple"/> 
+</DataBases>
+</Simulation>
+
+
+

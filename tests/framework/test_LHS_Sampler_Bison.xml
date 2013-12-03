@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+
+<RunInfo>
+    <WorkingDir>LHStestBison</WorkingDir>
+    <Files>gap_perfect_transfer_test.i</Files>
+    <Sequence>myLHS</Sequence>
+    <batchSize>2</batchSize>
+</RunInfo>
+
+<Models>
+    <Code name='Bison' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</Code>
+</Models>
+
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='Gauss2'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='DistTri1'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
+    </Triangular>
+</Distributions>
+<Samplers>
+    <LHS name='myLHS' initial_seed ='1'>
+      <varibale name='VarTri1' >
+        <distribution type='Triangular' >DistTri1</distribution>
+        <grid         type='value'      construction='custom'>0.02 0.5 0.6 0.8</grid>
+      </varibale>
+      <varibale name='VarGauss1' >
+        <distribution type='Normal'>Gauss1</distribution>
+        <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
+      </varibale>
+      <varibale name='VarGauss2'>
+        <distribution type='Normal'>Gauss2</distribution>
+        <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
+      </varibale>
+    </LHS>
+</Samplers>
+
+<Datas>
+    <TimePointSet name='outLHS'>
+        <Input>VarGauss1,VarGauss2,VarTri1</Input>
+        <Output>whatEver</Output>
+   </TimePointSet>
+   <TimePointSet name='dummyIN'>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>whatEver</Output>
+   </TimePointSet>
+</Datas>
+
+<Steps>
+    <MultiRun name='myLHS'>
+       <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.i</Input>
+        <Model   class = 'Models'     type='Code'      >Bison</Model>
+        <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
+        <Output  class='Datas'    type='TimePointSet'>outLHS</Output>
+    </MultiRun >
+</Steps>
+
+</Simulation>
+
+
+
