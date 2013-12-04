@@ -20,9 +20,7 @@
 
 using namespace std;
 
-#ifndef mooseError
-#define mooseError(msg) { std::cerr << "\n\n" << msg << "\n\n"; exit(1); }
-#endif
+#define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
 class DistributionContainer;
 
@@ -58,7 +56,7 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
    if (_dist_by_name.find(name) == _dist_by_name.end())
     _dist_by_name[name] = dist;
    else
-     mooseError("Distribution with name " << name << " already exists");
+     throwError("Distribution with name " << name << " already exists");
 
    _dist_by_trigger_status[name] = false;
    _at_least_a_dist_triggered = false;
@@ -79,12 +77,12 @@ DistributionContainer::getType(std::string DistAlias){
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        std::string type = getDistributionType(*dist);
        if(type == "DistributionError"){
-         mooseError("Type for distribution " << DistAlias << " not found");
+         throwError("Type for distribution " << DistAlias << " not found");
        }
        return type;
     }
     else{
-       mooseError("Distribution " << DistAlias << " not found in distribution container");
+       throwError("Distribution " << DistAlias << " not found in distribution container");
        return "DistributionError";
     }
 
@@ -129,7 +127,7 @@ DistributionContainer::getTriggerStatus(std::string DistAlias){
     st = _dist_by_trigger_status.find(DistAlias) -> second;
   }
   else{
-    mooseError("Distribution " + DistAlias + " not found in Triggering event.");
+    throwError("Distribution " + DistAlias + " not found in Triggering event.");
   }
   return st;
 }
@@ -154,7 +152,7 @@ DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        return getDistributionVariable(*dist,paramName);
     }
-    mooseError("Distribution " << DistAlias << " not found in distribution container");
+    throwError("Distribution " << DistAlias << " not found in distribution container");
     return -1;
 }
 
@@ -170,7 +168,7 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
        DistributionUpdateVariable(*dist,paramName,newValue);
     }
     else{
-       mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+       throwError("Distribution " + DistAlias + " was not found in distribution container.");
 
     }
 }
@@ -190,7 +188,7 @@ DistributionContainer::getRavenDistributionVariableNames(std::string DistAlias){
      BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
      return getDistributionVariableNames(*dist);
   }
-  mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+  throwError("Distribution " + DistAlias + " was not found in distribution container.");
 }
 
 double
@@ -205,7 +203,7 @@ DistributionContainer::Pdf(std::string DistAlias, double x){
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        return DistributionPdf(*dist,x);
     }
-    mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+    throwError("Distribution " + DistAlias + " was not found in distribution container.");
     return -1.0;
 }
 
@@ -221,7 +219,7 @@ DistributionContainer::Cdf(std::string DistAlias, double x){
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
        return DistributionCdf(*dist,x);
     }
-    mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+    throwError("Distribution " + DistAlias + " was not found in distribution container.");
     return -1.0;
 
 }
@@ -239,7 +237,7 @@ DistributionContainer::randGen(std::string DistAlias, double RNG){
         //return dist->RandomNumberGenerator(RNG);
         return DistributionRandomNumberGenerator(*dist,RNG);
      }
-     mooseError("Distribution " + DistAlias + " was not found in distribution container.");
+     throwError("Distribution " + DistAlias + " was not found in distribution container.");
      return -1.0;
 
 }

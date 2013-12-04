@@ -8,9 +8,10 @@
 
 using namespace std;
 
+#define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
 
-BasicDistribution::~BasicDistribution() {};
+BasicDistribution::~BasicDistribution() {}
 
 double
 BasicDistribution::getVariable(std::string & variableName){
@@ -19,7 +20,7 @@ BasicDistribution::getVariable(std::string & variableName){
 	  res = _dis_parameters.find(variableName) ->second;
    }
    else{
-     mooseError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
+     throwError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
    }
    return res;
 }
@@ -31,7 +32,7 @@ BasicDistribution::getVariableVector(std::string  variableName){
 	 res = _dis_vectorParameters.find(variableName) ->second;
    }
    else{
-     mooseError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
+     throwError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
    }
    return res;
 }
@@ -44,7 +45,7 @@ BasicDistribution::updateVariable(std::string & variableName, double & newValue)
      _dis_parameters[variableName] = newValue;
    }
    else{
-     mooseError("Parameter " << variableName << " was not found in distribution type " << _type << ".");
+     throwError("Parameter " << variableName << " was not found in distribution type " << _type << ".");
    }
 }
 

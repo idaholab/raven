@@ -29,9 +29,7 @@
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
 
-#ifndef mooseError
-#define mooseError(msg) { std::cerr << "\n\n" << msg << "\n\n"; exit(1); }
-#endif
+#define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
 /*
  * CLASS UNIFORM DISTRIBUTION
@@ -54,7 +52,7 @@ BasicUniformDistribution::BasicUniformDistribution(double xMin, double xMax)
   _uniform = new UniformDistributionBackend(xMin, xMax);
     
   if (xMin>xMax)
-    mooseError("ERROR: bounds for uniform distribution are incorrect");  
+    throwError("ERROR: bounds for uniform distribution are incorrect");  
 }
 
 BasicUniformDistribution::~BasicUniformDistribution()
@@ -96,7 +94,7 @@ BasicUniformDistribution::RandomNumberGenerator(double & RNG){
   double value;
     
    if ((RNG<0)&&(RNG>1))
-      mooseError("ERROR: in the evaluation of RNG for uniform distribution");   
+      throwError("ERROR: in the evaluation of RNG for uniform distribution");   
 
    value = boost::math::quantile(_uniform->_backend,RNG);//(xMin)+RNG*((xMax)-(xMin));
     
@@ -117,7 +115,7 @@ BasicUniformDistribution::RandomNumberGenerator(double & RNG){
      value = (_dis_parameters.find("xMax") ->second);
    }
    else{
-     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
      }*/
    return value;
 }
@@ -256,7 +254,7 @@ BasicNormalDistribution::RandomNumberGenerator(double & RNG){
      value = xMax;
    }
    else{
-     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    if (RNG == 1){
      value = std::numeric_limits<double>::max();
@@ -283,7 +281,7 @@ BasicLogNormalDistribution::BasicLogNormalDistribution(double mu, double sigma)
   _logNormal = new LogNormalDistributionBackend(mu, sigma);
     
   if (mu<0)
-    mooseError("ERROR: incorrect value of mu for lognormaldistribution");  
+    throwError("ERROR: incorrect value of mu for lognormaldistribution");  
 }
 
 BasicLogNormalDistribution::~BasicLogNormalDistribution()
@@ -397,7 +395,7 @@ BasicLogNormalDistribution::RandomNumberGenerator(double & RNG){
      value = xMax;
    }
    else{
-     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    return value;
 }
@@ -424,11 +422,11 @@ BasicTriangularDistribution::BasicTriangularDistribution(double xPeak, double lo
      
     
   if (upperBound < lowerBound)
-    mooseError("ERROR: bounds for triangular distribution are incorrect");  
+    throwError("ERROR: bounds for triangular distribution are incorrect");  
   if (upperBound < _dis_parameters.find("xMin") ->second)
-    mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
+    throwError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
   if (lowerBound > _dis_parameters.find("xMax") ->second)
-    mooseError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
+    throwError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
   _triangular = new TriangularDistributionBackend(lowerBound, xPeak, upperBound);
 
 }
@@ -554,7 +552,7 @@ BasicTriangularDistribution::RandomNumberGenerator(double & RNG){
      value = xMax;
    }
    else{
-     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    return value;
 }
@@ -578,7 +576,7 @@ BasicExponentialDistribution::BasicExponentialDistribution(double lambda)
   _dis_parameters["lambda"] = lambda;
     
   if (lambda<0)
-    mooseError("ERROR: incorrect value of lambda for exponential distribution"); 
+    throwError("ERROR: incorrect value of lambda for exponential distribution"); 
 
   _exponential = new ExponentialDistributionBackend(lambda);
 }
@@ -654,7 +652,7 @@ BasicExponentialDistribution::Pdf(double & x){
      value = xMax;
    }
    else{
-     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    return value;
 }
@@ -702,7 +700,7 @@ BasicExponentialDistribution::RandomNumberGenerator(double & RNG){
      value = xMax;
    }
    else{
-     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    return value;
 }
@@ -728,7 +726,7 @@ BasicWeibullDistribution::BasicWeibullDistribution(double k, double lambda)
   _dis_parameters["lambda"] = lambda; //scale
 
   if ((lambda<0) || (k<0))
-    mooseError("ERROR: incorrect value of k or lambda for weibull distribution");
+    throwError("ERROR: incorrect value of k or lambda for weibull distribution");
 
   _weibull = new WeibullDistributionBackend(k, lambda);
 }
@@ -845,7 +843,7 @@ BasicWeibullDistribution::RandomNumberGenerator(double & RNG){
      value = xMax;
    }
    else{
-     mooseError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    return value;
 }

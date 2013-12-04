@@ -9,6 +9,10 @@
 #define DISTRIBUTION_H_
 
 #include <map>
+#include <vector>
+#include <string>
+#include <stdexcept>
+#include <iostream>
 //#include "Interpolation_Functions.h"
 #include "distribution_min.h"
 
@@ -17,7 +21,6 @@ const int _defaultSeed = 1256955321;
 enum truncation {MULTIPLICATIVE=1, SUM=2};
 
 class distribution;
-
 
 class BasicDistribution 
 {

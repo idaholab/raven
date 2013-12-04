@@ -1,9 +1,12 @@
 %module distribution1D
 %{
+#include "distribution.h"
 #include "DistributionContainer.h"
+#include "distribution_1D.h"
 %}
+%include "distribution.h"
 %include "DistributionContainer.h"
-
+%include "distribution_1D.h"
 
  /*
 swig -c++ -python -py3 -Iinclude/distributions/ -I../moose/include/utils/ control_modules/distribution1D.i 
