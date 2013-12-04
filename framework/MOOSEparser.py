@@ -64,7 +64,7 @@ class MOOSEparser:
       if child.tail:
         for string in child.tail:IOfile.write(b'  '+string+b'\n')
       for key in child.attrib.keys(): 
-        IOfile.write(b'  '+key+b' = '+toBytes(child.attrib[key])+b'\n')
+        IOfile.write(b'  '+toBytes(key)+b' = '+toBytes(str(child.attrib[key]))+b'\n')
       for childChild in child:
         printSubLevels(childChild,IOfile,1)
         for childChildChild in childChild:
