@@ -154,13 +154,12 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
                                                  $(RAVEN_DIR)/src/distributions/distributionFunctions.C \
                                                  $(RAVEN_DIR)/src/distributions/distribution.C $(RAVEN_LIB)
 # Swig
-	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/  \
-          -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/distributions/ \
-          -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ \
+	swig -c++ -python -py3  -I$(RAVEN_DIR)/include/distributions/  \
           $(RAVEN_MODULES)/distribution1D.i
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
-	$(libmesh_CXX) $(libmeh_CPPFLAGS) $(PYTHON_INCLUDE) $(libmesh_INCLUDE) \
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON_INCLUDE)\
+         -I$(RAVEN_DIR)/include/distributions/ \
 	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1D_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
