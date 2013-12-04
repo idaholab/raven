@@ -147,12 +147,12 @@ $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix): $(RAVEN_DIR)/src/dist
 $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix): $(RAVEN_DIR)/src/distributions/distributionFunctions.C
 	$(DISTRIBUTION_COMPILE_COMMAND)
 
-# TODO[JWP]: Should this use libtool to make a platform-independent shared library?
-#            I could not test it because I don't have python3.
+
 $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/distribution1D.i \
                                                  $(RAVEN_DIR)/src/distributions/distribution_1D.C \
                                                  $(RAVEN_DIR)/src/distributions/DistributionContainer.C \
-                                                 $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_LIB)
+                                                 $(RAVEN_DIR)/src/distributions/distributionFunctions.C \
+                                                 $(RAVEN_DIR)/src/distributions/distribution.C $(RAVEN_LIB)
 # Swig
 	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/  \
           -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/distributions/ \
