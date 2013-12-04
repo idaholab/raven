@@ -40,14 +40,11 @@ class OutStreamManager(BaseType):
     self.counter = 0
     #overwrite outstream?
     self.overwrite = True
+    # outstream types available
+    self.availableOutStreamType = []
+    # number of agregated outstreams
+    self.numberAggregatedOS = 1
 
-  def initialize(self,inDict):
-    '''
-    Function to link the source object to the outstream object (i.e. the Data)
-    '''
-    raise NotYetImplemented('Li Mortacci!!!!!! Non implementataaaa!!!!')
-    
-    
   def readMoreXML(self,xmlNode):
     '''
     Function to read the portion of the xml input that belongs to this specialized class
@@ -61,7 +58,8 @@ class OutStreamManager(BaseType):
       else: self.interactive = False
     if 'overwrite' in xmlNode.attrib.keys():
       if xmlNode.attrib['overwrite'].lower() in ['t','true','on']: self.overwrite = True
-      else: self.overwrite = False    
+      else: self.overwrite = False
+    self.localReadXML(xmlNode)  
 
   def addInitParams(self,tempDict):
     '''
@@ -69,15 +67,15 @@ class OutStreamManager(BaseType):
     @ In, tempDict
     @ Out, tempDict 
     '''
+    tempDict[                     'Global Class Type                 '] = 'OutStreamManager'
+    tempDict[                     'Specialized Class Type            '] = self.type
+    if self.interactive: tempDict['Interactive mode                  '] = 'True'
+    else:                tempDict['Interactive mode                  '] = 'False'
+    if self.overwrite:   tempDict['Overwrite output everytime called '] = 'True'
+    else:                tempDict['Overwrite output everytime called '] = 'False'
+    for index in range(len((self.availableOutStreamType))) : tempDict['OutStream Available #'+str(index+1)+'   :'] = self.availableOutStreamType[index]
+    self.localAddInitParams(tempDict)
     return tempDict
-
-  def finalize(self):
-    '''
-    Function to finalize the outstream.Each outstream specialized class must implement it
-    @ In, None
-    @ Out, None 
-    '''
-    pass 
 
   def addOutput(self):
     '''
@@ -85,118 +83,49 @@ class OutStreamManager(BaseType):
     @ In, toLoadFrom, source object
     @ Out, None 
     '''
-    # this function adds the file name/names to the
-    # filename list
-    
-#  def getInpParametersValues(self):
-#    return self.inpParametersValues  
-#
-#  def getOutParametersValues(self):
-#    return self.outParametersValues 
+    raise NotImplementedError('STREAM MANAGER: ERROR -> method addOutput must be implemented by derived classes!!!!')
 
-  def retrieveHistories(self):
-    '''
-    Function to retrieve histories from th toLoadFromList object
-    @ In, None
-    @ Out, None 
-    '''
-    # Check type of source
-    try:
-      if self.toLoadFromList[0].type == "HDF5":
-        # HDF5 database
-        # Retrieve ending histories' names from the database
-        endGroupNames = self.toLoadFromList[0].getEndingGroupNames()
-        # Retrieve the histories
-        for index in xrange(len(endGroupNames)):
-          if not endGroupNames[index] in self.alreadyRead:
-            self.histories[endGroupNames[index]] = self.toLoadFromList[0].returnHistory({'history':endGroupNames[index],'filter':'whole'})
-            self.alreadyRead.append(endGroupNames[index])
-    except AttributeError:
-      # loading from file (csv) 
-      # Retrieve histories from CSV files
-      for index in xrange(len(self.toLoadFromList)):
-        groupname = self.toLoadFromList[index].split('~')[1]
-        if not groupname in self.alreadyRead:
-          # open file
-          myFile = open (self.toLoadFromList[index],'rb')
-          # read the field names
-          all_field_names = myFile.readline().split(b',')
-          # load the table data (from the csv file) into a numpy nd array 
-          data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
-          # close file
-          myFile.close()  
-          self.histories[groupname] = (data,{'headers':all_field_names})
-          self.alreadyRead.append(groupname)
-    return
-
-  def getParam(self,typeVar,keyword):
-    '''
-    Function to get a Parameter in this function
-    @ In, typeVar : Variable type (string)
-    @ In, keyword: Keyword to retrieve 
-    @ Out,param  : Requested parameter
-    '''
-    pass
+  def initialize(self,inDict):
+    self.sourceData   = []
+    for agrosindex in range(self.numberAggregatedOS):
+      foundData = False
+      for output in inDict['Output']:
+        if output.name.strip() == self.sourceName[agrosindex]:
+          self.sourceData.append(output)
+          foundData = True
+      if not foundData:
+        for inp in inDict['Input']:
+          if not isinstance(inp, basestring):
+            if inp.name.strip() == self.sourceName[agrosindex]:
+              self.sourceData.append(inp)
+              foundData = True  
+      if not foundData and 'TargetEvaluation' in inDict.keys():
+        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex]:
+          self.sourceData.append(inDict['TargetEvaluation'])
+          foundData = True 
+      if not foundData and 'SolutionExport' in inDict.keys():
+        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex]:
+          self.sourceData.append(inDict['SolutionExport'])
+          foundData = True 
+      if not foundData: raise IOError('STREAM MANAGER: ERROR -> the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
 
 class OutStreamPlot(OutStreamManager):
   def __init__(self):
-    self.availableOutStreamTypes = ['scatter','line','surface','histogram','stem','step','polar','pseudocolor']
     OutStreamManager.__init__(self)
+    self.type         = 'OutStreamPlot'
+    self.availableOutStreamTypes = {2:['scatter','line','histogram','stem','step','polar'],
+                                    3:['scatter','line','surface','wireframe','tri-surface','contour','contourf','histogram','pseudocolor']}
+    self.dim          = 2
     self.sourceName   = []
     self.sourceData   = None
     self.x_cordinates = None
     self.y_cordinates = None
     self.z_cordinates = None
     self.plotSettings = {}
+    self.outStreamTypes = []
+    
 
-
-  def initialize(self,inDict):
-    '''
-    Function called to initialize the OutStream linking it to the proper Data
-    '''
-    self.x_cordinates = []
-    self.sourceName   = []
-    self.sourceData   = []
-
-    for pltindex in range(len(self.options['plot_settings']['plot'])):
-      if 'y' in self.options['plot_settings']['plot'][pltindex].keys(): self.y_cordinates = [] 
-      if 'z' in self.options['plot_settings']['plot'][pltindex].keys(): self.z_cordinates = [] 
-    for pltindex in range(len(self.options['plot_settings']['plot'])): 
-      self.x_cordinates.append(self.options['plot_settings']['plot'][pltindex]['x'].split(',')) 
-      self.sourceName.append(self.x_cordinates[pltindex][0].split('|')[0].strip())
-      if 'y' in self.options['plot_settings']['plot'][pltindex].keys(): 
-        self.y_cordinates.append(self.options['plot_settings']['plot'][pltindex]['y'].split(',')) 
-        if self.y_cordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.y_cordinates[pltindex][0].split('|')[0])
-      if 'z' in self.options['plot_settings']['plot'][pltindex].keys(): 
-        self.z_cordinates.append(self.options['plot_settings']['plot'][pltindex]['z'].split(',')) 
-        if self.z_cordinates[0][pltindex].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.z_cordinates[pltindex][0].split('|')[0])
-      
-      foundData = False
-      for output in inDict['Output']:
-        if output.name.strip() == self.sourceName[pltindex]:
-          self.sourceData.append(output)
-          foundData = True
-      if not foundData:
-        for inp in inDict['Input']:
-          if not isinstance(inp, basestring):
-            if inp.name.strip() == self.sourceName[pltindex]:
-              self.sourceData.append(inp)
-              foundData = True  
-      if not foundData and 'TargetEvaluation' in inDict.keys():
-        if inDict['TargetEvaluation'].name.strip() == self.sourceName[pltindex]:
-          self.sourceData.append(inDict['TargetEvaluation'])
-          foundData = True 
-      if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[pltindex]:
-          self.sourceData.append(inDict['SolutionExport'])
-          foundData = True 
-      if not foundData: raise IOError('STREAM MANAGER: ERROR -> the Data named ' + self.sourceName[pltindex] + ' has not been found!!!!')
-    # retrieve all the other plot settings (plot dependent) 
-    for key in self.options['plot_settings'].keys():
-      if key not in ['plot']: self.plotSettings[key] = self.options['plot_settings'][key]
-    #execute actions
-    #self.__executeActions() 
-  
+# PRIVATE FUNCTIONS
   def __splitVariableNames(self,what,where):
     ''' 
       Function to split the variable names
@@ -215,11 +144,8 @@ class OutStreamPlot(OutStreamManager):
       else:  result = var.split('|')
     else: result = None
     if len(result) != 3: raise IOError('Only a three level variables are accepted in OutStreamPlot!!!!!!')
-    
     return result
-    
-    
-    
+      
   def __readPlotActions(self,snode):
     #if snode.find('how') is not None: self.options[snode.tag]['how'] = snode.find('how').text.lower()
     #else: self.options[snode.tag]['how'] = 'screen'
@@ -301,10 +227,12 @@ class OutStreamPlot(OutStreamManager):
             else:
               for i in range(len(self.y_values[pltindex][key])):
                 if self.y_values[pltindex][key][i].size == 0: return False           
-    return True    
+    return True  
+  
   def __executeActions(self):
     if self.dim < 3:
-      self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':True,'axis':'both'})
+      if 'label_format' not in self.options.keys(): self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
+      if 'title'        not in self.options.keys(): self.plt.title(self.name,fontdict={'verticalalignment':'top','horizontalalignment':'center'})
       if 'figure_properties' in self.options.keys():
         key = 'figure_properties'
         if 'figsize' not in self.options[key].keys():   self.options[key]['figsize'  ] = 'None' 
@@ -316,13 +244,19 @@ class OutStreamPlot(OutStreamManager):
         elif self.options[key]['frameon'].lower() in ['f','false']: self.options[key]['frameon'] = 'False'           
         if 'attributes' in self.options[key].keys(): self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']),**self.options[key]['attrobutes'])
         else: self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']))
-      if 'title' not in self.options.keys(): self.plt.title(self.name)
       for key in self.options.keys():
         if key == 'range': 
           if 'ymin' in self.options[key].keys(): self.plt.ylim(ymin = ast.literal_eval(self.options[key]['ymin']))
           if 'ymax' in self.options[key].keys(): self.plt.ylim(ymax = ast.literal_eval(self.options[key]['ymax']))
           if 'xmin' in self.options[key].keys(): self.plt.xlim(xmin = ast.literal_eval(self.options[key]['xmin']))
           if 'xmax' in self.options[key].keys(): self.plt.xlim(xmax = ast.literal_eval(self.options[key]['xmax']))
+        elif key == 'camera': print('STREAM MANAGER: ERROR -> 2D plots have not a camera attribute... They are 2D!!!!')
+        elif key == 'label_format':
+          if 'style' not in self.options[key].keys(): self.options[key]['style'        ]   = 'sci'
+          if 'limits' not in self.options[key].keys(): self.options[key]['limits'      ] = '(0,0)'
+          if 'useOffset' not in self.options[key].keys(): self.options[key]['useOffset'] = 'False'
+          if 'axis' not in self.options[key].keys(): self.options[key]['axis'          ] = 'both'
+          self.plt.ticklabel_format(**{'style':self.options[key]['style'],scilimits:ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})
         elif key == 'title':
           if 'attributes' in self.options[key].keys(): self.plt.title(self.options[key]['text'],**self.options[key]['attributes'])
           else: self.plt.title(self.options[key]['text'])    
@@ -393,7 +327,8 @@ class OutStreamPlot(OutStreamManager):
               except:command_args = prefix + command_args + kk + '="' + str(self.options[key][kk])+'"'  
           exec('self.plt.' + key + '(' + command_args + ')')
     else:
-      self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':True,'axis':'both'})
+      if 'label_format' not in self.options.keys(): self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
+      if 'title'        not in self.options.keys(): self.plt3D.set_title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'}) 
       if 'figure_properties' in self.options.keys():
         key = 'figure_properties'
         if 'figsize' not in self.options[key].keys():   self.options[key]['figsize'  ] = 'None' 
@@ -405,7 +340,6 @@ class OutStreamPlot(OutStreamManager):
         elif self.options[key]['frameon'].lower() in ['f','false']: self.options[key]['frameon'] = 'False'           
         if 'attributes' in self.options[key].keys(): self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']),**self.options[key]['attrobutes'])
         else: self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']))
-      if 'title' not in self.options.keys(): self.plt3D.set_title(self.name)
       for key in self.options.keys():
         if key == 'range': 
           if 'xmin' in self.options[key].keys(): self.plt3D.set_xlim3d(xmin = ast.literal_eval(self.options[key]['xmin']))
@@ -414,6 +348,12 @@ class OutStreamPlot(OutStreamManager):
           if 'ymax' in self.options[key].keys(): self.plt3D.set_ylim3d(ymax = ast.literal_eval(self.options[key]['ymax']))
           if 'zmin' in self.options[key].keys(): 
             self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
+        elif key == 'label_format':
+          if 'style' not in self.options[key].keys(): self.options[key]['style'        ]   = 'sci'
+          if 'limits' not in self.options[key].keys(): self.options[key]['limits'      ] = '(0,0)'
+          if 'useOffset' not in self.options[key].keys(): self.options[key]['useOffset'] = 'False'
+          if 'axis' not in self.options[key].keys(): self.options[key]['axis'          ] = 'both'
+          self.plt3D.ticklabel_format(**{'style':self.options[key]['style'],scilimits:ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})        
         elif key == 'camera':
           if 'elevation' in self.options[key].keys() and 'azimuth' in self.options[key].keys(): self.plt3D.view_init(elev = float(self.options[key]['elevation']),azim = float(self.options[key]['azimuth']))
           elif 'elevation' in self.options[key].keys() and 'azimuth' not in self.options[key].keys(): self.plt3D.view_init(elev = float(self.options[key]['elevation']),azim = None)
@@ -458,23 +398,39 @@ class OutStreamPlot(OutStreamManager):
               except:command_args = prefix + command_args + kk + '="' + str(self.options[key][kk])+'"'  
           exec('self.plt3D.' + key + '(' + command_args + ')')
 
-  def readMoreXML(self,xmlNode):
-    OutStreamManager.readMoreXML(self,xmlNode)
+#PUBLIC FUNCTIONS
+  def localAddInitParams(self,tempDict):
+    tempDict['Plot is '] = str(self.dim)+'D'
+    for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
+
+  def initialize(self,inDict):
+    '''
+    Function called to initialize the OutStream, linking it to the proper Data
+    '''
+    self.x_cordinates       = []
+    self.sourceName   = []
+    for pltindex in range(len(self.options['plot_settings']['plot'])):
+      if 'y' in self.options['plot_settings']['plot'][pltindex].keys(): self.y_cordinates = [] 
+      if 'z' in self.options['plot_settings']['plot'][pltindex].keys(): self.z_cordinates = [] 
+    for pltindex in range(len(self.options['plot_settings']['plot'])): 
+      self.x_cordinates.append(self.options['plot_settings']['plot'][pltindex]['x'].split(',')) 
+      self.sourceName.append(self.x_cordinates[pltindex][0].split('|')[0].strip())
+      if 'y' in self.options['plot_settings']['plot'][pltindex].keys(): 
+        self.y_cordinates.append(self.options['plot_settings']['plot'][pltindex]['y'].split(',')) 
+        if self.y_cordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.y_cordinates[pltindex][0].split('|')[0])
+      if 'z' in self.options['plot_settings']['plot'][pltindex].keys(): 
+        self.z_cordinates.append(self.options['plot_settings']['plot'][pltindex]['z'].split(',')) 
+        if self.z_cordinates[0][pltindex].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.z_cordinates[pltindex][0].split('|')[0])
+
+    self.numberAggregatedOS = len(self.options['plot_settings']['plot'])
+    OutStreamManager.initialize(self,inDict)
+
+    #execute actions (we execute the actions here also because we can perform a check at runtime!!
+    self.__executeActions() 
+  
+  def localReadXML(self,xmlNode):
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else: self.dim = int(xmlNode.attrib['dim'])
-    exec('import matplotlib as ' + 'mpl_' + self.name)
-    exec('self.mpl = mpl_' + self.name)
-    print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
-    if self.dim not in [2,3]: raise('STREAM MANAGER: ERROR -> This Plot interface is able to handle 2D-3D plot only')
-    exec('import matplotlib.pyplot as ' + 'plt_' + self.name)
-    exec('self.plt = plt_' + self.name)
-    if self.interactive:self.plt.ion()
-    if self.dim == 3:
-      exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
-      #exec('self.Ax = Ax3D_' + self.name)
-    self.fig = self.plt.figure()
-    if self.dim == 3: self.plt3D = self.fig.add_subplot(111, projection='3d')
-
     foundPlot = False
     for subnode in xmlNode:
       if subnode.tag in ['actions']: self.__readPlotActions(subnode)
@@ -505,15 +461,29 @@ class OutStreamPlot(OutStreamManager):
     if not foundPlot: raise IOErrror('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot section has been found in the plot_settings block!')
     self.outStreamTypes = []
     for pltindex in range(len(self.options['plot_settings']['plot'])):
-      if not 'type' in self.options['plot_settings']['plot'][pltindex].keys(): raise IOErrror('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot type keyword has been found in the plot_settings/plot block!')
-      else: self.outStreamTypes.append(self.options['plot_settings']['plot'][pltindex]['type']) 
-    return
-
+      if not 'type' in self.options['plot_settings']['plot'][pltindex].keys(): raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot type keyword has been found in the plot_settings/plot block!')
+      else:
+        if self.availableOutStreamTypes[self.dim].count(self.options['plot_settings']['plot'][pltindex]['type']) == 0: raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', unknown type '+self.options['plot_settings']['plot'][pltindex]['type']+'!') 
+        self.outStreamTypes.append(self.options['plot_settings']['plot'][pltindex]['type']) 
+    exec('import matplotlib as ' + 'mpl_' + self.name)
+    exec('self.mpl = mpl_' + self.name)
+    print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
+    if self.dim not in [2,3]: raise('STREAM MANAGER: ERROR -> This Plot interface is able to handle 2D-3D plot only')
+    if not self.interactive or 'screen' not in self.options['how']['how']:
+      self.interactive = False  # not needed interactive mode when no screen is requested
+      self.mpl.use('Agg')       # set default backend to png
+    self.mpl.use('TkAgg')
+    exec('import matplotlib.pyplot as ' + 'plt_' + self.name)
+    exec('self.plt = plt_' + self.name)
+    if self.interactive:self.plt.ion()
+    if self.dim == 3: exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
+    self.fig = self.plt.figure()
+    if self.dim == 3: self.plt3D = self.fig.add_subplot(111, projection='3d')
   def addOutput(self):
     '''
-    Function to add a new output source
-    @ In, toLoadFrom, source object
-    @ Out, None 
+    Function to show and/or save a plot 
+    @ In,  None
+    @ Out, None (Plot on the screen or on file/s) 
     ''' 
     if not self.__fillCoordinatesFromSource():
       print('STREAM MANAGER: WARNING -> Nothing to Plot Yet... Returning!!!!')
@@ -727,27 +697,46 @@ class OutStreamPlot(OutStreamManager):
           pass      
         else: raise IOError('STREAM MANAGER: ERROR -> plot named'+ self.name+ ': plot type '+ self.outStreamTypes[pltindex] + 'unknown!!!')
       #if self.interactive: self.plt.ion()
+    #self.plt.tight_layout()
+
     if 'screen' in self.options['how']['how'].split(','): 
       if self.dim == 2: self.fig.canvas.draw()
-      else: self.plt.draw()
+      else:self.plt.draw()
       if not self.interactive:self.plt.show()
     for i in range(len(self.options['how']['how'].split(','))):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
         if not self.overwrite: prefix = str(self.counter) + '-'
         else: prefix = ''
         self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes)+'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
+
 class OutStreamPrint(OutStreamManager):
-  def __init(self):
-    self.availableOutStreamTypes = ['csv']
-  def readMoreXML(self,xmlNode):
+  def __init__(self):
     self.type = 'OutStreamPrint'
+    self.availableOutStreamTypes = ['csv']
+    OutStreamManager.__init__(self)
+    self.sourceName   = []
+    self.sourceData   = None
+    
+  def localAddInitParams(self,tempDict):
+    for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
+  
+  def initialize(self,inDict):
+    self.numberAggregatedOS = 1 #"take this number from input"
+    OutStreamManager.initialize(inDict)
+
+  
+  def localReadXML(self,xmlNode):
+    self.type = 'OutStreamPrint'
+  
+  def addOutput(self):
+    pass
 
 '''
  Interface Dictionary (factory) (private)
 '''
-__base                    = 'OutStreamManager'
-__interFaceDict           = {}
-__interFaceDict['Plot'  ] = OutStreamPlot
+__base                     = 'OutStreamManager'
+__interFaceDict            = {}
+__interFaceDict['Plot'   ] = OutStreamPlot
 __interFaceDict['Print'  ] = OutStreamPrint
 __knownTypes              = __interFaceDict.keys()
 
