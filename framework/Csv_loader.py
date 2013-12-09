@@ -70,16 +70,16 @@ class CsvLoader:
  
   def csvLoadData(self,filein,options):
     if   options['type'] == 'TimePoint':
-      return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'])
+      return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'],options['input_ts'])
     elif options['type'] == 'TimePointSet':
-      return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'])
+      return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'],options['input_ts'])
     elif options['type'] == 'History':
-      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'])
+      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'],options['input_ts'])
     elif options['type'] == 'Histories':
       listhist_in  = {}
       listhist_out = {}
       for index in xrange(len(filein)):
-        tupleVar = self.__csvLoaderForHistory(filein[index],options['time'],options['inParam'],options['outParam'])
+        tupleVar = self.__csvLoaderForHistory(filein[index],options['time'],options['inParam'],options['outParam'],options['input_ts'])
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         listhist_in[index]  = tupleVar[0]
         listhist_out[index] = tupleVar[1]
@@ -89,7 +89,7 @@ class CsvLoader:
       raise IOError ('CSV LOADER : ******ERROR Type ' + options['type'] + 'unknown')
     
   # loader for time point data type
-  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam):
+  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,input_ts):
     '''
     filein = file name
     time   = time
@@ -110,7 +110,10 @@ class CsvLoader:
       # convert the time in float
       time_end = False
       time_float = float(time)
-      
+    if input_ts: ints = int(input_ts)
+    else: ints = 0
+    if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR input_ts is greater than number of actual ts in file '+ str(filein) + '!')
+       
     #inDict  = inParamDict
     #outDict = outParamDict       
     inDict  = {}
@@ -126,7 +129,7 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = np.atleast_1d(np.array(data[0,ix]))
+          inDict[key] = np.atleast_1d(np.array(data[input_ts,ix]))
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     
@@ -175,7 +178,7 @@ class CsvLoader:
                 raise Exception("ERROR: the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam):
+  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,input_ts):
     '''
     loader for time point set data type
     filesin = file names
@@ -195,14 +198,17 @@ class CsvLoader:
       # convert the time in float
       time_end = False
       time_float = float(time)
-      
+    if input_ts: ints = int(input_ts)
+    else: ints = 0
+    
+          
     inDict  = {}
     outDict = {}    
     
     for i in range(len(filesin)): 
       #load the data into the numpy array
       data = self.loadCsvFile(filesin[i])
-     
+      if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR input_ts is greater than number of actual ts in file '+ str(filesin[i]) + '!') 
       if i == 0:
         if(self.all_out_param):
           self.field_names = self.all_field_names
@@ -217,7 +223,7 @@ class CsvLoader:
             #create numpy array
             inDict[key] = np.zeros(len(filesin))
             
-          inDict[key][i] = data[0,ix]
+          inDict[key][i] = data[ints,ix]
           #inDict[key][i] = 1
         else:
           raise Exception("ERROR: the parameter " + str(key) + " has not been found")
@@ -287,7 +293,7 @@ class CsvLoader:
       del data 
     return (inDict,outDict)
 
-  def __csvLoaderForHistory(self,filein,time,inParam,outParam):
+  def __csvLoaderForHistory(self,filein,time,inParam,outParam,input_ts):
     '''
     loader for history data type
     filein = file name
@@ -295,6 +301,9 @@ class CsvLoader:
     inParamDict = parameters to be picked up (dictionary of values)
     outParamDict = parameters to be picked up (dictionary of lists)   
     '''
+    #load the data into the numpy array
+    data = self.loadCsvFile(filein)
+        
     time_float = []
     
     if 'all' in outParam:
@@ -313,15 +322,14 @@ class CsvLoader:
       
       time_all = True
       #time_float[0] = -1.0
-   
+    if input_ts: ints = int(input_ts)
+    else: ints = 0
+    if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR input_ts is greater than number of actual ts in file '+ str(filein) + '!')    
     inDict  = {}
     outDict = {}  
-
-    #load the data into the numpy array
-    data = self.loadCsvFile(filein)
     
     if(self.all_out_param):
-      self.field_names = self.all_field_names
+      sopeelf.field_names = self.all_field_names
     else:
       self.field_names = outParam
       self.field_names.insert(0, 'time') 
@@ -330,7 +338,7 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = np.atleast_1d(np.array(data[0,ix]))
+          inDict[key] = np.atleast_1d(np.array(data[input_ts,ix]))
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     

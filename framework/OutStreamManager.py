@@ -121,7 +121,6 @@ class OutStreamPlot(OutStreamManager):
     self.x_cordinates = None
     self.y_cordinates = None
     self.z_cordinates = None
-    self.plotSettings = {}
     self.outStreamTypes = []
     
 
@@ -385,7 +384,7 @@ class OutStreamPlot(OutStreamManager):
           if 'b' not in self.options[key].keys()  : self.options[key]['b'] = 'True'
           if self.options[key]['b'].lower() in ['on','t','true']: self.options[key]['b'] = 'True'
           elif self.options[key]['b'].lower() in ['off','f','false']: self.options[key]['b'] = 'False'
-          if 'attributes' in self.options[key].keys(): self.Ax.grid(b=ast.literal_eval(self.options[key]['b']),**self.options[key]['attributes'])
+          if 'attributes' in self.options[key].keys(): self.plt3D.grid(b=ast.literal_eval(self.options[key]['b']),**self.options[key]['attributes'])
           else:self.plt3D.grid(b=ast.literal_eval(self.options[key]['b']))
         elif key in ['how','plot_settings']: pass
         else:
@@ -420,7 +419,7 @@ class OutStreamPlot(OutStreamManager):
         if self.y_cordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.y_cordinates[pltindex][0].split('|')[0])
       if 'z' in self.options['plot_settings']['plot'][pltindex].keys(): 
         self.z_cordinates.append(self.options['plot_settings']['plot'][pltindex]['z'].split(',')) 
-        if self.z_cordinates[0][pltindex].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.z_cordinates[pltindex][0].split('|')[0])
+        if self.z_cordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.z_cordinates[pltindex][0].split('|')[0])
 
     self.numberAggregatedOS = len(self.options['plot_settings']['plot'])
     OutStreamManager.initialize(self,inDict)
@@ -465,18 +464,20 @@ class OutStreamPlot(OutStreamManager):
       else:
         if self.availableOutStreamTypes[self.dim].count(self.options['plot_settings']['plot'][pltindex]['type']) == 0: raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', unknown type '+self.options['plot_settings']['plot'][pltindex]['type']+'!') 
         self.outStreamTypes.append(self.options['plot_settings']['plot'][pltindex]['type']) 
-    exec('import matplotlib as ' + 'mpl_' + self.name)
-    exec('self.mpl = mpl_' + self.name)
+    #exec('import matplotlib as ' + 'mpl_' + self.name)
+    exec('self.mpl = __import__(matplotlib)')
+    #exec('self.mpl = mpl_' + self.name)
     print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
     if self.dim not in [2,3]: raise('STREAM MANAGER: ERROR -> This Plot interface is able to handle 2D-3D plot only')
     if not self.interactive or 'screen' not in self.options['how']['how']:
       self.interactive = False  # not needed interactive mode when no screen is requested
       self.mpl.use('Agg')       # set default backend to png
-    self.mpl.use('TkAgg')
-    exec('import matplotlib.pyplot as ' + 'plt_' + self.name)
-    exec('self.plt = plt_' + self.name)
+    #self.mpl.use('TkAgg')
+    exec('self.plt =  __import__(matplotlib.pyplot)')
+    #exec('import matplotlib.pyplot as ' + 'plt_' + self.name)
+    #exec('self.plt = plt_' + self.name)
     if self.interactive:self.plt.ion()
-    if self.dim == 3: exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
+    #if self.dim == 3:  exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
     self.fig = self.plt.figure()
     if self.dim == 3: self.plt3D = self.fig.add_subplot(111, projection='3d')
   def addOutput(self):
@@ -496,16 +497,15 @@ class OutStreamPlot(OutStreamManager):
     for pltindex in range(len(self.outStreamTypes)):
       if self.dim == 2:
         if len(self.outStreamTypes) > 1: self.plt.hold(True)
-        if 'xlabel' not in self.plotSettings.keys():
+        if 'xlabel' not in self.options['plot_settings'].keys():
           self.plt.xlabel('x')
         else:
-          self.plt.xlabel(self.plotSettings['xlabel'])
-        if 'ylabel' not in self.plotSettings.keys():
+          self.plt.xlabel(self.options['plot_settings']['xlabel'])
+        if 'ylabel' not in self.options['plot_settings'].keys():
           if self.y_cordinates:
             self.plt.ylabel('y')
-            self.plt.legend(ast.literal_eval(y_label))
         else:
-          if self.y_cordinates: self.plt.ylabel(self.plotSettings['ylabel'])
+          if self.y_cordinates: self.plt.ylabel(self.options['plot_settings']['ylabel'])
          
         if self.outStreamTypes[pltindex] == 'scatter':
           if 's' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['s'] = '20'
@@ -521,9 +521,11 @@ class OutStreamPlot(OutStreamManager):
         elif self.outStreamTypes[pltindex] == 'line':
           for key in self.x_values[pltindex].keys():
             for x_index in range(len(self.x_values[pltindex][key])):
+              xi = np.linspace(self.x_values[pltindex][key][x_index].min(),self.x_values[pltindex][key][x_index].max(),self.x_values[pltindex][key][x_index].size)
               for y_index in range(len(self.y_values[pltindex][key])):
-                if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt.plot(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],**self.options['plot_settings']['plot'][pltindex]['attributes'])
-                else: self.actPlot = self.plt.plot(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index])
+                yi = griddata((self.x_values[pltindex][key][x_index]), self.y_values[pltindex][key][y_index], (xi[:]), method='nearest')
+                if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt.plot(xi,yi,**self.options['plot_settings']['plot'][pltindex]['attributes'])
+                else: self.actPlot = self.plt.plot(xi,yi)
         elif self.outStreamTypes[pltindex] == 'histogram':
           if 'bins' in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['bins'] = ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['bins'])
           else: self.options['plot_settings']['plot'][pltindex]['bins'] = 10
@@ -594,30 +596,16 @@ class OutStreamPlot(OutStreamManager):
       else:
         #3d
         if len(self.outStreamTypes) > 1: self.plt.hold(True)
-        if 'xlabel' not in self.plotSettings.keys():
-          x_label = ''
-          for index in range(len(self.x_cordinates)) : x_label = x_label + str(self.x_cordinates[index]) + ';'
-          self.plt3D.set_xlabel(x_label)
+        if 'xlabel' not in self.options['plot_settings'].keys(): self.plt3D.set_xlabel('x')
+        else: self.plt3D.set_xlabel(self.options['plot_settings']['xlabel'])
+        if 'ylabel' not in self.options['plot_settings'].keys():
+          if self.y_cordinates: self.plt3D.set_ylabel('y')
         else:
-          self.plt3D.set_xlabel(self.plotSettings['xlabel'])
-        if 'ylabel' not in self.plotSettings.keys():
-          if self.y_cordinates:
-            y_label = ''
-            leg_y = ''
-            for index in range(len(self.x_cordinates)) : 
-              y_label = y_label + str(self.y_cordinates[index]) + ','
-            self.plt3D.set_ylabel(y_label)
+          if self.y_cordinates: self.plt3D.set_ylabel(self.options['plot_settings']['ylabel'])
+        if 'zlabel' not in self.options['plot_settings'].keys():
+          if self.z_cordinates: self.plt3D.set_zlabel('z')
         else:
-          if self.y_cordinates: self.plt3D.set_ylabel(self.plotSettings['ylabel'])
-        if 'zlabel' not in self.plotSettings.keys():
-          if self.z_cordinates:
-            z_label = ''
-            leg_z = ''
-            for index in range(len(self.x_cordinates)) : 
-              z_label = z_label + str(self.z_cordinates[index][-1]) + ','
-            self.plt3D.set_zlabel(z_label)
-        else:
-          if self.z_cordinates: self.plt3D.set_zlabel(self.plotSettings['zlabel'])
+          if self.z_cordinates: self.plt3D.set_zlabel(self.options['plot_settings']['zlabel'])
    
         if self.outStreamTypes[pltindex] == 'scatter':
           if 's' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['s'] = '20'
@@ -636,8 +624,8 @@ class OutStreamPlot(OutStreamManager):
             for x_index in range(len(self.x_values[pltindex][key])):
               for y_index in range(len(self.y_values[pltindex][key])):
                 for z_index in range(len(self.z_values[pltindex][key])):
-                  if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot(self.Ax,self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index],**self.options['plot_settings']['plot'][pltindex]['attributes'])
-                  else: self.actPlot = self.plt3D.plot(self.Ax,self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index])
+                  if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index],**self.options['plot_settings']['plot'][pltindex]['attributes'])
+                  else: self.actPlot = self.plt3D.plot(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index])
         elif self.outStreamTypes[pltindex] == 'surface':
           if 'rstride' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['rstride'] = '1'
           if 'cstride' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['cstride'] = '1'

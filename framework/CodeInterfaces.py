@@ -208,17 +208,25 @@ class MooseBasedAppInterface:
     # the MOOSEparser needs to be modified in order to accept this variable type
     # for now the position (i.e. ':' at the end of a variable name) is discarded
     for var in Kwargs['SampledVars']:
-        key = var.split(':')
+        if 'alias' in Kwargs.keys():
+          if var in Kwargs['alias'].keys(): 
+            key = Kwargs['alias'][var].split(':')
+            varname = var
+        else: 
+          key = var.split(':')
+          varname = key[0]
         modifDict = {}
         modifDict['name'] = []
         modifDict['name'] = key[0].split('|')[:-1]
         modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
         listDict.append(modifDict)
         del modifDict
-        listDict.append({'name':['AuxVariables',key[0]],'family':'SCALAR'})
-        listDict.append({'name':['AuxVariables',key[0]],'initial_condition':Kwargs['SampledVars'][var]})
-        listDict.append({'name':['Postprocessors',key[0]],'type':'ScalarVariable'})
-        listDict.append({'name':['Postprocessors',key[0]],'variable':key[0]})
+        if Kwargs['reportit']:
+          listDict.append({'name':['AuxVariables',varname],'family':'SCALAR'})
+          listDict.append({'name':['AuxVariables',varname],'initial_condition':Kwargs['SampledVars'][var]})
+          listDict.append({'name':['Postprocessors',varname],'type':'ScalarVariable'})
+          listDict.append({'name':['Postprocessors',varname],'variable':varname})
+  
     return listDict
   
   def DynamicEventTreeForMooseBasedApp(self,**Kwargs):

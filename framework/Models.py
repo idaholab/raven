@@ -247,11 +247,10 @@ class Code(Model):
     import CodeInterfaces
     Model.readMoreXML(self, xmlNode)
     
-    if 'executable' in xmlNode.attrib.keys():
-      self.executable = xmlNode.attrib['executable']
-    else:
-      if xmlNode.text!=None: self.executable = xmlNode.text
-      else: raise Exception ('not found the attribute executable in the definition of the code model '+str(self.name))
+    if 'executable' in xmlNode.attrib.keys(): self.executable = xmlNode.attrib['executable']
+    else: 
+      try: self.executable = str(xmlNode.text)
+      except IOError: raise Exception ('not found the attribute executable in the definition of the code model '+str(self.name))
     for child in xmlNode:
       if child.tag=='alias':
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
@@ -302,6 +301,9 @@ class Code(Model):
     if currentInput[0].endswith('.i'): index = 0
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
+    Kwargs['alias']   = self.alias
+    if 'raven' in self.executable.lower(): Kwargs['reportit'] = False
+    else: Kwargs['reportit'] = True 
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
 

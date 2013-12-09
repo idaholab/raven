@@ -383,7 +383,7 @@ class AdaptiveSampler(Sampler):
     if inArray.size == expectedSize: return inArray
     elif inArray.size > expectedSize: return inArray[0:expectedSize]
     else:
-      print('resizing ARRAY....NOT OK NOT OK')
+      #print('resizing ARRAY....NOT OK NOT OK')
       returnArray = np.zeros(expectedSize)
       lastValue = inArray[-1]
       returnArray[0:inArray.size] = inArray[:]
@@ -417,11 +417,11 @@ class AdaptiveSampler(Sampler):
     inputsetandFunctionEval  = np.zeros((len(self.functionValue),self.nVar+1))
     if self.tolleranceWeight=='probability':
       for varID, varName in enumerate(self.axisName):
-        # inputsetandFunctionEval[:,varID]=map(self.distDict[varName].cdf,lastOutput.extractValue('numpy.ndarray',varName))
-        ###### TEMPORARY FIXX #######
         inputsetandFunctionEval[:,varID]=map(self.distDict[varName].cdf,self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size))
     else:
-      for varID, varName in enumerate(self.axisName): inputsetandFunctionEval[:,varID]=self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size)
+      for varID, varName in enumerate(self.axisName): 
+        inputsetandFunctionEval[:,varID]=self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size)
+       
     inputsetandFunctionEval[:,-1]=self.functionValue
 
     #printing 
@@ -514,9 +514,9 @@ class AdaptiveSampler(Sampler):
           self.surfPoint[:,coorIndex] = vectorPPF(arraySlice)
       if self.solutionExport!=None:
         for varName in self.solutionExport.dataParameters['inParam']:
-          if varName in self.axisName:
-            varIndex = self.axisName.index(varName)
-            self.solutionExport.inpParametersValues[varName] = self.surfPoint[:,varIndex]
+          for varIndex in range(len(self.axisName)):
+            if varName in self.axisName[varIndex]:
+              self.solutionExport.inpParametersValues[varName] = self.surfPoint[:,varIndex]
     if self.debug:
       print('Limit surface points')
       for coordinate in np.rollaxis(self.surfPoint,0):

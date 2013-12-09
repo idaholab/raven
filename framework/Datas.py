@@ -60,11 +60,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     try:
       self.print_CSV = bool(xmlNode.attrib['printCSV'])
     except KeyError:self.print_CSV = False
-    
     try:
       self.CSVfilename = xmlNode.attrib['CSVfilename']    
     except KeyError:self.CSVfilename = None
-
+    try:
+      self.dataParameters['input_ts'] = int(xmlNode.attrib['input_ts'])
+    except KeyError:self.dataParameters['input_ts'] = None
+    
   def addInitParams(self,tempDict):
     for i in range(len(self.dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self.dataParameters['inParam' ][i]
     for i in range(len(self.dataParameters['outParam'])): tempDict['Output_'+str(i)] = self.dataParameters['outParam'][i]
