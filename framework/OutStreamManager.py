@@ -464,20 +464,20 @@ class OutStreamPlot(OutStreamManager):
       else:
         if self.availableOutStreamTypes[self.dim].count(self.options['plot_settings']['plot'][pltindex]['type']) == 0: raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', unknown type '+self.options['plot_settings']['plot'][pltindex]['type']+'!') 
         self.outStreamTypes.append(self.options['plot_settings']['plot'][pltindex]['type']) 
-    #exec('import matplotlib as ' + 'mpl_' + self.name)
-    exec('self.mpl = __import__(matplotlib)')
-    #exec('self.mpl = mpl_' + self.name)
+    exec('import matplotlib as ' + 'mpl_' + self.name)
+    #exec('self.mpl = __import__("matplotlib")')
+    exec('self.mpl = mpl_' + self.name)
     print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
     if self.dim not in [2,3]: raise('STREAM MANAGER: ERROR -> This Plot interface is able to handle 2D-3D plot only')
     if not self.interactive or 'screen' not in self.options['how']['how']:
       self.interactive = False  # not needed interactive mode when no screen is requested
       self.mpl.use('Agg')       # set default backend to png
     #self.mpl.use('TkAgg')
-    exec('self.plt =  __import__(matplotlib.pyplot)')
-    #exec('import matplotlib.pyplot as ' + 'plt_' + self.name)
-    #exec('self.plt = plt_' + self.name)
+    #exec('self.plt =  __import__("matplotlib.pyplot")')
+    exec('import matplotlib.pyplot as ' + 'plt_' + self.name)
+    exec('self.plt = plt_' + self.name)
     if self.interactive:self.plt.ion()
-    #if self.dim == 3:  exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
+    if self.dim == 3:  exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
     self.fig = self.plt.figure()
     if self.dim == 3: self.plt3D = self.fig.add_subplot(111, projection='3d')
   def addOutput(self):
