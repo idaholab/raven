@@ -167,7 +167,7 @@ else
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
 
-if $PYTHON_CMD -c 'import matplotlib'
+if $PYTHON_CMD -c 'import matplotlib,sys; sys.exit(not matplotlib.__version__ > "1.3")'
 then 
     echo matplotlib module already built
 else
