@@ -281,8 +281,12 @@ class hdf5Database(object):
       if 'input_space_params' in source['name'].keys():
         testkey   = []
         testvalue = []
-        for i in range(len(source['name']['input_space_params'].keys())): testkey.append(bytes(source['name']['input_space_params'].keys()[i]))
-        for i in range(len(source['name']['input_space_params'].values())): testvalue.append(bytes(source['name']['input_space_params'].values()[i]))        
+        input_space_params_keys = list(source['name']['input_space_params'].keys())
+        for i in range(len(input_space_params_keys)): 
+          testkey.append(toBytes(input_space_params_keys[i]))
+        input_space_params_values = list(source['name']['input_space_params'].values())
+        for i in range(len(input_space_params_values)): 
+          testvalue.append(toBytes(input_space_params_values[i]))        
 #        groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(source['name']['input_space_params'].keys()[i])  for i in range(len(source['name'].keys()['input_space_params'].keys()))]) 
 #        groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(source['name']['input_space_params'].values()[i])  for i in range(len(source['name'].keys()['input_space_params'].values()))])
         groups.attrs[b'input_space_headers' ] = copy.deepcopy(testkey) 
@@ -309,8 +313,9 @@ class hdf5Database(object):
         if list(source['name'].keys())[index]== 'input_space_params': cnt -= cnt  
         else: 
           cnt = index
-          if type(source['name'].values()[cnt]) == np.ndarray:  dataout[0:source['name'].values()[cnt].size,cnt] =  copy.deepcopy(source['name'].values()[cnt][:])
-          else: dataout[0,cnt] = copy.deepcopy(source['name'].values()[cnt])
+          name_values = list(source['name'].values())
+          if type(name_values[cnt]) == np.ndarray:  dataout[0:name_values[cnt].size,cnt] =  copy.deepcopy(name_values[cnt][:])
+          else: dataout[0,cnt] = copy.deepcopy(name_values[cnt])
       # create the data set
       dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
       if parent_group_name != "/":
