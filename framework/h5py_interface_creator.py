@@ -295,7 +295,7 @@ class hdf5Database(object):
         #out_headers.remove('input_space_params')
       else: out_headers = list(source['name'].keys())
       groups.attrs[b'n_params'   ] = len(out_headers)  
-      groups.attrs[b'output_space_headers'] = copy.deepcopy([bytes(out_headers[i])  for i in range(len(out_headers))]) 
+      groups.attrs[b'output_space_headers'] = copy.deepcopy([toBytes(str(out_headers[i]))  for i in range(len(out_headers))]) 
       groups.attrs[b'EndGroup'   ] = True
       groups.attrs[b'parent_id'  ] = parent_name
       maxsize = 0
