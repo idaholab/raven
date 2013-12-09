@@ -417,9 +417,9 @@ class AdaptiveSampler(Sampler):
     inputsetandFunctionEval  = np.zeros((len(self.functionValue),self.nVar+1))
     if self.tolleranceWeight=='probability':
       for varID, varName in enumerate(self.axisName):
-        # inputsetandFunctionEval[:,varID]=map(self.distDict[varName].distribution.cdf,lastOutput.extractValue('numpy.ndarray',varName))
+        # inputsetandFunctionEval[:,varID]=map(self.distDict[varName].cdf,lastOutput.extractValue('numpy.ndarray',varName))
         ###### TEMPORARY FIXX #######
-        inputsetandFunctionEval[:,varID]=map(self.distDict[varName].distribution.cdf,self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size))
+        inputsetandFunctionEval[:,varID]=map(self.distDict[varName].cdf,self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size))
     else:
       for varID, varName in enumerate(self.axisName): inputsetandFunctionEval[:,varID]=self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size)
     inputsetandFunctionEval[:,-1]=self.functionValue
@@ -430,12 +430,12 @@ class AdaptiveSampler(Sampler):
       if self.tolleranceWeight=='probability':
         for values in np.rollaxis(inputsetandFunctionEval,0):
           myStr = ''
-          for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].distribution.ppf(values[iVar]))+'      '
+          for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].ppf(values[iVar]))+'      '
           print(myStr+'  value: '+str(values[-1]))
       else:
         for values in np.rollaxis(inputsetandFunctionEval,0):
           myStr = ''
-          for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].distribution.cdf(values[iVar]))+'      '
+          for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].cdf(values[iVar]))+'      '
           print(myStr+'  value: '+str(values[-1]))
 
     #generate the fine grid solution based on proximity with the point sampled and check the error or use a ROM
@@ -510,7 +510,7 @@ class AdaptiveSampler(Sampler):
       if self.tolleranceWeight=='probability':
         for coorIndex, arraySlice in enumerate(np.rollaxis(self.surfPoint,1)):
           varName                     = self.axisName[coorIndex]
-          vectorPPF                   = np.vectorize(self.distDict[varName].distribution.ppf)
+          vectorPPF                   = np.vectorize(self.distDict[varName].ppf)
           self.surfPoint[:,coorIndex] = vectorPPF(arraySlice)
       if self.solutionExport!=None:
         for varName in self.solutionExport.dataParameters['inParam']:
@@ -538,16 +538,16 @@ class AdaptiveSampler(Sampler):
       surfPointInPb = np.empty_like(self.surfPoint)
       if self.tolleranceWeight=='probability':
         for varID, varName in enumerate(self.axisName):
-          surfPointInPb[:,varID] = map(self.distDict[varName].distribution.cdf,self.surfPoint[:,varID])
+          surfPointInPb[:,varID] = map(self.distDict[varName].cdf,self.surfPoint[:,varID])
       else: surfPointInPb=self.surfPoint
       distance, outId       =  self.myTree.query(surfPointInPb)
       maxIndex = distance.argmax()
       for varId, varName in enumerate(self.axisName):
-        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].distribution.ppf(surfPointInPb[maxIndex,varId]+self.gridStepSize[varId]*(np.random.rand()-0.499))
+        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId]+self.gridStepSize[varId]*(np.random.rand()-0.499))
         else:self.values[varName] = surfPointInPb[maxIndex,varId]*self.gridStepSize[varId]*(np.random.rand()-0.499)
     else:
       for key in self.distDict:
-        self.values[key]=self.distDict[key].distribution.ppf(float(np.random.rand()))
+        self.values[key]=self.distDict[key].ppf(float(np.random.rand()))
       self.inputInfo['initial_seed'] = str(self.initSeed)
     if self.debug:
       print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
@@ -682,7 +682,7 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
-    for key in self.distDict: self.values[key]=self.distDict[key].distribution.rvs()
+    for key in self.distDict: self.values[key]=self.distDict[key].rvs()
     self.inputInfo['initial_seed'] = str(self.initSeed)
 #
 #
@@ -753,7 +753,7 @@ class Grid(Sampler):
       elif remainder == 0 and temp == 0 : self.gridCoordinate[i] = len(self.gridInfo[varName][2])-1
       else: self.gridCoordinate[i] = temp
       if self.gridInfo[varName][0]=='CDF':
-        self.values[varName] = self.distDict[varName].distribution.ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+        self.values[varName] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
       elif self.gridInfo[varName][0]=='value':
         self.values[varName] = self.gridInfo[varName][2][self.gridCoordinate[i]]
 
@@ -801,9 +801,9 @@ class LHS(Grid):
       intervalFraction = np.random.random()
       coordinate = lower + (upper-lower)*intervalFraction
       if self.gridInfo[varName][0] =='CDF':
-        self.values[varName] = self.distDict[varName].distribution.ppf(coordinate)
-        self.inputInfo['upper'][varName] = self.distDict[varName].distribution.ppf(max(upper,lower))
-        self.inputInfo['lower'][varName] = self.distDict[varName].distribution.ppf(min(upper,lower))
+        self.values[varName] = self.distDict[varName].ppf(coordinate)
+        self.inputInfo['upper'][varName] = self.distDict[varName].ppf(max(upper,lower))
+        self.inputInfo['lower'][varName] = self.distDict[varName].ppf(min(upper,lower))
       elif self.gridInfo[varName][0]=='value':
         self.values[varName] = coordinate
         self.inputInfo['upper'][varName] = max(upper,lower)
@@ -1305,11 +1305,11 @@ class DynamicEventTree(Sampler):
     if (len(self.branchProbabilities.keys()) != 0):
       #compute the associated invCDF values
       for key in self.branchProbabilities.keys():
-        self.branchValues[key] = [copy.deepcopy(self.distDict[key].distribution.ppf(float(self.branchProbabilities[key][index]))) for index in range(len(self.branchProbabilities[key]))]
+        self.branchValues[key] = [copy.deepcopy(self.distDict[key].ppf(float(self.branchProbabilities[key][index]))) for index in range(len(self.branchProbabilities[key]))]
     else:
       #compute the associated CDF values
       for key in self.branchValues.keys():
-        self.branchProbabilities[key] = [copy.deepcopy(self.distDict[key].distribution.ppf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
+        self.branchProbabilities[key] = [copy.deepcopy(self.distDict[key].ppf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
     return
 
 '''

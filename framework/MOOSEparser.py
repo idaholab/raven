@@ -55,7 +55,7 @@ class MOOSEparser:
       for string in xmlnode.tail if xmlnode.tail else []:
         IOfile.write(b'    '*indentMultiplier+string+b'\n')
       for key in xmlnode.attrib.keys(): 
-        IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(str(xmlnode.attrib[key]))+b'\n')
+        IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(toStrish(xmlnode.attrib[key]))+b'\n')
 
     if outfile==None: outfile =self.inputfile
     IOfile = open(outfile,'wb')
@@ -64,7 +64,7 @@ class MOOSEparser:
       if child.tail:
         for string in child.tail:IOfile.write(b'  '+string+b'\n')
       for key in child.attrib.keys(): 
-        IOfile.write(b'  '+toBytes(key)+b' = '+toBytes(str(child.attrib[key]))+b'\n')
+        IOfile.write(b'  '+toBytes(key)+b' = '+toBytes(toStrish(child.attrib[key]))+b'\n')
       for childChild in child:
         printSubLevels(childChild,IOfile,1)
         for childChildChild in childChild:

@@ -15,6 +15,13 @@ import os
 import sys
 #External Modules
 
+frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+
+#Add the module directory to the search path.
+moduleDir = os.path.join(os.path.dirname(frameworkDir),"control_modules")
+print("moduleDir",moduleDir)
+sys.path.append(moduleDir)
+
 #Internal Modules
 from Simulation import Simulation
 #Internal Modules
@@ -39,7 +46,7 @@ if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''
   # Retrieve the framework directory path and working dir
   printStatement()
-  frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+
   workingDir = os.getcwd()
 
   simulation = Simulation(frameworkDir,debug=debug)

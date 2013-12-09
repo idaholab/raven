@@ -15,6 +15,7 @@ if not 'xrange' in dir(__builtins__):
 #import xml.etree.ElementTree as ET
 import numpy as np
 from BaseType import BaseType
+from utils import toString
 #from Csv_loader import CsvLoader as ld
 #import DataBases
 
@@ -156,6 +157,62 @@ class OutStream(BaseType):
     '''
     pass
 
+class MatplotLibPlot(OutStream):
+  ''' interface to matplotlib
+  self.format and self.backend need to be defined
+  '''
+
+  def addOutput(self,toLoadFrom):
+    '''
+    Function to add a new output source (for example a CSV file or a HDF5 object)
+    @ In, toLoadFrom, source object
+    @ Out, None 
+    '''                
+           
+    print('FILTER SCREENPLOT: toLoadFrom :')
+    print(toLoadFrom)
+    # Append loading object in the list
+    self.toLoadFromList.append(toLoadFrom)
+    # Retrieve Histories
+    self.retrieveHistories()
+    # Retrieve headers
+    headers = self.histories[self.alreadyRead[0]][1]['headers']
+#    timeVar = ''
+    # Find where the time evolution is stored
+    for i in xrange(len(headers)):
+      if toString(headers[i].lower()) == 'time':
+        #timeVar = headers.pop(i)
+        timeLoc = i
+        break
+    # Create the output file
+    print("variables",self.variables)
+    for index in xrange(len(headers)):
+      print("index",index,"headers[index]",headers[index])
+      if toString(headers[index].lower()) != 'time':
+        if not toString(self.variables[0])=='all':
+          if toString(headers[index]) in self.variables:
+            plot_it = True
+          else:
+            plot_it = False
+        else:    
+          plot_it = True
+        if plot_it:
+          self.plt.figure()
+          self.plt.xlabel(headers[timeLoc])
+          self.plt.ylabel(headers[index])
+          self.plt.title('Plot of histories')
+          for key in self.histories:
+            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
+          self.fileCount += 1
+          fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.'+self.format
+          print("filename",fileName,"backend",self.matplotlib.get_backend())
+          if self.matplotlib.get_backend().lower() != self.backend:
+            self.plt.switch_backend(self.backend)
+          self.plt.savefig(fileName, format=self.format)
+    return
+
+
+
 class ScreenPlot(OutStream):
   '''
   Specialized OutStream class ScreenPlot: Show data on the screan
@@ -263,15 +320,15 @@ class PdfPlot(OutStream):
 #    timeVar = ''
     # Find where the time evolution is stored
     for i in xrange(len(headers)):
-      if headers[i].lower() == 'time':
+      if toString(headers[i].lower()) == 'time':
         #timeVar = headers.pop(i)
         timeLoc = i
         break
     # Create the PDF
     for index in xrange(len(headers)):
-      if headers[index].lower() != 'time':
-        if not self.variables[0]=='all':
-          if headers[index] in self.variables:
+      if toString(headers[index].lower()) != 'time':
+        if not toString(self.variables[0])=='all':
+          if toString(headers[index]) in self.variables:
             plot_it = True
           else:
             plot_it = False  
@@ -299,7 +356,7 @@ class PdfPlot(OutStream):
     '''
     self.pp.close()
 
-class PngPlot(OutStream):
+class PngPlot(MatplotLibPlot):
   '''
   Specialized OutStream class PngPlot: Create of PNG picture of data
   '''
@@ -311,53 +368,8 @@ class PngPlot(OutStream):
     import matplotlib.pyplot as plt
     self.plt = plt
     self.matplotlib = matplotlib
-
-  def addOutput(self,toLoadFrom):
-    '''
-    Function to add a new output source (for example a CSV file or a HDF5 object)
-    @ In, toLoadFrom, source object
-    @ Out, None 
-    '''                
-           
-    print('FILTER SCREENPLOT: toLoadFrom :')
-    print(toLoadFrom)
-    # Append loading object in the list
-    self.toLoadFromList.append(toLoadFrom)
-    # Retrieve Histories
-    self.retrieveHistories()
-    # Retrieve headers
-    headers = self.histories[self.alreadyRead[0]][1]['headers']
-#    timeVar = ''
-    # Find where the time evolution is stored
-    for i in xrange(len(headers)):
-      if headers[i].lower() == 'time':
-        #timeVar = headers.pop(i)
-        timeLoc = i
-        break
-    # Create the PNG output file
-    for index in xrange(len(headers)):
-      if headers[index].lower() != 'time':
-        if not self.variables[0]=='all':
-          if headers[index] in self.variables:
-            plot_it = True
-          else:
-            plot_it = False
-        else:    
-          plot_it = True
-        if plot_it:
-          self.plt.figure()
-          self.plt.xlabel(headers[timeLoc])
-          self.plt.ylabel(headers[index])
-          self.plt.title('Plot of histories')
-          for key in self.histories:
-            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-          self.fileCount += 1
-          fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.png'
-          #print("filename",fileName,"backend",self.matplotlib.get_backend())
-          if self.matplotlib.get_backend().lower() != "agg":
-            self.plt.switch_backend("agg")
-          self.plt.savefig(fileName, format="png")
-    return
+    self.format = "png"
+    self.backend = "agg"
 
 
   def finalize(self):
@@ -368,7 +380,7 @@ class PngPlot(OutStream):
     '''
     return
 
-class JpegPlot(OutStream):
+class JpegPlot(MatplotLibPlot):
   '''
   Specialized OutStream class JpegPlot: Create of JPEG picture of data
   '''
@@ -380,55 +392,8 @@ class JpegPlot(OutStream):
     import matplotlib.pyplot as plt
     self.plt = plt
     self.matplotlib = matplotlib
-
-  def addOutput(self,toLoadFrom):
-    '''
-    Function to add a new output source (for example a CSV file or a HDF5 object)
-    @ In, toLoadFrom, source object
-    @ Out, None 
-    '''                
-           
-    print('FILTER SCREENPLOT: toLoadFrom :')
-    print(toLoadFrom)
-    # Append loading object in the list
-    self.toLoadFromList.append(toLoadFrom)
-    # Retrieve Histories
-    self.retrieveHistories()
-    # Retrieve headers
-    headers = self.histories[self.alreadyRead[0]][1]['headers']
-#    timeVar = ''
-    # Find where the time evolution is stored
-    for i in xrange(len(headers)):
-      if headers[i].lower() == 'time':
-        #timeVar = headers.pop(i)
-        timeLoc = i
-        break
-
-    # Create the JPEG output file
-    for index in xrange(len(headers)):
-      if headers[index].lower() != 'time':
-        if not self.variables[0]=='all':
-          if headers[index] in self.variables:
-            plot_it = True
-          else:
-            plot_it = False
-        else:    
-          plot_it = True
-        if plot_it:
-          self.plt.figure()
-          self.plt.xlabel(headers[timeLoc])
-          self.plt.ylabel(headers[index])
-          self.plt.title('Plot of histories')
-          for key in self.histories:
-            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-          self.fileCount += 1
-          fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.jpeg'
-          #print("filename",fileName,"backend",self.matplotlib.get_backend())
-          if self.matplotlib.get_backend().lower() != "agg":
-            self.plt.switch_backend("agg")
-          self.plt.savefig(fileName, format="jpeg")
-    return
-
+    self.format = "jpeg"
+    self.backend = "agg"
 
   def finalize(self):
     '''
@@ -439,7 +404,7 @@ class JpegPlot(OutStream):
     return
 
 
-class EpsPlot(OutStream):
+class EpsPlot(MatplotLibPlot):
   '''
   Specialized OutStream class EpsPlot: Create of EPS picture of data
   '''
@@ -451,52 +416,9 @@ class EpsPlot(OutStream):
     import matplotlib.pyplot as plt
     self.plt = plt
     self.matplotlib = matplotlib
+    self.format = "eps"
+    self.backend = "ps"
 
-  def addOutput(self,toLoadFrom):
-    '''
-    Function to add a new output source (for example a CSV file or a HDF5 object)
-    @ In, toLoadFrom, source object
-    @ Out, None 
-    '''                
-           
-    print('FILTER SCREENPLOT: toLoadFrom :')
-    print(toLoadFrom)
-    # Append loading object in the list
-    self.toLoadFromList.append(toLoadFrom)
-    # Retrieve Histories
-    self.retrieveHistories()
-    # Retrieve headers
-    headers = self.histories[self.alreadyRead[0]][1]['headers']
-#    timeVar = ''
-    # Find where the time evolution is stored
-    for i in xrange(len(headers)):
-      if headers[i].lower() == 'time':
-        #timeVar = headers.pop(i)
-        timeLoc = i
-        break
-    # Create the EPS output file
-    for index in xrange(len(headers)):
-      if headers[index].lower() != 'time':
-        if not self.variables[0]=='all':
-          if headers[index] in self.variables:
-            plot_it = True
-          else:
-            plot_it = False
-        else:    
-          plot_it = True
-        if plot_it:
-          self.plt.figure()
-          self.plt.xlabel(headers[timeLoc])
-          self.plt.ylabel(headers[index])
-          self.plt.title('Plot of histories')
-          for key in self.histories:
-            self.plt.plot(self.histories[key][0][:,timeLoc],self.histories[key][0][:,index])
-          self.fileCount += 1
-          fileName = self.fileNameRoot + "_" + str(self.fileCount) + '.eps'
-          if self.matplotlib.get_backend().lower() != "ps":
-            self.plt.switch_backend("ps")
-          self.plt.savefig(fileName, format="eps")
-    return
 
   def finalize(self):
     '''

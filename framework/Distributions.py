@@ -57,11 +57,11 @@ class Distribution(BaseType):
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
     point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
-    return self.distribution.ppf(point)
+    return self._distribution.ppf(point)
 
   def rvsWithinbounds(self,LowerBound,upperBound):
-    CDFupper = self.distribution.cdf(upperBound)
-    CDFlower = self.distribution.cdf(LowerBound)
+    CDFupper = self._distribution.cdf(upperBound)
+    CDFlower = self._distribution.cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def setQuad(self,quad,exp_order):
@@ -75,6 +75,15 @@ class Distribution(BaseType):
   def polyOrder(self):
     try: return self.__exp_order
     except AttributeError: raise IOError ('Quadrature has not been set for this distr. yet.')
+
+  def cdf(self,*args):
+    return self._distribution.cdf(*args)
+
+  def ppf(self,*args):
+    return self._distribution.ppf(*args)
+
+  def rvs(self,*args):
+    return self._distribution.rvs(*args)
 
 #==============================================================\
 #    Distributions convenient for stochastic collocation
@@ -107,11 +116,11 @@ class Uniform(Distribution):
 
     def standardToActualPoint(x): #standard -> actual
       '''Given a [-1,1] point, converts to parameter value.'''
-      return x*self.range/2.+self.distribution.mean()
+      return x*self.range/2.+self._distribution.mean()
 
     def actualToStandardPoint(x): #actual -> standard
       '''Given a parameter value, converts to [-1,1] point.'''
-      return (x-self.distribution.mean())/(self.range/2.)
+      return (x-self._distribution.mean())/(self.range/2.)
 
     def standardToActualWeight(x): #standard -> actual
       '''Given normal quadrature weight, returns adjusted weight.'''
@@ -137,7 +146,7 @@ class Uniform(Distribution):
     # no other additional parameters required
 
   def initializeDistribution(self):
-    self.distribution = dist.uniform(loc=self.low,scale=self.range)
+    self._distribution = dist.uniform(loc=self.low,scale=self.range)
 
 
 class Normal(Distribution):
@@ -165,16 +174,16 @@ class Normal(Distribution):
 
   def initializeDistribution(self):
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self.distribution = dist.norm(loc=self.mean,scale=self.sigma)
+      self._distribution = dist.norm(loc=self.mean,scale=self.sigma)
       self.polynomial = polys.hermitenorm
       def norm(n):
         return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
 
       def standardToActualPoint(x): #standard -> actual
-        return x*self.sigma**2/2.+self.distribution.mean()
+        return x*self.sigma**2/2.+self._distribution.mean()
 
       def actualToStandardPoint(x): #actual -> standard
-        return (x-self.distribution.mean())/(self.sigma**2/2.)
+        return (x-self._distribution.mean())/(self.sigma**2/2.)
 
       def standardToActualWeight(x): #standard -> actual
         return x/(self.sigma**2/2.)
@@ -193,7 +202,7 @@ class Normal(Distribution):
       else:a = (self.lowerBound - self.mean) / self.sigma
       if self.upperBoundUsed == False: b = sys.float_info[max]
       else:b = (self.upperBound - self.mean) / self.sigma
-      self.distribution = dist.truncnorm(a,b,loc=self.mean,scale=self.sigma)
+      self._distribution = dist.truncnorm(a,b,loc=self.mean,scale=self.sigma)
     
 class Gamma(Distribution):
   def __init__(self):
@@ -224,7 +233,7 @@ class Gamma(Distribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    self.distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
+    self._distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
     self.polynomial = polys.genlaguerre
     def norm(n):
       return np.sqrt(factorial(n)/polys.gamma(n+self.alpha+1.0))
@@ -282,7 +291,7 @@ class Beta(Distribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    self.distribution = dist.beta(self.alpha,self.beta,scale=self.hi-self.low)
+    self._distribution = dist.beta(self.alpha,self.beta,scale=self.hi-self.low)
 
 #==========================================================\
 #    other distributions
@@ -321,7 +330,7 @@ class Triangular(Distribution):
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       c = (self.apex-self.min)/(self.max-self.min)
-      self.distribution = dist.triang(c,loc=self.min,scale=(self.max-self.min))
+      self._distribution = dist.triang(c,loc=self.min,scale=(self.max-self.min))
     else:
       raise IOError ('Truncated triangular not yet implemented')
     
@@ -345,7 +354,7 @@ class Poisson(Distribution):
     
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self.distribution = dist.poisson(self.mu)
+      self._distribution = dist.poisson(self.mu)
     else:
       raise IOError ('Truncated poisson not yet implemented')    
     
@@ -374,7 +383,7 @@ class Binomial(Distribution):
     
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self.distribution = dist.binom(n=self.n,p=self.p)
+      self._distribution = dist.binom(n=self.n,p=self.p)
     else:
       raise IOError ('Truncated Binomial not yet implemented')   
 

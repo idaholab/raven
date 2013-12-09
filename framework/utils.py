@@ -10,6 +10,14 @@ def toBytes(s):
   else:
     return s
 
+def toStrish(s):
+  if type(s) == type(""):
+    return s
+  elif type(s) == type(b""):
+    return s
+  else:
+    return str(s)
+
 def metaclass_insert(metaclass,*base_classes):
   """This allows a metaclass to be inserted as a base class.
   Metaclasses substitute in as a type(name,bases,namespace) function,
