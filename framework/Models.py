@@ -202,17 +202,24 @@ class ExternalModel(Model):
     if 'collectOutput' in dir(self.sim):
       self.sim.collectOutput(self,finisishedjob,output)
     self.__pointSolution()
+    def typeMatch(var,var_type_str):
+      type_var = type(var)
+      return type_var.__name__ == var_type_str or \
+        type_var.__module__+"."+type_var.__name__ == var_type_str
     if 'HDF5' in output.type:
       for key in self.modelVariableValues: 
-        exec('if not (type(self.modelVariableValues[key]) == '+ self.modelVariableType[key] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!")')
+        if not (typeMatch(self.modelVariableValues[key],self.modelVariableType[key])):
+          raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
       output.addGroupDatas({'group':str(self.counter)},self.modelVariableValues)
     else:
       if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
       for inputName in output.dataParameters['inParam']:
-        exec('if not (type(self.modelVariableValues[inputName]) == '+ self.modelVariableType[inputName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' is ' + str(type(self.modelVariableValues[inputName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[inputName] +')!!!")')
+        if not (typeMatch(self.modelVariableValues[inputName],self.modelVariableType[inputName])):
+          raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' is ' + str(type(self.modelVariableValues[inputName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[inputName] +')!!!')
         output.updateInputValue(inputName,self.modelVariableValues[inputName])
       for outName in output.dataParameters['outParam']:
-        exec('if not (type(self.modelVariableValues[outName]) == '+ self.modelVariableType[outName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ outName + ' is ' + str(type(self.modelVariableValues[outName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[outName] +')!!!")')
+        if not (typeMatch(self.modelVariableValues[outName],self.modelVariableType[outName])):
+          raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ outName + ' is ' + str(type(self.modelVariableValues[outName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[outName] +')!!!')
         output.updateOutputValue(outName,self.modelVariableValues[outName])
       output.printCSV()    
     
