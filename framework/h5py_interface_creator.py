@@ -287,9 +287,9 @@ class hdf5Database(object):
 #        groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(source['name']['input_space_params'].values()[i])  for i in range(len(source['name'].keys()['input_space_params'].values()))])
         groups.attrs[b'input_space_headers' ] = copy.deepcopy(testkey) 
         groups.attrs[b'input_space_values' ] = copy.deepcopy(testvalue)
-        out_headers = source['name'].keys()
+        out_headers = list(source['name'].keys())
         #out_headers.remove('input_space_params')
-      else: out_headers = source['name'].keys()
+      else: out_headers = list(source['name'].keys())
       groups.attrs[b'n_params'   ] = len(out_headers)  
       groups.attrs[b'output_space_headers'] = copy.deepcopy([bytes(out_headers[i])  for i in range(len(out_headers))]) 
       groups.attrs[b'EndGroup'   ] = True
@@ -306,7 +306,7 @@ class hdf5Database(object):
       dataout = np.zeros((maxsize,len(out_headers)))
       cnt = 0
       for index in range(len(source['name'].keys())):
-        if source['name'].keys()[index]== 'input_space_params': cnt -= cnt  
+        if list(source['name'].keys())[index]== 'input_space_params': cnt -= cnt  
         else: 
           cnt = index
           if type(source['name'].values()[cnt]) == np.ndarray:  dataout[0:source['name'].values()[cnt].size,cnt] =  copy.deepcopy(source['name'].values()[cnt][:])
