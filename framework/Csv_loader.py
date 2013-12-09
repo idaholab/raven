@@ -329,7 +329,7 @@ class CsvLoader:
     outDict = {}  
     
     if(self.all_out_param):
-      sopeelf.field_names = self.all_field_names
+      self.field_names = self.all_field_names
     else:
       self.field_names = outParam
       self.field_names.insert(0, 'time') 
@@ -338,7 +338,7 @@ class CsvLoader:
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
-          inDict[key] = np.atleast_1d(np.array(data[input_ts,ix]))
+          inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
         else:
           raise Exception("ERROR: the parameter " + key + " has not been found")
     
