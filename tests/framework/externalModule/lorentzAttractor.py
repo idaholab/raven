@@ -11,7 +11,7 @@ def initialize(self,runInfoDict,inputFiles):
   
   self.sigma = 10.0
   self.rho   = 28.0
-  self.beta  = 8/3
+  self.beta  = 8.0/3.0
   
     #self.fig=pyl.figure()
     #self.ax = p3.Axes3D(self.fig)

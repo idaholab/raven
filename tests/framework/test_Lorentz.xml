@@ -11,7 +11,7 @@
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModule/lorentzAttractor'>  
        <variable type='float'>sigma</variable>
        <variable type='float'>rho</variable>
-       <variable type='int'>beta</variable>
+       <variable type='float'>beta</variable>
        <variable type='numpy.ndarray'>x</variable>
        <variable type='numpy.ndarray'>y</variable>
        <variable type='numpy.ndarray'>z</variable>
