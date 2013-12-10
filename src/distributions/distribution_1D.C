@@ -61,7 +61,7 @@ BasicUniformDistribution::~BasicUniformDistribution()
 }
 
 double
-BasicUniformDistribution::Pdf(double & x){
+BasicUniformDistribution::Pdf(double x){
   return boost::math::pdf(_uniform->_backend,x);
   /*double value;
    if (x<_dis_parameters.find("xMin") ->second)
@@ -73,7 +73,7 @@ BasicUniformDistribution::Pdf(double & x){
            return value;*/
 }
 double
-BasicUniformDistribution::Cdf(double & x){
+BasicUniformDistribution::Cdf(double x){
   //double value;
 
   return boost::math::cdf(_uniform->_backend,x); 
@@ -90,7 +90,7 @@ BasicUniformDistribution::Cdf(double & x){
            return value;*/
 }
 double
-BasicUniformDistribution::RandomNumberGenerator(double & RNG){
+BasicUniformDistribution::RandomNumberGenerator(double RNG){
   double value;
     
    if ((RNG<0)&&(RNG>1))
@@ -120,17 +120,17 @@ BasicUniformDistribution::RandomNumberGenerator(double & RNG){
    return value;
 }
 
-double  BasicUniformDistribution::untrPdf(double & x){
+double  BasicUniformDistribution::untrPdf(double x){
    double value=Pdf(x);
    return value;
 }
 
-double  BasicUniformDistribution::untrCdf(double & x){
+double  BasicUniformDistribution::untrCdf(double x){
    double value=Cdf(x);
    return value;
 }
 
-double  BasicUniformDistribution::untrRandomNumberGenerator(double & RNG){
+double  BasicUniformDistribution::untrRandomNumberGenerator(double RNG){
    double value=RandomNumberGenerator(RNG);
    return value;
 }
@@ -159,7 +159,7 @@ BasicNormalDistribution::~BasicNormalDistribution(){
 }
 
 double
-BasicNormalDistribution::untrPdf(double & x){
+BasicNormalDistribution::untrPdf(double x){
   return boost::math::pdf(_normal->_backend, x);
     /*
    double mu=_dis_parameters.find("mu") ->second;
@@ -170,7 +170,7 @@ BasicNormalDistribution::untrPdf(double & x){
 }
 
 double
-BasicNormalDistribution::untrCdf(double & x){
+BasicNormalDistribution::untrCdf(double x){
   return boost::math::cdf(_normal->_backend, x);
   /*double mu=_dis_parameters.find("mu") ->second;
    double sigma=_dis_parameters.find("sigma") ->second;
@@ -180,7 +180,7 @@ BasicNormalDistribution::untrCdf(double & x){
 }
 
 double
-BasicNormalDistribution::untrRandomNumberGenerator(double & RNG){
+BasicNormalDistribution::untrRandomNumberGenerator(double RNG){
   return boost::math::quantile(_normal->_backend, RNG);
   /*
    double stdNorm;
@@ -203,7 +203,7 @@ BasicNormalDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-BasicNormalDistribution::Pdf(double & x){
+BasicNormalDistribution::Pdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -217,7 +217,7 @@ BasicNormalDistribution::Pdf(double & x){
 }
 
 double
-BasicNormalDistribution::Cdf(double & x){
+BasicNormalDistribution::Cdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -231,7 +231,7 @@ BasicNormalDistribution::Cdf(double & x){
 }
 
 double
-BasicNormalDistribution::RandomNumberGenerator(double & RNG){
+BasicNormalDistribution::RandomNumberGenerator(double RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -290,7 +290,7 @@ BasicLogNormalDistribution::~BasicLogNormalDistribution()
 }
 
 double
-BasicLogNormalDistribution::untrPdf(double & x){
+BasicLogNormalDistribution::untrPdf(double x){
   return boost::math::pdf(_logNormal->_backend, x);
   /*double value;
    double mu=_dis_parameters.find("mu") ->second;
@@ -305,7 +305,7 @@ BasicLogNormalDistribution::untrPdf(double & x){
 }
 
 double
-BasicLogNormalDistribution::untrCdf(double & x){
+BasicLogNormalDistribution::untrCdf(double x){
   //std::cout << "LogNormalDistribution::untrCdf " << x << std::endl;
   if(x <= 0) {
     return 0.0;
@@ -325,7 +325,7 @@ BasicLogNormalDistribution::untrCdf(double & x){
 }
 
 double
-BasicLogNormalDistribution::untrRandomNumberGenerator(double & RNG){
+BasicLogNormalDistribution::untrRandomNumberGenerator(double RNG){
   return boost::math::quantile(_logNormal->_backend, RNG);
   /*  double stdNorm;
    double value;
@@ -344,7 +344,7 @@ BasicLogNormalDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-BasicLogNormalDistribution::Pdf(double & x){
+BasicLogNormalDistribution::Pdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -358,7 +358,7 @@ BasicLogNormalDistribution::Pdf(double & x){
 }
 
 double
-BasicLogNormalDistribution::Cdf(double & x){
+BasicLogNormalDistribution::Cdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -372,7 +372,7 @@ BasicLogNormalDistribution::Cdf(double & x){
 }
 
 double
-BasicLogNormalDistribution::RandomNumberGenerator(double & RNG){
+BasicLogNormalDistribution::RandomNumberGenerator(double RNG){
   double value;
   double xMin = _dis_parameters.find("xMin") ->second;
   double xMax = _dis_parameters.find("xMax") ->second;
@@ -436,7 +436,7 @@ BasicTriangularDistribution::~BasicTriangularDistribution()
 }
 
 double
-BasicTriangularDistribution::untrPdf(double & x){
+BasicTriangularDistribution::untrPdf(double x){
   return boost::math::pdf(_triangular->_backend,x);
   /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
@@ -455,7 +455,7 @@ BasicTriangularDistribution::untrPdf(double & x){
       return value;*/
 }
 
-double  BasicTriangularDistribution::untrCdf(double & x){
+double  BasicTriangularDistribution::untrCdf(double x){
   return boost::math::cdf(_triangular->_backend,x);
   /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
@@ -475,7 +475,7 @@ double  BasicTriangularDistribution::untrCdf(double & x){
 }
 
 double
-BasicTriangularDistribution::untrRandomNumberGenerator(double & RNG){
+BasicTriangularDistribution::untrRandomNumberGenerator(double RNG){
   return boost::math::quantile(_triangular->_backend,RNG);
   /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
@@ -493,7 +493,7 @@ BasicTriangularDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-BasicTriangularDistribution::Pdf(double & x){
+BasicTriangularDistribution::Pdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -510,7 +510,7 @@ BasicTriangularDistribution::Pdf(double & x){
 }
 
 double
-BasicTriangularDistribution::Cdf(double & x){
+BasicTriangularDistribution::Cdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -530,7 +530,7 @@ BasicTriangularDistribution::Cdf(double & x){
    }
 
 double
-BasicTriangularDistribution::RandomNumberGenerator(double & RNG){
+BasicTriangularDistribution::RandomNumberGenerator(double RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -586,7 +586,7 @@ BasicExponentialDistribution::~BasicExponentialDistribution()
 }
 
 double
-BasicExponentialDistribution::untrPdf(double & x){
+BasicExponentialDistribution::untrPdf(double x){
   return boost::math::pdf(_exponential->_backend, x);
   /*double value;
    double lambda=_dis_parameters.find("lambda") ->second;
@@ -600,7 +600,7 @@ BasicExponentialDistribution::untrPdf(double & x){
 }
 
 double
-BasicExponentialDistribution::untrCdf(double & x){
+BasicExponentialDistribution::untrCdf(double x){
   if(x >= 0.0) {
     return boost::math::cdf(_exponential->_backend, x);
   } else {
@@ -618,7 +618,7 @@ BasicExponentialDistribution::untrCdf(double & x){
 }
 
 double
-BasicExponentialDistribution::untrRandomNumberGenerator(double & RNG){
+BasicExponentialDistribution::untrRandomNumberGenerator(double RNG){
   return boost::math::quantile(_exponential->_backend, RNG);
   /*double lambda=_dis_parameters.find("lambda") ->second;
    double value=-log(1-RNG)/(lambda);
@@ -626,7 +626,7 @@ BasicExponentialDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-BasicExponentialDistribution::Pdf(double & x){
+BasicExponentialDistribution::Pdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
@@ -658,7 +658,7 @@ BasicExponentialDistribution::Pdf(double & x){
 }
 
 double
-BasicExponentialDistribution::Cdf(double & x){
+BasicExponentialDistribution::Cdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
@@ -678,7 +678,7 @@ BasicExponentialDistribution::Cdf(double & x){
 }
 
 double
-BasicExponentialDistribution::RandomNumberGenerator(double & RNG){
+BasicExponentialDistribution::RandomNumberGenerator(double RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -737,7 +737,7 @@ BasicWeibullDistribution::~BasicWeibullDistribution()
 }
 
 double
-BasicWeibullDistribution::untrPdf(double & x){
+BasicWeibullDistribution::untrPdf(double x){
   return boost::math::pdf(_weibull->_backend, x);
   /*double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
@@ -752,7 +752,7 @@ BasicWeibullDistribution::untrPdf(double & x){
 }
 
 double
-BasicWeibullDistribution::untrCdf(double & x){
+BasicWeibullDistribution::untrCdf(double x){
   if(x >= 0) {
     return boost::math::cdf(_weibull->_backend, x);
   } else {
@@ -771,7 +771,7 @@ BasicWeibullDistribution::untrCdf(double & x){
 }
 
 double
-BasicWeibullDistribution::untrRandomNumberGenerator(double & RNG){
+BasicWeibullDistribution::untrRandomNumberGenerator(double RNG){
   return boost::math::quantile(_weibull->_backend, RNG);
   /*double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
@@ -781,7 +781,7 @@ BasicWeibullDistribution::untrRandomNumberGenerator(double & RNG){
 }
 
 double
-BasicWeibullDistribution::Pdf(double & x){
+BasicWeibullDistribution::Pdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
@@ -801,7 +801,7 @@ BasicWeibullDistribution::Pdf(double & x){
 }
 
 double
-BasicWeibullDistribution::Cdf(double & x){
+BasicWeibullDistribution::Cdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
@@ -821,7 +821,7 @@ BasicWeibullDistribution::Cdf(double & x){
 }
 
 double
-BasicWeibullDistribution::RandomNumberGenerator(double & RNG){
+BasicWeibullDistribution::RandomNumberGenerator(double RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;

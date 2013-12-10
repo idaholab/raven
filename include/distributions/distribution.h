@@ -30,13 +30,13 @@ public:
    std::vector<double>  getVariableVector(std::string  variableName);
    void updateVariable(std::string & variableName, double & newValue); 	///< update variable into the mapping
 
-   virtual double  Pdf(double & x) = 0;                           		///< Pdf function at coordinate x
-   virtual double  Cdf(double & x) = 0;                               	///< Cdf function at coordinate x
-   virtual double  RandomNumberGenerator(double & RNG) = 0;             ///< RNG
+   virtual double  Pdf(double x) = 0;                           		///< Pdf function at coordinate x
+   virtual double  Cdf(double x) = 0;                               	///< Cdf function at coordinate x
+   virtual double  RandomNumberGenerator(double RNG) = 0;             ///< RNG
 
-   virtual double untrPdf(double & x) = 0;
-   virtual double untrCdf(double & x) = 0;
-   virtual double untrRandomNumberGenerator(double & RNG) = 0;
+   virtual double untrPdf(double x) = 0;
+   virtual double untrCdf(double x) = 0;
+   virtual double untrRandomNumberGenerator(double RNG) = 0;
 
    std::string & getType();                                       		///< Get distribution type
    unsigned int getSeed();                                      		///< Get seed

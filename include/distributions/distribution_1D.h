@@ -36,13 +36,13 @@ class BasicUniformDistribution : public virtual BasicDistribution {
 public:
   BasicUniformDistribution(double xMin, double xMax);
   virtual ~BasicUniformDistribution();
-   double  Pdf(double & x);                ///< Pdf function at coordinate x
-   double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double & RNG);        ///< RNG
+   double  Pdf(double x);                ///< Pdf function at coordinate x
+   double  Cdf(double x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double RNG);        ///< RNG
 
-   double  untrPdf(double & x);
-   double  untrCdf(double & x);
-   double  untrRandomNumberGenerator(double & RNG);
+   double  untrPdf(double x);
+   double  untrCdf(double x);
+   double  untrRandomNumberGenerator(double RNG);
 
 protected:
    UniformDistributionBackend * _uniform;
@@ -63,13 +63,13 @@ public:
    BasicNormalDistribution(double mu, double sigma);
    virtual ~BasicNormalDistribution();
 
-   double  Pdf(double & x);                ///< Pdf function at coordinate x
-   double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double & RNG);        ///< RNG
+   double  Pdf(double x);                ///< Pdf function at coordinate x
+   double  Cdf(double x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double RNG);        ///< RNG
 
-   double  untrPdf(double & x);
-   double  untrCdf(double & x);
-   double  untrRandomNumberGenerator(double & RNG);
+   double  untrPdf(double x);
+   double  untrCdf(double x);
+   double  untrRandomNumberGenerator(double RNG);
 
 protected:
    NormalDistributionBackend * _normal;
@@ -88,13 +88,13 @@ public:
    BasicLogNormalDistribution(double mu, double sigma);
    virtual ~BasicLogNormalDistribution();
 
-   double  Pdf(double & x);                ///< Pdf function at coordinate x
-   double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double & RNG);        ///< RNG
+   double  Pdf(double x);                ///< Pdf function at coordinate x
+   double  Cdf(double x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double RNG);        ///< RNG
 
-   double  untrPdf(double & x);
-   double  untrCdf(double & x);
-   double  untrRandomNumberGenerator(double & RNG);
+   double  untrPdf(double x);
+   double  untrCdf(double x);
+   double  untrRandomNumberGenerator(double RNG);
 
 protected:
    LogNormalDistributionBackend * _logNormal;
@@ -113,13 +113,13 @@ public:
    BasicTriangularDistribution(double xPeak, double lowerBound, double upperBound);
    virtual ~BasicTriangularDistribution();
 
-   double  Pdf(double & x);                ///< Pdf function at coordinate x
-   double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double & RNG);        ///< RNG
+   double  Pdf(double x);                ///< Pdf function at coordinate x
+   double  Cdf(double x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double RNG);        ///< RNG
 
-   double  untrPdf(double & x);
-   double  untrCdf(double & x);
-   double  untrRandomNumberGenerator(double & RNG);
+   double  untrPdf(double x);
+   double  untrCdf(double x);
+   double  untrRandomNumberGenerator(double RNG);
 
 protected:
    TriangularDistributionBackend * _triangular;
@@ -139,13 +139,13 @@ public:
    BasicExponentialDistribution(double lambda);
    virtual ~BasicExponentialDistribution();
 
-   double  Pdf(double & x);                ///< Pdf function at coordinate x
-   double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double & RNG);        ///< RNG
+   double  Pdf(double x);                ///< Pdf function at coordinate x
+   double  Cdf(double x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double RNG);        ///< RNG
 
-   double  untrPdf(double & x);
-   double  untrCdf(double & x);
-   double  untrRandomNumberGenerator(double & RNG);
+   double  untrPdf(double x);
+   double  untrCdf(double x);
+   double  untrRandomNumberGenerator(double RNG);
 
 protected:
    ExponentialDistributionBackend * _exponential;
@@ -164,13 +164,13 @@ public:
    BasicWeibullDistribution(double k, double lambda);
    virtual ~BasicWeibullDistribution();
 
-   double  Pdf(double & x);                ///< Pdf function at coordinate x
-   double  Cdf(double & x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double & RNG);        ///< RNG
+   double  Pdf(double x);                ///< Pdf function at coordinate x
+   double  Cdf(double x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double RNG);        ///< RNG
 
-   double  untrPdf(double & x);
-   double  untrCdf(double & x);
-   double  untrRandomNumberGenerator(double & RNG);
+   double  untrPdf(double x);
+   double  untrCdf(double x);
+   double  untrRandomNumberGenerator(double RNG);
 
 protected:
    WeibullDistributionBackend * _weibull;
@@ -187,9 +187,9 @@ protected:
 //    BasicCustomDistribution(double x_coordinates, double y_coordinates, int fitting_type, double n_points);
 //    virtual ~BasicCustomDistribution();
 
-//    double  Pdf(double & x);                ///< Pdf function at coordinate x
-//    double  Cdf(double & x);                ///< Cdf function at coordinate x
-//    double  RandomNumberGenerator(double & RNG);        ///< RNG
+//    double  Pdf(double x);                ///< Pdf function at coordinate x
+//    double  Cdf(double x);                ///< Cdf function at coordinate x
+//    double  RandomNumberGenerator(double RNG);        ///< RNG
 
 // protected:
 // };
