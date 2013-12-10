@@ -103,5 +103,10 @@
   required_executable = '../../../bison/bison-%METHOD%'
  [../]
 
+ [./test_distributions]
+  type = 'RavenPython'
+  python_command = python3
+  input = '../../framework/TestDistributions.py'
+ [../]
 
 []
