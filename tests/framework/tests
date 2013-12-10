@@ -105,7 +105,7 @@
 
  [./test_distributions]
   type = 'RavenPython'
-  python_command = python3
+  #python_command = python3
   input = '../../framework/TestDistributions.py'
  [../]
 
