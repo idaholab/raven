@@ -26,7 +26,9 @@ class CsvLoader:
     # open file
     myFile = open (filein,'rb')
     # read the field names
-    self.all_field_names = myFile.readline().decode().split(',')
+    head = myFile.readline().decode()
+    self.all_field_names = head.split(',')
+    for index in range(len(self.all_field_names)): self.all_field_names[index] = self.all_field_names[index].replace("\n", "")
     # load the table data (from the csv file) into a numpy nd array 
     data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
     # close file
@@ -217,7 +219,9 @@ class CsvLoader:
           self.field_names.insert(0, 'time')       
       #fill input param dictionary
       for key in inParam:
+        print(self.all_field_names)
         if key in self.all_field_names:
+          
           ix = self.all_field_names.index(key)
           if i == 0:
             #create numpy array
