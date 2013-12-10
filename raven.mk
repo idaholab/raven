@@ -147,6 +147,11 @@ $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix): $(RAVEN_DIR)/src/dist
 $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix): $(RAVEN_DIR)/src/distributions/distributionFunctions.C
 	$(DISTRIBUTION_COMPILE_COMMAND)
 
+ifeq ($(UNAME),Darwin)
+DISTRIBUTION_KLUDGE=$(RAVEN_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo
+else
+DISTRIBUTION_KLUDGE=$(RAVEN_MODULES)/distribution1D_wrap.lo $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix)
+endif
 
 $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/distribution1D.i \
                                                  $(RAVEN_DIR)/src/distributions/distribution_1D.C \
@@ -163,7 +168,7 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
 	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1D_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
-	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(RAVEN_LIB) $(PYTHON_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo -rpath $(RAVEN_MODULES)
+	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(PYTHON_LIB)  $(DISTRIBUTION_KLUDGE) -rpath $(RAVEN_MODULES)
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1D.la  $(RAVEN_MODULES)/libdistribution1D.la 
 	rm -f $(RAVEN_MODULES)/_distribution1D.so
 	ln -s libdistribution1D.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1D.so
