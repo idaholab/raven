@@ -10,6 +10,10 @@ using namespace std;
 
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
+BasicDistribution::BasicDistribution(): _force_dist(0) {
+  //_dis_parameters["truncation"] = 1.0;
+  //_dis_parameters.insert(std::pair<std::string,double>("truncation",1));
+}
 
 BasicDistribution::~BasicDistribution() {}
 
@@ -65,6 +69,12 @@ BasicDistribution::getVariableNames(){
     paramtersNames.push_back(it->first);
   }
   return paramtersNames;
+}
+
+bool 
+BasicDistribution::hasParameter(std::string s)
+{
+  return _dis_parameters.find(s) != _dis_parameters.end();
 }
 
 double getDistributionVariable(BasicDistribution & dist, std::string & variableName){

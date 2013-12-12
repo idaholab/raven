@@ -61,6 +61,7 @@ class NormalDistributionBackend;
 class BasicNormalDistribution : public virtual BasicDistribution {
 public:
    BasicNormalDistribution(double mu, double sigma);
+   BasicNormalDistribution(double mu, double sigma, double xMin, double xMax);
    virtual ~BasicNormalDistribution();
 
    double  Pdf(double x);                ///< Pdf function at coordinate x

@@ -25,6 +25,7 @@ class distribution;
 class BasicDistribution 
 {
 public:
+   BasicDistribution();
    virtual ~BasicDistribution();
    double  getVariable(std::string & variableName);                   	///< getVariable from mapping
    std::vector<double>  getVariableVector(std::string  variableName);
@@ -45,6 +46,7 @@ public:
    //virtual double windowProcessing(distribution & dist, double & RNG);
 
 protected:
+   bool hasParameter(std::string);
    std::string _type;                              ///< Distribution type
    std::map <std::string,double> _dis_parameters;  ///< Distribution parameters
    std::map <std::string,std::vector<double> > _dis_vectorParameters;

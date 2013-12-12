@@ -151,8 +151,38 @@ public:
 BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma) {
   _dis_parameters["mu"] = mu; //mean
   _dis_parameters["sigma"] = sigma; //sd
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  if(not hasParameter("xMin")) {
+    _dis_parameters["xMin"] = -std::numeric_limits<double>::max( );
+  }
+  if(not hasParameter("xMax")) {
+    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+  }
+  //std::cout << "mu " << mu << " sigma " << sigma 
+  //          << " truncation " << _dis_parameters["truncation"] 
+  //          << " xMin " << _dis_parameters["xMin"] 
+  //          << " xMax " << _dis_parameters["xMax"] << std::endl;
   _normal = new NormalDistributionBackend(mu, sigma);   
 }
+
+BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma, double xMin, double xMax) {
+  _dis_parameters["mu"] = mu; //mean
+  _dis_parameters["sigma"] = sigma; //sd
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  _dis_parameters["xMin"] = xMin;
+  _dis_parameters["xMax"] = xMax;
+  //std::cout << "mu " << mu << " sigma " << sigma 
+  //          << " truncation " << _dis_parameters["truncation"] 
+  //          << " xMin " << _dis_parameters["xMin"] 
+  //          << " xMax " << _dis_parameters["xMax"] << std::endl;
+  _normal = new NormalDistributionBackend(mu, sigma);   
+
+}
+
 
 BasicNormalDistribution::~BasicNormalDistribution(){
   delete _normal;
@@ -242,6 +272,7 @@ BasicNormalDistribution::RandomNumberGenerator(double RNG){
      }
      else{
        value=-1;
+       //throwError("ERROR: force_dist 0 but truncation "<<(_dis_parameters.find("truncation") != _dis_parameters.end())<<","<<_dis_parameters.find("truncation")->second<<" found");
      }
    }
    else if(_force_dist == 1){
@@ -254,7 +285,7 @@ BasicNormalDistribution::RandomNumberGenerator(double RNG){
      value = xMax;
    }
    else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+     throwError("ERROR: not recognized force_dist flag ("<<_force_dist<<"!= 0, 1 , 2, 3)");
    }
    if (RNG == 1){
      value = std::numeric_limits<double>::max();
