@@ -211,6 +211,31 @@ WeibullDistribution::~WeibullDistribution()
 }
 
 /*
+ * CLASS GAMMA DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<GammaDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("k", "shape parameter");
+   params.addRequiredParam<double>("theta", "scale parameter");
+   return params;
+}
+
+GammaDistribution::GammaDistribution(const std::string & name, InputParameters parameters):
+  distribution(name,parameters), 
+  BasicGammaDistribution(getParam<double>("k"),getParam<double>("theta"))
+                                                         
+{
+}
+
+GammaDistribution::~GammaDistribution()
+{
+}
+
+/*
  * CLASS CUSTOM DISTRIBUTION
  */
 

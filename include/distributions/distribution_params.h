@@ -88,6 +88,17 @@ public:
    virtual ~WeibullDistribution();
 };
 
+class GammaDistribution;
+
+template<>
+InputParameters validParams<GammaDistribution>();
+
+class GammaDistribution : public distribution, public BasicGammaDistribution {
+public:
+  GammaDistribution(const std::string & name, InputParameters parameters);
+  virtual ~GammaDistribution();
+};
+
 // template<>
 // InputParameters validParams<CustomDistribution>();
 

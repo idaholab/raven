@@ -178,6 +178,29 @@ protected:
 };
 
 /*
+ * CLASS GAMMA DISTRIBUTION
+ */
+
+class GammaDistributionBackend;
+
+class BasicGammaDistribution : public virtual BasicDistribution {
+public:
+  BasicGammaDistribution(double k, double theta);
+  virtual ~BasicGammaDistribution();
+
+  double  Pdf(double x);                ///< Pdf function at coordinate x
+  double  Cdf(double x);                ///< Cdf function at coordinate x
+  double  RandomNumberGenerator(double RNG);        ///< RNG
+  
+  double  untrPdf(double x);
+  double  untrCdf(double x);
+  double  untrRandomNumberGenerator(double RNG);
+
+protected:
+  GammaDistributionBackend * _gamma;    
+};
+
+/*
  * CLASS CUSTOM DISTRIBUTION
  */
 
