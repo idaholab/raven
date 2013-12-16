@@ -288,7 +288,7 @@ BasicNormalDistribution::RandomNumberGenerator(double RNG){
      throwError("ERROR: not recognized force_dist flag ("<<_force_dist<<"!= 0, 1 , 2, 3)");
    }
    if (RNG == 1){
-     value = std::numeric_limits<double>::max();
+     value = xMax;
    }
    return value;
 }
