@@ -170,6 +170,10 @@ class MPISimulationMode(SimulationMode):
       # when not in PBS so just distribute it over the local machine:
       nodeCommand = " "
 
+    #Disable MPI processor affinity, which causes multiple processes 
+    # to be forced to the same thread.
+    os.environ["MV2_ENABLE_AFFINITY"] = "0"
+
     # Create the mpiexec pre command 
     self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
     if(self.__simulation.runInfoDict['NumThreads'] > 1):
