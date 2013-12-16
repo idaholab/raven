@@ -201,6 +201,29 @@ protected:
 };
 
 /*
+ * CLASS BETA DISTRIBUTION
+ */
+
+class BetaDistributionBackend;
+
+class BasicBetaDistribution : public virtual BasicDistribution {
+public:
+  BasicBetaDistribution(double alpha, double beta);
+  virtual ~BasicBetaDistribution();
+
+  double  Pdf(double x);                ///< Pdf function at coordinate x
+  double  Cdf(double x);                ///< Cdf function at coordinate x
+  double  RandomNumberGenerator(double RNG);        ///< RNG
+  
+  double  untrPdf(double x);
+  double  untrCdf(double x);
+  double  untrRandomNumberGenerator(double RNG);
+
+protected:
+  BetaDistributionBackend * _beta;    
+};
+
+/*
  * CLASS CUSTOM DISTRIBUTION
  */
 

@@ -99,6 +99,17 @@ public:
   virtual ~GammaDistribution();
 };
 
+class BetaDistribution;
+
+template<>
+InputParameters validParams<BetaDistribution>();
+
+class BetaDistribution : public distribution, public BasicBetaDistribution {
+public:
+  BetaDistribution(const std::string & name, InputParameters parameters);
+  virtual ~BetaDistribution();
+};
+
 // template<>
 // InputParameters validParams<CustomDistribution>();
 

@@ -236,6 +236,31 @@ GammaDistribution::~GammaDistribution()
 }
 
 /*
+ * CLASS BETA DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<BetaDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("alpha", "alpha parameter");
+   params.addRequiredParam<double>("beta", "beta parameter");
+   return params;
+}
+
+BetaDistribution::BetaDistribution(const std::string & name, InputParameters parameters):
+  distribution(name,parameters), 
+  BasicBetaDistribution(getParam<double>("alpha"),getParam<double>("beta"))
+                                                         
+{
+}
+
+BetaDistribution::~BetaDistribution()
+{
+}
+
+/*
  * CLASS CUSTOM DISTRIBUTION
  */
 
