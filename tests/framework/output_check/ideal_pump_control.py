@@ -7,8 +7,8 @@ def initial_function(monitored, controlled, auxiliary):
     mult = 1.01
     controlled.pipe1_Area = mult*controlled.pipe1_Area
     controlled.pipe1_Dh = mult*controlled.pipe1_Dh
-    controlled.pipe1_Hw = mult*controlled.pipe1_Hw
-    controlled.pipe1_aw = mult*controlled.pipe1_aw
+    controlled.pipe1_Hw = 0.001
+    controlled.pipe1_aw = 0.002
     controlled.pipe1_f = mult*controlled.pipe1_f
     controlled.pipe2_Area = mult*controlled.pipe2_Area
     controlled.pipe2_Dh = mult*controlled.pipe2_Dh

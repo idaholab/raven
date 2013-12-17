@@ -451,9 +451,10 @@ class hdf5Database(object):
       sgrp.attrs["EndGroup"  ] = True
 
       if "input_file" in attributes:
-        sgrp.attrs["input_file"] = attributes["input_file"]
-      sgrp.attrs["source_type"] = source['type']
-      if source['type'] == 'csv': sgrp.attrs["source_file"] = source['name']
+        grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
+      grp.attrs["source_type"] = source['type']
+          
+      if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
       #look for keyword attributes from the sampler
       attempt_attr= {'branch_changed_param'      :'branch_changed_param',
                      'branch_changed_param_value':'branch_changed_param_value',
@@ -625,8 +626,10 @@ class hdf5Database(object):
           
           if n_params != int(grp.attrs['n_params']): raise Exception("Can not merge datasets with different number of parameters")
           # Get numpy array
-          gb_res[i]   = dataset[:,:]
-          gb_attrs[i] =grp.attrs        
+          #gb_res[i]   = dataset[:,:]
+          #gb_attrs[i] = grp.attrs  
+          gb_res[i]   = copy.deepcopy(dataset[:,:])
+          gb_attrs[i] = copy.copy(grp.attrs   )    
           n_tot_ts = n_tot_ts + int(grp.attrs['n_ts'])
         # Create the numpy array
         result = np.zeros((n_tot_ts,n_params))
@@ -661,14 +664,14 @@ class hdf5Database(object):
                           "end_timestep"]:
           if param_key in gb_attrs[0]:
             attrs[param_key] = []
-        for key in gb_res:
+        for key in gb_res.keys():
           for param_key in ["input_file","branch_changed_param",
                             "conditional_prb","branch_changed_param_value",
                             "initiator_distribution","Probability_threshold",
                             "end_timestep"]:
             if param_key in gb_attrs[key]:
               attrs[param_key].append(gb_attrs[key][param_key])
-          if attrs["source_type"] == 'csv': attrs["source_file"].append(gb_attrs[key]["source_file"])
+          if attrs["source_type"] == 'csv' and 'source_file' in gb_attrs[key].keys(): attrs["source_file"].append(gb_attrs[key]["source_file"])
   
       else:
         # A number of groups' back have been inputted

@@ -5,25 +5,11 @@
     <Files>ideal_pump.i,ideal_pump_control.py,DET_histories.csv</Files>
     <Sequence>DETrunTest,extract_hist_example</Sequence>
     <batchSize>3</batchSize>
-    <!--<ParallelCommand></ParallelCommand>
-    <NumMPI></NumMPI>
-    <ThreadingCommand></ThreadingCommand>
-    <NumThreads></NumThreads>
-    <numNode></numNode>
-    <quequingSoftware></quequingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totalNumCoresUsed></totalNumCoresUsed>-->
 </RunInfo>
 
 <Models>
     <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
     <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter>
-    <Filter name='Plot1' subType='Plot'> 
-      <historyID>ALL</historyID>
-      <variables>ALL</variables>
-    </Filter>
-    <!--<Filter name="csv_from_hdf5" type='PrintCSV'>all</Filter>-->
 </Models>
 
 <Distributions>
@@ -40,10 +26,6 @@
       </varibale>  
   </DynamicEventTree>   
 </Samplers>
-<Tests>
-    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
-    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
-</Tests>
 <Steps>
     <MultiRun name='DETrunTest'>
         <Input      class='Files'      type=''>ideal_pump.i</Input>
@@ -61,7 +43,7 @@
     </SingleRun>      
 </Steps>
 <DataBases>
-    <HDF5 name="testBranchDataBase" type="DET"/> 
+    <HDF5 name="testBranchDataBase"/> 
 </DataBases>
 <Datas>
     <Histories name='stories'>

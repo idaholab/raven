@@ -5,24 +5,10 @@
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
-    <!--<ParallelCommand></ParallelCommand>
-    <NumMPI></NumMPI>
-    <ThreadingCommand></ThreadingCommand>
-    <NumThreads></NumThreads>
-    <numNode></numNode>
-    <quequingSoftware></quequingSoftware>
-    <procByNode></procByNode>
-    <numProcByRun></numProcByRun>
-    <totalNumCoresUsed></totalNumCoresUsed>-->
 </RunInfo>
 
 <Models>
     <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
-    <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter>
-    <Filter name='Plot1' subType='Plot'>
-      <historyID>ALL</historyID>
-      <variables>ALL</variables>
-    </Filter>
 </Models>
 
 <Distributions>
@@ -51,81 +37,57 @@
         <apex>1</apex>
         <min>-0.1</min>
         <max>3</max>
-<!--         <lowerBound>0</lowerBound> This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>  -->
     </Triangular>
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='NotRAVENmc1' limit='200'>
-        <Variable type ='Normal'     distName='Gaus1'>pippo</Variable>
-        <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
-        <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
-    </MonteCarlo>
-    <MonteCarlo name='MyMC1' limit='400'>
-        <Variable type ='Normal'     distName='Gaus1'>pippo</Variable>
-        <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
-        <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
-    </MonteCarlo>
-    <!-- <LatinHyperCube name='MyLHC' limit='50' start='10'>
-        <Variable type ='Normal'     distName='Gaus1'>pippo</Variable>
-        <Variable type ='Triangular' distName='Tri1'>pip</Variable> 
-        <Variable type ='Normal'     distName='Gaus2'>pluto</Variable> 
-    </LatinHyperCube> -->
     <MonteCarlo     name='RAVENmc6'  limit='6'/>
-    <MonteCarlo     name='RAVENmc50' limit='50'/>
-    <!-- <LatinHyperCube name='MyLHC'     limit='50' start='10'></LatinHyperCube> -->
-    <!-- <EquallySpaced  name='MyES'      limit='50' start='10'></EquallySpaced> -->
-    <DynamicEventTree name='testDET'>
-      <BranchingSettings  CPcut = '1.0E-99'>
-        <Variable type='Normal' distName='auxBackUpTimeDist' BranchProbs='0.05 0.20 0.5 0.75'>auxBackUpTimeDist</Variable>
-        <Variable type='Triangular' distName='CladFailureDist' BranchProbs='0.05 0.20 0.5 0.75'>CladFailureDist</Variable>
-      </BranchingSettings>
-    </DynamicEventTree> 
 </Samplers>
-<Tests>
-    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
-    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
-</Tests>
 
-<OutStreams>
-  <!-- <Screen name="testScreen">
-    <variable>Head_PumpB,avg_temp_clad_CH1,avg_temp_clad_CH2</variable>
-  </Screen>  -->
-  <Pdf name="testPdf">
-    <variable>pipe1_Area,pipe1_Dh,pipe1_Hw,pipe1_aw</variable>
-    <fileNameRoot>pdf_graph</fileNameRoot>
-  </Pdf>
-  <Png name="testPng">
-    <variable>pipe1_Area,pipe1_Dh,pipe1_Hw,pipe1_aw</variable>
-    <fileNameRoot>png_graph</fileNameRoot>
-  </Png>
-  <!-- <Jpeg name="testJpeg">
-    <variable>pipe1_Area,pipe1_Dh,pipe1_Hw,pipe1_aw</variable>
-    <fileNameRoot>jpeg_graph</fileNameRoot>
-  </Jpeg> -->
-  <Eps name="testEps">
-    <variable>pipe1_Area,pipe1_Dh,pipe1_Hw,pipe1_aw</variable>
-    <fileNameRoot>eps_graph</fileNameRoot>
-  </Eps>
-</OutStreams>
+<OutStreamManager>
+  <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
+    <plot_settings>
+       <plot>
+        <type>line</type>
+        <x>stories|Output|time</x>
+        <y>stories|Output|pipe1_Hw</y> 
+        <kwargs>
+         <color>green</color>
+         <label>pipe1-Hw</label>
+        </kwargs>
+      </plot>
+       <plot>
+        <type>line</type>
+        <x>stories|Output|time</x>
+        <y>stories|Output|pipe1_aw</y> 
+        <kwargs>
+         <color>blue</color>
+         <label>pipe1-aw</label>
+        </kwargs>
+      </plot>
+      <xlabel>time [s]</xlabel>
+      <ylabel>evolution</ylabel>
+    </plot_settings>
+    <actions>
+      <how>pdf,png,eps</how>
+      <title>
+        <text> </text>
+      </title>
+    </actions>
+  </Plot>
+</OutStreamManager>
+
 
 <Steps>
     <MultiRun name='FirstMRun'>
-        <Input     class='Files'      type=''          >ideal_pump.i</Input>
-        <Input     class='Files'      type=''          >ideal_pump_control.py</Input>
-        <Model     class='Models'     type='Code'      >MyRAVEN</Model>
-        <Sampler   class = 'Samplers' type='MonteCarlo'>RAVENmc6</Sampler>
-        <DataBases class='DataBases'  type=''          >testOutputDataBase</DataBases>
-        <Output    class='DataBases'  type='HDF5'      >testOutputDataBase</Output>
-        <Output    class='Datas'      type='Histories' >stories</Output>
-        <Output    class='OutStreams' type='NotUsed'   >testPdf</Output>
-        <Output    class='OutStreams' type='NotUsed'   >testPng</Output>
-        <Output    class='OutStreams' type='NotUsed'   >testEps</Output>
-
-        <!-- <Output  type='OutStreams' subtype='NotUsed' >testJpeg</Output> -->
-        <!-- <Output  type='OutStreams' subtype='NotUsed' >testScreen</Output> -->
+        <Input     class='Files'            type=''          >ideal_pump.i</Input>
+        <Input     class='Files'            type=''          >ideal_pump_control.py</Input>
+        <Model     class='Models'           type='Code'      >MyRAVEN</Model>
+        <Sampler   class = 'Samplers'       type='MonteCarlo'>RAVENmc6</Sampler>
+        <DataBases class='DataBases'        type=''          >testOutputDataBase</DataBases>
+        <Output    class='DataBases'        type='HDF5'      >testOutputDataBase</Output>
+        <Output    class='Datas'            type='Histories' >stories</Output>
+        <Output    class='OutStreamManager' type='Plot'      >2DHistoryPlot</Output>
     </MultiRun >
 </Steps>
 <DataBases>

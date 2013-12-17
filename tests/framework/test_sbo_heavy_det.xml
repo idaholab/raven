@@ -2,7 +2,7 @@
 <Simulation>
 <RunInfo>
     <WorkingDir>SBO_DET</WorkingDir>
-    <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd,DET_histories_eqPb.csv,TMI_PRA_trans_DET_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+    <Files>DET_histories_eqPb.csv,TMI_PRA_trans_DET_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
     <Sequence>DET,extract_hist_from_hdf5_eqPb</Sequence>
     <batchSize>8</batchSize>
 </RunInfo>
@@ -66,9 +66,10 @@
     <MultiRun name='DET'>
         <Input   class='Files'     type=''                >TMI.i</Input>
         <Input   class='Files'     type=''                >TMI_PRA_trans_DET_control.py</Input>
-        <Input   class='Files'     type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
-        <Input   class='Files'     type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
-        <Input   class='Files'     type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/0957.rd-0</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/0957.xdr</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/0957.xdr.0000</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/0957_mesh.cpr</Input>
         <Model   class='Models'    type='Code'            >MyRAVEN</Model>
         <Sampler class='Samplers'  type='DynamicEventTree'>DET</Sampler>
         <Output  class='DataBases' type='HDF5'              >DET_SBO_RUN_eqPb</Output>
@@ -83,7 +84,7 @@
         <HDF5 name="DET_SBO_RUN_eqPb"/> 
 </DataBases>
 <Datas>
-   <Histories name='stories_from_database'>
+   <Histories name='stories_from_database' input_ts='960'>
         <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
         <Output>avg_temp_clad_CH2,CladDamaged</Output>
    </Histories>

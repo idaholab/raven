@@ -12,39 +12,38 @@ toolcont  = raventools.RavenToolsContainer.Instance()
 #PumpCoastDown              = raventools.pumpCoastdown(26.5,8.9)
 # PumpCoastDownSec acts
 #PumpCoastDownSec           = raventools.pumpCoastdown(10.5,1)
-
+def restart_function(monitored, controlled, auxiliary): 
+    auxiliary.scram_start_time = 101.0
+    random_n_1 = distcont.random()
+    auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
+    
+    
+    random_n_2 = distcont.random()
+    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
+    
+    
+    random_n_3 = distcont.random()
+    auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
+    
+    
+    random_n_4 = distcont.random()
+    auxiliary.CladTempBranched = distcont.randGen('CladFailureDist',random_n_4)
+    
+    
+    random_n_5 = distcont.random() # primary offsite power recovery
+    auxiliary.PrimPGrecoveryTime = distcont.randGen('PrimPGrecovery',random_n_5)
+    
+    
+    auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime, auxiliary.PrimPGrecoveryTime)
+    
+    auxiliary.auxAbsolute = auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux    
+    return
 
 def initial_function(monitored, controlled, auxiliary):    
     return
 
 def control_function(monitored, controlled, auxiliary):
     #we use aux var in order to keep track of variables' values must be transfered from a calculation to the others
-    if monitored.time_step == 1:
-        auxiliary.scram_start_time = 101.0
-        random_n_1 = distcont.random()
-        #auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1) 
-
-        
-        random_n_2 = distcont.random()
-        #auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
-
-        
-        random_n_3 = distcont.random()
-        #auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3) 
-
-        
-        random_n_4 = distcont.random()
-        auxiliary.CladTempBranched = distcont.randGen('CladFailureDist',random_n_4)
-
-        
-        random_n_5 = distcont.random() # primary offsite power recovery
-        #auxiliary.PrimPGrecoveryTime = distcont.randGen('PrimPGrecovery',random_n_5)
-
-    
-        auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime, auxiliary.PrimPGrecoveryTime)
-    
-        auxiliary.auxAbsolute = auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux
-    
     if monitored.time>=(auxiliary.scram_start_time+auxiliary.DeltaTimeScramToAux) and auxiliary.ScramStatus: 
         auxiliary.AuxSystemUp =  True
     if (monitored.avg_temp_clad_CH1>auxiliary.CladTempBranched) or (monitored.avg_temp_clad_CH2>auxiliary.CladTempBranched) or (monitored.avg_temp_clad_CH3>auxiliary.CladTempBranched):

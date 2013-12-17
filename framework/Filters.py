@@ -37,31 +37,23 @@ class PrintCSV:
     if(param.lower() != 'all'): self.paramters = param.strip().split(',')
     else: self.paramters.append(param) 
     return
-
-  def finalizeFilter(self,inObj,outObj,workingDir=None):
-    '''
-     Function to finalize the filter => execute the filtering 
-     @ In, inObj      : Input object (for example HDF5 object)
-     @ In, outObj     : Output object (in this case is the csv file name) => string 
-     @ In, workingDir : Working directory (where to store the csvs)
-     @ Out, None      : Print of the CSV file
-    '''
-    
+  
+  def collectOutput(self,finishedjob,output):
     # Check the input type 
-    if(inObj.type == "HDF5"):
+    if(self.inObj.type == "HDF5"):
 
       #  Input source is a database (HDF5)
       
       #  Retrieve the ending groups' names
-      endGroupNames = inObj.getEndingGroupNames()
+      endGroupNames = self.inObj.getEndingGroupNames()
       histories = {}
 
       #  Construct a dictionary of all the histories
-      for index in range(len(endGroupNames)): histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
+      for index in range(len(endGroupNames)): histories[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
       
       try:
         # not yet implemented 
-        outType = outObj.type
+        outType = output.type
       except AttributeError:
 #        splitted = outObj.split('.')
 #        addfile = splitted[0] + '_additional_info.' + splitted[1]
@@ -72,23 +64,23 @@ class PrintCSV:
           #  Retrieve the metadata (posion 1 of the history tuple)
           attributes = histories[key][1]
           #  Construct the header in csv format (first row of the file)
-          headers = b",".join([histories[key][1]['headers'][i] for i in 
-                               range(len(attributes['headers']))])
+          headers = b",".join([histories[key][1]['output_space_headers'][i] for i in 
+                               range(len(attributes['output_space_headers']))])
           #  Construct history name
           hist = key
           #  If file, split the strings and add the working directory if present
-          if workingDir:
-            if os.path.split(outObj)[1] == '': outObj = outObj[:-1]
-            splitted_1 = os.path.split(outObj)
-            outObj = splitted_1[1]
-          splitted = outObj.split('.')
+          if self.workingDir:
+            if os.path.split(output)[1] == '': output = output[:-1]
+            splitted_1 = os.path.split(output)
+            output = splitted_1[1]
+          splitted = output.split('.')
           #  Create csv files' names
           addfile = splitted[0] + '_additional_info_' + hist + '.'+splitted[1]
           csvfilen = splitted[0] + '_' + hist + '.'+splitted[1]
           #  Check if workingDir is present and in case join the two paths
-          if workingDir:
-            addfile = os.path.join(workingDir,addfile)
-            csvfilen = os.path.join(workingDir,csvfilen)
+          if self.workingDir:
+            addfile = os.path.join(self.workingDir,addfile)
+            csvfilen = os.path.join(self.workingDir,csvfilen)
           
           #  Open the files and save the data
           with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
@@ -175,10 +167,24 @@ class PrintCSV:
               addcsvfile.write(str(string_work)+'\n')
             addcsvfile.write(b' \n')
             
-    elif(inObj.type == "Datas"):
+    elif(self.inObj.type == "Datas"):
       pass
     else:
       raise NameError ('Filter PrintCSV for input type ' + inObj.type + ' not yet implemented.')
+  
+  def finalizeFilter(self,inObj,jobHandler,workingDir=None):
+    '''
+     Function to finalize the filter => execute the filtering 
+     @ In, inObj      : Input object (for example HDF5 object)
+     @ In, outObj     : Output object (in this case is the csv file name) => string 
+     @ In, workingDir : Working directory (where to store the csvs)
+     @ Out, None      : Print of the CSV file
+    '''
+    self.inObj = inObj
+    self.jobHandler = jobHandler
+    self.workingDir = workingDir
+    return
+
 
 class Plot:
   '''

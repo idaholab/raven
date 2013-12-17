@@ -626,7 +626,7 @@
   # time_t =  ' 0      1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     100.8    101.5  102.2 120.0  400 1000 1.0e5'
   # time_dt =  '1.e-1  0.1        0.15        0.20       0.25      0.30    0.35        0.40    0.45      0.09      0.005     0.008   0.2   0.2    0.2 0.3  0.6'
   nl_abs_tol = 1e-8
-  restart_file_base = TMI_test_PRA_transient_less_w_ss_out_restart_0831
+  restart_file_base = 0957
   nl_rel_tol = 1e-5
   ss_check_tol = 1e-05
   perf_log = true
@@ -643,7 +643,7 @@
   petsc_options_iname = -pc_type
   e_tol = 10.0
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
-  end_time = 102.5
+  end_time = 152.5
   e_max = 99999.
   [./TimeStepper]
     type = FunctionDT

@@ -111,7 +111,8 @@ class RavenInterface:
             end_ts_str = "0" + end_ts_str
         splitted = Kwargs['outfile'].split('~')
         output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[1]
-        restart_file_base = output_parent + "_restart_" + end_ts_str      
+        #restart_file_base = output_parent + "_restart_" + end_ts_str 
+        restart_file_base = output_parent + "_cp/" + end_ts_str      
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base
         print('CODE INTERFACE: Restart file name base is "' + restart_file_base + '"')
@@ -128,7 +129,7 @@ class RavenInterface:
       
     modifDict = {}
     modifDict['name'] = ['Output']
-    modifDict['num_restart_files'] = 1
+    modifDict['num_checkpoint_files'] = 1
     listDict.append(modifDict)
     del modifDict
     # in this way we erase the whole block in order to neglect eventual older info

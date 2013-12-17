@@ -10,7 +10,7 @@
  [./test_output]
   type = 'RavenFramework'
   input = 'test_output.xml'
-  output = 'output_check/pdf_graph.pdf output_check/eps_graph_18.eps output_check/png_graph_18.png'
+  output = 'output_check/6-2DHistoryPlot_line-line.png output_check/6-2DHistoryPlot_line-line.eps output_check/6-2DHistoryPlot_line-line.pdf'
 #  skip = 'Cannot run headless'
 #  skip = 'waiting for restart new capability'
  [../]
@@ -18,18 +18,17 @@
 [./test_branch]
   type = 'RavenFramework'
   input = 'test_branch.xml'
-  skip = 'waiting for restart new capability'
+  #skip = 'waiting for restart new capability'
   output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv' 
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
-  skip = 'waiting for Relap-7 restart'
  [../]
 
 [./test_branch_heavy]
   type = 'RavenFramework'
   input = 'test_sbo_heavy_det.xml'
-  skip = 'waiting for restart new capability'
+  #skip = 'waiting for restart new capability'
   output = 'SBO_DET/DET/out~DET_1-2-2~TMI.e SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_additional_info_DET_1-2-2.csv' 
-  csv = 'SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_DET_1-2-2.csv'
+  csv = 'SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_DET_1.csv'
   max_time = 10000
   heavy=True
   rel_err = 0.1
@@ -46,7 +45,7 @@
  [./test_extract_data_s_from_hdf5]
   type = 'RavenFramework'
   input = 'test_extract_data_s_from_hdf5.xml'
-  skip = 'waiting for Relap-7 restart'
+  #skip = 'waiting for Relap-7 restart'
   output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
   csv = 'test_extract_data_s_from_hdf5/MonteCarlo/out~2~TMI.csv'
   max_time = 500
@@ -55,7 +54,7 @@
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
-  skip = 'waiting for Relap-7 restart'
+  #skip = 'waiting for Relap-7 restart'
   output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
   csv = 'test_extract_data_s_from_hdf5/timepointset_from_database_dump.csv'
   max_time = 500
@@ -64,7 +63,7 @@
  [./test_rom_trainer]
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'
-  skip = 'waiting for Relap-7 restart'
+  #skip = 'waiting for Relap-7 restart'
   output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI.e test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
   csv = 'test_rom_trainer/outputMontecarloRom_dump.csv'
   max_time = 500

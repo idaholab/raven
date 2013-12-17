@@ -284,7 +284,7 @@ class Code(Model):
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
     except OSError: print('MODEL CODE    : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-    for inputFile in inputFiles:
+    for inputFile in inputFiles:    
       shutil.copy(inputFile,self.workingDir)
     if self.debug: print('MODEL CODE    : original input files copied in the current working dir: '+self.workingDir)
     if self.debug: print('MODEL CODE    : files copied:')
@@ -493,7 +493,7 @@ class Projector(Model):
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
 
-  def reset(self,runInfoDict,myInput):
+  def initialize(self,runInfoDict,myInput):
     if myInput.type == 'ROM':
       pass
     #initialize some of the current setting for the runs and generate the working 
@@ -501,7 +501,7 @@ class Projector(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except FileExistsError: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except AttributeError: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
   def run(self,inObj,outObj):
@@ -526,21 +526,21 @@ class Filter(Model):
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
 
-  def reset(self,runInfoDict,inputFiles):
+  def initialize(self,runInfoDict,inputFiles):
     '''initialize some of the current setting for the runs and generate the working 
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except FileExistsError: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
   def run(self,inObj,outObj):
     '''run calls the interface finalizer'''
     for i in range(len(inObj)):
-      self.interface.finalizeFilter(inObj[i],outObj[i],self.workingDir)
+      self.interface.finalizeFilter(inObj[i],outObj,self.workingDir)
   def collectOutput(self,finishedjob,output):
-    self.interface.collectOutput(output)
+    self.interface.collectOutput(finishedjob,output)
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''just for compatibility'''
     pass

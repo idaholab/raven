@@ -2,7 +2,7 @@
 <Simulation>
 <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
-    <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd,TMI_PRA_trans_MC_control.py,TMI.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
+    <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC</Sequence>
     <batchSize>3</batchSize>
 </RunInfo>
@@ -10,6 +10,10 @@
     <Uniform name='auxbackup'>
         <low>0</low>
         <hi>2000</hi>
+    </Uniform>
+    <Uniform name='DG1backup'>
+        <low>0</low>
+        <hi>1000</hi>
     </Uniform>
 </Distributions>
 <Models>
@@ -21,9 +25,12 @@
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='2' initial_seed='200286'>
+  <MonteCarlo     name='RAVENmc3'  limit='4' initial_seed='200286'>
     <Variable name='DeltaTimeScramToAux'>
       <distribution type='Uniform'>auxbackup</distribution>
+    </Variable>
+    <Variable name='DG1recoveryTime'>
+      <distribution type='Uniform'>DG1backup</distribution>
     </Variable>
   </MonteCarlo>
 </Samplers>
@@ -31,9 +38,10 @@
     <MultiRun name='MC_for_rom_trainer'>
         <Input   class='Files'      type=''                >TMI.i</Input>
         <Input   class='Files'      type=''                >TMI_PRA_trans_MC_control.py</Input>
-        <Input   class='Files'      type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Input>
-        <Input   class='Files'      type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda</Input>
-        <Input   class='Files'      type=''                >TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/0957.rd-0</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/0957.xdr</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/0957.xdr.0000</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/0957_mesh.cpr</Input>
         <Model   class='Models'     type='Code'            >MyRAVEN</Model>
         <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmc3</Sampler>
         <Output  class='DataBases'  type='HDF5'            >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
@@ -42,11 +50,11 @@
         <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
         <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
         <Output  class='Datas'    type='TimePointSet'               >timepointset_from_database_for_rom_trainer</Output>
-        <Output  class='Datas'    type='TimePoint'    hist_name = ''>data_for_sampling_empty_at_begin</Output>
+        <Output  class='Datas'    type='TimePoint'                  >data_for_sampling_empty_at_begin</Output>
     </InOutFromDataBase>  
     <RomTrainer name='test_rom_trainer'>
-        <Input   type='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
-        <Output  type='Models' type='ROM'         >ROM1</Output>
+        <Input   class='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Output  class='Models' type='ROM'         >ROM1</Output>
     </RomTrainer> 
     <MultiRun name='rom_MC'>
         <Input   class='Datas'    type='TimePoint'   >data_for_sampling_empty_at_begin</Input>
@@ -59,15 +67,15 @@
         <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
 </DataBases>
 <Datas>
-   <TimePointSet name='timepointset_from_database_for_rom_trainer'>
+   <TimePointSet name='timepointset_from_database_for_rom_trainer' input_ts='960'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempBranched</Output>
    </TimePointSet>
-   <TimePoint name='data_for_sampling_empty_at_begin'>
+   <TimePoint name='data_for_sampling_empty_at_begin' input_ts='960'>
         <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempBranched</Output>
    </TimePoint>
-   <TimePointSet name='outputMontecarloRom' printCSV='t'>
+   <TimePointSet name='outputMontecarloRom' printCSV='t' input_ts='960'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempBranched</Output>
    </TimePointSet>

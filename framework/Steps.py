@@ -142,10 +142,12 @@ class SingleRun(Step):
       while True:
         finishedJobs = jobHandler.getFinished()
         for finishedJob in finishedJobs:
-          for output in inDictionary['Output']:                                         #for all expected outputs
-              if output.type not in ['OutStreamPlot','OutStreamPrint']: inDictionary['Model'].collectOutput(finishedJob,output)                   #the model is tasket to provide the needed info to harvest the output
-          for output in inDictionary['Output']:                                                      #for all expected outputs
-            if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                               #the model is tasked to provide the needed info to harvest the output
+          if not finishedJob.getReturnCode() == 1:
+            # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+            for output in inDictionary['Output']:                                                      #for all expected outputs
+              if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(finishedJob,output) #the model is tasked to provide the needed info to harvest the output
+            for output in inDictionary['Output']:                                                      #for all expected outputs
+              if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
           break
         time.sleep(self.sleepTime)
@@ -183,11 +185,11 @@ class MultiRun(SingleRun):
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       if inDictionary["Model"].type != 'Code':
         time.sleep(self.sleepTime) #it is here since models that are not codes do not have the quequing system
-        # if the model is not a code, collect the output right after the evaluation => the response is overwritten at each "run"
-        for output in inDictionary['Output']:
-          if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output)
-        for output in inDictionary['Output']: 
-          if output.type in ['OutStreamPlot','OutStreamPrint']     : output.addOutput()
+        # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+        for output in inDictionary['Output']:                                                      #for all expected outputs
+          if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(None,output) #the model is tasked to provide the needed info to harvest the output
+        for output in inDictionary['Output']:                                                      #for all expected outputs
+          if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
 
   def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -308,10 +310,12 @@ class Adaptive(MultiRun):
         #loop on the finished jobs
         for finishedJob in finishedJobs:
           if 'Sampler' in inDictionary.keys(): inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
-          for output in inDictionary['Output']:                                                      #for all expected outputs
-            if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(finishedJob,output) #the model is tasked to provide the needed info to harvest the output
-          for output in inDictionary['Output']:                                                      #for all expected outputs
-            if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
+          if not finishedJob.getReturnCode() == 1:
+            # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+            for output in inDictionary['Output']:                                                      #for all expected outputs
+              if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(finishedJob,output) #the model is tasked to provide the needed info to harvest the output
+            for output in inDictionary['Output']:                                                      #for all expected outputs
+              if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
           for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
             if inDictionary['Sampler'].amIreadyToProvideAnInput(inLastOutput=inDictionary['TargetEvaluation']):
@@ -391,7 +395,7 @@ class InOutFromDataBase(Step):
         else: self.actionType.append('HDF5-DATAS')
     try: #try is used since files for the moment have no type attribute
       if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-      if 'Plot' or 'Print' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(inDictionary)
+      if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
     except AttributeError as ae: print("Error: "+repr(ae))    
     
   def localTakeAstepRun(self,inDictionary):
@@ -428,7 +432,8 @@ class RomTrainer(Step):
       inDictionary['Output'][i].initializeTrain(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'][0])
     try: #try is used since files for the moment have no type attribute
       if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-      if 'Plot' or 'Print' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(inDictionary)
+      
+      if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPlot']: inDictionary['Output'][i].initialize(inDictionary)
     except AttributeError as ae: print("Error: "+repr(ae))
 
   def takeAstepIni(self,inDictionary):
@@ -437,7 +442,7 @@ class RomTrainer(Step):
       if (inDictionary['Output'][i].type != 'ROM'):
         raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts a ROM as Output only. Got ' + inDictionary['Output'][i].type)
     if len(inDictionary['Input']) > 1: raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts an Input Only. Number of Inputs = ' + str(len(inDictionary['Input'])))
-    self.initializeStep(inDictionary)
+    self.localInitializeStep(inDictionary)
     
   def localTakeAstepRun(self,inDictionary):
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method

@@ -219,9 +219,7 @@ class CsvLoader:
           self.field_names.insert(0, 'time')       
       #fill input param dictionary
       for key in inParam:
-        print(self.all_field_names)
         if key in self.all_field_names:
-          
           ix = self.all_field_names.index(key)
           if i == 0:
             #create numpy array

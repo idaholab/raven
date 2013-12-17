@@ -1026,7 +1026,7 @@ class DynamicEventTree(Sampler):
     @ Out, None
     '''
     # Check if the number of calculation that have been run is greater than 1. If so, the simulation is already in the tree 
-    if self.counter > 1:
+    if self.counter >= 1:
       # The first DET calculation branch has already been run'
       # Start the manipulation:
       #  Pop out the last endInfo information and the branchedLevel
@@ -1213,15 +1213,25 @@ class DynamicEventTree(Sampler):
 
     return jobInput
 
+#   def localGenerateInput(self,model,myInput):
+#     '''
+#     Function used to generate a input. In this case it just calls 
+#     the function '__getQueueElement' to retrieve the first input
+#     in the queue
+#     @ In, model         : Model object instance
+#     @ In, myInput       : Original input files
+#     @ Out, newerinput   : First input in the queue 
+#     '''
+  def generateInput(self,model,oldInput):
+    '''
+    This method needs to be overwritten by the Dynamic Event Tree Sampler, since the input creation strategy is completely different with the respect the other samplers
+    @in model   : it is the instance of a model
+    @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
+    @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model 
+    ''' 
+    return self.localGenerateInput(model, oldInput)
+
   def localGenerateInput(self,model,myInput):
-    '''
-    Function used to generate a input. In this case it just calls 
-    the function '__getQueueElement' to retrieve the first input
-    in the queue
-    @ In, model         : Model object instance
-    @ In, myInput       : Original input files
-    @ Out, newerinput   : First input in the queue 
-    '''
     if self.counter <= 1:
       # If first branch input, create the queue 
       self.__createRunningQueue(model, myInput)

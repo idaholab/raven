@@ -232,7 +232,9 @@ class HDF5(DateBase):
       field_names = attributes['outParam']
       field_names.insert(0, 'time') 
       #all_field_names = histVar[1]["headers"]
-
+    if 'input_ts' in attributes.keys(): ints = int(attributes['input_ts'])
+    else:                               ints=0
+    
     # fill input param dictionary
     for key in attributes["inParam"]:
         if histVar[1].has_key('input_space_headers'):
@@ -241,12 +243,14 @@ class HDF5(DateBase):
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
           elif key in histVar[1]["output_space_headers"]:
             ix = histVar[1]["output_space_headers"].index(key)
-            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
+            if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +attributes['history']+ '!') 
+            inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception("ERROR: the parameter " + key + " has not been found")            
         else:
           if key in histVar[1]["output_space_headers"]:
             ix = histVar[1]["output_space_headers"].index(key)
-            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
+            if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +attributes['history']+ '!')
+            inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception("ERROR: the parameter " + key + " has not been found")   
   
     # Fill output param dictionary
@@ -312,7 +316,10 @@ class HDF5(DateBase):
       # convert the time in float
       time_end = False
       time_float = float(attributes['time'])
-      
+
+    if 'input_ts' in attributes.keys(): ints = int(attributes['input_ts'])
+    else:                               ints = 0
+          
     inDict  = {}
     outDict = {}    
     hist_list = []
@@ -338,13 +345,15 @@ class HDF5(DateBase):
           elif key in histVar[1]["output_space_headers"]:
             ix = histVar[1]["output_space_headers"].index(key)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
-            inDict[key][i] = np.array(histVar[0][0,ix])
+            if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +hist_list[i]+ '!')
+            inDict[key][i] = np.array(histVar[0][ints,ix])
           else: raise Exception("ERROR: the parameter " + key + " has not been found")            
         else:
           if key in histVar[1]["output_space_headers"]:
             ix = histVar[1]["output_space_headers"].index(key)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
-            inDict[key][i] = histVar[0][0,ix]
+            if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +hist_list[i]+ '!')
+            inDict[key][i] = histVar[0][ints,ix]
           else: raise Exception("ERROR: the parameter " + key + " has not been found")   
       
       # time end case => TimePointSet is at the final status 
@@ -419,7 +428,10 @@ class HDF5(DateBase):
         time_all = False
         time_float = [float(x) for x in attributes['time']]
     else: time_all = True
-                   
+    
+    if 'input_ts' in attributes.keys(): ints = int(attributes['input_ts'])
+    else:                               ints = 0   
+                    
     inDict  = {}
     outDict = {}  
     # Call the function to retrieve a single history and 
@@ -440,12 +452,14 @@ class HDF5(DateBase):
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
           elif key in histVar[1]["output_space_headers"]:
             ix = histVar[1]["output_space_headers"].index(key)
-            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
+            if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +attributes['history']+ '!')
+            inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception("ERROR: the parameter " + key + " has not been found")            
         else:
           if key in histVar[1]["output_space_headers"]:
             ix = histVar[1]["output_space_headers"].index(key)
-            inDict[key] = np.atleast_1d(np.array(histVar[0][0,ix]))
+            if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +attributes['history']+ '!')
+            inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception("ERROR: the parameter " + key + " has not been found")   
 
     # Time all case => The history is completed (from start_time to end_time)
