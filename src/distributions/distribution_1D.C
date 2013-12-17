@@ -895,10 +895,12 @@ public:
 };
 
 
-BasicGammaDistribution::BasicGammaDistribution(double k, double theta)
+BasicGammaDistribution::BasicGammaDistribution(double k, double theta, double low)
 {
   _dis_parameters["k"] = k; //shape
   _dis_parameters["theta"] = theta; //scale
+  _dis_parameters["low"] = low; //low value shift. 0.0 would be a regular gamma 
+  // distribution
 
   if ((theta<0) || (k<0))
     throwError("ERROR: incorrect value of k or theta for gamma distribution");
@@ -934,8 +936,10 @@ double
 BasicGammaDistribution::Pdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
+   double low = _dis_parameters.find("low") ->second;
 
    double value;
+   x = x - low; //Translate x value
 
    if (_dis_parameters.find("truncation") ->second == 1)
 	  if (x<xMin)
@@ -954,8 +958,10 @@ double
 BasicGammaDistribution::Cdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
+   double low = _dis_parameters.find("low") ->second;
 
    double value;
+   x = x - low; //Translate x value
 
    if (_dis_parameters.find("truncation") ->second == 1)
 	  if (x<xMin)
@@ -975,13 +981,15 @@ BasicGammaDistribution::RandomNumberGenerator(double RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
+   double low = _dis_parameters.find("low") ->second;
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
       double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
       value=untrRandomNumberGenerator(temp);
    }
    else
-      value=-1;
+     return -1;
+   //value=-1;
    }
    else if(_force_dist == 1){
      value = xMin;
@@ -995,7 +1003,7 @@ BasicGammaDistribution::RandomNumberGenerator(double RNG){
    else{
      throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
-   return value;
+   return value+low;
 }
 
 /*

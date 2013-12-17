@@ -221,12 +221,13 @@ InputParameters validParams<GammaDistribution>(){
 
    params.addRequiredParam<double>("k", "shape parameter");
    params.addRequiredParam<double>("theta", "scale parameter");
+   params.addParam<double>("low",0.0,"low value for distribution");
    return params;
 }
 
 GammaDistribution::GammaDistribution(const std::string & name, InputParameters parameters):
   distribution(name,parameters), 
-  BasicGammaDistribution(getParam<double>("k"),getParam<double>("theta"))
+  BasicGammaDistribution(getParam<double>("k"),getParam<double>("theta"),getParam<double>("low"))
                                                          
 {
 }

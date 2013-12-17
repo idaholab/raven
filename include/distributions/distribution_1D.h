@@ -185,7 +185,7 @@ class GammaDistributionBackend;
 
 class BasicGammaDistribution : public virtual BasicDistribution {
 public:
-  BasicGammaDistribution(double k, double theta);
+  BasicGammaDistribution(double k, double theta, double low);
   virtual ~BasicGammaDistribution();
 
   double  Pdf(double x);                ///< Pdf function at coordinate x
