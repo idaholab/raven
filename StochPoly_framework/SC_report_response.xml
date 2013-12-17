@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulatio>
 <RunInfo>
-    <WorkingDir>./inputs_response</WorkingDir>
+    <WorkingDir>./inputs_response_o</WorkingDir>
     <Files>TMI_test_PRA_transient_less_w_ss_out_restart_0831.rd-0,TMI_PRA_trans_MC_control.py,TMI_PRA_trans_SC_control.py,TMI.i,TMI_SC.i,TMI_test_PRA_transient_less_w_ss_out_restart_0831_mesh.xda,TMI_test_PRA_transient_less_w_ss_out_restart_0831.xda</Files>
     <Sequence>set_up_StochCollocation,create_ROM,sample_SC_ROM,solve_MC</Sequence>
     <!--Sequence>set_up_SC,create_ROM,solve_MC,sample_SC_ROM</Sequence-->
     <mode>mpi</mode>
-    <batchSize>400</batchSize>
+    <batchSize>8</batchSize>
 </RunInfo>
 
 <Models>
@@ -47,10 +47,9 @@
 
 <Samplers>
   <StochasticCollocation name='SC' min_poly_order='2'>
-      <Variable type ='Uniform'  distName='crew1DG1_uni'            polyOrder='3'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
-      <Variable type ='Uniform' distName='crew1DG2CoupledDG1'       polyOrder='3'>RavenAuxiliary|crew1DG2CoupledDG1|initial_value</Variable>
-      <Variable type ='Uniform'  distName='crewSecPG_uni'           polyOrder='3'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
-      <Variable type ='Uniform'  distName='PrimPGrecovery_uni'      polyOrder='3'>RavenAuxiliary|PrimPGrecoveryTime|initial_value</Variable>
+      <Variable type ='Uniform'  distName='crew1DG1_uni'            polyOrder='1'>RavenAuxiliary|DG1recoveryTime|initial_value</Variable>
+      <Variable type ='Uniform' distName='crew1DG2CoupledDG1'       polyOrder='1'>RavenAuxiliary|crew1DG2CoupledDG1|initial_value</Variable>
+      <Variable type ='Uniform'  distName='crewSecPG_uni'           polyOrder='1'>RavenAuxiliary|SecPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
 <!-- 
   <StochasticCollocation name='SC' min_poly_order='2'>
@@ -60,18 +59,16 @@
       <Variable type ='Normal'  distName='PrimPGrecovery'      polyOrder='2'>RavenAuxiliary|PrimPGrecoveryTime|initial_value</Variable>
   </StochasticCollocation>
 -->
-  <MonteCarlo     name='MC'    limit='400' initial_seed='20' />
-  <MonteCarlo     name='MCSC'  limit='400' initial_seed='20'>
+  <MonteCarlo     name='MC'    limit='8' initial_seed='20' />
+  <MonteCarlo     name='MCSC'  limit='8' initial_seed='20'>
       <Variable type ='Normal'  distName='crew1DG1'            >DG1recoveryTime</Variable>
       <Variable type ='Uniform' distName='crew1DG2CoupledDG1'  >crew1DG2CoupledDG1</Variable>
       <Variable type ='Normal'  distName='crewSecPG'           >SecPGrecoveryTime</Variable>
-      <Variable type ='Normal'  distName='PrimPGrecovery'      >PrimPGrecoveryTime</Variable>
   </MonteCarlo>
-  <MonteCarlo     name='MCSC_uni'  limit='400' initial_seed='20'>
+  <MonteCarlo     name='MCSC_uni'  limit='8' initial_seed='20'>
       <Variable type ='Uniform'  distName='crew1DG1_uni'            >DG1recoveryTime</Variable>
       <Variable type ='Uniform' distName='crew1DG2CoupledDG1'       >crew1DG2CoupledDG1</Variable>
       <Variable type ='Uniform'  distName='crewSecPG_uni'           >SecPGrecoveryTime</Variable>
-      <Variable type ='Uniform'  distName='PrimPGrecovery_uni'      >PrimPGrecoveryTime</Variable>
   </MonteCarlo>
 </Samplers>
 
@@ -119,23 +116,23 @@
 
 <Datas>
    <TimePointSet name='timepointset_from_database_for_rom_trainer' printCSV='t' operator='max'>
-        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,PrimPGrecoveryTime</Input>
+        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
    <TimePoint name='data_for_sampling_empty_at_begin'>
-        <Input name="1">DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,PrimPGrecoveryTime</Input>
+        <Input name="1">DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePoint>
    <TimePointSet name='outputMontecarloRom' printCSV='t' operator='max'>
-        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,PrimPGrecoveryTime</Input>
+        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
     <TimePointSet name='output_solve_MC' printCSV='t' operator='max'>
-        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,PrimPGrecoveryTime</Input>
+        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
     <TimePointSet name='output_set_up_StochCollocation' printCSV='t' operator='max'>
-        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime,PrimPGrecoveryTime</Input>
+        <Input>DG1recoveryTime,crew1DG2CoupledDG1,SecPGrecoveryTime</Input>
         <Output>avg_temp_clad_CH1</Output>
    </TimePointSet>
 </Datas>

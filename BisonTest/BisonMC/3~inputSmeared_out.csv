@@ -1,3 +1,0 @@
-time,_dt,ave_temp_interior,avg_clad_temp,clad_inner_vol,fis_gas_boundary,fis_gas_grain,fis_gas_produced,fis_gas_released,flux_from_clad,flux_from_fuel,gas_volume,initial_moles,max_stress,maximum_stress_criteria,nonlinear_its,pellet_volume,plenumTemp,plenum_pressure,rod_input_power,rod_total_power
--200,0,580,580,8.7824915257576e-06,0,0,0,0,3.6714979868599e-13,-1.0735172153936e-11,1.8928764205147e-06,0.00078507658258135,0,500000,0,-6.8896151052429e-06,579.98203674178,2000000,0,0
-
