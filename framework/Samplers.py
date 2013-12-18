@@ -1260,7 +1260,7 @@ class DynamicEventTree(Sampler):
       for childChild in child:
         if childChild.tag =='distribution':
           branchedLevel[childChild.text] = 0
-          if   childChild.attrib.has_key('ProbabilityThresholds'): 
+          if 'ProbabilityThresholds' in childChild.attrib: 
             self.branchProbabilities[childChild.text] = [float(x) for x in childChild.attrib['ProbabilityThresholds'].split()]
             self.branchProbabilities[childChild.text].sort(key=float)
             if max(self.branchProbabilities[childChild.text]) > 1:
@@ -1271,7 +1271,7 @@ class DynamicEventTree(Sampler):
                 print("SAMPLER DET   : ERROR -> In distribution " + str(childChild.text) + " the Threshold " + str(sorted(self.branchProbabilities[childChild.text], key=float)[index])+" appears multiple times!!")
                 error_found = True
             # the invCDF of the branchProbabilities are computed in the initialize method (called right before the Sampler gets used)
-          elif childChild.attrib.has_key('ValueThresholds'):
+          elif 'ValueThresholds' in childChild.attrib:
             self.branchValues[childChild.text] = [float(x) for x in childChild.attrib['ValueThresholds'].split()]
             self.branchValues[childChild.text].sort(key=float)
             for index in range(len(sorted(self.branchValues[childChild.text], key=float))):

@@ -237,7 +237,7 @@ class HDF5(DateBase):
     
     # fill input param dictionary
     for key in attributes["inParam"]:
-        if histVar[1].has_key('input_space_headers'):
+        if 'input_space_headers' in histVar[1]:
           if key in histVar[1]['input_space_headers']:
             ix = histVar[1]['input_space_headers'].index(key)
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
@@ -337,7 +337,7 @@ class HDF5(DateBase):
           field_names.insert(0, 'time') 
 
       for key in attributes["inParam"]:
-        if histVar[1].has_key('input_space_headers'):
+        if 'input_space_headers' in histVar[1]:
           if key in histVar[1]['input_space_headers']:
             ix = histVar[1]['input_space_headers'].index(key)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
@@ -446,7 +446,7 @@ class HDF5(DateBase):
     
     # fill input param dictionary
     for key in attributes["inParam"]:
-        if histVar[1].has_key('input_space_headers'):
+        if 'input_space_headers' in histVar[1]:
           if key in histVar[1]['input_space_headers']:
             ix = histVar[1]['input_space_headers'].index(key)
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
