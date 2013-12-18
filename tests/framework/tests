@@ -58,7 +58,7 @@
   output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
   csv = 'test_extract_data_s_from_hdf5/timepointset_from_database_dump.csv'
   max_time = 500
-  rel_err = 0.001
+  rel_err = 0.01
  [../]
  [./test_rom_trainer]
   type = 'RavenFramework'
