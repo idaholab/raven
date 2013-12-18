@@ -902,6 +902,17 @@ BasicGammaDistribution::BasicGammaDistribution(double k, double theta, double lo
   _dis_parameters["low"] = low; //low value shift. 0.0 would be a regular gamma 
   // distribution
 
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  if(not hasParameter("xMin")) {
+    _dis_parameters["xMin"] = -std::numeric_limits<double>::max( );
+  }
+  if(not hasParameter("xMax")) {
+    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+  }
+
+
   if ((theta<0) || (k<0))
     throwError("ERROR: incorrect value of k or theta for gamma distribution");
 
@@ -920,11 +931,13 @@ BasicGammaDistribution::untrPdf(double x){
 
 double
 BasicGammaDistribution::untrCdf(double x){
-  if(x >= 0) {
+  if(x > 1.0e100) {
+    return 1.0;
+  } else if(x >= 0) {
     return boost::math::cdf(_gamma->_backend, x);
-  } else {
+  } else  {
     return 0.0;
-  }
+  } 
 }
 
 double
