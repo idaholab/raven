@@ -20,8 +20,6 @@ class NotConsistentData(Exception):
     pass
 class ConstructError(Exception):
     pass
-#from hdf5_manager import hdf5Manager as AAFManager
-#import h5py as h5
 
 class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def __init__(self,inParamValues = None, outParamValues = None):
@@ -42,6 +40,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                    
     
   def readMoreXML(self,xmlNode):
+    '''
+    Function to read the xml input block.
+    @ In, xmlNode, xml node
+    '''
     # retrieve input parameters' keywords
     self.dataParameters['inParam']  = xmlNode.find('Input' ).text.strip().split(',')
     # retrieve output parameters' keywords
@@ -68,21 +70,43 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     except KeyError:self.dataParameters['input_ts'] = None
     
   def addInitParams(self,tempDict):
+    '''
+    Function to get the input params that belong to this class
+    @ In, tempDict, temporary dictionary
+    '''
     for i in range(len(self.dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self.dataParameters['inParam' ][i]
     for i in range(len(self.dataParameters['outParam'])): tempDict['Output_'+str(i)] = self.dataParameters['outParam'][i]
     tempDict['Time'] = self.dataParameters['time']
     return tempDict
   
-  def removeInputValue(self,name,value):
+  def removeInputValue(self,name):
+    '''
+    Function to remove a value from the dictionary inpParametersValues
+    @ In, name, parameter name
+    '''
     if name in self.inpParametersValues.keys(): self.inpParametersValues.pop(name)
    
-  def removeOutputValue(self,name,value):
+  def removeOutputValue(self,name):
+    '''
+    Function to remove a value from the dictionary outParametersValues
+    @ In, name, parameter name
+    '''
     if name in self.outParametersValues.keys(): self.outParametersValues.pop(name)
   
   def updateInputValue(self,name,value):
+    '''
+    Function to update a value from the dictionary inParametersValues
+    @ In, name, parameter name
+    @ In, value, the new value
+    '''
     self.updateSpecializedInputValue(name,value)
 
   def updateOutputValue(self,name,value):
+    '''
+    Function to update a value from the dictionary outParametersValues
+    @ In, name, parameter name
+    @ In, value, the new value
+    '''
     self.updateSpecializedOutputValue(name,value)
 
   @abc.abstractmethod
@@ -101,6 +125,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   def printCSV(self):
+    '''
+    Function used to dump the data into a csv file
+    Every class must implement the specializedPrintCSV method
+    that is going to be called from here
+    @ In, None
+    '''
     # print content of data in a .csv format
     if self.debug:
       print('=======================')
@@ -115,8 +145,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def addOutput(self,toLoadFrom):
     ''' 
-        this function adds the file name/names/object to the
-        filename list + it calls the specialized functions to retrieve the different data
+      Function to construct a data from a source
+      @ In, toLoadFrom, loading source, it can be an HDF5 database, a csv file and in the future a xml file
     '''
     self.toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
@@ -140,23 +170,41 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if type(tupleVar[1][hist]) == dict:
         for key in tupleVar[1][hist].keys(): self.updateOutputValue(key, tupleVar[1][hist][key])
       else: self.updateOutputValue(hist, tupleVar[1][hist]) 
-    #self.inpParametersValues = copy.deepcopy(tupleVar[0])
-    #self.outParametersValues = copy.deepcopy(tupleVar[1])
     self.checkConsistency()
     return
 
   def getParametersValues(self,typeVar):
+    '''
+    Functions to get the parameter values
+    @ In, variable type (input or output)
+    '''
     if typeVar.lower() == "input":    return self.getInpParametersValues()
     elif typeVar.lower() == "output": return self.getOutParametersValues()
     else: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParametersValues")
 
   def getInpParametersValues(self):
+    '''
+    Function to get a reference to the input parameter dictionary
+    @, In, None
+    @, Out, Reference to self.inpParametersValues
+    '''
     return self.inpParametersValues  
 
   def getOutParametersValues(self):
+    '''
+    Function to get a reference to the output parameter dictionary
+    @, In, None
+    @, Out, Reference to self.outParametersValues
+    '''
     return self.outParametersValues 
   
   def getParam(self,typeVar,keyword):
+    '''
+    Function to get a reference to an output or input parameter
+    @ In, typeVar, input or output
+    @ In, keyword, keyword 
+    @ Out, Reference to the parameter
+    '''
     if typeVar.lower() == "input":
       if keyword in self.inpParametersValues.keys(): return self.inpParametersValues[keyword]
       else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in inpParametersValues dictionary. Function: Data.getParam")    

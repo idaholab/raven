@@ -21,7 +21,6 @@ import Models
 import Tests
 import Distributions
 import DataBases
-import OutStreams
 import Functions
 import OutStreamManager
 from JobHandler import JobHandler
@@ -279,7 +278,6 @@ class Simulation(object):
     self.testsDict         = {}
     self.distributionsDict = {}
     self.dataBasesDict     = {}
-    self.outStreamsDict    = {}
     self.functionsDict     = {}
     self.filesDict         = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
     self.OutStreamManagerDict = {}
@@ -301,7 +299,6 @@ class Simulation(object):
     self.addWhatDict['Distributions' ] = Distributions
     self.addWhatDict['DataBases'     ] = DataBases
     self.addWhatDict['Functions'     ] = Functions
-    self.addWhatDict['OutStreams'    ] = OutStreams
     self.addWhatDict['OutStreamManager'    ] = OutStreamManager
 
     #Mapping between a class type and the dictionary containing the instances for the simulation
@@ -316,7 +313,6 @@ class Simulation(object):
     self.whichDict['Files'        ] = self.filesDict
     self.whichDict['Distributions'] = self.distributionsDict
     self.whichDict['DataBases'    ] = self.dataBasesDict
-    self.whichDict['OutStreams'   ] = self.outStreamsDict
     self.whichDict['Functions'    ] = self.functionsDict
     self.whichDict['OutStreamManager'   ] = self.OutStreamManagerDict
     
@@ -443,7 +439,6 @@ class Simulation(object):
     __prntDict(self.testsDict)
     __prntDict(self.filesDict)
     __prntDict(self.dataBasesDict)
-    __prntDict(self.outStreamsDict)
     __prntDict(self.OutStreamManagerDict)
     __prntDict(self.addWhatDict)
     __prntDict(self.whichDict)

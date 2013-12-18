@@ -21,8 +21,18 @@ class CsvLoader:
     self.all_out_param      = False # all output parameters?
     self.field_names        = []    # 
     self.all_field_names    = []
-    
+
   def loadCsvFile(self,filein):
+    '''
+    Function to load a csv file into a numpy array (2D) 
+    It also retrieves the headers
+    The format of the csv must be:
+    STRING,STRING,STRING,STRING
+    FLOAT ,FLOAT ,FLOAT ,FLOAT 
+    ...
+    ...
+    FLOAT ,FLOAT ,FLOAT ,FLOAT
+    '''
     # open file
     myFile = open (filein,'rb')
     # read the field names
@@ -35,8 +45,12 @@ class CsvLoader:
     myFile.close()  
     return data
 
-  # function to get actual field names (desired output parameter keywords)
   def getFieldNames(self):
+    '''
+    @ In, None
+    @ Out, None
+    Function to get actual field names (desired output parameter keywords)
+    ''' 
     return self.field_names
 
   # function to get all field names found in the csv file
@@ -46,6 +60,8 @@ class CsvLoader:
   # function to grep max dimensions in multiple csv files
   def parseFilesToGrepDimensions(self,filesin):      
     '''
+    @ In, filesin, csv files list
+    @ Out, None
     filesin = file names
     NtimeSteps   = maxNumberOfTs
     maxNumOfParams = max number of parameters
@@ -71,6 +87,11 @@ class CsvLoader:
     return (NtimeSteps,maxNumOfParams,NSamples)  
  
   def csvLoadData(self,filein,options):
+    '''
+    General interface function to call the private methods for loading the different datas!
+    @ In, filein, csv file name
+    @ In, options, dictionary of options
+    '''
     if   options['type'] == 'TimePoint':
       return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'],options['input_ts'])
     elif options['type'] == 'TimePointSet':
@@ -93,9 +114,9 @@ class CsvLoader:
   # loader for time point data type
   def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,input_ts):
     '''
-    filein = file name
-    time   = time
-    paramList = parameters to be picked up (optional)
+    @ In, filein = file name
+    @ In, time   = time
+    @ In, paramList = parameters to be picked up (optional)
     '''
     #load the data into the numpy array
     data = self.loadCsvFile(filein)
@@ -183,10 +204,10 @@ class CsvLoader:
   def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,input_ts):
     '''
     loader for time point set data type
-    filesin = file names
-    time   = time
-    inParam = parameters to be picked up 
-    outParam = parameters to be picked up    
+    @ In, filesin = file names
+    @ In, time   = time
+    @ In, inParam = parameters to be picked up 
+    @ In, outParam = parameters to be picked up    
     '''
     if 'all' in outParam:
       self.all_out_param  = True
@@ -298,10 +319,10 @@ class CsvLoader:
   def __csvLoaderForHistory(self,filein,time,inParam,outParam,input_ts):
     '''
     loader for history data type
-    filein = file name
-    time_filter   = time_filter
-    inParamDict = parameters to be picked up (dictionary of values)
-    outParamDict = parameters to be picked up (dictionary of lists)   
+    @ In, filein = file name
+    @ In, time   = time_filter
+    @ In, inParamDict = parameters to be picked up (dictionary of values)
+    @ In, outParamDict = parameters to be picked up (dictionary of lists)   
     '''
     #load the data into the numpy array
     data = self.loadCsvFile(filein)
@@ -368,52 +389,3 @@ class CsvLoader:
           else:
             raise Exception("ERROR: the parameter " + key + " has not been found")      
     return (inDict,outDict)         
-#  def csvLoaderForHistories(self,filesin,time_filters=None,inParamDict,outParamDict):
-#    '''
-#    filein = file name
-#    time_filter   = time_filter
-#    inParamDict = parameters to be picked up (dictionary of dictionaries of lists))
-#    outParamDict = parameters to be picked up (dictionary of dictionaries of lists)   
-#    '''
-#    inDict  = {}
-#    outDict = {}
-#    # firstly we read the first file to grep information regarding the number of time-step
-#    self.parseFilesToGrepDimensions(filesin, NtimeSteps, maxNumOfParams, NSamples)
-#
-#    inDict  = inParamDict
-#    outDict = outParamDict
-#    if(inDict['all']):
-#      inputParamN = maxNumOfParams
-#    else:
-#      inputParamN = len(inDict.keys())
-#    if(outDict['all']):
-#      outputParamN = maxNumOfParams
-#    else:
-#      outputParamN = len(outDict.keys())  
-#    # now we "allocate" the numpy matrix
-#    data_work_in = np.zeros(shape=(inputParamN,NtimeSteps,NSamples))
-#    data_work_out = np.zeros(shape=(outputParamN,NtimeSteps,NSamples))
-#    
-#    for i in range(NSamples):
-#      self.csvLoaderForHistory(filein[i],time_filter,inDict,outDict)
-#      index = 0
-#      for key in inDict:
-#        data_work_in[index,:,i] = float(inDict[key])
-#        index = index + 1
-#      index = 0  
-#      for key in outDict:
-#        data_work_out[index,:,i] = float(outDict[key])
-#        index = index + 1    
-#    #construct the output dictionaries
-#    key_index = 0
-#    for key in inDict:
-#      if(str(key) != 'all'):
-#        inParamDict[key] = data_work_in[key_index,:,:]
-#        key_index = key_index + 1
-#    key_index = 0    
-#    for key in outDict:
-#      if(str(key) != 'all'):
-#        outParamDict[key] = data_work_out[key_index,:,:]
-#        key_index = key_index + 1      
-#    return
-

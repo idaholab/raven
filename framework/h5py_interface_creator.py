@@ -25,21 +25,15 @@ class hdf5Database(object):
   class to create a h5py (hdf5) database
   '''
   def __init__(self,name, databaseDir, filename=None):
-    ''' 
-      database name (i.e. arbitrary name).
-      It is the database name that has been found in the xml input
-    '''
+    # database name (i.e. arbitrary name).
+    # It is the database name that has been found in the xml input
     self.name       = name
-    '''  
-      Database type :
-      -> The structure type is "inferred" by the first group is going to be added
-      * MC  = MonteCarlo => Storing by a Parallel structure 
-      * DET = Dynamic Event Tree => Storing by a Hierarchical structure
-    '''
+    # Database type :
+    # -> The structure type is "inferred" by the first group is going to be added
+    # * MC  = MonteCarlo => Storing by a Parallel structure 
+    # * DET = Dynamic Event Tree => Storing by a Hierarchical structure
     self.type       = None
-    ''' 
-      .H5 file name (to be created or read) 
-    '''
+    # .H5 file name (to be created or read) 
     if filename:
       # File name on disk (file exists => fileExist flag is True) 
       self.onDiskFile = filename
@@ -107,7 +101,6 @@ class hdf5Database(object):
       if "EndGroup" in obj.attrs:
         self.allGroupEnds[name]  = obj.attrs["EndGroup"]
       else: 
-
         print('DATABASE HDF5 : not found attribute EndGroup in group ' + name + '.Set True.')
         self.allGroupEnds[name]  = True
     return
@@ -120,7 +113,6 @@ class hdf5Database(object):
     @ In, source     : data source (for example, csv file)
     @ Out, None
     '''
-    #if self.type == 'DET':
     if source['type'] == 'Datas':
       self.addGroupDatas(gname,attributes,source)
       return
@@ -155,11 +147,9 @@ class hdf5Database(object):
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
         if gname in comparisonName: raise IOError("Root Group named " + gname + " already present in database " + self.name)
-    
     self.parent_group_name = "/" + gname 
     # Create the group
     grp = self.h5_file_w.create_group(gname)
-    
     # Add metadata
     if attributes:
       for key in attributes.keys():
@@ -167,7 +157,6 @@ class hdf5Database(object):
 
     self.allGroupPaths.append("/" + gname)
     self.allGroupEnds["/" + gname] = False
-    
     return
 
   def __addGroupRootLevel(self,gname,attributes,source,upGroup=False):
@@ -209,8 +198,6 @@ class hdf5Database(object):
       else: 
         if upGroup: grp = self.h5_file_w.require_group(gname)
         else:       grp = self.h5_file_w.create_group(gname) 
-        
-
       print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
       # Create dataset in this newly added group
       dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
@@ -223,8 +210,7 @@ class hdf5Database(object):
       grp.attrs["n_ts"      ] = data[:,0].size
       grp.attrs["EndGroup"  ] = True
       #FIXME should all the exceptions below be except KeyError to allow for other errors to break code?
-      if "input_file" in attributes:
-        grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
+      if "input_file" in attributes: grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
       grp.attrs["source_type"] = source['type']
           
       if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
@@ -256,6 +242,14 @@ class hdf5Database(object):
 
 
   def addGroupDatas(self,gname,attributes,source,upGroup=False):
+    '''
+    Function to add a data (class Datas) or Dictionary into the DataBase
+    @ In, gname      : group name
+    @ In, attributes : dictionary of attributes that must be added as metadata
+    @ In, source     : data source (for example, a TimePointSet)
+    @ In, upGroup    : update Group????
+    @ Out, None
+    '''
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
@@ -268,7 +262,6 @@ class hdf5Database(object):
       if parent_group_name in self.h5_file_w: parentgroup_obj = self.h5_file_w.require_group(parent_group_name)
       else: raise ValueError("NOT FOUND group named " + parentgroup_obj)
     else: parentgroup_obj = self.h5_file_w
-    
     
     if type(source['name']) == dict:
       # create the group
@@ -287,12 +280,9 @@ class hdf5Database(object):
         input_space_params_values = list(source['name']['input_space_params'].values())
         for i in range(len(input_space_params_values)): 
           testvalue.append(toBytes(input_space_params_values[i]))        
-#        groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(source['name']['input_space_params'].keys()[i])  for i in range(len(source['name'].keys()['input_space_params'].keys()))]) 
-#        groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(source['name']['input_space_params'].values()[i])  for i in range(len(source['name'].keys()['input_space_params'].values()))])
         groups.attrs[b'input_space_headers' ] = copy.deepcopy(testkey) 
         groups.attrs[b'input_space_values' ] = copy.deepcopy(testvalue)
         out_headers = list(source['name'].keys())
-        #out_headers.remove('input_space_params')
       else: out_headers = list(source['name'].keys())
       groups.attrs[b'n_params'   ] = len(out_headers)  
       groups.attrs[b'output_space_headers'] = copy.deepcopy([toBytes(str(out_headers[i]))  for i in range(len(out_headers))]) 
@@ -331,8 +321,6 @@ class hdf5Database(object):
       # for a "histories" type we create a number of groups = number of histories (compatibility with loading structure)
       data_in  = source['name'].getInpParametersValues().values()
       data_out = source['name'].getOutParametersValues().values()    
-
-
       if source['name'].type in ['Histories','TimePointSet']:
         groups = []
         if 'Histories' in source['name'].type: nruns = len(data_in)
@@ -390,7 +378,6 @@ class hdf5Database(object):
         dataout = np.zeros((data_out[0].size,len(data_out)))
         groups.attrs[b'n_ts'  ] = data_out[0].size
         for run in range(len(data_out)): dataout[:,int(run)] = copy.deepcopy(data_out[run][:])
-          #for param in range(data_out[run].size): dataout[param,int(run)] = copy.deepcopy(data_out[run][param])
         dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
         if parent_group_name != "/":
           self.allGroupPaths.append(parent_group_name + "/" + gname)
@@ -398,11 +385,8 @@ class hdf5Database(object):
         else:
           self.allGroupPaths.append("/" + gname)
           self.allGroupEnds["/" + gname] = True   
-      else:
-        raise IOError('DATABASE HDF5 : The function addGroupDatas accepts Data(s) or dictionaries as inputs only!!!!!')
-
-
-      
+      else: raise IOError('DATABASE HDF5 : The function addGroupDatas accepts Data(s) or dictionaries as inputs only!!!!!')
+  
   def __addSubGroup(self,gname,attributes,source):
     '''
     Function to add a group into the database (Hierarchical)
@@ -621,13 +605,9 @@ class hdf5Database(object):
           grp = self.h5_file_w.require_group(where_list[i])
           namel = name_list[i] +'_data'
           dataset = grp.require_dataset(namel, (int(grp.attrs['n_ts']),int(grp.attrs['n_params'])), dtype='float').value
-          
           if i == 0: n_params = int(grp.attrs['n_params'])
-          
           if n_params != int(grp.attrs['n_params']): raise Exception("Can not merge datasets with different number of parameters")
           # Get numpy array
-          #gb_res[i]   = dataset[:,:]
-          #gb_attrs[i] = grp.attrs  
           gb_res[i]   = copy.deepcopy(dataset[:,:])
           gb_attrs[i] = copy.copy(grp.attrs   )    
           n_tot_ts = n_tot_ts + int(grp.attrs['n_ts'])
@@ -753,7 +733,6 @@ class hdf5Database(object):
           for param_key in ["branch_changed_param_value","initiator_distribution","Probability_threshold","end_timestep"]:
             if param_key in gb_attrs[0]:
               attrs[param_key] = []
-          
           for key in gb_res:
             for param_key in ["input_file","branch_changed_param",
                               "conditional_prb","branch_changed_param_value",
@@ -765,7 +744,7 @@ class hdf5Database(object):
                   
         else: raise IOError("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 
     else: raise IOError("History named " + name + " not found in database")
-    
+  
     return(copy.deepcopy(result),copy.deepcopy(attrs))
 
   def closeDataBaseW(self):
@@ -790,6 +769,10 @@ class hdf5Database(object):
     return fh5
   
   def __returnParentGroupPath(self,parent_name):
+    '''
+    Function to return a parent group Path
+    @ In, parent_name, parent ID
+    '''
     if parent_name != '/':
       parent_group_name = '-$' # control variable
       for index in xrange(len(self.allGroupPaths)):
@@ -800,7 +783,6 @@ class hdf5Database(object):
     else: parent_group_name = None
     return parent_group_name
     
-  
 def is_number(s):
   try:
     float(s)
