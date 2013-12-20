@@ -132,7 +132,7 @@ class SingleRun(Step):
       try: #try is used since files for the moment have no type attribute
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-      except AttributeError as ae: print("Error: "+repr(ae))
+      except AttributeError as ae: print("Error1: "+repr(ae))
     
   def localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
@@ -289,7 +289,7 @@ class Adaptive(MultiRun):
           inDictionary['Output'][i].addGroupInit(self.name)
           if self.debug: print('The HDF5 '+inDictionary['Output'][i].name+' has been initialized')
         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPlot']: inDictionary['Output'][i].initialize(inDictionary)
-      except AttributeError as ae: print("Error: "+repr(ae))    
+      except AttributeError as ae: print("Error2: "+repr(ae))    
     #the first batch of input is generated (and run if the model is not a code)
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for newInput in newInputs:
@@ -396,7 +396,7 @@ class InOutFromDataBase(Step):
     try: #try is used since files for the moment have no type attribute
       if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
       if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-    except AttributeError as ae: print("Error: "+repr(ae))    
+    except AttributeError as ae: print("Error3: "+repr(ae))    
     
   def localTakeAstepRun(self,inDictionary):
     for i in xrange(len(inDictionary['Output'])):
@@ -434,7 +434,7 @@ class RomTrainer(Step):
       if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
       
       if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPlot']: inDictionary['Output'][i].initialize(inDictionary)
-    except AttributeError as ae: print("Error: "+repr(ae))
+    except AttributeError as ae: print("Error4: "+repr(ae))
 
   def takeAstepIni(self,inDictionary):
     print('STEPS         : beginning of step named: ' + self.name)
