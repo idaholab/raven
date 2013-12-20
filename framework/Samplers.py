@@ -912,7 +912,7 @@ class DynamicEventTree(Sampler):
         unchanged_pb = 0.0
         try:
           # changed_pb = probablity (not conditional probability yet) that the event A occurs and the final state is 'alpha' ''' 
-          for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])): unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
+          for pb in range(len(endInfo['branch_changed_params'][key]['associated_pb'])): unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
         except KeyError: pass
         if(unchanged_pb <= 1): endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
       else:
@@ -963,7 +963,7 @@ class DynamicEventTree(Sampler):
       #try:
       self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'] = []
       self.endInfo[index]['branch_changed_params'][key]['unchanged_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['unchanged_pb'])
-      for pb in xrange(len(self.endInfo[index]['branch_changed_params'][key]['associated_pb'])): self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'].append(parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb]))
+      for pb in range(len(self.endInfo[index]['branch_changed_params'][key]['associated_pb'])): self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'].append(parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb]))
       #except? pass
     return  
 
@@ -1043,7 +1043,7 @@ class DynamicEventTree(Sampler):
         self.branchCountOnLevel = 1
         n_branches = endInfo['n_branches'] - 1
       # Loop over the branches for which the inputs must be created
-      for i in xrange(n_branches):
+      for i in range(n_branches):
         del self.inputInfo
         self.counter += 1
         self.branchCountOnLevel += 1

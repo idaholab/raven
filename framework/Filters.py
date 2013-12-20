@@ -106,14 +106,14 @@ class PrintCSV:
             addcsvfile.write(toBytes(str(attributes['n_ts']))+b'\n')
             if 'initiator_distribution' in attributes:
               init_dist = attributes['initiator_distribution']
-              addcsvfile.write('#number of branches in this history,\n')
-              addcsvfile.write(str(len(init_dist))+'\n')
+              addcsvfile.write(b'#number of branches in this history,\n')
+              addcsvfile.write(toBytes(str(len(init_dist)))+b'\n')
               string_work = ''
-              for i in xrange(len(init_dist)):
+              for i in range(len(init_dist)):
                 string_work_2 = ''
                 for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','          
-              addcsvfile.write('#initiator distributions,\n')
+              addcsvfile.write(b'#initiator distributions,\n')
               addcsvfile.write(toBytes(string_work)+b'\n')
             if 'end_timestep' in attributes:
               string_work = ''
@@ -124,47 +124,47 @@ class PrintCSV:
             if 'branch_changed_param' in attributes:
               string_work = ''
               branch_changed_param = attributes['branch_changed_param']
-              for i in xrange(len(branch_changed_param)):
+              for i in range(len(branch_changed_param)):
                 string_work_2 = ''
                 for j in branch_changed_param[i]:
                   if not j: string_work_2 = string_work_2 + 'None' + ' '
                   else: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','          
-              addcsvfile.write('#changed parameters,\n')
-              addcsvfile.write(str(string_work)+'\n')
+              addcsvfile.write(b'#changed parameters,\n')
+              addcsvfile.write(toBytes(str(string_work))+b'\n')
             if 'branch_changed_param_value' in attributes:
               string_work = ''
               branch_changed_param_value = attributes['branch_changed_param_value']
-              for i in xrange(len(branch_changed_param_value)):
+              for i in range(len(branch_changed_param_value)):
                 string_work_2 = ''
                 for j in branch_changed_param_value[i]:
                   if not j: string_work_2 = string_work_2 + 'None' + ' '
                   else: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','                          
-              addcsvfile.write('#changed parameters values,\n')
-              addcsvfile.write(str(string_work)+'\n')
+              addcsvfile.write(b'#changed parameters values,\n')
+              addcsvfile.write(toBytes(str(string_work))+b'\n')
             if 'conditional_prb' in attributes:
               string_work = ''
               cond_pbs = attributes['conditional_prb']
-              for i in xrange(len(cond_pbs)):
+              for i in range(len(cond_pbs)):
                 string_work_2 = ''
                 for j in cond_pbs[i]:
                   if not j: string_work_2 = string_work_2 + 'None' + ' '
                   else: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','                
-              addcsvfile.write('#conditional probability,\n')
-              addcsvfile.write(str(string_work)+'\n')
+              addcsvfile.write(b'#conditional probability,\n')
+              addcsvfile.write(toBytes(str(string_work))+b'\n')
             if 'Probability_threshold' in attributes:
               string_work = ''
               pb_thresholds = attributes['Probability_threshold']
-              for i in xrange(len(pb_thresholds)):
+              for i in range(len(pb_thresholds)):
                 string_work_2 = ''
                 for j in pb_thresholds[i]:
                   if not j: string_work_2 = string_work_2 + 'None' + ' '
                   else: string_work_2 = string_work_2 + str(j) + ' '
                 string_work = string_work + string_work_2 + ','
-              addcsvfile.write('#Probability threshold,\n')
-              addcsvfile.write(str(string_work)+'\n')
+              addcsvfile.write(b'#Probability threshold,\n')
+              addcsvfile.write(toBytes(str(string_work))+b'\n')
             addcsvfile.write(b' \n')
             
     elif(self.inObj.type == "Datas"):
@@ -220,7 +220,7 @@ class Plot:
       endGroupNames = inObj.getEndingGroupNames()
       histories = {}
       #  Retrieve histories from HDF5 database
-      for index in xrange(len(endGroupNames)):
+      for index in range(len(endGroupNames)):
         histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
       
     elif (inObj.type == "CSV"):
