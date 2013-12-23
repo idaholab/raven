@@ -102,6 +102,9 @@ RAVEN_deps := $(patsubst %.C, %.$(obj-suffix).d, $(RAVEN_srcfiles)) \
               $(patsubst %.c, %.$(obj-suffix).d, $(RAVEN_csrcfiles)) \
               $(patsubst %.C, %.$(obj-suffix).d, $(RAVEN_main_src))
 
+# clang static analyzer files
+RAVEN_analyzer := $(patsubst %.C, %.plist.$(obj-suffix), $(RAVEN_srcfiles))
+
 # If building shared libs, make the plugins a dependency, otherwise don't.
 ifeq ($(libmesh_shared),yes)
   RAVEN_plugin_deps := $(RAVEN_plugins)
@@ -116,6 +119,9 @@ $(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugin_deps)
 	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link --quiet \
 	  $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(RAVEN_objects) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(EXTERNAL_FLAGS) -rpath $(RAVEN_DIR)
 	@$(libmesh_LIBTOOL) --mode=install --quiet install -c $(RAVEN_LIB) $(RAVEN_DIR)
+
+# Clang static analyzer
+sa:: $(RAVEN_analyzer)
 
 # include RAVEN dep files
 -include $(RAVEN_deps)
