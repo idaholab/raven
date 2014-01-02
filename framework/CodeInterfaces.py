@@ -10,6 +10,8 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 
+from utils import toString
+
 class RavenInterface:
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
   def generateCommand(self,inputFiles,executable):
@@ -28,16 +30,16 @@ class RavenInterface:
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
-    self.samplersDictionary                          = {}
-    self.samplersDictionary['MonteCarlo']            = self.MonteCarloForRAVEN
-    self.samplersDictionary['EquallySpaced']         = self.EquallySpacedForRAVEN
-    self.samplersDictionary['LatinHyperCube']        = self.LatinHyperCubeForRAVEN
-    self.samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForRAVEN
-    self.samplersDictionary['StochasticCollocation'] = self.StochasticCollocationForRAVEN
+    self._samplersDictionary                          = {}
+    self._samplersDictionary['MonteCarlo']            = self.MonteCarloForRAVEN
+    self._samplersDictionary['EquallySpaced']         = self.EquallySpacedForRAVEN
+    self._samplersDictionary['LatinHyperCube']        = self.LatinHyperCubeForRAVEN
+    self._samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForRAVEN
+    self._samplersDictionary['StochasticCollocation'] = self.StochasticCollocationForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
-    modifDict = self.samplersDictionary[samplerType](**Kwargs)
+    modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
@@ -90,7 +92,7 @@ class RavenInterface:
         del modifDict
     # add the initial time for this new branch calculation
     if 'start_time' in Kwargs.keys():
-      if Kwargs['start_time'] != 'Initial':
+      if Kwargs['start_time'] not in ['Initial',b'Initial']:
         modifDict = {}
         st_time = Kwargs['start_time']
         modifDict['name'] = ['Executioner']
@@ -102,7 +104,7 @@ class RavenInterface:
     if 'end_ts' in Kwargs.keys():
       #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
 
-      if str(Kwargs['start_time']) != 'Initial':
+      if Kwargs['start_time'] not in ['Initial',b'Initial']:
         modifDict = {}
         end_ts_str = str(Kwargs['end_ts'])
         if(Kwargs['end_ts'] <= 9999):
@@ -110,7 +112,7 @@ class RavenInterface:
           for i in range(n_zeros):
             end_ts_str = "0" + end_ts_str
         splitted = Kwargs['outfile'].split('~')
-        output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[1]
+        output_parent = splitted[0] + '~' + toString(Kwargs['parent_id']) + '~' + splitted[1]
         #restart_file_base = output_parent + "_restart_" + end_ts_str 
         restart_file_base = output_parent + "_cp/" + end_ts_str      
         modifDict['name'] = ['Executioner']
@@ -180,17 +182,17 @@ class MooseBasedAppInterface:
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
-    self.samplersDictionary                          = {}
-    self.samplersDictionary['MonteCarlo']            = self.pointSamplerForMooseBasedApp
-    self.samplersDictionary['EquallySpaced']         = self.pointSamplerForMooseBasedApp
-    self.samplersDictionary['LatinHyperCube']        = self.pointSamplerForMooseBasedApp
-    self.samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForMooseBasedApp
-    self.samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
-    self.samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary                          = {}
+    self._samplersDictionary['MonteCarlo']            = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['EquallySpaced']         = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['LatinHyperCube']        = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForMooseBasedApp
+    self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
-    modifDict = self.samplersDictionary[samplerType](**Kwargs)
+    modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
@@ -257,16 +259,16 @@ class Relap5Interface:
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
     import RELAPparser
-    self.samplersDictionary                          = {}
-    self.samplersDictionary['MonteCarlo']            = self.pointSamplerForRELAP5
-    self.samplersDictionary['EquallySpaced']         = self.pointSamplerForRELAP5
-    self.samplersDictionary['LatinHyperCube']        = self.pointSamplerForRELAP5
-    self.samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForRELAP5
-    self.samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
+    self._samplersDictionary                          = {}
+    self._samplersDictionary['MonteCarlo']            = self.pointSamplerForRELAP5
+    self._samplersDictionary['EquallySpaced']         = self.pointSamplerForRELAP5
+    self._samplersDictionary['LatinHyperCube']        = self.pointSamplerForRELAP5
+    self._samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForRELAP5
+    self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = RELAPparser.RELAPparser(currentInputFiles[index])
-    modifDict = self.samplersDictionary[samplerType](**Kwargs)
+    modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
