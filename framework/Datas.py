@@ -278,24 +278,24 @@ class TimePoint(Data):
     #Print input values
     inpKeys   = self.inpParametersValues.keys()
     inpValues = self.inpParametersValues.values()
-    for i in range(len(inpKeys)):
-      myFile.write(',' + inpKeys[i])
-    myFile.write('\n')
+    for item in inpKeys:
+      myFile.write(b',' + utils.toBytes(item))
+    myFile.write(b'\n')
     
-    for i in range(len(inpKeys)):
-      myFile.write(',' + str(inpValues[i][0]))
-    myFile.write('\n')
+    for item in inpValues:
+      myFile.write(b',' + utils.toBytes(str(item[0])))
+    myFile.write(b'\n')
     
     #Print time + output values
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
-    for i in range(len(outKeys)):
-      myFile.write(',' + outKeys[i])
-    myFile.write('\n')
+    for item in outKeys:
+      myFile.write(b',' + utils.toBytes(item))
+    myFile.write(b'\n')
     
-    for i in range(len(outKeys)):
-      myFile.write(',' + str(outValues[i][0]))
-    myFile.write('\n')
+    for item in outKeys:
+      myFile.write(b',' + utils.toBytes(str(item[0])))
+    myFile.write(b'\n')
     
     myFile.close()
   

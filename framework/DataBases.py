@@ -14,6 +14,7 @@ from h5py_interface_creator import hdf5Database as h5Data
 import copy
 import os
 import gc
+from utils import toBytes
 
 class DateBase(BaseType):
   '''
@@ -247,11 +248,15 @@ class HDF5(DateBase):
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception("ERROR: the parameter " + key + " has not been found")            
         else:
-          if key in histVar[1]["output_space_headers"]:
-            ix = histVar[1]["output_space_headers"].index(key)
+          if key in histVar[1]["output_space_headers"] or \
+             toBytes(key) in histVar[1]["output_space_headers"]:
+            if key in histVar[1]["output_space_headers"]: 
+              ix = histVar[1]["output_space_headers"].index(key)
+            else:
+              ix = histVar[1]["output_space_headers"].index(toBytes(key))
             if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
-          else: raise Exception("ERROR: the parameter " + key + " has not been found")   
+          else: raise Exception("ERROR: the parameter " + key + " has not been found")
   
     # Fill output param dictionary
     if time_end:
@@ -263,8 +268,13 @@ class HDF5(DateBase):
       else:
         # Retrieve only some parameters 
         for key in attributes['outParam']:
-          if key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]))      
-          else: raise RunTimeError("ERROR: the parameter " + key + " has not been found")
+          if key in histVar[1]["output_space_headers"] or \
+             toBytes(key) in histVar[1]["output_space_headers"]: 
+            if key in histVar[1]["output_space_headers"]:
+              outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]))
+            else:
+              outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["output_space_headers"].index(toBytes(key))]))
+          else: raise RuntimeError("ERROR: the parameter " + key + " has not been found")
     else:
       # Arbitrary point in time case... If the requested time point does not match any of the stored ones and 
       # start_time <= requested_time_point <= end_time, compute an interpolated value
@@ -349,12 +359,16 @@ class HDF5(DateBase):
             inDict[key][i] = np.array(histVar[0][ints,ix])
           else: raise Exception("ERROR: the parameter " + key + " has not been found")            
         else:
-          if key in histVar[1]["output_space_headers"]:
-            ix = histVar[1]["output_space_headers"].index(key)
+          if key in histVar[1]["output_space_headers"] or\
+             toBytes(key) in histVar[1]["output_space_headers"]:
+            if key in histVar[1]["output_space_headers"]:
+              ix = histVar[1]["output_space_headers"].index(key)
+            else:
+              ix = histVar[1]["output_space_headers"].index(toBytes(key))
             if i == 0: inDict[key] = np.zeros(len(hist_list))
             if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = histVar[0][ints,ix]
-          else: raise Exception("ERROR: the parameter " + key + " has not been found")   
+          else: raise Exception("ERROR: the parameter " + key + " has not been found in "+str(histVar[1]))   
       
       # time end case => TimePointSet is at the final status 
       if time_end:
@@ -367,10 +381,14 @@ class HDF5(DateBase):
         else:
           # Retrieve only some parameters
           for key in attributes['outParam']:
-            if key in histVar[1]["output_space_headers"]:
+            if key in histVar[1]["output_space_headers"] or \
+               toBytes(key) in histVar[1]["output_space_headers"]:
               if i == 0: outDict[key] = np.zeros(len(hist_list))
-              outDict[key][i] = histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]
-            else: raise RunTimeError("ERROR: the parameter " + str(key) + " has not been found")
+              if key in histVar[1]["output_space_headers"]:
+                outDict[key][i] = histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]
+              else:
+                outDict[key][i] = histVar[0][last_row,histVar[1]["output_space_headers"].index(toBytes(key))]
+            else: raise RuntimeError("ERROR: the parameter " + str(key) + " has not been found")
       else:
         # Arbitrary point in time case... If the requested time point Set does not match any of the stored ones and 
         # start_time <= requested_time_point <= end_time, compute an interpolated value
@@ -404,7 +422,7 @@ class HDF5(DateBase):
                     actual_value   = histVar[0][i,histVar[1]["output_space_headers"].index(key)]
                     previous_value = histVar[0][i-1,histVar[1]["output_space_headers"].index(key)] 
                     outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
-                else: raise RunTimeError("ERROR: the parameter " + key + " has not been found")      
+                else: raise RuntimeError("ERROR: the parameter " + key + " has not been found")      
       del histVar
     # return tuple of timepointSet
     return (copy.deepcopy(inDict),copy.deepcopy(outDict))
@@ -511,7 +529,7 @@ class HDF5(DateBase):
         listhist_out[index] = tupleVar[1]
         del tupleVar
       data = (listhist_in,listhist_out)
-    else: raise RunTimeError("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData")
+    else: raise RuntimeError("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData")
     # return data
     gc.collect()
     return copy.deepcopy(data) 

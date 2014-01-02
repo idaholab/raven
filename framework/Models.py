@@ -388,7 +388,7 @@ class ROM(Model):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    self.inputNames, inputsValues  = self.toLoadFrom.getInpParametersValues().keys(), self.toLoadFrom.getInpParametersValues().values()
+    self.inputNames, inputsValues  = self.toLoadFrom.getInpParametersValues().keys(), list(self.toLoadFrom.getInpParametersValues().values())
     if self.outputName in self.toLoadFrom.getOutParametersValues(): 
       outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
     else: raise IOError('The output sought '+self.outputName+' is not in the training set')
