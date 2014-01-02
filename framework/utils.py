@@ -29,3 +29,20 @@ def metaclass_insert(metaclass,*base_classes):
   """
   namespace={}
   return metaclass("NewMiddleMeta",base_classes,namespace)
+
+class abstractstatic(staticmethod):
+  """This can be make an abstract static method
+  import abc
+  class A(metaclass_insert(abc.ABCMeta)):
+    @abstractstatic
+    def test():
+      pass
+  class B(A):
+    @staticmethod
+    def test():
+      return 5
+  """
+  def __init__(self, function):
+    super(abstractstatic, self).__init__(function)
+    function.__isabstractmethod__ = True
+  __isabstractmethod__ = True
