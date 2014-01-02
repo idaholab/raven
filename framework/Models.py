@@ -388,7 +388,7 @@ class ROM(Model):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    self.inputNames, inputsValues  = self.toLoadFrom.getInpParametersValues().keys(), list(self.toLoadFrom.getInpParametersValues().values())
+    self.inputNames, inputsValues  = list(self.toLoadFrom.getInpParametersValues().keys()), list(self.toLoadFrom.getInpParametersValues().values())
     if self.outputName in self.toLoadFrom.getOutParametersValues(): 
       outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
     else: raise IOError('The output sought '+self.outputName+' is not in the training set')
@@ -410,12 +410,12 @@ class ROM(Model):
     if  type(currentInput)==str:#one input point requested a as a string
       inputNames  = [component.split('=')[0] for component in currentInput.split(',')]
       inputValues = [component.split('=')[1] for component in currentInput.split(',')]
-      for name, newValue in itertools.izip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
+      for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
         inputValues[inputNames.index(name)] = newValue
       newInput = [inputNames[i]+'='+inputValues[i] for i in range(inputNames)]
       newInput = newInput.join(',')
     elif type(currentInput)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      for name, newValue in itertools.izip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
+      for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
         currentInput[name] = newValue
       newInput = copy.deepcopy(currentInput)
     else:#as a internal data type
@@ -423,8 +423,8 @@ class ROM(Model):
         if currentInput.type in self.__returnAdmittedData():
           newInput = Datas.returnInstance(currentInput.type)
           newInput.type = currentInput.type
-          for name,value in itertools.izip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(value)))
-          for name, newValue in itertools.izip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()):
+          for name,value in zip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(value)))
+          for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()):
             # for now, even if the ROM accepts a TimePointSet, we create a TimePoint
             newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(newValue)))
             #except? raise IOError('trying to sample '+name+' that is not in the original input')
@@ -452,7 +452,7 @@ class ROM(Model):
       try: #try is used to be sure input.type exist
         print(self.request.type)
         if self.request.type in self.__returnAdmittedData():
-          inputNames, inputValues = self.request.getInpParametersValues().keys(), self.request.getInpParametersValues().values()
+          inputNames, inputValues = list(self.request.getInpParametersValues().keys()), list(self.request.getInpParametersValues().values())
       except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible data')
     #now that the prediction points are read we check the compatibility with the ROM input-output set
     lenght = len(set(inputNames).intersection(self.inputNames))
