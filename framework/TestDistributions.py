@@ -99,7 +99,7 @@ checkAnswer("truncNormal ppf(0.9)",truncNormal.ppf(0.9),2.49802919794)
 gammaElement = ET.Element("gamma")
 gammaElement.append(createElement("low",text="0.0"))
 gammaElement.append(createElement("alpha",text="1.0"))
-gammaElement.append(createElement("beta",text="2.0"))
+gammaElement.append(createElement("beta",text="0.5"))
 
 gamma = Distributions.Gamma()
 gamma.readMoreXML(gammaElement)
@@ -113,7 +113,7 @@ checkAnswer("gamma ppf(0.1)",gamma.ppf(0.1),0.210721031316)
 checkAnswer("gamma ppf(0.5)",gamma.ppf(0.5),1.38629436112)
 checkAnswer("gamma ppf(0.9)",gamma.ppf(0.9),4.60517018599)
 
-print(gamma.rvs(5),gamma.rvs())
+#print(gamma.rvs(5),gamma.rvs())
 
 #Test Beta
 
@@ -134,6 +134,28 @@ checkAnswer("beta cdf(0.9)",beta.cdf(0.9),0.59049)
 checkAnswer("beta ppf(0.1)",beta.ppf(0.1),0.63095734448)
 checkAnswer("beta ppf(0.5)",beta.ppf(0.5),0.870550563296)
 checkAnswer("beta ppf(0.9)",beta.ppf(0.9),0.979148362361)
+
+print(beta.rvs(5),beta.rvs())
+
+#Test Beta Scaled
+
+betaElement = ET.Element("beta")
+betaElement.append(createElement("low",text="0.0"))
+betaElement.append(createElement("hi",text="4.0"))
+betaElement.append(createElement("alpha",text="5.0"))
+betaElement.append(createElement("beta",text="1.0"))
+
+beta = Distributions.Beta()
+beta.readMoreXML(betaElement)
+beta.initializeDistribution()
+
+checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
+checkAnswer("scaled beta cdf(0.5)",beta.cdf(0.5),3.0517578125e-05)
+checkAnswer("scaled beta cdf(0.9)",beta.cdf(0.9),0.000576650390625)
+
+checkAnswer("scaled beta ppf(0.1)",beta.ppf(0.1),2.52382937792)
+checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
+checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
 
 print(beta.rvs(5),beta.rvs())
 
