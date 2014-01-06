@@ -264,6 +264,30 @@ BetaDistribution::~BetaDistribution()
 }
 
 /*
+ * CLASS POISSON DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<PoissonDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("mu", "mu parameter (mean)");
+   return params;
+}
+
+PoissonDistribution::PoissonDistribution(const std::string & name, InputParameters parameters):
+  distribution(name,parameters), 
+  BasicPoissonDistribution(getParam<double>("mu"))
+                                                         
+{
+}
+
+PoissonDistribution::~PoissonDistribution()
+{
+}
+
+/*
  * CLASS CUSTOM DISTRIBUTION
  */
 

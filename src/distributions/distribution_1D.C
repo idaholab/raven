@@ -28,6 +28,7 @@
 #include <boost/math/distributions/weibull.hpp>
 #include <boost/math/distributions/gamma.hpp>
 #include <boost/math/distributions/beta.hpp>
+#include <boost/math/distributions/poisson.hpp>
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
 
@@ -1161,6 +1162,133 @@ BasicBetaDistribution::RandomNumberGenerator(double RNG){
      throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    return value*scale;
+}
+
+/*
+ * CLASS POISSON DISTRIBUTION
+ */
+
+
+class PoissonDistributionBackend {
+public:
+  PoissonDistributionBackend(double mu) : _backend(mu) {
+    
+  }
+  boost::math::poisson_distribution<> _backend;
+};
+
+
+BasicPoissonDistribution::BasicPoissonDistribution(double mu)
+{
+  _dis_parameters["mu"] = mu;
+
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  if(not hasParameter("xMin")) {
+    _dis_parameters["xMin"] = -std::numeric_limits<double>::max( );
+  }
+  if(not hasParameter("xMax")) {
+    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+  }
+
+  if (mu<0)
+    throwError("ERROR: incorrect value of mu for poisson distribution");
+
+  _poisson = new PoissonDistributionBackend(mu);
+}
+
+BasicPoissonDistribution::~BasicPoissonDistribution()
+{
+  delete _poisson;
+}
+
+double
+BasicPoissonDistribution::untrPdf(double x){
+  return boost::math::pdf(_poisson->_backend, x);
+}
+
+double
+BasicPoissonDistribution::untrCdf(double x){
+  if(x >= 0) {
+    return boost::math::cdf(_poisson->_backend, x);
+  } else {
+    return 0.0;
+  } 
+}
+
+double
+BasicPoissonDistribution::untrRandomNumberGenerator(double RNG){
+  return boost::math::quantile(_poisson->_backend, RNG);
+}
+
+double
+BasicPoissonDistribution::Pdf(double x){
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
+
+   double value;
+
+   if (_dis_parameters.find("truncation") ->second == 1)
+	  if (x<xMin)
+		  value=0;
+	  else if (x>xMax)
+		  value=0;
+	  else
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
+   else
+      value=-1;
+
+   return value;
+}
+
+double
+BasicPoissonDistribution::Cdf(double x){
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
+
+   double value;
+
+   if (_dis_parameters.find("truncation") ->second == 1)
+	  if (x<xMin)
+		  value=0;
+	  else if (x>xMax)
+		  value=1;
+	  else
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
+   else
+      value=-1;
+
+   return value;
+}
+
+double
+BasicPoissonDistribution::RandomNumberGenerator(double RNG){
+   double value;
+   double xMin = _dis_parameters.find("xMin") ->second;
+   double xMax = _dis_parameters.find("xMax") ->second;
+   
+   if(_force_dist == 0){
+   if (_dis_parameters.find("truncation") ->second == 1){
+      double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
+      value=untrRandomNumberGenerator(temp);
+   }
+   else
+      value=-1;
+   }
+   else if(_force_dist == 1){
+     value = xMin;
+   }
+   else if(_force_dist == 2){
+     value = -1.0;
+   }
+   else if(_force_dist == 3){
+     value = xMax;
+   }
+   else{
+     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+   }
+   return value;
 }
 
 /*

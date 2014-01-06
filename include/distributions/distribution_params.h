@@ -110,6 +110,17 @@ public:
   virtual ~BetaDistribution();
 };
 
+class PoissonDistribution;
+
+template<>
+InputParameters validParams<PoissonDistribution>();
+
+class PoissonDistribution : public distribution, public BasicPoissonDistribution {
+public:
+  PoissonDistribution(const std::string & name, InputParameters parameters);
+  virtual ~PoissonDistribution();
+};
+
 // template<>
 // InputParameters validParams<CustomDistribution>();
 

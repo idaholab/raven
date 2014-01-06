@@ -224,6 +224,31 @@ protected:
 };
 
 /*
+ * CLASS POISSON DISTRIBUTION
+ */
+
+class PoissonDistributionBackend;
+
+class BasicPoissonDistribution : public virtual BasicDistribution {
+public:
+  BasicPoissonDistribution(double mu);
+  virtual ~BasicPoissonDistribution();
+
+  double  Pdf(double x);                ///< Pdf function at coordinate x
+  double  Cdf(double x);                ///< Cdf function at coordinate x
+  double  RandomNumberGenerator(double RNG);        ///< RNG
+  
+  double  untrPdf(double x);
+  double  untrCdf(double x);
+  double  untrRandomNumberGenerator(double RNG);
+
+protected:
+  PoissonDistributionBackend * _poisson;
+};
+
+
+
+/*
  * CLASS CUSTOM DISTRIBUTION
  */
 
