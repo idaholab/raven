@@ -208,7 +208,7 @@ class BetaDistributionBackend;
 
 class BasicBetaDistribution : public virtual BasicDistribution {
 public:
-  BasicBetaDistribution(double alpha, double beta);
+  BasicBetaDistribution(double alpha, double beta, double scale);
   virtual ~BasicBetaDistribution();
 
   double  Pdf(double x);                ///< Pdf function at coordinate x

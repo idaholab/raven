@@ -1033,10 +1033,21 @@ public:
 };
 
 
-BasicBetaDistribution::BasicBetaDistribution(double alpha, double beta)
+BasicBetaDistribution::BasicBetaDistribution(double alpha, double beta, double scale)
 {
   _dis_parameters["alpha"] = alpha;
   _dis_parameters["beta"] = beta;
+  _dis_parameters["scale"] = scale;
+
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  if(not hasParameter("xMin")) {
+    _dis_parameters["xMin"] = -std::numeric_limits<double>::max( );
+  }
+  if(not hasParameter("xMax")) {
+    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+  }
 
   if ((alpha<0) || (beta<0))
     throwError("ERROR: incorrect value of alpha or beta for beta distribution");
@@ -1074,6 +1085,7 @@ double
 BasicBetaDistribution::Pdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
+   double scale = _dis_parameters.find("scale") ->second;
 
    double value;
 
@@ -1083,17 +1095,18 @@ BasicBetaDistribution::Pdf(double x){
 	  else if (x>xMax)
 		  value=0;
 	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x/scale);
    else
       value=-1;
 
-   return value;
+   return value/scale;
 }
 
 double
 BasicBetaDistribution::Cdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
+   double scale = _dis_parameters.find("scale") ->second;
 
    double value;
 
@@ -1103,7 +1116,7 @@ BasicBetaDistribution::Cdf(double x){
 	  else if (x>xMax)
 		  value=1;
 	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
+		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x/scale) - untrCdf(xMin));
    else
       value=-1;
 
@@ -1115,6 +1128,8 @@ BasicBetaDistribution::RandomNumberGenerator(double RNG){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
+   double scale = _dis_parameters.find("scale") ->second;
+   
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
       double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
@@ -1135,7 +1150,7 @@ BasicBetaDistribution::RandomNumberGenerator(double RNG){
    else{
      throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
-   return value;
+   return value*scale;
 }
 
 /*

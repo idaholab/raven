@@ -247,12 +247,14 @@ InputParameters validParams<BetaDistribution>(){
 
    params.addRequiredParam<double>("alpha", "alpha parameter");
    params.addRequiredParam<double>("beta", "beta parameter");
+   params.addParam<double>("scale",1.0,"scale value for distribution");
    return params;
 }
 
 BetaDistribution::BetaDistribution(const std::string & name, InputParameters parameters):
   distribution(name,parameters), 
-  BasicBetaDistribution(getParam<double>("alpha"),getParam<double>("beta"))
+  BasicBetaDistribution(getParam<double>("alpha"),getParam<double>("beta"),
+                        getParam<double>("scale"))
                                                          
 {
 }
