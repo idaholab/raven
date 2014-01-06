@@ -452,6 +452,16 @@ BasicTriangularDistribution::BasicTriangularDistribution(double xPeak, double lo
   _dis_parameters["xPeak"] = xPeak;
   _dis_parameters["lowerBound"] = lowerBound;
   _dis_parameters["upperBound"] = upperBound;
+
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  if(not hasParameter("xMin")) {
+    _dis_parameters["xMin"] = -std::numeric_limits<double>::max( );
+  }
+  if(not hasParameter("xMax")) {
+    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+  }
      
     
   if (upperBound < lowerBound)
