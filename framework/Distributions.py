@@ -233,7 +233,7 @@ class Gamma(Distribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    self._distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
+    self._distribution = dist.gamma(self.alpha,loc=self.low,scale=1.0/self.beta)
     self.polynomial = polys.genlaguerre
     def norm(n):
       return np.sqrt(factorial(n)/polys.gamma(n+self.alpha+1.0))
