@@ -189,13 +189,13 @@ poisson = Distributions.Poisson()
 poisson.readMoreXML(poissonElement)
 poisson.initializeDistribution()
 
-checkAnswer("poisson cdf(0.1)",poisson.cdf(0.1),0.0183156388887)
 checkAnswer("poisson cdf(1.0)",poisson.cdf(1.0),0.0915781944437)
+checkAnswer("poisson cdf(5.0)",poisson.cdf(5.0),0.7851303870304052)
 checkAnswer("poisson cdf(10.0)",poisson.cdf(10.0),0.997160233879)
 
-checkAnswer("poisson ppf(0.1)",poisson.ppf(0.1),2.0)
-checkAnswer("poisson ppf(0.5)",poisson.ppf(0.5),4.0)
-checkAnswer("poisson ppf(0.9)",poisson.ppf(0.9),7.0)
+checkAnswer("poisson ppf(0.0915781944437)",poisson.ppf(0.0915781944437),1.0)
+checkAnswer("poisson ppf(0.7851303870304052)",poisson.ppf(0.7851303870304052),5.0)
+checkAnswer("poisson ppf(0.997160233879)",poisson.ppf(0.997160233879),10.0)
 
 print(poisson.rvs(5),poisson.rvs())
 
