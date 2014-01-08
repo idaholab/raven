@@ -121,6 +121,17 @@ public:
   virtual ~PoissonDistribution();
 };
 
+class BinomialDistribution;
+
+template<>
+InputParameters validParams<BinomialDistribution>();
+
+class BinomialDistribution : public distribution, public BasicBinomialDistribution {
+public:
+  BinomialDistribution(const std::string & name, InputParameters parameters);
+  virtual ~BinomialDistribution();
+};
+
 // template<>
 // InputParameters validParams<CustomDistribution>();
 

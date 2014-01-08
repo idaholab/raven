@@ -246,6 +246,29 @@ protected:
   PoissonDistributionBackend * _poisson;
 };
 
+/*
+ * CLASS BINOMIAL DISTRIBUTION
+ */
+
+class BinomialDistributionBackend;
+
+class BasicBinomialDistribution : public virtual BasicDistribution {
+public:
+  BasicBinomialDistribution(double n, double p);
+  virtual ~BasicBinomialDistribution();
+
+  double  Pdf(double x);                ///< Pdf function at coordinate x
+  double  Cdf(double x);                ///< Cdf function at coordinate x
+  double  RandomNumberGenerator(double RNG);        ///< RNG
+  
+  double  untrPdf(double x);
+  double  untrCdf(double x);
+  double  untrRandomNumberGenerator(double RNG);
+
+protected:
+  BinomialDistributionBackend * _binomial;
+};
+
 
 
 /*

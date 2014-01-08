@@ -29,6 +29,7 @@
 #include <boost/math/distributions/gamma.hpp>
 #include <boost/math/distributions/beta.hpp>
 #include <boost/math/distributions/poisson.hpp>
+#include <boost/math/distributions/binomial.hpp>
 
 #define _USE_MATH_DEFINES   // needed in order to use M_PI = 3.14159
 
@@ -1289,6 +1290,70 @@ BasicPoissonDistribution::RandomNumberGenerator(double RNG){
      throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    return value;
+}
+
+/*
+ * CLASS BINOMIAL DISTRIBUTION
+ */
+
+
+class BinomialDistributionBackend {
+public:
+  BinomialDistributionBackend(double n, double p) : _backend(n, p) {
+    
+  }
+  boost::math::binomial_distribution<> _backend;
+};
+
+
+BasicBinomialDistribution::BasicBinomialDistribution(double n, double p)
+{
+  _dis_parameters["n"] = n;
+  _dis_parameters["p"] = p;
+
+  if (n<0 or p<0)
+    throwError("ERROR: incorrect value of n or p for binomial distribution");
+
+  _binomial = new BinomialDistributionBackend(n, p);
+}
+
+BasicBinomialDistribution::~BasicBinomialDistribution()
+{
+  delete _binomial;
+}
+
+double
+BasicBinomialDistribution::untrPdf(double x){
+  return boost::math::pdf(_binomial->_backend, x);
+}
+
+double
+BasicBinomialDistribution::untrCdf(double x){
+  if(x >= 0) {
+    return boost::math::cdf(_binomial->_backend, x);
+  } else {
+    return 0.0;
+  } 
+}
+
+double
+BasicBinomialDistribution::untrRandomNumberGenerator(double RNG){
+  return boost::math::quantile(_binomial->_backend, RNG);
+}
+
+double
+BasicBinomialDistribution::Pdf(double x){
+  return untrPdf(x);
+}
+
+double
+BasicBinomialDistribution::Cdf(double x){
+  return untrCdf(x);
+}
+
+double
+BasicBinomialDistribution::RandomNumberGenerator(double RNG){
+  return untrRandomNumberGenerator(RNG);
 }
 
 /*

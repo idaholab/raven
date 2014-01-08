@@ -288,6 +288,31 @@ PoissonDistribution::~PoissonDistribution()
 }
 
 /*
+ * CLASS BINOMIAL DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<BinomialDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("n", "n parameter (number of independent experiments)");
+   params.addRequiredParam<double>("p", "p parameter (probability of success with each independent experiment)");
+   return params;
+}
+
+BinomialDistribution::BinomialDistribution(const std::string & name, InputParameters parameters):
+  distribution(name,parameters), 
+  BasicBinomialDistribution(getParam<double>("n"),getParam<double>("p"))
+                                                         
+{
+}
+
+BinomialDistribution::~BinomialDistribution()
+{
+}
+
+/*
  * CLASS CUSTOM DISTRIBUTION
  */
 
