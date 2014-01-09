@@ -17,7 +17,7 @@ ifeq ($(PYTHON3_HELLO),HELLO)
 ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
 	CONTROL_MODULES = 
 else
-	CONTROL_MODULES = $(RAVEN_DIR)/control_modules/_distribution1D.so $(RAVEN_DIR)/control_modules/_raventools.so
+	CONTROL_MODULES = $(RAVEN_DIR)/control_modules/_distribution1D.so $(RAVEN_DIR)/control_modules/_raventools.so $(RAVEN_DIR)/control_modules/_distribution1Dpy2.so
 endif
 
 else
@@ -36,7 +36,7 @@ else
 #Python3 not found.
 	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
-	CONTROL_MODULES = 
+	CONTROL_MODULES = $(RAVEN_DIR)/control_modules/_distribution1Dpy2.so
 endif
 endif
 
