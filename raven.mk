@@ -6,6 +6,11 @@ PYTHON_CONFIG_WHICH := $(shell which python-config 2>/dev/null)
 
 UNAME := $(shell uname)
 
+ifneq ($(PYTHON_CONFIG_WHICH),)
+	PYTHON2_INCLUDE=$(shell python-config --includes)
+	PYTHON2_LIB=$(shell python-config --ldflags)
+endif
+
 ifeq ($(PYTHON3_HELLO),HELLO)
         PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include) #-DPy_LIMITED_API 
         PYTHON_LIB = $(shell $(RAVEN_DIR)/scripts/find_flags.py library) #-DPy_LIMITED_API 
@@ -22,8 +27,8 @@ ifeq ($(PYTHON_CONFIG_WHICH),)
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
 	CONTROL_MODULES = 
 else
-	PYTHON_INCLUDE=$(shell python-config --includes)
-	PYTHON_LIB=$(shell python-config --ldflags)
+	PYTHON_INCLUDE=$(PYTHON2_INCLUDE)
+	PYTHON_LIB=$(PYTHON2_LIB)
 	CONTROL_MODULES=
 #CONTROL_MODULES=$(RAVEN_DIR)/control_modules/_distribution1D.so $(RAVEN_DIR)/control_modules/_raventools.so
 endif
@@ -154,9 +159,9 @@ $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix): $(RAVEN_DIR)
 	$(DISTRIBUTION_COMPILE_COMMAND)
 
 ifeq ($(UNAME),Darwin)
-DISTRIBUTION_KLUDGE=$(RAVEN_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo
+DISTRIBUTION_KLUDGE=$(RAVEN_LIB) 
 else
-DISTRIBUTION_KLUDGE=$(RAVEN_MODULES)/distribution1D_wrap.lo $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix)
+DISTRIBUTION_KLUDGE=$(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix)
 endif
 
 $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/distribution1D.i \
@@ -174,10 +179,30 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
 	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1D_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
-	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(PYTHON_LIB)  $(DISTRIBUTION_KLUDGE) -rpath $(RAVEN_MODULES)
+	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(PYTHON_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo $(DISTRIBUTION_KLUDGE) -rpath $(RAVEN_MODULES)
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1D.la  $(RAVEN_MODULES)/libdistribution1D.la 
 	rm -f $(RAVEN_MODULES)/_distribution1D.so
 	ln -s libdistribution1D.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1D.so
+
+$(RAVEN_DIR)/control_modules/_distribution1Dpy2.so : $(RAVEN_DIR)/control_modules/distribution1Dpy2.i \
+                                                 $(RAVEN_DIR)/src/distributions/distribution_1D.C \
+                                                 $(RAVEN_DIR)/src/distributions/DistributionContainer.C \
+                                                 $(RAVEN_DIR)/src/distributions/distributionFunctions.C \
+                                                 $(RAVEN_DIR)/src/distributions/distribution.C $(RAVEN_LIB)
+# Swig
+	swig -c++ -python  -I$(RAVEN_DIR)/include/distributions/  \
+          $(RAVEN_MODULES)/distribution1Dpy2.i
+# Compile
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON2_INCLUDE)\
+         -I$(RAVEN_DIR)/include/distributions/ \
+	 -c  $(RAVEN_MODULES)/distribution1Dpy2_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1Dpy2_wrap.lo
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
+	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
+	-shared -o $(RAVEN_MODULES)/libdistribution1Dpy2.la $(PYTHON2_LIB) $(RAVEN_MODULES)/distribution1Dpy2_wrap.lo $(DISTRIBUTION_KLUDGE) -rpath $(RAVEN_MODULES)
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1Dpy2.la  $(RAVEN_MODULES)/libdistribution1Dpy2.la 
+	rm -f $(RAVEN_MODULES)/_distribution1Dpy2.so
+	ln -s libdistribution1Dpy2.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1Dpy2.so
 
 
 $(RAVEN_DIR)/control_modules/_raventools.so : $(RAVEN_DIR)/control_modules/raventools.i \

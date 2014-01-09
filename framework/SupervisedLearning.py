@@ -173,6 +173,7 @@ class SVMsciKitLearn(superVisioned):
         -------
         y : array, shape = [n_samples]
     """
+    #print("X",X,"y",y)
     self.SVM.fit(X,y)
 
   def returnInitialParamters(self):

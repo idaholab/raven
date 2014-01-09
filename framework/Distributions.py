@@ -14,6 +14,12 @@ from BaseType import BaseType
 import scipy.special as polys
 from scipy.misc import factorial
 import Quadrature
+if sys.version_info.major > 2:
+  import distribution1D
+else:
+  import distribution1Dpy2 as distribution1D
+
+stochasticEnv = distribution1D.DistributionContainer.Instance()
 
 class Distribution(BaseType):
   ''' 
@@ -76,20 +82,39 @@ class Distribution(BaseType):
     try: return self.__exp_order
     except AttributeError: raise IOError ('Quadrature has not been set for this distr. yet.')
 
+class SKDistribution(Distribution):
+
   def cdf(self,*args):
+    """Cumulative Distribution Function"""
     return self._distribution.cdf(*args)
 
   def ppf(self,*args):
+    """Percent Point Function (Inverse of CDF)"""
     return self._distribution.ppf(*args)
 
   def rvs(self,*args):
+    """Random Variates"""
     return self._distribution.rvs(*args)
+
+class BoostDistribution(Distribution):
+  def cdf(self,x):
+    return self._distribution.Cdf(x)
+
+  def ppf(self,x):
+    return self._distribution.RandomNumberGenerator(x)
+
+  def rvs(self,*args):
+    if len(args) == 0:
+      return self.ppf(stochasticEnv.random())
+    else:
+      return [self.rvs() for x in range(args[0])]
+
 
 #==============================================================\
 #    Distributions convenient for stochastic collocation
 #==============================================================\
 
-class Uniform(Distribution):
+class Uniform(BoostDistribution):
   def __init__(self):
     Distribution.__init__(self)
     self.low = 0.0
@@ -146,10 +171,11 @@ class Uniform(Distribution):
     # no other additional parameters required
 
   def initializeDistribution(self):
-    self._distribution = dist.uniform(loc=self.low,scale=self.range)
+    #self._distribution = dist.uniform(loc=self.low,scale=self.range)
+    self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
 
 
-class Normal(Distribution):
+class Normal(BoostDistribution):
   def __init__(self):
     Distribution.__init__(self)
     self.mean  = 0.0
@@ -173,8 +199,11 @@ class Normal(Distribution):
     tempDict['sigma'] = self.sigma
 
   def initializeDistribution(self):
+    print("initialize",self)
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = dist.norm(loc=self.mean,scale=self.sigma)
+      #self._distribution = dist.norm(loc=self.mean,scale=self.sigma)
+      self._distribution = distribution1D.BasicNormalDistribution(self.mean,
+                                                                  self.sigma)
       self.polynomial = polys.hermitenorm
       def norm(n):
         return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
@@ -197,14 +226,20 @@ class Normal(Distribution):
       self.actual_weight = standardToActualWeight
       self.probability_norm = probNorm
     else:
+      #print("truncnorm")
       #FIXME special case distribution for stoch collocation
       if self.lowerBoundUsed == False: a = -sys.float_info[max]
-      else:a = (self.lowerBound - self.mean) / self.sigma
+      else:a = self.lowerBound
+      #else:a = (self.lowerBound - self.mean) / self.sigma
       if self.upperBoundUsed == False: b = sys.float_info[max]
-      else:b = (self.upperBound - self.mean) / self.sigma
-      self._distribution = dist.truncnorm(a,b,loc=self.mean,scale=self.sigma)
+      else:b = self.upperBound
+      #else:b = (self.upperBound - self.mean) / self.sigma
+      self._distribution = distribution1D.BasicNormalDistribution(self.mean,
+                                                                  self.sigma,
+                                                                  a,b)
+      #self._distribution = dist.truncnorm(a,b,loc=self.mean,scale=self.sigma)
     
-class Gamma(Distribution):
+class Gamma(BoostDistribution):
   def __init__(self):
     Distribution.__init__(self)
     self.low = 0.0
@@ -233,7 +268,8 @@ class Gamma(Distribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    self._distribution = dist.gamma(self.alpha,loc=self.low,scale=1.0/self.beta)
+    #self._distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
+    self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
     self.polynomial = polys.genlaguerre
     def norm(n):
       return np.sqrt(factorial(n)/polys.gamma(n+self.alpha+1.0))
@@ -256,7 +292,7 @@ class Gamma(Distribution):
     self.actual_weight = standardToActualWeight
     self.probability_norm = probNorm
 
-class Beta(Distribution):
+class Beta(BoostDistribution):
   def __init__(self):
     Distribution.__init__(self)
     self.low = 0.0
@@ -291,7 +327,8 @@ class Beta(Distribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    self._distribution = dist.beta(self.alpha,self.beta,scale=self.hi-self.low)
+    #self._distribution = dist.beta(self.alpha,self.beta,scale=self.hi-self.low)
+    self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low)
 
 #==========================================================\
 #    other distributions
@@ -299,7 +336,7 @@ class Beta(Distribution):
 
 
 # Add polynomials, shifting, zero-to-one to these!
-class Triangular(Distribution):
+class Triangular(BoostDistribution):
   def __init__(self):
     Distribution.__init__(self)
     self.apex = 0.0
@@ -329,13 +366,14 @@ class Triangular(Distribution):
 
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      c = (self.apex-self.min)/(self.max-self.min)
-      self._distribution = dist.triang(c,loc=self.min,scale=(self.max-self.min))
+      #c = (self.apex-self.min)/(self.max-self.min)
+      #self._distribution = dist.triang(c,loc=self.min,scale=(self.max-self.min))
+      self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
       raise IOError ('Truncated triangular not yet implemented')
     
     
-class Poisson(Distribution):
+class Poisson(BoostDistribution):
   def __init__(self):
     Distribution.__init__(self)
     self.mu  = 0.0
@@ -354,12 +392,13 @@ class Poisson(Distribution):
     
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = dist.poisson(self.mu)
+      #self._distribution = dist.poisson(self.mu)
+      self._distribution = distribution1D.BasicPoissonDistribution(self.mu)
     else:
       raise IOError ('Truncated poisson not yet implemented')    
     
     
-class Binomial(Distribution):
+class Binomial(BoostDistribution):
   def __init__(self):
     Distribution.__init__(self)
     self.n  = 0.0
@@ -383,7 +422,8 @@ class Binomial(Distribution):
     
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      self._distribution = dist.binom(n=self.n,p=self.p)
+      #self._distribution = dist.binom(n=self.n,p=self.p)
+      self._distribution = distribution1D.BasicBinomialDistribution(self.n,self.p)
     else:
       raise IOError ('Truncated Binomial not yet implemented')   
 

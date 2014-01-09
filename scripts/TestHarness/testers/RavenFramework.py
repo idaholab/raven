@@ -17,6 +17,7 @@ class RavenFramework(Tester):
 
   def getCommand(self, options):
     return "python ../../framework/Driver.py "+self.specs["input"]
+    #return "python3 ../../framework/Driver.py "+self.specs["input"]
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
