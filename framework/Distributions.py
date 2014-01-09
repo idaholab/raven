@@ -114,7 +114,7 @@ class BoostDistribution(Distribution):
 #    Distributions convenient for stochastic collocation
 #==============================================================\
 
-class Uniform(BoostDistribution):
+class Uniform(SKDistribution):
   def __init__(self):
     Distribution.__init__(self)
     self.low = 0.0
@@ -171,8 +171,8 @@ class Uniform(BoostDistribution):
     # no other additional parameters required
 
   def initializeDistribution(self):
-    #self._distribution = dist.uniform(loc=self.low,scale=self.range)
-    self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
+    self._distribution = dist.uniform(loc=self.low,scale=self.range)
+    #self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
 
 
 class Normal(BoostDistribution):
