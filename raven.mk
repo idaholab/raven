@@ -199,7 +199,7 @@ $(RAVEN_DIR)/control_modules/_distribution1Dpy2.so : $(RAVEN_DIR)/control_module
 	 -c  $(RAVEN_MODULES)/distribution1Dpy2_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1Dpy2_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
-	-shared -o $(RAVEN_MODULES)/libdistribution1Dpy2.la $(PYTHON2_LIB) $(RAVEN_MODULES)/distribution1Dpy2_wrap.lo $(DISTRIBUTION_KLUDGE) -rpath $(RAVEN_MODULES)
+	-shared -o $(RAVEN_MODULES)/libdistribution1Dpy2.la $(PYTHON2_LIB) $(RAVEN_MODULES)/distribution1Dpy2_wrap.lo $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) -rpath $(RAVEN_MODULES)
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1Dpy2.la  $(RAVEN_MODULES)/libdistribution1Dpy2.la 
 	rm -f $(RAVEN_MODULES)/_distribution1Dpy2.so
 	ln -s libdistribution1Dpy2.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1Dpy2.so
