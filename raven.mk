@@ -40,7 +40,7 @@ else
 endif
 endif
 
-RAVEN_LIB_INCLUDE_DIR := $(HOME)/raven_libs/pylibs/include
+RAVEN_LIB_INCLUDE_DIR := $(RAVEN_DIR)/contrib/include
 
 ifeq  ($(UNAME),Darwin)
 raven_shared_ext := dylib
