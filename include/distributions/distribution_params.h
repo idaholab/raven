@@ -62,6 +62,15 @@ public:
 };
 
 template<>
+InputParameters validParams<LogisticDistribution>();
+
+class LogisticDistribution : public distribution, public BasicLogisticDistribution {
+public:
+   LogisticDistribution(const std::string & name, InputParameters parameters);
+   virtual ~LogisticDistribution();
+};
+
+template<>
 InputParameters validParams<TriangularDistribution>();
 
 class TriangularDistribution : public distribution, public BasicTriangularDistribution {
@@ -130,6 +139,17 @@ class BinomialDistribution : public distribution, public BasicBinomialDistributi
 public:
   BinomialDistribution(const std::string & name, InputParameters parameters);
   virtual ~BinomialDistribution();
+};
+
+class BernoulliDistribution;
+
+template<>
+InputParameters validParams<BernoulliDistribution>();
+
+class BernoulliDistribution : public distribution, public BasicBernoulliDistribution {
+public:
+  BernoulliDistribution(const std::string & name, InputParameters parameters);
+  virtual ~BernoulliDistribution();
 };
 
 // template<>

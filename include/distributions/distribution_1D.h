@@ -102,6 +102,32 @@ protected:
 };
 
 /*
+ * CLASS LOGISTIC DISTRIBUTION
+ */
+class LogisticDistribution;
+
+
+class LogisticDistributionBackend;
+
+class BasicLogisticDistribution : public virtual BasicDistribution {
+public:
+   BasicLogisticDistribution(double location, double scale);
+   virtual ~BasicLogisticDistribution();
+
+   double  Pdf(double x);                ///< Pdf function at coordinate x
+   double  Cdf(double x);                ///< Cdf function at coordinate x
+   double  RandomNumberGenerator(double RNG);        ///< RNG
+
+   double  untrPdf(double x);
+   double  untrCdf(double x);
+   double  untrRandomNumberGenerator(double RNG);
+
+protected:
+   LogisticDistributionBackend * _logistic;
+};
+
+
+/*
  * CLASS TRIANGULAR DISTRIBUTION
  */
 
@@ -267,6 +293,29 @@ public:
 
 protected:
   BinomialDistributionBackend * _binomial;
+};
+
+/*
+ * CLASS BERNOULLI DISTRIBUTION
+ */
+
+class BernoulliDistributionBackend;
+
+class BasicBernoulliDistribution : public virtual BasicDistribution {
+public:
+  BasicBernoulliDistribution(double p);
+  virtual ~BasicBernoulliDistribution();
+
+  double  Pdf(double x);                ///< Pdf function at coordinate x
+  double  Cdf(double x);                ///< Cdf function at coordinate x
+  double  RandomNumberGenerator(double RNG);        ///< RNG
+  
+  double  untrPdf(double x);
+  double  untrCdf(double x);
+  double  untrRandomNumberGenerator(double RNG);
+
+protected:
+  BernoulliDistributionBackend * _bernoulli;
 };
 
 

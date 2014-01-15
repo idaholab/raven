@@ -141,6 +141,30 @@ LogNormalDistribution::~LogNormalDistribution()
 }
 
 /*
+ * CLASS LOGISTIC DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<LogisticDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("scale", "Scale");
+   params.addRequiredParam<double>("location", "Location");
+    
+   return params;
+}
+
+LogisticDistribution::LogisticDistribution(const std::string & name, InputParameters parameters):
+  distribution(name,parameters), BasicLogisticDistribution(getParam<double>("location"), getParam<double>("scale"))
+{
+}
+
+LogisticDistribution::~LogisticDistribution()
+{
+}
+
+/*
  * CLASS TRIANGULAR DISTRIBUTION
  */
 
@@ -309,6 +333,30 @@ BinomialDistribution::BinomialDistribution(const std::string & name, InputParame
 }
 
 BinomialDistribution::~BinomialDistribution()
+{
+}
+
+/*
+ * CLASS BERNOULLI DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<BernoulliDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("p", "p parameter (probability of success with each independent experiment)");
+   return params;
+}
+
+BernoulliDistribution::BernoulliDistribution(const std::string & name, InputParameters parameters):
+  distribution(name,parameters), 
+  BasicBernoulliDistribution(getParam<double>("p"))
+                                                         
+{
+}
+
+BernoulliDistribution::~BernoulliDistribution()
 {
 }
 
