@@ -10,7 +10,7 @@
     <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='2' initial_seed='1'></MonteCarlo>     
+  <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>     
 </Samplers>
 <Steps> 
     <MultiRun name='MonteCarlo'>
