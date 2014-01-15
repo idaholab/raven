@@ -209,17 +209,48 @@ binomial = Distributions.Binomial()
 binomial.readMoreXML(binomialElement)
 binomial.initializeDistribution()
 
-#The binomial distribution does not seem to work.
+checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
+checkAnswer("binomial cdf(2)",binomial.cdf(2),0.525592803955)
+checkAnswer("binomial cdf(5)",binomial.cdf(5),0.980272293091)
 
-#print("binomial cdf(1)",binomial.cdf(1))
-#print("binomial cdf(2)",binomial.cdf(2))
-#print("binomial cdf(5)",binomial.cdf(5))
+checkAnswer("binomial ppf(0.1)",binomial.ppf(0.1),0.0)
+checkAnswer("binomial ppf(0.5)",binomial.ppf(0.5),2.0)
+checkAnswer("binomial ppf(0.9)",binomial.ppf(0.9),4.0)
 
-#print("binomial ppf(0.1)",binomial.ppf(0.1))
-#print("binomial ppf(0.5)",binomial.ppf(0.5))
-#print("binomial ppf(0.9)",binomial.ppf(0.9))
+#Test Bernoulli
 
+bernoulliElement = ET.Element("bernoulli")
+bernoulliElement.append(createElement("p",text="0.4"))
 
+bernoulli = Distributions.Bernoulli()
+bernoulli.readMoreXML(bernoulliElement)
+bernoulli.initializeDistribution()
+
+checkAnswer("bernoulli cdf(0)",bernoulli.cdf(0),0.6)
+checkAnswer("bernoulli cdf(1)",bernoulli.cdf(1),1.0)
+
+checkAnswer("bernoulli ppf(0.1)",bernoulli.ppf(0.1),0.0)
+checkAnswer("bernoulli ppf(0.3)",bernoulli.ppf(0.3),0.0)
+checkAnswer("bernoulli ppf(0.8)",bernoulli.ppf(0.8),1.0)
+checkAnswer("bernoulli ppf(0.9)",bernoulli.ppf(0.9),1.0)
+
+#Test Logistic
+
+logisticElement = ET.Element("logistic")
+logisticElement.append(createElement("location",text="4.0"))
+logisticElement.append(createElement("scale",text="1.0"))
+
+logistic = Distributions.Logistic()
+logistic.readMoreXML(logisticElement)
+logistic.initializeDistribution()
+
+checkAnswer("logistic cdf(0)",logistic.cdf(0.0),0.0179862099621)
+checkAnswer("logistic cdf(4)",logistic.cdf(4.0),0.5)
+checkAnswer("logistic cdf(8)",logistic.cdf(8.0),0.982013790038)
+
+checkAnswer("logistic ppf(0.25)",logistic.ppf(0.25),2.90138771133)
+checkAnswer("logistic ppf(0.50)",logistic.ppf(0.50),4.0)
+checkAnswer("logistic ppf(0.75)",logistic.ppf(0.75),5.09861228867)
 
 print(results)
 

@@ -442,6 +442,56 @@ class Binomial(BoostDistribution):
     else:
       raise IOError ('Truncated Binomial not yet implemented')   
 
+class Bernoulli(BoostDistribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.p  = 0.0
+    self.type = 'Bernoulli'
+    
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    p_find = xmlNode.find('p')
+    if p_find != None: self.p = float(p_find.text)
+    else: raise Exception('p value needed for Bernoulli distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    Distribution.addInitParams(self, tempDict)
+    tempDict['p'  ] = self.p
+    
+  def initializeDistribution(self):
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
+    else:
+      raise IOError ('Truncated Bernoulli not yet implemented')
+
+class Logistic(BoostDistribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.location  = 0.0
+    self.scale = 1.0
+    self.type = 'Logistic'
+    
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    location_find = xmlNode.find('location')
+    if location_find != None: self.location = float(location_find.text)
+    else: raise Exception('location value needed for Logistic distribution')
+    scale_find = xmlNode.find('scale')
+    if scale_find != None: self.scale = float(scale_find.text)
+    else: raise Exception('scale value needed for Logistic distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    Distribution.addInitParams(self, tempDict)
+    tempDict['location'] = self.location
+    tempDict['scale'   ] = self.scale
+    
+  def initializeDistribution(self):
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale)
+    else:
+      raise IOError ('Truncated Logistic not yet implemented')
 
 
 __base                        = 'Distribution'
@@ -453,6 +503,8 @@ __interFaceDict['Beta'      ] = Beta
 __interFaceDict['Triangular'] = Triangular
 __interFaceDict['Poisson'   ] = Poisson
 __interFaceDict['Binomial'  ] = Binomial
+__interFaceDict['Bernoulli' ] = Bernoulli
+__interFaceDict['Logistic'  ] = Logistic
 __knownTypes                  = __interFaceDict.keys()
 
 def knonwnTypes():
