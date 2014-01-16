@@ -234,8 +234,8 @@ DistributionContainer::randGen(std::string DistAlias, double RNG){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
         BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
-        //return dist->RandomNumberGenerator(RNG);
-        return DistributionRandomNumberGenerator(*dist,RNG);
+        //return dist->InverseCdf(RNG);
+        return DistributionInverseCdf(*dist,RNG);
      }
      throwError("Distribution " + DistAlias + " was not found in distribution container.");
      return -1.0;

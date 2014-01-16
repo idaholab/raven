@@ -101,7 +101,7 @@ class BoostDistribution(Distribution):
     return self._distribution.Cdf(x)
 
   def ppf(self,x):
-    return self._distribution.RandomNumberGenerator(x)
+    return self._distribution.InverseCdf(x)
 
   def rvs(self,*args):
     if len(args) == 0:

@@ -97,12 +97,12 @@ double windowProcessing(BasicDistribution & dist, double & RNG){
 	double value;
 
 	if (dist.getVariableVector(std::string("PBwindow")).size()==1) // value Pb window
-		value=dist.RandomNumberGenerator(RNG);
+		value=dist.InverseCdf(RNG);
 	else if(dist.getVariableVector(std::string("PBwindow")).size()==2){	// interval Pb window
 		double pbLOW = dist.getVariableVector(std::string("PBwindow"))[0];
 		double pbUP  = dist.getVariableVector(std::string("PBwindow"))[1];
 		double pb=pbLOW+(pbUP-pbLOW)*RNG;
-		value=dist.RandomNumberGenerator(pb);
+		value=dist.InverseCdf(pb);
 	}
 	else if(dist.getVariableVector(std::string("Vwindow")).size()==1)	// value V window
 		value=RNG;
@@ -112,14 +112,14 @@ double windowProcessing(BasicDistribution & dist, double & RNG){
 		value=valLOW+(valUP-valLOW)*RNG;
 	}
 	else	// DEFAULT
-		value = dist.RandomNumberGenerator(RNG);
+		value = dist.InverseCdf(RNG);
 
 	return value;
 }
 
-double DistributionRandomNumberGenerator(BasicDistribution & dist, double & RNG){
-  //double standardRNG = dist.RandomNumberGenerator(RNG);
-  double windowedRNG = windowProcessing(dist, RNG);
+double DistributionInverseCdf(BasicDistribution & dist, double & x){
+  //double standardRNG = dist.InverseCdf(x);
+  double windowedRNG = windowProcessing(dist, x);
 
   return windowedRNG;
 }
@@ -132,8 +132,8 @@ double untrDistributionCdf(BasicDistribution & dist, double & x){
   return dist.untrCdf(x);
 }
 
-double untrDistributionRandomNumberGenerator(BasicDistribution & dist, double & RNG){
-  return dist.untrRandomNumberGenerator(RNG);
+double untrDistributionInverseCdf(BasicDistribution & dist, double & x){
+  return dist.untrInverseCdf(x);
 }
 
 std::string getDistributionType(BasicDistribution & dist) {

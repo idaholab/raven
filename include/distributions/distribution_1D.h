@@ -38,11 +38,11 @@ public:
   virtual ~BasicUniformDistribution();
    double  Pdf(double x);                ///< Pdf function at coordinate x
    double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double RNG);        ///< RNG
+   double  InverseCdf(double x);        ///< x
 
    double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrRandomNumberGenerator(double RNG);
+   double  untrInverseCdf(double x);
 
 protected:
    UniformDistributionBackend * _uniform;
@@ -66,11 +66,11 @@ public:
 
    double  Pdf(double x);                ///< Pdf function at coordinate x
    double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double RNG);        ///< RNG
+   double  InverseCdf(double x);        ///< x
 
    double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrRandomNumberGenerator(double RNG);
+   double  untrInverseCdf(double x);
 
 protected:
    NormalDistributionBackend * _normal;
@@ -91,11 +91,11 @@ public:
 
    double  Pdf(double x);                ///< Pdf function at coordinate x
    double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double RNG);        ///< RNG
+   double  InverseCdf(double x);        ///< x
 
    double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrRandomNumberGenerator(double RNG);
+   double  untrInverseCdf(double x);
 
 protected:
    LogNormalDistributionBackend * _logNormal;
@@ -116,11 +116,11 @@ public:
 
    double  Pdf(double x);                ///< Pdf function at coordinate x
    double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double RNG);        ///< RNG
+   double  InverseCdf(double x);        ///< x
 
    double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrRandomNumberGenerator(double RNG);
+   double  untrInverseCdf(double x);
 
 protected:
    LogisticDistributionBackend * _logistic;
@@ -142,11 +142,11 @@ public:
 
    double  Pdf(double x);                ///< Pdf function at coordinate x
    double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double RNG);        ///< RNG
+   double  InverseCdf(double x);        ///< x
 
    double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrRandomNumberGenerator(double RNG);
+   double  untrInverseCdf(double x);
 
 protected:
    TriangularDistributionBackend * _triangular;
@@ -168,11 +168,11 @@ public:
 
    double  Pdf(double x);                ///< Pdf function at coordinate x
    double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double RNG);        ///< RNG
+   double  InverseCdf(double x);        ///< x
 
    double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrRandomNumberGenerator(double RNG);
+   double  untrInverseCdf(double x);
 
 protected:
    ExponentialDistributionBackend * _exponential;
@@ -193,11 +193,11 @@ public:
 
    double  Pdf(double x);                ///< Pdf function at coordinate x
    double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  RandomNumberGenerator(double RNG);        ///< RNG
+   double  InverseCdf(double x);        ///< x
 
    double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrRandomNumberGenerator(double RNG);
+   double  untrInverseCdf(double x);
 
 protected:
    WeibullDistributionBackend * _weibull;
@@ -216,11 +216,11 @@ public:
 
   double  Pdf(double x);                ///< Pdf function at coordinate x
   double  Cdf(double x);                ///< Cdf function at coordinate x
-  double  RandomNumberGenerator(double RNG);        ///< RNG
+  double  InverseCdf(double x);        ///< x
   
   double  untrPdf(double x);
   double  untrCdf(double x);
-  double  untrRandomNumberGenerator(double RNG);
+  double  untrInverseCdf(double x);
 
 protected:
   GammaDistributionBackend * _gamma;    
@@ -239,11 +239,11 @@ public:
 
   double  Pdf(double x);                ///< Pdf function at coordinate x
   double  Cdf(double x);                ///< Cdf function at coordinate x
-  double  RandomNumberGenerator(double RNG);        ///< RNG
+  double  InverseCdf(double x);        ///< x
   
   double  untrPdf(double x);
   double  untrCdf(double x);
-  double  untrRandomNumberGenerator(double RNG);
+  double  untrInverseCdf(double x);
 
 protected:
   BetaDistributionBackend * _beta;    
@@ -262,11 +262,11 @@ public:
 
   double  Pdf(double x);                ///< Pdf function at coordinate x
   double  Cdf(double x);                ///< Cdf function at coordinate x
-  double  RandomNumberGenerator(double RNG);        ///< RNG
+  double  InverseCdf(double x);        ///< x
   
   double  untrPdf(double x);
   double  untrCdf(double x);
-  double  untrRandomNumberGenerator(double RNG);
+  double  untrInverseCdf(double x);
 
 protected:
   PoissonDistributionBackend * _poisson;
@@ -285,11 +285,11 @@ public:
 
   double  Pdf(double x);                ///< Pdf function at coordinate x
   double  Cdf(double x);                ///< Cdf function at coordinate x
-  double  RandomNumberGenerator(double RNG);        ///< RNG
+  double  InverseCdf(double x);        ///< x
   
   double  untrPdf(double x);
   double  untrCdf(double x);
-  double  untrRandomNumberGenerator(double RNG);
+  double  untrInverseCdf(double x);
 
 protected:
   BinomialDistributionBackend * _binomial;
@@ -308,11 +308,11 @@ public:
 
   double  Pdf(double x);                ///< Pdf function at coordinate x
   double  Cdf(double x);                ///< Cdf function at coordinate x
-  double  RandomNumberGenerator(double RNG);        ///< RNG
+  double  InverseCdf(double x);        ///< x
   
   double  untrPdf(double x);
   double  untrCdf(double x);
-  double  untrRandomNumberGenerator(double RNG);
+  double  untrInverseCdf(double x);
 
 protected:
   BernoulliDistributionBackend * _bernoulli;
@@ -333,7 +333,7 @@ protected:
 
 //    double  Pdf(double x);                ///< Pdf function at coordinate x
 //    double  Cdf(double x);                ///< Cdf function at coordinate x
-//    double  RandomNumberGenerator(double RNG);        ///< RNG
+//    double  InverseCdf(double x);        ///< x
 
 // protected:
 // };

@@ -33,11 +33,11 @@ public:
 
    virtual double  Pdf(double x) = 0;                           		///< Pdf function at coordinate x
    virtual double  Cdf(double x) = 0;                               	///< Cdf function at coordinate x
-   virtual double  RandomNumberGenerator(double RNG) = 0;             ///< RNG
+   virtual double  InverseCdf(double x) = 0;             ///< x
 
    virtual double untrPdf(double x) = 0;
    virtual double untrCdf(double x) = 0;
-   virtual double untrRandomNumberGenerator(double RNG) = 0;
+   virtual double untrInverseCdf(double x) = 0;
 
    std::string & getType();                                       		///< Get distribution type
    unsigned int getSeed();                                      		///< Get seed

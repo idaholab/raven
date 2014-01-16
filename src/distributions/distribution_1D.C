@@ -96,19 +96,19 @@ BasicUniformDistribution::Cdf(double x){
            return value;*/
 }
 double
-BasicUniformDistribution::RandomNumberGenerator(double RNG){
+BasicUniformDistribution::InverseCdf(double x){
   double value;
     
-   if ((RNG<0)&&(RNG>1))
-      throwError("ERROR: in the evaluation of RNG for uniform distribution");   
+   if ((x<0)&&(x>1))
+      throwError("ERROR: in the evaluation of x for uniform distribution");   
 
-   value = boost::math::quantile(_uniform->_backend,RNG);//(xMin)+RNG*((xMax)-(xMin));
+   value = boost::math::quantile(_uniform->_backend,x);//(xMin)+x*((xMax)-(xMin));
     
    /*
    if(_force_dist == 0){
      xMin = _dis_parameters.find("xMin") ->second;
      xMax = _dis_parameters.find("xMax") ->second;
-     value = (xMin)+RNG*((xMax)-(xMin));
+     value = (xMin)+x*((xMax)-(xMin));
  
    }
    else if(_force_dist == 1){
@@ -136,8 +136,8 @@ double  BasicUniformDistribution::untrCdf(double x){
    return value;
 }
 
-double  BasicUniformDistribution::untrRandomNumberGenerator(double RNG){
-   double value=RandomNumberGenerator(RNG);
+double  BasicUniformDistribution::untrInverseCdf(double x){
+   double value=InverseCdf(x);
    return value;
 }
 
@@ -216,8 +216,8 @@ BasicNormalDistribution::untrCdf(double x){
 }
 
 double
-BasicNormalDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_normal->_backend, RNG);
+BasicNormalDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_normal->_backend, x);
   /*
    double stdNorm;
    double value;
@@ -225,14 +225,14 @@ BasicNormalDistribution::untrRandomNumberGenerator(double RNG){
    double mu=_dis_parameters.find("mu") ->second;
    double sigma=_dis_parameters.find("sigma") ->second;
 
-    if (RNG < 0.5)
-        stdNorm = -AbramStegunApproximation( sqrt(-2.0*log(RNG)) );
+    if (x < 0.5)
+        stdNorm = -AbramStegunApproximation( sqrt(-2.0*log(x)) );
     else
-       stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-RNG)) );
+       stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-x)) );
 
     value = mu + sigma * stdNorm;
 
-    if (RNG == 1){
+    if (x == 1){
       value = std::numeric_limits<double>::max();
     }
     return value;*/
@@ -267,14 +267,14 @@ BasicNormalDistribution::Cdf(double x){
 }
 
 double
-BasicNormalDistribution::RandomNumberGenerator(double RNG){
+BasicNormalDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
      if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=untrCdf(xMin)+RNG*(untrCdf(xMax)-untrCdf(xMin));
-       value=untrRandomNumberGenerator(temp);
+       double temp=untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
+       value=untrInverseCdf(temp);
      }
      else{
        value=-1;
@@ -293,7 +293,7 @@ BasicNormalDistribution::RandomNumberGenerator(double RNG){
    else{
      throwError("ERROR: not recognized force_dist flag ("<<_force_dist<<"!= 0, 1 , 2, 3)");
    }
-   if (RNG == 1){
+   if (x == 1){
      value = xMax;
    }
    return value;
@@ -362,18 +362,18 @@ BasicLogNormalDistribution::untrCdf(double x){
 }
 
 double
-BasicLogNormalDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_logNormal->_backend, RNG);
+BasicLogNormalDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_logNormal->_backend, x);
   /*  double stdNorm;
    double value;
 
    double mu=_dis_parameters.find("mu") ->second;
    double sigma=_dis_parameters.find("sigma") ->second;
 
-    if (RNG < 0.5)
-        stdNorm = -AbramStegunApproximation( sqrt(-2.0*log(RNG)) );
+    if (x < 0.5)
+        stdNorm = -AbramStegunApproximation( sqrt(-2.0*log(x)) );
     else
-       stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-RNG)) );
+       stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-x)) );
 
    value=exp(mu + sigma * stdNorm);
 
@@ -409,15 +409,15 @@ BasicLogNormalDistribution::Cdf(double x){
 }
 
 double
-BasicLogNormalDistribution::RandomNumberGenerator(double RNG){
+BasicLogNormalDistribution::InverseCdf(double x){
   double value;
   double xMin = _dis_parameters.find("xMin") ->second;
   double xMax = _dis_parameters.find("xMax") ->second;
 
    if(_force_dist == 0){
      if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
-       value=untrRandomNumberGenerator(temp);
+       double temp=untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
+       value=untrInverseCdf(temp);
      }
      else
        value=-1.0;
@@ -485,8 +485,8 @@ BasicLogisticDistribution::untrCdf(double x){
 }
 
 double
-BasicLogisticDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_logistic->_backend, RNG);
+BasicLogisticDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_logistic->_backend, x);
 }
 
 double
@@ -530,15 +530,15 @@ BasicLogisticDistribution::Cdf(double x){
 }
 
 double
-BasicLogisticDistribution::RandomNumberGenerator(double RNG){
+BasicLogisticDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrRandomNumberGenerator(temp);
+      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
+      value=untrInverseCdf(temp);
    }
    else
       value=-1;
@@ -643,8 +643,8 @@ double  BasicTriangularDistribution::untrCdf(double x){
 }
 
 double
-BasicTriangularDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_triangular->_backend,RNG);
+BasicTriangularDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_triangular->_backend,x);
   /*double value;
    double lb = _dis_parameters.find("lowerBound") ->second;
    double ub = _dis_parameters.find("upperBound") ->second;
@@ -652,10 +652,10 @@ BasicTriangularDistribution::untrRandomNumberGenerator(double RNG){
 
    double threshold = (peak-lb)/(ub-lb);
 
-   if (RNG<threshold)
-      value=lb+sqrt(RNG*(peak-lb)*(ub-lb));
+   if (x<threshold)
+      value=lb+sqrt(x*(peak-lb)*(ub-lb));
    else
-      value=ub-sqrt((1-RNG)*(ub-peak)*(ub-lb));
+      value=ub-sqrt((1-x)*(ub-peak)*(ub-lb));
 
       return value;*/
 }
@@ -698,14 +698,14 @@ BasicTriangularDistribution::Cdf(double x){
    }
 
 double
-BasicTriangularDistribution::RandomNumberGenerator(double RNG){
+BasicTriangularDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
      if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=untrCdf(xMin)+RNG*(untrCdf(xMax)-untrCdf(xMin));
-       value=untrRandomNumberGenerator(temp);
+       double temp=untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
+       value=untrInverseCdf(temp);
      }
      else
        value=-1;
@@ -786,10 +786,10 @@ BasicExponentialDistribution::untrCdf(double x){
 }
 
 double
-BasicExponentialDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_exponential->_backend, RNG);
+BasicExponentialDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_exponential->_backend, x);
   /*double lambda=_dis_parameters.find("lambda") ->second;
-   double value=-log(1-RNG)/(lambda);
+   double value=-log(1-x)/(lambda);
    return value;*/
 }
 
@@ -846,14 +846,14 @@ BasicExponentialDistribution::Cdf(double x){
 }
 
 double
-BasicExponentialDistribution::RandomNumberGenerator(double RNG){
+BasicExponentialDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin)+RNG*(untrCdf(xMax)-untrCdf(xMin));
-      value=untrRandomNumberGenerator(temp);
+      double temp = untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
+      value=untrInverseCdf(temp);
    }
    else
       value=-1;
@@ -939,12 +939,12 @@ BasicWeibullDistribution::untrCdf(double x){
 }
 
 double
-BasicWeibullDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_weibull->_backend, RNG);
+BasicWeibullDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_weibull->_backend, x);
   /*double lambda = _dis_parameters.find("lambda") ->second;
    double k = _dis_parameters.find("k") ->second;
 
-   double value = lambda * pow(-log(1.0 - RNG),1/k);
+   double value = lambda * pow(-log(1.0 - x),1/k);
    return value;*/
 }
 
@@ -989,14 +989,14 @@ BasicWeibullDistribution::Cdf(double x){
 }
 
 double
-BasicWeibullDistribution::RandomNumberGenerator(double RNG){
+BasicWeibullDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrRandomNumberGenerator(temp);
+      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
+      value=untrInverseCdf(temp);
    }
    else
       value=-1;
@@ -1076,8 +1076,8 @@ BasicGammaDistribution::untrCdf(double x){
 }
 
 double
-BasicGammaDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_gamma->_backend, RNG);
+BasicGammaDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_gamma->_backend, x);
 }
 
 double
@@ -1125,15 +1125,15 @@ BasicGammaDistribution::Cdf(double x){
 }
 
 double
-BasicGammaDistribution::RandomNumberGenerator(double RNG){
+BasicGammaDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    double low = _dis_parameters.find("low") ->second;
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrRandomNumberGenerator(temp);
+      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
+      value=untrInverseCdf(temp);
    }
    else
      return -1;
@@ -1212,8 +1212,8 @@ BasicBetaDistribution::untrCdf(double x){
 }
 
 double
-BasicBetaDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_beta->_backend, RNG);
+BasicBetaDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_beta->_backend, x);
 }
 
 double
@@ -1259,7 +1259,7 @@ BasicBetaDistribution::Cdf(double x){
 }
 
 double
-BasicBetaDistribution::RandomNumberGenerator(double RNG){
+BasicBetaDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
@@ -1267,8 +1267,8 @@ BasicBetaDistribution::RandomNumberGenerator(double RNG){
    
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrRandomNumberGenerator(temp);
+      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
+      value=untrInverseCdf(temp);
    }
    else
       value=-1;
@@ -1342,8 +1342,8 @@ BasicPoissonDistribution::untrCdf(double x){
 }
 
 double
-BasicPoissonDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_poisson->_backend, RNG);
+BasicPoissonDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_poisson->_backend, x);
 }
 
 double
@@ -1387,15 +1387,15 @@ BasicPoissonDistribution::Cdf(double x){
 }
 
 double
-BasicPoissonDistribution::RandomNumberGenerator(double RNG){
+BasicPoissonDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + RNG * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrRandomNumberGenerator(temp);
+      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
+      value=untrInverseCdf(temp);
    }
    else
       value=-1;
@@ -1460,8 +1460,8 @@ BasicBinomialDistribution::untrCdf(double x){
 }
 
 double
-BasicBinomialDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_binomial->_backend, RNG);
+BasicBinomialDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_binomial->_backend, x);
 }
 
 double
@@ -1475,8 +1475,8 @@ BasicBinomialDistribution::Cdf(double x){
 }
 
 double
-BasicBinomialDistribution::RandomNumberGenerator(double RNG){
-  return untrRandomNumberGenerator(RNG);
+BasicBinomialDistribution::InverseCdf(double x){
+  return untrInverseCdf(x);
 }
 
 /*
@@ -1523,8 +1523,8 @@ BasicBernoulliDistribution::untrCdf(double x){
 }
 
 double
-BasicBernoulliDistribution::untrRandomNumberGenerator(double RNG){
-  return boost::math::quantile(_bernoulli->_backend, RNG);
+BasicBernoulliDistribution::untrInverseCdf(double x){
+  return boost::math::quantile(_bernoulli->_backend, x);
 }
 
 double
@@ -1538,8 +1538,8 @@ BasicBernoulliDistribution::Cdf(double x){
 }
 
 double
-BasicBernoulliDistribution::RandomNumberGenerator(double RNG){
-  return untrRandomNumberGenerator(RNG);
+BasicBernoulliDistribution::InverseCdf(double x){
+  return untrInverseCdf(x);
 }
 
 /*
@@ -1576,7 +1576,7 @@ BasicBernoulliDistribution::RandomNumberGenerator(double RNG){
 // }
 
 // double
-// BasicCustomDistribution::RandomNumberGenerator(double & ){
+// BasicCustomDistribution::InverseCdf(double & ){
 //   //XXX implement
 //    double value=-1;
 //    return value;
