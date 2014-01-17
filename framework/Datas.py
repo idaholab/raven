@@ -63,9 +63,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.print_CSV = bool(xmlNode.attrib['printCSV'])
     except KeyError:self.print_CSV = False
     try:
-      self.CSVfilename = xmlNode.attrib['CSVfilename']    
-    except KeyError:self.CSVfilename = None
-    try:
       self.dataParameters['input_ts'] = int(xmlNode.attrib['input_ts'])
     except KeyError:self.dataParameters['input_ts'] = None
     
@@ -124,7 +121,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     pass
 
-  def printCSV(self):
+  def printCSV(self,filenamefordata=None):
     '''
     Function used to dump the data into a csv file
     Every class must implement the specializedPrintCSV method
@@ -137,8 +134,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       print('DATAS: print on file(s)')
       print('=======================')
 
-    if (self.CSVfilename):
-      filenameLocal = self.CSVfilename
+    if (filenamefordata):
+      filenameLocal = filenamefordata
     else:
       filenameLocal = self.name + '_dump'
     self.specializedPrintCSV(filenameLocal)

@@ -131,6 +131,7 @@ class OutStreamPlot(OutStreamManager):
   #####################
   #  PRIVATE METHODS  #
   #####################
+
   def __splitVariableNames(self,what,where):
     ''' 
       Function to split the variable names
@@ -713,8 +714,8 @@ class OutStreamPlot(OutStreamManager):
           if 'cstride' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['cstride'] = '1'
           if 'interpolation_type' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['interpolation_type'] = 'cubic'
           elif self.options['plot_settings']['plot'][pltindex]['interpolation_type'] not in ['nearest','linear','cubic']: raise('STREAM MANAGER: ERROR -> surface interpolation unknown. Available are :' + str(['nearest','linear','cubic']))  
-          if 'interpPointsY' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['interpPointsY'] = '50'
-          if 'interpPointsX' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['interpPointsX'] = '50'
+          if 'interpPointsY' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['interpPointsY'] = '20'
+          if 'interpPointsX' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['interpPointsX'] = '20'
           for key in self.x_values[pltindex].keys():
             for x_index in range(len(self.x_values[pltindex][key])):
               xi = np.linspace(self.x_values[pltindex][key][x_index].min(),self.x_values[pltindex][key][x_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsX']))
@@ -755,17 +756,22 @@ class OutStreamPrint(OutStreamManager):
     
   def localAddInitParams(self,tempDict):
     for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
+    
   
   def initialize(self,inDict):
-    self.numberAggregatedOS = 1 #"take this number from input"
-    OutStreamManager.initialize(inDict)
+    # the linking to the source is performed in the base class initialize method
+    OutStreamManager.initialize(self,inDict)
 
-  
   def localReadXML(self,xmlNode):
     self.type = 'OutStreamPrint'
+    for subnode in xmlNode: 
+      if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
+      else:self.options[subnode.tag] = subnode.text
+    if 'type' not in self.options.keys(): raise('STREAM MANAGER: ERROR -> type tag not present in Print block called '+ self.name)
+    if self.options['type'] not in self.availableOutStreamTypes : raise('STREAM MANAGER: ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
   
   def addOutput(self):
-    pass
+    for index in range(len(self.sourceName)): self.sourceData[index].printCSV(self.name)
 
 '''
  Interface Dictionary (factory) (private)

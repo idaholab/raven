@@ -45,6 +45,10 @@
 </Samplers>
 
 <OutStreamManager>
+  <Print name='testprint'>
+    <type>csv</type>
+    <source>stories</source>
+  </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
     <plot_settings>
        <plot>
@@ -88,6 +92,7 @@
         <Output    class='DataBases'        type='HDF5'      >testOutputDataBase</Output>
         <Output    class='Datas'            type='Histories' >stories</Output>
         <Output    class='OutStreamManager' type='Plot'      >2DHistoryPlot</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint</Output>
     </MultiRun >
 </Steps>
 <DataBases>
