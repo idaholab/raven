@@ -23,6 +23,22 @@
 #include "distribution.h"
 #include "distributionFunctions.h"
 
+class DistributionBackend;
+
+class BasicTruncatedDistribution : public virtual BasicDistribution {
+public:
+  /*BasicTruncatedDistribution();
+  virtual ~BasicTruncatedDistribution();
+  virtual double  Pdf(double x) = 0;                           		///< Pdf function at coordinate x
+  virtual double  Cdf(double x) = 0;                               	///< Cdf function at coordinate x
+  virtual double  InverseCdf(double x) = 0;             ///< x*/
+
+  virtual double untrPdf(double x);
+  virtual double untrCdf(double x);
+  virtual double untrInverseCdf(double x);
+protected: 
+  DistributionBackend * _backend;
+};
 
 /*
  * CLASS UNIFORM DISTRIBUTION
@@ -58,7 +74,7 @@ class NormalDistribution;
 
 class NormalDistributionBackend;
 
-class BasicNormalDistribution : public virtual BasicDistribution {
+class BasicNormalDistribution : public  BasicTruncatedDistribution {
 public:
    BasicNormalDistribution(double mu, double sigma);
    BasicNormalDistribution(double mu, double sigma, double xMin, double xMax);
@@ -68,12 +84,6 @@ public:
    double  Cdf(double x);                ///< Cdf function at coordinate x
    double  InverseCdf(double x);        ///< x
 
-   double  untrPdf(double x);
-   double  untrCdf(double x);
-   double  untrInverseCdf(double x);
-
-protected:
-   NormalDistributionBackend * _normal;
 };
 
 
@@ -84,21 +94,16 @@ class LogNormalDistribution;
 
 class LogNormalDistributionBackend;
 
-class BasicLogNormalDistribution : public virtual BasicDistribution {
+class BasicLogNormalDistribution : public BasicTruncatedDistribution {
 public:
-   BasicLogNormalDistribution(double mu, double sigma);
-   virtual ~BasicLogNormalDistribution();
+  BasicLogNormalDistribution(double mu, double sigma);
+  virtual ~BasicLogNormalDistribution();
+  
+  double  Pdf(double x);                ///< Pdf function at coordinate x
+  double  Cdf(double x);                ///< Cdf function at coordinate x
+  double  InverseCdf(double x);        ///< x
 
-   double  Pdf(double x);                ///< Pdf function at coordinate x
-   double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  InverseCdf(double x);        ///< x
-
-   double  untrPdf(double x);
-   double  untrCdf(double x);
-   double  untrInverseCdf(double x);
-
-protected:
-   LogNormalDistributionBackend * _logNormal;
+  double untrCdf(double x);
 };
 
 /*

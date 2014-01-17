@@ -37,6 +37,42 @@
 
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
+class DistributionBackend {
+public:
+  virtual double pdf(double x) = 0;
+  virtual double cdf(double x) = 0;
+  virtual double quantile(double x) = 0;
+  virtual ~DistributionBackend() {};
+};
+
+/*
+ * Class Basic Truncated Distribution
+ * This class implements a basic truncated distribution that can 
+ * be inherited from.
+ */
+
+double BasicTruncatedDistribution::untrPdf(double x) {
+  return _backend->pdf(x);
+}
+
+double BasicTruncatedDistribution::untrCdf(double x) {
+  return _backend->cdf(x);
+}
+
+double BasicTruncatedDistribution::untrInverseCdf(double x) {
+  return _backend->quantile(x);
+}
+
+template <class T> 
+class DistributionBackendTemplate : public DistributionBackend {
+public: 
+  double pdf(double x) { return boost::math::pdf(*_backend, x); };
+  double cdf(double x) { return boost::math::cdf(*_backend, x); };
+  double quantile(double x) { return boost::math::quantile(*_backend, x); };
+protected:
+  T *_backend;
+};
+
 /*
  * CLASS UNIFORM DISTRIBUTION
  */
@@ -142,12 +178,14 @@ double  BasicUniformDistribution::untrInverseCdf(double x){
 }
 
 
-class NormalDistributionBackend {
+class NormalDistributionBackend : public DistributionBackendTemplate<boost::math::normal> {
 public:
-  NormalDistributionBackend(double mean, double sd) : _backend(mean, sd) {
-    
+  NormalDistributionBackend(double mean, double sd) {
+    _backend = new boost::math::normal(mean, sd);    
   }
-  boost::math::normal _backend;
+  ~NormalDistributionBackend() {
+    delete _backend;
+  }
 };
 
 /*
@@ -170,7 +208,7 @@ BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma) {
   //          << " truncation " << _dis_parameters["truncation"] 
   //          << " xMin " << _dis_parameters["xMin"] 
   //          << " xMax " << _dis_parameters["xMax"] << std::endl;
-  _normal = new NormalDistributionBackend(mu, sigma);   
+  _backend = new NormalDistributionBackend(mu, sigma);   
 }
 
 BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma, double xMin, double xMax) {
@@ -185,58 +223,15 @@ BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma, double
   //          << " truncation " << _dis_parameters["truncation"] 
   //          << " xMin " << _dis_parameters["xMin"] 
   //          << " xMax " << _dis_parameters["xMax"] << std::endl;
-  _normal = new NormalDistributionBackend(mu, sigma);   
+  _backend = new NormalDistributionBackend(mu, sigma);   
 
 }
 
 
 BasicNormalDistribution::~BasicNormalDistribution(){
-  delete _normal;
+  delete _backend;
 }
 
-double
-BasicNormalDistribution::untrPdf(double x){
-  return boost::math::pdf(_normal->_backend, x);
-    /*
-   double mu=_dis_parameters.find("mu") ->second;
-   double sigma=_dis_parameters.find("sigma") ->second;
-
-   double value=1/(sqrt(2.0*M_PI*sigma*sigma))*exp(-(x-mu)*(x-mu)/(2*sigma*sigma));
-   return value;*/
-}
-
-double
-BasicNormalDistribution::untrCdf(double x){
-  return boost::math::cdf(_normal->_backend, x);
-  /*double mu=_dis_parameters.find("mu") ->second;
-   double sigma=_dis_parameters.find("sigma") ->second;
-
-   double value=0.5*(1+erf((x-mu)/(sqrt(2*sigma*sigma))));
-   return value;*/
-}
-
-double
-BasicNormalDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_normal->_backend, x);
-  /*
-   double stdNorm;
-   double value;
-
-   double mu=_dis_parameters.find("mu") ->second;
-   double sigma=_dis_parameters.find("sigma") ->second;
-
-    if (x < 0.5)
-        stdNorm = -AbramStegunApproximation( sqrt(-2.0*log(x)) );
-    else
-       stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-x)) );
-
-    value = mu + sigma * stdNorm;
-
-    if (x == 1){
-      value = std::numeric_limits<double>::max();
-    }
-    return value;*/
-}
 
 double
 BasicNormalDistribution::Pdf(double x){
@@ -299,11 +294,14 @@ BasicNormalDistribution::InverseCdf(double x){
    return value;
 }
 
-class LogNormalDistributionBackend {
+class LogNormalDistributionBackend : public DistributionBackendTemplate<boost::math::lognormal> {
 public:
-  LogNormalDistributionBackend(double mean, double sd) : _backend(mean, sd) {
+  LogNormalDistributionBackend(double mean, double sd) {
+    _backend = new boost::math::lognormal(mean, sd);
   }
-  boost::math::lognormal _backend;
+  ~LogNormalDistributionBackend() {
+    delete  _backend;
+  }
 };
 
 /*
@@ -315,30 +313,17 @@ BasicLogNormalDistribution::BasicLogNormalDistribution(double mu, double sigma)
 {
   _dis_parameters["mu"] = mu;
   _dis_parameters["sigma"] = sigma;
-  _logNormal = new LogNormalDistributionBackend(mu, sigma);
     
   if (mu<0)
     throwError("ERROR: incorrect value of mu for lognormaldistribution");  
+
+  _backend = new LogNormalDistributionBackend(mu, sigma);
+
 }
 
 BasicLogNormalDistribution::~BasicLogNormalDistribution()
 {
-  delete _logNormal;
-}
-
-double
-BasicLogNormalDistribution::untrPdf(double x){
-  return boost::math::pdf(_logNormal->_backend, x);
-  /*double value;
-   double mu=_dis_parameters.find("mu") ->second;
-   double sigma=_dis_parameters.find("sigma") ->second;
-
-   if (x<=0)
-      value=0;
-   else
-      value=1/(sqrt(x*x*2.0*M_PI*sigma*sigma))*exp(-(log(x)-mu)*(log(x)-mu)/(2*sigma*sigma));
-
-      return value;*/
+  delete _backend;
 }
 
 double
@@ -347,37 +332,8 @@ BasicLogNormalDistribution::untrCdf(double x){
   if(x <= 0) {
     return 0.0;
   } else { 
-    return boost::math::cdf(_logNormal->_backend, x);
+    return _backend->cdf(x);
   }
-  /*double value;
-   double mu=_dis_parameters.find("mu") ->second;
-   double sigma=_dis_parameters.find("sigma") ->second;
-
-   if (x<=0)
-	   value=0;
-   else
-      value=0.5*(1+erf((log(x)-mu)/(sqrt(2*sigma*sigma))));
-
-      return value;*/
-}
-
-double
-BasicLogNormalDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_logNormal->_backend, x);
-  /*  double stdNorm;
-   double value;
-
-   double mu=_dis_parameters.find("mu") ->second;
-   double sigma=_dis_parameters.find("sigma") ->second;
-
-    if (x < 0.5)
-        stdNorm = -AbramStegunApproximation( sqrt(-2.0*log(x)) );
-    else
-       stdNorm = AbramStegunApproximation( sqrt(-2.0*log(1-x)) );
-
-   value=exp(mu + sigma * stdNorm);
-
-   return value;*/
 }
 
 double
