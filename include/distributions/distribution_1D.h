@@ -48,7 +48,7 @@ class UniformDistribution;
 
 class UniformDistributionBackend;
 
-class BasicUniformDistribution : public virtual BasicDistribution {
+class BasicUniformDistribution : public BasicTruncatedDistribution {
 public:
   BasicUniformDistribution(double xMin, double xMax);
   virtual ~BasicUniformDistribution();
@@ -56,13 +56,6 @@ public:
    double  Cdf(double x);                ///< Cdf function at coordinate x
    double  InverseCdf(double x);        ///< x
 
-   double  untrPdf(double x);
-   double  untrCdf(double x);
-   double  untrInverseCdf(double x);
-
-protected:
-   UniformDistributionBackend * _uniform;
-   // No parameters
 };
 
 

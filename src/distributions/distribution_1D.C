@@ -78,12 +78,14 @@ protected:
  */
 
 
-class UniformDistributionBackend {
+class UniformDistributionBackend : public DistributionBackendTemplate<boost::math::uniform> {
 public:
-  UniformDistributionBackend(double xMin, double xMax) : _backend(xMin,xMax) {
-    
+  UniformDistributionBackend(double xMin, double xMax) {
+    _backend = new boost::math::uniform(xMin,xMax);
   } 
-  boost::math::uniform _backend;
+  ~UniformDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -91,7 +93,7 @@ BasicUniformDistribution::BasicUniformDistribution(double xMin, double xMax)
 {
   _dis_parameters["xMin"] = xMin;
   _dis_parameters["xMax"] = xMax;
-  _uniform = new UniformDistributionBackend(xMin, xMax);
+  _backend = new UniformDistributionBackend(xMin, xMax);
     
   if (xMin>xMax)
     throwError("ERROR: bounds for uniform distribution are incorrect");  
@@ -99,84 +101,23 @@ BasicUniformDistribution::BasicUniformDistribution(double xMin, double xMax)
 
 BasicUniformDistribution::~BasicUniformDistribution()
 {
-  delete _uniform;
+  delete _backend;
 }
 
 double
 BasicUniformDistribution::Pdf(double x){
-  return boost::math::pdf(_uniform->_backend,x);
-  /*double value;
-   if (x<_dis_parameters.find("xMin") ->second)
-      value=0;
-   else if (x>_dis_parameters.find("xMax") ->second)
-      value=0;
-   else
-	   value = 1.0/((_dis_parameters.find("xMax") ->second) - (_dis_parameters.find("xMin") ->second));
-           return value;*/
+  return untrPdf(x);
 }
+
 double
 BasicUniformDistribution::Cdf(double x){
-  //double value;
-
-  return boost::math::cdf(_uniform->_backend,x); 
-   /*double xMax = _dis_parameters.find("xMax") ->second;
-   double xMin = _dis_parameters.find("xMin") ->second;
-
-   if (x<xMin)
-	   value=0;
-   else if (x>xMax)
-	   value =1;
-   else
-	   value = (x-xMin)/(xMax-xMin);
-
-           return value;*/
+  return untrCdf(x);
 }
+
 double
 BasicUniformDistribution::InverseCdf(double x){
-  double value;
-    
-   if ((x<0)&&(x>1))
-      throwError("ERROR: in the evaluation of x for uniform distribution");   
-
-   value = boost::math::quantile(_uniform->_backend,x);//(xMin)+x*((xMax)-(xMin));
-    
-   /*
-   if(_force_dist == 0){
-     xMin = _dis_parameters.find("xMin") ->second;
-     xMax = _dis_parameters.find("xMax") ->second;
-     value = (xMin)+x*((xMax)-(xMin));
- 
-   }
-   else if(_force_dist == 1){
-     value = (_dis_parameters.find("xMin") ->second);
-   }
-   else if(_force_dist == 2){
-     value = ((_dis_parameters.find("xMax") ->second) - (_dis_parameters.find("xMin") ->second))/2.0;
-   }
-   else if(_force_dist == 3){
-     value = (_dis_parameters.find("xMax") ->second);
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
-     }*/
-   return value;
+  return untrInverseCdf(x); 
 }
-
-double  BasicUniformDistribution::untrPdf(double x){
-   double value=Pdf(x);
-   return value;
-}
-
-double  BasicUniformDistribution::untrCdf(double x){
-   double value=Cdf(x);
-   return value;
-}
-
-double  BasicUniformDistribution::untrInverseCdf(double x){
-   double value=InverseCdf(x);
-   return value;
-}
-
 
 class NormalDistributionBackend : public DistributionBackendTemplate<boost::math::normal> {
 public:
