@@ -40,6 +40,21 @@ protected:
   DistributionBackend * _backend;
 };
 
+class BasicDiscreteDistribution : public virtual BasicDistribution {
+public:
+  /*BasicTruncatedDistribution();
+    virtual ~BasicTruncatedDistribution();*/
+  virtual double  Pdf(double x);           ///< Pdf function at coordinate x
+  virtual double  Cdf(double x);           ///< Cdf function at coordinate x
+  virtual double  InverseCdf(double x);    ///< x
+
+  virtual double untrPdf(double x);
+  virtual double untrCdf(double x);
+  virtual double untrInverseCdf(double x);
+protected: 
+  DistributionBackend * _backend;
+};
+
 /*
  * CLASS UNIFORM DISTRIBUTION
  */
@@ -221,7 +236,7 @@ public:
 
 class PoissonDistributionBackend;
 
-class BasicPoissonDistribution : public virtual BasicDistribution {
+class BasicPoissonDistribution : public BasicDiscreteDistribution {
 public:
   BasicPoissonDistribution(double mu);
   virtual ~BasicPoissonDistribution();
@@ -230,12 +245,7 @@ public:
   double  Cdf(double x);                ///< Cdf function at coordinate x
   double  InverseCdf(double x);        ///< x
   
-  double  untrPdf(double x);
   double  untrCdf(double x);
-  double  untrInverseCdf(double x);
-
-protected:
-  PoissonDistributionBackend * _poisson;
 };
 
 /*
@@ -244,21 +254,12 @@ protected:
 
 class BinomialDistributionBackend;
 
-class BasicBinomialDistribution : public virtual BasicDistribution {
+class BasicBinomialDistribution : public BasicDiscreteDistribution {
 public:
   BasicBinomialDistribution(double n, double p);
   virtual ~BasicBinomialDistribution();
-
-  double  Pdf(double x);                ///< Pdf function at coordinate x
-  double  Cdf(double x);                ///< Cdf function at coordinate x
-  double  InverseCdf(double x);        ///< x
-  
-  double  untrPdf(double x);
+ 
   double  untrCdf(double x);
-  double  untrInverseCdf(double x);
-
-protected:
-  BinomialDistributionBackend * _binomial;
 };
 
 /*
@@ -267,21 +268,11 @@ protected:
 
 class BernoulliDistributionBackend;
 
-class BasicBernoulliDistribution : public virtual BasicDistribution {
+class BasicBernoulliDistribution : public BasicDiscreteDistribution {
 public:
   BasicBernoulliDistribution(double p);
   virtual ~BasicBernoulliDistribution();
-
-  double  Pdf(double x);                ///< Pdf function at coordinate x
-  double  Cdf(double x);                ///< Cdf function at coordinate x
-  double  InverseCdf(double x);        ///< x
   
-  double  untrPdf(double x);
-  double  untrCdf(double x);
-  double  untrInverseCdf(double x);
-
-protected:
-  BernoulliDistributionBackend * _bernoulli;
 };
 
 

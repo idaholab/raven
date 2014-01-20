@@ -63,6 +63,41 @@ double BasicTruncatedDistribution::untrInverseCdf(double x) {
   return _backend->quantile(x);
 }
 
+/*
+ * Class Basic Discrete Distribution
+ * This class implements a basic discrete distribution that can 
+ * be inherited from.
+ */
+
+double BasicDiscreteDistribution::untrPdf(double x) {
+  return _backend->pdf(x);
+}
+
+double BasicDiscreteDistribution::untrCdf(double x) {
+  return _backend->cdf(x);
+}
+
+double BasicDiscreteDistribution::untrInverseCdf(double x) {
+  return _backend->quantile(x);
+}
+
+double BasicDiscreteDistribution::Pdf(double x) {
+  return untrPdf(x);
+}
+
+double BasicDiscreteDistribution::Cdf(double x) {
+  return untrCdf(x);
+}
+
+double BasicDiscreteDistribution::InverseCdf(double x) {
+  return untrInverseCdf(x);
+}
+
+/*
+ * Class DistributionBackendTemplate implements a template that 
+ * can be used to create a DistributionBackend from a boost distribution
+ */ 
+
 template <class T> 
 class DistributionBackendTemplate : public DistributionBackend {
 public: 
@@ -1053,12 +1088,14 @@ BasicBetaDistribution::InverseCdf(double x){
  */
 
 
-class PoissonDistributionBackend {
+class PoissonDistributionBackend : public DistributionBackendTemplate<boost::math::poisson_distribution<> > {
 public:
-  PoissonDistributionBackend(double mu) : _backend(mu) {
-    
+  PoissonDistributionBackend(double mu) {
+    _backend = new boost::math::poisson_distribution<>(mu);
   }
-  boost::math::poisson_distribution<> _backend;
+  ~PoissonDistributionBackend() {
+    _backend;
+  }
 };
 
 
@@ -1079,31 +1116,21 @@ BasicPoissonDistribution::BasicPoissonDistribution(double mu)
   if (mu<0)
     throwError("ERROR: incorrect value of mu for poisson distribution");
 
-  _poisson = new PoissonDistributionBackend(mu);
+  _backend = new PoissonDistributionBackend(mu);
 }
 
 BasicPoissonDistribution::~BasicPoissonDistribution()
 {
-  delete _poisson;
-}
-
-double
-BasicPoissonDistribution::untrPdf(double x){
-  return boost::math::pdf(_poisson->_backend, x);
+  delete _backend;
 }
 
 double
 BasicPoissonDistribution::untrCdf(double x){
   if(x >= 0) {
-    return boost::math::cdf(_poisson->_backend, x);
+    return _backend->cdf(x);
   } else {
     return 0.0;
   } 
-}
-
-double
-BasicPoissonDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_poisson->_backend, x);
 }
 
 double
@@ -1180,12 +1207,14 @@ BasicPoissonDistribution::InverseCdf(double x){
  */
 
 
-class BinomialDistributionBackend {
+class BinomialDistributionBackend : public DistributionBackendTemplate<boost::math::binomial_distribution<> > {
 public:
-  BinomialDistributionBackend(double n, double p) : _backend(n, p) {
-    
+  BinomialDistributionBackend(double n, double p) {
+    _backend = new boost::math::binomial_distribution<>(n, p);    
   }
-  boost::math::binomial_distribution<> _backend;
+  ~BinomialDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -1197,46 +1226,21 @@ BasicBinomialDistribution::BasicBinomialDistribution(double n, double p)
   if (n<0 or p<0)
     throwError("ERROR: incorrect value of n or p for binomial distribution");
 
-  _binomial = new BinomialDistributionBackend(n, p);
+  _backend = new BinomialDistributionBackend(n, p);
 }
 
 BasicBinomialDistribution::~BasicBinomialDistribution()
 {
-  delete _binomial;
-}
-
-double
-BasicBinomialDistribution::untrPdf(double x){
-  return boost::math::pdf(_binomial->_backend, x);
+  delete _backend;
 }
 
 double
 BasicBinomialDistribution::untrCdf(double x){
   if(x >= 0) {
-    return boost::math::cdf(_binomial->_backend, x);
+    return _backend->cdf(x);
   } else {
     return 0.0;
   } 
-}
-
-double
-BasicBinomialDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_binomial->_backend, x);
-}
-
-double
-BasicBinomialDistribution::Pdf(double x){
-  return untrPdf(x);
-}
-
-double
-BasicBinomialDistribution::Cdf(double x){
-  return untrCdf(x);
-}
-
-double
-BasicBinomialDistribution::InverseCdf(double x){
-  return untrInverseCdf(x);
 }
 
 /*
@@ -1244,12 +1248,14 @@ BasicBinomialDistribution::InverseCdf(double x){
  */
 
 
-class BernoulliDistributionBackend {
+class BernoulliDistributionBackend : public DistributionBackendTemplate<boost::math::bernoulli_distribution<> > {
 public:
-  BernoulliDistributionBackend(double p) : _backend(p) {
-    
+  BernoulliDistributionBackend(double p) {
+    _backend = new boost::math::bernoulli_distribution<>(p);    
   }
-  boost::math::bernoulli_distribution<> _backend;
+  ~BernoulliDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -1260,46 +1266,12 @@ BasicBernoulliDistribution::BasicBernoulliDistribution(double p)
   if (p<0)
     throwError("ERROR: incorrect value of p for bernoulli distribution");
 
-  _bernoulli = new BernoulliDistributionBackend(p);
+  _backend = new BernoulliDistributionBackend(p);
 }
 
 BasicBernoulliDistribution::~BasicBernoulliDistribution()
 {
-  delete _bernoulli;
-}
-
-double
-BasicBernoulliDistribution::untrPdf(double x){
-  return boost::math::pdf(_bernoulli->_backend, x);
-}
-
-double
-BasicBernoulliDistribution::untrCdf(double x){
-  if(x >= 0) {
-    return boost::math::cdf(_bernoulli->_backend, x);
-  } else {
-    return 0.0;
-  } 
-}
-
-double
-BasicBernoulliDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_bernoulli->_backend, x);
-}
-
-double
-BasicBernoulliDistribution::Pdf(double x){
-  return untrPdf(x);
-}
-
-double
-BasicBernoulliDistribution::Cdf(double x){
-  return untrCdf(x);
-}
-
-double
-BasicBernoulliDistribution::InverseCdf(double x){
-  return untrInverseCdf(x);
+  delete _backend;
 }
 
 /*
