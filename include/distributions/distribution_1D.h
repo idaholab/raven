@@ -114,7 +114,7 @@ class LogisticDistribution;
 
 class LogisticDistributionBackend;
 
-class BasicLogisticDistribution : public virtual BasicDistribution {
+class BasicLogisticDistribution : public BasicTruncatedDistribution {
 public:
    BasicLogisticDistribution(double location, double scale);
    virtual ~BasicLogisticDistribution();
@@ -123,12 +123,6 @@ public:
    double  Cdf(double x);                ///< Cdf function at coordinate x
    double  InverseCdf(double x);        ///< x
 
-   double  untrPdf(double x);
-   double  untrCdf(double x);
-   double  untrInverseCdf(double x);
-
-protected:
-   LogisticDistributionBackend * _logistic;
 };
 
 
@@ -140,7 +134,7 @@ class TriangularDistribution;
 
 class TriangularDistributionBackend;
 
-class BasicTriangularDistribution : public virtual BasicDistribution {
+class BasicTriangularDistribution : public BasicTruncatedDistribution {
 public:
    BasicTriangularDistribution(double xPeak, double lowerBound, double upperBound);
    virtual ~BasicTriangularDistribution();
@@ -149,12 +143,6 @@ public:
    double  Cdf(double x);                ///< Cdf function at coordinate x
    double  InverseCdf(double x);        ///< x
 
-   double  untrPdf(double x);
-   double  untrCdf(double x);
-   double  untrInverseCdf(double x);
-
-protected:
-   TriangularDistributionBackend * _triangular;
 };
 
 
@@ -166,7 +154,7 @@ class ExponentialDistribution;
 
 class ExponentialDistributionBackend;
 
-class BasicExponentialDistribution : public virtual BasicDistribution {
+class BasicExponentialDistribution : public BasicTruncatedDistribution {
 public:
    BasicExponentialDistribution(double lambda);
    virtual ~BasicExponentialDistribution();
@@ -175,12 +163,7 @@ public:
    double  Cdf(double x);                ///< Cdf function at coordinate x
    double  InverseCdf(double x);        ///< x
 
-   double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrInverseCdf(double x);
-
-protected:
-   ExponentialDistributionBackend * _exponential;
 };
 
 /*
@@ -191,7 +174,7 @@ class WeibullDistribution;
 
 class WeibullDistributionBackend;
 
-class BasicWeibullDistribution : public virtual BasicDistribution {
+class BasicWeibullDistribution : public BasicTruncatedDistribution {
 public:
    BasicWeibullDistribution(double k, double lambda);
    virtual ~BasicWeibullDistribution();
@@ -200,12 +183,7 @@ public:
    double  Cdf(double x);                ///< Cdf function at coordinate x
    double  InverseCdf(double x);        ///< x
 
-   double  untrPdf(double x);
    double  untrCdf(double x);
-   double  untrInverseCdf(double x);
-
-protected:
-   WeibullDistributionBackend * _weibull;
 };
 
 /*
@@ -214,7 +192,7 @@ protected:
 
 class GammaDistributionBackend;
 
-class BasicGammaDistribution : public virtual BasicDistribution {
+class BasicGammaDistribution : public BasicTruncatedDistribution {
 public:
   BasicGammaDistribution(double k, double theta, double low);
   virtual ~BasicGammaDistribution();
@@ -223,12 +201,7 @@ public:
   double  Cdf(double x);                ///< Cdf function at coordinate x
   double  InverseCdf(double x);        ///< x
   
-  double  untrPdf(double x);
   double  untrCdf(double x);
-  double  untrInverseCdf(double x);
-
-protected:
-  GammaDistributionBackend * _gamma;    
 };
 
 /*
@@ -237,7 +210,7 @@ protected:
 
 class BetaDistributionBackend;
 
-class BasicBetaDistribution : public virtual BasicDistribution {
+class BasicBetaDistribution : public BasicTruncatedDistribution {
 public:
   BasicBetaDistribution(double alpha, double beta, double scale);
   virtual ~BasicBetaDistribution();
@@ -246,12 +219,7 @@ public:
   double  Cdf(double x);                ///< Cdf function at coordinate x
   double  InverseCdf(double x);        ///< x
   
-  double  untrPdf(double x);
   double  untrCdf(double x);
-  double  untrInverseCdf(double x);
-
-protected:
-  BetaDistributionBackend * _beta;    
 };
 
 /*

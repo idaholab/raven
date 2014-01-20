@@ -397,13 +397,14 @@ BasicLogNormalDistribution::InverseCdf(double x){
  */
 
 
-class LogisticDistributionBackend {
+class LogisticDistributionBackend : public DistributionBackendTemplate<boost::math::logistic_distribution<> > {
 public:
-  LogisticDistributionBackend(double location, double scale) :
-    _backend(location, scale) {
-    
+  LogisticDistributionBackend(double location, double scale) {
+    _backend = new boost::math::logistic_distribution<>(location, scale);    
   }
-  boost::math::logistic_distribution<> _backend;
+  ~LogisticDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -422,28 +423,14 @@ BasicLogisticDistribution::BasicLogisticDistribution(double location, double sca
     _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
   }
 
-  _logistic = new LogisticDistributionBackend(location, scale);
+  _backend = new LogisticDistributionBackend(location, scale);
 }
 
 BasicLogisticDistribution::~BasicLogisticDistribution()
 {
-  delete _logistic;
+  delete _backend;
 }
 
-double
-BasicLogisticDistribution::untrPdf(double x){
-  return boost::math::pdf(_logistic->_backend, x);
-}
-
-double
-BasicLogisticDistribution::untrCdf(double x){
-  return boost::math::cdf(_logistic->_backend, x);
-}
-
-double
-BasicLogisticDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_logistic->_backend, x);
-}
 
 double
 BasicLogisticDistribution::Pdf(double x){
@@ -520,11 +507,14 @@ BasicLogisticDistribution::InverseCdf(double x){
 
 
 
-class TriangularDistributionBackend {
+class TriangularDistributionBackend : public DistributionBackendTemplate<boost::math::triangular> {
 public:
-  TriangularDistributionBackend(double lower, double mode, double upper) :
-    _backend(lower, mode, upper) { }
-  boost::math::triangular _backend;
+  TriangularDistributionBackend(double lower, double mode, double upper) {
+    _backend = new boost::math::triangular(lower, mode, upper);
+  }
+  ~TriangularDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -551,69 +541,12 @@ BasicTriangularDistribution::BasicTriangularDistribution(double xPeak, double lo
     throwError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
   if (lowerBound > _dis_parameters.find("xMax") ->second)
     throwError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
-  _triangular = new TriangularDistributionBackend(lowerBound, xPeak, upperBound);
+  _backend = new TriangularDistributionBackend(lowerBound, xPeak, upperBound);
 
 }
 BasicTriangularDistribution::~BasicTriangularDistribution()
 {
-  delete _triangular;
-}
-
-double
-BasicTriangularDistribution::untrPdf(double x){
-  return boost::math::pdf(_triangular->_backend,x);
-  /*double value;
-   double lb = _dis_parameters.find("lowerBound") ->second;
-   double ub = _dis_parameters.find("upperBound") ->second;
-   double peak = _dis_parameters.find("xPeak") ->second;
-
-   if (x<=lb)
-      value=0;
-   if ((x>lb)&(x<peak))
-      value=2*(x-lb)/(ub-lb)/(peak-lb);
-   if ((x>peak)&(x<ub))
-      value=2*(ub-x)/(ub-lb)/(ub-peak);
-   if (x>=ub)
-      value=0;
-
-      return value;*/
-}
-
-double  BasicTriangularDistribution::untrCdf(double x){
-  return boost::math::cdf(_triangular->_backend,x);
-  /*double value;
-   double lb = _dis_parameters.find("lowerBound") ->second;
-   double ub = _dis_parameters.find("upperBound") ->second;
-   double peak = _dis_parameters.find("xPeak") ->second;
-
-   if (x<=lb)
-      value=0;
-   if ((x>lb)&(x<peak))
-      value=(x-lb)*(x-lb)/(ub-lb)/(peak-lb);
-   if ((x>peak)&(x<ub))
-      value=1-(ub-x)*(ub-x)/(ub-lb)/(ub-peak);
-   if (x>=ub)
-      value=1;
-
-      return value;*/
-}
-
-double
-BasicTriangularDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_triangular->_backend,x);
-  /*double value;
-   double lb = _dis_parameters.find("lowerBound") ->second;
-   double ub = _dis_parameters.find("upperBound") ->second;
-   double peak = _dis_parameters.find("xPeak") ->second;
-
-   double threshold = (peak-lb)/(ub-lb);
-
-   if (x<threshold)
-      value=lb+sqrt(x*(peak-lb)*(ub-lb));
-   else
-      value=ub-sqrt((1-x)*(ub-peak)*(ub-lb));
-
-      return value;*/
+  delete _backend;
 }
 
 double
@@ -688,10 +621,14 @@ BasicTriangularDistribution::InverseCdf(double x){
  */
 
 
-class ExponentialDistributionBackend {
+class ExponentialDistributionBackend : public DistributionBackendTemplate<boost::math::exponential> {
 public:
-  ExponentialDistributionBackend(double lambda) : _backend(lambda) {}
-  boost::math::exponential _backend;
+  ExponentialDistributionBackend(double lambda) {
+    _backend = new boost::math::exponential(lambda);
+  }
+  ~ExponentialDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -702,52 +639,23 @@ BasicExponentialDistribution::BasicExponentialDistribution(double lambda)
   if (lambda<0)
     throwError("ERROR: incorrect value of lambda for exponential distribution"); 
 
-  _exponential = new ExponentialDistributionBackend(lambda);
+  _backend = new ExponentialDistributionBackend(lambda);
 }
 BasicExponentialDistribution::~BasicExponentialDistribution()
 {
-  delete _exponential;
+  delete _backend;
 }
 
-double
-BasicExponentialDistribution::untrPdf(double x){
-  return boost::math::pdf(_exponential->_backend, x);
-  /*double value;
-   double lambda=_dis_parameters.find("lambda") ->second;
-
-   if (x >= 0.0)
-      value = lambda*exp(-x*lambda);
-   else
-	   value=0.0;
-
-           return value;*/
-}
 
 double
 BasicExponentialDistribution::untrCdf(double x){
   if(x >= 0.0) {
-    return boost::math::cdf(_exponential->_backend, x);
+    return _backend->cdf(x);
   } else {
     return 0.0;
   }
-  /*double value;
-   double lambda=_dis_parameters.find("lambda") ->second;
-
-   if (x >= 0.0)
-      value = 1-exp(-x*lambda);
-   else
-      value=0.0;
-
-      return value;*/
 }
 
-double
-BasicExponentialDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_exponential->_backend, x);
-  /*double lambda=_dis_parameters.find("lambda") ->second;
-   double value=-log(1-x)/(lambda);
-   return value;*/
-}
 
 double
 BasicExponentialDistribution::Pdf(double x){
@@ -835,12 +743,14 @@ BasicExponentialDistribution::InverseCdf(double x){
  */
 
 
-class WeibullDistributionBackend {
+class WeibullDistributionBackend : public DistributionBackendTemplate< boost::math::weibull>  {
 public:
-  WeibullDistributionBackend(double shape, double scale) : _backend(shape, scale) {
-    
+  WeibullDistributionBackend(double shape, double scale) {
+    _backend = new boost::math::weibull(shape, scale);
   }
-  boost::math::weibull _backend;
+  ~WeibullDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -852,57 +762,24 @@ BasicWeibullDistribution::BasicWeibullDistribution(double k, double lambda)
   if ((lambda<0) || (k<0))
     throwError("ERROR: incorrect value of k or lambda for weibull distribution");
 
-  _weibull = new WeibullDistributionBackend(k, lambda);
+  _backend = new WeibullDistributionBackend(k, lambda);
 }
 
 BasicWeibullDistribution::~BasicWeibullDistribution()
 {
-  delete _weibull;
+  delete _backend;
 }
 
-double
-BasicWeibullDistribution::untrPdf(double x){
-  return boost::math::pdf(_weibull->_backend, x);
-  /*double lambda = _dis_parameters.find("lambda") ->second;
-   double k = _dis_parameters.find("k") ->second;
-   double value;
-
-   if (x >= 0)
-      value = k/lambda * pow(x/lambda,k-1) * exp(-pow(x/lambda,k));
-   else
-      value=0;
-
-      return value;*/
-}
 
 double
 BasicWeibullDistribution::untrCdf(double x){
   if(x >= 0) {
-    return boost::math::cdf(_weibull->_backend, x);
+    return _backend->cdf(x);
   } else {
     return 0.0;
   }
-  /*double lambda = _dis_parameters.find("lambda") ->second;
-   double k = _dis_parameters.find("k") ->second;
-   double value;
-
-   if (x >= 0)
-      value = 1.0 - exp(-pow(x/lambda,k));
-   else
-	   value=0.0;
-
-           return value;*/
 }
 
-double
-BasicWeibullDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_weibull->_backend, x);
-  /*double lambda = _dis_parameters.find("lambda") ->second;
-   double k = _dis_parameters.find("k") ->second;
-
-   double value = lambda * pow(-log(1.0 - x),1/k);
-   return value;*/
-}
 
 double
 BasicWeibullDistribution::Pdf(double x){
@@ -977,12 +854,14 @@ BasicWeibullDistribution::InverseCdf(double x){
  */
 
 
-class GammaDistributionBackend {
+class GammaDistributionBackend : public DistributionBackendTemplate<boost::math::gamma_distribution<> > {
 public:
-  GammaDistributionBackend(double shape, double scale) : _backend(shape, scale) {
-    
+  GammaDistributionBackend(double shape, double scale) {
+    _backend = new boost::math::gamma_distribution<>(shape, scale);    
   }
-  boost::math::gamma_distribution<> _backend;
+  ~GammaDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -1007,34 +886,26 @@ BasicGammaDistribution::BasicGammaDistribution(double k, double theta, double lo
   if ((theta<0) || (k<0))
     throwError("ERROR: incorrect value of k or theta for gamma distribution");
 
-  _gamma = new GammaDistributionBackend(k, theta);
+  _backend = new GammaDistributionBackend(k, theta);
 }
 
 BasicGammaDistribution::~BasicGammaDistribution()
 {
-  delete _gamma;
+  delete _backend;
 }
 
-double
-BasicGammaDistribution::untrPdf(double x){
-  return boost::math::pdf(_gamma->_backend, x);
-}
 
 double
 BasicGammaDistribution::untrCdf(double x){
   if(x > 1.0e100) {
     return 1.0;
   } else if(x >= 0) {
-    return boost::math::cdf(_gamma->_backend, x);
+    return _backend->cdf(x);
   } else  {
     return 0.0;
   } 
 }
 
-double
-BasicGammaDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_gamma->_backend, x);
-}
 
 double
 BasicGammaDistribution::Pdf(double x){
@@ -1115,12 +986,14 @@ BasicGammaDistribution::InverseCdf(double x){
  */
 
 
-class BetaDistributionBackend {
+class BetaDistributionBackend : public DistributionBackendTemplate<boost::math::beta_distribution<> > {
 public:
-  BetaDistributionBackend(double alpha, double beta) : _backend(alpha, beta) {
-    
+  BetaDistributionBackend(double alpha, double beta) {
+    _backend = new boost::math::beta_distribution<>(alpha, beta);    
   }
-  boost::math::beta_distribution<> _backend;
+  ~BetaDistributionBackend() {
+    delete _backend;
+  }
 };
 
 
@@ -1143,33 +1016,23 @@ BasicBetaDistribution::BasicBetaDistribution(double alpha, double beta, double s
   if ((alpha<0) || (beta<0))
     throwError("ERROR: incorrect value of alpha or beta for beta distribution");
 
-  _beta = new BetaDistributionBackend(alpha, beta);
+  _backend = new BetaDistributionBackend(alpha, beta);
 }
 
 BasicBetaDistribution::~BasicBetaDistribution()
 {
-  delete _beta;
-}
-
-double
-BasicBetaDistribution::untrPdf(double x){
-  return boost::math::pdf(_beta->_backend, x);
+  delete _backend;
 }
 
 double
 BasicBetaDistribution::untrCdf(double x){
   if(x >= 0 and x <= 1) {
-    return boost::math::cdf(_beta->_backend, x);
+    return _backend->cdf(x);
   } else if(x < 0){
     return 0.0;
   } else {
     return 1.0;
   }
-}
-
-double
-BasicBetaDistribution::untrInverseCdf(double x){
-  return boost::math::quantile(_beta->_backend, x);
 }
 
 double
