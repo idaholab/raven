@@ -61,8 +61,16 @@
         <Model   class='Models'   type='ROM'         >ROM1</Model>
         <Sampler class='Samplers' type='MonteCarlo'  >RAVENmc3</Sampler>
         <Output  class='Datas'    type='TimePointSet'>outputMontecarloRom</Output>
+        <Output  class='OutStreamManager' type='Print'>outputMontecarloRom_dump</Output>
     </MultiRun>
 </Steps>
+<OutStreamManager>
+  <Print name='outputMontecarloRom_dump'>
+    <type>csv</type>
+    <source>outputMontecarloRom</source>
+  </Print>
+</OutStreamManager>
+    
 <DataBases>
         <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
 </DataBases>

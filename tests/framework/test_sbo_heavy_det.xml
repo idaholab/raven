@@ -3,7 +3,7 @@
 <RunInfo>
     <WorkingDir>SBO_DET</WorkingDir>
     <Files>DET_histories_eqPb.csv,TMI_PRA_trans_DET_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
-    <Sequence>DET,extract_hist_from_hdf5_eqPb</Sequence>
+    <Sequence>DET,test_extract</Sequence>
     <batchSize>8</batchSize>
 </RunInfo>
 <Models>
@@ -85,7 +85,7 @@
 <Datas>
    <Histories name='stories_from_database' input_ts='960'>
         <Input>time,AuxSystemUp,CladDamaged,CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Input>
-        <Output>time,AuxSystemUp,CladDamaged,CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
+  <Output>time,AuxSystemUp,CladDamaged,CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
    </Histories>
 </Datas>
 </Simulation>
