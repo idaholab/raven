@@ -59,6 +59,13 @@
       <Output>whatEver</Output>
    </TimePointSet>
 </Datas>
+    
+<OutStreamManager>
+    <Print name='outGrid_dump'>
+        <type>csv</type>
+        <source>outGrid</source>
+    </Print>
+</OutStreamManager>
 
 <Steps>
      <MultiRun name='CustomSampler'>
@@ -67,6 +74,7 @@
         <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
         <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
         <Output  class='DataBases' type='HDF5'        >test_DummyModel_db</Output>
+        <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >
 </Steps>
 <DataBases>

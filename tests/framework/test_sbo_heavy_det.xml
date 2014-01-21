@@ -73,20 +73,19 @@
         <Model   class='Models'    type='Code'            >MyRAVEN</Model>
         <Sampler class='Samplers'  type='DynamicEventTree'>DET</Sampler>
         <Output  class='DataBases' type='HDF5'              >DET_SBO_RUN_eqPb</Output>
-    </MultiRun>  
-    <SingleRun name='extract_hist_from_hdf5_eqPb'>
+    </MultiRun>
+    <InOutFromDataBase name='test_extract'>
         <Input   class='DataBases' type='HDF5'   >DET_SBO_RUN_eqPb</Input>
-        <Model   class='Models'    type='Filter' >csv_from_hdf5</Model>
-        <Output  class='Files'     type=''       >DET_histories_eqPb.csv</Output>
-    </SingleRun>       
+        <Output  class='Datas'    type='Histories'>stories_from_database</Output>
+    </InOutFromDataBase>    
 </Steps>
 <DataBases>
         <HDF5 name="DET_SBO_RUN_eqPb"/> 
 </DataBases>
 <Datas>
    <Histories name='stories_from_database' input_ts='960'>
-        <Input>DeltaTimeScramToAux,CladTempTreshold</Input>
-        <Output>avg_temp_clad_CH2,CladDamaged</Output>
+        <Input>time,AuxSystemUp,CladDamaged,CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Input>
+        <Output>time,AuxSystemUp,CladDamaged,CladFailureDistThreshold,CladTempBranched,DG1_time_ratio,DG1recoveryTime,DG2recoveryTime,DeltaTimeScramToAux,DownStreamSpeed,Head_PumpA,Head_PumpB,InitialMassFlowPrimary,MassFlowRateIn_SC_A,MassFlowRateIn_SC_B,PrimPGrecovery,PrimPGrecoveryThreshold,PrimPGrecoveryTime,ScramStatus,SecPGrecoveryTime,UpstreamSpeed,a_Head_PumpA,a_Head_PumpB,a_MassFlowRateIn_SC_A,a_MassFlowRateIn_SC_B,a_friction2_CL_A,a_friction2_CL_B,a_power_CH1,a_power_CH2,a_power_CH3,auxAbsolute,avg_Fluid_Vel_C_L_A,avg_Fluid_Vel_H_L-A,avg_out_temp_sec_A,avg_temp_clad_CH1,avg_temp_clad_CH2,avg_temp_clad_CH3,avg_temp_fuel_CH1,avg_temp_fuel_CH2,avg_temp_fuel_CH3,crew1DG1,crew1DG1Threshold,crew1DG2CoupledDG1,crew1DG2CoupledDG1Threshold,crewSecPG,crewSecPGThreshold,init_Power_Fraction_CH1,init_Power_Fraction_CH2,init_Power_Fraction_CH3,power_CH1,power_CH2,power_CH3,reactor:power,scram_start_time,sec_inlet_velocity</Output>
    </Histories>
 </Datas>
 </Simulation>

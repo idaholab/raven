@@ -121,8 +121,8 @@ class Dummy(Model):
 
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
-    if 'print' in xmlNode.attrib.keys(): self.printFile = bool(xmlNode.attrib['print'])
-    else: self.printFile = False
+#     if 'print' in xmlNode.attrib.keys(): self.printFile = bool(xmlNode.attrib['print'])
+#     else: self.printFile = False
   
   def run(self,Input,jobHandler):
     '''The input should be under the form of a tuple of dictionary. The dictionary are copied and ready to be sent to the output'''
@@ -142,8 +142,8 @@ class Dummy(Model):
     else:
       for key in self.inputDict.keys() : output.updateInputValue(key,self.inputDict[key])
       for key in self.outputDict.keys(): output.updateOutputValue(key,self.outputDict[key])
-      if self.printFile:
-        output.printCSV()
+#       if self.printFile:
+#         output.printCSV()
     print('collected output')
 #
 #
@@ -221,7 +221,7 @@ class ExternalModel(Model):
         if not (typeMatch(self.modelVariableValues[outName],self.modelVariableType[outName])):
           raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ outName + ' is ' + str(type(self.modelVariableValues[outName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[outName] +')!!!')
         output.updateOutputValue(outName,self.modelVariableValues[outName])
-      output.printCSV()    
+#       output.printCSV()    
     
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
@@ -476,7 +476,7 @@ class ROM(Model):
           output.updateInputValue(inputName,self.request[self.inputNames.index(inputName)])
     except AttributeError: raise IOError('the output of the ROM is requested on a not compatible data')
     output.updateOutputValue(self.outputName,self.output)
-    output.printCSV()
+#     output.printCSV()
 #
 #
 #  

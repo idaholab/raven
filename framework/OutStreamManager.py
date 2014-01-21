@@ -727,12 +727,12 @@ class OutStreamPlot(OutStreamManager):
                   else: zi = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[:], yi[:]), method='nearest')
                   if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot_wireframe(xig,yig,zi, rstride = ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride']),**self.options['plot_settings']['plot'][pltindex]['attributes'])    
                   else: self.actPlot = self.plt3D.plot_wireframe(xig,yig,zi,rstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['cstride'])) 
-        elif self.outStreamTypes[pltindex] == 'contour' or self.outStreamTypes[pltindex] == 'contourf':
-          pass
-        elif self.outStreamTypes[pltindex] == 'histogram':
-          pass
-        elif self.outStreamTypes[pltindex] == 'pseudocolor':
-          pass      
+        #elif self.outStreamTypes[pltindex] == 'contour' or self.outStreamTypes[pltindex] == 'contourf':
+        #  pass
+        #elif self.outStreamTypes[pltindex] == 'histogram':
+        #  pass
+        #elif self.outStreamTypes[pltindex] == 'pseudocolor':
+        #  pass      
         else: raise IOError('STREAM MANAGER: ERROR -> plot named'+ self.name+ ': plot type '+ self.outStreamTypes[pltindex] + 'unknown!!!')
 
     # SHOW THE PICTURE
@@ -753,11 +753,13 @@ class OutStreamPrint(OutStreamManager):
     OutStreamManager.__init__(self)
     self.sourceName   = []
     self.sourceData   = None
-    
+    self.variables    = None 
+
   def localAddInitParams(self,tempDict):
     for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
-    
-  
+    if self.variables:
+      for index in range(len(self.variables)): tempDict['Variable Name '+str(index)+' :'] = self.variables[index]
+     
   def initialize(self,inDict):
     # the linking to the source is performed in the base class initialize method
     OutStreamManager.initialize(self,inDict)
@@ -769,10 +771,12 @@ class OutStreamPrint(OutStreamManager):
       else:self.options[subnode.tag] = subnode.text
     if 'type' not in self.options.keys(): raise('STREAM MANAGER: ERROR -> type tag not present in Print block called '+ self.name)
     if self.options['type'] not in self.availableOutStreamTypes : raise('STREAM MANAGER: ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
-  
+    if 'variables' in self.options.keys(): self.variables = self.options['variables']
   def addOutput(self):
-    for index in range(len(self.sourceName)): self.sourceData[index].printCSV(self.name)
-
+    if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
+    else             : dictOptions = {'filenameroot':self.name}
+    for index in range(len(self.sourceName)): self.sourceData[index].printCSV(dictOptions)
+     
 '''
  Interface Dictionary (factory) (private)
 '''

@@ -49,6 +49,36 @@
     <type>csv</type>
     <source>stories</source>
   </Print>
+  <Print name='testprint_selective_hist1'>
+    <type>csv</type>
+    <source>stories</source>
+    <variables>Output</variables>
+  </Print>
+  <Print name='testprint_selective_hist2'>
+    <type>csv</type>
+    <source>stories</source>
+    <variables>Input</variables>
+  </Print>
+  <Print name='testprint_selective_hist3'>
+    <type>csv</type>
+    <source>stories</source>
+    <variables>Input|pipe1_Area</variables>
+  </Print>
+    <Print name='testprint_selective_timepointset'>
+        <type>csv</type>
+        <source>TimePointSets</source>
+        <variables>Output,Input|pipe1_Area</variables>
+    </Print>
+    <Print name='testprint_selective_timepoint'>
+        <type>csv</type>
+        <source>TimePointt</source>
+        <variables>Output,Input|pipe1_Area</variables>
+    </Print>
+    <Print name='testprint_selective_history'>
+        <type>csv</type>
+        <source>Historyy</source>
+        <variables>Output,Input|pipe1_Area</variables>
+    </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
     <plot_settings>
        <plot>
@@ -91,8 +121,17 @@
         <DataBases class='DataBases'        type=''          >testOutputDataBase</DataBases>
         <Output    class='DataBases'        type='HDF5'      >testOutputDataBase</Output>
         <Output    class='Datas'            type='Histories' >stories</Output>
+        <Output    class='Datas'            type='TimePointSet' >TimePointSets</Output>
+        <Output    class='Datas'            type='TimePoint' >TimePointt</Output>
+        <Output    class='Datas'            type='Historyy' >Historyy</Output>
         <Output    class='OutStreamManager' type='Plot'      >2DHistoryPlot</Output>
         <Output    class='OutStreamManager' type='Print'     >testprint</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_selective_hist1</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_selective_hist2</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_selective_hist3</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_selective_timepointset</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_selective_timepoint</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_selective_history</Output>
     </MultiRun >
 </Steps>
 <DataBases>
@@ -103,6 +142,18 @@
         <Input>pipe1_Area,pipe1_Dh</Input>
         <Output>pipe1_Hw,pipe1_aw</Output>
    </Histories>
+   <TimePointSet name='TimePointSets'>
+        <Input>pipe1_Area,pipe1_Dh</Input>
+        <Output>pipe1_Hw,pipe1_aw</Output>
+   </TimePointSet>
+   <TimePoint name='TimePointt'>
+        <Input>pipe1_Area,pipe1_Dh</Input>
+        <Output>pipe1_Hw,pipe1_aw</Output>
+   </TimePoint>
+   <History name='Historyy'>
+        <Input>pipe1_Area,pipe1_Dh</Input>
+        <Output>pipe1_Hw,pipe1_aw</Output>
+   </History>
 </Datas>
 </Simulation>
 

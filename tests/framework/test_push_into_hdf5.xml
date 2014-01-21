@@ -29,6 +29,7 @@
         <Output  class='Datas'    type='History'>history_from_database</Output>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='Datas'    type='TimePointSet'>timepointset_from_database</Output>
+        <Output    class='OutStreamManager' type='Print'     >timepointset_from_database_dump</Output>
     </InOutFromDataBase>  
     <InOutFromDataBase name='test_push_in'>
         <Input  class='Datas'    type='Histories'>histories_from_database</Input>
@@ -55,6 +56,14 @@
         <HDF5 name="MC_TEST_EXTRACT_STEP"/> 
         <HDF5 name="MC_TEST_PUSH_STEP"/> 
 </DataBases>
+<OutStreamManager>
+  <Print name='timepointset_from_database_dump'>
+    <type>csv</type>
+    <source>timepointset_from_database</source>
+  </Print>
+</OutStreamManager>
+    
+    
 <Datas>
    <Histories name='histories_from_database' printCSV='t' input_ts='1'>
         <Input>dummy_for_branch</Input>

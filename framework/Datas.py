@@ -60,9 +60,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         except ValueError: self.dataParameters['time'] = float(time.split(','))
     except KeyError:self.dataParameters['time'] = None
     try:
-      self.print_CSV = bool(xmlNode.attrib['printCSV'])
-    except KeyError:self.print_CSV = False
-    try:
       self.dataParameters['input_ts'] = int(xmlNode.attrib['input_ts'])
     except KeyError:self.dataParameters['input_ts'] = None
     
@@ -121,24 +118,55 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     pass
 
-  def printCSV(self,filenamefordata=None):
+  def printCSV(self,options=None):
     '''
     Function used to dump the data into a csv file
     Every class must implement the specializedPrintCSV method
     that is going to be called from here
-    @ In, None
+    @ In, OPTIONAL, options, dictionary of options... it can contain the filename to be used, the parameters need to be printed....
     '''
+    options_int = {}
     # print content of data in a .csv format
     if self.debug:
       print('=======================')
       print('DATAS: print on file(s)')
       print('=======================')
-
-    if (filenamefordata):
-      filenameLocal = filenamefordata
-    else:
-      filenameLocal = self.name + '_dump'
-    self.specializedPrintCSV(filenameLocal)
+    if options:
+      if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
+      else: filenameLocal = self.name + '_dump'
+      if 'variables' in options.keys():
+        variables_to_print = []
+        for var in options['variables'].split(','):
+          if   var.lower() == 'input' : 
+            if type(self.inpParametersValues.values()[0]) == dict: 
+              for invar in self.inpParametersValues.values()[0].keys(): variables_to_print.append('input|'+str(invar))  
+            else: 
+              for invar in self.inpParametersValues.keys(): variables_to_print.append('input|'+str(invar))
+          elif var.lower() == 'output': 
+            if type(self.outParametersValues.values()[0]) == dict:
+              for outvar in self.outParametersValues.values()[0].keys(): variables_to_print.append('output|'+str(outvar))  
+            else:
+              for outvar in self.outParametersValues.keys(): variables_to_print.append('output|'+str(outvar))
+          elif '|' in var:
+            if var.split('|')[0].lower() == 'input':
+              if type(self.inpParametersValues.values()[0]) == dict:
+                if var.split('|')[1] not in self.inpParametersValues.values()[0].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Inputs of Data " + self.name)
+                else: variables_to_print.append('input|'+str(var.split('|')[1]))
+              else:
+                if var.split('|')[1] not in self.inpParametersValues.keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Inputs of Data " + self.name)
+                else: variables_to_print.append('input|'+str(var.split('|')[1]))
+            elif var.split('|')[0].lower() == 'output':
+              if type(self.outParametersValues.values()[0]) == dict:
+                if var.split('|')[1] not in self.outParametersValues.values()[0].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Outputs of Data " + self.name)
+                else: variables_to_print.append('output|'+str(var.split('|')[1]))
+              else:
+                if var.split('|')[1] not in self.outParametersValues.keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Outputs of Data " + self.name)
+                else: variables_to_print.append('output|'+str(var.split('|')[1]))
+          else: raise Exception("DATAS     : ERROR -> variable " + var + " is unknown in Data " + self.name + ". You need to specify an input or a output")
+        options_int['variables'] = variables_to_print            
+    else:   filenameLocal = self.name + '_dump'
+    
+    self.specializedPrintCSV(filenameLocal,options_int)
 
   def addOutput(self,toLoadFrom):
     ''' 
@@ -254,10 +282,10 @@ class TimePoint(Data):
     '''
     for key in self.inpParametersValues.keys():
       if (self.inpParametersValues[key].size) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.inpParametersValues[key])))
+        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self.inpParametersValues[key].size))
     for key in self.outParametersValues.keys():
       if (self.outParametersValues[key].size) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.outParametersValues[key])))
+        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self.outParametersValues[key].size))
 
   def updateSpecializedInputValue(self,name,value):
     if name in self.inpParametersValues.keys():
@@ -269,30 +297,46 @@ class TimePoint(Data):
       self.outParametersValues.pop(name)
     self.outParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def specializedPrintCSV(self,filenameLocal):
-    myFile = open(filenameLocal + '.csv', 'wb')
+  def specializedPrintCSV(self,filenameLocal,options):
     
+    inpKeys   = []
+    inpValues = []
+    outKeys   = []
+    outValues = []
     #Print input values
-    inpKeys   = self.inpParametersValues.keys()
-    inpValues = self.inpParametersValues.values()
+    if 'variables' in options.keys():
+      for var in options['variables']:
+        if var.split('|')[0] == 'input': 
+          inpKeys.append(var.split('|')[1])
+          inpValues.append(self.inpParametersValues[var.split('|')[1]])
+        if var.split('|')[0] == 'output': 
+          outKeys.append(var.split('|')[1])
+          outValues.append(self.outParametersValues[var.split('|')[1]])
+    else:
+      inpKeys   = self.inpParametersValues.keys()
+      inpValues = self.inpParametersValues.values()
+      outKeys   = self.outParametersValues.keys()
+      outValues = self.outParametersValues.values()
+    
+    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+    else: return
+    
     for item in inpKeys:
       myFile.write(b',' + utils.toBytes(item))
-    myFile.write(b'\n')
+    if len(inpKeys) > 0: myFile.write(b'\n')
     
     for item in inpValues:
       myFile.write(b',' + utils.toBytes(str(item[0])))
-    myFile.write(b'\n')
+    if len(inpValues) > 0: myFile.write(b'\n')
     
     #Print time + output values
-    outKeys   = self.outParametersValues.keys()
-    outValues = self.outParametersValues.values()
     for item in outKeys:
       myFile.write(b',' + utils.toBytes(item))
-    myFile.write(b'\n')
+    if len(outKeys) > 0: myFile.write(b'\n')
     
-    for item in outKeys:
+    for item in outValues:
       myFile.write(b',' + utils.toBytes(str(item[0])))
-    myFile.write(b'\n')
+    if len(outValues) > 0: myFile.write(b'\n')
     
     myFile.close()
   
@@ -349,14 +393,29 @@ class TimePointSet(Data):
       if name not in self.dataParameters['outParam']: self.dataParameters['outParam'].append(name)
       self.outParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def specializedPrintCSV(self,filenameLocal): 
+  def specializedPrintCSV(self,filenameLocal,options): 
+    inpKeys   = []
+    inpValues = []
+    outKeys   = []
+    outValues = []
+    #Print input values
+    if 'variables' in options.keys():
+      for var in options['variables']:
+        if var.split('|')[0] == 'input': 
+          inpKeys.append(var.split('|')[1])
+          inpValues.append(self.inpParametersValues[var.split('|')[1]])
+        if var.split('|')[0] == 'output': 
+          outKeys.append(var.split('|')[1])
+          outValues.append(self.outParametersValues[var.split('|')[1]])
+    else:
+      inpKeys   = list(self.inpParametersValues.keys())
+      inpValues = list(self.inpParametersValues.values())
+      outKeys   = list(self.outParametersValues.keys())
+      outValues = list(self.outParametersValues.values())
     
-    inpKeys   = list(self.inpParametersValues.keys())
-    inpValues = list(self.inpParametersValues.values())
-    
-    outKeys   = list(self.outParametersValues.keys())
-    outValues = list(self.outParametersValues.values())
-    myFile = open(filenameLocal + '.csv', 'wb')
+    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+    else: return
+
     myFile.write(b'counter')
     for i in range(len(inpKeys)):
         myFile.write(b',' + utils.toBytes(inpKeys[i]))
@@ -416,31 +475,46 @@ class History(Data):
       self.outParametersValues.pop(name)
     self.outParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def specializedPrintCSV(self,filenameLocal):
-    myFile = open(filenameLocal + '.csv', 'wb')
-    
+  def specializedPrintCSV(self,filenameLocal,options):
+    inpKeys   = []
+    inpValues = []
+    outKeys   = []
+    outValues = []
     #Print input values
-    inpKeys   = self.inpParametersValues.keys()
-    inpValues = self.inpParametersValues.values()
+    if 'variables' in options.keys():
+      for var in options['variables']:
+        if var.split('|')[0] == 'input': 
+          inpKeys.append(var.split('|')[1])
+          inpValues.append(self.inpParametersValues[var.split('|')[1]])
+        if var.split('|')[0] == 'output': 
+          outKeys.append(var.split('|')[1])
+          outValues.append(self.outParametersValues[var.split('|')[1]])
+    else:
+      inpKeys   = self.inpParametersValues.keys()
+      inpValues = self.inpParametersValues.values()
+      outKeys   = self.outParametersValues.keys()
+      outValues = self.outParametersValues.values()
+    
+    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+    else: return
+
     for i in range(len(inpKeys)):
       myFile.write(',' + inpKeys[i])
-    myFile.write('\n')
+    if len(inpKeys) > 0: myFile.write('\n')
     
     for i in range(len(inpKeys)):
       myFile.write(',' + str(inpValues[i][0]))
-    myFile.write('\n')
+    if len(inpKeys) > 0: myFile.write('\n')
     
     #Print time + output values
-    outKeys   = self.outParametersValues.keys()
-    outValues = self.outParametersValues.values()
     for i in range(len(outKeys)):
       myFile.write(',' + outKeys[i])
-    myFile.write('\n')
-
-    for j in range(outValues[0].size):
-      for i in range(len(outKeys)):
-        myFile.write(',' + str(outValues[i][j]))
+    if len(outKeys) > 0: 
       myFile.write('\n')
+      for j in range(outValues[0].size):
+        for i in range(len(outKeys)):
+          myFile.write(',' + str(outValues[i][j]))
+        myFile.write('\n')
     
     myFile.close()
 
@@ -537,45 +611,59 @@ class Histories(Data):
           self.outParametersValues[hisn] = {}
         self.outParametersValues[hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
       
-  def specializedPrintCSV(self,filenameLocal):
+  def specializedPrintCSV(self,filenameLocal,options):
     
     inpValues = list(self.inpParametersValues.values())
     outKeys   = self.outParametersValues.keys()
     outValues = list(self.outParametersValues.values())
     
     for n in range(len(outKeys)):
-      myFile = open(filenameLocal + '_'+ str(n) + '.csv', 'wb')
-  
-      inpKeys_h   = list(inpValues[n].keys())
-      inpValues_h = list(inpValues[n].values())
-      outKeys_h   = list(outValues[n].keys())
-      outValues_h = list(outValues[n].values())
-
+      inpKeys_h   = []
+      inpValues_h = []
+      outKeys_h   = []
+      outValues_h = []
+      if 'variables' in options.keys():
+        for var in options['variables']:
+          if var.split('|')[0] == 'input': 
+            inpKeys_h.append(var.split('|')[1])
+            inpValues_h.append(inpValues[n][var.split('|')[1]])
+          if var.split('|')[0] == 'output': 
+            outKeys_h.append(var.split('|')[1])
+            outValues_h.append(outValues[n][var.split('|')[1]])
+      else:
+        inpKeys_h   = list(inpValues[n].keys())
+        inpValues_h = list(inpValues[n].values())
+        outKeys_h   = list(outValues[n].keys())
+        outValues_h = list(outValues[n].values())
+    
+      if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myFile = open(filenameLocal + '_'+ str(n) + '.csv', 'wb')
+      else: return
+      
       for i in range(len(inpKeys_h)):
         if i == 0 : prefix = b''
         else:       prefix = b','
         myFile.write(prefix + utils.toBytes(inpKeys_h[i]))
-      myFile.write(b'\n')
+      if len(inpKeys_h) > 0: myFile.write(b'\n')
       
       for i in range(len(inpKeys_h)):
         if i == 0 : prefix = b''
         else:       prefix = b','
         myFile.write(prefix + utils.toBytes(str(inpValues_h[i][0])))
-      myFile.write(b'\n')
+      if len(inpKeys_h) > 0: myFile.write(b'\n')
       
       #Print time + output values
       for i in range(len(outKeys_h)):
         if i == 0 : prefix = b''
         else:       prefix = b','
         myFile.write(utils.toBytes(outKeys_h[i]) + b',')
-      myFile.write(b'\n')
-  
-      for j in range(outValues_h[0].size):
-        for i in range(len(outKeys_h)):
-          if i == 0 : prefix = b''
-          else:       prefix = b','
-          myFile.write(prefix+ utils.toBytes(str(outValues_h[i][j])))
-        myFile.write(b'\n')    
+      if len(outKeys_h) > 0:
+        myFile.write(b'\n')
+        for j in range(outValues_h[0].size):
+          for i in range(len(outKeys_h)):
+            if i == 0 : prefix = b''
+            else:       prefix = b','
+            myFile.write(prefix+ utils.toBytes(str(outValues_h[i][j])))
+          myFile.write(b'\n')    
       
       myFile.close()
       

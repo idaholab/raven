@@ -58,14 +58,23 @@
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
         <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
         <Output  class='DataBases' type='HDF5'           >test_external_db</Output>
+        <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
     </MultiRun >
 </Steps>
 <DataBases>
         <HDF5 name="test_external_db"/> 
 </DataBases>
 
+<OutStreamManager>
+  <Print name='testPrintHistories_dump'>
+    <type>csv</type>
+    <source>testPrintHistories</source>
+  </Print>
+</OutStreamManager>
+    
+    
 <Datas>
-    <Histories name='testPrintHistories' printCSV='t'>
+    <Histories name='testPrintHistories'>
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
    </Histories>

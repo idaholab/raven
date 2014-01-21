@@ -371,50 +371,73 @@ class Adaptive(MultiRun):
 #
 class InOutFromDataBase(Step):
   '''
-    This step type is used only to extract information from a DataBase
-    @Input, DataBase (for example, HDF5) OR Datas
+    This step type is used only to extract or push information from/into a DataBase
+    @Input, DataBase (for example, HDF5) or Datas
     @Output,Data(s) (for example, History) or DataBase
   '''
   def localInitializeStep(self,inDictionary):
+    print('IN localInitializeStep')
     avail_out = ['TimePoint','TimePointSet','History','Histories']
     print('STEPS         : beginning of step named: ' + self.name)
-    #self.initializeStep(inDictionary)
     # check if #inputs == #outputs
     if len(inDictionary['Input']) != len(inDictionary['Output']):
-      raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
-    else:
-      self.actionType = []
-    for i in xrange(len(inDictionary['Input'])):
-      if (inDictionary['Input'][i].type != 'HDF5'):
-        if (not (inDictionary['Input'][i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
+      # This condition is an error if the n Inputs > n Outputs. if the n Outputs > n Inputs, it is an error as well except in case the additional outputs are OutStreams => check for this
+      if len(inDictionary['Input']) < len(inDictionary['Output']):
+        noutputs = len(inDictionary['Output'])
+        for i in xrange(len(inDictionary['Output'])): 
+          if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: noutputs -= 1
+        if len(inDictionary['Input']) != noutputs: raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
+      else: raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
+    self.actionType = []
+    incnt = -1
+    for i in range(len(inDictionary['Output'])):
+      try: 
+        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: 
+          incnt -= 1
+          continue
+        else: incnt += 1
+      except AttributeError as ae: pass
+      if (inDictionary['Input'][incnt].type != 'HDF5'):
+        if (not (inDictionary['Input'][incnt].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][incnt].type)
         else:
           if(inDictionary['Output'][i].type != 'HDF5'): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
           else: self.actionType.append('DATAS-HDF5')
       else:
         if (not (inDictionary['Output'][i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
         else: self.actionType.append('HDF5-DATAS')
-    try: #try is used since files for the moment have no type attribute
-      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-      if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-    except AttributeError as ae: print("Error3: "+repr(ae))    
+    databases = []
+    for i in range(len(inDictionary['Output'])):
+      try: #try is used since files for the moment have no type attribute
+        if 'HDF5' in inDictionary['Output'][i].type:
+          if inDictionary['Output'][i].name not in databases:
+            databases.append(inDictionary['Output'][i].name)
+            inDictionary['Output'][i].initialize(self.name)
+        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+      except AttributeError as ae: print("Error3: "+repr(ae))    
+      
     
   def localTakeAstepRun(self,inDictionary):
-    for i in xrange(len(inDictionary['Output'])):
-      #link the output to the database and construct the Data(s)
-      # I have to change it
+    incnt = -1
+    for i in range(len(inDictionary['Output'])):
+      try: 
+        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: 
+          incnt -= 1
+          continue
+        else: incnt += 1
+      except AttributeError as ae: pass
       if self.actionType[i] == 'HDF5-DATAS':
-        inDictionary['Output'][i].addOutput(inDictionary['Input'][i])
-        inDictionary['Output'][i].printCSV() # the check on the printing flag is internal
-      else: inDictionary['Output'][i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
-    return
-
+        inDictionary['Output'][i].addOutput(inDictionary['Input'][incnt])
+      else: inDictionary['Output'][i].addGroupDatas({'group':inDictionary['Input'][incnt].name},inDictionary['Input'][incnt])
+    for output in inDictionary['Output']:
+      try: 
+        if output.type in ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
+      except AttributeError as ae: pass
+  
   def localAddInitParams(self,tempDict):
-    #TODO implement
-    pass
+    pass # no inputs
 
   def localInputAndChecks(self,xmlNode):
-    #TODO implement
-    pass
+    pass 
 #
 #
 #
@@ -461,35 +484,6 @@ class RomTrainer(Step):
 #
 #
 #
-class PlottingStep(Step):
-  '''this class implement one step of the simulation pattern' where several runs are needed'''
-  def __init__(self):
-    Step.__init__(self)
-
-  def addCurrentSetting(self,originalDict):
-    Step.addCurrentSetting()
-
-  def localInitializeStep(self,inDictionary):
-    pass
-
-  def takeAstepIni(self,inDictionary):
-    '''main driver for a step'''
-    print('STEPS         : beginning of the step: '+self.name)
-    self.initializeStep(inDictionary)
-
-  def localTakeAstepRun(self,inDictionary):
-    pass
-   
-  def localAddInitParams(self,tempDict):
-    #TODO implement
-    pass
-
-  def localInputAndChecks(self,xmlNode):
-    #TODO implement
-    pass
-#
-#
-#
 __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
@@ -497,7 +491,6 @@ __interFaceDict['MultiRun'         ] = MultiRun
 __interFaceDict['Adaptive'         ] = Adaptive
 __interFaceDict['InOutFromDataBase'] = InOutFromDataBase 
 __interFaceDict['RomTrainer'       ] = RomTrainer
-__interFaceDict['Plotting'         ] = PlottingStep
 __base                               = 'Step'
 
 def returnInstance(Type):
