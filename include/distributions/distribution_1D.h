@@ -35,7 +35,12 @@ public:
 
   virtual double untrPdf(double x);
   virtual double untrCdf(double x);
+  virtual double untrCdfComplement(double x);
   virtual double untrInverseCdf(double x);
+  virtual double untrMean();
+  virtual double untrMedian();
+  virtual double untrMode();
+  virtual double untrHazard(double x);
 protected: 
   DistributionBackend * _backend;
 };
@@ -50,7 +55,12 @@ public:
 
   virtual double untrPdf(double x);
   virtual double untrCdf(double x);
+  virtual double untrCdfComplement(double x);
   virtual double untrInverseCdf(double x);
+  virtual double untrMean();
+  virtual double untrMedian();
+  virtual double untrMode();
+  virtual double untrHazard(double x);
 protected: 
   DistributionBackend * _backend;
 };

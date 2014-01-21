@@ -72,6 +72,12 @@ checkAnswer("normal ppf(0.1)",normal.ppf(0.1),-1.56310313109)
 checkAnswer("normal ppf(0.5)",normal.ppf(0.5),1.0)
 checkAnswer("normal ppf(0.9)",normal.ppf(0.9),3.56310313109)
 
+checkAnswer("normal mean()",normal.untruncatedMean(),1.0)
+checkAnswer("normal median()",normal.untruncatedMedian(),1.0)
+checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
+
+
+
 print(normal.rvs(5),normal.rvs())
 
 #Test Truncated Normal 

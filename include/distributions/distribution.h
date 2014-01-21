@@ -37,7 +37,12 @@ public:
 
    virtual double untrPdf(double x) = 0;
    virtual double untrCdf(double x) = 0;
+   virtual double untrCdfComplement(double x)  = 0;
    virtual double untrInverseCdf(double x) = 0;
+   virtual double untrMean() = 0;
+   virtual double untrMedian() = 0;
+   virtual double untrMode() = 0;
+   virtual double untrHazard(double x) = 0;
 
    std::string & getType();                                       		///< Get distribution type
    unsigned int getSeed();                                      		///< Get seed

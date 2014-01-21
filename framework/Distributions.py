@@ -103,6 +103,18 @@ class BoostDistribution(Distribution):
   def ppf(self,x):
     return self._distribution.InverseCdf(x)
 
+  def pdf(self,x):
+    return self._distribution.Pdf(x)
+
+  def untruncatedMean(self):
+    return self._distribution.untrMean()
+
+  def untruncatedMedian(self):
+    return self._distribution.untrMedian()
+
+  def untruncatedMode(self):
+    return self._distribution.untrMode()
+
   def rvs(self,*args):
     if len(args) == 0:
       return self.ppf(stochasticEnv.random())

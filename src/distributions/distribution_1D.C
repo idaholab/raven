@@ -41,7 +41,12 @@ class DistributionBackend {
 public:
   virtual double pdf(double x) = 0;
   virtual double cdf(double x) = 0;
+  virtual double cdfComplement(double x) = 0;
   virtual double quantile(double x) = 0;
+  virtual double mean() = 0;
+  virtual double median() = 0;
+  virtual double mode() = 0;
+  virtual double hazard(double x) = 0;
   virtual ~DistributionBackend() {};
 };
 
@@ -59,9 +64,31 @@ double BasicTruncatedDistribution::untrCdf(double x) {
   return _backend->cdf(x);
 }
 
+double BasicTruncatedDistribution::untrCdfComplement(double x) {
+  return _backend->cdfComplement(x);
+}
+
 double BasicTruncatedDistribution::untrInverseCdf(double x) {
   return _backend->quantile(x);
 }
+
+double BasicTruncatedDistribution::untrMean() {
+  return _backend->mean();
+}
+
+double BasicTruncatedDistribution::untrMedian() {
+  return _backend->median();
+}
+
+double BasicTruncatedDistribution::untrMode() {
+  return _backend->mode();
+}
+
+double BasicTruncatedDistribution::untrHazard(double x) {
+  return _backend->hazard(x);
+}
+
+
 
 /*
  * Class Basic Discrete Distribution
@@ -77,8 +104,28 @@ double BasicDiscreteDistribution::untrCdf(double x) {
   return _backend->cdf(x);
 }
 
+double BasicDiscreteDistribution::untrCdfComplement(double x) {
+  return _backend->cdfComplement(x);
+}
+
 double BasicDiscreteDistribution::untrInverseCdf(double x) {
   return _backend->quantile(x);
+}
+
+double BasicDiscreteDistribution::untrMean() {
+  return _backend->mean();
+}
+
+double BasicDiscreteDistribution::untrMedian() {
+  return _backend->median();
+}
+
+double BasicDiscreteDistribution::untrMode() {
+  return _backend->mode();
+}
+
+double BasicDiscreteDistribution::untrHazard(double x) {
+  return _backend->hazard(x);
 }
 
 double BasicDiscreteDistribution::Pdf(double x) {
@@ -103,7 +150,12 @@ class DistributionBackendTemplate : public DistributionBackend {
 public: 
   double pdf(double x) { return boost::math::pdf(*_backend, x); };
   double cdf(double x) { return boost::math::cdf(*_backend, x); };
+  double cdfComplement(double x) { return boost::math::cdf(boost::math::complement(*_backend, x)); };
   double quantile(double x) { return boost::math::quantile(*_backend, x); };
+  double mean() { return boost::math::mean(*_backend); };
+  double median() { return boost::math::median(*_backend); };
+  double mode() { return boost::math::mode(*_backend); };
+  double hazard(double x) { return boost::math::hazard(*_backend, x); };
 protected:
   T *_backend;
 };
@@ -1094,7 +1146,7 @@ public:
     _backend = new boost::math::poisson_distribution<>(mu);
   }
   ~PoissonDistributionBackend() {
-    _backend;
+    delete _backend;
   }
 };
 
