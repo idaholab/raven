@@ -56,6 +56,71 @@ public:
  * be inherited from.
  */
 
+double
+BasicTruncatedDistribution::Pdf(double x){
+  double value;
+  double xMin = _dis_parameters.find("xMin") ->second;
+  double xMax = _dis_parameters.find("xMax") ->second;
+
+  if (_dis_parameters.find("truncation") ->second == 1) {
+    if ((x<xMin)||(x>xMax)) {
+      value=0;
+    } else {
+      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
+    }
+  } else {
+    value=-1;
+  }
+
+  return value;
+}
+
+double
+BasicTruncatedDistribution::Cdf(double x){
+  double value;
+  double xMin = _dis_parameters.find("xMin") ->second;
+  double xMax = _dis_parameters.find("xMax") ->second;
+
+  if (_dis_parameters.find("truncation") ->second == 1) {
+    if (x<xMin) {
+      value=0;
+    } else if (x>xMax) {
+      value=1;
+    } else{
+      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x)- untrCdf(xMin));
+    }
+  } else {
+    value=-1;
+  }
+
+  return value;
+}
+
+double
+BasicTruncatedDistribution::InverseCdf(double x){
+  double value;
+  double xMin = _dis_parameters.find("xMin") ->second;
+  double xMax = _dis_parameters.find("xMax") ->second;
+  if(_force_dist == 0){
+    if (_dis_parameters.find("truncation") ->second == 1){
+      double temp=untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
+      value=untrInverseCdf(temp);
+    } else {
+      value=-1;
+    }
+  } else if(_force_dist == 1) {
+    value = xMin;
+  } else if(_force_dist == 2) {
+    value = -1.0;
+  } else if(_force_dist == 3) {
+    value = xMax;
+  } else {
+    throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+  }
+  return value;
+}
+
+
 double BasicTruncatedDistribution::untrPdf(double x) {
   return _backend->pdf(x);
 }
@@ -262,64 +327,11 @@ BasicNormalDistribution::~BasicNormalDistribution(){
 
 
 double
-BasicNormalDistribution::Pdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
-   else
-      value=-1;
-
-   return value;
-}
-
-double
-BasicNormalDistribution::Cdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
-   else
-      value=-1;
-
-   return value;
-}
-
-double
 BasicNormalDistribution::InverseCdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   if(_force_dist == 0){
-     if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
-       value=untrInverseCdf(temp);
-     }
-     else{
-       value=-1;
-       //throwError("ERROR: force_dist 0 but truncation "<<(_dis_parameters.find("truncation") != _dis_parameters.end())<<","<<_dis_parameters.find("truncation")->second<<" found");
-     }
-   }
-   else if(_force_dist == 1){
-     value = xMin;
-   }
-   else if(_force_dist == 2){
-     value = _dis_parameters.find("mu") ->second;
-   }
-   else if(_force_dist == 3){
-     value = xMax;
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag ("<<_force_dist<<"!= 0, 1 , 2, 3)");
-   }
-   if (x == 1){
-     value = xMax;
-   }
-   return value;
+  if(_force_dist == 2) {
+    return _dis_parameters.find("mu") ->second;
+  }
+  return BasicTruncatedDistribution::InverseCdf(x);
 }
 
 class LogNormalDistributionBackend : public DistributionBackendTemplate<boost::math::lognormal> {
@@ -364,62 +376,15 @@ BasicLogNormalDistribution::untrCdf(double x){
   }
 }
 
-double
-BasicLogNormalDistribution::Pdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
-   else
-      value=-1;
-
-   return value;
-}
-
-double
-BasicLogNormalDistribution::Cdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-      value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x)- untrCdf(xMin));
-   else
-      value=-1;
-
-   return value;
-}
 
 double
 BasicLogNormalDistribution::InverseCdf(double x){
-  double value;
-  double xMin = _dis_parameters.find("xMin") ->second;
-  double xMax = _dis_parameters.find("xMax") ->second;
-
-   if(_force_dist == 0){
-     if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
-       value=untrInverseCdf(temp);
-     }
-     else
-       value=-1.0;
-   }
-   else if(_force_dist == 1){
-     value = xMin;
-   }
-   else if(_force_dist == 2){
-     value = _dis_parameters.find("mu") ->second;
-   }
-   else if(_force_dist == 3){
-     value = xMax;
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
-   }
-   return value;
+  if(_force_dist == 2) {
+    return _dis_parameters.find("mu") ->second;
+  }
+  return BasicTruncatedDistribution::InverseCdf(x);
 }
+
 /*
  * CLASS LOGISTIC DISTRIBUTION
  */
@@ -457,76 +422,6 @@ BasicLogisticDistribution::BasicLogisticDistribution(double location, double sca
 BasicLogisticDistribution::~BasicLogisticDistribution()
 {
   delete _backend;
-}
-
-
-double
-BasicLogisticDistribution::Pdf(double x){
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   double value;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=0;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
-   else
-      value=-1;
-
-   return value;
-}
-
-double
-BasicLogisticDistribution::Cdf(double x){
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   double value;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=1;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
-   else
-      value=-1;
-
-   return value;
-}
-
-double
-BasicLogisticDistribution::InverseCdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   
-   if(_force_dist == 0){
-   if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrInverseCdf(temp);
-   }
-   else
-      value=-1;
-   }
-   else if(_force_dist == 1){
-     value = xMin;
-   }
-   else if(_force_dist == 2){
-     value = -1.0;
-   }
-   else if(_force_dist == 3){
-     value = xMax;
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
-   }
-   return value;
 }
 
 /*
@@ -577,72 +472,6 @@ BasicTriangularDistribution::~BasicTriangularDistribution()
   delete _backend;
 }
 
-double
-BasicTriangularDistribution::Pdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	   if ((x<xMin)||(x>xMax))
-		   value=0;
-	   else
-		   value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
-   else
-      value=-1;
-
-   return value;
-}
-
-double
-BasicTriangularDistribution::Cdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=1;
-	  else{
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x)- untrCdf(xMin));
-	  }
-   else
-      value=-1;
-
-   return value;
-   }
-
-double
-BasicTriangularDistribution::InverseCdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   if(_force_dist == 0){
-     if (_dis_parameters.find("truncation") ->second == 1){
-       double temp=untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
-       value=untrInverseCdf(temp);
-     }
-     else
-       value=-1;
-   }
-   else if(_force_dist == 1){
-     value = xMin;
-   }
-   else if(_force_dist == 2){
-     value = -1.0;
-   }
-   else if(_force_dist == 3){
-     value = xMax;
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
-   }
-   return value;
-}
-
-
 
 /*
  * CLASS EXPONENTIAL DISTRIBUTION
@@ -690,6 +519,8 @@ BasicExponentialDistribution::Pdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
 
+   //XXX Is this a correct use of force_dist?  It doesn't seem to be 
+   // consistent with the use in the InverseCdf.  JJC
    double value;
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1)
@@ -808,75 +639,6 @@ BasicWeibullDistribution::untrCdf(double x){
   }
 }
 
-
-double
-BasicWeibullDistribution::Pdf(double x){
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   double value;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=0;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
-   else
-      value=-1;
-
-   return value;
-}
-
-double
-BasicWeibullDistribution::Cdf(double x){
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-
-   double value;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=1;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
-   else
-      value=-1;
-
-   return value;
-}
-
-double
-BasicWeibullDistribution::InverseCdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   if(_force_dist == 0){
-   if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrInverseCdf(temp);
-   }
-   else
-      value=-1;
-   }
-   else if(_force_dist == 1){
-     value = xMin;
-   }
-   else if(_force_dist == 2){
-     value = -1.0;
-   }
-   else if(_force_dist == 3){
-     value = xMax;
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
-   }
-   return value;
-}
-
 /*
  * CLASS GAMMA DISTRIBUTION
  */
@@ -937,76 +699,20 @@ BasicGammaDistribution::untrCdf(double x){
 
 double
 BasicGammaDistribution::Pdf(double x){
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   double low = _dis_parameters.find("low") ->second;
-
-   double value;
-   x = x - low; //Translate x value
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=0;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
-   else
-      value=-1;
-
-   return value;
+  double low = _dis_parameters.find("low") ->second;
+  return BasicTruncatedDistribution::Pdf(x - low);
 }
 
 double
 BasicGammaDistribution::Cdf(double x){
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
    double low = _dis_parameters.find("low") ->second;
-
-   double value;
-   x = x - low; //Translate x value
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=1;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
-   else
-      value=-1;
-
-   return value;
+   return BasicTruncatedDistribution::Cdf(x - low);
 }
 
 double
 BasicGammaDistribution::InverseCdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   double low = _dis_parameters.find("low") ->second;
-   if(_force_dist == 0){
-   if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrInverseCdf(temp);
-   }
-   else
-     return -1;
-   //value=-1;
-   }
-   else if(_force_dist == 1){
-     value = xMin;
-   }
-   else if(_force_dist == 2){
-     value = -1.0;
-   }
-   else if(_force_dist == 3){
-     value = xMax;
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
-   }
-   return value+low;
+  double low = _dis_parameters.find("low") ->second;
+  return BasicTruncatedDistribution::InverseCdf(x) + low;
 }
 
 /*
@@ -1065,74 +771,20 @@ BasicBetaDistribution::untrCdf(double x){
 
 double
 BasicBetaDistribution::Pdf(double x){
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   double scale = _dis_parameters.find("scale") ->second;
-
-   double value;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=0;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x/scale);
-   else
-      value=-1;
-
-   return value/scale;
+  double scale = _dis_parameters.find("scale") ->second;
+  return BasicTruncatedDistribution::Pdf(x/scale)/scale;
 }
 
 double
 BasicBetaDistribution::Cdf(double x){
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   double scale = _dis_parameters.find("scale") ->second;
-
-   double value;
-
-   if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=1;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x/scale) - untrCdf(xMin));
-   else
-      value=-1;
-
-   return value;
+  double scale = _dis_parameters.find("scale") ->second;
+  return BasicTruncatedDistribution::Cdf(x/scale);
 }
 
 double
 BasicBetaDistribution::InverseCdf(double x){
-   double value;
-   double xMin = _dis_parameters.find("xMin") ->second;
-   double xMax = _dis_parameters.find("xMax") ->second;
-   double scale = _dis_parameters.find("scale") ->second;
-   
-   if(_force_dist == 0){
-   if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrInverseCdf(temp);
-   }
-   else
-      value=-1;
-   }
-   else if(_force_dist == 1){
-     value = xMin;
-   }
-   else if(_force_dist == 2){
-     value = -1.0;
-   }
-   else if(_force_dist == 3){
-     value = xMax;
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
-   }
-   return value*scale;
+  double scale = _dis_parameters.find("scale") ->second;
+  return BasicTruncatedDistribution::InverseCdf(x)*scale;
 }
 
 /*

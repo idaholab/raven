@@ -28,10 +28,10 @@ class DistributionBackend;
 class BasicTruncatedDistribution : public virtual BasicDistribution {
 public:
   /*BasicTruncatedDistribution();
-  virtual ~BasicTruncatedDistribution();
-  virtual double  Pdf(double x) = 0;                           		///< Pdf function at coordinate x
-  virtual double  Cdf(double x) = 0;                               	///< Cdf function at coordinate x
-  virtual double  InverseCdf(double x) = 0;             ///< x*/
+    virtual ~BasicTruncatedDistribution();*/
+  virtual double  Pdf(double x);        ///< Pdf function at coordinate x
+  virtual double  Cdf(double x);        ///< Cdf function at coordinate x
+  virtual double  InverseCdf(double x); ///< x
 
   virtual double untrPdf(double x);
   virtual double untrCdf(double x);
@@ -98,8 +98,6 @@ public:
    BasicNormalDistribution(double mu, double sigma, double xMin, double xMax);
    virtual ~BasicNormalDistribution();
 
-   double  Pdf(double x);                ///< Pdf function at coordinate x
-   double  Cdf(double x);                ///< Cdf function at coordinate x
    double  InverseCdf(double x);        ///< x
 
 };
@@ -117,8 +115,6 @@ public:
   BasicLogNormalDistribution(double mu, double sigma);
   virtual ~BasicLogNormalDistribution();
   
-  double  Pdf(double x);                ///< Pdf function at coordinate x
-  double  Cdf(double x);                ///< Cdf function at coordinate x
   double  InverseCdf(double x);        ///< x
 
   double untrCdf(double x);
@@ -137,10 +133,6 @@ public:
    BasicLogisticDistribution(double location, double scale);
    virtual ~BasicLogisticDistribution();
 
-   double  Pdf(double x);                ///< Pdf function at coordinate x
-   double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  InverseCdf(double x);        ///< x
-
 };
 
 
@@ -156,10 +148,6 @@ class BasicTriangularDistribution : public BasicTruncatedDistribution {
 public:
    BasicTriangularDistribution(double xPeak, double lowerBound, double upperBound);
    virtual ~BasicTriangularDistribution();
-
-   double  Pdf(double x);                ///< Pdf function at coordinate x
-   double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  InverseCdf(double x);        ///< x
 
 };
 
@@ -196,10 +184,6 @@ class BasicWeibullDistribution : public BasicTruncatedDistribution {
 public:
    BasicWeibullDistribution(double k, double lambda);
    virtual ~BasicWeibullDistribution();
-
-   double  Pdf(double x);                ///< Pdf function at coordinate x
-   double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  InverseCdf(double x);        ///< x
 
    double  untrCdf(double x);
 };
