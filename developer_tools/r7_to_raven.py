@@ -180,20 +180,26 @@ for component_name in component_list:
                 monitored_var_node.params["component_name"] = component_name
                 monitored_var_node.params["operator"] = operator
                 monitored_var_node.params["data_type"] =  type_dict["parameters"].get(monitored,{}).get("cpp_type","double") #type_dict["property_type"].get(monitored,"double")
-                add_to_node(monitored_node,monitored_var_node)
+                if monitored != "VOID_FRACTION_HEM":
+                  #XXX VOID_FRACTION_HEM is only available if model_type
+                  # is EQ_MODEL_HEM, so never use VOID_FRACTION_HEM
+                  add_to_node(monitored_node,monitored_var_node)
                 print(name,"path = ",monitored)
     for controlled_combo in type_dict.get("controlled",[]):
         for controlled in split_parameter_name(controlled_combo,name_of_hs,pipe_names):
             name = re.subn("[ :()]","_",(component_name+"_"+controlled))[0]
             if controlled in controllable_dict[component_name]:
               data_type = type_dict["parameters"].get(controlled,{}).get("cpp_type","double") #type_dict["property_type"].get(controlled,"double")
-              controlled_names.append((name,data_type))
               controlled_var_node = GPNode(name,controlled_node)
               controlled_var_node.params_list = ["component_name","property_name","data_type"]
               controlled_var_node.params["property_name"] = controlled
               controlled_var_node.params["component_name"] = component_name
               controlled_var_node.params["data_type"] = data_type
-              add_to_node(controlled_node,controlled_var_node)
+              if controlled_var_node.params["data_type"] in {"double", "int", "float", "bool"}:
+                controlled_names.append((name,data_type))
+                add_to_node(controlled_node,controlled_var_node)
+              else:
+                print("Unexpected data_type ",controlled_var_node.params)
               print(name,"component_name="+component_name,"property_name="+controlled)
             else:
               print("NOT controllable",name,"component_name="+component_name,"property_name="+controlled)
