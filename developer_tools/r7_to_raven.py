@@ -44,32 +44,53 @@ yaml_data = yaml.load(yaml_part)
 
 controllable_output = subprocess.check_output([pathname+"/../RAVEN-"+os.environ["METHOD"],"-i",input_file,"--dump-ctrl"],stderr=subprocess.STDOUT)
 
-controllable_part = controllable_output.split("== Controllable parameters ==")[1].split("=============================")[0]
+controllable_part = controllable_output.split("== Controllable parameters ==")[1].split("==========================")[0]
 
-def get_controllable_dict(controllable_data):
-    controllable_dict = {}
-    name = ""
-    for line in controllable_data.split("\n"):
-        if line.endswith(" [type]"):
-            name = line[:-7]
-            print("'"+name+"'")
-            controllable_dict[name] = []
-        elif line.startswith("  - "):
-            parameter = line[4:]
-            print("'"+name+"' '"+parameter+"'")
-            c_list = controllable_dict.get(name,[])
-            c_list.append(parameter)
-            controllable_dict[name] = c_list
-        elif line.strip() == '':
-            #ignore
-            name = ""
-        else:
-            print("ERROR expected parameter or name, got '"+line+"'")
-    return controllable_dict
+def get_controllable_and_monitorable_dict(combined_data):
+  controllable_data,monitorable_data = combined_data.split("== Monitored parameters ==")
+  controllable_dict = {}
+  name = ""
+  for line in controllable_data.split("\n"):
+    if line.endswith(" [type]"):
+      name = line[:-7]
+      print("'"+name+"'")
+      controllable_dict[name] = []
+    elif line.startswith("  - "):
+      parameter = line[4:]
+      print("'"+name+"' '"+parameter+"'")
+      c_list = controllable_dict.get(name,[])
+      c_list.append(parameter)
+      controllable_dict[name] = c_list
+    elif line.strip() == '':
+      #ignore
+      name = ""
+    else:
+      print("ERROR expected parameter or name, got '"+line+"'")
+  monitorable_dict = {}
+  name = ""
+  print(monitorable_data.split("\n"))
+  for line in monitorable_data.split("\n"):
+    if line.endswith(" [type]"):
+      name = line[:-7]
+      print("'"+name+"'")
+      monitorable_dict[name] = []
+    elif line.startswith("  - "):
+      parameter = line[4:]
+      print("'"+name+"' '"+parameter+"'")
+      m_list = monitorable_dict.get(name,[])
+      m_list.append(parameter)
+      monitorable_dict[name] = m_list
+    elif line.strip() == '':
+      #ignore
+      name = ""
+    else:
+      print("ERROR expected parameter or name, got '"+line+"'")
+  return controllable_dict,monitorable_dict
 
-controllable_dict = get_controllable_dict(controllable_part)
+controllable_dict,monitorable_dict = \
+        get_controllable_and_monitorable_dict(controllable_part)
 
-print(controllable_dict)
+print(controllable_dict,monitorable_dict)
 
 input_data = readInputFile(input_file)
 
@@ -171,6 +192,7 @@ for component_name in component_list:
     for monitored_combo in type_dict.get("monitored",[]):
         for monitored in split_parameter_name(monitored_combo,name_of_hs,pipe_names):
             for operator in type_dict.get("operators",[]):
+              if monitored in monitorable_dict[component_name]:
                 name = re.subn("[ :()]","_",(component_name+"_"+monitored+"_"+operator))[0]
                 monitored_names.append(name)
                 monitored_var_node = GPNode(name,monitored_node)
@@ -180,11 +202,10 @@ for component_name in component_list:
                 monitored_var_node.params["component_name"] = component_name
                 monitored_var_node.params["operator"] = operator
                 monitored_var_node.params["data_type"] =  type_dict["parameters"].get(monitored,{}).get("cpp_type","double") #type_dict["property_type"].get(monitored,"double")
-                if monitored != "VOID_FRACTION_HEM":
-                  #XXX VOID_FRACTION_HEM is only available if model_type
-                  # is EQ_MODEL_HEM, so never use VOID_FRACTION_HEM
-                  add_to_node(monitored_node,monitored_var_node)
+                add_to_node(monitored_node,monitored_var_node)
                 print(name,"path = ",monitored)
+              else:
+                print("NOT monitorable",component_name,monitored)
     for controlled_combo in type_dict.get("controlled",[]):
         for controlled in split_parameter_name(controlled_combo,name_of_hs,pipe_names):
             name = re.subn("[ :()]","_",(component_name+"_"+controlled))[0]
