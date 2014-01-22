@@ -26,9 +26,9 @@
   type = 'RavenFramework'
   input = 'test_sbo_heavy_det.xml'
   #skip = 'waiting for restart new capability'
-  output = 'SBO_DET/DET/out~DET_1-2-2~TMI.e SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_additional_info_DET_1-2-2.csv' 
-  csv = 'SBO_DET/extract_hist_from_hdf5_eqPb/DET_histories_eqPb_DET_1.csv'
-  max_time = 10000
+  output = 'SBO_DET/DET/out~DET_1-2-2~TMI.e SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv' 
+  csv = 'SBO_DET/stories_from_database_dump_1.csv'
+  max_time = 100000
   heavy=True
   rel_err = 0.1
  [../]
@@ -36,6 +36,7 @@
  [./test_mpi]
   type = 'RavenFramework'
   heavy= True
+  max_time = 100000
   input = 'test_mpi.xml'
   output = 'mpi_driver_test/FirstMRun/out~1~simple_flow_3eqn_displaced.e'
   csv = 'mpi_driver_test/FirstMRun/out~6~simple_flow_3eqn.csv'
