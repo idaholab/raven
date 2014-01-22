@@ -161,9 +161,10 @@ else
 #scikit
 #depends on numpy, scipy
     cd $BUILD_DIR
-    download_files scikit-learn-0.13.1.tar.gz f06a15abb107fecf7b58ef0a7057444e2d7f1369 https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
-    tar -xvzf scikit-learn-0.13.1.tar.gz
-    cd scikit-learn-0.13.1
+    #download_files scikit-learn-0.13.1.tar.gz f06a15abb107fecf7b58ef0a7057444e2d7f1369 https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
+    download_files scikit-learn-0.14.1.tar.gz 98128859b75e3c82c995cb7524e9dbd49c1a3d9f https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.14.1.tar.gz 
+    tar -xvzf scikit-learn-0.14.1.tar.gz
+    cd scikit-learn-0.14.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
 
