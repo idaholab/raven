@@ -165,7 +165,12 @@ else
     download_files scikit-learn-0.14.1.tar.gz 98128859b75e3c82c995cb7524e9dbd49c1a3d9f https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.14.1.tar.gz 
     tar -xvzf scikit-learn-0.14.1.tar.gz
     cd scikit-learn-0.14.1
-    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+    if test "`uname -sr | sed 's/\..*//'`" = "Darwin 13"
+    then
+	($PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+    else
+	(unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+    fi
 fi
 
 if $PYTHON_CMD -c 'import matplotlib,sys; sys.exit(not matplotlib.__version__ > "1.3")'
