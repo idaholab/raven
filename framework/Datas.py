@@ -138,26 +138,26 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         variables_to_print = []
         for var in options['variables'].split(','):
           if   var.lower() == 'input' : 
-            if type(self.inpParametersValues.values()[0]) == dict: 
-              for invar in self.inpParametersValues.values()[0].keys(): variables_to_print.append('input|'+str(invar))  
+            if type(list(self.inpParametersValues.values())[0]) == dict: 
+              for invar in list(self.inpParametersValues.values())[0].keys(): variables_to_print.append('input|'+str(invar))  
             else: 
               for invar in self.inpParametersValues.keys(): variables_to_print.append('input|'+str(invar))
           elif var.lower() == 'output': 
-            if type(self.outParametersValues.values()[0]) == dict:
-              for outvar in self.outParametersValues.values()[0].keys(): variables_to_print.append('output|'+str(outvar))  
+            if type(list(self.outParametersValues.values())[0]) == dict:
+              for outvar in list(self.outParametersValues.values())[0].keys(): variables_to_print.append('output|'+str(outvar))  
             else:
               for outvar in self.outParametersValues.keys(): variables_to_print.append('output|'+str(outvar))
           elif '|' in var:
             if var.split('|')[0].lower() == 'input':
-              if type(self.inpParametersValues.values()[0]) == dict:
-                if var.split('|')[1] not in self.inpParametersValues.values()[0].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Inputs of Data " + self.name)
+              if type(list(self.inpParametersValues.values())[0]) == dict:
+                if var.split('|')[1] not in list(self.inpParametersValues.values())[0].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Inputs of Data " + self.name)
                 else: variables_to_print.append('input|'+str(var.split('|')[1]))
               else:
                 if var.split('|')[1] not in self.inpParametersValues.keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Inputs of Data " + self.name)
                 else: variables_to_print.append('input|'+str(var.split('|')[1]))
             elif var.split('|')[0].lower() == 'output':
-              if type(self.outParametersValues.values()[0]) == dict:
-                if var.split('|')[1] not in self.outParametersValues.values()[0].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Outputs of Data " + self.name)
+              if type(list(self.outParametersValues.values())[0]) == dict:
+                if var.split('|')[1] not in list(self.outParametersValues.values())[0].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Outputs of Data " + self.name)
                 else: variables_to_print.append('output|'+str(var.split('|')[1]))
               else:
                 if var.split('|')[1] not in self.outParametersValues.keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Outputs of Data " + self.name)
@@ -499,22 +499,22 @@ class History(Data):
     else: return
 
     for i in range(len(inpKeys)):
-      myFile.write(',' + inpKeys[i])
-    if len(inpKeys) > 0: myFile.write('\n')
+      myFile.write(b',' + utils.toBytes(inpKeys[i]))
+    if len(inpKeys) > 0: myFile.write(b'\n')
     
     for i in range(len(inpKeys)):
-      myFile.write(',' + str(inpValues[i][0]))
-    if len(inpKeys) > 0: myFile.write('\n')
+      myFile.write(b',' + utils.toBytes(str(inpValues[i][0])))
+    if len(inpKeys) > 0: myFile.write(b'\n')
     
     #Print time + output values
     for i in range(len(outKeys)):
-      myFile.write(',' + outKeys[i])
+      myFile.write(b',' + utils.toBytes(outKeys[i]))
     if len(outKeys) > 0: 
-      myFile.write('\n')
+      myFile.write(b'\n')
       for j in range(outValues[0].size):
         for i in range(len(outKeys)):
-          myFile.write(',' + str(outValues[i][j]))
-        myFile.write('\n')
+          myFile.write(b',' + utils.toBytes(str(outValues[i][j])))
+        myFile.write(b'\n')
     
     myFile.close()
 
