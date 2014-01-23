@@ -16,8 +16,11 @@ class RavenFramework(Tester):
   getValidParams = staticmethod(getValidParams)
 
   def getCommand(self, options):
-    return "python ../../framework/Driver.py "+self.specs["input"]
-    #return "python3 ../../framework/Driver.py "+self.specs["input"]
+    if os.environ.get("CHECK_PYTHON3","0") == "1":
+      return "python3 ../../framework/Driver.py "+self.specs["input"]  
+    else:
+      return "python ../../framework/Driver.py "+self.specs["input"]
+    
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
