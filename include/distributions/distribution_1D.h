@@ -165,10 +165,6 @@ public:
    BasicExponentialDistribution(double lambda);
    virtual ~BasicExponentialDistribution();
 
-   double  Pdf(double x);                ///< Pdf function at coordinate x
-   double  Cdf(double x);                ///< Cdf function at coordinate x
-   double  InverseCdf(double x);        ///< x
-
    double  untrCdf(double x);
 };
 
