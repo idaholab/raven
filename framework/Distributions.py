@@ -105,6 +105,12 @@ class BoostDistribution(Distribution):
 
   def pdf(self,x):
     return self._distribution.Pdf(x)
+    
+  def untruncatedCdfComplement(self, x):
+    return self._distribution.untrCdfComplement(x)
+
+  def untruncatedHazard(self, x):
+    return self._distribution.untrHazard(x)
 
   def untruncatedMean(self):
     return self._distribution.untrMean()

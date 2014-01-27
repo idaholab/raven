@@ -127,19 +127,27 @@ betaElement = ET.Element("beta")
 betaElement.append(createElement("low",text="0.0"))
 betaElement.append(createElement("hi",text="1.0"))
 betaElement.append(createElement("alpha",text="5.0"))
-betaElement.append(createElement("beta",text="1.0"))
+betaElement.append(createElement("beta",text="2.0"))
 
 beta = Distributions.Beta()
 beta.readMoreXML(betaElement)
 beta.initializeDistribution()
 
-checkAnswer("beta cdf(0.1)",beta.cdf(0.1),1e-05)
-checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.03125)
-checkAnswer("beta cdf(0.9)",beta.cdf(0.9),0.59049)
+checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
+checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
+checkAnswer("beta cdf(0.9)",beta.cdf(0.9),0.885735)
 
-checkAnswer("beta ppf(0.1)",beta.ppf(0.1),0.63095734448)
-checkAnswer("beta ppf(0.5)",beta.ppf(0.5),0.870550563296)
-checkAnswer("beta ppf(0.9)",beta.ppf(0.9),0.979148362361)
+checkAnswer("beta ppf(0.1)",beta.ppf(0.1),0.489683693449)
+checkAnswer("beta ppf(0.5)",beta.ppf(0.5),0.735550016704)
+checkAnswer("beta ppf(0.9)",beta.ppf(0.9),0.907404741087)
+
+checkAnswer("beta mean()",beta.untruncatedMean(),5.0/(5.0+2.0))
+checkAnswer("beta median()",beta.untruncatedMedian(),0.735550016704)
+checkAnswer("beta mode()",beta.untruncatedMode(),(5.0-1)/(5.0+2.0-2))
+
+checkAnswer("beta pdf(0.25)",beta.pdf(0.25),0.087890625)
+checkAnswer("beta cdfComplement(0.25)",beta.untruncatedCdfComplement(0.25),0.995361328125)
+checkAnswer("beta hazard(0.25)",beta.untruncatedHazard(0.25),0.0883002207506)
 
 print(beta.rvs(5),beta.rvs())
 
