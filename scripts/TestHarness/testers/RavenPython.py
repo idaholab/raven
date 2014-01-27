@@ -1,14 +1,23 @@
 from util import *
 from Tester import Tester
 from CSVDiffer import CSVDiffer
-import os
+import os, subprocess
 
 class RavenPython(Tester):
+  try:
+    output_swig = subprocess.Popen(["swig","-version"],stdout=subprocess.PIPE).communicate()[0]
+  except OSError:
+    output_swig = "Failed"
+    
+  has_swig2 = "Version 2.0" in output_swig
+
 
   def getValidParams():
     params = Tester.getValidParams()
     params.addRequiredParam('input',"The python file to use for this test.")
     params.addParam('python_command','python','The command to use to run python')
+    params.addParam('requires_swig2', False, "Requires swig2 for test")
+
     return params
   getValidParams = staticmethod(getValidParams)
 
@@ -20,6 +29,9 @@ class RavenPython(Tester):
     self.specs['scale_refine'] = False
 
   def checkRunnable(self, option):
+    if self.specs['requires_swig2'] and not RavenPython.has_swig2:
+      return (False, 'skipped (No swig 2.0 found)')
+
     return (True, '')
 
   def processResults(self, moose_dir,retcode, options, output):

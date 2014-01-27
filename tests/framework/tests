@@ -107,6 +107,7 @@
   type = 'RavenPython'
   #python_command = python3
   input = '../../framework/TestDistributions.py'
+  requires_swig2 = True
  [../]
 
 []
