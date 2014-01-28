@@ -17,7 +17,7 @@ elif os.environ.has_key("MOOSE_DEV"):
 
 try:
   if os.environ.get("CHECK_PYTHON3","0") == "1":
-    raven_libs_dir = subprocess.check_output("ls -d $HOME/raven_libs3/pylibs/*/python*/site-packages",shell=True)
+    raven_libs_dir = subprocess.check_output("ls -d $HOME/raven_libs/pylibs3/*/python*/site-packages",shell=True)
   else:
     raven_libs_dir = subprocess.check_output("ls -d $HOME/raven_libs/pylibs/*/python*/site-packages",shell=True)
   raven_libs_dir = raven_libs_dir.decode().strip()

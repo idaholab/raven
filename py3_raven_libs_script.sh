@@ -1,6 +1,6 @@
 #!/bin/bash
-export INSTALL_DIR=$HOME/raven_libs3/pylibs
-export BUILD_DIR=$HOME/raven_libs3/build
+export INSTALL_DIR=$HOME/raven_libs/pylibs3
+export BUILD_DIR=$HOME/raven_libs/build3
 export PYTHON_CMD=python3
 
-./raven_libs_script.sh
+./backend_raven_libs_script.sh
