@@ -15,7 +15,10 @@ class RavenPython(Tester):
   def getValidParams():
     params = Tester.getValidParams()
     params.addRequiredParam('input',"The python file to use for this test.")
-    params.addParam('python_command','python','The command to use to run python')
+    if os.environ.get("CHECK_PYTHON3","0") == "1":
+      params.addParam('python_command','python3','The command to use to run python')  
+    else:
+      params.addParam('python_command','python','The command to use to run python')
     params.addParam('requires_swig2', False, "Requires swig2 for test")
 
     return params
