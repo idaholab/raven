@@ -67,6 +67,18 @@ fi
 
 update_python_path
 
+if $PYTHON_CMD -c 'import setuptools';
+then 
+    echo setuptools already built
+else
+    #setuptools
+    cd $BUILD_DIR
+    download_files setuptools-2.1.tar.gz 3e4a325d807eb0104e98985e7bd9f1ef86fc2efa https://pypi.python.org/packages/source/s/setuptools/setuptools-2.1.tar.gz
+    tar -xvzf $DOWNLOAD_DIR/setuptools-2.1.tar.gz
+    cd setuptools-2.1
+    $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR
+fi
+
 if $PYTHON_CMD -c 'import numpy,sys;sys.exit(not numpy.version.version > "1.7")'
 then 
     echo numpy module already built
@@ -122,7 +134,7 @@ else
     tar -xvzf $DOWNLOAD_DIR/h5py-2.2.0.tar.gz
     cd h5py-2.2.0
     (unset CC CXX; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
-    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)  
+    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR --hdf5=$INSTALL_DIR )
 fi
 
 
