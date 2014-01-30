@@ -47,10 +47,10 @@ cd $SCRIPT_DIR
 EXTRA='--source=../../framework -a'
 cd tests/framework
 coverage erase
-coverage run $EXTRA ../../framework/Driver.py test_simple.xml 
-coverage run $EXTRA ../../framework/Driver.py test_branch.xml 
-coverage run $EXTRA ../../framework/Driver.py test_mpi.xml 
-coverage run $EXTRA ../../framework/Driver.py test_output.xml
-coverage run $EXTRA ../../framework/Driver.py test_extract_data_s_from_hdf5.xml
+for I in test_simple.xml test_branch.xml test_mpi.xml test_output.xml test_sbo_heavy_det.xml test_push_into_hdf5.xml test_rom_trainer.xml test_Grid_Sampler.xml test_LHS_Sampler.xml test_Lorentz.xml test_bison_mc_simple.xml
+do
+    coverage run $EXTRA ../../framework/Driver.py  $I
+done
+coverage run $EXTRA ../../framework/TestDistributions.py
 coverage html
 
