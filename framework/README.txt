@@ -100,10 +100,12 @@ export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
 
 python Driver.py ../inputs/test_simple5.xml
 
---- Running MPI mode from an interactive node ---
+--- Running MPI mode  ---
 
-Currently in MPI mode, the framework needs to be run from a node that
-supports mpiexec.  
+There are two ways of running in MPI mode.  The first is the framework
+is run interactively from a node that supports mpiexec.  The other is
+<runQSUB/> is used and the framework creates a qsub command.  The node
+that it runs to must have mpiexec.
 
 ---- Figuring out nodes to run on ----
 
