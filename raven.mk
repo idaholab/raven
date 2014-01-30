@@ -185,10 +185,10 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
 	ln -s libdistribution1D.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1D.so
 
 $(RAVEN_DIR)/control_modules/_distribution1Dpy2.so : $(RAVEN_DIR)/control_modules/distribution1Dpy2.i \
-                                                 $(RAVEN_DIR)/src/distributions/distribution_1D.C \
-                                                 $(RAVEN_DIR)/src/distributions/DistributionContainer.C \
-                                                 $(RAVEN_DIR)/src/distributions/distributionFunctions.C \
-                                                 $(RAVEN_DIR)/src/distributions/distribution.C $(RAVEN_LIB)
+                                                 $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) 
 # Swig
 	swig -c++ -python  -I$(RAVEN_DIR)/include/distributions/  \
           $(RAVEN_MODULES)/distribution1Dpy2.i
