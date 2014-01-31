@@ -42,6 +42,7 @@ include $(MOOSE_DIR)/moose.mk
 include $(ELK_DIR)/elk.mk
 include $(R7_DIR)/r7.mk
 include $(RAVEN_DIR)/raven.mk
+include $(RAVEN_DIR)/raven_python_modules.mk
 
 ###############################################################################
 # Additional special case targets should be added here

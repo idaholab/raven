@@ -15,7 +15,7 @@ import scipy.special as polys
 from scipy.misc import factorial
 import Quadrature
 if sys.version_info.major > 2:
-  import distribution1D
+  import distribution1Dpy3 as distribution1D
 else:
   import distribution1Dpy2 as distribution1D
 

@@ -18,9 +18,9 @@ import sys
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 #Add the module directory to the search path.
-moduleDir = os.path.join(os.path.dirname(frameworkDir),"control_modules")
-print("moduleDir",moduleDir)
-sys.path.append(moduleDir)
+pmoduleDir = os.path.join(os.path.dirname(frameworkDir),"python_modules")
+print("pmoduleDir",pmoduleDir)
+sys.path.append(pmoduleDir)
 
 #Internal Modules
 from Simulation import Simulation

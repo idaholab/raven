@@ -17,7 +17,7 @@ ifeq ($(PYTHON3_HELLO),HELLO)
 ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
 	CONTROL_MODULES = 
 else
-	CONTROL_MODULES = $(RAVEN_DIR)/control_modules/_distribution1D.so $(RAVEN_DIR)/control_modules/_raventools.so $(RAVEN_DIR)/control_modules/_distribution1Dpy2.so
+	CONTROL_MODULES = $(RAVEN_DIR)/control_modules/_distribution1D.so $(RAVEN_DIR)/control_modules/_raventools.so $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so $(RAVEN_DIR)/python_modules/_distribution1Dpy3.so
 endif
 
 else
@@ -36,7 +36,7 @@ else
 #Python3 not found.
 	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
-	CONTROL_MODULES = $(RAVEN_DIR)/control_modules/_distribution1Dpy2.so
+	CONTROL_MODULES = $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so
 endif
 endif
 
@@ -142,21 +142,6 @@ $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/exec
 	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet \
           $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
 
-DISTRIBUTION_COMPILE_COMMAND=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet \
-          $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) -I$(RAVEN_LIB_INCLUDE_DIR) -I$(RAVEN_DIR)/include/distributions/  -MMD -MF $@.d -MT $@ -c $< -o $@
-
-
-$(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix): $(RAVEN_DIR)/src/distributions/DistributionContainer.C
-	$(DISTRIBUTION_COMPILE_COMMAND)
-
-$(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix): $(RAVEN_DIR)/src/distributions/distribution_1D.C
-	$(DISTRIBUTION_COMPILE_COMMAND)
-
-$(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix): $(RAVEN_DIR)/src/distributions/distribution.C
-	$(DISTRIBUTION_COMPILE_COMMAND)
-
-$(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix): $(RAVEN_DIR)/src/distributions/distributionFunctions.C
-	$(DISTRIBUTION_COMPILE_COMMAND)
 
 ifeq ($(UNAME),Darwin)
 DISTRIBUTION_KLUDGE=$(RAVEN_LIB) 
@@ -184,25 +169,6 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
 	rm -f $(RAVEN_MODULES)/_distribution1D.so
 	ln -s libdistribution1D.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1D.so
 
-$(RAVEN_DIR)/control_modules/_distribution1Dpy2.so : $(RAVEN_DIR)/control_modules/distribution1Dpy2.i \
-                                                 $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) \
-                                                 $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) \
-                                                 $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix) \
-                                                 $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) 
-# Swig
-	swig -c++ -python  -I$(RAVEN_DIR)/include/distributions/  \
-          $(RAVEN_MODULES)/distribution1Dpy2.i
-# Compile
-	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
-	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON2_INCLUDE)\
-         -I$(RAVEN_DIR)/include/distributions/ \
-	 -c  $(RAVEN_MODULES)/distribution1Dpy2_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1Dpy2_wrap.lo
-	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
-	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
-	-shared -o $(RAVEN_MODULES)/libdistribution1Dpy2.la $(PYTHON2_LIB) $(RAVEN_MODULES)/distribution1Dpy2_wrap.lo $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) -rpath $(RAVEN_MODULES)
-	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1Dpy2.la  $(RAVEN_MODULES)/libdistribution1Dpy2.la 
-	rm -f $(RAVEN_MODULES)/_distribution1Dpy2.so
-	ln -s libdistribution1Dpy2.$(raven_shared_ext) $(RAVEN_MODULES)/_distribution1Dpy2.so
 
 
 $(RAVEN_DIR)/control_modules/_raventools.so : $(RAVEN_DIR)/control_modules/raventools.i \

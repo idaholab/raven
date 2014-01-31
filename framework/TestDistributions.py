@@ -8,9 +8,9 @@ import sys, os
 
 #Add the module directory to the search path.
 ravenDir = os.path.dirname(os.path.dirname(sys.argv[0]))
-moduleDir = os.path.join(ravenDir,"control_modules")
-print("moduleDir",moduleDir,"ravenDir",ravenDir)
-sys.path.append(moduleDir)
+pmoduleDir = os.path.join(ravenDir,"python_modules")
+print("pmoduleDir",pmoduleDir)
+sys.path.append(pmoduleDir)
 
 
 import Distributions
