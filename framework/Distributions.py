@@ -146,8 +146,10 @@ class Uniform(BoostDistribution):
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception('low value needed for uniform distribution')
     hi_find = xmlNode.find('hi')
+    high_find = xmlNode.find('high')
     if hi_find != None: self.hi = float(hi_find.text)
-    else: raise Exception('hi value needed for uniform distribution')
+    elif high_find != None: self.hi = float(high_find.text)
+    else: raise Exception('hi or high value needed for uniform distribution')
 #    self.initializeDistribution() this call is done by the sampler each time a new step start
     self.range=self.hi-self.low
     #assign associated polynomial types
