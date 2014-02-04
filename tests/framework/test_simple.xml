@@ -79,8 +79,8 @@
 </DataBases>
 <Datas>
     <Histories name='stories'>
-        <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw</Output>
+        <Input>pipe1_Area</Input>
+        <Output>pipe1_Hw</Output>
    </Histories>
 </Datas>
 </Simulation>

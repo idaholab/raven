@@ -95,7 +95,7 @@
    </History>
    <TimePointSet name='timepointset_IN_database' printCSV='t' input_ts='1'>
        <Input>dummy_for_branch</Input>
-       <Output>pipe1_Hw,pipe1_aw</Output>
+       <Output>pipe1_Hw</Output>
    </TimePointSet>
 </Datas>
 </Simulation>

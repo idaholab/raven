@@ -7,6 +7,7 @@
   global_init_T = 300.
   model_type = 3
   stabilization_type = NONE
+  scaling_factor_var = '1e4 1e1 1e-2'
 []
 [EoS]
   [./eos]
@@ -74,61 +75,53 @@
     eos = eos
   [../]
 []
-
 [Preconditioning]
   # Uncomment one of the lines below to activate one of the blocks...
-  # active = 'SMP_PJFNK' 
+  # active = 'SMP_Newton'
   # active = 'FDP_PJFNK'
-  # active = 'FDP_Newton' 
-  active = 'SMP_Newton'
-
+  # active = 'FDP_Newton'
   # The definitions of the above-named blocks follow.
+  # End preconditioning block
+  active = 'SMP_PJFNK'
   [./SMP_PJFNK]
+    # Preconditioned JFNK (default)
     type = SMP
     full = true
-
-    # Preconditioned JFNK (default)
-    solve_type = 'PJFNK'
+    solve_type = PJFNK
+    line_search = basic
   [../]
-
   [./SMP_Newton]
     type = SMP
     full = true
-    solve_type = 'NEWTON'
+    solve_type = NEWTON
   [../]
-
   [./FDP_PJFNK]
-    type = FDP
-    full = true
-
     # Preconditioned JFNK (default)
-    solve_type = 'PJFNK'
-
     # petsc_options_iname = '-mat_fd_type'
     # petsc_options_value = 'ds'
+    type = FDP
+    full = true
+    solve_type = PJFNK
     petsc_options_iname = '-mat_fd_coloring_err'
     petsc_options_value = 1.e-10
   [../]
-
   [./FDP_Newton]
-    type = FDP
-    full = true
-    solve_type = 'NEWTON'
-    petsc_options_iname = '-mat_fd_coloring_err'
-    petsc_options_value = 1.e-10
     # petsc_options_iname = '-mat_fd_type'
     # petsc_options_value = 'ds'
+    type = FDP
+    full = true
+    solve_type = NEWTON
+    petsc_options_iname = '-mat_fd_coloring_err'
+    petsc_options_value = 1.e-10
   [../]
 []
-
 [Executioner]
+  # These options *should* append to any options set in Preconditioning blocks above  
+  # nl_abs_step_tol = 1e-15
+  # close Executioner section
   type = RavenExecutioner
   dt = 1.e-1
   dtmin = 1.e-5
-  dtmax = 9999
-  e_tol = 10.0
-  e_max = 99999.
-  max_increase = 10
   petsc_options_iname = '-ksp_gmres_restart -pc_type'
   petsc_options_value = '300 lu'
   nl_rel_tol = 1e-6
@@ -159,22 +152,10 @@
     property_name = Area
     data_type = double
   [../]
-  [./pipe1_Dh]
-    print_csv = true
-    component_name = pipe1
-    property_name = Dh
-    data_type = double
-  [../]
   [./pipe1_Hw]
     print_csv = true
     component_name = pipe1
     property_name = Hw
-    data_type = double
-  [../]
-  [./pipe1_aw]
-    print_csv = true
-    component_name = pipe1
-    property_name = aw
     data_type = double
   [../]
   [./pipe1_f]
@@ -187,19 +168,9 @@
     property_name = Area
     data_type = double
   [../]
-  [./pipe2_Dh]
-    component_name = pipe2
-    property_name = Dh
-    data_type = double
-  [../]
   [./pipe2_Hw]
     component_name = pipe2
     property_name = Hw
-    data_type = double
-  [../]
-  [./pipe2_aw]
-    component_name = pipe2
-    property_name = aw
     data_type = double
   [../]
   [./pipe2_f]
