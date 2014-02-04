@@ -34,18 +34,18 @@
 </Distributions>
 <Samplers>
     <LHS name='myLHS' initial_seed ='1'>
-      <varibale name='VarTri1' >
+      <variable name='VarTri1' >
         <distribution type='Triangular' >DistTri1</distribution>
         <grid         type='value'      construction='custom'>0.02 0.5 0.6 0.8</grid>
-      </varibale>
-      <varibale name='VarGauss1' >
+      </variable>
+      <variable name='VarGauss1' >
         <distribution type='Normal'>Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
-      </varibale>
-      <varibale name='VarGauss2'>
+      </variable>
+      <variable name='VarGauss2'>
         <distribution type='Normal'>Gauss2</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
-      </varibale>
+      </variable>
     </LHS>
 </Samplers>
 

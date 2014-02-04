@@ -783,6 +783,7 @@ class LHS(Grid):
     and filling mapping of the hyper cube.
     '''
     Grid.localInitialize(self)
+    #dimensions tempFillingCheck[len(self.axisName)][self.pointByVar-1]
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
       tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
@@ -790,7 +791,7 @@ class LHS(Grid):
     self.sampledCoordinate = [None]*(self.pointByVar-1)
     for i in range(self.pointByVar-1):
       self.sampledCoordinate[i] = [None]*len(self.axisName)
-      self.sampledCoordinate[i][:] = tempFillingCheck[:][i]
+      self.sampledCoordinate[i][:] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
 
   def localGenerateInput(self,model,myInput):
     j=0
