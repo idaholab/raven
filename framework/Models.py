@@ -238,7 +238,7 @@ class Code(Model):
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
     self.infoForOut         = {}   #it contains the information needed for outputting 
     self.alias              = {}   #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
-                                   #self.alias[framework variable name] = [input code name]
+                                   #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
 
   def readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
@@ -252,6 +252,7 @@ class Code(Model):
       except IOError: raise Exception ('not found the attribute executable in the definition of the code model '+str(self.name))
     for child in xmlNode:
       if child.tag=='alias':
+        # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
         else: raise Exception ('not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
       else: raise Exception ('unknown tag within the definition of the code model '+str(self.name))

@@ -212,6 +212,7 @@ class MooseBasedAppInterface:
     # for now the position (i.e. ':' at the end of a variable name) is discarded
     for var in Kwargs['SampledVars']:
         if 'alias' in Kwargs.keys():
+          # for understending the alias system, plase check module Models.py (class Code)
           if var in Kwargs['alias'].keys(): 
             key = Kwargs['alias'][var].split(':')
             varname = var

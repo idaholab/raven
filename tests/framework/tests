@@ -18,7 +18,7 @@
   type = 'RavenFramework'
   input = 'test_branch.xml'
   #skip = 'waiting for restart new capability'
-  output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv' 
+  output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf' 
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
  [../]
 
@@ -95,11 +95,11 @@
   rel_err = 0.001
  [../]
 
- [./test_bison_mc_simple]
+ [./test_bison_mc_simple_&_alias_system]
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'
   output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.e'
-  csv = 'MCTestBison/CustomSampler/out~6~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv'
+  csv = 'MCTestBison/CustomSampler/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~1~gap_perfect_transfer_test.csv'
   required_executable = '../../../bison/bison-%METHOD%'
  [../]
 
