@@ -87,6 +87,26 @@
   rel_err = 0.001
  [../]
 
+ [./testGridBison]
+  type = 'RavenFramework'
+  input = 'test_Grid_Sampler_Bison.xml'
+  output = 'GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
+  csv = 'GridTestBison/CustomSampler/out~18~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv'
+  max_time = 500
+  rel_err = 0.001
+  required_executable = '../../../bison/bison-%METHOD%'
+ [../]
+
+ [./testLHSBison]
+  type = 'RavenFramework'
+  input = 'test_LHS_Sampler_Bison.xml'
+  output = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test'
+  csv = 'LHStestBison/myLHS/out~1~gap_perfect_transfer_test.csv LHStestBison/myLHS/out~3~gap_perfect_transfer_test.csv'
+  max_time = 500
+  rel_err = 0.001
+  required_executable = '../../../bison/bison-%METHOD%'
+ [../]
+
  [./testExternalModule]
   type = 'RavenFramework'
   input = 'test_Lorentz.xml'
