@@ -3,7 +3,7 @@
 
 <RunInfo>
     <WorkingDir>GridTestBison</WorkingDir>
-    <Files>gap_perfect_transfer_test.i</Files>
+    <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>CustomSampler</Sequence>
     <batchSize>2</batchSize>
 </RunInfo>
@@ -34,44 +34,41 @@
     </Triangular>
 </Distributions>
 <Samplers>
-    <Grid name='myGrid'>
-      <varibale name='VarGauss1' >
+    <EquallySpaced name='myGrid'>
+      <Variable name='Materials|heat1|thermal_conductivity' >
         <distribution type='Normal'>Gauss1</distribution>
         <grid         type='value' construction='custom' >0.02 0.5 0.6</grid>
-      </varibale>
-      <varibale name='VarGauss2' >
+      </Variable>
+      <Variable name='Materials|heat1|thermal_conductivity' >
         <distribution type='Normal' >Gauss2</distribution>
         <grid         type='CDF'    construction='custom'>0.5 1.0 0.0</grid>
-      </varibale>
-      <varibale name='VarTri1'>
+      </Variable>
+      <Variable name='Materials|heat2|thermal_conductivity'>
         <distribution type='Triangular' >DistTri1</distribution>
         <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
-      </varibale>
-    </Grid>
+      </Variable>
+    </EquallySpaced>
 </Samplers>
 
 <Datas>
-     <TimePointSet name='outGrid'>
-        <Input>VarGauss1,VarGauss2,VarTri1</Input>
-        <Output>whatEver</Output>
-   </TimePointSet>
-   <TimePointSet name='dummyIN'>
-      <Input>VarGauss1,VarGauss2,VarTri1</Input>
-      <Output>whatEver</Output>
-   </TimePointSet>
+    <Histories name='stories'>
+        <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
+        <Output>aveTempLeft,aveTempRight</Output>
+   </Histories>
 </Datas>
 
 <Steps>
-     <MultiRun name='CustomSampler'>
-       <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.i</Input>
-        <Model   class = 'Models'     type='Code'      >Bison</Model>
-        <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
-        <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
-        <Output  class='DataBases' type='HDF5'        >test_DummyModel_db</Output>
+  <MultiRun name='CustomSampler'>
+    <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.i</Input>
+    <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.e</Input>
+    <Model   class = 'Models'     type='Code'      >Bison</Model>
+    <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
+    <Output  class='DataBases'    type='HDF5'>test_bison_grid</Output>
+    <Output class='Datas' type='Histories'>stories</Output>
     </MultiRun >
 </Steps>
 <DataBases>
-        <HDF5 name="test_DummyModel_db"/> 
+  <HDF5 name="test_bison_grid"/> 
 </DataBases>
 </Simulation>
 
