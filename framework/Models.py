@@ -142,8 +142,7 @@ class Dummy(Model):
     else:
       for key in self.inputDict.keys() : output.updateInputValue(key,self.inputDict[key])
       for key in self.outputDict.keys(): output.updateOutputValue(key,self.outputDict[key])
-#       if self.printFile:
-#         output.printCSV()
+
     print('collected output')
 #
 #
@@ -301,7 +300,7 @@ class Code(Model):
     if currentInput[0].endswith('.i'): index = 0
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
-    Kwargs['alias']   = self.alias
+    if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     if 'raven' in self.executable.lower(): Kwargs['reportit'] = False
     else: Kwargs['reportit'] = True 
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
@@ -320,19 +319,27 @@ class Code(Model):
     '''collect the output file in the output object'''
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     #if output.type == "HDF5": self.__addDataBaseGroup(finisishedjob,output)
-    try:self.__addDataBaseGroup(finisishedjob,output)
-    except AttributeError: output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
-
-  def __addDataBaseGroup(self,finisishedjob,database):
-    # add a group into the database
     attributes={}
     attributes["input_file"] = self.currentInputFiles
     attributes["type"] = "csv"
     attributes["name"] = os.path.join(self.workingDir,finisishedjob.output+'.csv')
-    if finisishedjob.identifier in self.infoForOut:
-      infoForOut = self.infoForOut.pop(finisishedjob.identifier)
-      for key in infoForOut: attributes[key] = infoForOut[key]
-    database.addGroup(attributes,attributes)
+    if finisishedjob.identifier in self.infoForOut.keys():
+      #infoForOut = self.infoForOut.pop(finisishedjob.identifier)
+      for key in self.infoForOut[finisishedjob.identifier].keys(): attributes[key] = self.infoForOut[finisishedjob.identifier][key]
+  
+    try:output.addGroup(attributes,attributes)
+    except AttributeError: output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
+
+#   def __addDataBaseGroup(self,finisishedjob,database):
+#     # add a group into the database
+#     attributes={}
+#     attributes["input_file"] = self.currentInputFiles
+#     attributes["type"] = "csv"
+#     attributes["name"] = os.path.join(self.workingDir,finisishedjob.output+'.csv')
+#     if finisishedjob.identifier in self.infoForOut:
+#       infoForOut = self.infoForOut.pop(finisishedjob.identifier)
+#       for key in infoForOut: attributes[key] = infoForOut[key]
+#     database.addGroup(attributes,attributes)
 #
 #
 #

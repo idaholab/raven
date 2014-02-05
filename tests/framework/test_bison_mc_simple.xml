@@ -25,8 +25,12 @@
 
 <Samplers>
   <MonteCarlo name='Bison1' limit='6'>
-    <Variable type='Uniform' distName='FlatHeat1'>Materials|heat1|thermal_conductivity</Variable>
-    <Variable type='Uniform' distName='FlatHeat2'>Materials|heat2|thermal_conductivity</Variable>
+      <varibale name='Materials|heat1|thermal_conductivity' >
+          <distribution type='Uniform'>FlatHeat1</distribution>
+      </varibale>
+      <varibale name='Materials|heat2|thermal_conductivity' >
+          <distribution type='Uniform'>FlatHeat2</distribution>
+      </varibale>
   </MonteCarlo>
 </Samplers>
 
