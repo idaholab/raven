@@ -1332,7 +1332,9 @@ __interFaceDict['MonteCarlo'            ] = MonteCarlo
 __interFaceDict['DynamicEventTree'      ] = DynamicEventTree
 __interFaceDict['StochasticCollocation' ] = StochasticCollocation
 __interFaceDict['LHS'                   ] = LHS
+__interFaceDict['LatinHyperCube'        ] = LHS
 __interFaceDict['Grid'                  ] = Grid
+__interFaceDict['EquallySpaced'         ] = Grid
 __interFaceDict['Adaptive'              ] = AdaptiveSampler
 __knownTypes = __interFaceDict.keys()
 
