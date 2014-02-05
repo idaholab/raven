@@ -151,7 +151,7 @@ class OutStreamPlot(OutStreamManager):
         result.append(var.split('(')[1].replace(")", ""))
       else:  result = var.split('|')
     else: result = None
-    if len(result) != 3: raise IOError('STREAM MANAGER: ERROR -> In Plot ' +self.name +'.Only a three level variables are accepted !!!!!')
+    if len(result) != 3: raise IOError('STREAM MANAGER: ERROR -> In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
     return result
       
   def __readPlotActions(self,snode):
@@ -185,39 +185,60 @@ class OutStreamPlot(OutStreamManager):
       if self.y_cordinates: self.y_values.append(None)
       if self.z_cordinates: self.z_values.append(None)
     for pltindex in range(len(self.outStreamTypes)):
-      if len(self.sourceData[pltindex].getInpParametersValues().keys()) == 0 and len(self.sourceData[pltindex].getOutParametersValues().keys()) == 0: return False
+      if self.sourceData[pltindex].isItEmpty(): return False
       if self.sourceData[pltindex].type.strip() not in 'Histories': 
         self.x_values[pltindex] = {1:[]}
         if self.y_cordinates: self.y_values[pltindex] = {1:[]}
         if self.z_cordinates: self.z_values[pltindex] = {1:[]}
         for i in range(len(self.x_cordinates[pltindex])):
           xsplit = self.__splitVariableNames('x', (pltindex,i)) 
-          self.x_values[pltindex][1].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],xsplit[2])))
+          parame = self.sourceData[pltindex].getParam(xsplit[1],xsplit[2])
+          if type(parame) == np.ndarray: self.x_values[pltindex][1].append(np.asarray(parame))
+          else:
+            conarr = np.zeros(len(parame.keys())) 
+            for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
+            self.x_values[pltindex][1].append(np.asarray(conarr))           
         if self.y_cordinates:
-          ysplit = self.__splitVariableNames('y', (pltindex,i))
-          for i in range(len(self.y_cordinates[pltindex])): self.y_values[pltindex][1].append(np.asarray(self.sourceData[pltindex].getParam(ysplit[1],ysplit[2])))
+          for i in range(len(self.y_cordinates[pltindex])): 
+            ysplit = self.__splitVariableNames('y', (pltindex,i))
+            parame = self.sourceData[pltindex].getParam(ysplit[1],ysplit[2])
+            if type(parame) == np.ndarray: self.y_values[pltindex][1].append(np.asarray(parame))
+            else:
+              conarr = np.zeros(len(parame.keys())) 
+              for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
+              self.y_values[pltindex][1].append(np.asarray(conarr))           
         if self.z_cordinates and self.dim>2:
-          zsplit = self.__splitVariableNames('z', (pltindex,i))
-          for i in range(len(self.z_cordinates[pltindex])): self.z_values[pltindex][1].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],zsplit[2])))
+          for i in range(len(self.z_cordinates[pltindex])):
+            zsplit = self.__splitVariableNames('z', (pltindex,i)) 
+            parame = self.sourceData[pltindex].getParam(zsplit[1],zsplit[2])
+            if type(parame) == np.ndarray: self.z_values[pltindex][1].append(np.asarray(parame))
+            else:
+              conarr = np.zeros(len(parame.keys())) 
+              for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
+              self.z_values[pltindex][1].append(np.asarray(conarr))  
       else:
+        #Histories
         self.x_values[pltindex] = {}
         if self.y_cordinates: self.y_values[pltindex] = {}
         if self.z_cordinates  and self.dim>2: self.z_values[pltindex] = {}
+        cnt = 0
         for key in self.sourceData[pltindex].getInpParametersValues().keys(): 
-          self.x_values[pltindex][key] = []
-          if self.y_cordinates: self.y_values[pltindex][key] = []
-          if self.z_cordinates: self.z_values[pltindex][key] = []
+          #the key is the actual history number (ie 1, 2 , 3 etc)
+          cnt+=1
+          self.x_values[pltindex][cnt] = []
+          if self.y_cordinates: self.y_values[pltindex][cnt] = []
+          if self.z_cordinates: self.z_values[pltindex][cnt] = []
           for i in range(len(self.x_cordinates[pltindex])): 
             xsplit = self.__splitVariableNames('x', (pltindex,i)) 
-            self.x_values[pltindex][key].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],key)[xsplit[2]]))
+            self.x_values[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],cnt)[xsplit[2]]))
           if self.y_cordinates:
             for i in range(len(self.y_cordinates[pltindex])): 
               ysplit = self.__splitVariableNames('y', (pltindex,i))
-              self.y_values[pltindex][key].append(np.asarray(self.sourceData[pltindex].getParam(ysplit[1],key)[ysplit[2]]))
+              self.y_values[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(ysplit[1],cnt)[ysplit[2]]))
           if self.z_cordinates and self.dim>2:
             for i in range(len(self.z_cordinates[pltindex])): 
               zsplit = self.__splitVariableNames('z', (pltindex,i))
-              self.z_values[pltindex][key].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],key)[zsplit[2]]))
+              self.z_values[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],cnt)[zsplit[2]]))
       #check if something has been got or not
       if len(self.x_values[pltindex].keys()) == 0: return False
       else:
@@ -226,14 +247,6 @@ class OutStreamPlot(OutStreamManager):
           else:
             for i in range(len(self.x_values[pltindex][key])):
               if self.x_values[pltindex][key][i].size == 0: return False 
-      if self.z_cordinates and self.dim>2:
-        if len(self.z_values[pltindex].keys()) == 0: return False
-        else:
-          for key in self.z_values[pltindex].keys():
-            if len(self.z_values[pltindex][key]) == 0: return False      
-            else:
-              for i in range(len(self.z_values[pltindex][key])):
-                if self.z_values[pltindex][key][i].size == 0: return False    
       if self.y_cordinates:
         if len(self.y_values[pltindex].keys()) == 0: return False    
         else:
@@ -241,7 +254,15 @@ class OutStreamPlot(OutStreamManager):
             if len(self.y_values[pltindex][key]) == 0: return False    
             else:
               for i in range(len(self.y_values[pltindex][key])):
-                if self.y_values[pltindex][key][i].size == 0: return False           
+                if self.y_values[pltindex][key][i].size == 0: return False        
+      if self.z_cordinates and self.dim>2:
+        if len(self.z_values[pltindex].keys()) == 0: return False
+        else:
+          for key in self.z_values[pltindex].keys():
+            if len(self.z_values[pltindex][key]) == 0: return False      
+            else:
+              for i in range(len(self.z_values[pltindex][key])):
+                if self.z_values[pltindex][key][i].size == 0: return False       
     return True  
   
   def __executeActions(self):

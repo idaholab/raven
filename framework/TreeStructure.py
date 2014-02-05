@@ -21,6 +21,8 @@ class Node(object):
     self.name      = name
     self.values    = values
     self._branches = []
+    self.parentname= None
+    self.parent    = None
 
   def __repr__(self):
     '''
@@ -51,6 +53,8 @@ class Node(object):
       Method used to append a new branch to this node
       @ In, NodeTree, the newer node
     '''
+    node.parentname = self.name
+    node.parent     = self
     self._branches.append(node)
 
   def extendBranch(self, nodes):
@@ -58,6 +62,9 @@ class Node(object):
       Method used to append subnodes from a sequence of them
       @ In, list of NodeTree, nodes
     '''
+    for nod in nodes: 
+      nod.parentname = self.name
+      nod.parent     = self 
     self._branches.extend(nodes)
 
   def insertBranch(self, pos, node):
@@ -66,6 +73,8 @@ class Node(object):
       @ In, node, NodeTree, the newer node
       @ In, pos, integer, the position  
     '''
+    node.parentname = self.name
+    node.parent     = self
     self._branches.insert(pos, node)
 
   def removeBranch(self, node):
@@ -98,6 +107,14 @@ class Node(object):
       @ Out, iterator containing all matching nodes
     '''
     return NodePath.iterfind(self, path)
+
+  def getParentName(self):
+    '''
+      Method used to get the parentname
+      @ In, None
+      @ Out, parentName
+    '''
+    return self.parentname
 
   def clearBranch(self):
     '''
@@ -155,12 +172,39 @@ class Node(object):
       for e in e.iter(name):
         yield e
 
+  def iterEnding(self):
+    '''
+       Creates a tree iterator for ending branches.  The iterator loops over this node
+       and all subnodes and returns all nodes without branches      
+    '''
+    if len(self._branches) == 0:
+      yield self
+    for e in self._branches:
+      for e in e.iterEnding():
+        yield e
+
+  def iterWholeBackTrace(self,startnode):
+    '''
+      Method for creating a sorted list (backward) of nodes starting from node named "name" 
+      @ In, startnode, Node, the node 
+      @ Out, the list
+    '''
+    result    =  []
+    parent    =  startnode.parent
+    ego       =  startnode
+    while parent:
+      result.insert (0, ego)
+      parent, ego  =  parent.parent, parent
+    if ego.parentname == 'root': result.insert (0, ego)
+    return result
+
 #################
 #   NODE TREE   #
 #################
 class NodeTree(object):
   def __init__(self, node=None):
       self._rootnode = node
+      if node: node.parentname='root'
   
   def getrootnode(self):
       return self._rootnode
@@ -178,7 +222,23 @@ class NodeTree(object):
       @ In, name, string, the path or the node name
       @ Out, the iterator
     '''
-    return self._rootnode.iter(name)
+    if name == 'root': return self.__rootnode
+    else:              return self._rootnode.iter(name)
+  
+  def iterEnding(self):
+    '''
+      Method for creating a tree iterator for the root node (ending branches)
+      @ Out, the iterator
+    '''
+    return self._rootnode.iterEnding()
+
+  def iterWholeBackTrace(self,startnode):
+    '''
+      Method for creating a sorted list (backward) of nodes starting from node named "name" 
+      @ In, startnode, Node, the node 
+      @ Out, the list
+    '''
+    return self._rootnode.iterWholeBackTrace(startnode)
 
   def find(self, path):
     '''

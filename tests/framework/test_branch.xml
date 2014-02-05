@@ -4,7 +4,7 @@
     <WorkingDir>branch</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py,DET_histories.csv</Files>
     <Sequence>DETrunTest,extract_hist_example</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>4</batchSize>
 </RunInfo>
 
 <Models>
@@ -22,19 +22,87 @@
 <Samplers>
   <DynamicEventTree name='DET_test'>
       <varibale name='zeroToOne' >
-        <distribution type='Uniform' ProbabilityThresholds='0.1 0.5'>zeroToOne</distribution>
+        <distribution type='Uniform' ProbabilityThresholds='0.1 0.5 0.8'>zeroToOne</distribution>
       </varibale>  
   </DynamicEventTree>   
 </Samplers>
+<OutStreamManager>
+  <Print name='testprint_hist_hier'>
+    <type>csv</type>
+    <source>stories</source>
+  </Print>
+  <Print name='testprint_tpset_hier'>
+    <type>csv</type>
+    <source>timepointset</source>
+  </Print>
+  <Print name='testprint_hist_hier_variables'>
+    <type>csv</type>
+    <source>stories</source>
+    <variables>Output,Input|pipe1_Area</variables>
+  </Print>
+  <Print name='testprint_tpset_hier_variables'>
+    <type>csv</type>
+    <source>timepointset</source>
+    <variables>Output,Input|pipe1_Area</variables>
+  </Print>
+  <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
+        <plot_settings>
+            <plot>
+                <type>line</type>
+                <x>stories|Output|time</x>
+                <y>stories|Output|pipe1_Hw</y>
+                <kwargs>
+                    <color>green</color>
+                    <label>pipe1-Hw</label>
+                </kwargs>
+            </plot>
+            <xlabel>time [s]</xlabel>
+            <ylabel>evolution</ylabel>
+        </plot_settings>
+        <actions>
+            <how>pdf</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+  </Plot>
+    <Plot name='2DHistoryPlot_tps' dim='2' interactive='False' overwrite='False'>
+        <plot_settings>
+            <plot>
+                <type>scatter</type>
+                <x>timepointset|Output|time</x>
+                <y>timepointset|Output|pipe1_Hw</y>
+                <kwargs>
+                    <color>green</color>
+                    <label>pipe1-Hw</label>
+                </kwargs>
+            </plot>
+            <xlabel>time [s]</xlabel>
+            <ylabel>evolution</ylabel>
+        </plot_settings>
+        <actions>
+            <how>pdf</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
+    </Plot>
+</OutStreamManager>
 <Steps>
     <MultiRun name='DETrunTest'>
         <Input      class='Files'      type=''>ideal_pump.i</Input>
         <Input      class='Files'      type=''>ideal_pump_control.py</Input>
         <Model      class='Models'     type='Code'      >MyRAVEN</Model>
         <Sampler    class = 'Samplers' type='DynamicEventTree'>DET_test</Sampler>
-        <DataBases  class='DataBases'  type=''        >testBranchDataBase</DataBases>
         <Output     class='DataBases'  type='HDF5' >testBranchDataBase</Output>
         <Output     class='Datas'      type='Histories' >stories</Output>
+        <Output     class='Datas'      type='TimePointSet' >timepointset</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_hist_hier</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_tpset_hier</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_hist_hier_variables</Output>
+        <Output    class='OutStreamManager' type='Print'     >testprint_tpset_hier_variables</Output>
+        <Output    class='OutStreamManager' type='Plot'      >2DHistoryPlot</Output>
+        <Output    class='OutStreamManager' type='Plot'      >2DHistoryPlot_tps</Output>
     </MultiRun >
     <SingleRun name='extract_hist_example'>
         <Input   class='DataBases' type='HDF5'   >testBranchDataBase</Input>
@@ -46,10 +114,14 @@
     <HDF5 name="testBranchDataBase"/> 
 </DataBases>
 <Datas>
-    <Histories name='stories'>
+    <Histories name='stories' hierarchical='true'>
         <Input>pipe1_Area</Input>
         <Output>pipe1_Hw</Output>
    </Histories>
+    <TimePointSet name='timepointset' hierarchical='true'>
+        <Input>pipe1_Area,dummy_for_branch</Input>
+        <Output>pipe1_Hw,pump_mass_flow_rate</Output>
+    </TimePointSet>
 </Datas>
 </Simulation>
 
