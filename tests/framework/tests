@@ -107,6 +107,14 @@
   required_executable = '../../../bison/bison-%METHOD%'
  [../]
 
+ [./testLHSFerret]
+  type = 'RavenFramework'
+  input = 'test_LHS_Sampler_ferret.xml'
+  output = 'LHStestFerret/myLHS/out~1~simple_diffusion'
+  csv = 'LHStestFerret/myLHS/out~1~simple_diffusion.csv'
+  required_executable = '../../../ferret/ferret-%METHOD%'
+ [../]
+
  [./testExternalModule]
   type = 'RavenFramework'
   input = 'test_Lorentz.xml'

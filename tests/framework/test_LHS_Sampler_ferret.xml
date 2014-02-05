@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+
+<RunInfo>
+    <WorkingDir>LHStestFerret</WorkingDir>
+    <Files>simple_diffusion.i</Files>
+    <Sequence>myLHS</Sequence>
+    <batchSize>9</batchSize>
+</RunInfo>
+
+<Models>
+    <Code name='Ferret' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../ferret/ferret-%METHOD%</Code>
+</Models>
+
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>0.5</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>1</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Uniform name='Uniform1'>
+        <low>0</low>
+        <high>1.0</high>
+    </Uniform>
+</Distributions>
+<Samplers>
+    <LatinHyperCube name='myLHS' initial_seed ='1'>
+      <Variable name='BCs|left|value' >
+        <distribution type='Normal'>Gauss1</distribution>
+        <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
+      </Variable>
+      <Variable name='BCs|right|value'>
+        <distribution type='Uniform'>Uniform1</distribution>
+        <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
+      </Variable>
+    </LatinHyperCube>
+</Samplers>
+
+
+
+<Steps>
+    <MultiRun name='myLHS'>
+      <Input   class = 'Files'      type=''          >simple_diffusion.i</Input>
+      <Model   class = 'Models'     type='Code'      >Ferret</Model>
+      <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
+      <Output  class='DataBases'    type='HDF5'>test_ferret_lhs</Output>
+    </MultiRun >
+</Steps>
+
+<DataBases>
+  <HDF5 name="test_ferret_lhs"/> 
+</DataBases>
+
+</Simulation>
+
+
+
