@@ -4,8 +4,8 @@
     <WorkingDir>mpi_bison_test</WorkingDir>
     <Files>case_1.i,case_1.e</Files>
     <Sequence>myLHS</Sequence>
-    <batchSize>3</batchSize>
-    <NumThreads>4</NumThreads>    
+    <batchSize>9</batchSize>
+    <NumThreads>2</NumThreads>    
     <mode>mpi</mode>
     <NumMPI>2</NumMPI>
     <!--<ParallelCommand></ParallelCommand>
@@ -40,11 +40,11 @@
     <LatinHyperCube name='myLHS' initial_seed ='1'>
       <Variable name='BCs|freesurf_temp|value' >
         <distribution type='Normal'>Gauss1</distribution>
-        <grid type='CDF' construction='equal' lowerBound='0.0' steps='3'>0.25</grid>
+        <grid type='CDF' construction='equal' lowerBound='0.01' steps='9'>0.1</grid>
       </Variable>
       <Variable name='BCs|exterior_pressure_y|factor'>
         <distribution type='Normal'>Gauss2</distribution>
-        <grid type='CDF' construction='equal' upperBound='1.0' steps='3'>0.25</grid>
+        <grid type='CDF' construction='equal' upperBound='0.99' steps='9'>0.1</grid>
       </Variable>
     </LatinHyperCube>
 </Samplers>
