@@ -41,6 +41,16 @@
   output = 'mpi_driver_test/FirstMRun/out~1~simple_flow_3eqn_displaced.e'
   csv = 'mpi_driver_test/FirstMRun/out~6~simple_flow_3eqn.csv'
  [../]  
+
+ [./test_mpi_bison]
+  type = 'RavenFramework'
+  heavy= True
+  max_time = 100000
+  input = 'test_mpi_bison.xml'
+  output = 'mpi_bison_test/myLHS/out~1~case_1.e'
+  csv = 'mpi_bison_test/myLHS/out~1~case_1.csv'
+ [../]  
+
 # This test has been embedded by the test_push_into_hdf5
 # [./test_extract_data_s_from_hdf5]
 #  type = 'RavenFramework'

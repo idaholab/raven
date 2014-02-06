@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>mpi_bison_test</WorkingDir>
+    <Files>case_1.i,case_1.e</Files>
+    <Sequence>myLHS</Sequence>
+    <batchSize>3</batchSize>
+    <NumThreads>4</NumThreads>    
+    <mode>mpi</mode>
+    <NumMPI>2</NumMPI>
+    <!--<ParallelCommand></ParallelCommand>
+    <ThreadingCommand></ThreadingCommand>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totalNumCoresUsed></totalNumCoresUsed>-->
+</RunInfo>
+
+<Models>
+    <Code name='Bison' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</Code>
+</Models>
+
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1273.0</mean>
+        <sigma>100.</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>3000.0</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='Gauss2'>
+        <mean>0.1e6</mean>
+        <sigma>0.1e5</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>0.2e6</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+</Distributions>
+<Samplers>
+    <LatinHyperCube name='myLHS' initial_seed ='1'>
+      <Variable name='BCs|freesurf_temp|value' >
+        <distribution type='Normal'>Gauss1</distribution>
+        <grid type='CDF' construction='equal' lowerBound='0.0' steps='3'>0.25</grid>
+      </Variable>
+      <Variable name='BCs|exterior_pressure_y|factor'>
+        <distribution type='Normal'>Gauss2</distribution>
+        <grid type='CDF' construction='equal' upperBound='1.0' steps='3'>0.25</grid>
+      </Variable>
+    </LatinHyperCube>
+</Samplers>
+
+<Datas>
+    <Histories name='stories'>
+        <Input>BCs|freesurf_temp|value,BCs|exterior_pressure_y|factor</Input>
+        <Output>dt</Output>
+   </Histories>
+</Datas>
+
+<Steps>
+    <MultiRun name='myLHS'>
+      <Input   class = 'Files'      type=''          >case_1.i</Input>
+      <Input   class = 'Files'      type=''          >case_1.e</Input>
+      <Model   class = 'Models'     type='Code'      >Bison</Model>
+      <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>
+      <Output  class='DataBases'    type='HDF5'>test_bison_mpi_lhs</Output>
+      <Output class='Datas' type='Histories'>stories</Output>
+    </MultiRun >
+</Steps>
+
+<DataBases>
+  <HDF5 name="test_bison_mpi_lhs"/> 
+</DataBases>
+
+</Simulation>
