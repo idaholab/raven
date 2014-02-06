@@ -796,8 +796,9 @@ class LHS(Grid):
   def localGenerateInput(self,model,myInput):
     j=0
     for varName in self.axisName:
-      upper = self.gridInfo[varName][2][self.sampledCoordinate[j][self.counter-2]+1]
-      lower = self.gridInfo[varName][2][self.sampledCoordinate[j][self.counter-2]  ]
+      print(self.gridInfo,varName,self.sampledCoordinate,j,self.counter)
+      upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
+      lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
       j +=1
       intervalFraction = np.random.random()
       coordinate = lower + (upper-lower)*intervalFraction
