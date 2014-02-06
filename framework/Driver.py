@@ -42,6 +42,8 @@ def printStatement():
   USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS. This notice, including this \n\
   sentence, must appear on any copies of this computer software.')
 
+os.environ["MV2_ENABLE_AFFINITY"]="0"
+
 if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''
   # Retrieve the framework directory path and working dir
