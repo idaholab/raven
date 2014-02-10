@@ -29,18 +29,22 @@ from Simulation import Simulation
 #-------------------------------------------------------------Test Driver
 debug = True
 def printStatement():
-  print('  NOTICE: This computer software was prepared by Battelle Energy Alliance, LLC, hereinafter \n\
-  the Contractor, under Contract No. DE-AC07-05ID14517 with the United States (U.S.) \n\
-  Department of Energy (DOE). All rights in the computer software are reserved by DOE \n\
-  on behalf of the United States Government and, if applicable, the Contractor as provided in \n\
-  the Contract. You are authorized to use this computer software for Governmental purposes \n\
-  but it is not to be released or distributed to the public. NEITHER THE UNITED STATES \n\
-  GOVERNMENT, NOR DOE, NOR THE CONTRACTOR MAKE ANY WARRANTY, \n\
-  EXPRESSED OR IMPLIED, OR ASSUMES ANY LIABILITY OR RESPONSIBILITY FOR \n\
-  THE USE, ACCURACY, COMPLETENESS, OR USEFULNESS OR ANY INFORMATION, \n\
-  APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS THAT ITS \n\
-  USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS. This notice, including this \n\
-  sentence, must appear on any copies of this computer software.')
+  print("""  
+  NOTICE: This computer software was prepared by Battelle Energy
+  Alliance, LLC, hereinafter the Contractor, under Contract
+  No. DE-AC07-05ID14517 with the United States (U.S.)  Department of
+  Energy (DOE). All rights in the computer software are reserved by
+  DOE on behalf of the United States Government and, if applicable,
+  the Contractor as provided in the Contract. You are authorized to
+  use this computer software for Governmental purposes but it is not
+  to be released or distributed to the public. NEITHER THE UNITED
+  STATES GOVERNMENT, NOR DOE, NOR THE CONTRACTOR MAKE ANY WARRANTY,
+  EXPRESSED OR IMPLIED, OR ASSUMES ANY LIABILITY OR RESPONSIBILITY FOR
+  THE USE, ACCURACY, COMPLETENESS, OR USEFULNESS OR ANY INFORMATION,
+  APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE
+  WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS. This notice, including
+  this sentence, must appear on any copies of this computer software.
+  """)
 
 os.environ["MV2_ENABLE_AFFINITY"]="0"
 

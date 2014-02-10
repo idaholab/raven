@@ -329,8 +329,8 @@
 
    start_time = 0.0
  #  end_time = 80e6
-   end_time = 1
-   num_steps = 1000
+   end_time = 10
+   num_steps = 10000
 
   dtmax = 5e6
   dtmin = 1
