@@ -3,14 +3,16 @@
 #include "distribution.h"
 #include "DistributionContainer.h"
 #include "distribution_1D.h"
+#include "distribution_base_ND.h"
 %}
 %include "distribution.h"
 %include "DistributionContainer.h"
 %include "distribution_1D.h"
+%include "distribution_base_ND.h"
 
  /*
-swig -c++ -python -py3 -Iinclude/distributions/ -I../moose/include/utils/ control_modules/distribution1D.i 
-g++ -fPIC -c src/distributions/*.C control_modules/distribution1D_wrap.cxx -Iinclude/distributions/ -I/usr/include/python3.2mu/
+swig -c++ -python -py3 -Iinclude/distributions/ -Iinclude/base/ -I../moose/include/utils/ control_modules/distribution1D.i 
+g++ -fPIC -c src/distributions/*.C control_modules/distribution1D_wrap.cxx -Iinclude/distributions/ -Iinclude/utilities/ -I/usr/include/python3.2mu/
 g++ -shared *.o -o control_modules/_distribution1D.so
 PYTHONPATH=control_modules/ python3
 import distribution1D

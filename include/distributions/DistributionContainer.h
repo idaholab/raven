@@ -14,6 +14,7 @@
 #include <vector>
 #include <map>
 #include "distribution.h"
+//#include "distribution_base_ND.h"
 //#include "Interpolation_Functions.h"
 //#include <MooseRandom.h>
 //#include <boost/random/mersenne_twister.hpp>
@@ -31,11 +32,12 @@ class DistributionContainer{
       * @
       * @
       */
-     void addDistributionInContainer(const std::string & type, const std::string & name, BasicDistribution * dist); 
+     void addDistributionInContainer(const std::string & type, const std::string & name, BasicDistribution * dist);
+     void addDistributionInContainerND(const std::string & type, const std::string & name, BasicDistributionND * dist);
 
      void seedRandom(unsigned int seed);
 
-     bool isEmpty(){return _dist_by_name.empty();};
+     bool isEmpty(){return _dist_by_name.empty() and _dist_nd_by_name.empty();};
      /*
       * Function to get the enum of the distribution called DistAlias
       * @ DistAlias, alias of the distribution from which retrieving the parameter
@@ -54,6 +56,9 @@ class DistributionContainer{
 
      double Pdf(char * DistAlias, double x);
      double Pdf(std::string DistAlias, double x);     // return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
+     double Pdf(char * DistAlias, std::vector<double> x);
+     double Pdf(std::string DistAlias, std::vector<double> x);     // return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
+
      /*
       * Function to get the cdf value of the distribution called "DistAlias"
       * as function of the position x within [_xMin , xMax]
@@ -62,6 +67,9 @@ class DistributionContainer{
       */
      double Cdf(char * DistAlias, double x);
      double Cdf(std::string DistAlias, double x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
+     double Cdf(char * DistAlias, std::vector<double> x);
+     double Cdf(std::string DistAlias, std::vector<double> x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
+
      /*
       * Function to get a random number distributed accordingly to the distribution
       * given a random number [0,1]
@@ -79,12 +87,15 @@ class DistributionContainer{
      /* the inverseCdf functions are just another name for randGen */
      double inverseCdf(std::string DistAlias, double RNG);
      double inverseCdf(char * DistAlias, double RNG);
+     double inverseCdf(std::string DistAlias, std::vector<double> RNG);
+     double inverseCdf(char * DistAlias, std::vector<double> RNG);
 
      double random(); // return a random number
 
      bool checkCdf(std::string DistAlias, double value);
-
      bool checkCdf(char * DistAlias, double value);
+     bool checkCdf(std::string DistAlias, std::vector<double> value);
+     bool checkCdf(char * DistAlias, std::vector<double> value);
 
      bool getTriggerStatus(std::string DistAlias);
 
@@ -98,11 +109,13 @@ class DistributionContainer{
 
      protected:
      std::map < std::string, int > _vector_pos_map;
-     std::vector < BasicDistribution * > _distribution_cont;
+     //std::vector < BasicDistribution * > _distribution_cont;
      /// mapping from distribution name and distribution
      std::map<std::string, BasicDistribution *> _dist_by_name;
+     /// mapping from distributionND name and distribution
+     std::map<std::string, BasicDistributionND *> _dist_nd_by_name;
      /// "Buckets" of distribution based on their types
-     std::map<std::string, std::vector<BasicDistribution *> > _dist_by_type;
+     //  std::map<std::string, std::vector<BasicDistribution *> > _dist_by_type;
      std::map<std::string, bool> _dist_by_trigger_status;
      std::string _last_dist_triggered;
      bool _at_least_a_dist_triggered;

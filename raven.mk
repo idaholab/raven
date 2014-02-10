@@ -81,21 +81,26 @@ $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/exec
 ifeq ($(UNAME),Darwin)
 DISTRIBUTION_KLUDGE=$(RAVEN_LIB) 
 else
-DISTRIBUTION_KLUDGE=$(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix)
+DISTRIBUTION_KLUDGE=$(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix) $(RAVEN_DIR)/src/base/RavenObject.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distribution_base_ND.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix)
 endif
 
 $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/distribution1D.i \
                                                  $(RAVEN_DIR)/src/distributions/distribution_1D.C \
+                                                 $(RAVEN_DIR)/src/distributions/distribution_base_ND.C \
                                                  $(RAVEN_DIR)/src/distributions/DistributionContainer.C \
                                                  $(RAVEN_DIR)/src/distributions/distributionFunctions.C \
+                                                 $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.C \
+                                                 $(RAVEN_DIR)/src/utilities/NDspline.C \
+                                                 $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.C \
+                                                 $(RAVEN_DIR)/src/utilities/MDreader.C \
                                                  $(RAVEN_DIR)/src/distributions/distribution.C $(RAVEN_LIB)
 # Swig
-	swig -c++ -python -py3  -I$(RAVEN_DIR)/include/distributions/  \
+	swig -c++ -python -py3  -I$(RAVEN_DIR)/include/distributions/  -Iinclude/base/ -Iinclude/utilities/ \
           $(RAVEN_MODULES)/distribution1D.i
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
 	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON_INCLUDE)\
-         -I$(RAVEN_DIR)/include/distributions/ \
+         -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ \
 	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1D_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
