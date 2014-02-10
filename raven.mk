@@ -90,6 +90,7 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
                                                  $(RAVEN_DIR)/src/distributions/DistributionContainer.C \
                                                  $(RAVEN_DIR)/src/distributions/distributionFunctions.C \
                                                  $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.C \
+                                                 $(RAVEN_DIR)/src/utilities/microSphere.C \
                                                  $(RAVEN_DIR)/src/utilities/NDspline.C \
                                                  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.C \
                                                  $(RAVEN_DIR)/src/utilities/MDreader.C \
@@ -102,7 +103,7 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
 	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON_INCLUDE)\
          -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ \
 	 -c  $(RAVEN_MODULES)/distribution1D_wrap.cxx -o $(RAVEN_DIR)/control_modules/distribution1D_wrap.lo
-	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
+	libtool --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
 	-shared -o $(RAVEN_MODULES)/libdistribution1D.la $(PYTHON_LIB) $(RAVEN_MODULES)/distribution1D_wrap.lo $(DISTRIBUTION_KLUDGE) -rpath $(RAVEN_MODULES)
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_MODULES)/libdistribution1D.la  $(RAVEN_MODULES)/libdistribution1D.la 

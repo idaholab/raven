@@ -26,6 +26,9 @@ $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix): $(RAVEN_DIR
 $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix): $(RAVEN_DIR)/src/utilities/NDspline.C
 	$(DISTRIBUTION_COMPILE_COMMAND)
 
+$(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix): $(RAVEN_DIR)/src/utilities/microSphere.C
+	$(DISTRIBUTION_COMPILE_COMMAND)
+
 $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix): $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.C
 	$(DISTRIBUTION_COMPILE_COMMAND)
 
@@ -39,6 +42,7 @@ $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so : $(RAVEN_DIR)/python_modules/
                                                  $(RAVEN_DIR)/src/distributions/distribution_base_ND.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) 
@@ -52,20 +56,21 @@ $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so : $(RAVEN_DIR)/python_modules/
 	 -c  $(RAVEN_PMODULES)/distribution1Dpy2_wrap.cxx -o $(RAVEN_DIR)/python_modules/distribution1Dpy2_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
-	-shared -o $(RAVEN_PMODULES)/libdistribution1Dpy2.la $(PYTHON2_LIB) $(RAVEN_PMODULES)/distribution1Dpy2_wrap.lo $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distribution_base_ND.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) -rpath $(RAVEN_PMODULES)
+	-shared -o $(RAVEN_PMODULES)/libdistribution1Dpy2.la $(PYTHON2_LIB) $(RAVEN_PMODULES)/distribution1Dpy2_wrap.lo $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distribution_base_ND.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) $(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix) $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) -rpath $(RAVEN_PMODULES)
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_PMODULES)/libdistribution1Dpy2.la  $(RAVEN_PMODULES)/libdistribution1Dpy2.la 
 	rm -f $(RAVEN_PMODULES)/_distribution1Dpy2.so
 	ln -s libdistribution1Dpy2.$(raven_shared_ext) $(RAVEN_PMODULES)/_distribution1Dpy2.so
 
 $(RAVEN_DIR)/python_modules/_distribution1Dpy3.so : $(RAVEN_DIR)/python_modules/distribution1Dpy3.i \
                                                  $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/distributions/distribution_base_ND.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) \
-                                                 $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) \
-                                                 $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) 
 # Swig
 	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/distributions/  \
@@ -77,7 +82,7 @@ $(RAVEN_DIR)/python_modules/_distribution1Dpy3.so : $(RAVEN_DIR)/python_modules/
 	 -c  $(RAVEN_PMODULES)/distribution1Dpy3_wrap.cxx -o $(RAVEN_DIR)/python_modules/distribution1Dpy3_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
-	-shared -o $(RAVEN_PMODULES)/libdistribution1Dpy3.la $(PYTHON_LIB) $(RAVEN_PMODULES)/distribution1Dpy3_wrap.lo $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distribution_base_ND.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) -rpath $(RAVEN_PMODULES)
+	-shared -o $(RAVEN_PMODULES)/libdistribution1Dpy3.la $(PYTHON_LIB) $(RAVEN_PMODULES)/distribution1Dpy3_wrap.lo $(RAVEN_DIR)/src/distributions/distribution_1D.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distributionFunctions.$(obj-suffix)  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix) $(RAVEN_DIR)/src/distributions/distribution_base_ND.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) $(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix) $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) -rpath $(RAVEN_PMODULES)
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_PMODULES)/libdistribution1Dpy3.la  $(RAVEN_PMODULES)/libdistribution1Dpy3.la 
 	rm -f $(RAVEN_PMODULES)/_distribution1Dpy3.so
 	ln -s libdistribution1Dpy3.$(raven_shared_ext) $(RAVEN_PMODULES)/_distribution1Dpy3.so
