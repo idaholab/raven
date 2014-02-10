@@ -1,0 +1,237 @@
+%
+% This is an example LaTeX file which uses the SANDreport class file.
+% It shows how a SAND report should be formatted, what sections and
+% elements it should contain, and how to use the SANDreport class.
+% It uses the LaTeX article class, but not the strict option.
+% It uses .eps logos and files to show how pdflatex can be used
+%
+% Get the latest version of the class file and more at
+%    http://www.cs.sandia.gov/~rolf/SANDreport
+%
+% This file and the SANDreport.cls file are based on information
+% contained in "Guide to Preparing {SAND} Reports", Sand98-0730, edited
+% by Tamara K. Locke, and the newer "Guide to Preparing SAND Reports and
+% Other Communication Products", SAND2002-2068P.
+% Please send corrections and suggestions for improvements to
+% Rolf Riesen, Org. 9223, MS 1110, rolf@cs.sandia.gov
+%
+\documentclass[pdf,ps2pdf,12pt]{INLreport}
+% pslatex is really old (1994).  It attempts to merge the times and mathptm packages.
+% My opinion is that it produces a really bad looking math font.  So why are we using it?
+% If you just want to change the text font, you should just \usepackage{times}.
+% \usepackage{pslatex}
+\usepackage{times}
+\usepackage[FIGBOTCAP,normal,bf,tight]{subfigure}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{pifont}
+%\usepackage[dvips,light,first,bottomafter]{draftcopy}
+%\draftcopyName{Sample, contains no OUO}{70}
+%\draftcopyName{Draft}{300}
+
+% The bm package provides \bm for bold math fonts.  Apparently
+% \boldsymbol, which I used to always use, is now considered
+% obsolete.  Also, \boldsymbol doesn't even seem to work with
+% the fonts used in this particular document...
+\usepackage{bm}
+
+% Define tensors to be in bold math font.
+\newcommand{\tensor}[1]{{\bm{#1}}}
+
+% Override the formatting used by \vec.  Instead of a little arrow
+% over the letter, this creates a bold character.
+\renewcommand{\vec}{\bm}
+
+% Define unit vector notation.  If you don't override the
+% behavior of \vec, you probably want to use the second one.
+\newcommand{\unit}[1]{\hat{\bm{#1}}}
+% \newcommand{\unit}[1]{\hat{#1}}
+
+% Use this to refer to a single component of a unit vector.
+\newcommand{\scalarunit}[1]{\hat{#1}}
+
+% \toprule, \midrule, \bottomrule for tables
+\usepackage{booktabs}
+
+% \llbracket, \rrbracket
+\usepackage{stmaryrd}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+% Compress lists of citations like [33,34,35,36,37] to [33-37]
+\usepackage{cite}
+
+% If you want to relax some of the SAND98-0730 requirements, use the "relax"
+% option. It adds spaces and boldface in the table of contents, and does not
+% force the page layout sizes.
+% e.g. \documentclass[relax,12pt]{SANDreport}
+%
+% You can also use the "strict" option, which applies even more of the
+% SAND98-0730 guidelines. It gets rid of section numbers which are often
+% useful; e.g. \documentclass[strict]{SANDreport}
+
+% The INLreport class uses \flushbottom formatting by default (since
+% it's intended to be two-sided document).  \flushbottom causes
+% additional space to be inserted both before and after paragraphs so
+% that no matter how much text is actually available, it fills up the
+% page from top to bottom.  My feeling is that \raggedbottom looks much
+% better, primarily because most people will view the report
+% electronically and not in a two-sided printed format where some argue
+% \raggedbottom looks worse.  If we really want to have the original
+% behavior, we can comment out this line...
+\raggedbottom
+\setcounter{secnumdepth}{5} % show 5 levels of subsection
+\setcounter{tocdepth}{5} % include 5 levels of subsection in table of contents
+
+% ---------------------------------------------------------------------------- %
+%
+% Set the title, author, and date
+%
+    \title{RAVEN User Manual}
+
+    \author{%
+      RAVEN team
+    }
+
+    % There is a "Printed" date on the title page of a SAND report, so
+    % the generic \date should generally be empty.
+    \date{}
+
+
+% ---------------------------------------------------------------------------- %
+% Set some things we need for SAND reports. These are mandatory
+%
+\SANDnum{INL/EXT-14-xxxxx}
+\SANDprintDate{February 2014}
+\SANDauthor{ }
+
+
+% ---------------------------------------------------------------------------- %
+% Include the markings required for your SAND report. The default is "Unlimited
+% Release". You may have to edit the file included here, or create your own
+% (see the examples provided).
+%
+% \include{MarkOUO} % Not needed for unlimted release reports
+
+\def\component#1{\texttt{#1}}
+
+% ---------------------------------------------------------------------------- %
+\newcommand{\systemtau}{\tensor{\tau}_{\!\text{SUPG}}}
+
+% ---------------------------------------------------------------------------- %
+%
+% Start the document
+%
+\begin{document}
+    \maketitle
+
+    % ------------------------------------------------------------------------ %
+    % An Abstract is required for SAND reports
+    %
+%    \begin{abstract}
+%    \input abstract
+%    \end{abstract}
+
+
+    % ------------------------------------------------------------------------ %
+    % An Acknowledgement section is optional but important, if someone made
+    % contributions or helped beyond the normal part of a work assignment.
+    % Use \section* since we don't want it in the table of context
+    %
+%    \clearpage
+%    \section*{Acknowledgment}
+%	Thanks to Ron Weasly for valuable discussions and helping
+%	us finding new uses of magic.
+%
+%	The format of this report is based on information found
+%	in~\cite{Sand98-0730}.
+
+
+    % ------------------------------------------------------------------------ %
+    % The table of contents and list of figures and tables
+    % Comment out \listoffigures and \listoftables if there are no
+    % figures or tables. Make sure this starts on an odd numbered page
+    %
+    \cleardoublepage		% TOC needs to start on an odd page
+    \tableofcontents
+    \listoffigures
+    \listoftables
+
+
+    % ---------------------------------------------------------------------- %
+    % An optional preface or Foreword
+%    \clearpage
+%    \section*{Preface}
+%    \addcontentsline{toc}{section}{Preface}
+%	Although muggles usually have only limited experience with
+%	magic, and many even dispute its existence, it is worthwhile
+%	to be open minded and explore the possibilities.
+
+
+    % ---------------------------------------------------------------------- %
+    % An optional executive summary
+    \clearpage
+    \section*{Summary}
+    \addcontentsline{toc}{section}{Summary}
+    \input{Summary.tex}
+%	Once a certain level of mistrust and skepticism has
+%	been overcome, magic finds many uses in todays science
+%	and engineering. In this report we explain some of the
+%	fundamental spells and instruments of magic and wizardry. We
+%	then conclude with a few examples on how they can be used
+%	in daily activities at national Laboratories.
+
+
+    % ---------------------------------------------------------------------- %
+    % An optional glossary. We don't want it to be numbered
+%    \clearpage
+%    \section*{Nomenclature}
+%    \addcontentsline{toc}{section}{Nomenclature}
+%    \begin{description}
+%	   \item[alohomoral]
+%	    spell to open locked doors and containers
+%	   \item[leviosa]
+%	    spell to levitate objects
+%    \item[remembrall]
+%	    device to alert you that you have forgotten something
+%    \item[wand]
+%	    device to execute spells
+%    \end{description}
+
+
+    % ---------------------------------------------------------------------- %
+    % This is where the body of the report begins; usually with an Introduction
+    %
+    \SANDmain		% Start the main part of the report
+
+\input{introduction.tex}
+\input{OutStreamSystem.tex}
+
+    % ---------------------------------------------------------------------- %
+    % References
+    %
+    \clearpage
+    % If hyperref is included, then \phantomsection is already defined.
+    % If not, we need to define it.
+    \providecommand*{\phantomsection}{}
+    \phantomsection
+    \addcontentsline{toc}{section}{References}
+    \bibliographystyle{ieeetr}
+    \bibliography{raven_user_manual.bib}
+
+
+    % ---------------------------------------------------------------------- %
+    %
+
+    % \printindex
+
+    %\include{distribution}
+
+\end{document}
