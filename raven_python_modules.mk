@@ -86,3 +86,65 @@ $(RAVEN_DIR)/python_modules/_distribution1Dpy3.so : $(RAVEN_DIR)/python_modules/
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_PMODULES)/libdistribution1Dpy3.la  $(RAVEN_PMODULES)/libdistribution1Dpy3.la 
 	rm -f $(RAVEN_PMODULES)/_distribution1Dpy3.so
 	ln -s libdistribution1Dpy3.$(raven_shared_ext) $(RAVEN_PMODULES)/_distribution1Dpy3.so
+
+######## Swig-ing ND_Interpolation_only
+
+NDINTERPOLATION_COMPILE_COMMAND=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet \
+          $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) -I$(RAVEN_LIB_INCLUDE_DIR) -I$(RAVEN_DIR)/include/utilities/  -MMD -MF $@.d -MT $@ -c $< -o $@
+
+#$(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix): $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.C
+#	$(NDINTERPOLATION_COMPILE_COMMAND)
+
+#$(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix): $(RAVEN_DIR)/src/utilities/NDspline.C
+#	$(NDINTERPOLATION_COMPILE_COMMAND)
+
+#$(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix): $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.C
+#	$(NDINTERPOLATION_COMPILE_COMMAND)
+
+#$(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix): $(RAVEN_DIR)/src/utilities/MDreader.C
+#	$(NDINTERPOLATION_COMPILE_COMMAND)
+
+$(RAVEN_DIR)/python_modules/_interpolationNDpy2.so : $(RAVEN_DIR)/python_modules/interpolationNDpy2.i \
+                                                 $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) 
+# Swig
+	swig -c++ -python  -I$(RAVEN_DIR)/include/utilities/  \
+          $(RAVEN_PMODULES)/interpolationNDpy2.i
+# Compile
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON2_INCLUDE)\
+         -I$(RAVEN_DIR)/include/utilities/ \
+	 -c  $(RAVEN_PMODULES)/interpolationNDpy2_wrap.cxx -o $(RAVEN_DIR)/python_modules/interpolationNDpy2_wrap.lo
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
+	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
+	-shared -o $(RAVEN_PMODULES)/libinterpolationNDpy2.la $(PYTHON2_LIB) $(RAVEN_PMODULES)/interpolationNDpy2_wrap.lo $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) $(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix) $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) -rpath $(RAVEN_PMODULES)
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_PMODULES)/libinterpolationNDpy2.la  $(RAVEN_PMODULES)/libinterpolationNDpy2.la 
+	rm -f $(RAVEN_PMODULES)/_interpolationNDpy2.so
+	ln -s libinterpolationNDpy2.$(raven_shared_ext) $(RAVEN_PMODULES)/_interpolationNDpy2.so
+
+$(RAVEN_DIR)/python_modules/_interpolationNDpy3.so : $(RAVEN_DIR)/python_modules/interpolationNDpy3.i \
+                                                 $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix) \
+                                                 $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) 
+# Swig
+	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/utilities/  \
+          $(RAVEN_PMODULES)/interpolationNDpy3.i
+# Compile
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
+	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON_INCLUDE)\
+         -I$(RAVEN_DIR)/include/utilities/ \
+	 -c  $(RAVEN_PMODULES)/interpolationNDpy3_wrap.cxx -o $(RAVEN_DIR)/python_modules/interpolationNDpy3_wrap.lo
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
+	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
+	-shared -o $(RAVEN_PMODULES)/libinterpolationNDpy3.la $(PYTHON_LIB) $(RAVEN_PMODULES)/interpolationNDpy3_wrap.lo $(RAVEN_DIR)/src/utilities/ND_Interpolation_Functions.$(obj-suffix) $(RAVEN_DIR)/src/utilities/microSphere.$(obj-suffix) $(RAVEN_DIR)/src/utilities/NDspline.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/inverseDistanceWeigthing.$(obj-suffix)  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) -rpath $(RAVEN_PMODULES)
+	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=install install -c $(RAVEN_PMODULES)/libinterpolationNDpy3.la  $(RAVEN_PMODULES)/libinterpolationNDpy3.la 
+	rm -f $(RAVEN_PMODULES)/_interpolationNDpy3.so
+	ln -s libinterpolationNDpy3.$(raven_shared_ext) $(RAVEN_PMODULES)/_interpolationNDpy3.so
+
+
+

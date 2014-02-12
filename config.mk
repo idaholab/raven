@@ -19,7 +19,7 @@ ifeq ($(findstring SWIG Version 2,$(SWIG_VERSION)),)
 	PYTHON_MODULES = 
 else
 	CONTROL_MODULES = $(RAVEN_DIR)/control_modules/_distribution1D.so $(RAVEN_DIR)/control_modules/_raventools.so 
-	PYTHON_MODULES = $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so $(RAVEN_DIR)/python_modules/_distribution1Dpy3.so
+	PYTHON_MODULES = $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so $(RAVEN_DIR)/python_modules/_distribution1Dpy3.so $(RAVEN_DIR)/python_modules/_interpolationNDpy2.so $(RAVEN_DIR)/python_modules/_interpolationNDpy3.so
 endif
 
 else
@@ -41,7 +41,7 @@ else
 	PYTHON_INCLUDE = -DNO_PYTHON3_FOR_YOU
 	PYTHON_LIB = -DNO_PYTHON3_FOR_YOU
 	CONTROL_MODULES = 
-	PYTHON_MODULES = $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so
+	PYTHON_MODULES = $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so $(RAVEN_DIR)/python_modules/_interpolationNDpy2.so
 endif
 endif
 
