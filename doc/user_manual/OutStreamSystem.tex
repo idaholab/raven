@@ -1,20 +1,209 @@
-\section{Outstream system}
-The PRA and UQ framework provides the capabilities to visualize and dump out the data that are  generated, imported (from a system code) and post-processed during the analysis. These capabilities are contained in the "OutStream" system. Actually, two different Out-stream types are available:
+\section{OutStream system}
+The PRA and UQ framework provides the capabilities to visualize and dump out the data that are  generated, imported (from a system code) and post-processed during the analysis. These capabilities are contained in the "OutStream" system. Actually, two different OutStream types are available:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item Plot, module, based on MatPlotLib~\cite{MatPlotLib}, aimed to provide advanced plotting capabilities 
 \item Print, module that lets the user dump the data contained in the internal objects 
+\item Plot, module, based on MatPlotLib~\cite{MatPlotLib}, aimed to provide advanced plotting capabilities 
 \end{itemize}
 \vspace{-5mm}
-As already mentioned [put reference to the xml input section], the RAVEN framework input is based on the Extensible Markup Language (XML) format. 
-\\In order to input one or more OutStream  
 
+Both the types listed above only accept as ``input'' a \textit{Data} object type. This choice has been taken since the ``\textit{Datas}'' system (see section~\ref{sec:Datas}) has the main advantages, among the others, of ensuring a standardized approach for exchanging the data/meta-data among the different framework entities. Every module can project its outcomes into a \textit{Data} object. This provides, to the user, the capability to visualize/dump all the modules' results. 
+As already mentioned [put reference to the xml input section], the RAVEN framework input is based on the \textbf{E}xtensible \textbf{M}arkup \textbf{L}anguage (\textbf{XML}) format. Thus, in order to activate the ``\textit{OutStream}'' system, the input needs to contain a block identified by the ``\textbf{$<OutStreamManager>$}'' tag (as shown below).  
+
+\begin{lstlisting}[style=XML]
+-----------------------------------------------------------
+<OutStreamManager>
+    <!-- "OutStream" objects that need to be created-->
+</OutStreamManager>
+-----------------------------------------------------------
+\end{lstlisting}
+In the ``OutStreamManager'' block an unlimited number of ``Plot'' and ``Print'' sub-blocks can be inputted. The input specifications and the main capabilities for both types are reported in the following sections.
+%%%%%%%%%
+%
+% PRINTING SYSTEM
+%
+%%%%%%%%%
+\subsection{Printing system \label{sec:printing}}
+The Printing system has been created in order to let the user dump  the data, contained in the internal data objects (see [reference to Data(s) section]), out at anytime during the calculation. Currently, the only available output is a \textbf{C}omma \textbf{S}eparated \textbf{V}alue (\textbf{CSV}) file. In the near future, an XML formatted file option will be available. This will facilitate  the exchanging of results and provide the possibility to dump the solution of an analysis and "restart" another one constructing a \textit{Data} from scratch.
+The XML code, that is reported below, shows different ways to request a \textit{Print} OutStream. The user needs to provide a name for each sub-block (XML attribute). These names are then used in the \textit{Steps'} blocks in order to activate the Printing options at anytime.
+As shown in the examples below, every \textit{Print} block must contain, at least, the two required tags:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item $<type>$, the output file type (csv or xml). \textit{Note, only \textbf{csv} is currently available}
+\item $<source>$, the \textit{Data} name (one of the \textit{Data} defined in the ``\textit{Datas}'' block)
+\end{itemize}
+\vspace{-5mm}
+If only these two tags are provided (as in the ``first-example'' below), the output file will be filled with the whole content of the ``d-name'' \textit{Data}. 
+\begin{lstlisting}[style=XML]
+-----------------------------------------------------------
+<OutStreamManager>
+  <Print name='first_example'>
+    <type>csv</type>
+    <source>d-name</source>
+  </Print>
+  <Print name='second-example'>
+    <type>csv</type>
+    <source>d-name</source>
+    <variables>Output</variables>
+  </Print>
+  <Print name='third-example'>
+    <type>csv</type>
+    <source>d-name</source>
+    <variables>Input</variables>
+  </Print>
+  <Print name='forth-example'>
+    <type>csv</type>
+    <source>d-name</source>
+    <variables>Input|var-name-in,Output|var-name-out</variables>
+  </Print>
+</OutStreamManager>
+-----------------------------------------------------------
+\end{lstlisting}
+If just few parts of the $<source>$ are important for a particular analysis, the additional XML tag $<variables>$ can be provided. In this block, the variables that need to be dumped must be inputted, in a comma separated format. The available options, for the $<variables>$ sub-block, are listed below:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{Output}, the output space will be dumped out (see ``second-example'')
+\item \textbf{Input}, the input space will be dumped out (see ``third-example'')
+\item \textbf{Input|var-name-in/Output|var-name-out}, only the particular variables ``var-name-in'' and ``var-name-out'' will be reported in the output file (see ``forth-example'')
+\end{itemize}
+\vspace{-5mm}
+Note that all the XML tags are case-sensitive but not their content. 
+%%%%%%%%%
+%
+% PLOTTING SYSTEM
+%
+%%%%%%%%%
 \subsection{Plotting system \label{sec:plotting}}
-Plotting
+The Plotting system provides all the capabilities to visualize the analysis outcomes, in real-time or at the post-processing stage. The system is based on the  Python library MatPlotLib~\cite{MatPlotLib}. MatPlotLib is a  2D/3D plotting library which produces publication quality figures in a variety of hardcopy formats and interactive environments across platforms. This external tool has been wrapped in the RAVEN framework, and is usable by the user. Since it was unfeasible to support, in the source code, all the interfaces for all the available plot types, the RAVEN Plotting system directly provide a formatted input structure for 11 different plot types (2D/3D). The user may request a plot not present among the supported ones, since the RAVEN Plotting system has the capability to construct on the fly the interface for a Plot, based on XML instructions. This capability will be discussed in the sub-section~\ref{sec:Interpretedplotting}.
+%%%%%%%%%%%%%
+% Plot Input Strucutre sub-sub-section 
+%%%%%%%%%%%%%
+\subsubsection{The Plot input structure \label{sec:PlotInputStructure}}
+In order to create a plot, the user needs to add, within the $<OutStreamManager>$ block,  a $<Plot>$ sub-block. As for the \textit{Print}  OutStream, the user needs to specify a name as attribute of the plot. This name will then be used to request the plot in the \textit{Steps'} block. In addition, the Plot block may need the following attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{dim}, \textit{required integer attribute}, define the dimensionality of the plot: 2 (2D) or 3 (3D)
+\item \textbf{interactive}, \textit{optional bool attribute (default=False)'}, specify if the Plot needs to be interactively created (real-time screen visualization)
+\item \textbf{overwrite}, \textit{optional bool attribute (default=False)'}, if the plot needs to be dumped into picture file/s, does the code need to overwrite them every time a new plot (with the same name) is requested?
+\end{itemize}
+\vspace{-5mm}
 
-\subsection{Printing \label{sec:printing}}
-Printing
+As shown, in the XML input example below, the body of the Plot XML input contains two main sub-nodes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item$<actions>$, where general control options for the figure layout are defined (see [])
+\item $<plot\_settings>$, where the actual plot options are provided
+\vspace{-5mm}
+\end{itemize}
+The input in the $<actions>$ sub-node is common to all the Plot types, since, in it, the user specify all the controls that need to be applied to the figure style. In the following list, all the predefined ``actions'' are reported:
+ \vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item $<how>$, comma separated list of output type:
+     \begin{itemize}
+        \item \textit{screen}, show the figure on the screen in interactive mode
+        \item \textit{pdf}, save the figure as a Portable Document Format file (PDF)
+        \item \textit{png}, save the figure as a Portable Network Graphics file (PNG)
+        \item \textit{eps}, save the figure as a Encapsulated Postscript file (EPS)
+        \item \textit{pgf}, save the figure as a LaTeX PGF Figure file (PGF)
+        \item \textit{pgf}, save the figure as a Postscript file (PS)
+        \item \textit{gif}, save the figure as a Graphics Interchange Format (GIF)
+        \item \textit{svg}, save the figure as a Scalable Vector Graphics file (SVG)
+        \item \textit{jpeg}, save the figure as a jpeg file (JPEG)
+        \item \textit{raw}, save the figure as a Raw RGBA bitmap file (RAW)
+        \item \textit{bmp}, save the figure as a Windows bitmap file (BMP)
+        \item \textit{tiff}, save the figure as a Tagged Image Format  file (TIFF)
+        \item \textit{svgz}, save the figure as a Scalable Vector Graphics file (SVGZ)
+      \end{itemize}
+\item $<title>$, as the name suggests , within this block the user can specify the title of the figure. In the body, few other keywords (required and not) are present:
+ \begin{itemize}
+        \item \textit{$<text>$}, the string type title
+        \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.title'' method in~\cite{MatPlotLib}.
+      \end{itemize}
+\item $<label\_format>$, where the actual plot options are provided
+\item $<figure\_properties>$, where the actual plot options are provided
+\item $<range>$, where the actual plot options are provided
+\item $<camera>$, where the actual plot options are provided
+\item $<label\_format>$, where the actual plot options are provided
+\item $<add\_text>$, where the actual plot options are provided
+\item $<autoscale>$, where the actual plot options are provided
+
+\item $<horizontal\_line>$, where the actual plot options are provided
+\item $<vertical\_line>$, where the actual plot options are provided
+\item $<horizontal\_rectangle>$, where the actual plot options are provided
+\item $<vertical\_rectangle>$, where the actual plot options are provided
+\item $<axes\_box>$, where the actual plot options are provided
+\item $<axis\_properties>$, where the actual plot options are provided
+\item $<grid>$, where the actual plot options are provided
+
+\vspace{-5mm}
+\end{itemize}
+
+
+
+
+
+\subsubsection{Predefined Plotting System: 2D/3D \label{sec:2Dplotting}}
+As already mentioned above, the Plotting system provides specialized input structure for 11 different plot types. 
+\begin{lstlisting}[style=XML]
+-----------------------------------------------------------
+<OutStreamManager>
+  <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
+    <actions>
+      <how>pdf,png,eps</how>
+      <title>
+        <text> </text>
+      </title>
+    </actions>
+    <plot_settings>
+       <plot>
+        <type>line</type>
+        <x>stories|Output|time</x>
+        <y>stories|Output|pipe1_Hw</y> 
+        <kwargs>
+         <color>green</color>
+         <label>pipe1-Hw</label>
+        </kwargs>
+      </plot>
+       <plot>
+        <type>line</type>
+        <x>stories|Output|time</x>
+        <y>stories|Output|pipe1_aw</y> 
+        <kwargs>
+         <color>blue</color>
+         <label>pipe1-aw</label>
+        </kwargs>
+      </plot>
+      <xlabel>time [s]</xlabel>
+      <ylabel>evolution</ylabel>
+    </plot_settings>
+  </Plot>
+</OutStreamManager>
+-----------------------------------------------------------
+\end{lstlisting}
+
+\subsubsection{Interpreted Plotting instruction \label{sec:Interpretedplotting}}
+
+
+
+
+
+
+
 
 
 
