@@ -5,6 +5,7 @@
 #include "distribution_1D.h"
 #include "distribution_base_ND.h"
 %}
+%include "std_vector.i"
 %include "distribution.h"
 %include "DistributionContainer.h"
 %include "distribution_1D.h"
