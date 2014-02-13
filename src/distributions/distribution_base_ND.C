@@ -24,13 +24,13 @@ BasicDistributionND::~BasicDistributionND()
 double
 BasicDistributionND::Pdf(std::vector<double> x)
 {
-  return _interpolator.interpolateAt(x);
+  return -1.0;
 }
 
 double
 BasicDistributionND::Cdf(std::vector<double> x)
 {
-  return _interpolator.interpolateAt(x);
+  return -1.0;
 }
 
 double
@@ -99,7 +99,7 @@ double DistributionCdf(BasicDistributionND & dist, std::vector<double> & x)
 double
 DistributionInverseCdf(BasicDistributionND & dist, std::vector<double> & x){
   //double standardRNG = dist.InverseCdf(x);
-  return -1.0;
+  return dist.InverseCdf(x);
 }
 
 

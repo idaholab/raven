@@ -56,9 +56,11 @@ InputParameters validParams<MultiDimensionalInverseWeight>(){
 }
 
 MultiDimensionalInverseWeight::MultiDimensionalInverseWeight(const std::string & name, InputParameters parameters):
-    distributionND(name,parameters)
+    distributionND(name,parameters),
+    _interpolator(inverseDistanceWeigthing(_data_filename,getParam<double>("p")))
 {
-  _interpolator = inverseDistanceWeigthing(_data_filename,getParam<double>("p"));
+  //_interpolator = dynamic_cast<ND_Interpolation *>(inverseDistanceWeigthing(_data_filename,getParam<double>("p")));
+  //_interpolator = inverseDistanceWeigthing(_data_filename,getParam<double>("p"));
 }
 
 MultiDimensionalInverseWeight::~MultiDimensionalInverseWeight()
@@ -80,9 +82,11 @@ InputParameters validParams<MultiDimensionalScatteredMS>(){
 }
 
 MultiDimensionalScatteredMS::MultiDimensionalScatteredMS(const std::string & name, InputParameters parameters):
-    distributionND(name,parameters)
+    distributionND(name,parameters),
+    _interpolator(microSphere(_data_filename,getParam<double>("p"),getParam<int>("precision")))
 {
-  _interpolator = microSphere(_data_filename,getParam<double>("p"),getParam<int>("precision"));
+  //_interpolator = dynamic_cast<ND_Interpolation *>(microSphere(_data_filename,getParam<double>("p"),getParam<int>("precision")));
+  //_interpolator = microSphere(_data_filename,getParam<double>("p"),getParam<int>("precision"));
 }
 
 MultiDimensionalScatteredMS::~MultiDimensionalScatteredMS()
@@ -104,6 +108,7 @@ InputParameters validParams<MultiDimensionalCartesianSpline>(){
 MultiDimensionalCartesianSpline::MultiDimensionalCartesianSpline(const std::string & name, InputParameters parameters):
     distributionND(name,parameters)
 {
+  //_interpolator = dynamic_cast<ND_Interpolation *>(NDspline(_data_filename));
   _interpolator = NDspline(_data_filename);
 }
 

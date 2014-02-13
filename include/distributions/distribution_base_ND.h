@@ -24,10 +24,9 @@ public:
    double  getVariable(std::string & variableName);                   	///< getVariable from mapping
    //std::vector<double>  getVariableVector(std::string  variableName);
    void updateVariable(std::string & variableName, double & newValue);
-
-   double  Pdf(std::vector<double> x);
-   double  Cdf(std::vector<double> x);
-   double  InverseCdf(std::vector<double> x);
+   virtual double  Pdf(std::vector<double> x) = 0;                           ///< Pdf function at coordinate x
+   virtual double  Cdf(std::vector<double> x) = 0;                              ///< Cdf function at coordinate x
+   virtual double  InverseCdf(std::vector<double> x) = 0;
    std::string & getType();
 
 protected:
@@ -36,7 +35,6 @@ protected:
    PbFunctionType                _function_type;
    std::map <std::string,double> _dis_parameters;
    bool                          _checkStatus;
-   ND_Interpolation              _interpolator;
 };
 
 

@@ -307,7 +307,7 @@ DistributionContainer::Cdf(std::string DistAlias, double x){
 
 double
 DistributionContainer::Cdf(char * DistAlias, std::vector<double> x){
-   return Cdf(std::string(DistAlias),x);
+  return Cdf(std::string(DistAlias),x);
 }
 
 double
