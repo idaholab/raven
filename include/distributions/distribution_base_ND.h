@@ -41,6 +41,7 @@ class BasicMultiDimensionalInverseWeight: public virtual BasicDistributionND
 {
 public:
   BasicMultiDimensionalInverseWeight(std::string data_filename,double p): _interpolator(inverseDistanceWeigthing(data_filename,p)){};
+  BasicMultiDimensionalInverseWeight(double p): _interpolator(inverseDistanceWeigthing(p)){};
   virtual ~BasicMultiDimensionalInverseWeight(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
@@ -53,6 +54,7 @@ class BasicMultiDimensionalScatteredMS: public virtual BasicDistributionND
 {
 public:
   BasicMultiDimensionalScatteredMS(std::string data_filename,double p,int precision): _interpolator(microSphere(data_filename,p,precision)){};
+  BasicMultiDimensionalScatteredMS(double p,int precision): _interpolator(microSphere(p,precision)){};
   virtual ~BasicMultiDimensionalScatteredMS(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
@@ -65,6 +67,7 @@ class BasicMultiDimensionalCartesianSpline: public virtual BasicDistributionND
 {
 public:
   BasicMultiDimensionalCartesianSpline(std::string data_filename): _interpolator(NDspline(data_filename)){};
+  BasicMultiDimensionalCartesianSpline(): _interpolator(NDspline()){};
   virtual ~BasicMultiDimensionalCartesianSpline(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
