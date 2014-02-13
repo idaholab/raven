@@ -15,15 +15,13 @@
 #include "distribution_base_ND.h"
 #include "ND_Interpolation_Functions.h"
 
-
-//enum PbFunctionType {PDF,CDF};
-
 class distributionND;
 
 template<>
 InputParameters validParams<distributionND>();
 
 class distributionND : public RavenObject, public BasicDistributionND
+//class distributionND : public RavenObject
 {
  public:
    //> constructor for built-in distributions
@@ -31,7 +29,6 @@ class distributionND : public RavenObject, public BasicDistributionND
   virtual ~distributionND();
 
 };
-
 
 /*
  * CLASS MultiDimensionalInverseWeight DISTRIBUTION
@@ -41,16 +38,11 @@ class MultiDimensionalInverseWeight;
 template<>
 InputParameters validParams<MultiDimensionalInverseWeight>();
 
-
-class MultiDimensionalInverseWeight : public distributionND {
+class MultiDimensionalInverseWeight : public distributionND, public BasicMultiDimensionalInverseWeight {
 public:
   MultiDimensionalInverseWeight(const std::string & name, InputParameters parameters);
   virtual ~MultiDimensionalInverseWeight();
-  double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
-  double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
-  double  InverseCdf(std::vector<double> x){return -1.0;};
 protected:
-  inverseDistanceWeigthing _interpolator;
 };
 
 /*
@@ -62,16 +54,11 @@ class MultiDimensionalScatteredMS;
 template<>
 InputParameters validParams<MultiDimensionalScatteredMS>();
 
-
-class MultiDimensionalScatteredMS : public distributionND {
+class MultiDimensionalScatteredMS : public distributionND, public BasicMultiDimensionalScatteredMS {
 public:
   MultiDimensionalScatteredMS(const std::string & name, InputParameters parameters);
   virtual ~MultiDimensionalScatteredMS();
-  double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
-  double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
-  double  InverseCdf(std::vector<double> x){return -1.0;};
 protected:
-  microSphere _interpolator;
 };
 
 /*
@@ -83,15 +70,12 @@ template<>
 InputParameters validParams<MultiDimensionalCartesianSpline>();
 
 
-class MultiDimensionalCartesianSpline : public distributionND {
+class MultiDimensionalCartesianSpline : public distributionND, public BasicMultiDimensionalCartesianSpline {
 public:
   MultiDimensionalCartesianSpline(const std::string & name, InputParameters parameters);
-  virtual ~MultiDimensionalCartesianSpline();
-  double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
-  double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
-  double  InverseCdf(std::vector<double> x){return -1.0;};
+  virtual ~MultiDimensionalCartesianSpline();;
 protected:
-  NDspline _interpolator;
 };
+
 
 #endif

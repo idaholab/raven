@@ -47,12 +47,12 @@ $(RAVEN_DIR)/python_modules/_distribution1Dpy2.so : $(RAVEN_DIR)/python_modules/
                                                  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) 
 # Swig
-	swig -c++ -python  -I$(RAVEN_DIR)/include/distributions/  \
+	swig -c++ -python  -I$(RAVEN_DIR)/include/distributions/  -I$(RAVEN_DIR)/include/utilities/ \
           $(RAVEN_PMODULES)/distribution1Dpy2.i
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
 	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON2_INCLUDE)\
-         -I$(RAVEN_DIR)/include/distributions/ \
+         -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ \
 	 -c  $(RAVEN_PMODULES)/distribution1Dpy2_wrap.cxx -o $(RAVEN_DIR)/python_modules/distribution1Dpy2_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
@@ -73,12 +73,12 @@ $(RAVEN_DIR)/python_modules/_distribution1Dpy3.so : $(RAVEN_DIR)/python_modules/
                                                  $(RAVEN_DIR)/src/utilities/MDreader.$(obj-suffix) \
                                                  $(RAVEN_DIR)/src/distributions/distribution.$(obj-suffix) 
 # Swig
-	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/distributions/  \
+	swig -c++ -python -py3 -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ \
           $(RAVEN_PMODULES)/distribution1Dpy3.i
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
 	$(libmesh_CXX) $(libmesh_CPPFLAGS) $(PYTHON_INCLUDE)\
-         -I$(RAVEN_DIR)/include/distributions/ \
+         -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/ \
 	 -c  $(RAVEN_PMODULES)/distribution1Dpy3_wrap.cxx -o $(RAVEN_DIR)/python_modules/distribution1Dpy3_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \

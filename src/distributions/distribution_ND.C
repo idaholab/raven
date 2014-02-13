@@ -12,8 +12,6 @@
 #include <list>
 
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
-//#include "distribution_ND_params.h"
-
 
 template<>
 InputParameters validParams<distributionND>()
@@ -57,10 +55,8 @@ InputParameters validParams<MultiDimensionalInverseWeight>(){
 
 MultiDimensionalInverseWeight::MultiDimensionalInverseWeight(const std::string & name, InputParameters parameters):
     distributionND(name,parameters),
-    _interpolator(inverseDistanceWeigthing(_data_filename,getParam<double>("p")))
+    BasicMultiDimensionalInverseWeight(getParam<std::string>("data_filename"),getParam<double>("p"))
 {
-  //_interpolator = dynamic_cast<ND_Interpolation *>(inverseDistanceWeigthing(_data_filename,getParam<double>("p")));
-  //_interpolator = inverseDistanceWeigthing(_data_filename,getParam<double>("p"));
 }
 
 MultiDimensionalInverseWeight::~MultiDimensionalInverseWeight()
@@ -83,10 +79,8 @@ InputParameters validParams<MultiDimensionalScatteredMS>(){
 
 MultiDimensionalScatteredMS::MultiDimensionalScatteredMS(const std::string & name, InputParameters parameters):
     distributionND(name,parameters),
-    _interpolator(microSphere(_data_filename,getParam<double>("p"),getParam<int>("precision")))
+    BasicMultiDimensionalScatteredMS(getParam<std::string>("data_filename"),getParam<double>("p"),getParam<int>("precision"))
 {
-  //_interpolator = dynamic_cast<ND_Interpolation *>(microSphere(_data_filename,getParam<double>("p"),getParam<int>("precision")));
-  //_interpolator = microSphere(_data_filename,getParam<double>("p"),getParam<int>("precision"));
 }
 
 MultiDimensionalScatteredMS::~MultiDimensionalScatteredMS()
@@ -106,10 +100,9 @@ InputParameters validParams<MultiDimensionalCartesianSpline>(){
 }
 
 MultiDimensionalCartesianSpline::MultiDimensionalCartesianSpline(const std::string & name, InputParameters parameters):
-    distributionND(name,parameters)
+    distributionND(name,parameters),
+    BasicMultiDimensionalCartesianSpline(getParam<std::string>("data_filename"))
 {
-  //_interpolator = dynamic_cast<ND_Interpolation *>(NDspline(_data_filename));
-  _interpolator = NDspline(_data_filename);
 }
 
 MultiDimensionalCartesianSpline::~MultiDimensionalCartesianSpline()
