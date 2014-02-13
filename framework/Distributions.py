@@ -513,18 +513,185 @@ class Logistic(BoostDistribution):
     else:
       raise IOError ('Truncated Logistic not yet implemented')
 
+class NDimensionalDistributions(Distribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.data_filename = None
+    self.function_type = None
+    self.type = 'NDInverseWeight'
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    data_filename = xmlNode.find('data_filename')
+    if data_filename != None: self.data_filename = data_filename.text
+    else: raise Exception('<data_filename> parameter needed for MultiDimensional Distributions!!!!')
+    function_type = xmlNode.find('function_type')
+    if not function_type: self.function_type = 'CDF'
+    else:
+      self.function_type = function_type.upper()
+      if self.function_type not in ['CDF','PDF']:  raise Exception('<function_type> parameter needs to be either CDF or PDF in MultiDimensional Distributions!!!!')
+  def addInitParams(self,tempDict):
+    Distribution.addInitParams(self, tempDict)
+    tempDict['function_type'] = self.function_type
+    tempDict['data_filename'] = self.data_filename
+    
+class NDInverseWeight(NDimensionalDistributions):
+  def __init__(self):
+    NDimensionalDistributions.__init__(self)
+    self.p  = None
+    self.type = 'NDInverseWeight'
+    
+  def readMoreXML(self,xmlNode):
+    NDimensionalDistributions.readMoreXML(self, xmlNode)
+    self.p = xmlNode.find('p')
+    if self.p != None: self.p = float(self.p)
+    else: raise Exception('Minkowski distance parameter <p> not found in NDInverseWeight distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    NDimensionalDistributions.addInitParams(self, tempDict)
+    tempDict['p'] = self.p
+    
+  def initializeDistribution(self):
+    NDimensionalDistributions.initializeDistribution()
+    self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.p)
+
+  def cdf(self,x):
+    return self._distribution.Cdf(x)
+
+  def ppf(self,x):
+    return self._distribution.InverseCdf(x)
+
+  def pdf(self,x):
+    return self._distribution.Pdf(x)
+    
+  def untruncatedCdfComplement(self, x):
+    raise NotYetImplemented('untruncatedCdfComplement not yet implemented for ' + self.type)
+
+  def untruncatedHazard(self, x):
+    raise NotYetImplemented('untruncatedHazard not yet implemented for ' + self.type)
+
+  def untruncatedMean(self):
+    raise NotYetImplemented('untruncatedMean not yet implemented for ' + self.type)
+
+  def untruncatedMedian(self):
+    raise NotYetImplemented('untruncatedMedian not yet implemented for ' + self.type)
+
+  def untruncatedMode(self):
+    raise NotYetImplemented('untruncatedMode not yet implemented for ' + self.type)
+
+  def rvs(self,*args):
+    raise NotYetImplemented('rvs not yet implemented for ' + self.type)
+
+class NDScatteredMS(NDimensionalDistributions):
+  def __init__(self):
+    NDimensionalDistributions.__init__(self)
+    self.p  = None
+    self.precision = None
+    self.type = 'NDScatteredMS'
+    
+  def readMoreXML(self,xmlNode):
+    NDimensionalDistributions.readMoreXML(self, xmlNode)
+    self.p = xmlNode.find('p')
+    if self.p != None: self.p = float(self.p)
+    else: raise Exception('Minkowski distance parameter <p> not found in NDScatteredMS distribution')
+    self.precision = xmlNode.find('precision')
+    if self.precision != None: self.precision = float(self.precision)
+    else: raise Exception('precision parameter <precision> not found in NDScatteredMS distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    NDimensionalDistributions.addInitParams(self, tempDict)
+    tempDict['p'] = self.p
+    tempDict['precision'] = self.precision
+    
+  def initializeDistribution(self):
+    NDimensionalDistributions.initializeDistribution()
+    self._distribution = distribution1D.BasicMultiDimensionalScatteredMS(self.p,self.precision)
+
+  def cdf(self,x):
+    return self._distribution.Cdf(x)
+
+  def ppf(self,x):
+    return self._distribution.InverseCdf(x)
+
+  def pdf(self,x):
+    return self._distribution.Pdf(x)
+    
+  def untruncatedCdfComplement(self, x):
+    raise NotYetImplemented('untruncatedCdfComplement not yet implemented for ' + self.type)
+
+  def untruncatedHazard(self, x):
+    raise NotYetImplemented('untruncatedHazard not yet implemented for ' + self.type)
+
+  def untruncatedMean(self):
+    raise NotYetImplemented('untruncatedMean not yet implemented for ' + self.type)
+
+  def untruncatedMedian(self):
+    raise NotYetImplemented('untruncatedMedian not yet implemented for ' + self.type)
+
+  def untruncatedMode(self):
+    raise NotYetImplemented('untruncatedMode not yet implemented for ' + self.type)
+
+  def rvs(self,*args):
+    raise NotYetImplemented('rvs not yet implemented for ' + self.type)
+
+class NDCartesianSpline(NDimensionalDistributions):
+  def __init__(self):
+    NDimensionalDistributions.__init__(self)
+    self.type = 'NDCartesianSpline'
+    
+  def readMoreXML(self,xmlNode):
+    NDimensionalDistributions.readMoreXML(self, xmlNode)
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    NDimensionalDistributions.addInitParams(self, tempDict)
+    
+  def initializeDistribution(self):
+    NDimensionalDistributions.initializeDistribution()
+    self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline()
+
+  def cdf(self,x):
+    return self._distribution.Cdf(x)
+
+  def ppf(self,x):
+    return self._distribution.InverseCdf(x)
+
+  def pdf(self,x):
+    return self._distribution.Pdf(x)
+    
+  def untruncatedCdfComplement(self, x):
+    raise NotYetImplemented('untruncatedCdfComplement not yet implemented for ' + self.type)
+
+  def untruncatedHazard(self, x):
+    raise NotYetImplemented('untruncatedHazard not yet implemented for ' + self.type)
+
+  def untruncatedMean(self):
+    raise NotYetImplemented('untruncatedMean not yet implemented for ' + self.type)
+
+  def untruncatedMedian(self):
+    raise NotYetImplemented('untruncatedMedian not yet implemented for ' + self.type)
+
+  def untruncatedMode(self):
+    raise NotYetImplemented('untruncatedMode not yet implemented for ' + self.type)
+
+  def rvs(self,*args):
+    raise NotYetImplemented('rvs not yet implemented for ' + self.type)
+
 
 __base                        = 'Distribution'
 __interFaceDict               = {}
-__interFaceDict['Uniform'   ] = Uniform
-__interFaceDict['Normal'    ] = Normal
-__interFaceDict['Gamma'     ] = Gamma
-__interFaceDict['Beta'      ] = Beta
-__interFaceDict['Triangular'] = Triangular
-__interFaceDict['Poisson'   ] = Poisson
-__interFaceDict['Binomial'  ] = Binomial
-__interFaceDict['Bernoulli' ] = Bernoulli
-__interFaceDict['Logistic'  ] = Logistic
+__interFaceDict['Uniform'          ] = Uniform
+__interFaceDict['Normal'           ] = Normal
+__interFaceDict['Gamma'            ] = Gamma
+__interFaceDict['Beta'             ] = Beta
+__interFaceDict['Triangular'       ] = Triangular
+__interFaceDict['Poisson'          ] = Poisson
+__interFaceDict['Binomial'         ] = Binomial
+__interFaceDict['Bernoulli'        ] = Bernoulli
+__interFaceDict['NDInverseWeight'  ] = NDInverseWeight
+__interFaceDict['NDScatteredMS'    ] = NDScatteredMS
+__interFaceDict['NDCartesianSpline'] = NDCartesianSpline
 __knownTypes                  = __interFaceDict.keys()
 
 def knonwnTypes():

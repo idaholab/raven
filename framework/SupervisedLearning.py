@@ -196,9 +196,98 @@ class SVMsciKitLearn(superVisioned):
   def reset(self):
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']](self.initializzationOptionDict)
 
+class NDinterpolatorRom(superVisioned):
+  def __init__(self,**kwargs):
+    superVisioned.__init__(self,**kwargs)
+    self.interpolator = None
+    self.initParams   = kwargs
+  def train(self,X,y):
+    """Perform training on samples in X with responses y.
+        For an one-class model, +1 or -1 is returned.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+        Returns
+        -------
+        y : array, shape = [n_samples]
+    """
+    #print("X",X,"y",y)
+    self.interpolator.fit(X,y)
+
+  def returnInitialParamters(self):
+    return self.initializzationOptionDict
+
+  def evaluate(self,X):
+    """Perform regression on samples in X.
+        For an one-class model, +1 or -1 is returned.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+        Returns
+        -------
+        y_pred : array, shape = [n_samples]
+        predict(self, X)"""
+    prediction = np.zeros(X[:,0].shape)
+    for n_sample in range(X[:,0].shape):
+      prediction[n_sample] = self.interpolator.interpolateAt(X[:,n_sample])
+    print('NDinterpRom   : Prediction by ' + self.name + '. Predicted value is ' + str(prediction))
+    return prediction
+  
+  def reset(self):
+    pass
+
+class NDsplineRom(NDinterpolatorRom):
+  def __init__(self,**kwargs):
+    NDinterpolatorRom.__init__(self,**kwargs)
+    
+    
+    #dictionary containing the set of available Support Vector Machine by scikitlearn
+    if not self.initializzationOptionDict['SVMtype'] in self.availSVM.keys():
+      raise IOError ('not known support vector machine type ' + self.initializzationOptionDict['SVMtype'])
+    self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
+    kwargs.pop('SVMtype')
+    self.SVM.set_params(**kwargs)
+
+  def train(self,X,y):
+    """Perform training on samples in X with responses y.
+        For an one-class model, +1 or -1 is returned.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+        Returns
+        -------
+        y : array, shape = [n_samples]
+    """
+    #print("X",X,"y",y)
+    self.SVM.fit(X,y)
+
+  def returnInitialParamters(self):
+    return self.SVM.get_params()
+
+  def evaluate(self,X):
+    """Perform regression on samples in X.
+        For an one-class model, +1 or -1 is returned.
+        Parameters
+        ----------
+        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+        Returns
+        -------
+        y_pred : array, shape = [n_samples]
+        predict(self, X)"""
+    prediction = self.SVM.predict(X)
+    print('SVM           : Prediction by ' + self.initializzationOptionDict['SVMtype'] + '. Predicted value is ' + str(prediction))
+    return prediction
+  
+  def reset(self):
+    self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']](self.initializzationOptionDict)
+
+
 __interfaceDict                          = {}
-__interfaceDict['SVMscikitLearn'       ] = SVMsciKitLearn
-__interfaceDict['StochasticPolynomials'] = StochasticPolynomials
+__interfaceDict['SVMscikitLearn'          ] = SVMsciKitLearn
+__interfaceDict['StochasticPolynomials'   ] = StochasticPolynomials
+__interfaceDict['NDspline'                ] = NDsplineRom
+__interfaceDict['inverseDistanceWeigthing'] = NDinterpolatorRom  # change when implement the class
+__interfaceDict['microSphere'             ] = NDinterpolatorRom # change when implement the class
 __base                                   = 'superVisioned'
 
 

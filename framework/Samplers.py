@@ -516,7 +516,7 @@ class AdaptiveSampler(Sampler):
         for varName in self.solutionExport.dataParameters['inParam']:
           for varIndex in range(len(self.axisName)):
             if varName in self.axisName[varIndex]:
-              self.solutionExport.inpParametersValues[varName] = self.surfPoint[:,varIndex]
+              self.solutionExport.getInpParametersValues()[varName] = self.surfPoint[:,varIndex]
     if self.debug:
       print('Limit surface points')
       for coordinate in np.rollaxis(self.surfPoint,0):
