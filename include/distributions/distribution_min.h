@@ -15,11 +15,11 @@ std::string getDistributionType(BasicDistribution & dist);
 std::vector<std::string> getDistributionVariableNames(BasicDistribution & dist);
 
 
-double DistributionPdf(BasicDistributionND & dist,std::vector<double> & x);
-double DistributionCdf(BasicDistributionND & dist,std::vector<double> & x);
-std::string getDistributionType(BasicDistributionND & dist);
-double getDistributionVariable(BasicDistributionND & dist, std::string & variableName);
-void DistributionUpdateVariable(BasicDistributionND & dist, std::string & variableName, double & newValue);
+//double DistributionPdf(BasicDistributionND & dist,std::vector<double> & x);
+//double DistributionCdf(BasicDistributionND & dist,std::vector<double> & x);
+//std::string getDistributionType(BasicDistributionND & dist);
+//double getDistributionVariable(BasicDistributionND & dist, std::string & variableName);
+//void DistributionUpdateVariable(BasicDistributionND & dist, std::string & variableName, double & newValue);
 
 
 #endif /* DISTRIBUTION_MIN_H_ */

@@ -12,21 +12,24 @@
 #include <string>
 #include <vector>
 #include "ND_Interpolation_Functions.h"
-#include "distribution_min.h"
+//#include "distribution_min.h"
+#include <iostream>
 
 enum PbFunctionType{PDF,CDF};
+
+class distributionND;
 
 class BasicDistributionND
 {
 public:
-  BasicDistributionND();
+   BasicDistributionND();
    virtual ~BasicDistributionND();
    double  getVariable(std::string & variableName);                   	///< getVariable from mapping
-   //std::vector<double>  getVariableVector(std::string  variableName);
    void updateVariable(std::string & variableName, double & newValue);
-   virtual double  Pdf(std::vector<double> x) ;                           ///< Pdf function at coordinate x
-   virtual double  Cdf(std::vector<double> x) ;                              ///< Cdf function at coordinate x
-   virtual double  InverseCdf(std::vector<double> x) ;
+   virtual double  Pdf(std::vector<double> x) = 0;                           ///< Pdf function at coordinate x
+   virtual double  Cdf(std::vector<double> x) = 0;                     ///< Cdf function at coordinate x
+   virtual double  InverseCdf(std::vector<double> x) = 0;
+
    std::string & getType();
 
 protected:
@@ -35,26 +38,27 @@ protected:
    PbFunctionType                _function_type;
    std::map <std::string,double> _dis_parameters;
    bool                          _checkStatus;
+
 };
 
 class BasicMultiDimensionalInverseWeight: public virtual BasicDistributionND
 {
 public:
-  BasicMultiDimensionalInverseWeight(std::string data_filename,double p): _interpolator(inverseDistanceWeigthing(data_filename,p)){};
-  BasicMultiDimensionalInverseWeight(double p): _interpolator(inverseDistanceWeigthing(p)){};
+  BasicMultiDimensionalInverseWeight(std::string data_filename,double p):  _interpolator(data_filename,p){};
+  BasicMultiDimensionalInverseWeight(double p):  _interpolator(inverseDistanceWeigthing(p)){};
   virtual ~BasicMultiDimensionalInverseWeight(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
-  double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
+  double  Cdf(std::vector<double> x){ return _interpolator.interpolateAt(x);};
   double  InverseCdf(std::vector<double> x){return -1.0;};
 protected:
-  inverseDistanceWeigthing _interpolator;
+  inverseDistanceWeigthing  _interpolator;
 };
 
 class BasicMultiDimensionalScatteredMS: public virtual BasicDistributionND
 {
 public:
-  BasicMultiDimensionalScatteredMS(std::string data_filename,double p,int precision): _interpolator(microSphere(data_filename,p,precision)){};
-  BasicMultiDimensionalScatteredMS(double p,int precision): _interpolator(microSphere(p,precision)){};
+  BasicMultiDimensionalScatteredMS(std::string data_filename,double p,int precision): _interpolator(data_filename,p,precision){};
+  BasicMultiDimensionalScatteredMS(double p,int precision): _interpolator(p,precision){};
   virtual ~BasicMultiDimensionalScatteredMS(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
@@ -63,11 +67,11 @@ protected:
   microSphere _interpolator;
 };
 
-class BasicMultiDimensionalCartesianSpline: public virtual BasicDistributionND
+class BasicMultiDimensionalCartesianSpline: public  virtual BasicDistributionND
 {
 public:
-  BasicMultiDimensionalCartesianSpline(std::string data_filename): _interpolator(NDspline(data_filename)){};
-  BasicMultiDimensionalCartesianSpline(): _interpolator(NDspline()){};
+  BasicMultiDimensionalCartesianSpline(std::string data_filename): _interpolator(data_filename){};
+  BasicMultiDimensionalCartesianSpline(): _interpolator(){};
   virtual ~BasicMultiDimensionalCartesianSpline(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
@@ -76,5 +80,12 @@ protected:
   NDspline _interpolator;
 };
 
+
+
+double DistributionPdf(BasicDistributionND & dist,std::vector<double> & x);
+double DistributionCdf(BasicDistributionND & dist,std::vector<double> & x);
+std::string getDistributionType(BasicDistributionND & dist);
+double getDistributionVariable(BasicDistributionND & dist, std::string & variableName);
+void DistributionUpdateVariable(BasicDistributionND & dist, std::string & variableName, double & newValue);
 
 #endif /* DISTRIBUTION_BASE_ND_H_ */

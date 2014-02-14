@@ -13,30 +13,14 @@ using namespace std;
 
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
+
+
 BasicDistributionND::BasicDistributionND()
 {
 }
 
 BasicDistributionND::~BasicDistributionND()
 {
-}
-
-double
-BasicDistributionND::Pdf(std::vector<double> x)
-{
-  return -1.0;
-}
-
-double
-BasicDistributionND::Cdf(std::vector<double> x)
-{
-  return -1.0;
-}
-
-double
-BasicDistributionND::InverseCdf(std::vector<double> x)
-{
-  return -1.0;
 }
 
 double

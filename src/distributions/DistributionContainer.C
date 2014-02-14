@@ -8,6 +8,7 @@
 //#include "Factory.h"
 //#include "distribution_1D.h"
 #include "distribution_min.h"
+#include "distribution_base_ND.h"
 #include <iostream>
 #include <math.h>
 #include <cmath>
@@ -316,6 +317,7 @@ DistributionContainer::Cdf(std::string DistAlias, std::vector<double> x){
    if(_dist_nd_by_name.find(DistAlias) != _dist_nd_by_name.end()){
        BasicDistributionND * dist = _dist_nd_by_name.find(DistAlias)->second;
        return DistributionCdf(*dist,x);
+       //return DistributionCdf(dist,x);
     }
     throwError("Distribution ND" + DistAlias + " was not found in distribution container.");
     return -1.0;

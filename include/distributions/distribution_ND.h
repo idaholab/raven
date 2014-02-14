@@ -20,8 +20,7 @@ class distributionND;
 template<>
 InputParameters validParams<distributionND>();
 
-class distributionND : public RavenObject, public BasicDistributionND
-//class distributionND : public RavenObject
+class distributionND : public RavenObject , public virtual BasicDistributionND
 {
  public:
    //> constructor for built-in distributions
@@ -73,7 +72,7 @@ InputParameters validParams<MultiDimensionalCartesianSpline>();
 class MultiDimensionalCartesianSpline : public distributionND, public BasicMultiDimensionalCartesianSpline {
 public:
   MultiDimensionalCartesianSpline(const std::string & name, InputParameters parameters);
-  virtual ~MultiDimensionalCartesianSpline();;
+  virtual ~MultiDimensionalCartesianSpline();
 protected:
 };
 
