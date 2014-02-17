@@ -11,6 +11,9 @@ ifneq ($(PYTHON_CONFIG_WHICH),)
 	PYTHON2_LIB=$(shell python-config --ldflags)
 endif
 
+# look for numpy include directory
+NUMPY_INCLUDE = $(shell python $(RAVEN_DIR)/scripts/find_numpy_include.py)
+
 ifeq ($(PYTHON3_HELLO),HELLO)
         PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include) #-DPy_LIMITED_API 
         PYTHON_LIB = $(shell $(RAVEN_DIR)/scripts/find_flags.py library) #-DPy_LIMITED_API 
