@@ -48,7 +48,7 @@ public:
   BasicMultiDimensionalInverseWeight(double p):  _interpolator(inverseDistanceWeigthing(p)){};
   virtual ~BasicMultiDimensionalInverseWeight(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
-  double  Cdf(std::vector<double> x){ return _interpolator.interpolateAt(x);};
+  double  Cdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  InverseCdf(std::vector<double> x){return -1.0;};
 protected:
   inverseDistanceWeigthing  _interpolator;
