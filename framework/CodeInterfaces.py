@@ -31,10 +31,10 @@ class RavenInterface:
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
     self._samplersDictionary                          = {}
-    self._samplersDictionary['MonteCarlo']            = self.MonteCarloForRAVEN
-    self._samplersDictionary['EquallySpaced']         = self.EquallySpacedForRAVEN
-    self._samplersDictionary['LatinHyperCube']        = self.LatinHyperCubeForRAVEN
-    self._samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForRAVEN
+    self._samplersDictionary['MonteCarlo'           ] = self.MonteCarloForRAVEN
+    self._samplersDictionary['EquallySpaced'        ] = self.EquallySpacedForRAVEN
+    self._samplersDictionary['LatinHyperCube'       ] = self.LatinHyperCubeForRAVEN
+    self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForRAVEN
     self._samplersDictionary['StochasticCollocation'] = self.StochasticCollocationForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
@@ -309,7 +309,7 @@ __interFaceDict['RAVEN'        ] = RavenInterface
 __interFaceDict['MooseBasedApp'] = MooseBasedAppInterface
 __interFaceDict['ExternalTest' ] = ExternalTest
 __interFaceDict['RELAP5'       ] = Relap5Interface
-__knownTypes                    = __interFaceDict.keys()
+__knownTypes                    = list(__interFaceDict.keys())
 
 def knonwnTypes():
   return __knownTypes
