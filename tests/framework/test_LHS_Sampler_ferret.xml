@@ -26,7 +26,7 @@
     </Uniform>
 </Distributions>
 <Samplers>
-    <LatinHyperCube name='myLHS' initial_seed ='1'>
+    <LatinHyperCube name='myLHS'>
       <Variable name='BCs|left|value' >
         <distribution type='Normal'>Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
@@ -41,7 +41,7 @@
 
 
 <Steps>
-    <MultiRun name='myLHS'>
+    <MultiRun name='myLHS' initial_seed ='1'>
       <Input   class = 'Files'      type=''          >simple_diffusion.i</Input>
       <Model   class = 'Models'     type='Code'      >Ferret</Model>
       <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>

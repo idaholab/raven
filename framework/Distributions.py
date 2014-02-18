@@ -96,6 +96,28 @@ class SKDistribution(Distribution):
     """Random Variates"""
     return self._distribution.rvs(*args)
 
+def random():
+  return stochasticEnv.random()
+
+def random_seed(value):
+  return stochasticEnv.seedRandom(value)
+
+def random_integers(low,high):
+  int_range = high-low
+  raw_num = low + random()*int_range
+  raw_int = int(round(raw_num))
+  if raw_int < low or raw_int > high:
+    print("Random int out of range")
+    raw_int = max(low,min(raw_int,high))
+  return raw_int
+  
+def random_permutation(l):
+  new_list = []
+  old_list = l[:]
+  while len(old_list) > 0:
+    new_list.append(old_list.pop(random_integers(0,len(old_list)-1)))
+  return new_list
+
 class BoostDistribution(Distribution):
   def cdf(self,x):
     return self._distribution.Cdf(x)
@@ -123,9 +145,10 @@ class BoostDistribution(Distribution):
 
   def rvs(self,*args):
     if len(args) == 0:
-      return self.ppf(stochasticEnv.random())
+      return self.ppf(random())
     else:
       return [self.rvs() for x in range(args[0])]
+
 
 
 #==============================================================\

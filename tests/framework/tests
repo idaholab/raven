@@ -88,6 +88,14 @@
   max_time = 500
   rel_err = 0.001
  [../]
+ [./testRandom]
+  type = 'RavenFramework'
+  input = 'test_random.xml'
+  output = 'RandomTest/outSet_dump.csv'
+  csv = 'RandomTest/outSet_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
  [./testLHS]
   type = 'RavenFramework'
   input = 'test_LHS_Sampler.xml'

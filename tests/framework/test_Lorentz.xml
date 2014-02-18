@@ -38,7 +38,7 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='3' initial_seed='25061978' >
+    <MonteCarlo name='MC_external'  limit='3' >
       <variable name='x0' >
         <distribution type='Normal' >x0_distrib</distribution>
       </variable>
@@ -52,7 +52,7 @@
 </Samplers>
 
 <Steps>
-    <MultiRun name='FirstMRun'>
+    <MultiRun name='FirstMRun'  initial_seed='25061978'>
         <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'    type='ExternalModule' >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>

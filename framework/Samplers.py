@@ -18,6 +18,7 @@ import scipy
 import xml.etree.ElementTree as ET
 from BaseType import BaseType
 from itertools import product as iterproduct
+import Distributions
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -147,8 +148,9 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     In case no seed is specified a random seed is used.
     @in availableDist: {'distribution name':instance}
     '''
-    if self.initSeed==None: self.initSeed = np.random.random_integers(0,sys.maxsize.bit_length())
-    np.random.seed(self.initSeed)
+    #Note: random number also initialized in Steps.
+    if self.initSeed != None:
+      Distributions.random_seed(self.initSeed)
     for key in self.toBeSampled.keys():
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]
       self.distDict[key].initializeDistribution()
@@ -323,8 +325,9 @@ class AdaptiveSampler(Sampler):
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
    
   def localInitialize(self,goalFunction=None,solutionExport=None):
-    if not self.initSeed: self.initSeed = np.random.random_integers(0,sys.maxsize.bit_length())
-    np.random.seed(self.initSeed)
+    #Note random number generator may reseed in Steps.
+    if self.initSeed != None:
+      Distributions.random_seed(self.initSeed)
     self.goalFunction   = goalFunction
     self.solutionExport = solutionExport
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
@@ -543,12 +546,13 @@ class AdaptiveSampler(Sampler):
       distance, outId       =  self.myTree.query(surfPointInPb)
       maxIndex = distance.argmax()
       for varId, varName in enumerate(self.axisName):
-        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId]+self.gridStepSize[varId]*(np.random.rand()-0.499))
-        else:self.values[varName] = surfPointInPb[maxIndex,varId]*self.gridStepSize[varId]*(np.random.rand()-0.499)
+        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId]+self.gridStepSize[varId]*(Distributions.random()-0.499))
+        else:self.values[varName] = surfPointInPb[maxIndex,varId]*self.gridStepSize[varId]*(Distributions.random()-0.499)
     else:
       for key in self.distDict:
-        self.values[key]=self.distDict[key].ppf(float(np.random.rand()))
-      self.inputInfo['initial_seed'] = str(self.initSeed)
+        self.values[key]=self.distDict[key].ppf(float(Distributions.random()))
+      if self.initSeed != None:
+        self.inputInfo['initial_seed'] = str(self.initSeed)
     if self.debug:
       print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
 
@@ -683,7 +687,8 @@ class MonteCarlo(Sampler):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
     for key in self.distDict: self.values[key]=self.distDict[key].rvs()
-    self.inputInfo['initial_seed'] = str(self.initSeed)
+    if self.initSeed != None:
+      self.inputInfo['initial_seed'] = str(self.initSeed)
 #
 #
 #
@@ -787,7 +792,7 @@ class LHS(Grid):
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
       tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
-      tempFillingCheck[i][:] = np.random.choice((self.pointByVar-1),size=(self.pointByVar-1),replace=False) #pick a random interval sequence
+      tempFillingCheck[i][:] = Distributions.random_permutation(list(range(self.pointByVar-1))) #pick a random interval sequence
     self.sampledCoordinate = [None]*(self.pointByVar-1)
     for i in range(self.pointByVar-1):
       self.sampledCoordinate[i] = [None]*len(self.axisName)
@@ -800,7 +805,7 @@ class LHS(Grid):
       upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
       lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
       j +=1
-      intervalFraction = np.random.random()
+      intervalFraction = Distributions.random()
       coordinate = lower + (upper-lower)*intervalFraction
       if self.gridInfo[varName][0] =='CDF':
         self.values[varName] = self.distDict[varName].ppf(coordinate)

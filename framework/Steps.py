@@ -13,13 +13,17 @@ if not 'xrange' in dir(__builtins__):
 #External Modules------------------------------------------------------------------------------------
 import time
 import abc
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
 from utils import metaclass_insert
+import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
+_CONTINUE_RANDOM = 'continue_random'
+_RESEED_RANDOM = 'reseed_random'
 
 #----------------------------------------------------------------------------------------------------
 class Step(metaclass_insert(abc.ABCMeta,BaseType)):
@@ -58,12 +62,26 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     self.parList    = []    #list of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.__typeDict = {}    #for each role of the step the corresponding  used type
     self.sleepTime  = 0.1 #waiting time before checking if a run is finished
+    self.initSeed     = _RESEED_RANDOM   #Every time the sampler is call if he possesses a seed it going to reinitialize the seed for the whole environment 
+                                     #(if not read remains none meaning the seeds will be the one of the previous run)
+
+  def _readInitSeed(self, xmlNode):
+    try:    
+      self.initSeed = xmlNode.attrib['initial_seed']
+      if self.initSeed.lower() == "continue":
+        self.initSeed = _CONTINUE_RANDOM
+      elif self.initSeed.lower() == "reseed":
+        self.initSeed = _RESEED_RANDOM
+      else:
+        self.initSeed = int(self.initSeed)
+    except KeyError: pass
 
   def readMoreXML(self,xmlNode):
     '''add the readings for who plays the step roles
     after this call everything will not change further in the life of the step object should have been set
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
     '''
+    self._readInitSeed(xmlNode)
     if 'sleepTime' in xmlNode.attrib.keys(): self.sleepTime = float(xmlNode.attrib['sleepTime'])
     for child in xmlNode:
       self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
@@ -83,6 +101,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     tempDict['sleep Time'] = 'sleep time between testing the end of a run is '+str(self.sleepTime)
     for List in self.parList:
       tempDict[List[0]] = ' Class: '+str(List[1])+' Type: '+str(List[2])+'  Global name: '+str(List[3])
+    tempDict['initial seed' ] = self.initSeed
     self.localAddInitParams(tempDict)
 
   @abc.abstractmethod
@@ -94,6 +113,10 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   def __initializeStep(self,inDictionary):
     '''the job handler is restarted'''
     inDictionary['jobHandler'].startingNewStep()
+    if self.initSeed==_RESEED_RANDOM: 
+      self.initSeed = Distributions.random_integers(0,sys.maxsize.bit_length())
+    if type(self.initSeed) == type(0):
+      Distributions.random_seed(self.initSeed)
     self.localInitializeStep(inDictionary)
   
   @abc.abstractmethod

@@ -58,14 +58,14 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='RAVENmc6'  limit='6' initial_seed='1'/>
+    <MonteCarlo     name='RAVENmc6'  limit='6' />
 </Samplers>
 <Tests>
     <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
     <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
 </Tests>
 <Steps>
-    <MultiRun name='FirstMRun'>
+    <MultiRun name='FirstMRun' initial_seed='1'>
         <Input   class='Files'     type=''>ideal_pump.i</Input>
         <Input   class='Files'     type=''>ideal_pump_control.py</Input>
         <Model   class='Models'    type='Code'      >MyRAVEN</Model>
