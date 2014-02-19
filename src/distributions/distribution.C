@@ -5,6 +5,8 @@
  *      Author: alfoa
  */
 #include "distribution.h"
+#include <limits>
+#include <iostream>
 
 using namespace std;
 
@@ -18,7 +20,7 @@ BasicDistribution::BasicDistribution(): _force_dist(0) {
 BasicDistribution::~BasicDistribution() {}
 
 double
-BasicDistribution::getVariable(std::string & variableName){
+BasicDistribution::getVariable(std::string variableName){
    double res;
    if(_dis_parameters.find(variableName) != _dis_parameters.end()){
 	  res = _dis_parameters.find(variableName) ->second;
@@ -96,20 +98,35 @@ double DistributionCdf(BasicDistribution & dist, double & x){
 double windowProcessing(BasicDistribution & dist, double & RNG){
 	double value;
 
-	if (dist.getVariableVector(std::string("PBwindow")).size()==1) // value Pb window
-		value=dist.InverseCdf(RNG);
-	else if(dist.getVariableVector(std::string("PBwindow")).size()==2){	// interval Pb window
-		double pbLOW = dist.getVariableVector(std::string("PBwindow"))[0];
-		double pbUP  = dist.getVariableVector(std::string("PBwindow"))[1];
-		double pb=pbLOW+(pbUP-pbLOW)*RNG;
-		value=dist.InverseCdf(pb);
-	}
-	else if(dist.getVariableVector(std::string("Vwindow")).size()==1)	// value V window
-		value=RNG;
-	else if(dist.getVariableVector(std::string("Vwindow")).size()==2){	// interval V window
-		double valLOW = dist.getVariableVector(std::string("Vwindow"))[0];
-		double valUP  = dist.getVariableVector(std::string("Vwindow"))[1];
+//	if (dist.getVariableVector(std::string("PBwindow")).size()==1) // value Pb window
+//		value=dist.InverseCdf(RNG);
+//	else if(dist.getVariableVector(std::string("PBwindow")).size()==2){	// interval Pb window
+//		double pbLOW = dist.getVariableVector(std::string("PBwindow"))[0];
+//		double pbUP  = dist.getVariableVector(std::string("PBwindow"))[1];
+//		double pb=pbLOW+(pbUP-pbLOW)*RNG;
+//		value=dist.InverseCdf(pb);
+//	}
+//	else if(dist.getVariableVector(std::string("Vwindow")).size()==1)	// value V window
+//		value=RNG;
+//	else if(dist.getVariableVector(std::string("Vwindow")).size()==2){	// interval V window
+//		double valLOW = dist.getVariableVector(std::string("Vwindow"))[0];
+//		double valUP  = dist.getVariableVector(std::string("Vwindow"))[1];
+//		value=valLOW+(valUP-valLOW)*RNG;
+//	}
+//	else	// DEFAULT
+//		value = dist.InverseCdf(RNG);
+
+   if(dist.getVariable(std::string("PB_window_Low")) != 0.0 || dist.getVariable(std::string("PB_window_Up")) != 1.0){	// interval Pb window
+		double pbLOW = dist.getVariable(std::string("PB_window_Low"));
+		double pbUP  = dist.getVariable(std::string("PB_window_Up"));
+		double pb = pbLOW + (pbUP-pbLOW) * RNG;
+		value = dist.InverseCdf(pb);
+		//std::cerr << " pbLOW " << pbLOW << " pbUP " << pbUP << " pb " << pb << " value " << value << std::endl;
+	}else if(dist.getVariable(std::string("V_window_Low")) != -std::numeric_limits<double>::max() && dist.getVariable(std::string("V_window_Up")) != std::numeric_limits<double>::max( )){	// interval V window
+		double valLOW = dist.getVariable(std::string("V_window_Low"));
+		double valUP  = dist.getVariable(std::string("V_window_Up"));
 		value=valLOW+(valUP-valLOW)*RNG;
+		//std::cerr << " valLOW " << valLOW << " valUP " << valUP << " value " << value << std::endl;
 	}
 	else	// DEFAULT
 		value = dist.InverseCdf(RNG);

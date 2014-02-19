@@ -27,7 +27,7 @@ class BasicDistribution
 public:
    BasicDistribution();
    virtual ~BasicDistribution();
-   double  getVariable(std::string & variableName);                   	///< getVariable from mapping
+   double  getVariable(std::string variableName);                   	///< getVariable from mapping
    std::vector<double>  getVariableVector(std::string  variableName);
    void updateVariable(std::string & variableName, double & newValue); 	///< update variable into the mapping
 

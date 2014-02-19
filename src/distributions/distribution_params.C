@@ -7,16 +7,20 @@
 
 #include "distribution_params.h"
 
+#define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
+
 template<>
 InputParameters validParams<distribution>(){
 
-  InputParameters params = validParams<RavenObject>();
+   InputParameters params = validParams<RavenObject>();
 
-  params.addParam<double>("xMin", -std::numeric_limits<double>::max( ),"Lower bound");
-  params.addParam<double>("xMax", std::numeric_limits<double>::max( ),"Upper bound");
+   params.addParam<double>("xMin", -std::numeric_limits<double>::max( ),"Lower bound");
+   params.addParam<double>("xMax", std::numeric_limits<double>::max( ),"Upper bound");
 
-   params.addParam< std::vector<double> >("PBwindow", "Probability window");
-   params.addParam< std::vector<double> >("Vwindow" , "Value window");
+   params.addParam<double>("PB_window_Low", 0.0, "Probability window lower bound");
+   params.addParam<double>("PB_window_Up" , 1.0, "Probability window upper bound");
+   params.addParam<double>("V_window_Low" , -std::numeric_limits<double>::max( ), "Value window lower bound");
+   params.addParam<double>("V_window_Up"  , std::numeric_limits<double>::max( ), "Value window upper bound");
 
    params.addParam<double>("ProbabilityThreshold", 1.0, "Probability Threshold");
 
@@ -55,10 +59,23 @@ distribution::distribution(const std::string & name, InputParameters parameters)
       _force_dist = getParam<unsigned int>("force_distribution");
       _dis_parameters["truncation"] = double(getParam<unsigned int>("truncation"));
 
-      _dis_vectorParameters["PBwindow"] = getParam<std::vector<double> >("PBwindow");
-      _dis_vectorParameters["Vwindow"] = getParam<std::vector<double> >("Vwindow");
+      _dis_parameters["PB_window_Low"] = getParam<double>("PB_window_Low");
+      _dis_parameters["PB_window_Up"]  = getParam<double>("PB_window_Up");
+
+      _dis_parameters["V_window_Low"] = getParam<double>("V_window_Low");
+      _dis_parameters["V_window_Up"]  = getParam<double>("V_window_Up");
 
       _dis_parameters["ProbabilityThreshold"] = getParam<double>("ProbabilityThreshold");
+
+      // Data checks
+      if (getParam<double>("PB_window_Low") >= getParam<double>("PB_window_Up"))
+    	  throwError("Distribution 1D " << name << " - PB window values wrong: Low > Up ");
+
+      if (getParam<double>("V_window_Low") >= getParam<double>("V_window_Up"))
+    	  throwError("Distribution 1D " << name << " - V window values wrong: Low > Up ");
+
+      if (getParam<double>("ProbabilityThreshold") > 1.0 || getParam<double>("ProbabilityThreshold") < 0.0)
+    	  throwError("Distribution 1D " << name << " - ProbabilityThreshold is not correct: it must be between 0.0 and 1.0 ");
 
       _checkStatus = false;
 }
