@@ -39,9 +39,9 @@ APPLICATION_NAME   := r7_moose
 DEP_APPS           := $(shell $(MOOSE_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 include            $(MOOSE_DIR)/app.mk
 
-include $(RAVEN_DIR)/config.mk
-include $(RAVEN_DIR)/raven.mk
-include $(RAVEN_DIR)/raven_python_modules.mk
+include $(ROOT_DIR)/raven/config.mk
+include $(ROOT_DIR)/raven/raven.mk
+include $(ROOT_DIR)/raven/raven_python_modules.mk
 
 ###############################################################################
 # Additional special case targets should be added here

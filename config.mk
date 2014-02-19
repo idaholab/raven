@@ -1,3 +1,5 @@
+RAVEN_DIR := $(ROOT_DIR)/raven
+
 PYTHON3_HELLO := $(shell python3 -c "print('HELLO')" 2>/dev/null)
 PYTHON2_HELLO := $(shell python -c "print 'HELLO'" 2>/dev/null)
 
