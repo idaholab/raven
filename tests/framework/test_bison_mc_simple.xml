@@ -43,7 +43,7 @@
       </varibale>
   </MonteCarlo>
   <!-- Sampler noalias -->
-  <MonteCarlo name='Bison_sampler_noalias' limit='3'>
+  <MonteCarlo name='Bison_sampler_noalias' limit='3' initial_seed='22'>
         <varibale name='Materials|heat1|thermal_conductivity' >
             <distribution type='Uniform'>FlatHeat1</distribution>
         </varibale>
@@ -67,7 +67,7 @@
 
 
 <Steps>
-  <MultiRun name='CustomSampler'>
+  <MultiRun name='CustomSampler' re-seeding='5'>
     <Input   class = 'Files'      type=''           >gap_perfect_transfer_test.i</Input>
     <Input   class = 'Files'      type=''           >gap_perfect_transfer_test.e</Input>
     <Model   class = 'Models'     type='Code'       >Bison</Model>

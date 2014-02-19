@@ -264,6 +264,7 @@ class hdf5Database(object):
     else: parentgroup_obj = self.h5_file_w
     
     if type(source['name']) == dict:
+      print('Please Andrea change bytes ')
       # create the group
       if upGroup: 
         groups = parentgroup_obj.require_group(gname)
@@ -276,10 +277,10 @@ class hdf5Database(object):
         testvalue = []
         input_space_params_keys = list(source['name']['input_space_params'].keys())
         for i in range(len(input_space_params_keys)): 
-          testkey.append(toBytes(input_space_params_keys[i]))
+          testkey.append(bytes(input_space_params_keys[i]))
         input_space_params_values = list(source['name']['input_space_params'].values())
         for i in range(len(input_space_params_values)): 
-          testvalue.append(toBytes(input_space_params_values[i]))        
+          testvalue.append(toBytes(input_space_params_values[i]))  
         groups.attrs[b'input_space_headers' ] = copy.deepcopy(testkey) 
         groups.attrs[b'input_space_values' ] = copy.deepcopy(testvalue)
         out_headers = list(source['name'].keys())

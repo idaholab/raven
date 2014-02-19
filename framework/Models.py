@@ -21,11 +21,75 @@ import Datas
 from BaseType import BaseType
 import SupervisedLearning
 from Filters import returnFilterInterface
+import Samplers
+import CodeInterfaces
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(metaclass_insert(abc.ABCMeta,BaseType)):
-  ''' a model is something that given an input will return an output reproducing some physical model
-      it could as complex as a stand alone code or a reduced order model trained somehow'''
+  '''
+  A model is something that given an input will return an output reproducing some physical model
+  it could as complex as a stand alone code, a reduced order model trained somehow or something
+  build and imported by the user
+  '''
+  validateDict                  = {}
+  validateDict['Input'  ]       = []
+  validateDict['Output' ]       = []
+  validateDict['Sampler']       = []
+  testDict                      = {}
+  #below the format of testDict, it has to be respected!!!!
+  #'multiplicity' could be a number >0 or 'n' indicating any number >1
+  #'type' is a list of string
+  testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False} 
+
+  @classmethod
+  def addDataExchangedTypes(cls):
+    '''
+       this method should be overridden to used to add roles in the information exchange within a step.
+       Example: cls.validateDict['TrainingSet']       = []
+    '''
+    pass
+
+  @classmethod
+  def addDataExchangedByTypes(cls):
+    '''
+    This method should be overridden to describe the types of input accepted with a certain role by the model class specialization
+    cls.testDict.copy() should be used to ensure the compatibility of the base class method cles.localValidateMethod(who,what)
+    Example:
+    cls.validateDict['TrainingSet'][0] = cls.testDict.copy()
+    cls.validateDict['TrainingSet'][0] = 'class':'Datas','type':['TimePoint','TimePointSet',HDF5'],'multiplicity':'n','required':False
+    '''
+    raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method addDataExchangedByTypes')
+
+  @classmethod
+  def localValidateMethod(cls,who,what):
+    '''
+    This class method is called to test the compatibility of the class with its possible usage
+    @in who: a string identifying the what is the role of what we are going to test (i.e. input, output etc)
+    @in what: a list (or a general iterable) that will be playing the 'who' role
+    ''' 
+    #counting successful matches
+    for myItemDict in cls.vallidateDict['who']: myItemDict['tempCounter'] = 0
+    for anItem in what:
+      anItem['found'] = False
+      for tester in cls.vallidateDict['who']:
+        if anItem['class'] == tester['who']['class']:
+          if anItem['type'] in tester['who']['type']:
+            tester['tempCounter'] +=1
+            anItem['found'] = True
+            break
+    #testing if the multiplicity of the argument is correct
+    for tester in cls.vallidateDict['who']:
+      if tester['required']==True:
+        if tester['moltiplicity']=='n' and tester['tempCounter']<1:
+          raise IOError ('The number of time class = '+tester['class']+' type= ' +tester['type']+' is used as '+who+' is improper')
+        if tester['moltiplicity']!='n' and tester['tempCounter']!=tester['moltiplicity']:
+          raise IOError ('The number of time class = '+tester['class']+' type= ' +tester['type']+' is used as '+who+' is improper')
+    #testing if all argument to be tested have been found
+    for anItem in what:
+      if anItem['found']==False:
+        raise IOError ('It is not possible to use '+anItem['class']+' type= ' +anItem['type']+' as '+who)
+    return True
+
   def __init__(self):
     BaseType.__init__(self)
     self.subType  = ''
@@ -55,23 +119,27 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
 
   @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    '''this function have to return a new input that will be submitted to the model, it is called by the sampler
+    '''
+    this function have to return a new input that will be submitted to the model, it is called by the sampler
     @in myInput the inputs (list) to start from to generate the new one
     @in samplerType is the type of sampler that is calling to generate a new input
     @in **Kwargs is a dictionary that contains the information coming from the sampler,
          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-    @return the new input (list)'''
+    @return the new input in a list form
+    '''
     pass
   
   @abc.abstractmethod
   def run(self,Input,jobHandler):
-    '''This call should be over loaded and should not return any results,
-        possible it places a run one of the jobhadler lists!!!
-        @in inputs is a list containing whatever is passed with an input role in the step
-        @in jobHandler an instance of jobhandler that might be possible used to append a job for parallel running'''
+    '''
+    This call should be over loaded and should not return any results,
+    possible it places a run one of the jobhadler lists!!!
+    @in inputs is a list containing whatever is passed with an input role in the step
+    @in jobHandler an instance of jobhandler that might be possible used to append a job for parallel running
+    '''
     pass
   
-  def collectOutput(self,collectFrom,storeTo):
+  def collectOutput(self,collectFrom,storeTo,newOutputLoop=True):
     '''This call collect the output of the run
     @in collectFrom where the output is located, the form and the type is model dependent but should be compatible with the storeTo.addOutput method'''
     if 'addOutput' in dir(storeTo):
@@ -83,21 +151,42 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
 #
 class Dummy(Model):
   '''
-  this is a dummy model that just return the input in the data
+  this is a dummy model that just return the effect of the sampler
   it suppose to get a TimePoint or TimePointSet as input and also a TimePoint or TimePointSet or HDF5 as output
-  The input is changed following the sampler info and than reported in the output
+  The input values are modified according to the sampler and the output is the counter of the performed sampling
   '''
-  def initialize(self,runInfo,inputs):
-    self.counterInput =0
-    self.counterOutput=0
-    self.inputDict    ={}
-    self.outputDict   ={}
-    self.admittedData = []
-    self.admittedData.append('TimePoint')
-    self.admittedData.append('TimePointSet')
+  @classmethod
+  def addDataExchangedByTypes(cls):
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    #one data is needed for the input
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][0]['class'       ] = 'Datas'
+    cls.validateDict['Input'  ][0]['type'        ] = ['TimePoint','TimePointSet']
+    cls.validateDict['Input'  ][0]['required'    ] = True
+    cls.validateDict['Input'  ][0]['multiplicity'] = 1
+    #at least one data is needed for the input
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][0]['class'       ] = 'Datas'
+    cls.validateDict['Output' ][0]['type'        ] = ['TimePoint','TimePointSet','HDF5']
+    cls.validateDict['Output' ][0]['required'    ] = False
+    cls.validateDict['Output' ][0]['multiplicity'] = 'n'
+    #no more than one sampler, all are allowed
+    cls.validateDict['Sampler'].append(cls.testDict.copy())
+    cls.validateDict['Sampler'][0]['class'       ] ='Samplers'
+    cls.validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+    cls.validateDict['Sampler'][0]['required'    ] = False
+    cls.validateDict['Sampler'][0]['multiplicity'] = 1
+    
+  def readMoreXML(self,xmlNode):
+    Model.readMoreXML(self, xmlNode)
+    if 'print' in xmlNode.attrib.keys(): self.printFile = bool(xmlNode.attrib['print'])
+    else: self.printFile = False
 
-  def __returnAdmittedData(self):
-    return self.admittedData
+  def initialize(self,runInfo,inputs):
+    self.counterInput = 0
+    self.counterOutput= 0
+    self.inputDict    = {}
+    self.outputDict   = {}
     
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''
@@ -105,37 +194,40 @@ class Dummy(Model):
     For a TimePoint all value are copied, for a TimePointSet only the last set of entry
     The copied values are returned as a dictionary back
     '''
-    inputDict    = {}
-    outputDict   = {}
-    if myInput[0].type not in self.__returnAdmittedData(): raise IOError('MODEL DUMMY  : ERROR -> The Dummy Model accepts only '+str(self.__returnAdmittedData())+' as input only!!!!')
-    for key in myInput[0].getInpParametersValues().keys()  : inputDict[key] = copy.deepcopy(myInput[0].getInpParametersValues()[key][-1])
-    if len(myInput[0].getOutParametersValues().keys())!=0:
-      for key in myInput[0].getOutParametersValues().keys(): outputDict[key] = copy.deepcopy(myInput[0].getOutParametersValues()[key][-1])
-    else:
-      for key in myInput[0].dataParameters['outParam']: outputDict[key] = self.counterInput
+    inputDict = {}
+    outDict   = {}
+    #copy the original inputs. Only the last element is copied (i.e. for a timepointset the last input set
+    for key in myInput[0].getParaKeys('inputs'):
+      if not myInput[0].isItEmpty(): inputDict[key]=copy.deepcopy(myInput[0].getParam('input',key)[-1:])
+      else                         : inputDict[key]=None
     for key in Kwargs['SampledVars'].keys():
-      inputDict[key] = copy.deepcopy(Kwargs['SampledVars'][key])
-    self.counterInput+=1
-    print('returning input')
-    return [(inputDict,outputDict)]
-
-  def readMoreXML(self,xmlNode):
-    Model.readMoreXML(self, xmlNode)
-#     if 'print' in xmlNode.attrib.keys(): self.printFile = bool(xmlNode.attrib['print'])
-#     else: self.printFile = False
+      if key in inputDict.keys(): inputDict[key] = copy.deepcopy(Kwargs['SampledVars'][key])
+      else: raise Exception ('The sampled variable '+key+' is not present in the input space')
+    self.counterInput +=1
+    outDict['Counter'] = copy.deepcopy(self.counterInput)
+    return [(inputDict,outDict)]
   
   def run(self,Input,jobHandler):
-    '''The input should be under the form of a tuple of dictionary. The dictionary are copied and ready to be sent to the output'''
+    '''
+    The input should be under the form of a tuple of dictionaries with two element.
+    The first is the input the second the output. The output is just the counter
+    '''
     self.inputDict  = copy.deepcopy(Input[0][0])
     self.outputDict = copy.deepcopy(Input[0][1])
-    print('running')
-  
-  def collectOutput(self,finisishedjob,output):
-    '''the input and output are sent back by the output'''
-    self.counterOutput += 1
-    print('looking for output')
-    if output.type not in self.__returnAdmittedData()+['HDF5']: raise IOError('MODEL DUMMY  : ERROR -> The Dummy Model accepts TimePoint, TimePointSet or HDF5 as output only!!!!')
-    if   output.type == 'HDF5':
+    print('Just a friendly reminder that the jobhandler for the inside model still need to be put in place')
+    ############################------FIXME----------#######################################################
+    #here we need to send it to the job handler
+
+  def collectOutput(self,finisishedjob,output,newOutputLoop=True):
+    '''
+    The input and output are harvested.
+    @in newOutputLoop, if true a new set of output should be exported (new inpput set)
+    '''
+    #Here there is a problem since the input and output could be already changed by several call to self.createNewInput and self.run some input might have been skipped
+    #The problem should be solve delegating ownership of the input/output to the job handler
+    if newOutputLoop: self.counterOutput += 1
+    if self.outputDict['Counter']!=self.counterOutput: raise Exception('Synchronization has been lost between input generation and collection in the Dummy model')
+    if output.type == 'HDF5':
       exportDict = copy.deepcopy(self.outputDict)
       exportDict['input_space_params'] = copy.deepcopy(self.inputDict)
       output.addGroupDatas({'group':self.name+str(self.counterOutput)},exportDict,False)
@@ -143,12 +235,28 @@ class Dummy(Model):
       for key in self.inputDict.keys() : output.updateInputValue(key,self.inputDict[key])
       for key in self.outputDict.keys(): output.updateOutputValue(key,self.outputDict[key])
 
-    print('collected output')
 #
 #
 #
 class ExternalModel(Model):
   ''' External model class: this model allows to interface with an external python module'''
+  @classmethod
+  def addDataExchangedByTypes(cls):
+    print('Remember to add the data type supported the class filter')
+  #the validationRunTree is extended to add the time dependent data types
+#  validationRunTree = copy.deepcopy(Dummy.validationRunTree)
+#  validationRunTree[0]['list'].append({'class':'Datas', 'type':'History'  , 'multiplicity':1})
+#  validationRunTree[0]['list'].append({'class':'Datas', 'type':'Histories', 'multiplicity':1})
+#  validationRunTree[1]['list'].append({'class':'Datas', 'type':'History'  , 'multiplicity':'n'})
+#  validationRunTree[1]['list'].append({'class':'Datas', 'type':'Histories', 'multiplicity':'n'})
+#  validationRunTree[1]['list'].append({'class':'Datas', 'type':'Histories', 'multiplicity':'n'})
+#  validationDict        = {}
+#  validationDict['Run'] = validateRun
+#  
+#  @staticmethod
+#  def validateRun(toBeValidated):
+#    return BaseType.validate(Dummy.validationRunTree,toBeValidated)
+
   def __init__(self):
     Model.__init__(self)
     self.modelVariableValues = {}
@@ -157,8 +265,7 @@ class ExternalModel(Model):
     self.counter = 0
 
   def initialize(self,runInfo,inputs):
-    if 'initialize' in dir(self.sim):
-      self.sim.initialize(self,runInfo,inputs)
+    if 'initialize' in dir(self.sim): self.sim.initialize(self,runInfo,inputs)
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
     if 'createNewInput' in dir(self.sim):
@@ -187,8 +294,7 @@ class ExternalModel(Model):
           if not (son.attrib['type'].lower() in self.__availableVariableTypes):
             raise IOError('MODEL EXTERNAL: ERROR -> the "type" of variable ' + son.text + 'not')
           self.modelVariableType[son.text] = son.attrib['type']
-        else                          : 
-          raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
+        else: raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
     # check if there are other information that the external module wants to load
     if 'readMoreXML' in dir(self.sim):
       self.sim.readMoreXML(self,xmlNode)
@@ -197,7 +303,8 @@ class ExternalModel(Model):
     self.sim.run(self,Input,jobHandler)
     self.counter += 1
     
-  def collectOutput(self,finisishedjob,output):
+  def collectOutput(self,finisishedjob,output,newOutputLoop=True):
+    #####this need more attention... why it is done somehow here, should not be all in the interface (FIXME)
     if 'collectOutput' in dir(self.sim):
       self.sim.collectOutput(self,finisishedjob,output)
     self.__pointSolution()
@@ -229,6 +336,28 @@ class ExternalModel(Model):
 #
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
+  @classmethod
+  def addDataExchangedByTypes(cls):
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    #one data is needed for the input
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][0]['class'       ] = 'Files'
+    cls.validateDict['Input'  ][0]['type'        ] = ['']
+    cls.validateDict['Input'  ][0]['required'    ] = False
+    cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
+    #at least one data is needed for the input
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][0]['class'       ] = 'Datas'
+    cls.validateDict['Output' ][0]['type'        ] = ['TimePoint','TimePointSet','HDF5','History','Histories']
+    cls.validateDict['Output' ][0]['required'    ] = False
+    cls.validateDict['Output' ][0]['multiplicity'] = 'n'
+    #no more than one sampler, all are allowed
+    cls.validateDict['Sampler'].append(cls.testDict.copy())
+    cls.validateDict['Sampler'][0]['class'       ] ='Samplers'
+    cls.validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+    cls.validateDict['Sampler'][0]['required'    ] = False
+    cls.validateDict['Sampler'][0]['multiplicity'] = 1
+
   def __init__(self):
     Model.__init__(self)
     self.executable         = ''   #name of the executable (abs path)
@@ -261,7 +390,9 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: print('not found executable '+xmlNode.text)
-    self.interface = CodeInterfaces.returnCodeInterface(self.subType)
+#    self.code = __import__(self.subType) #importing the proper code interface
+    self.code = CodeInterfaces.returnCodeInterface(self.subType)
+    print('please finisih the importing of avaialbel codes and vlaid interface form the codeInterfaces')
     
   def addInitParams(self,tempDict):
     '''extension of addInitParams for the Code(model)'''
@@ -273,9 +404,9 @@ class Code(Model):
   def addCurrentSetting(self,originalDict):
     '''extension of addInitParams for the Code(model)'''
     originalDict['current working directory'] = self.workingDir
-    originalDict['current output file root']  = self.outFileRoot
-    originalDict['current input file']        = self.currentInputFiles
-    originalDict['original input file']       = self.oriInputFiles
+    originalDict['current output file root' ] = self.outFileRoot
+    originalDict['current input file'       ] = self.currentInputFiles
+    originalDict['original input file'      ] = self.oriInputFiles
 
   def initialize(self,runInfoDict,inputFiles):
     '''initialize some of the current setting for the runs and generate the working 
@@ -302,21 +433,22 @@ class Code(Model):
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
+    print('if raven in self.executable.lower(): Kwargs[reportit] = False should not be in the code base class but in the interfaces')
     if 'raven' in self.executable.lower(): Kwargs['reportit'] = False
     else: Kwargs['reportit'] = True 
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
-    return self.interface.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
-
+    return self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
+ 
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles
-    executeCommand, self.outFileRoot = self.interface.generateCommand(self.currentInputFiles,self.executable)
+    executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
     if self.currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     if self.debug: print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
-  def collectOutput(self,finisishedjob,output):
+  def collectOutput(self,finisishedjob,output,newOutputLoop=True):
     '''collect the output file in the output object'''
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     #if output.type == "HDF5": self.__addDataBaseGroup(finisishedjob,output)
@@ -344,8 +476,25 @@ class Code(Model):
 #
 #
 #
-class ROM(Model):
+class ROM(Dummy):
   '''ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome'''
+  @classmethod
+  def addDataExchangedTypes(cls):
+    cls.validateDict['TrainingSet'] = []
+
+  @classmethod
+  def addDataExchangedByTypes(cls):
+    Dummy.addDataExchangedByTypes()
+    #modifying the Output...
+    cls.validateDict['Output' ][0]['type'            ]+=['History','Histories']
+    cls.validateDict['Output' ][0]['required'        ] = True
+    #adding the training set as role
+    cls.validateDict['TrainingSet'].append(cls.testDict.copy())
+    cls.validateDict['TrainingSet'][0]['class'       ] ='Datas'
+    cls.validateDict['TrainingSet'][0]['type'        ] = ['TimePoint','TimePointSet','HDF5','History','Histories']
+    cls.validateDict['TrainingSet'][0]['required'    ] = True
+    cls.validateDict['TrainingSet'][0]['multiplicity'] = 1
+
   def __init__(self):
     Model.__init__(self)
     self.initializzationOptionDict = {}
@@ -476,7 +625,7 @@ class ROM(Model):
     # we need to submit self.ROM.evaluate(self.request) to the job handler
     self.output = self.SupervisedEngine.evaluate(self.request)
 
-  def collectOutput(self,finishedJob,output):
+  def collectOutput(self,finishedJob,output,newOutputLoop=True):
     '''This method append the ROM evaluation into the output'''
     try: #try is used to be sure input.type exist
       if output.type in self.__returnAdmittedData():
@@ -490,13 +639,17 @@ class ROM(Model):
 #  
 class Projector(Model):
   '''Projector is a data manipulator'''
+  @classmethod
+  def addDataExchangedByTypes(cls):
+    print('Remember to add the data type supported the class filter')
+
   def __init__(self):
     Model.__init__(self)
 
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
-    self.interface = returnFilterInterface(self.subType)
-    self.interface.readMoreXML(xmlNode)
+    self.code = returnFilterInterface(self.subType)
+    self.code.readMoreXML(xmlNode)
  
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
@@ -520,6 +673,10 @@ class Projector(Model):
 #
 class Filter(Model):
   '''Filter is an Action System. All the models here, take an input and perform an action'''
+  @classmethod
+  def addDataExchangedByTypes(cls):
+    print('Remember to add the data type supported the class filter')
+
   def __init__(self):
     Model.__init__(self)
     self.input  = {}     # input source
@@ -547,7 +704,7 @@ class Filter(Model):
     '''run calls the interface finalizer'''
     for i in range(len(inObj)):
       self.interface.finalizeFilter(inObj[i],outObj,self.workingDir)
-  def collectOutput(self,finishedjob,output):
+  def collectOutput(self,finishedjob,output,newOutputLoop=True):
     self.interface.collectOutput(finishedjob,output)
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''just for compatibility'''
@@ -565,8 +722,13 @@ __interFaceDict['Filter'        ] = Filter
 __interFaceDict['Projector'     ] = Projector
 __interFaceDict['Dummy'         ] = Dummy
 __interFaceDict['ExternalModel' ] = ExternalModel
-__knownTypes                      = __interFaceDict.keys()
+#__interFaceDict                   = (__interFaceDict.items()+CodeInterfaces.__interFaceDict.items()) #try to use this and remove the code interface
+__knownTypes                      = list(__interFaceDict.keys())
 
+#here the class methods are called to fill the information about the usage of the clesses
+for classType in __interFaceDict.values():
+  classType.addDataExchangedTypes()
+  classType.addDataExchangedByTypes()
 
 def knonwnTypes():
   return __knownTypes
@@ -575,4 +737,12 @@ def returnInstance(Type,debug=False):
   '''This function return an instance of the request model type'''
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)
+
+def validate(className,role,what,debug=False):
+  '''This is the general interface for the validation of a model usage'''
+  if className in __knownTypes:
+    return __interFaceDict[className].localValidateMethod(role,what)
+  else: raise IOError('the class '+str(className)+' it is not a registered model')
+    
+  
   

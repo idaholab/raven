@@ -1,2 +1,2 @@
-counter,dummy_for_branch,time,pipe1_aw,pipe1_Hw
-1,0.417021998534,1.0,0.0,0.0
+dummy_for_branch,pump_mass_flow_rate,time,pipe1_Hw
+0.417021998534,0.346979402356,1.0,0.0

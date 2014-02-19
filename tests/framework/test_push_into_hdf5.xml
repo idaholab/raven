@@ -10,10 +10,10 @@
     <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='1'></MonteCarlo>     
+  <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>     
 </Samplers>
 <Steps> 
-    <MultiRun name='MonteCarlo'  initial_seed='1'>
+    <MultiRun name='MonteCarlo'>
         <Input   class='Files'      type=''          >ideal_pump.i</Input>
         <Input   class='Files'      type=''          >ideal_pump_control.py</Input>
         <Model   class='Models'     type='Code'      >MyRAVEN</Model>
@@ -67,35 +67,35 @@
 <Datas>
    <Histories name='histories_from_database' printCSV='t' input_ts='1'>
         <Input>dummy_for_branch</Input>
-        <Output>pipe1_Hw,pipe1_aw</Output>
+        <Output>pipe1_Hw,pump_mass_flow_rate</Output>
    </Histories>
    <TimePoint name='timepoint_from_database' printCSV='t' input_ts='1'>
        <Input name="1">dummy_for_branch</Input>
-       <Output>pipe1_Hw,pipe1_aw</Output>
+       <Output>pipe1_Hw,pump_mass_flow_rate</Output>
    </TimePoint>
    <History name='history_from_database' printCSV='t' input_ts='1'>
        <Input name="1">dummy_for_branch</Input>
-       <Output>pipe1_Hw,pipe1_aw</Output>
+       <Output>pipe1_Hw,pump_mass_flow_rate</Output>
    </History>
    <TimePointSet name='timepointset_from_database' printCSV='t' input_ts='1'>
        <Input>dummy_for_branch</Input>
-       <Output>pipe1_Hw,pipe1_aw</Output>
+       <Output>pipe1_Hw,pump_mass_flow_rate</Output>
    </TimePointSet>
    <Histories name='histories_IN_database' printCSV='t' input_ts='1'>
        <Input>dummy_for_branch</Input>
-       <Output>pipe1_Hw,pipe1_aw</Output>
+       <Output>pipe1_Hw,pump_mass_flow_rate</Output>
    </Histories>
    <TimePoint name='timepoint_IN_database' printCSV='t' input_ts='1'>
        <Input name="histories_from_database|0">dummy_for_branch</Input>
-       <Output>pipe1_Hw,pipe1_aw</Output>
+       <Output>pipe1_Hw,pump_mass_flow_rate</Output>
    </TimePoint>
    <History name='history_IN_database' printCSV='t' input_ts='1'>
        <Input name="histories_from_database|0">dummy_for_branch</Input>
-       <Output>pipe1_Hw,pipe1_aw</Output>
+       <Output>pipe1_Hw,pump_mass_flow_rate</Output>
    </History>
    <TimePointSet name='timepointset_IN_database' printCSV='t' input_ts='1'>
        <Input>dummy_for_branch</Input>
-       <Output>pipe1_Hw</Output>
+       <Output>pipe1_Hw,pump_mass_flow_rate</Output>
    </TimePointSet>
 </Datas>
 </Simulation>

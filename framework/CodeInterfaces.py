@@ -31,11 +31,11 @@ class RavenInterface:
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
     self._samplersDictionary                          = {}
-    self._samplersDictionary['MonteCarlo'           ] = self.MonteCarloForRAVEN
-    self._samplersDictionary['EquallySpaced'        ] = self.EquallySpacedForRAVEN
-    self._samplersDictionary['LatinHyperCube'       ] = self.LatinHyperCubeForRAVEN
-    self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForRAVEN
-    self._samplersDictionary['StochasticCollocation'] = self.StochasticCollocationForRAVEN
+    self._samplersDictionary['MonteCarlo'           ] = self.monteCarloForRAVEN
+    self._samplersDictionary['Grid'                 ] = self.gridForRAVEN
+    self._samplersDictionary['LHS'                  ] = self.latinHyperCubeForRAVEN
+    self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForRAVEN
+    self._samplersDictionary['StochasticCollocation'] = self.stochasticCollocationForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
@@ -51,7 +51,7 @@ class RavenInterface:
     parser.printInput(newInputFiles[index])
     return newInputFiles
 
-  def StochasticCollocationForRAVEN(self,**Kwargs):
+  def stochasticCollocationForRAVEN(self,**Kwargs):
     if 'prefix' not in Kwargs['prefix']:
       raise IOError('a counter is (currently) needed for the StochColl sampler for RAVEN')
     listDict = []
@@ -65,7 +65,7 @@ class RavenInterface:
       del modifDict
     return listDict
 
-  def MonteCarloForRAVEN(self,**Kwargs):
+  def monteCarloForRAVEN(self,**Kwargs):
     if 'prefix' in Kwargs: counter = Kwargs['prefix']
     else: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
     if 'initial_seed' in Kwargs:
@@ -80,7 +80,7 @@ class RavenInterface:
     listDict.append(modifDict)
     return listDict
   
-  def DynamicEventTreeForRAVEN(self,**Kwargs):
+  def dynamicEventTreeForRAVEN(self,**Kwargs):
     listDict = []
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
@@ -154,13 +154,13 @@ class RavenInterface:
           del modifDict
     return listDict  
 
-  def EquallySpacedForRAVEN(self,**Kwargs):
+  def gridForRAVEN(self,**Kwargs):
     raise IOError('EquallySpacedForRAVEN not yet implemented')
     listDict = []
     return listDict
   
-  def LatinHyperCubeForRAVEN(self,**Kwargs):
-    raise IOError('LatinHyperCubeForRAVEN not yet implemented')
+  def latinHyperCubeForRAVEN(self,**Kwargs):
+    raise IOError('latinHyperCubeForRAVEN not yet implemented')
     listDict = []
     return listDict
 
@@ -183,10 +183,10 @@ class MooseBasedAppInterface:
     '''this generate a new input file depending on which sampler has been chosen'''
     import MOOSEparser
     self._samplersDictionary                          = {}
-    self._samplersDictionary['MonteCarlo']            = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['EquallySpaced']         = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['LatinHyperCube']        = self.pointSamplerForMooseBasedApp
-    self._samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForMooseBasedApp
+    self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['Grid'                 ] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['LHS'                  ] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForMooseBasedApp
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     if currentInputFiles[0].endswith('.i'): index = 0
@@ -233,8 +233,8 @@ class MooseBasedAppInterface:
   
     return listDict
   
-  def DynamicEventTreeForMooseBasedApp(self,**Kwargs):
-    raise IOError('DynamicEventTreeForMooseBasedApp not yet implemented')
+  def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
+    raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
     listDict = []
     return listDict
 
@@ -261,10 +261,10 @@ class Relap5Interface:
     '''this generate a new input file depending on which sampler is chosen'''
     import RELAPparser
     self._samplersDictionary                          = {}
-    self._samplersDictionary['MonteCarlo']            = self.pointSamplerForRELAP5
-    self._samplersDictionary['EquallySpaced']         = self.pointSamplerForRELAP5
-    self._samplersDictionary['LatinHyperCube']        = self.pointSamplerForRELAP5
-    self._samplersDictionary['DynamicEventTree']      = self.DynamicEventTreeForRELAP5
+    self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForRELAP5
+    self._samplersDictionary['Grid'                 ] = self.pointSamplerForRELAP5
+    self._samplersDictionary['LHS'                  ] = self.pointSamplerForRELAP5
+    self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1

@@ -35,7 +35,7 @@
         <distribution type='Uniform'>Uniform1</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
       </Variable>
-    </LatinHyperCube>
+    </LHS>
 </Samplers>
 
 

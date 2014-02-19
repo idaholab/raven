@@ -83,6 +83,8 @@ class Distribution(BaseType):
     except AttributeError: raise IOError ('Quadrature has not been set for this distr. yet.')
 
 class SKDistribution(Distribution):
+  '''Unknown class'''
+  print ('could you please add a comment to the class SKDistribution?????')
 
   def cdf(self,*args):
     """Cumulative Distribution Function"""
@@ -100,6 +102,8 @@ def random():
   return stochasticEnv.random()
 
 def random_seed(value):
+  print(value)
+  print(type(value))
   return stochasticEnv.seedRandom(value)
 
 def random_integers(low,high):

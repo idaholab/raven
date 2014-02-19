@@ -34,7 +34,7 @@
     </Triangular>
 </Distributions>
 <Samplers>
-    <EquallySpaced name='myGrid'>
+    <Grid name='myGrid'>
       <Variable name='Materials|heat1|thermal_conductivity' >
         <distribution type='Normal'>Gauss1</distribution>
         <grid         type='value' construction='custom' >0.02 0.5 0.6</grid>
@@ -47,7 +47,7 @@
         <distribution type='Triangular' >DistTri1</distribution>
         <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
       </Variable>
-    </EquallySpaced>
+    </Grid>
 </Samplers>
 
 <Datas>
@@ -59,12 +59,12 @@
 
 <Steps>
   <MultiRun name='CustomSampler'>
-    <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.i</Input>
-    <Input   class = 'Files'      type=''          >gap_perfect_transfer_test.e</Input>
-    <Model   class = 'Models'     type='Code'      >Bison</Model>
-    <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
-    <Output  class='DataBases'    type='HDF5'>test_bison_grid</Output>
-    <Output class='Datas' type='Histories'>stories</Output>
+    <Input   class = 'Files'     type=''         >gap_perfect_transfer_test.i</Input>
+    <Input   class = 'Files'     type=''         >gap_perfect_transfer_test.e</Input>
+    <Model   class = 'Models'    type='Code'     >Bison</Model>
+    <Sampler class = 'Samplers'  type='Grid'     >myGrid</Sampler>
+    <Output  class = 'DataBases' type='HDF5'     >test_bison_grid</Output>
+    <Output  class = 'Datas'     type='Histories'>stories</Output>
     </MultiRun >
 </Steps>
 <DataBases>

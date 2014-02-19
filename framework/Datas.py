@@ -714,20 +714,24 @@ class TimePointSet(Data):
       
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
       else: return
-  
-      myFile.write(b'counter')
+      
+      myString = ''
       for i in range(len(inpKeys)):
-          myFile.write(b',' + utils.toBytes(inpKeys[i]))
+        myString += b',' + utils.toBytes(str(inpKeys[i]))
+      myFile.write(myString[1:])
       for i in range(len(outKeys)):
           myFile.write(b',' + utils.toBytes(outKeys[i]))
       myFile.write(b'\n')
       
       for j in range(outValues[0].size):
-        myFile.write(utils.toBytes(str(j+1)))
+        myString = ''
         for i in range(len(inpKeys)):
-          myFile.write(b',' + utils.toBytes(str(inpValues[i][j])))
+          myString += b',' + utils.toBytes(str(inpValues[i][j]))
+        myFile.write(myString[1:])
+        myString = ''
         for i in range(len(outKeys)):
-          myFile.write(b',' + utils.toBytes(str(outValues[i][j])))
+          myString += b',' + utils.toBytes(str(outValues[i][j]))
+        myFile.write(myString)
         myFile.write(b'\n')
         
       myFile.close()

@@ -39,8 +39,10 @@ except ImportError:
  Isotonic regression
  '''
 
-class superVisioned():
+class superVisioned(object):
   def __init__(self,**kwargs):
+    self.features = kwargs['featureName']
+    self.targets  = kwargs['targetName' ]
     self.initializzationOptionDict = kwargs
 
   def train(self,obj):
@@ -64,90 +66,24 @@ class superVisioned():
     '''override this method to pass the set of parameters of the ROM that can change during simulation'''
     CurrentSettingDict={}
     return CurrentSettingDict
-
+#
+#
+#
 class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
 
   def train(self,inDictionary):
-    data=inDictionary['Input'][0]
-    self.solns={}
-    
-    if data.type=='HDF5':
-      #attr={'filter':['prefix','quad_pts','partial coeffs']}
-      #attr={'prefix':None,'quad_pts':None,'partial coeffs':None}
-      attr={}
-      hists=data.getEndingGroupNames()
-      M=[]
-      for i,h in enumerate(hists):
-        if h=='':continue
-        #print('h is',h)
-        attr['history']=h
-        M.append(data.returnHistory(attr))
-      #print('Items in HDF5:',len(M[-1][1]['headers']))
-      #print('\nvalues:',M[0][1]['quad_pts'])
-
-      # How to get specific values from solution?
-      solnIndex=numpy.where(M[0][1]['headers']=='avg_out_temp_sec_A')
-
-
-      # for each run, sampler passes the values (quad pt) to eval at, as well as
-      # the partial coefficients for that _quad point_.  Here, for each of those,
-      # we simply need to sum over each partCoeff[quad_pt][ord]*soln[quad_pt]
-      # to construct poly_coeff[ord]
-
-      self.poly_coeffs={}
-      for history in M:
-        self.poly_coeffs[tuple(history[1]['exp order'])]=0
-        for partCoeff in history[1]['partial coeffs']:
-          self.poly_coeffs[tuple(history[1]['exp order'])]+=\
-                    history[0][0][solnIndex]*partCoeff
-      
-      #for key in self.poly_coeffs:
-      #  print(key,self.poly_coeffs[key])
-
-
-      #self.poly_coeffs={}
-      #dictQpCoeffs=pk.load(file('SCweights.pk','r')) take from hdf5
-      #for ords in dictQpCoeffs.keys():
-      #  self.poly_coeffs[ords]=0
-      #  for qp in dictQpCoeffs[ords].keys():
-      #    self.poly_coeffs[ords]+=dictQpCoeffs[ords][qp]*soln[qp]
-      print('StochasticPolynomials ROM successfully trained.')
-    else:
-      print('Reading from non-HDF5 for StochPolys not supported yet...')
-    return
-    # loop over all possible combinations of expansion orders in each var
-    #for ords in list(product(*[range(self.distDict[var].polyOrder()) for var in self.distDict.keys()])):
-    #  self.poly_coeffs[ords]=0
-    #  for qp in quad.indx_ord.keys(): #quadrature points
-    #    poly=wt=probNorm=1.
-    #    for v,var in enumerate(self.distDict):
-    #      poly*=self.distDict[var].quad().evNormPoly(ords[v],qp[v])
-    #      wt*=self.distDict[var].standardToActualWeight(qp2wt[qp[v]])
-    #      #TODO assumes standardToActualWeight is a linear transformation!
-    #      probNorm*=self.distDict[var].probNorm(qp[v])
-    #    self.poly_coeffs[ords]+=solns[qp]*wt*poly*probNorm
+    pass
 
   def evaluate(self,valDict):
-    # valDict is dict of values to evaluate at, keyed on var
-    #FIXME these need to be adjusted for changes in train()
-    tot=0
-    for ords,coeff in self.poly_coeff:
-      tot+=coeff*np.prod([self.distDict[var].quad().evNormPoly(\
-              ords[v],self.distDict[var].revertPt(valDict[var])) for v,var in enumerate(valDict)])
-      #TODO revertPt may not always be straightforward to implement!
-    return tot
+    pass
 
   def reset(self,*args):
-    try:
-      del self.poly_coeffs
-      del self.distDict
-    except AttributeError: pass
-
-
-
-
+    pass
+#
+#
+#
 class SVMsciKitLearn(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
@@ -157,10 +93,11 @@ class SVMsciKitLearn(superVisioned):
     self.availSVM['C-SVC'    ] = svm.SVC
     self.availSVM['NuSVC'    ] = svm.NuSVC
     self.availSVM['epsSVR'   ] = svm.SVR
-    if not self.initializzationOptionDict['SVMtype'] in self.availSVM.keys():
-      raise IOError ('not known support vector machine type ' + self.initializzationOptionDict['SVMtype'])
+    if not self.initializzationOptionDict['SVMtype'] in self.availSVM.keys(): raise IOError ('not known support vector machine type ' + self.initializzationOptionDict['SVMtype'])
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
     kwargs.pop('SVMtype')
+    kwargs.pop('targetName')
+    kwargs.pop('featureName')
     self.SVM.set_params(**kwargs)
 
   def train(self,X,y):
@@ -173,7 +110,6 @@ class SVMsciKitLearn(superVisioned):
         -------
         y : array, shape = [n_samples]
     """
-    #print("X",X,"y",y)
     self.SVM.fit(X,y)
 
   def returnInitialParamters(self):

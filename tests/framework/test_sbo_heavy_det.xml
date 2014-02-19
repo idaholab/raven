@@ -70,7 +70,7 @@
         <Input   class='Files'      type=''                >TMI_steady_restart/0957.xdr</Input>
         <Input   class='Files'      type=''                >TMI_steady_restart/0957.xdr.0000</Input>
         <Input   class='Files'      type=''                >TMI_steady_restart/0957_mesh.cpr</Input>
-        <Model   class='Models'    type='Code'            >MyRAVEN</Model>
+        <Model   class='Models'    type='Code'             >MyRAVEN</Model>
         <Sampler class='Samplers'  type='DynamicEventTree'>DET</Sampler>
         <Output  class='DataBases' type='HDF5'              >DET_SBO_RUN_eqPb</Output>
     </MultiRun>

@@ -73,14 +73,13 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self) 
     self.counter      = 0           # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.limit        = sys.maxsize # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
-    self.toBeSampled  = {}           # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
-    self.distDict     = {}           # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
-    self.values       = {}           # for each variable the current value {'var name':value}
-    self.inputInfo    = {}           # depending on the sampler several different type of keywarded information could be present only one is mandatory..
-    self.inputInfo['SampledVars'  ] = self.values
-    self.inputInfo['SampledVarsPb'] = {}
-    self.initSeed     = None         #Every time the sampler is call if he possesses a seed it going to reinitialize the seed for the hole environment 
-                                     #(if not read remains none meaning the seeds will be the one of the previous run)
+    self.toBeSampled  = {}          # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
+    self.distDict     = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
+    self.values       = {}          # for each variable the current value {'var name':value}
+    self.inputInfo    = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below 
+    self.initSeed     = None        # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
+    self.inputInfo['SampledVars'  ] = self.values #this is the location where to get the values of the sampled variables
+    self.inputInfo['SampledVarsPb'] = {}          #this is the location where to get the probability of the sampled variables
 
   def readMoreXML(self,xmlNode):
     '''
@@ -91,14 +90,13 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     The text i supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
     '''
-    try:    self.initSeed = int(xmlNode.attrib['initial_seed'])
-    except KeyError: pass
-    try:    self.limit    = int(xmlNode.attrib['limit'])
+    try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
+    except KeyError: self.initSeed = Distributions.random_integers(0,2**31)
+    try            : self.limit    = int(xmlNode.attrib['limit'])
     except KeyError: pass
     for child in xmlNode:
       for childChild in child:
-        if childChild.tag =='distribution':
-          self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
+        if childChild.tag =='distribution': self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
     self.localInputAndChecks(xmlNode)
 
   def localInputAndChecks(self,xmlNode):
@@ -130,12 +128,12 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, tempDict
     @ Out, tempDict 
     '''
-    tempDict['counter' ] = self.counter
+    tempDict['counter' ]      = self.counter
+    tempDict['initial seed' ] = self.initSeed
     for key in self.inputInfo:
-      if key!='SampledVars':tempDict[key] = self.inputInfo[key]
+      if key!='SampledVars': tempDict[key] = self.inputInfo[key]
       else:
-        for var in self.inputInfo['SampledVars'].keys():
-          tempDict['Variable: '+var+' has value']=tempDict[key][var]
+        for var in self.inputInfo['SampledVars'].keys(): tempDict['Variable: '+var+' has value'] = tempDict[key][var]
     self.localAddCurrentSetting(tempDict)
 
   def localAddCurrentSetting(self,tempDict):
@@ -143,29 +141,32 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   def generateDistributions(self,availableDist):
-    '''used to restart the random number generators of the distributions that will be used
-    the trick is that if you want to add two step of MonteCarlo, to be uncorrelated the second sampler either have a different seed either none.
-    In case no seed is specified a random seed is used.
+    '''
+    here the needed distribution are made available to the step as also the initializzation 
+    of the seeding (the siding could be overriden by the step by calling the initiaize method
     @in availableDist: {'distribution name':instance}
     '''
-    #Note: random number also initialized in Steps.
     if self.initSeed != None:
+      print('self.initSeed')
       Distributions.random_seed(self.initSeed)
-    for key in self.toBeSampled.keys():
-      self.distDict[key] = availableDist[self.toBeSampled[key][1]]
-      self.distDict[key].initializeDistribution()
-   
-  def initialize(self,solutionExport=None,goalFunction=None):
+    for key in self.toBeSampled.keys(): self.distDict[key] = availableDist[self.toBeSampled[key][1]]
+    
+  def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None):
     '''
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
-    @ In/Out, None
+    @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrain)
+    @in goalFunction:   in goal oriented sampling this is the function to be used
     '''
     self.counter = 0
+    if   externalSeeding==None: Distributions.random_seed(self.initSeed)            #use the sampler initializzation seed
+    elif externalSeeding=='continue': pass                                          #in this case the random sequence wants to be preserved
+    else                            : Distributions.random_seed(externalSeeding)    #the external seeding is used
+    for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution() #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
-    if goalFunction!=None:
-      self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction)
-    elif (solutionExport!=None and goalFunction==None): raise Exception('not consistent call to the smapler.initialize since the SolutionExport is provided but not the goalFunction')
-    else: self.localInitialize()
+    if solutionExport!=None:
+      if   goalFunction==None: raise Exception('not consistent call to the smapler.initialize since the SolutionExport is provided but not the goalFunction')
+      else                   : self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction)
+    else                     : self.localInitialize()
     
   def localInitialize(self):
     '''
@@ -262,7 +263,8 @@ class AdaptiveSampler(Sampler):
     self.norm             = None             #this is the pointer to the norm function
     self.tolerance        = None             #this is norm of the error threshold
     self.tolleranceWeight = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
-    self.persistence      = 0                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
+    self.persistence      = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
+    self.repetition       = 0                #the actual number of time the error was below the requested threshold
     self.forceIteration   = False            #this flag control if at least a self.limit number of iteration should be done
     self.axisName         = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridStepSize     = None             #For each coordinate the size of the step in the testing grid
@@ -272,42 +274,36 @@ class AdaptiveSampler(Sampler):
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
     self.gridShape        = None             #tuple describing the shape of the grid matrix
     self.gridCoorShape    = None             #tuple describing the shape of the grid containing also the coordinate 
-    self.functionValue    = []               #This is the list of the outcome of the function evaluation for the point already sampled. the list position is whatever returned by the function
+    self.functionValue    = None             #This an ndarray each row is the values of the input space of a realization plus the value of the goal function
     self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
     self.gridCoord        = None             #this is the matrix that contains for each entry of the grid the coordinate
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
-    self.persistence      = 5
-    self.repetition       = 0
-    self.initSeed         = None
     
   def localInputAndChecks(self,xmlNode):
     #setting up the adaptive algorithm
-    if 'initial_seed' in xmlNode.attrib.keys(): self.initSeed = int(xmlNode.attrib['initial_seed'])
-    
     if 'adaptiveAlgorithm' in xmlNode.attrib.keys():
       self.adaptAlgoType = xmlNode.attrib['adaptiveAlgorithm']
       import AdaptiveAlgoLib
       if self.adaptAlgoType in AdaptiveAlgoLib.knonwnTypes(): self.adaptAlgo = AdaptiveAlgoLib.returnInstance(self.adaptAlgoType)
       else                                                  : raise Exception('the '+self.adaptAlgoType+'is not a known type of adaptive search algorithm')
     else: raise Exception('the attribute adaptiveAlgorithm was missed in the definition of the adaptive sampler '+self.name)
-    #setting up the Convergence characteristc
+    #setting up the Convergence characteristic
     convergenceNode = xmlNode.find('Convergence')
-    if convergenceNode!=None:
-      self.tolerance=float(convergenceNode.text)     
-      if 'norm'          in convergenceNode.attrib.keys():
-        self.normType = convergenceNode.attrib['norm']
-        import NormLib
-        if self.normType in NormLib.knonwnTypes()             : self.norm             = NormLib.returnInstance(self.normType)
-        else: raise Exception('the '+self.normType+'is not a known type of norm')
-      if 'limit'          in convergenceNode.attrib.keys()    : self.limit            = int (convergenceNode.attrib['limit'      ])
-      if 'persistence'    in convergenceNode.attrib.keys()    : self.persistence      = int (convergenceNode.attrib['persistence'])
-      if 'weight'         in convergenceNode.attrib.keys()    : self.tolleranceWeight = str (convergenceNode.attrib['weight'     ])
-      if 'forceIteration' in convergenceNode.attrib.keys()    :
-        if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
-        elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
-        else: raise Exception('in reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration'])) 
-    else: raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
+    if convergenceNode==None:raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
+    self.tolerance=float(convergenceNode.text)     
+    if 'norm'          in convergenceNode.attrib.keys():
+      self.normType = convergenceNode.attrib['norm']
+      import NormLib
+      if self.normType in NormLib.knonwnTypes()             : self.norm             = NormLib.returnInstance(self.normType)
+      else: raise Exception('the '+self.normType+'is not a known type of norm')
+    if 'limit'          in convergenceNode.attrib.keys()    : self.limit            = int (convergenceNode.attrib['limit'      ])
+    if 'persistence'    in convergenceNode.attrib.keys()    : self.persistence      = int (convergenceNode.attrib['persistence'])
+    if 'weight'         in convergenceNode.attrib.keys()    : self.tolleranceWeight = str (convergenceNode.attrib['weight'     ])
+    if 'forceIteration' in convergenceNode.attrib.keys()    :
+      if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
+      elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
+      else: raise Exception('in reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration'])) 
       
   def localAddInitParams(self,tempDict):
     tempDict['The adaptive algorithm type is '                ] = self.adaptAlgoType
@@ -315,6 +311,7 @@ class AdaptiveSampler(Sampler):
     tempDict['Force the sampler to reach the iteration limit '] = str(self.forceIteration)
     tempDict['The norm tolerance is '                         ] = str(self.tolerance)
     tempDict['The type of weighting for the error is '        ] = str(self.tolleranceWeight)
+    tempDict['The number of no error repetition requested is '] = str(self.repetition)
          
   def localAddCurrentSetting(self,tempDict):
     if self.solutionExport!=None:
@@ -324,10 +321,8 @@ class AdaptiveSampler(Sampler):
     for varName in self.distDict.keys():
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
    
-  def localInitialize(self,goalFunction=None,solutionExport=None):
-    #Note random number generator may reseed in Steps.
-    if self.initSeed != None:
-      Distributions.random_seed(self.initSeed)
+  def localInitialize(self,goalFunction=None,solutionExport=None,ROM=None):
+    print('Remember to change ROM from optional to mandatory')
     self.goalFunction   = goalFunction
     self.solutionExport = solutionExport
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
@@ -344,7 +339,6 @@ class AdaptiveSampler(Sampler):
     if self.tolleranceWeight!='probability':
       stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
     else: stepParam = lambda x: [stepLenght, 0.0, 1.0]
-
     self.nVar  = len(self.distDict.keys())
     pointByVar = [None]*self.nVar
     for varId, varName in enumerate(self.distDict.keys()):
@@ -354,18 +348,19 @@ class AdaptiveSampler(Sampler):
       self.gridStepSize[varId]   = myStepLenght
       self.gridVectors[varName]  = np.arange(start,end,myStepLenght)
       pointByVar[varId]          = np.shape(self.gridVectors[varName])[0]
-
     self.gridShape      = tuple   (pointByVar)
     self.testGridLenght = np.prod (pointByVar)
     self.testMatrix     = np.zeros(self.gridShape)
     self.oldTestMatrix  = np.zeros(self.gridShape)
     self.gridCoorShape  = tuple(pointByVar+[self.nVar])
     self.gridCoord      = np.zeros(self.gridCoorShape)
+    self.functionValue  = np.zeros((0,self.nVar+1))        #here we generate a zero row matrix with self.nVar+1 column
     #filling the coordinate on the grid
     myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
     while not myIterator.finished:
       self.gridCoord[myIterator.multi_index] = np.multiply(np.asarray(myIterator.multi_index), self.gridStepSize)+self.gridStepSize*0.5
       myIterator.iternext()
+    #printing
     if self.debug:
       print('self.gridShape '+str(self.gridShape))
       print('self.testGridLenght '+str(self.testGridLenght))
@@ -377,21 +372,26 @@ class AdaptiveSampler(Sampler):
       while not myIterator.finished:
         print ('Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
+    if ROM==None:
+      import SupervisedLearning
+#     self.ROM=SupervisedLearning.returnInstance('SVMscikitLearn')(**{'SVMtype':str('C-SVC'),'kernel':str('rbf'), 'degree':3})
+      self.ROM=SupervisedLearning.returnInstance('SVMscikitLearn')(**{'SVMtype':str('LinearSVC')})
+
       
-  def __TemporaryFixFunction(self,inArray,expectedSize):
-    '''
-      Since there is a bug here somewhere, if the array size is != expected size, we trim or extend the array, taking off the exeding values or copying the last available one to the missing ones....
-      i KNOW... it is bad... TO FIX FIXXXXXXXXXXX 
-    '''
-    if inArray.size == expectedSize: return inArray
-    elif inArray.size > expectedSize: return inArray[0:expectedSize]
-    else:
-      #print('resizing ARRAY....NOT OK NOT OK')
-      returnArray = np.zeros(expectedSize)
-      lastValue = inArray[-1]
-      returnArray[0:inArray.size] = inArray[:]
-      returnArray[inArray.size:expectedSize] = lastValue
-      return returnArray
+#  def __TemporaryFixFunction(self,inArray,expectedSize):
+#    '''
+#      Since there is a bug here somewhere, if the array size is != expected size, we trim or extend the array, taking off the exeding values or copying the last available one to the missing ones....
+#      i KNOW... it is bad... TO FIX FIXXXXXXXXXXX 
+#    '''
+#    if inArray.size == expectedSize: return inArray
+#    elif inArray.size > expectedSize: return inArray[0:expectedSize]
+#    else:
+#      #print('resizing ARRAY....NOT OK NOT OK')
+#      returnArray = np.zeros(expectedSize)
+#      lastValue = inArray[-1]
+#      returnArray[0:inArray.size] = inArray[:]
+#      returnArray[inArray.size:expectedSize] = lastValue
+#      return returnArray
       
   def localStillReady(self,ready,lastOutput=None,ROM=None):
     '''
@@ -401,60 +401,63 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightbur value is used
     '''
+    if self.debug: print('From method localStillReady...')
     #test on what to do
-    if ready     == False: return ready #if we exceeded the limit just return that we are done
-    if lastOutput==None  : return ready #if the last output is not provided I am still generating an input batch  
-
-    #first evaluate the goal function on the sampled points and store them in self.functionValue
-    if len(self.functionValue)<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0]))-1:  #in this way we check if an input batch had been used and not yet harvested 
+    if ready      == False : return ready #if we exceeded the limit just return that we are done
+    if lastOutput == None  : return ready #if the last output is not provided I am still generating an input batch  
+    #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue
+    if np.shape(self.functionValue)[0]<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0])):  #in this way we check if an input batch had been used and not yet harvested 
       tempDict = {}
-      #if there are missed input not collected we chat up and perform the function evaluation on it
-      while len(self.functionValue)<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0])):
-        for varName in lastOutput.dataParameters['inParam']+lastOutput.dataParameters['outParam']: 
-          tempDict[varName] = lastOutput.extractValue('numpy.ndarray',varName)[0:len(self.functionValue)+1]
-        self.functionValue.append(self.goalFunction.evaluate('residualSign',tempDict))
-    else: self.functionValue.append(self.goalFunction.evaluate('residualSign',lastOutput))
-    
-    np.copyto(self.oldTestMatrix,self.testMatrix) #copy the old solution into the oldTestMatrix for comparison
-    #recovery the input values so far generated and convert them in pb if needed
-    inputsetandFunctionEval  = np.zeros((len(self.functionValue),self.nVar+1))
-    if self.tolleranceWeight=='probability':
-      for varID, varName in enumerate(self.axisName):
-        inputsetandFunctionEval[:,varID]=map(self.distDict[varName].cdf,self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size))
-    else:
-      for varID, varName in enumerate(self.axisName): 
-        inputsetandFunctionEval[:,varID]=self.__TemporaryFixFunction(lastOutput.extractValue('numpy.ndarray',varName), inputsetandFunctionEval[:,varID].size)
-       
-    inputsetandFunctionEval[:,-1]=self.functionValue
-
+      #if there are missed input not collected we catch up and perform the function evaluation on it
+      while np.shape(self.functionValue)[0]<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0])):
+        self.functionValue = np.vstack([self.functionValue,np.zeros(self.nVar+1)])
+        for varName in lastOutput.dataParameters['outParam']+lastOutput.dataParameters['inParam']: 
+          tempDict[varName] = lastOutput.extractValue('numpy.ndarray',varName)[0:np.shape(self.functionValue)[0]]
+          if varName in self.axisName:
+            if self.tolleranceWeight=='probability': self.functionValue[-1:,self.axisName.index(varName)]= self.distDict[varName].cdf(tempDict[varName][-1:])
+            else                                   : self.functionValue[-1:,self.axisName.index(varName)]= tempDict[varName][-1:]
+        self.functionValue[-1:,-1:] = self.goalFunction.evaluate('residualSign',tempDict)
+    if self.debug: print('Mapping of the goal function evaluation done')
+    #copy the old solution for convergence check
+    np.copyto(self.oldTestMatrix,self.testMatrix)
     #printing 
     if self.debug:
       print('already evaluated points and function value')
       if self.tolleranceWeight=='probability':
-        for values in np.rollaxis(inputsetandFunctionEval,0):
+        for values in np.rollaxis(self.functionValue,0):
           myStr = ''
           for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].ppf(values[iVar]))+'      '
           print(myStr+'  value: '+str(values[-1]))
       else:
-        for values in np.rollaxis(inputsetandFunctionEval,0):
+        for values in np.rollaxis(self.functionValue,0):
           myStr = ''
           for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].cdf(values[iVar]))+'      '
           print(myStr+'  value: '+str(values[-1]))
+    ##fitting and predicting
+    self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1])
+    self.ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
+    self.testMatrix.shape  = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
+    self.gridCoord.shape   = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
+    self.testMatrix[:]     = self.ROM.evaluate(self.gridCoord)
+    self.testMatrix.shape  = self.gridShape                                        #bring back the grid structure
+    self.gridCoord.shape   = self.gridCoorShape                                    #bring back the grid structure
 
-    #generate the fine grid solution based on proximity with the point sampled and check the error or use a ROM
-    if ROM==None: self.myTree = scipy.spatial.cKDTree(inputsetandFunctionEval[:,:-1]) #build the tree for the fast recovery of the nearest point
-    else        : self.myTree = ROM.train(inputsetandFunctionEval[:,:-1],inputsetandFunctionEval[:,-1])
-    self.testMatrix.shape       = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape        = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
-    if ROM==None:
-      distance, outId             = self.myTree.query(self.gridCoord)                     #for each point in the grid get the distance and the id of the closest point that belong to the inputset
-      self.testMatrix[:]          = [inputsetandFunctionEval[myID,-1] for myID in outId]  #for each point on the grid retrieve the function evaluation
-    else:
-      self.testMatrix[:] = ROM.predict(self.gridCoord)
-    self.testMatrix.shape       = self.gridShape                                        #bring back the grid structure
-    self.gridCoord.shape        = self.gridCoorShape                                    #bring back the grid structure
-    testError                   = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))
-
+#    if ROM==None: self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1]) #build the tree for the fast recovery of the nearest point
+#    else        : self.myTree = ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
+#    self.testMatrix.shape     = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
+#    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
+#    if self.debug: print('Training finished')
+#    #predicting on the grid
+#    if ROM==None: 
+#      distance, outId         = self.myTree.query(self.gridCoord)                     #for each point in the grid get the distance and the id of the closest point that belong to the input set
+#      self.testMatrix[:]      = [self.functionValue[myID,-1:] for myID in outId]      #for each point on the grid retrieve the function evaluation
+#    else: self.testMatrix[:]  = ROM.predict(self.gridCoord)                           #use the ROM to perform the prediction
+#    self.testMatrix.shape     = self.gridShape                                        #bring back the grid structure
+#    self.gridCoord.shape      = self.gridCoorShape                                    #bring back the grid structure
+#    if self.debug: print('Prediction finished')    
+    
+    #compute the error
+    testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))
     #check error and permanence of the error
     if (testError > 0): 
       ready = True
@@ -463,36 +466,37 @@ class AdaptiveSampler(Sampler):
       self.repetition +=1
       if self.persistence<self.repetition : ready = False #we are done
     print('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
-    
     #use a gradient operator to preselect the candidate
     toBeTested       = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0)))) #preselect a set of possible candidate by non zero gradient. Array is (number of candidate)x(nVar)
     #printing
     if self.debug:
-      print('Limit surface candidate')
+      print('Limit surface candidate points')
       for coordinate in np.rollaxis(toBeTested,0):
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
         print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #check which one of the preselected points is really on the limit surface
-    listsurfPoint    = []
-    myIdList         = np.ndarray(self.nVar)
-    for array_slice in np.rollaxis(toBeTested,0):
-      myIdList[:] = copy.deepcopy(array_slice)
-      if self.testMatrix[tuple(myIdList)]!=1: #we seek the frontier sitting on the -1 side
+    listsurfPoint = []
+    myIdList      = np.zeros(self.nVar)
+    for coordinate in np.rollaxis(toBeTested,0):
+      myIdList[:] = copy.deepcopy(coordinate)
+      if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
         for iVar in range(self.nVar):
-          if myIdList[iVar]<self.gridShape[iVar]-1:
-            myIdList[iVar] +=1
-            if self.testMatrix[tuple(myIdList)]!=-1:
-              listsurfPoint.append(array_slice)
+          if coordinate[iVar]<self.gridShape[iVar]-1:
+            myIdList[iVar]+=1
+            if self.testMatrix[tuple(myIdList)]>0:
+              listsurfPoint.append(coordinate)
+              myIdList[iVar]-=1
               break
-            else: myIdList[iVar] -=1
-          if myIdList[iVar]>0:
-            myIdList[iVar] -=1
-            if self.testMatrix[tuple(myIdList)]!=-1:
-              listsurfPoint.append(myIdList)
+            myIdList[iVar]-=1
+          if coordinate[iVar]>0:
+            myIdList[iVar]-=1
+            if self.testMatrix[tuple(myIdList)]>0:
+              listsurfPoint.append(coordinate)
+              myIdList[iVar]+=1
               break
-            myIdList[iVar] +=1
-    #printing
+            myIdList[iVar] += 1
+    #printing    
     if self.debug:
       print('Limit surface points')
       for coordinate in listsurfPoint:
@@ -520,6 +524,7 @@ class AdaptiveSampler(Sampler):
           for varIndex in range(len(self.axisName)):
             if varName in self.axisName[varIndex]:
               self.solutionExport.getInpParametersValues()[varName] = self.surfPoint[:,varIndex]
+    #printing 
     if self.debug:
       print('Limit surface points')
       for coordinate in np.rollaxis(self.surfPoint,0):
@@ -546,18 +551,15 @@ class AdaptiveSampler(Sampler):
       distance, outId       =  self.myTree.query(surfPointInPb)
       maxIndex = distance.argmax()
       for varId, varName in enumerate(self.axisName):
-        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId]+self.gridStepSize[varId]*(Distributions.random()-0.499))
-        else:self.values[varName] = surfPointInPb[maxIndex,varId]*self.gridStepSize[varId]*(Distributions.random()-0.499)
+#        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId]+self.gridStepSize[varId]*(np.random.rand()-0.5)*0.99)
+        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId])
+        else:self.values[varName] = surfPointInPb[maxIndex,varId]*self.gridStepSize[varId]#*(np.random.rand()-0.5)*0.99
     else:
       for key in self.distDict:
         self.values[key]=self.distDict[key].ppf(float(Distributions.random()))
-      if self.initSeed != None:
-        self.inputInfo['initial_seed'] = str(self.initSeed)
     if self.debug:
       print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
 
-
-  
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''generate representation of goal function'''
     pass
@@ -565,121 +567,30 @@ class AdaptiveSampler(Sampler):
 #
 #
 class StochasticCollocation(Sampler):
-  '''
-  STOCHASTIC COLLOCATION Sampler 
-  '''
+  '''STOCHASTIC COLLOCATION Sampler '''
   def __init__(self):
-    Sampler.__init__(self)
-    self.min_poly_order = 0 #lowest acceptable polynomial order
-    self.var_poly_order = dict() #stores poly orders for each var
-    self.availableDist = None #container of all available distributions
+    pass
 
   def localInitialize(self):
-    # assign values to undefined order variables
-    if self.min_poly_order>0:
-      if len( set(self.var_poly_order) ^ set(self.distDict) )==0: #keys correspond exactly
-        if sum(self.var_poly_order.values())<self.min_poly_order:
-          raise IOError('Minimum total polynomial order is set greater than sum of all variable orders!')
-      else:
-        r_keys = set(self.distDict) - set(self.var_poly_order) #var orders not set yet
-        r_order = min(len(r_keys),self.min_poly_order-sum(self.var_poly_order.values())) #min remaining order needed
-        for key in r_keys:
-          self.var_poly_order[key]=int(round(0.5+r_order/(len(r_keys))))
-    self.limit=np.product(self.var_poly_order.values())-1
-    #TODO Shouldn't need to -1 here; where should it happen?
-    #tried to put it in Steps, MultiRun.initializeStep, set maxNumberIteration, didn't work.
-      
-    self.generateQuadrature()
+    pass
     
   def readMoreXML(self,xmlNode):
-    '''
-    Function to read the portion of the xml input that belongs to this specialized class
-    and initialize some stuff based on the inputs got
-    @ In, xmlNode    : Xml element node
-    @ Out, None
-    '''
-    #Sampler.readMoreXML(self,xmlNode) # overwritten
-    # attempt to set minimum total function polynomial expansion order
-    if 'min_poly_order' in xmlNode.attrib: 
-      self.min_poly_order = int(xmlNode.attrib['min_poly_order'])
-    else: self.min_poly_order = 0
-    
-    # attempt to set polynomial expansion order for individual params
-    for child in xmlNode:
-      self.toBeSampled[child.text]    = [child.attrib['type'],child.attrib['distName']] 
-      self.var_poly_order[child.text] = int(child.attrib['poly_order'])
-    
-    # won't work if there's no uncertain variables!
-    if len(self.toBeSampled.keys()) == 0:
-      raise IOError('No uncertain variables to sample!')
-    return
+    pass
 
   def GenerateInput(self,model,myInput):
-    '''
-    Function used to generate an input.
-    It returns the model.createNewInput() passing into it the type of sampler,
-    the values to be used and the some add info in the values dict
-    @ In, model: Model object instance
-    @ Out, myInputs: Original input files
-    '''
-    if self.debug: print('generate input model:',model)
-    quad_pts=self.quad.quad_pts[self.counter-1]
-#    quad_pt_index = self.quad.quad_pt_index[quad_pts]
-    self.inputInfo['quad_pts']       = quad_pts
-    self.inputInfo['partial coeffs'] = self.partCoeffs[quad_pts].values()
-    self.inputInfo['exp order']      = self.quad.quad_pt_index[quad_pts]
-    #values={}
-    #values['prefix']={'counter'       :str(self.counter),
-    #                  'quad pts'      :str(quad_pts),
-    #                  'partial coeffs':str(self.partCoeffs[quad_pts])}
-    #values['prefix']=(('counter'   ,'quad pts','partial coeffs'),
-    #                  (self.counter, quad_pts,str(self.partCoeffs[quad_pts].values())))
-    # TODO would be beneficial to pass the orders of quad pt, too?
-    for var in self.distDict.keys():
-      self.inputInfo['SampledVars'][var]=self.distDict[var].actual_point(\
-          quad_pts[self.quad.dict_quads[self.quad.quads[var]]])
-      #print('run',self.counter,'for var '+var+' set value',values['vars'][var])
     return
 
   def generateQuadrature(self):
-    quads={}
-    for var in self.distDict.keys():
-      #TODO see above, this won't work for quads that need addl params
-      #  Example: Laguerre, Jacobi
-      #  create a dict for addl params lists to *add to quadrature init call?
-      #  this for sure works, even if it's empty!
-      quads[var]=self.distDict[var].bestQuad(self.var_poly_order[var])
-    self.quad=Quadrature.MultiQuad(quads)
-    self.partCoeffs={}
-    for quad_pt in self.quad.indx_quad_pt.values(): #quadrature points
-      self.partCoeffs[quad_pt]={}
-      for ords in list(iterproduct(*[range(self.var_poly_order[var]) for var in self.distDict.keys()])):
-        self.partCoeffs[quad_pt][ords]=0
-        poly=weight=probNorm=1.
-        for v,var in enumerate(self.distDict):
-          actVar=self.distDict[var]
-          poly*=quads[var].evNormPoly(ords[v],quad_pt[v])
-          # Note we this assumes standardToActualWeight is linear!
-          probNorm*=actVar.probability_norm(quad_pt[v])
-        weight=actVar.actual_weight(self.quad.quad_pt_weight[quad_pt])
-        self.partCoeffs[quad_pt][ords]=weight*poly*probNorm
-        # summing over each [quad_pt]*soln[quad_pt] will give poly_coeff[ords]
     return
 
   def initializeDistributions(self,availableDist):
-    '''generate the instances of the distribution that will be used'''
-    self.availableDist = availableDist
-    for key in self.toBeSampled.keys():
-      self.distDict[key] = availableDist[self.toBeSampled[key][1]]
-      self.distDict[key].inDistr()
     return
 #
 #
 #
 class MonteCarlo(Sampler):
-  '''
-  MONTE CARLO Sampler
-  '''
+  '''MONTE CARLO Sampler'''
+  
   def localInputAndChecks(self,xmlNode):
     if 'limit' not in  xmlNode.attrib.keys(): raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
@@ -687,8 +598,6 @@ class MonteCarlo(Sampler):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
     for key in self.distDict: self.values[key]=self.distDict[key].rvs()
-    if self.initSeed != None:
-      self.inputInfo['initial_seed'] = str(self.initSeed)
 #
 #
 #
@@ -788,7 +697,6 @@ class LHS(Grid):
     and filling mapping of the hyper cube.
     '''
     Grid.localInitialize(self)
-    #dimensions tempFillingCheck[len(self.axisName)][self.pointByVar-1]
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
       tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
@@ -801,7 +709,6 @@ class LHS(Grid):
   def localGenerateInput(self,model,myInput):
     j=0
     for varName in self.axisName:
-      print(self.gridInfo,varName,self.sampledCoordinate,j,self.counter)
       upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
       lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
       j +=1
@@ -915,11 +822,11 @@ class DynamicEventTree(Sampler):
       if(len(endInfo['branch_changed_params'][key]['actual_value']) > 1):
         #  Multi-Branch mode => the resulting branches from this parent calculation (just ended)
         # will be more then 2
-        # unchanged_pb = probablity (not conditional probability yet) that the event does not occur  
+        # unchanged_pb = probability (not conditional probability yet) that the event does not occur  
         unchanged_pb = 0.0
         try:
-          # changed_pb = probablity (not conditional probability yet) that the event A occurs and the final state is 'alpha' ''' 
-          for pb in range(len(endInfo['branch_changed_params'][key]['associated_pb'])): unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
+          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' ''' 
+          for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])): unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
         except KeyError: pass
         if(unchanged_pb <= 1): endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
       else:
@@ -1217,18 +1124,8 @@ class DynamicEventTree(Sampler):
           subElm.set('runEnded',str(False))
           subElm.set('running',str(True))
           subElm.set('queue',str(False))
-
     return jobInput
 
-#   def localGenerateInput(self,model,myInput):
-#     '''
-#     Function used to generate a input. In this case it just calls 
-#     the function '__getQueueElement' to retrieve the first input
-#     in the queue
-#     @ In, model         : Model object instance
-#     @ In, myInput       : Original input files
-#     @ Out, newerinput   : First input in the queue 
-#     '''
   def generateInput(self,model,oldInput):
     '''
     This method needs to be overwritten by the Dynamic Event Tree Sampler, since the input creation strategy is completely different with the respect the other samplers
@@ -1338,11 +1235,9 @@ __interFaceDict['MonteCarlo'            ] = MonteCarlo
 __interFaceDict['DynamicEventTree'      ] = DynamicEventTree
 __interFaceDict['StochasticCollocation' ] = StochasticCollocation
 __interFaceDict['LHS'                   ] = LHS
-__interFaceDict['LatinHyperCube'        ] = LHS
 __interFaceDict['Grid'                  ] = Grid
-__interFaceDict['EquallySpaced'         ] = Grid
 __interFaceDict['Adaptive'              ] = AdaptiveSampler
-__knownTypes = __interFaceDict.keys()
+__knownTypes = list(__interFaceDict.keys())
 
 def knonwnTypes():
   return __knownTypes
