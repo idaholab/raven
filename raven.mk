@@ -75,7 +75,7 @@ RAVEN_MODULES = $(RAVEN_DIR)/control_modules
 $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/executioners/PythonControl.C
 	@echo "Override PythonControl Compile"
 	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet \
-          $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
+          $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) $(app_INCLUDES) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
 
 
 ifeq ($(UNAME),Darwin)
@@ -128,7 +128,7 @@ $(RAVEN_DIR)/control_modules/_raventools.so : $(RAVEN_DIR)/control_modules/raven
 #swig -c++ -python -py3 -I$(RAVEN_DIR)/include/tools/  -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/control_modules/raventools.i
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
-	$(libmesh_CXX) $(libmeh_CPPFLAGS) $(PYTHON_INCLUDE) $(libmesh_INCLUDE) \
+	$(libmesh_CXX) $(libmeh_CPPFLAGS) $(PYTHON_INCLUDE) $(app_INCLUDES)  $(libmesh_INCLUDE) \
 	 -c  $(RAVEN_MODULES)/raventools_wrap.cxx -o $(RAVEN_DIR)/control_modules/raventools_wrap.lo
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link \
 	 $(libmesh_CXX) $(libmesh_CXXFLAGS) \
@@ -143,7 +143,7 @@ RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(PYTHON_MODULES)
 $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects)
 	@echo "Linking "$@"..."
 	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link --quiet \
-          $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(RAVEN_app_objects) $(RAVEN_LIB) $(r7_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS) $(PYTHON_LIB)
+          $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(RAVEN_app_objects) $(RAVEN_LIB) $(r7_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS) $(PYTHON_LIB) $(app_LIBS)
 
 endif
 

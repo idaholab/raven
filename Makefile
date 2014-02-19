@@ -39,6 +39,9 @@ APPLICATION_NAME   := r7_moose
 DEP_APPS           := $(shell $(MOOSE_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 include            $(MOOSE_DIR)/app.mk
 
+APPLICATION_DIR    := $(ROOT_DIR)/raven
+APPLICATION_NAME   := RAVEN
+
 include $(ROOT_DIR)/raven/config.mk
 include $(ROOT_DIR)/raven/raven.mk
 include $(ROOT_DIR)/raven/raven_python_modules.mk
