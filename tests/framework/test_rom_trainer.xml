@@ -2,7 +2,7 @@
 <Simulation>
 <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
-    <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
+    <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC</Sequence>
     <batchSize>3</batchSize>
 </RunInfo>
@@ -18,7 +18,7 @@
 </Distributions>
 <Models>
     <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
-    <ROM  name='ROM1' subType='SVMscikitLearn' target_response_name='CladTempBranched'>
+    <ROM  name='ROM1' subType='SVMscikitLearn' target_response_name='CladTempTreshold'>
       <SVMtype>LinearSVC</SVMtype>
       <C>1.0</C>
       <tol>0.0001</tol>
@@ -38,10 +38,10 @@
     <MultiRun name='MC_for_rom_trainer'>
         <Input   class='Files'      type=''                >TMI.i</Input>
         <Input   class='Files'      type=''                >TMI_PRA_trans_MC_control.py</Input>
-        <Input   class='Files'      type=''                >TMI_steady_restart/0957.rd-0</Input>
-        <Input   class='Files'      type=''                >TMI_steady_restart/0957.xdr</Input>
-        <Input   class='Files'      type=''                >TMI_steady_restart/0957.xdr.0000</Input>
-        <Input   class='Files'      type=''                >TMI_steady_restart/0957_mesh.cpr</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.rd-0</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr.0000</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863_mesh.cpr</Input>
         <Model   class='Models'     type='Code'            >MyRAVEN</Model>
         <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmc3</Sampler>
         <Output  class='DataBases'  type='HDF5'            >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
@@ -75,17 +75,17 @@
         <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
 </DataBases>
 <Datas>
-   <TimePointSet name='timepointset_from_database_for_rom_trainer' input_ts='960'>
+   <TimePointSet name='timepointset_from_database_for_rom_trainer' input_ts='1867'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempBranched</Output>
+        <Output>CladTempTreshold</Output>
    </TimePointSet>
-   <TimePoint name='data_for_sampling_empty_at_begin' input_ts='960'>
+   <TimePoint name='data_for_sampling_empty_at_begin' input_ts='1867'>
         <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempBranched</Output>
+        <Output>CladTempTreshold</Output>
    </TimePoint>
-   <TimePointSet name='outputMontecarloRom' printCSV='t' input_ts='960'>
+   <TimePointSet name='outputMontecarloRom' input_ts='1867'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempBranched</Output>
+        <Output>CladTempTreshold</Output>
    </TimePointSet>
 </Datas>
 </Simulation>

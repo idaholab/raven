@@ -12,6 +12,7 @@
 []
 
 [EoS]
+  # close Functions section
   [./eos]
     e_0 = 3290122.80 # J/kg
     beta = .46e-3 # K^{-1}
@@ -626,7 +627,7 @@
   # time_t =  ' 0      1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     100.8    101.5  102.2 120.0  400 1000 1.0e5'
   # time_dt =  '1.e-1  0.1        0.15        0.20       0.25      0.30    0.35        0.40    0.45      0.09      0.005     0.008   0.2   0.2    0.2 0.3  0.6'
   nl_abs_tol = 1e-8
-  restart_file_base = 0957
+  restart_file_base = 1863
   nl_rel_tol = 1e-5
   ss_check_tol = 1e-05
   perf_log = true
@@ -635,7 +636,7 @@
   max_increase = 3
   petsc_options_value = lu # '300'
   l_max_its = 100 # Number of linear iterations for each Krylov solve
-  start_time = 100.0
+  start_time = 150
   predictor_scale = 0.6
   dtmax = 9999
   nl_rel_step_tol = 1e-3
@@ -643,7 +644,7 @@
   petsc_options_iname = -pc_type
   e_tol = 10.0
   l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
-  end_time = 152.5
+  end_time = 152
   e_max = 99999.
   [./TimeStepper]
     type = FunctionDT
@@ -660,8 +661,7 @@
   # xda = true
   # num_restart_files = 1
   output_initial = true
-  output_displaced = false
-  exodus = false 
+  output_displaced = true
   file_base = TMI_test_PRA_transient_less_w_out
   exodus = true
   postprocessor_csv = true
@@ -684,445 +684,403 @@
   # [../]
   control_logic_input = TMI_PRA_trans_MC_control
   [./power_CH1]
-    print_csv =  true
-    data_type =  double
-    property_name =  FUEL:power_fraction
-    component_name =  CH1
+    print_csv = true
+    data_type = double
+    property_name = FUEL:power_fraction
+    component_name = CH1
   [../]
   [./power_CH2]
-    print_csv =  true
-    data_type =  double
-    property_name =  FUEL:power_fraction
-    component_name =  CH2
+    print_csv = true
+    data_type = double
+    property_name = FUEL:power_fraction
+    component_name = CH2
   [../]
   [./power_CH3]
-    print_csv =  true
-    data_type =  double
-    property_name =  FUEL:power_fraction
-    component_name =  CH3
+    print_csv = true
+    data_type = double
+    property_name = FUEL:power_fraction
+    component_name = CH3
   [../]
   [./MassFlowRateIn_SC_A]
-    print_csv =  true
-    data_type =  double
-    property_name =  v_bc
-    component_name =  MassFlowRateIn-SC-A
+    print_csv = true
+    data_type = double
+    property_name = v_bc
+    component_name = MassFlowRateIn-SC-A
   [../]
   [./MassFlowRateIn_SC_B]
-    print_csv =  true
-    data_type =  double
-    property_name =  v_bc
-    component_name =  MassFlowRateIn-SC-B
+    print_csv = true
+    data_type = double
+    property_name = v_bc
+    component_name = MassFlowRateIn-SC-B
   [../]
   [./Head_PumpB]
-    print_csv =  true
-    data_type =  double
-    property_name =  Head
-    component_name =  Pump-B
+    print_csv = true
+    data_type = double
+    property_name = Head
+    component_name = Pump-B
   [../]
   [./Head_PumpA]
-    print_csv =  true
-    data_type =  double
-    property_name =  Head
-    component_name =  Pump-A
+    print_csv = true
+    data_type = double
+    property_name = Head
+    component_name = Pump-A
   [../]
   [./friction1_SC_A]
-    print_csv =  false
-    data_type =  double
-    property_name =  f
-    component_name =  pipe1-SC-A
+    print_csv = false
+    data_type = double
+    property_name = f
+    component_name = pipe1-SC-A
   [../]
   [./friction2_SC_A]
-    print_csv =  false
-    data_type =  double
-    property_name =  f
-    component_name =  pipe2-SC-A
+    print_csv = false
+    data_type = double
+    property_name = f
+    component_name = pipe2-SC-A
   [../]
   [./friction1_SC_B]
-    print_csv =  false
-    data_type =  double
-    property_name =  f
-    component_name =  pipe1-SC-B
+    print_csv = false
+    data_type = double
+    property_name = f
+    component_name = pipe1-SC-B
   [../]
   [./friction2_SC_B]
-    print_csv =  false
-    data_type =  double
-    property_name =  f
-    component_name =  pipe2-SC-B
+    print_csv = false
+    data_type = double
+    property_name = f
+    component_name = pipe2-SC-B
   [../]
   [./friction1_CL_B]
-    print_csv =  false
-    data_type =  double
-    property_name =  f
-    component_name =  pipe1-CL-B
+    print_csv = false
+    data_type = double
+    property_name = f
+    component_name = pipe1-CL-B
   [../]
   [./friction2_CL_B]
-    print_csv =  false
-    data_type =  double
-    property_name =  f
-    component_name =  pipe2-CL-B
+    print_csv = false
+    data_type = double
+    property_name = f
+    component_name = pipe2-CL-B
   [../]
   [./friction1_CL_A]
-    print_csv =  false
-    data_type =  double
-    property_name =  f
-    component_name =  pipe1-CL-A
+    print_csv = false
+    data_type = double
+    property_name = f
+    component_name = pipe1-CL-A
   [../]
   [./friction2_CL_A]
-    print_csv =  false
-    data_type =  double
-    property_name =  f
-    component_name =  pipe2-CL-A
+    print_csv = false
+    data_type = double
+    property_name = f
+    component_name = pipe2-CL-A
   [../]
 []
+
 [Monitored]
-  #  [./sec_inlet_density]
-  #    operator = ElementAverageValue
-  #    path = 
-  #    data_type = double
-  #    component_name = pipe1-SC-A
-  #  [../]
+  # [./sec_inlet_density]
+  # operator = ElementAverageValue
+  # path = 
+  # data_type = double
+  # component_name = pipe1-SC-A
+  # [../]
   [./avg_temp_clad_CH1]
-    operator =  ElementAverageValue
-    path =  CLAD:TEMPERATURE
-    data_type =  double
-    component_name =  CH1
+    operator = ElementAverageValue
+    path = CLAD:TEMPERATURE
+    data_type = double
+    component_name = CH1
   [../]
   [./avg_temp_clad_CH2]
-    operator =  ElementAverageValue    
-    path =  CLAD:TEMPERATURE
-    data_type =  double
-    component_name =  CH2
+    operator = ElementAverageValue
+    path = CLAD:TEMPERATURE
+    data_type = double
+    component_name = CH2
   [../]
   [./avg_temp_clad_CH3]
     # tests pressure monitoring in a pipe (ElementAverageValue operator)
-    operator =  ElementAverageValue
-    path =  CLAD:TEMPERATURE
-    data_type =  double
-    component_name =  CH3
+    operator = ElementAverageValue
+    path = CLAD:TEMPERATURE
+    data_type = double
+    component_name = CH3
   [../]
   [./avg_Fluid_Vel_H_L-A]
     # tests velocity monitoring in a pipe (ElementAverageValue operator)
-    operator =  ElementAverageValue
-    path =  VELOCITY
-    data_type =  double
-    component_name =  pipe1-HL-A
+    operator = ElementAverageValue
+    path = VELOCITY
+    data_type = double
+    component_name = pipe1-HL-A
   [../]
   [./avg_Fluid_Vel_C_L_A]
-    operator =  ElementAverageValue
-    path =  VELOCITY
-    data_type =  double
-    component_name =  DownComer-A
+    operator = ElementAverageValue
+    path = VELOCITY
+    data_type = double
+    component_name = DownComer-A
   [../]
   [./avg_out_temp_sec_A]
-    operator =  ElementAverageValue
-    path =  TEMPERATURE
-    data_type =  double
-    component_name =  pipe2-SC-A
+    operator = ElementAverageValue
+    path = TEMPERATURE
+    data_type = double
+    component_name = pipe2-SC-A
   [../]
   [./DownStreamSpeed]
-    operator =  ElementAverageValue
-    path =  VELOCITY
-    data_type =  double
-    component_name =  pipe1-CL-B
+    operator = ElementAverageValue
+    path = VELOCITY
+    data_type = double
+    component_name = pipe1-CL-B
   [../]
   [./UpstreamSpeed]
-    operator =  ElementAverageValue
-    path =  VELOCITY
-    data_type =  double
-    component_name =  pipe1-CL-B
+    operator = ElementAverageValue
+    path = VELOCITY
+    data_type = double
+    component_name = pipe1-CL-B
   [../]
   [./avg_temp_fuel_CH1]
-    operator =  ElementAverageValue
-    path =  FUEL:TEMPERATURE
-    data_type =  double
-    component_name =  CH1
+    operator = ElementAverageValue
+    path = FUEL:TEMPERATURE
+    data_type = double
+    component_name = CH1
   [../]
   [./avg_temp_fuel_CH2]
-    operator =  ElementAverageValue
-    path =  FUEL:TEMPERATURE
-    data_type =  double
-    component_name =  CH2
+    operator = ElementAverageValue
+    path = FUEL:TEMPERATURE
+    data_type = double
+    component_name = CH2
   [../]
   [./avg_temp_fuel_CH3]
-    operator =  ElementAverageValue
-    path =  FUEL:TEMPERATURE
-    data_type =  double
-    component_name =  CH3
+    operator = ElementAverageValue
+    path = FUEL:TEMPERATURE
+    data_type = double
+    component_name = CH3
   [../]
   [./sec_inlet_velocity]
-    operator =  ElementAverageValue
-    path =  VELOCITY
-    data_type =  double
-    component_name =  pipe1-SC-A
+    operator = ElementAverageValue
+    path = VELOCITY
+    data_type = double
+    component_name = pipe1-SC-A
   [../]
 []
+
 [Distributions]
- RNG_seed = 1
- [./crew1DG1]
- type = NormalDistribution
- mu = 800
- sigma = 200
- xMin = 0.0
- xMax = 2500
- [../]
- [./crew1DG2CoupledDG1]
- type = UniformDistribution
- xMin = 0.5
- xMax = 1
- [../]
- [./crewSecPG]
- type = NormalDistribution
- mu = 1400
- sigma = 400
- [../]
- [./PrimPGrecovery]
- type = NormalDistribution
- mu = 2000
- sigma = 500
- [../]
- [./CladFailureDist]
- type = TriangularDistribution
- xMin = 1255.3722
- xPeak = 1477.59
- xMax = 1699.8167
- truncation = 1
- lowerBound = 1255.3722
- upperBound = 1699.8167
- [../]
- []
-[RavenAuxiliary]
-  [./DG1_time_ratio]
-    print_csv =  true
-    data_type =  double
-    initial_value =  0.0
-  [../]
-  [./init_exp_frict]
-    print_csv =  false
-    data_type =  bool
-    initial_value =  True
-  [../]
+  RNG_seed = 1
   [./crew1DG1]
-    print_csv =  true
-    data_type =  bool
-    initial_value =  False
+    type = NormalDistribution
+    mu = 800
+    sigma = 200
+    xMin = 0.0
+    xMax = 2500
   [../]
- [./crew1DG2CoupledDG1]
-   print_csv =  true
-   data_type =  bool
-   initial_value =  False
- [../] 
+  [./crew1DG2CoupledDG1]
+    type = UniformDistribution
+    xMin = 0.5
+    xMax = 1
+  [../]
   [./crewSecPG]
-    print_csv =  true
-    data_type =  bool
-    initial_value =  False
+    type = NormalDistribution
+    mu = 1400
+    sigma = 400
   [../]
- [./PrimPGrecovery]
-   print_csv =  true
-   data_type =  bool
-   initial_value =  False
- [../]
+  [./PrimPGrecovery]
+    type = NormalDistribution
+    mu = 2000
+    sigma = 500
+  [../]
+  [./CladFailureDist]
+    type = TriangularDistribution
+    xMin = 1255.3722
+    xPeak = 1477.59
+    xMax = 1699.8167
+    truncation = 1
+    lowerBound = 1255.3722
+    upperBound = 1699.8167
+  [../]
+[]
+
+[RavenAuxiliary]
+  [./init_exp_frict]
+    print_csv = false
+    data_type = bool
+    initial_value = True
+  [../]
   [./frict_m]
-    print_csv =  false
-    data_type =  double
-    initial_value =  -1005.56
+    print_csv = false
+    data_type = double
+    initial_value = -1005.56
   [../]
   [./frict_q]
-    print_csv =  false
-    data_type =  double
-    initial_value =  10005.1
+    print_csv = false
+    data_type = double
+    initial_value = 10005.1
   [../]
   [./scram_start_time]
-    print_csv =  true
-    data_type =  double
-    initial_value =  101.0
+    print_csv = true
+    data_type = double
+    initial_value = 151.0
   [../]
   [./friction_time_start_exp]
-    print_csv =  false
-    data_type =  double
-    initial_value =  0.0
+    print_csv = false
+    data_type = double
+    initial_value = 0.0
   [../]
   [./InitialMassFlowPrimary]
-    print_csv =  true
-    data_type =  double
-    initial_value =  0
+    print_csv = true
+    data_type = double
+    initial_value = 0
   [../]
   [./initialInletSecPress]
-    print_csv =  false
-    data_type =  double
-    initial_value =  15219000
+    print_csv = false
+    data_type = double
+    initial_value = 15219000
   [../]
   [./CladDamaged]
-    print_csv =  true
-    data_type =  bool
-    initial_value =  False
+    print_csv = true
+    data_type = bool
+    initial_value = False
   [../]
   [./DeltaTimeScramToAux]
-    print_csv =  true
-    data_type =  double
-    initial_value =  200.0
+    print_csv = true
+    data_type = double
+    initial_value = 200.0
   [../]
   [./InitialOutletSecPress]
-    print_csv =  false
-    data_type =  double
-    initial_value =  151.7e5  #15170000
+    print_csv = false
+    data_type = double
+    initial_value = 151.7e5 # 15170000
   [../]
-  [./CladTempBranched]
-    print_csv =  true
-    data_type =  double
-    initial_value = 0.0  
+  [./CladTempTreshold]
+    print_csv = true
+    data_type = double
+    initial_value = 1477.59
   [../]
   [./ScramStatus]
-    print_csv =  true
-    data_type =  bool
-    initial_value =  false
+    print_csv = true
+    data_type = bool
+    initial_value = false
   [../]
   [./AuxSystemUp]
-    print_csv =  true
-    data_type =  bool
-    initial_value =  false
-  [../] 
+    print_csv = true
+    data_type = bool
+    initial_value = false
+  [../]
   [./init_Power_Fraction_CH1]
-    print_csv =  true
-    data_type =  double
-    initial_value =  3.33672612e-1 
+    print_csv = true
+    data_type = double
+    initial_value = 3.33672612e-1
   [../]
   [./init_Power_Fraction_CH2]
-    print_csv =  true
-    data_type =  double
-    initial_value =  3.69921461e-1
+    print_csv = true
+    data_type = double
+    initial_value = 3.69921461e-1
   [../]
   [./init_Power_Fraction_CH3]
-    print_csv =  true
-    data_type =  double
-    initial_value =  2.96405926e-1 
+    print_csv = true
+    data_type = double
+    initial_value = 2.96405926e-1
   [../]
- [./a_power_CH1]
- print_csv =  true
- data_type =  double
- initial_value =  3.33672612e-1
- [../]
- [./a_power_CH2]
- print_csv =  true
- data_type =  double
- initial_value =  3.69921461e-1
- [../]
- [./a_power_CH3]
- print_csv =  true
- data_type =  double
- initial_value =  2.96405926e-1
- [../]
- [./a_MassFlowRateIn_SC_A]
- print_csv =  true
- data_type =  double
- initial_value =  2.542
- [../]
- [./a_MassFlowRateIn_SC_B]
- print_csv =  true
- data_type =  double
- initial_value =  2.542
- [../]
- [./a_Head_PumpB]
- print_csv =  true
- data_type =  double
- initial_value =  8.9
- [../]
- [./a_Head_PumpA]
- print_csv =  true
- data_type =  double
- initial_value =  8.9
- [../]
- [./a_friction1_SC_A]
- print_csv =  false
- data_type =  double
- initial_value =  0.001
- [../]
- [./a_friction2_SC_A]
- print_csv =  false
- data_type =  double
- initial_value =  0.001
- [../]
- [./a_friction1_SC_B]
- print_csv =  false
- data_type =  double
- initial_value =  0.001
- [../]
- [./a_friction2_SC_B]
- print_csv =  false
- data_type =  double
- initial_value =  0.001
- [../]
- [./a_friction1_CL_B]
- print_csv =  false
- data_type =  double
- initial_value =  0.001
- [../]
- [./a_friction2_CL_B]
- print_csv =  true
- data_type =  double
- initial_value =  0.001
- [../]
- [./a_friction1_CL_A]
- print_csv =  false
- data_type =  double
- initial_value =  0.001
- [../]
- [./a_friction2_CL_A]
- print_csv =  true
- data_type =  double
- initial_value =  0.001
- [../] 
- [./auxAbsolute]
-   print_csv = true 
-   data_type = double                                                                  
-   initial_value = 0.001                                                              
- [../]
- [./DG1recoveryTime]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- [./DG2recoveryTime]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- [./SecPGrecoveryTime]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- [./PrimPGrecoveryTime]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- [./CladFailureDistThreshold]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- [./crew1DG1Threshold]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- [./crew1DG2CoupledDG1Threshold]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- [./crewSecPGThreshold]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- [./PrimPGrecoveryThreshold]
- data_type = double
- print_csv = true
- initial_value = 0.0
- [../]
- []
- 
+  [./a_power_CH1]
+    print_csv = true
+    data_type = double
+    initial_value = 3.33672612e-1
+  [../]
+  [./a_power_CH2]
+    print_csv = true
+    data_type = double
+    initial_value = 3.69921461e-1
+  [../]
+  [./a_power_CH3]
+    print_csv = true
+    data_type = double
+    initial_value = 2.96405926e-1
+  [../]
+  [./a_MassFlowRateIn_SC_A]
+    print_csv = true
+    data_type = double
+    initial_value = 2.542
+  [../]
+  [./a_MassFlowRateIn_SC_B]
+    print_csv = true
+    data_type = double
+    initial_value = 2.542
+  [../]
+  [./a_Head_PumpB]
+    print_csv = true
+    data_type = double
+    initial_value = 8.9
+  [../]
+  [./a_Head_PumpA]
+    print_csv = true
+    data_type = double
+    initial_value = 8.9
+  [../]
+  [./a_friction1_SC_A]
+    print_csv = false
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./a_friction2_SC_A]
+    print_csv = false
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./a_friction1_SC_B]
+    print_csv = false
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./a_friction2_SC_B]
+    print_csv = false
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./a_friction1_CL_B]
+    print_csv = false
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./a_friction2_CL_B]
+    print_csv = true
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./a_friction1_CL_A]
+    print_csv = false
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./a_friction2_CL_A]
+    print_csv = true
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./CladTempTresholdRNG]
+    print_csv = true
+    data_type = double
+    initial_value = 0
+  [../]
+  [./auxAbsolute]
+    print_csv = true
+    data_type = double
+    initial_value = 0.001
+  [../]
+  [./DG1recoveryTime]
+    data_type = double
+    print_csv = true
+    initial_value = 900
+  [../]
+  [./DG2recoveryTime]
+    data_type = double
+    print_csv = true
+    initial_value = 675
+  [../]
+  [./SecPGrecoveryTime]
+    data_type = double
+    print_csv = true
+    initial_value = 1800
+  [../]
+  [./PrimPGrecoveryTime]
+    data_type = double
+    print_csv = true
+    initial_value = 2000
+  [../]
+[]
+
 [TimeController]
  [./cntrAux]
  comparisonID = auxAbsolute
