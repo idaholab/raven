@@ -26,7 +26,7 @@
     </Uniform>
 </Distributions>
 <Samplers>
-    <LatinHyperCube name='myLHS'>
+    <LHS name='myLHS'>
       <Variable name='BCs|left|value' >
         <distribution type='Normal'>Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
