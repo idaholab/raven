@@ -2,24 +2,19 @@
 ################### MOOSE Application Standard Makefile #######################
 ###############################################################################
 #
-# Required Make variables
-# APPLICATION_NAME  - the name of this application (all lower case)
-# MOOSE_DIR	- location of the MOOSE framework
-# ELK_DIR	- location of ELK (if enabled)
-#
 # Optional Environment variables
-# CURR_DIR	- current directory (DO NOT MODIFY THIS VARIABLE)
+# MOOSE_DIR        - Root directory of the MOOSE project 
+# HERD_TRUNK_DIR   - Location of the HERD repository
+# FRAMEWORK_DIR    - Location of the MOOSE framework
 #
-# Note: Make sure that there is no whitespace after the word 'yes' if enabling
-# an application
 ###############################################################################
-ROOT_DIR        ?= $(shell dirname `pwd`)
+MOOSE_DIR          ?= $(shell dirname `pwd`)/moose
+HERD_TRUNK_DIR     ?= $(shell dirname `pwd`)
+FRAMEWORK_DIR      ?= $(MOOSE_DIR)/framework
+###############################################################################
 
-ifeq ($(MOOSE_DEV),true)
-	MOOSE_DIR ?= $(ROOT_DIR)/devel/moose
-else
-	MOOSE_DIR ?= $(ROOT_DIR)/moose
-endif
+CURR_DIR    := $(shell pwd)
+ROOT_DIR    := $(HERD_TRUNK_DIR)
 
 ################################## ELK MODULES ################################
 ALL_ELK_MODULES := yes
@@ -34,17 +29,17 @@ ELK_DIR ?= $(ROOT_DIR)/elk
 include $(ELK_DIR)/elk.mk
 
 # dep apps
-APPLICATION_DIR    := $(ROOT_DIR)/r7_moose
+APPLICATION_DIR    := $(HERD_TRUNK_DIR)/r7_moose
 APPLICATION_NAME   := r7_moose
 DEP_APPS           := $(shell $(MOOSE_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
-include            $(MOOSE_DIR)/app.mk
+include            $(FRAMEWORK_DIR)/app.mk
 
-APPLICATION_DIR    := $(ROOT_DIR)/raven
+APPLICATION_DIR    := $(HERD_TRUNK_DIR)/raven
 APPLICATION_NAME   := RAVEN
 
-include $(ROOT_DIR)/raven/config.mk
-include $(ROOT_DIR)/raven/raven.mk
-include $(ROOT_DIR)/raven/raven_python_modules.mk
+include $(HERD_TRUNK_DIR)/raven/config.mk
+include $(HERD_TRUNK_DIR)/raven/raven.mk
+include $(HERD_TRUNK_DIR)/raven/raven_python_modules.mk
 
 ###############################################################################
 # Additional special case targets should be added here
