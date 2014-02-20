@@ -21,17 +21,17 @@ ALL_ELK_MODULES := yes
 ###############################################################################
 
 # framework
-include $(MOOSE_DIR)/build.mk
-include $(MOOSE_DIR)/moose.mk
+include $(FRAMEWORK_DIR)/build.mk
+include $(FRAMEWORK_DIR)/moose.mk
 
 # modules
-ELK_DIR ?= $(ROOT_DIR)/elk
+ELK_DIR ?= $(HERD_TRUNK_DIR)/elk
 include $(ELK_DIR)/elk.mk
 
 # dep apps
 APPLICATION_DIR    := $(HERD_TRUNK_DIR)/r7_moose
 APPLICATION_NAME   := r7_moose
-DEP_APPS           := $(shell $(MOOSE_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 include            $(FRAMEWORK_DIR)/app.mk
 
 APPLICATION_DIR    := $(HERD_TRUNK_DIR)/raven
