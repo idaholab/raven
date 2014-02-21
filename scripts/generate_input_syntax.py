@@ -2,13 +2,13 @@
 import sys, os
 
 # get the location of this script
-app_path = os.path.abspath(os.path.dirname(sys.argv[0]))
+app_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
 
 # Set the name of the application here and moose directory relative to the application
 app_name = 'raven'
 
-MOOSE_DIR = os.path.abspath(os.path.join(app_path, '..', '..' 'moose'))
-FRAMEWORK_DIR = os.path.abspath(os.path.join(app_path, '..', '..', 'moose', 'framework'))
+MOOSE_DIR = os.path.abspath(os.path.join(app_path, '..' 'moose'))
+FRAMEWORK_DIR = os.path.abspath(os.path.join(app_path, '..', 'moose', 'framework'))
 #### See if MOOSE_DIR is already in the environment instead
 if os.environ.has_key("MOOSE_DIR"):
   MOOSE_DIR = os.environ['MOOSE_DIR']
