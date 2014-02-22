@@ -131,7 +131,6 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
 #
 class SingleRun(Step):
   '''This is the step that will perform just one evaluation'''
-  
   def localInputAndChecks(self,xmlNode):
     found     = 0
     rolesItem = []
@@ -323,7 +322,7 @@ class Adaptive(MultiRun):
         if 'HDF5' in inDictionary['Output'][i].type:
           inDictionary['Output'][i].addGroupInit(self.name)
           if self.debug: print('The HDF5 '+inDictionary['Output'][i].name+' has been initialized')
-        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPlot']: inDictionary['Output'][i].initialize(inDictionary)
+        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
       except AttributeError as ae: print("Error2: "+repr(ae))    
     #the first batch of input is generated (and run if the model is not a code)
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])

@@ -344,7 +344,7 @@ class ROM(Dummy):
     -as a strings: 'input_name=value,input_name=value,..' this supports only one point in the input space
     -as a dictionary where keys are the input names and the values the corresponding values (it should be either vector or list)
     -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''  
-    self.request = self.SupervisedEngine.prepareInputForPredection(request)
+    self.request = self.SupervisedEngine.prepareInputForPrediction(request)
     ############################------FIXME----------#######################################################
     # we need to submit self.ROM.evaluate(self.request) to the job handler
     self.output = self.SupervisedEngine.evaluate(self.request)
