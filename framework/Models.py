@@ -36,29 +36,51 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Output' ]       = []
   validateDict['Sampler']       = []
   testDict                      = {}
-  #below the format of testDict, it has to be respected!!!!
-  #'multiplicity' could be a number >0 or 'n' indicating any number >1
-  #'type' is a list of string
-  testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False} 
+  testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
+  print('FIXME: a multiplicity value is needed to control role that can have different class')
+  #the possible inputs
+  validateDict['Input'].append(testDict.copy())
+  validateDict['Input'  ][0]['class'       ] = 'Datas'
+  validateDict['Input'  ][0]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+  validateDict['Input'  ][0]['required'    ] = False
+  validateDict['Input'  ][0]['multiplicity'] = 'n'
+  validateDict['Input'].append(testDict.copy())
+  validateDict['Input'  ][1]['class'       ] = 'Files'
+  validateDict['Input'  ][1]['type'        ] = ['']
+  validateDict['Input'  ][1]['required'    ] = False
+  validateDict['Input'  ][1]['multiplicity'] = 'n'
+  #the possible outputs
+  validateDict['Output'].append(testDict.copy())
+  validateDict['Output' ][0]['class'       ] = 'Datas'
+  validateDict['Output' ][0]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+  validateDict['Output' ][0]['required'    ] = False
+  validateDict['Output' ][0]['multiplicity'] = 'n'
+  validateDict['Output'].append(testDict.copy())
+  validateDict['Output' ][1]['class'       ] = 'DataBases'
+  validateDict['Output' ][1]['type'        ] = ['HDF5']
+  validateDict['Output' ][1]['required'    ] = False
+  validateDict['Output' ][1]['multiplicity'] = 'n'
+  validateDict['Output'].append(testDict.copy())
+  validateDict['Output' ][2]['class'       ] = 'OutStreamManager'
+  validateDict['Output' ][2]['type'        ] = ['Plot','Print']
+  validateDict['Output' ][2]['required'    ] = False
+  validateDict['Output' ][2]['multiplicity'] = 'n'
+  #the possible samplers
+  validateDict['Sampler'].append(testDict.copy())
+  validateDict['Sampler'][0]['class'       ] ='Samplers'
+  validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+  validateDict['Sampler'][0]['required'    ] = False
+  validateDict['Sampler'][0]['multiplicity'] = 1
 
   @classmethod
-  def addDataExchangedTypes(cls):
-    '''
-       this method should be overridden to used to add roles in the information exchange within a step.
-       Example: cls.validateDict['TrainingSet']       = []
-    '''
-    pass
+  def generateValidateDict(cls):
+    '''This method generate a independent copy of validateDict for the calling class'''
+    cls.validateDict = copy.deepcopy(Model.validateDict)
 
   @classmethod
-  def addDataExchangedByTypes(cls):
-    '''
-    This method should be overridden to describe the types of input accepted with a certain role by the model class specialization
-    cls.testDict.copy() should be used to ensure the compatibility of the base class method cles.localValidateMethod(who,what)
-    Example:
-    cls.validateDict['TrainingSet'][0] = cls.testDict.copy()
-    cls.validateDict['TrainingSet'][0] = 'class':'Datas','type':['TimePoint','TimePointSet',HDF5'],'multiplicity':'n','required':False
-    '''
-    raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method addDataExchangedByTypes')
+  def specializeValidateDict(cls):
+    ''' This method should be overridden to describe the types of input accepted with a certain role by the model class specialization'''
+    raise NotImplementedError('The class '+str(cls.__name__)+' has not implemented the method specializeValidateDict')
 
   @classmethod
   def localValidateMethod(cls,who,what):
@@ -68,22 +90,23 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     @in what: a list (or a general iterable) that will be playing the 'who' role
     ''' 
     #counting successful matches
-    for myItemDict in cls.vallidateDict['who']: myItemDict['tempCounter'] = 0
+    if who not in cls.validateDict.keys(): raise IOError ('The role '+str(who)+' does not exist in the class '+str(cls))
+    for myItemDict in cls.validateDict[who]: myItemDict['tempCounter'] = 0
     for anItem in what:
       anItem['found'] = False
-      for tester in cls.vallidateDict['who']:
-        if anItem['class'] == tester['who']['class']:
-          if anItem['type'] in tester['who']['type']:
+      for tester in cls.validateDict[who]:
+        if anItem['class'] == tester['class']:
+          if anItem['type'] in tester['type']:
             tester['tempCounter'] +=1
-            anItem['found'] = True
+            anItem['found']        = True
             break
     #testing if the multiplicity of the argument is correct
-    for tester in cls.vallidateDict['who']:
+    for tester in cls.validateDict[who]:
       if tester['required']==True:
-        if tester['moltiplicity']=='n' and tester['tempCounter']<1:
-          raise IOError ('The number of time class = '+tester['class']+' type= ' +tester['type']+' is used as '+who+' is improper')
-        if tester['moltiplicity']!='n' and tester['tempCounter']!=tester['moltiplicity']:
-          raise IOError ('The number of time class = '+tester['class']+' type= ' +tester['type']+' is used as '+who+' is improper')
+        if tester['multiplicity']=='n' and tester['tempCounter']<1:
+          raise IOError ('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
+        if tester['multiplicity']!='n' and tester['tempCounter']!=tester['multiplicity']:
+          raise IOError ('The number of time class = '+str(tester['class'])+' type= ' +str(tester['type'])+' is used as '+str(who)+' is improper')
     #testing if all argument to be tested have been found
     for anItem in what:
       if anItem['found']==False:
@@ -140,42 +163,29 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     pass
   
   def collectOutput(self,collectFrom,storeTo,newOutputLoop=True):
-    '''This call collect the output of the run
-    @in collectFrom where the output is located, the form and the type is model dependent but should be compatible with the storeTo.addOutput method'''
-    if 'addOutput' in dir(storeTo):
-      storeTo.addOutput(collectFrom)
-      #except? raise IOError('The place where to store the output '+type(storeTo)+' was not compatible with the addOutput of '+type(collectFrom))
-    else: raise IOError('The place where to store the output has not a addOutput method')
+    '''
+    This call collect the output of the run
+    @in collectFrom: where the output is located, the form and the type is model dependent but should be compatible with the storeTo.addOutput method.
+    @in newOutputLoop : flags if a new set of output start given a new input
+    '''
+    #if a addOutput is present in nameSpace of storeTo it is used
+    if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
+    else                          : raise IOError('The place where to store the output has not a addOutput method')
 #
 #
 #
 class Dummy(Model):
   '''
-  this is a dummy model that just return the effect of the sampler
-  it suppose to get a TimePoint or TimePointSet as input and also a TimePoint or TimePointSet or HDF5 as output
-  The input values are modified according to the sampler and the output is the counter of the performed sampling
+  this is a dummy model that just return the effect of the sampler. The values reported as input in the output
+  are the output of the sampler and the output is the counter of the performed sampling
   '''
   @classmethod
-  def addDataExchangedByTypes(cls):
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    #one data is needed for the input
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][0]['class'       ] = 'Datas'
-    cls.validateDict['Input'  ][0]['type'        ] = ['TimePoint','TimePointSet']
-    cls.validateDict['Input'  ][0]['required'    ] = True
-    cls.validateDict['Input'  ][0]['multiplicity'] = 1
-    #at least one data is needed for the input
-    cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][0]['class'       ] = 'Datas'
-    cls.validateDict['Output' ][0]['type'        ] = ['TimePoint','TimePointSet','HDF5']
-    cls.validateDict['Output' ][0]['required'    ] = False
-    cls.validateDict['Output' ][0]['multiplicity'] = 'n'
-    #no more than one sampler, all are allowed
-    cls.validateDict['Sampler'].append(cls.testDict.copy())
-    cls.validateDict['Sampler'][0]['class'       ] ='Samplers'
-    cls.validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
-    cls.validateDict['Sampler'][0]['required'    ] = False
-    cls.validateDict['Sampler'][0]['multiplicity'] = 1
+  def specializeValidateDict(cls):
+    cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
+    cls.validateDict['Input' ][0]['type'        ] = ['TimePoint','TimePointSet']
+    cls.validateDict['Input' ][0]['required'    ] = True
+    cls.validateDict['Input' ][0]['multiplicity'] = 1
+    cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
     
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
@@ -196,7 +206,7 @@ class Dummy(Model):
     '''
     inputDict = {}
     outDict   = {}
-    #copy the original inputs. Only the last element is copied (i.e. for a timepointset the last input set
+    #copy the original inputs. Only the last element is copied (i.e. for a timepointset the last input set)
     for key in myInput[0].getParaKeys('inputs'):
       if not myInput[0].isItEmpty(): inputDict[key]=copy.deepcopy(myInput[0].getParam('input',key)[-1:])
       else                         : inputDict[key]=None
@@ -214,48 +224,148 @@ class Dummy(Model):
     '''
     self.inputDict  = copy.deepcopy(Input[0][0])
     self.outputDict = copy.deepcopy(Input[0][1])
-    print('Just a friendly reminder that the jobhandler for the inside model still need to be put in place')
-    ############################------FIXME----------#######################################################
-    #here we need to send it to the job handler
+    print('FIXME: Just a friendly reminder that the jobhandler for the inside model still need to be put in place')
 
   def collectOutput(self,finisishedjob,output,newOutputLoop=True):
-    '''
-    The input and output are harvested.
-    @in newOutputLoop, if true a new set of output should be exported (new inpput set)
-    '''
     #Here there is a problem since the input and output could be already changed by several call to self.createNewInput and self.run some input might have been skipped
-    #The problem should be solve delegating ownership of the input/output to the job handler
+    #The problem should be solve delegating ownership of the input/output to the job handler, for the moment we have the newOutputLoop 
+    print('FIXME: the newOutputLoop coherence and need should be tested in all steps (might be removed if a jobhandler is used for internal runs')
     if newOutputLoop: self.counterOutput += 1
     if self.outputDict['Counter']!=self.counterOutput: raise Exception('Synchronization has been lost between input generation and collection in the Dummy model')
     if output.type == 'HDF5':
-      exportDict = copy.deepcopy(self.outputDict)
+      exportDict                       = copy.deepcopy(self.outputDict)
       exportDict['input_space_params'] = copy.deepcopy(self.inputDict)
       output.addGroupDatas({'group':self.name+str(self.counterOutput)},exportDict,False)
     else:
       for key in self.inputDict.keys() : output.updateInputValue(key,self.inputDict[key])
       for key in self.outputDict.keys(): output.updateOutputValue(key,self.outputDict[key])
+#
+#
+#
+class ROM(Dummy):
+  '''ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome'''
+  @classmethod
+  def specializeValidateDict(cls):
+    print(cls.specializeValidateDict.__doc__)
+    cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
+    cls.validateDict['Input' ][0]['required'    ] = True
+    cls.validateDict['Input' ][0]['multiplicity'] = 1
+    cls.validateDict['Output'][0]['type']         = ['TimePoint','TimePointSet']
+    
+  def __init__(self):
+    Dummy.__init__(self)
+    self.initializzationOptionDict = {}
+    self.inputNames = []
+    self.outputName = ''
+    self.admittedData = []
+    self.admittedData.append('TimePoint')
+    self.admittedData.append('TimePointSet')
 
+  def __returnAdmittedData(self):
+    return self.admittedData
+
+  def readMoreXML(self,xmlNode):
+    Dummy.readMoreXML(self, xmlNode)
+    for child in xmlNode:
+      try: self.initializzationOptionDict[child.tag] = int(child.text)
+      except ValueError:
+        try: self.initializzationOptionDict[child.tag] = float(child.text)
+        except ValueError: self.initializzationOptionDict[child.tag] = child.text
+    #the ROM is instanced and initialized
+    self.ROM =  SupervisedLearning.returnInstance(self.subType)
+    self.SupervisedEngine = self.ROM(**self.initializzationOptionDict)
+    
+  def addInitParams(self,originalDict):
+    ROMdict = self.SupervisedEngine.returnInitialParamters()
+    for key in ROMdict.keys():
+      originalDict[key] = ROMdict[key]
+
+  def addCurrentSetting(self,originalDict):
+    ROMdict = self.SupervisedEngine.returnCurrentSetting()
+    for key in ROMdict.keys():
+      originalDict[key] = ROMdict[key]
+
+  def initializeTrain(self,runInfoDict,loadFrom):
+    '''just provide an internal pointer to the external data and check compatibility'''
+    if loadFrom.type not in self.__returnAdmittedData(): raise IOError('type '+loadFrom.type+' is not compatible with the ROM '+self.name)
+    else: self.toLoadFrom = loadFrom
+  
+  def close(self):
+    '''remember to call this function to decouple the data owned by the ROM and the environment data after each training'''
+    self.toLoadFrom = copy.copy(self.toLoadFrom)
+
+  def train(self):
+    '''Here we do the training of the ROM'''
+    '''Fit the model according to the given training data.
+    @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
+    @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
+            are supposed to have weight one.'''
+    self.SupervisedEngine.train(self.toLoadFrom)
+
+  def createNewInput(self,currentInput,samplerType,**Kwargs):
+    ''' This function creates a new input
+        It is called from a sampler to get the implementation specific for this model
+        it support string input
+        dictionary input and datas input
+        NB. This input preparation needs to remain here...The input preparation is one of the Model duties
+    '''
+    import itertools
+    if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
+    else: currentInput =currentInput[0]
+    if  type(currentInput)==str:#one input point requested a as a string
+      inputNames  = [component.split('=')[0] for component in currentInput.split(',')]
+      inputValues = [component.split('=')[1] for component in currentInput.split(',')]
+      for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
+        inputValues[inputNames.index(name)] = newValue
+      newInput = [inputNames[i]+'='+inputValues[i] for i in range(inputNames)]
+      newInput = newInput.join(',')
+    elif type(currentInput)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
+      for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
+        currentInput[name] = newValue
+      newInput = copy.deepcopy(currentInput)
+    else:#as a internal data type
+      try: #try is used to be sure input.type exist
+        if currentInput.type in self.__returnAdmittedData():
+          newInput = Datas.returnInstance(currentInput.type)
+          newInput.type = currentInput.type
+          for name,value in zip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(value)))
+          for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()):
+            print('FIXME: for now, even if the ROM accepts a TimePointSet, we create a TimePoint')
+            newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(newValue)))
+      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible input')
+    currentInput = [newInput]
+    return currentInput
+
+  def run(self,request,jobHandler):
+    '''This call run a ROM as a model
+    The input should be translated in to a set of coordinate where to perform the predictions
+    It is possible either to send in just one point in the input space or a set of points
+    input are accepted in the following form:
+    -as a strings: 'input_name=value,input_name=value,..' this supports only one point in the input space
+    -as a dictionary where keys are the input names and the values the corresponding values (it should be either vector or list)
+    -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''  
+    self.request = self.SupervisedEngine.prepareInputForPredection(request)
+    ############################------FIXME----------#######################################################
+    # we need to submit self.ROM.evaluate(self.request) to the job handler
+    self.output = self.SupervisedEngine.evaluate(self.request)
+
+  def collectOutput(self,finishedJob,output,newOutputLoop=True):
+    '''This method append the ROM evaluation into the output'''
+    # since the underlayer of the ROM is the only guy who knows how its output is formatted,
+    # it's its responsability to update the output
+    try:
+      if output.type in self.__returnAdmittedData(): self.SupervisedEngine.collectOut(finishedJob,output,self.output)
+      else: raise IOError('the output of the ROM is requested on a not compatible data')
+    except AttributeError: raise IOError('the output of the ROM is requested on a not compatible data')
 #
 #
-#
+#  
 class ExternalModel(Model):
   ''' External model class: this model allows to interface with an external python module'''
   @classmethod
-  def addDataExchangedByTypes(cls):
-    print('Remember to add the data type supported the class filter')
-  #the validationRunTree is extended to add the time dependent data types
-#  validationRunTree = copy.deepcopy(Dummy.validationRunTree)
-#  validationRunTree[0]['list'].append({'class':'Datas', 'type':'History'  , 'multiplicity':1})
-#  validationRunTree[0]['list'].append({'class':'Datas', 'type':'Histories', 'multiplicity':1})
-#  validationRunTree[1]['list'].append({'class':'Datas', 'type':'History'  , 'multiplicity':'n'})
-#  validationRunTree[1]['list'].append({'class':'Datas', 'type':'Histories', 'multiplicity':'n'})
-#  validationRunTree[1]['list'].append({'class':'Datas', 'type':'Histories', 'multiplicity':'n'})
-#  validationDict        = {}
-#  validationDict['Run'] = validateRun
-#  
-#  @staticmethod
-#  def validateRun(toBeValidated):
-#    return BaseType.validate(Dummy.validationRunTree,toBeValidated)
+  def specializeValidateDict(cls):
+    #one data is needed for the input
+    print('think about how to import the roles to allowed class for the external model. For the moment we have just all')
 
   def __init__(self):
     Model.__init__(self)
@@ -273,7 +383,7 @@ class ExternalModel(Model):
       return [newInput] 
     else:
       return [None]
-  
+
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys(): 
@@ -326,8 +436,7 @@ class ExternalModel(Model):
       for outName in output.dataParameters['outParam']:
         if not (typeMatch(self.modelVariableValues[outName],self.modelVariableType[outName])):
           raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ outName + ' is ' + str(type(self.modelVariableValues[outName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[outName] +')!!!')
-        output.updateOutputValue(outName,self.modelVariableValues[outName])
-#       output.printCSV()    
+        output.updateOutputValue(outName,self.modelVariableValues[outName])   
     
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
@@ -337,26 +446,9 @@ class ExternalModel(Model):
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
   @classmethod
-  def addDataExchangedByTypes(cls):
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    #one data is needed for the input
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][0]['class'       ] = 'Files'
-    cls.validateDict['Input'  ][0]['type'        ] = ['']
-    cls.validateDict['Input'  ][0]['required'    ] = False
-    cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
-    #at least one data is needed for the input
-    cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][0]['class'       ] = 'Datas'
-    cls.validateDict['Output' ][0]['type'        ] = ['TimePoint','TimePointSet','HDF5','History','Histories']
-    cls.validateDict['Output' ][0]['required'    ] = False
-    cls.validateDict['Output' ][0]['multiplicity'] = 'n'
-    #no more than one sampler, all are allowed
-    cls.validateDict['Sampler'].append(cls.testDict.copy())
-    cls.validateDict['Sampler'][0]['class'       ] ='Samplers'
-    cls.validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
-    cls.validateDict['Sampler'][0]['required'    ] = False
-    cls.validateDict['Sampler'][0]['multiplicity'] = 1
+  def specializeValidateDict(cls):
+    print('think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable')
+    cls.validateDict['Input'] = [cls.validateDict['Input'][1]]
 
   def __init__(self):
     Model.__init__(self)
@@ -429,13 +521,11 @@ class Code(Model):
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     ''' This function creates a new input
         It is called from a sampler to get the implementation specific for this model'''
+    Kwargs['executable'] = self.executable
     if currentInput[0].endswith('.i'): index = 0
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    print('if raven in self.executable.lower(): Kwargs[reportit] = False should not be in the code base class but in the interfaces')
-    if 'raven' in self.executable.lower(): Kwargs['reportit'] = False
-    else: Kwargs['reportit'] = True 
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     return self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
  
@@ -462,185 +552,13 @@ class Code(Model):
   
     try:output.addGroup(attributes,attributes)
     except AttributeError: output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
-
-#   def __addDataBaseGroup(self,finisishedjob,database):
-#     # add a group into the database
-#     attributes={}
-#     attributes["input_file"] = self.currentInputFiles
-#     attributes["type"] = "csv"
-#     attributes["name"] = os.path.join(self.workingDir,finisishedjob.output+'.csv')
-#     if finisishedjob.identifier in self.infoForOut:
-#       infoForOut = self.infoForOut.pop(finisishedjob.identifier)
-#       for key in infoForOut: attributes[key] = infoForOut[key]
-#     database.addGroup(attributes,attributes)
 #
 #
 #
-class ROM(Dummy):
-  '''ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome'''
-  @classmethod
-  def addDataExchangedTypes(cls):
-    cls.validateDict['TrainingSet'] = []
-
-  @classmethod
-  def addDataExchangedByTypes(cls):
-    Dummy.addDataExchangedByTypes()
-    #modifying the Output...
-    cls.validateDict['Output' ][0]['type'            ]+=['History','Histories']
-    cls.validateDict['Output' ][0]['required'        ] = True
-    #adding the training set as role
-    cls.validateDict['TrainingSet'].append(cls.testDict.copy())
-    cls.validateDict['TrainingSet'][0]['class'       ] ='Datas'
-    cls.validateDict['TrainingSet'][0]['type'        ] = ['TimePoint','TimePointSet','HDF5','History','Histories']
-    cls.validateDict['TrainingSet'][0]['required'    ] = True
-    cls.validateDict['TrainingSet'][0]['multiplicity'] = 1
-
-  def __init__(self):
-    Model.__init__(self)
-    self.initializzationOptionDict = {}
-    self.inputNames = []
-    self.outputName = ''
-    self.admittedData = []
-    self.admittedData.append('TimePoint')
-    self.admittedData.append('TimePointSet')
-
-  def __returnAdmittedData(self):
-    return self.admittedData
-
-  def readMoreXML(self,xmlNode):
-    '''read the additional input needed and create an instance the underlying ROM'''
-    Model.readMoreXML(self, xmlNode)
-    if 'target_response_name' in xmlNode.attrib:    
-      self.outputName = xmlNode.attrib['target_response_name']
-    for child in xmlNode:
-      try: self.initializzationOptionDict[child.tag] = int(child.text)
-      except ValueError:
-        try: self.initializzationOptionDict[child.tag] = float(child.text)
-        except ValueError: self.initializzationOptionDict[child.tag] = child.text
-    self.ROM =  SupervisedLearning.returnInstance(self.subType)
-    self.SupervisedEngine = self.ROM(**self.initializzationOptionDict)
-    
-  def addInitParams(self,originalDict):
-    ROMdict = self.SupervisedEngine.returnInitialParamters()
-    for key in ROMdict.keys():
-      originalDict[key] = ROMdict[key]
-
-  def addCurrentSetting(self,originalDict):
-    ROMdict = self.SupervisedEngine.returnCurrentSetting()
-    for key in ROMdict.keys():
-      originalDict[key] = ROMdict[key]
-
-  def initializeTrain(self,runInfoDict,loadFrom):
-    '''just provide an internal pointer to the external data and check compatibility'''
-    if loadFrom.type not in self.__returnAdmittedData(): raise IOError('type '+loadFrom.type+' is not compatible with the ROM '+self.name)
-    else: self.toLoadFrom = loadFrom
-  
-  def close(self):
-    '''remember to call this function to decouple the data owned by the ROM and the environment data after each training'''
-    self.toLoadFrom = copy.copy(self.toLoadFrom)
-
-  def train(self):
-    '''Here we do the training of the ROM'''
-    '''Fit the model according to the given training data.
-    @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
-    @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
-            are supposed to have weight one.'''
-    self.inputNames, inputsValues  = list(self.toLoadFrom.getInpParametersValues().keys()), list(self.toLoadFrom.getInpParametersValues().values())
-    if self.outputName in self.toLoadFrom.getOutParametersValues(): 
-      outputValues = self.toLoadFrom.getOutParametersValues()[self.outputName]
-    else: raise IOError('The output sought '+self.outputName+' is not in the training set')
-    self.inputsValues = numpy.zeros(shape=(inputsValues[0].size,len(self.inputNames)))
-    self.outputValues = numpy.zeros(shape=(inputsValues[0].size))
-    for i in range(len(self.inputNames)):
-      self.inputsValues[:,i] = inputsValues[i][:]
-    self.outputValues[:] = outputValues[:]
-    self.SupervisedEngine.train(self.inputsValues,self.outputValues)
-
-  def createNewInput(self,currentInput,samplerType,**Kwargs):
-    ''' This function creates a new input
-        It is called from a sampler to get the implementation specific for this model
-        it support string input
-        dictionary input and datas input'''
-    import itertools
-    if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
-    else: currentInput =currentInput[0]
-    if  type(currentInput)==str:#one input point requested a as a string
-      inputNames  = [component.split('=')[0] for component in currentInput.split(',')]
-      inputValues = [component.split('=')[1] for component in currentInput.split(',')]
-      for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
-        inputValues[inputNames.index(name)] = newValue
-      newInput = [inputNames[i]+'='+inputValues[i] for i in range(inputNames)]
-      newInput = newInput.join(',')
-    elif type(currentInput)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
-        currentInput[name] = newValue
-      newInput = copy.deepcopy(currentInput)
-    else:#as a internal data type
-      try: #try is used to be sure input.type exist
-        if currentInput.type in self.__returnAdmittedData():
-          newInput = Datas.returnInstance(currentInput.type)
-          newInput.type = currentInput.type
-          for name,value in zip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(value)))
-          for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()):
-            # for now, even if the ROM accepts a TimePointSet, we create a TimePoint
-            newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(newValue)))
-            #except? raise IOError('trying to sample '+name+' that is not in the original input')
-      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible input')
-    currentInput = [newInput]
-    return currentInput
-
-  def run(self,request,jobHandler):
-    '''This call run a ROM as a model
-    The input should be translated in to a set of coordinate where to perform the predictions
-    It is possible either to send in just one point in the input space or a set of points
-    input are accepted in the following form:
-    -as a strings: 'input_name=value,input_name=value,..' this supports only one point in the input space
-    -as a dictionary where keys are the input names and the values the corresponding values (it should be either vector or list)
-    -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''
-    if len(request)>1: raise IOError('ROM accepts only one input not a list of inputs')
-    else: self.request =request[0]
-    #first we extract the input names and the corresponding values (it is an implicit mapping)
-    if  type(self.request)==str:#one input point requested a as a string
-      inputNames  = [entry.split('=')[0]  for entry in self.request.split(',')]
-      inputValues = [entry.split('=')[1]  for entry in self.request.split(',')]
-    elif type(self.request)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      inputNames, inputValues = self.request.keys(), self.request.values()
-    else:#as a internal data type
-      try: #try is used to be sure input.type exist
-        print(self.request.type)
-        if self.request.type in self.__returnAdmittedData():
-          inputNames, inputValues = list(self.request.getInpParametersValues().keys()), list(self.request.getInpParametersValues().values())
-      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible data')
-    #now that the prediction points are read we check the compatibility with the ROM input-output set
-    lenght = len(set(inputNames).intersection(self.inputNames))
-    if lenght!=len(self.inputNames) or lenght!=len(inputNames):
-      raise IOError ('there is a mismatch between the provided request and the ROM structure')
-    #build a mapping from the ordering of the input sent in and the ordering inside the ROM
-    self.requestToLocalOrdering = []
-    for local in self.inputNames:
-      self.requestToLocalOrdering.append(inputNames.index(local))
-    #building the arrays to send in for the prediction by the ROM
-    self.request = numpy.array([inputValues[index] for index in self.requestToLocalOrdering]).T[0]
-    ############################------FIXME----------#######################################################
-    # we need to submit self.ROM.evaluate(self.request) to the job handler
-    self.output = self.SupervisedEngine.evaluate(self.request)
-
-  def collectOutput(self,finishedJob,output,newOutputLoop=True):
-    '''This method append the ROM evaluation into the output'''
-    try: #try is used to be sure input.type exist
-      if output.type in self.__returnAdmittedData():
-        for inputName in self.inputNames:
-          output.updateInputValue(inputName,self.request[self.inputNames.index(inputName)])
-    except AttributeError: raise IOError('the output of the ROM is requested on a not compatible data')
-    output.updateOutputValue(self.outputName,self.output)
-#     output.printCSV()
-#
-#
-#  
 class Projector(Model):
   '''Projector is a data manipulator'''
   @classmethod
-  def addDataExchangedByTypes(cls):
+  def specializeValidateDict(cls):
     print('Remember to add the data type supported the class filter')
 
   def __init__(self):
@@ -674,8 +592,19 @@ class Projector(Model):
 class Filter(Model):
   '''Filter is an Action System. All the models here, take an input and perform an action'''
   @classmethod
-  def addDataExchangedByTypes(cls):
-    print('Remember to add the data type supported the class filter')
+  def specializeValidateDict(cls):
+    cls.validateDict['Input']                    = [cls.validateDict['Input' ][0]]
+    cls.validateDict['Input'][0]['required'    ] = False
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][1]['class'       ] = 'DataBases'
+    cls.validateDict['Input'  ][1]['type'        ] = ['HDF5']
+    cls.validateDict['Input'  ][1]['required'    ] = False
+    cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][3]['class'       ] = 'Files'
+    cls.validateDict['Output' ][3]['type'        ] = ['']
+    cls.validateDict['Output' ][3]['required'    ] = False
+    cls.validateDict['Output' ][3]['multiplicity'] = 'n'
 
   def __init__(self):
     Model.__init__(self)
@@ -711,24 +640,23 @@ class Filter(Model):
     pass
 
 '''
- Interface Dictionary (factory) (private)
+ Factory......
 '''
-
 __base = 'model'
 __interFaceDict = {}
-__interFaceDict['ROM'           ] = ROM
-__interFaceDict['Code'          ] = Code
-__interFaceDict['Filter'        ] = Filter
-__interFaceDict['Projector'     ] = Projector
 __interFaceDict['Dummy'         ] = Dummy
+__interFaceDict['ROM'           ] = ROM
 __interFaceDict['ExternalModel' ] = ExternalModel
+__interFaceDict['Code'          ] = Code
+__interFaceDict['Projector'     ] = Projector
+__interFaceDict['Filter'        ] = Filter
 #__interFaceDict                   = (__interFaceDict.items()+CodeInterfaces.__interFaceDict.items()) #try to use this and remove the code interface
 __knownTypes                      = list(__interFaceDict.keys())
 
-#here the class methods are called to fill the information about the usage of the clesses
+#here the class methods are called to fill the information about the usage of the classes
 for classType in __interFaceDict.values():
-  classType.addDataExchangedTypes()
-  classType.addDataExchangedByTypes()
+  classType.generateValidateDict()
+  classType.specializeValidateDict()
 
 def knonwnTypes():
   return __knownTypes
@@ -740,9 +668,8 @@ def returnInstance(Type,debug=False):
 
 def validate(className,role,what,debug=False):
   '''This is the general interface for the validation of a model usage'''
-  if className in __knownTypes:
-    return __interFaceDict[className].localValidateMethod(role,what)
-  else: raise IOError('the class '+str(className)+' it is not a registered model')
+  if className in __knownTypes: return __interFaceDict[className].localValidateMethod(role,what)
+  else                        : raise IOError('the class '+str(className)+' it is not a registered model')
     
   
   

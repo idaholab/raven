@@ -372,26 +372,26 @@ class AdaptiveSampler(Sampler):
       while not myIterator.finished:
         print ('Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
-    if ROM==None:
-      import SupervisedLearning
+#    if ROM==None:
+#      import SupervisedLearning
 #     self.ROM=SupervisedLearning.returnInstance('SVMscikitLearn')(**{'SVMtype':str('C-SVC'),'kernel':str('rbf'), 'degree':3})
-      self.ROM=SupervisedLearning.returnInstance('SVMscikitLearn')(**{'SVMtype':str('LinearSVC')})
+#      self.ROM=SupervisedLearning.returnInstance('SVMscikitLearn')(**{'SVMtype':str('LinearSVC')})
 
       
-#  def __TemporaryFixFunction(self,inArray,expectedSize):
-#    '''
-#      Since there is a bug here somewhere, if the array size is != expected size, we trim or extend the array, taking off the exeding values or copying the last available one to the missing ones....
-#      i KNOW... it is bad... TO FIX FIXXXXXXXXXXX 
-#    '''
-#    if inArray.size == expectedSize: return inArray
-#    elif inArray.size > expectedSize: return inArray[0:expectedSize]
-#    else:
-#      #print('resizing ARRAY....NOT OK NOT OK')
-#      returnArray = np.zeros(expectedSize)
-#      lastValue = inArray[-1]
-#      returnArray[0:inArray.size] = inArray[:]
-#      returnArray[inArray.size:expectedSize] = lastValue
-#      return returnArray
+  def __TemporaryFixFunction(self,inArray,expectedSize):
+    '''
+      Since there is a bug here somewhere, if the array size is != expected size, we trim or extend the array, taking off the exeding values or copying the last available one to the missing ones....
+      i KNOW... it is bad... TO FIX FIXXXXXXXXXXX 
+    '''
+    if inArray.size == expectedSize: return inArray
+    elif inArray.size > expectedSize: return inArray[0:expectedSize]
+    else:
+      #print('resizing ARRAY....NOT OK NOT OK')
+      returnArray = np.zeros(expectedSize)
+      lastValue = inArray[-1]
+      returnArray[0:inArray.size] = inArray[:]
+      returnArray[inArray.size:expectedSize] = lastValue
+      return returnArray
       
   def localStillReady(self,ready,lastOutput=None,ROM=None):
     '''
@@ -434,27 +434,27 @@ class AdaptiveSampler(Sampler):
           for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].cdf(values[iVar]))+'      '
           print(myStr+'  value: '+str(values[-1]))
     ##fitting and predicting
-    self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1])
-    self.ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
-    self.testMatrix.shape  = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape   = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
-    self.testMatrix[:]     = self.ROM.evaluate(self.gridCoord)
-    self.testMatrix.shape  = self.gridShape                                        #bring back the grid structure
-    self.gridCoord.shape   = self.gridCoorShape                                    #bring back the grid structure
+#    self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1])
+#    self.ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
+#    self.testMatrix.shape  = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
+#    self.gridCoord.shape   = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
+#    self.testMatrix[:]     = self.ROM.evaluate(self.gridCoord)
+#    self.testMatrix.shape  = self.gridShape                                        #bring back the grid structure
+#    self.gridCoord.shape   = self.gridCoorShape                                    #bring back the grid structure
 
-#    if ROM==None: self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1]) #build the tree for the fast recovery of the nearest point
-#    else        : self.myTree = ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
-#    self.testMatrix.shape     = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
-#    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
-#    if self.debug: print('Training finished')
-#    #predicting on the grid
-#    if ROM==None: 
-#      distance, outId         = self.myTree.query(self.gridCoord)                     #for each point in the grid get the distance and the id of the closest point that belong to the input set
-#      self.testMatrix[:]      = [self.functionValue[myID,-1:] for myID in outId]      #for each point on the grid retrieve the function evaluation
-#    else: self.testMatrix[:]  = ROM.predict(self.gridCoord)                           #use the ROM to perform the prediction
-#    self.testMatrix.shape     = self.gridShape                                        #bring back the grid structure
-#    self.gridCoord.shape      = self.gridCoorShape                                    #bring back the grid structure
-#    if self.debug: print('Prediction finished')    
+    if ROM==None: self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1]) #build the tree for the fast recovery of the nearest point
+    else        : self.myTree = ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
+    self.testMatrix.shape     = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
+    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
+    if self.debug: print('Training finished')
+    #predicting on the grid
+    if ROM==None: 
+      distance, outId         = self.myTree.query(self.gridCoord)                     #for each point in the grid get the distance and the id of the closest point that belong to the input set
+      self.testMatrix[:]      = [self.functionValue[myID,-1:] for myID in outId]      #for each point on the grid retrieve the function evaluation
+    else: self.testMatrix[:]  = ROM.predict(self.gridCoord)                           #use the ROM to perform the prediction
+    self.testMatrix.shape     = self.gridShape                                        #bring back the grid structure
+    self.gridCoord.shape      = self.gridCoorShape                                    #bring back the grid structure
+    if self.debug: print('Prediction finished')    
     
     #compute the error
     testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))

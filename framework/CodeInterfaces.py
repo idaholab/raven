@@ -225,7 +225,7 @@ class MooseBasedAppInterface:
         modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
         listDict.append(modifDict)
         del modifDict
-        if Kwargs['reportit']:
+        if 'raven' not in Kwargs['executable'].lower():
           listDict.append({'name':['AuxVariables',varname],'family':'SCALAR'})
           listDict.append({'name':['AuxVariables',varname],'initial_condition':Kwargs['SampledVars'][var]})
           listDict.append({'name':['Postprocessors',varname],'type':'ScalarVariable'})

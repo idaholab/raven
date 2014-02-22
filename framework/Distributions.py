@@ -82,22 +82,6 @@ class Distribution(BaseType):
     try: return self.__exp_order
     except AttributeError: raise IOError ('Quadrature has not been set for this distr. yet.')
 
-class SKDistribution(Distribution):
-  '''Unknown class'''
-  print ('could you please add a comment to the class SKDistribution?????')
-
-  def cdf(self,*args):
-    """Cumulative Distribution Function"""
-    return self._distribution.cdf(*args)
-
-  def ppf(self,*args):
-    """Percent Point Function (Inverse of CDF)"""
-    return self._distribution.ppf(*args)
-
-  def rvs(self,*args):
-    """Random Variates"""
-    return self._distribution.rvs(*args)
-
 def random():
   return stochasticEnv.random()
 

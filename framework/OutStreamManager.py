@@ -108,7 +108,9 @@ class OutStreamManager(BaseType):
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True 
       if not foundData: raise IOError('STREAM MANAGER: ERROR -> the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
-
+#
+#
+#
 class OutStreamPlot(OutStreamManager):
   def __init__(self):
     OutStreamManager.__init__(self)
@@ -579,8 +581,9 @@ class OutStreamPlot(OutStreamManager):
         elif self.outStreamTypes[pltindex] == 'line':
           for key in self.x_values[pltindex].keys():
             for x_index in range(len(self.x_values[pltindex][key])):
+              if 'interpPointsX' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['interpPointsX'] = '20'
               if self.x_values[pltindex][key][x_index].size < 2: xi = self.x_values[pltindex][key][x_index]
-              else: xi = np.linspace(self.x_values[pltindex][key][x_index].min(),self.x_values[pltindex][key][x_index].max(),self.x_values[pltindex][key][x_index].size)
+              else: xi = np.linspace(self.x_values[pltindex][key][x_index].min(),self.x_values[pltindex][key][x_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsX']))
               for y_index in range(len(self.y_values[pltindex][key])):
                 if self.y_values[pltindex][key][y_index].size < 2: yi = self.y_values[pltindex][key][y_index]
                 else: yi = griddata((self.x_values[pltindex][key][x_index]), self.y_values[pltindex][key][y_index], (xi[:]), method='nearest')
@@ -796,7 +799,8 @@ class OutStreamPrint(OutStreamManager):
   def addOutput(self):
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}
     else             : dictOptions = {'filenameroot':self.name}
-    for index in range(len(self.sourceName)): self.sourceData[index].printCSV(dictOptions)
+    for index in range(len(self.sourceName)): 
+      if not self.sourceData[index].isItEmpty(): self.sourceData[index].printCSV(dictOptions)
      
 '''
  Interface Dictionary (factory) (private)

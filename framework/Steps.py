@@ -18,7 +18,7 @@ import sys
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
-from utils import metaclass_insert
+from utils    import metaclass_insert
 import Distributions
 import Models
 #Internal Modules End--------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     the printing format of tempDict is key: tempDict[key]'''
     pass
 
-  def __initializeStep(self,inDictionary):
+  def _initializeStep(self,inDictionary):
     '''the job handler is restarted and re-seeding action are performed'''
     inDictionary['jobHandler'].startingNewStep()
     self.localInitializeStep(inDictionary)
@@ -123,7 +123,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     '''this should work for everybody just split the step in an initialization and the run itself
     inDictionary[role]=instance or list of instance'''
     if self.debug: print('Initializing....')
-    self.__initializeStep(inDictionary)
+    self._initializeStep(inDictionary)
     if self.debug: print('Initialization done starting the run....')
     self.localTakeAstepRun(inDictionary)
 #
@@ -131,25 +131,29 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
 #
 class SingleRun(Step):
   '''This is the step that will perform just one evaluation'''
+  
   def localInputAndChecks(self,xmlNode):
-    found = 0
+    found     = 0
+    rolesItem = []
     for index, parameter in enumerate(self.parList):
       if parameter[0]=='Model':
         found +=1
         modelIndex = index
-    if found !=1: raise IOError ('One model is needed for Single run!!!')
-    toBeTested  = [{'role':myInput[0] ,'class':myInput[1],'type':myInput[2]} for myInput in self.parList if myInput[0]!='Model' ]
-    print('the validation of the model in SingleRun needs to be done')
-#    if not Models.validate(self.parList[modelIndex][1],toBeTested,'Run'):
-#      raise IOError('The usage of the model '+self.parList[modelIndex][2]+' of type '+self.parList[modelIndex][1]+' is not correct')
+      else: rolesItem.append(parameter[0])
+    #test the presence of one and only one model
+    if found !=1: raise IOError ('Only one model is allowed for the step named '+str(self.name))
+    roles      = set(rolesItem)
+    toBeTested = {}
+    for role in roles: toBeTested[role]=[]
+    for  myInput in self.parList:
+      if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
+    #use the models static testing of roles compatibility
+    for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
+    if 'Input'  not in roles: raise IOError ('It is not possible a run without an Input!!!')
+    if 'Output' not in roles: raise IOError ('It is not possible a run without an Input!!!')
     
   def localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
-    #checks
-    print('remove the checks from the localInitializeStep by using the validation in localInputAndChecks')
-    if 'Model'  not in inDictionary.keys(): raise IOError ('It is not possible a run without a model!!!')
-    if 'Input'  not in inDictionary.keys(): raise IOError ('It is not possible a run without an Input!!!')
-    if 'Output' not in inDictionary.keys(): raise IOError ('It is not possible a run without an Output!!!')
     #Model initialization
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
     if self.debug: print('The model '+inDictionary['Model'].name+' has been initialized')
@@ -158,6 +162,7 @@ class SingleRun(Step):
       try: #try is used since files for the moment have no type attribute
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+        print('FIXME: the HDF5 file type need to be tested in another fashion in the localInitializeStep')
       except AttributeError as ae: print("Error1: "+repr(ae))
     
   def localTakeAstepRun(self,inDictionary):
@@ -185,8 +190,7 @@ class SingleRun(Step):
         inDictionary['Model'].collectOutput(None,output,newOutputLoop=newOutputLoop)
         newOutputLoop = False
 
-  def localAddInitParams(self,tempDict):
-    print('localAddInitParams needs to be implemented in SingleRun')
+  def localAddInitParams(self,tempDict): pass
 #
 #
 #
@@ -195,17 +199,8 @@ class MultiRun(SingleRun):
   def __init__(self):
     SingleRun.__init__(self)
     self.maxNumberIteration = 0
-
-  def localInputAndChecks(self,xmlNode):
-    #checks
-    SingleRun.localInputAndChecks(self,xmlNode)
-    found = 0
-    for parameter in self.parList:
-      if parameter[0]=='Sampler': found +=1
-    if found !=1: raise IOError ('One model is needed for Single run!!!')
  
-  def addCurrentSetting(self,originalDict):
-    originalDict['max number of iteration'] = self.maxNumberIteration
+  def addCurrentSetting(self,originalDict): originalDict['max number of iteration'] = self.maxNumberIteration
 
   def localInitializeStep(self,inDictionary):
     SingleRun.localInitializeStep(self,inDictionary)
@@ -240,7 +235,7 @@ class MultiRun(SingleRun):
               if output.type not in ['OutStreamPlot','OutStreamPrint']: inDictionary['Model'].collectOutput(finishedJob,output,newOutputLoop=newOutputLoop)                                #the model is tasked to provide the needed info to harvest the output
               newOutputLoop = False
           for output in inDictionary['Output']:                                                      #for all expected outputs
-            if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                               #the model is tasked to provide the needed info to harvest the output
+            if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
 
           if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
           for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
@@ -504,7 +499,6 @@ class RomTrainer(Step):
 __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
-#__interFaceDict['SCRun'            ] = SCRun
 __interFaceDict['Adaptive'         ] = Adaptive
 __interFaceDict['InOutFromDataBase'] = InOutFromDataBase 
 __interFaceDict['RomTrainer'       ] = RomTrainer

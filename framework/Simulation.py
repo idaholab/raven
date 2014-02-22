@@ -331,9 +331,10 @@ class Simulation(object):
     return self.runInfoDict['DefaultInputFile']
 
   def __createAbsPath(self,filein):
-    '''assuming that the file in is already in the self.filesDict it place as the value the absolute path'''
-    if os.path.split(filein)[0] == '': self.filesDict[filein] = os.path.join(self.runInfoDict['WorkingDir'],filein)
-    elif not os.path.isabs(filein)   : self.filesDict[filein] = os.path.abspath(filein)
+    '''assuming that the file in is already in the self.filesDict it places, as value, the absolute path'''
+    print('FIXME: how can I use continuation lines in the xml')
+    if not os.path.isabs(filein):
+      self.filesDict[filein] = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
   
   def __checkExistPath(self,filein):
     '''assuming that the file in is already in the self.filesDict it checks the existence'''
@@ -383,7 +384,6 @@ class Simulation(object):
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)
-    
     if self.debug: self.printDicts()
     
 
