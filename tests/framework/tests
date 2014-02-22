@@ -14,7 +14,7 @@
 #  skip = 'Cannot run headless'
  [../]
 
-[./test_branch]
+ [./test_branch]
   type = 'RavenFramework'
   input = 'test_branch.xml'
   #skip = 'waiting for restart new capability'
@@ -22,7 +22,7 @@
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
  [../]
 
-[./test_branch_heavy]
+ [./test_branch_heavy]
   type = 'RavenFramework'
   input = 'test_sbo_heavy_det.xml'
   #skip = 'waiting for restart new capability'
@@ -41,7 +41,7 @@
   output = 'mpi_driver_test/FirstMRun/out~1~simple_flow_3eqn_displaced.e'
   csv = 'mpi_driver_test/FirstMRun/out~6~simple_flow_3eqn.csv'
  [../]  
-
+ 
  [./test_mpi_bison]
   type = 'RavenFramework'
   heavy= True
@@ -50,18 +50,7 @@
   output = 'mpi_bison_test/myLHS/out~1~case_1.e'
   csv = 'mpi_bison_test/myLHS/out~1~case_1.csv'
  [../]  
-
-# This test has been embedded by the test_push_into_hdf5
-# [./test_extract_data_s_from_hdf5]
-#  type = 'RavenFramework'
-#  input = 'test_extract_data_s_from_hdf5.xml'
-#  #skip = 'waiting for Relap-7 restart'
-#  output = 'test_extract_data_s_from_hdf5/MonteCarlo/out~1~TMI.e'
-#  csv = 'test_extract_data_s_from_hdf5/MonteCarlo/out~2~TMI.csv'
-#  max_time = 500
-#  rel_err = 0.001
-# [../]
-
+ 
  [./test_push_into_hdf5]
   type = 'RavenFramework'
   input = 'test_push_into_hdf5.xml'
@@ -71,15 +60,17 @@
   max_time = 500
   rel_err = 0.01
  [../]
+ 
  [./test_rom_trainer]
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'
-  skip = 'working in progress'
+  #skip = 'working in progress'
   output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI.e test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
   csv = 'test_rom_trainer/outputMontecarloRom_dump.csv'
   max_time = 1000
   rel_err = 0.001
  [../]
+ 
  [./testGrid]
   type = 'RavenFramework'
   input = 'test_Grid_Sampler.xml'
@@ -88,6 +79,7 @@
   max_time = 500
   rel_err = 0.001
  [../]
+ 
  [./testRandom]
   type = 'RavenFramework'
   input = 'test_random.xml'
@@ -96,6 +88,7 @@
   max_time = 500
   rel_err = 0.001
  [../]
+ 
  [./testLHS]
   type = 'RavenFramework'
   input = 'test_LHS_Sampler.xml'
@@ -133,10 +126,10 @@
   required_executable = '../../../ferret/ferret-%METHOD%'
  [../]
 
- [./testExternalModule]
+ [./testExternalModel]
   type = 'RavenFramework'
   input = 'test_Lorentz.xml'
-  output = 'externalModule/testPrintHistories_dump_0.csv externalModule/testPrintHistories_dump_1.csv externalModule/testPrintHistories_dump_2.csv'
+  output = 'externalModel/testPrintHistories_dump_0.csv externalModel/testPrintHistories_dump_1.csv externalModel/testPrintHistories_dump_2.csv'
   max_time = 500
   rel_err = 0.001
  [../]

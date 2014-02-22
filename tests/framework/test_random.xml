@@ -66,44 +66,44 @@
 
 <Steps>
   <MultiRun name='Sampler1' initial_seed='1'>
-    <Input   class='Datas'  type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'    type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'  type='MonteCarlo'        >MC1</Sampler>
-    <Output  class='Datas'     type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases' type='HDF5'        >test_RandomTest1_db</Output>
-    <Output  class='OutStreamManager' type='Print'>outSet_dump</Output>
+    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
+    <Sampler class='Samplers'         type='MonteCarlo'  >MC1</Sampler>
+    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
+    <Output  class='DataBases'        type='HDF5'        >test_RandomTest1_db</Output>
+    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
   <MultiRun name='Sampler2' initial_seed='continue'>
-    <Input   class='Datas'  type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'    type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'  type='MonteCarlo'        >MC2</Sampler>
-    <Output  class='Datas'     type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases' type='HDF5'        >test_RandomTest2_db</Output>
-    <Output  class='OutStreamManager' type='Print'>outSet_dump</Output>
+    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
+    <Sampler class='Samplers'         type='MonteCarlo'  >MC2</Sampler>
+    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
+    <Output  class='DataBases'        type='HDF5'        >test_RandomTest2_db</Output>
+    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
   <MultiRun name='Sampler3' initial_seed='reseed'>
-    <Input   class='Datas'  type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'    type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'  type='MonteCarlo'        >MC3</Sampler>
-    <Output  class='Datas'     type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases' type='HDF5'        >test_RandomTest3_db</Output>
-    <Output  class='OutStreamManager' type='Print'>outSet_dump</Output>
+    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
+    <Sampler class='Samplers'         type='MonteCarlo'  >MC3</Sampler>
+    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
+    <Output  class='DataBases'        type='HDF5'        >test_RandomTest3_db</Output>
+    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
   <MultiRun name='Sampler4' initial_seed='1'>
-    <Input   class='Datas'  type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'    type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'  type='MonteCarlo'        >MC4</Sampler>
-    <Output  class='Datas'     type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases' type='HDF5'        >test_RandomTest4_db</Output>
-    <Output  class='OutStreamManager' type='Print'>outSet_dump</Output>
+    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
+    <Sampler class='Samplers'         type='MonteCarlo'  >MC4</Sampler>
+    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
+    <Output  class='DataBases'        type='HDF5'        >test_RandomTest4_db</Output>
+    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
   <MultiRun name='Sampler5' initial_seed='continue'>
-    <Input   class='Datas'  type='TimePointSet'>dummyIN</Input>
-    <Model   class='Models'    type='Dummy'       >MyDummy</Model>
-    <Sampler class='Samplers'  type='MonteCarlo'        >MC5</Sampler>
-    <Output  class='Datas'     type='TimePointSet'>outSet</Output>
-    <Output  class='DataBases' type='HDF5'        >test_RandomTest5_db</Output>
-    <Output  class='OutStreamManager' type='Print'>outSet_dump</Output>
+    <Input   class='Datas'            type='TimePointSet'>dummyIN</Input>
+    <Model   class='Models'           type='Dummy'       >MyDummy</Model>
+    <Sampler class='Samplers'         type='MonteCarlo'  >MC5</Sampler>
+    <Output  class='Datas'            type='TimePointSet'>outSet</Output>
+    <Output  class='DataBases'        type='HDF5'        >test_RandomTest5_db</Output>
+    <Output  class='OutStreamManager' type='Print'       >outSet_dump</Output>
   </MultiRun >
 </Steps>
 <DataBases>

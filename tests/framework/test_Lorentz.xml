@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
 <RunInfo>
-    <WorkingDir>externalModule</WorkingDir>
+    <WorkingDir>externalModel</WorkingDir>
     <Files>lorentzAttractor.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>2</batchSize>
 </RunInfo>
 
 <Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModule/lorentzAttractor'>  
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
        <variable type='float'>sigma</variable>
        <variable type='float'>rho</variable>
        <variable type='float'>beta</variable>
@@ -54,7 +54,7 @@
 <Steps>
     <MultiRun name='FirstMRun'  initial_seed='25061978'>
         <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
-        <Model   class='Models'    type='ExternalModule' >PythonModule</Model>
+        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
         <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
         <Output  class='DataBases' type='HDF5'           >test_external_db</Output>
