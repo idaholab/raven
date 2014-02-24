@@ -86,6 +86,11 @@ class OutStreamManager(BaseType):
     raise NotImplementedError('STREAM MANAGER: ERROR -> method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self,inDict):
+    '''
+    Function to initialize the OutStream. It basically looks for the "data" object and link it to the system
+    @ In, inDict, dictionary, It contains all the Object are going to be used in the current step. The sources are searched into this.
+    @ Out, None 
+    '''
     self.sourceData   = []
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
@@ -165,10 +170,14 @@ class OutStreamPlot(OutStreamManager):
       self.options[node.tag] = {}
       if len(node):
         for subnode in node: 
-          if subnode.tag != 'kwargs': self.options[node.tag][subnode.tag] = subnode.text
+          if subnode.tag != 'kwargs': 
+            self.options[node.tag][subnode.tag] = subnode.text
+            if not subnode.text: raise IOError('STREAM MANAGER: ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' of in '+node.tag+' block. Please check!')
           else:
             self.options[node.tag]['attributes'] = {} 
-            for subsub in subnode: self.options[node.tag]['attributes'][subsub.tag] = subsub.text   
+            for subsub in subnode: 
+              self.options[node.tag]['attributes'][subsub.tag] = subsub.text
+              if not subnode.text: raise IOError('STREAM MANAGER: ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' of in '+node.tag+' block. Please check!')   
       elif node.text: 
         if node.text.strip(): self.options[node.tag][node.tag] = node.text
     if 'how' not in self.options.keys(): self.options['how']={'how':'screen'} 

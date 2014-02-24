@@ -104,7 +104,40 @@ class superVisioned(object):
     for feature in self.features:
       output.updateInputValue(feature,self.request[self.features.index(feature)])
     output.updateOutputValue(self.target,predection)
+  
+  def prepareInputForPredection(self,request):
+    if len(request)>1: raise IOError('SVM accepts only one input not a list of inputs')
+    else: self.request =request[0]
+    #first we extract the input names and the corresponding values (it is an implicit mapping)
+    if  type(self.request)==str:#one input point requested a as a string
+      inputNames  = [entry.split('=')[0]  for entry in self.request.split(',')]
+      inputValues = [entry.split('=')[1]  for entry in self.request.split(',')]
+    elif type(self.request)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
+      inputNames, inputValues = self.request.keys(), self.request.values()
+    else:#as a internal data type
+      try: #try is used to be sure input.type exist
+        print(self.request.type)
+        inputNames, inputValues = list(self.request.getInpParametersValues().keys()), list(self.request.getInpParametersValues().values())
+      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible data')
+    #now that the prediction points are read we check the compatibility with the ROM input-output set
+    lenght = len(set(inputNames).intersection(self.features))
+    if lenght!=len(self.features) or lenght!=len(inputNames):
+      raise IOError ('there is a mismatch between the provided request and the ROM structure')
+    #build a mapping from the ordering of the input sent in and the ordering inside the ROM
+    self.requestToLocalOrdering = []
+    for local in self.features:
+      self.requestToLocalOrdering.append(inputNames.index(local))
+    #building the arrays to send in for the prediction by the ROM
+    self.request = np.array([inputValues[index] for index in self.requestToLocalOrdering]).T[0]
+    return self.request
+ 
+  def collectOut(self,finishedJob,output,predection):
+    '''This method append the ROM evaluation into the output'''
+    for feature in self.features:
+      output.updateInputValue(feature,self.request[self.features.index(feature)])
+    output.updateOutputValue(self.target,predection)
 
+  
   def reset(self):
     '''override this method to re-instance the ROM'''
     return
