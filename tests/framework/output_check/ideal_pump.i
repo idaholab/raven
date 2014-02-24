@@ -124,7 +124,7 @@
 [Executioner]
   type = RavenExecutioner
   dt = 1.e-1
-  dtmin = 1.e-5
+  dtmin = 1.e-10
   dtmax = 9999
   e_tol = 10.0
   e_max = 99999.
