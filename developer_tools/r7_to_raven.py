@@ -31,7 +31,7 @@ elif "MOOSE_DEV" in os.environ:
   MOOSE_DIR = pathname + '/../devel/moose'
 
 
-sys.path.append(MOOSE_DIR + '/scripts/common')
+sys.path.append(MOOSE_DIR + '/framework/scripts/common')
 
 from ParseGetPot import readInputFile, GPNode
 
