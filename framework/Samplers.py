@@ -147,11 +147,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in availableDist: {'distribution name':instance}
     '''
     if self.initSeed != None:
-      print('self.initSeed')
       Distributions.random_seed(self.initSeed)
     for key in self.toBeSampled.keys(): self.distDict[key] = availableDist[self.toBeSampled[key][1]]
     
-  def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None):
+  def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None,ROM=None):
     '''
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
     @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrain)
@@ -165,7 +164,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport!=None:
       if   goalFunction==None: raise Exception('not consistent call to the smapler.initialize since the SolutionExport is provided but not the goalFunction')
-      else                   : self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction)
+      else                   : self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction,ROM=ROM)
     else                     : self.localInitialize()
     
   def localInitialize(self):
@@ -175,7 +174,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     pass
     
-  def amIreadyToProvideAnInput(self,inLastOutput=None,ROM=None):
+  def amIreadyToProvideAnInput(self,inLastOutput=None):
     '''
     This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
     This method act as a semaphore for generating a new input.
@@ -188,7 +187,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     ready = self.localStillReady(ready,lastOutput=inLastOutput)
     return ready
   
-  def localStillReady(self,ready,lastOutput=None,ROM=None):
+  def localStillReady(self,ready,lastOutput=None):
     '''Use this function to change the ready status'''
     return ready
     
@@ -283,6 +282,7 @@ class AdaptiveSampler(Sampler):
   def localInputAndChecks(self,xmlNode):
     #setting up the adaptive algorithm
     if 'adaptiveAlgorithm' in xmlNode.attrib.keys():
+      print('FIXME: we need to build/import the library of adaptive algorithms')
       self.adaptAlgoType = xmlNode.attrib['adaptiveAlgorithm']
       import AdaptiveAlgoLib
       if self.adaptAlgoType in AdaptiveAlgoLib.knonwnTypes(): self.adaptAlgo = AdaptiveAlgoLib.returnInstance(self.adaptAlgoType)
@@ -293,6 +293,7 @@ class AdaptiveSampler(Sampler):
     if convergenceNode==None:raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
     self.tolerance=float(convergenceNode.text)     
     if 'norm'          in convergenceNode.attrib.keys():
+      print('FIXME: we need to build/import the library of adaptive algorithms')
       self.normType = convergenceNode.attrib['norm']
       import NormLib
       if self.normType in NormLib.knonwnTypes()             : self.norm             = NormLib.returnInstance(self.normType)
@@ -320,11 +321,21 @@ class AdaptiveSampler(Sampler):
       tempDict['The function used is '] = self.goalFunction.name
     for varName in self.distDict.keys():
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
+  
+  def _cKDTreeInterface(self,action,data):
+    if action=='train':
+      self._tree = scipy.spatial.cKDTree(data)
+      return self._tree
+    elif action=='evaluate':
+      return self._tree(data)
    
   def localInitialize(self,goalFunction=None,solutionExport=None,ROM=None):
-    print('Remember to change ROM from optional to mandatory')
     self.goalFunction   = goalFunction
     self.solutionExport = solutionExport
+    if ROM==None:
+      self.ROM.train    = lambda x: self._cKDTreeInterface('train',x)
+      self.ROM.evaluate = lambda x: self._cKDTreeInterface('evaluate',x)
+    else: self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.tolleranceWeight!='probability':
       for varName in self.distDict.keys():
@@ -348,15 +359,15 @@ class AdaptiveSampler(Sampler):
       self.gridStepSize[varId]   = myStepLenght
       self.gridVectors[varName]  = np.arange(start,end,myStepLenght)
       pointByVar[varId]          = np.shape(self.gridVectors[varName])[0]
-    self.gridShape      = tuple   (pointByVar)
-    self.testGridLenght = np.prod (pointByVar)
-    self.testMatrix     = np.zeros(self.gridShape)
-    self.oldTestMatrix  = np.zeros(self.gridShape)
-    self.gridCoorShape  = tuple(pointByVar+[self.nVar])
-    self.gridCoord      = np.zeros(self.gridCoorShape)
-    self.functionValue  = np.zeros((0,self.nVar+1))        #here we generate a zero row matrix with self.nVar+1 column
+    self.gridShape             = tuple   (pointByVar)
+    self.testGridLenght        = np.prod (pointByVar)
+    self.testMatrix            = np.zeros(self.gridShape)
+    self.oldTestMatrix         = np.zeros(self.gridShape)
+    self.gridCoorShape         = tuple(pointByVar+[self.nVar])
+    self.gridCoord             = np.zeros(self.gridCoorShape)
+    self.functionValue         = np.zeros((0,self.nVar+1))        #here we generate a zero row matrix with self.nVar+1 column
     #filling the coordinate on the grid
-    myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
+    myIterator = np.nditer(self.testMatrix,flags=['multi_index'])
     while not myIterator.finished:
       self.gridCoord[myIterator.multi_index] = np.multiply(np.asarray(myIterator.multi_index), self.gridStepSize)+self.gridStepSize*0.5
       myIterator.iternext()
@@ -372,28 +383,8 @@ class AdaptiveSampler(Sampler):
       while not myIterator.finished:
         print ('Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
-#    if ROM==None:
-#      import SupervisedLearning
-#     self.ROM=SupervisedLearning.returnInstance('SVMscikitLearn')(**{'SVMtype':str('C-SVC'),'kernel':str('rbf'), 'degree':3})
-#      self.ROM=SupervisedLearning.returnInstance('SVMscikitLearn')(**{'SVMtype':str('LinearSVC')})
 
-      
-  def __TemporaryFixFunction(self,inArray,expectedSize):
-    '''
-      Since there is a bug here somewhere, if the array size is != expected size, we trim or extend the array, taking off the exeding values or copying the last available one to the missing ones....
-      i KNOW... it is bad... TO FIX FIXXXXXXXXXXX 
-    '''
-    if inArray.size == expectedSize: return inArray
-    elif inArray.size > expectedSize: return inArray[0:expectedSize]
-    else:
-      #print('resizing ARRAY....NOT OK NOT OK')
-      returnArray = np.zeros(expectedSize)
-      lastValue = inArray[-1]
-      returnArray[0:inArray.size] = inArray[:]
-      returnArray[inArray.size:expectedSize] = lastValue
-      return returnArray
-      
-  def localStillReady(self,ready,lastOutput=None,ROM=None):
+  def localStillReady(self,ready,lastOutput=None):
     '''
     first perform some check to understand what it needs to be done possibly perform an early return
     ready is returned
@@ -433,15 +424,10 @@ class AdaptiveSampler(Sampler):
           myStr = ''
           for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].cdf(values[iVar]))+'      '
           print(myStr+'  value: '+str(values[-1]))
-    ##fitting and predicting
-#    self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1])
-#    self.ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
-#    self.testMatrix.shape  = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
-#    self.gridCoord.shape   = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
-#    self.testMatrix[:]     = self.ROM.evaluate(self.gridCoord)
-#    self.testMatrix.shape  = self.gridShape                                        #bring back the grid structure
-#    self.gridCoord.shape   = self.gridCoorShape                                    #bring back the grid structure
 
+    self.ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
+    
+    
     if ROM==None: self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1]) #build the tree for the fast recovery of the nearest point
     else        : self.myTree = ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
     self.testMatrix.shape     = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
@@ -555,6 +541,7 @@ class AdaptiveSampler(Sampler):
         if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId])
         else:self.values[varName] = surfPointInPb[maxIndex,varId]*self.gridStepSize[varId]#*(np.random.rand()-0.5)*0.99
     else:
+      #here we are still generating the batch
       for key in self.distDict:
         self.values[key]=self.distDict[key].ppf(float(Distributions.random()))
     if self.debug:

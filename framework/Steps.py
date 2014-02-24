@@ -59,7 +59,6 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   def __init__(self):
     BaseType.__init__(self)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
-    self.__typeDict = {}   # For each role of the step the corresponding  used type
     self.sleepTime  = 0.1  # Waiting time before checking if a run is finished
     self.initSeed   = None #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
                            #The option are:
@@ -132,6 +131,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
 class SingleRun(Step):
   '''This is the step that will perform just one evaluation'''
   def localInputAndChecks(self,xmlNode):
+    print('FIXME: the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below')
     found     = 0
     rolesItem = []
     for index, parameter in enumerate(self.parList):
@@ -159,34 +159,39 @@ class SingleRun(Step):
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
       try: #try is used since files for the moment have no type attribute
-        if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+        print('FIXME: HDF5, OutStreamPlot,  and OutStreamPrint should be better initialized')
+        if 'HDF5' in inDictionary['Output'][i].type:
+          inDictionary['Output'][i].initialize(self.name)
+        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
+          inDictionary['Output'][i].initialize(inDictionary)
         print('FIXME: the HDF5 file type need to be tested in another fashion in the localInitializeStep')
       except AttributeError as ae: print("Error1: "+repr(ae))
     
   def localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
     jobHandler = inDictionary['jobHandler']
-    inDictionary["Model"].run(inDictionary['Input'],inDictionary['jobHandler'])
-    if inDictionary["Model"].type == 'Code': 
+    model      = inDictionary['Model'     ]
+    inputs     = inDictionary['Input'     ]
+    outputs    = inDictionary['Output'    ]
+    model.run(inputs,jobHandler)
+    if model.type == 'Code': 
       while True:
         finishedJobs = jobHandler.getFinished()
         for finishedJob in finishedJobs:
           if not finishedJob.getReturnCode() == 1:
             # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
-            newOutputLoop = False
-            for output in inDictionary['Output']:                                                      #for all expected outputs
-              if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(finishedJob,output,newOutputLoop=newOutputLoop) #the model is tasked to provide the needed info to harvest the output
-              newOutputLoop = True
-            for output in inDictionary['Output']:                                                      #for all expected outputs
-              if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
-        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
-          break
+            print('FIXME: we are trashing a job since it failed but a proper reporting will be needed to adjust statistics')
+            newOutputLoop = True #used to check if, for a given input, all outputs has been harvested
+            for output in outputs:
+              if output.type not in ['OutStreamPlot','OutStreamPrint']: model.collectOutput(finishedJob,output,newOutputLoop=newOutputLoop)
+              elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
+              newOutputLoop = False
+        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
         time.sleep(self.sleepTime)
     else:
-      newOutputLoop = True
-      for output in inDictionary['Output']:
-        inDictionary['Model'].collectOutput(None,output,newOutputLoop=newOutputLoop)
+      newOutputLoop = True #used to check if, for a given input, all outputs has been harvested
+      for output in outputs:
+        model.collectOutput(None,output,newOutputLoop=newOutputLoop)
         newOutputLoop = False
 
   def localAddInitParams(self,tempDict): pass
@@ -197,69 +202,69 @@ class MultiRun(SingleRun):
   '''this class implement one step of the simulation pattern' where several runs are needed without being adaptive'''
   def __init__(self):
     SingleRun.__init__(self)
-    self.maxNumberIteration = 0
- 
-  def addCurrentSetting(self,originalDict): originalDict['max number of iteration'] = self.maxNumberIteration
+    self._samplerInitDict = {}
+    
+  def localInputAndChecks(self,xmlNode):
+    SingleRun.localInputAndChecks(self,xmlNode)
+    if 'Sampler' not in [item[0] for item in self.parList]: raise IOError ('It is not possible a multi-run without a sampler !!!')
+
+  def _initializeSampler(self,inDictionary):
+    inDictionary['Sampler'].initialize(**self._samplerInitDict)
 
   def localInitializeStep(self,inDictionary):
     SingleRun.localInitializeStep(self,inDictionary)
-    #checks
-    if 'Sampler'  not in inDictionary.keys(): raise IOError ('It is not possible a multi-run without a Sampler!!!')
-    #get the max number of iteration in the step
-    if self.debug: print('The max the number of simulation is: '+str(self.maxNumberIteration))
-    inDictionary['Sampler'].initialize(externalSeeding=self.initSeed)
+    self._samplerInitDict['externalSeeding'] = self.initSeed
+    self._initializeSampler(inDictionary)
+    self._outputCollectionLambda = []
+    for outIndex, output in enumerate(inDictionary['Output']):
+      if output.type not in ['OutStreamPlot','OutStreamPrint']:
+        self._outputCollectionLambda.append(lambda x: inDictionary['Model'].collectOutput(x[0],x[1],newOutputLoop=x[2]))
+      elif output.type in ['OutStreamPlot','OutStreamPrint']:
+        self._outputCollectionLambda.append(lambda x: x[1].addOutput())
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for newInput in newInputs:
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       if inDictionary["Model"].type != 'Code':
-        time.sleep(self.sleepTime) #it is here since models that are not codes do not have the quequing system
-        # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+        time.sleep(self.sleepTime)
         newOutputLoop = True
-        for output in inDictionary['Output']:                                                      #for all expected outputs
-          if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(None,output,newOutputLoop=newOutputLoop) #the model is tasked to provide the needed info to harvest the output
+        for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+          myLambda([None,inDictionary['Output'][outIndex],newOutputLoop])
           newOutputLoop = False
-        for output in inDictionary['Output']:                                                      #for all expected outputs
-          if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
 
   def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
+    model      = inDictionary['Model'     ]
+    inputs     = inDictionary['Input'     ]
+    outputs    = inDictionary['Output'    ]
+    sampler    = inDictionary['Sampler'    ]
     while True:
-      if inDictionary["Model"].type == 'Code': 
+      if model.type == 'Code': 
         finishedJobs = jobHandler.getFinished()
-        #loop on the finished jobs
         for finishedJob in finishedJobs:
-          if 'Sampler' in inDictionary.keys(): inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
+          sampler.finalizeActualSampling(finishedJob,model,inputs)
+          if finishedJob.getReturnCode() == 1: print("FIXME: Houston, we've had a problem: there was a job failure, we could remove it but it would spoil statistics...")
           newOutputLoop = True
-          for output in inDictionary['Output']:                                                      #for all expected outputs
-              if output.type not in ['OutStreamPlot','OutStreamPrint']: inDictionary['Model'].collectOutput(finishedJob,output,newOutputLoop=newOutputLoop)                                #the model is tasked to provide the needed info to harvest the output
-              newOutputLoop = False
-          for output in inDictionary['Output']:                                                      #for all expected outputs
-            if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
-
-          if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-          for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
-            if inDictionary['Sampler'].amIreadyToProvideAnInput():
-              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-              inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
-        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
-          break
+          for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+            myLambda([finishedJob,outputs[outIndex],newOutputLoop])
+            newOutputLoop = False
+          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+            if sampler.amIreadyToProvideAnInput():
+              newInput =sampler.generateInput(model,inputs)
+              model.run(newInput,jobHandler)
+        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
         time.sleep(self.sleepTime)
       else:
         finishedJob = 'empty'
-        if inDictionary['Sampler'].amIreadyToProvideAnInput():
-          newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-          inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
+        if sampler.amIreadyToProvideAnInput():
+          newInput = sampler.generateInput(model,inputs)
+          model.run(newInput,jobHandler)
           newOutputLoop = True
-          for output in inDictionary['Output']:
-            if output.type not in ['OutStreamPlot','OutStreamPrint']: inDictionary['Model'].collectOutput(finishedJob,output,newOutputLoop=newOutputLoop)
+          for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+            myLambda([finishedJob,inDictionary['Output'][outIndex],newOutputLoop])
             newOutputLoop = False
-          for output in inDictionary['Output']:
-            if output.type in ['OutStreamPlot','OutStreamPrint']: output.addOutput()
-        else:
-          break
+        else: break
         time.sleep(self.sleepTime)
     #remember to close the rom to decouple the data stroed in the rom from the framework
-    if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
 #
 #
 #
@@ -268,15 +273,23 @@ class Adaptive(MultiRun):
   def localInputAndChecks(self,xmlNode):
     '''we check coherence of Sampler, Functions and Solution Output'''
     #test sampler information:
-    foundSampler    = False
-    samplCounter    = 0
-    foundTargEval   = False
-    targEvalCounter = 0
-    solExpCounter   = 0
-    functionCounter = 0
-    foundFunction   = False
+    print('FIXME: all these test should be done at the beginning in a static fashion being careful since not all goes to the model')
+    foundSampler     = False
+    samplCounter     = 0
+    foundTargEval    = False
+    targEvalCounter  = 0
+    foundSolExport   = False
+    solExportCounter = 0
+    functionCounter  = 0
+    foundFunction    = False
+    ROMCounter       = 0
+    foundROM         = False
+    #explanation new roles:
+    #Function        : it takes in a datas and generate the value of the goal functions
+    #TargetEvaluation: is the output datas that is used for the evaluation of the goal function. It has to be declared among the outputs
+    #SolutionExport  : if declared it is used to export the location of the  goal functions = 0
     for role in self.parList:
-      if   role[0] == 'Sampler'         :
+      if   role[0] == 'Sampler':
         foundSampler    =True
         samplCounter   +=1
         if not(role[1]=='Samplers' and role[2]=='Adaptive'): raise Exception('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
@@ -286,98 +299,188 @@ class Adaptive(MultiRun):
         if role[1]!='Datas'                               : raise Exception('The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
         if not(['Output']+role[1:] in self.parList[:])    : raise Exception('The data chosen for the evaluation of the adaptive strategy is not in the output list for step'+self.name)
       elif role[0] == 'SolutionExport'  :
-        solExpCounter  +=1
+        solExportCounter  +=1
         if role[1]!='Datas'                               : raise Exception('The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
       elif role[0] == 'Function'       :
         functionCounter+=1
         foundFunction   = True
         if role[1]!='Functions'                           : raise Exception('A class function is required as function in an adaptive step, in the step '+self.name)
+      elif role[0] == 'ROM':
+        foundROM   = True
+        ROMCounter+=1
+        if not(role[1]=='Model' and role[2]=='ROM')       : raise Exception('The ROM could be only class=Model and type=ROM. It does not seems so in the step '+self.name)
     if foundSampler ==False: raise Exception('It is not possible to run an adaptive step without a sampler in step '           +self.name)
     if foundTargEval==False: raise Exception('It is not possible to run an adaptive step without a target output in step '     +self.name)
     if foundFunction==False: raise Exception('It is not possible to run an adaptive step without a proper function, in step '  +self.name)
-    if samplCounter   >1   : raise Exception('More than one sampler found in step '                                            +self.name)
-    if targEvalCounter>1   : raise Exception('More than one target defined for the adaptive sampler found in step '            +self.name)
-    if solExpCounter  >1   : raise Exception('More than one output to export the solution of the goal function, found in step '+self.name)
-    if functionCounter>1   : raise Exception('More than one function defined in the step '                                     +self.name)
+    if samplCounter    >1  : raise Exception('More than one sampler found in step '                                            +self.name)
+    if targEvalCounter >1  : raise Exception('More than one target defined for the adaptive sampler found in step '            +self.name)
+    if solExportCounter>1  : raise Exception('More than one output to export the solution of the goal function, found in step '+self.name)
+    if functionCounter >1  : raise Exception('More than one function defined in the step '                                     +self.name)
+    if ROMCounter      >1  : raise Exception('More than one ROM defined in the step '                                          +self.name)
     
   def localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
-    #checks
-    if 'Model'            not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without a model!'                     )
-    if 'Input'            not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Input!'                    )
-    if 'Output'           not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Output!'                   )
-    if 'Sampler'          not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Sampler!'                  )
-    if 'TargetEvaluation' not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an a target for the function!')
-    if 'Function'         not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an a function!'               )
-    #Initialize model
-    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
-    if self.debug: print('The model '+inDictionary['Model'].name+' has been initialized')
-    #Initialize sampler
-    if 'SolutionExport' in inDictionary.keys(): inDictionary['Sampler'].initialize(externalSeeding=self.initSeed,goalFunction=inDictionary['Function'],solutionExport=inDictionary['SolutionExport'])
-    else                                      : inDictionary['Sampler'].initialize(externalSeeding=self.initSeed,goalFunction=inDictionary['Function'])
-    if self.debug: print('The sampler '+inDictionary['Sampler'].name+' has been initialized')
-    #HDF5 initialization
-    for i in range(len(inDictionary['Output'])):
-      try: #try is used since files for the moment have no type attribute
-        if 'HDF5' in inDictionary['Output'][i].type:
-          inDictionary['Output'][i].addGroupInit(self.name)
-          if self.debug: print('The HDF5 '+inDictionary['Output'][i].name+' has been initialized')
-        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-      except AttributeError as ae: print("Error2: "+repr(ae))    
-    #the first batch of input is generated (and run if the model is not a code)
-    newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
-    for newInput in newInputs:
-      inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
-      if inDictionary["Model"].type != 'Code':
-        # if the model is not a code, collect the output right after the evaluation => the response is overwritten at each "run"
-        newOutputLoop = True
-        for output in inDictionary['Output']: 
-          if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output,newOutputLoop=newOutputLoop)
-          newOutputLoop = False
-        for output in inDictionary['Output']: 
-          if output.type in ['OutStreamPlot','OutStreamPrint'] : output.addOutput()
+    self._samplerInitDict['goalFunction']=inDictionary['Function']
+    if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['solutionExport']
+    if 'ROM'            in inDictionary.keys(): self._samplerInitDict['ROM'           ]=inDictionary['ROM']
+    MultiRun.localInitializeStep(self,inDictionary)
 
   def localTakeAstepRun(self,inDictionary):
-    jobHandler = inDictionary['jobHandler']
-    print('I am running')
+    jobHandler   = inDictionary['jobHandler']
+    model        = inDictionary['Model'     ]
+    inputs       = inDictionary['Input'     ]
+    outputs      = inDictionary['Output'    ]
+    sampler      = inDictionary['Sampler'   ]
+    targetOutput = inDictionary['TargetEvaluation']
     while True:
-      if inDictionary["Model"].type == 'Code': 
+      if model.type == 'Code': 
         finishedJobs = jobHandler.getFinished()
         #loop on the finished jobs
         for finishedJob in finishedJobs:
-          if 'Sampler' in inDictionary.keys(): inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
-          if not finishedJob.getReturnCode() == 1:
-            # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
-            newOutputLoop = True
-            for output in inDictionary['Output']:                                                      #for all expected outputs
-              if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(finishedJob,output,newOutputLoop=newOutputLoop) #the model is tasked to provide the needed info to harvest the output
-              newOutputLoop = False
-            for output in inDictionary['Output']:                                                      #for all expected outputs
-              if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
-          if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
-          for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
-            if inDictionary['Sampler'].amIreadyToProvideAnInput(inLastOutput=inDictionary['TargetEvaluation']):
-              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-              inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
-        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
-          break
+          sampler.finalizeActualSampling(finishedJob,model,inputs)
+          if finishedJob.getReturnCode() == 1: print("FIXME: Houston, we've had a problem: there was a job failure, we could remove it but it would spoil statistics ")
+          # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+          newOutputLoop = True
+          for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+            myLambda([finishedJob,outputs[outIndex],newOutputLoop])
+            newOutputLoop = False
+          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+            if sampler.amIreadyToProvideAnInput(targetOutput):
+              newInput = sampler.generateInput(model,inputs)
+              model.run(newInput,jobHandler)
+        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
         time.sleep(self.sleepTime)
       else:
         finishedJob = 'empty'
-        if inDictionary['Sampler'].amIreadyToProvideAnInput(inLastOutput=inDictionary['TargetEvaluation']):
-          newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
-          inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
-          newOutputLoop = False
-          for output in inDictionary['Output']:
-            if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output,newOutputLoop=newOutputLoop)
+        if sampler.amIreadyToProvideAnInput(targetOutput):
+          newInput = sampler.generateInput(model,inputs)
+          model.run(newInput,jobHandler)
+          newOutputLoop = True
+          for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+            myLambda([finishedJob,outputs[outIndex],newOutputLoop])
             newOutputLoop = False
-          for output in inDictionary['Output']:
-            if output.type in ['OutStreamPlot','OutStreamPrint']     : output.addOutput()
-        else:
-          break
+        else: break
         time.sleep(self.sleepTime)
     #remember to close the rom to decouple the data stroed in the rom from the framework
     if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
+
+#
+#
+#
+#class Adaptive(MultiRun):
+#  '''this class implement one step of the simulation pattern' where several runs are needed in an adaptive scheme'''
+#  def localInputAndChecks(self,xmlNode):
+#    '''we check coherence of Sampler, Functions and Solution Output'''
+#    #test sampler information:
+#    foundSampler    = False
+#    samplCounter    = 0
+#    foundTargEval   = False
+#    targEvalCounter = 0
+#    solExpCounter   = 0
+#    functionCounter = 0
+#    foundFunction   = False
+#    for role in self.parList:
+#      if   role[0] == 'Sampler'         :
+#        foundSampler    =True
+#        samplCounter   +=1
+#        if not(role[1]=='Samplers' and role[2]=='Adaptive'): raise Exception('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
+#      elif role[0] == 'TargetEvaluation':
+#        foundTargEval   = True
+#        targEvalCounter+=1
+#        if role[1]!='Datas'                               : raise Exception('The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
+#        if not(['Output']+role[1:] in self.parList[:])    : raise Exception('The data chosen for the evaluation of the adaptive strategy is not in the output list for step'+self.name)
+#      elif role[0] == 'SolutionExport'  :
+#        solExpCounter  +=1
+#        if role[1]!='Datas'                               : raise Exception('The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
+#      elif role[0] == 'Function'       :
+#        functionCounter+=1
+#        foundFunction   = True
+#        if role[1]!='Functions'                           : raise Exception('A class function is required as function in an adaptive step, in the step '+self.name)
+#    if foundSampler ==False: raise Exception('It is not possible to run an adaptive step without a sampler in step '           +self.name)
+#    if foundTargEval==False: raise Exception('It is not possible to run an adaptive step without a target output in step '     +self.name)
+#    if foundFunction==False: raise Exception('It is not possible to run an adaptive step without a proper function, in step '  +self.name)
+#    if samplCounter   >1   : raise Exception('More than one sampler found in step '                                            +self.name)
+#    if targEvalCounter>1   : raise Exception('More than one target defined for the adaptive sampler found in step '            +self.name)
+#    if solExpCounter  >1   : raise Exception('More than one output to export the solution of the goal function, found in step '+self.name)
+#    if functionCounter>1   : raise Exception('More than one function defined in the step '                                     +self.name)
+#    
+#  def localInitializeStep(self,inDictionary):
+#    '''this is the initialization for a generic step performing runs '''
+#    #checks
+#    if 'Model'            not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without a model!'                     )
+#    if 'Input'            not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Input!'                    )
+#    if 'Output'           not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Output!'                   )
+#    if 'Sampler'          not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an Sampler!'                  )
+#    if 'TargetEvaluation' not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an a target for the function!')
+#    if 'Function'         not in inDictionary.keys(): raise IOError ('It is not possible run '+self.name+' step without an a function!'               )
+#    #Initialize model
+#    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
+#    if self.debug: print('The model '+inDictionary['Model'].name+' has been initialized')
+#    #Initialize sampler
+#    if 'SolutionExport' in inDictionary.keys(): inDictionary['Sampler'].initialize(externalSeeding=self.initSeed,goalFunction=inDictionary['Function'],solutionExport=inDictionary['SolutionExport'])
+#    else                                      : inDictionary['Sampler'].initialize(externalSeeding=self.initSeed,goalFunction=inDictionary['Function'])
+#    if self.debug: print('The sampler '+inDictionary['Sampler'].name+' has been initialized')
+#    #HDF5 initialization
+#    for i in range(len(inDictionary['Output'])):
+#      try: #try is used since files for the moment have no type attribute
+#        if 'HDF5' in inDictionary['Output'][i].type:
+#          inDictionary['Output'][i].addGroupInit(self.name)
+#          if self.debug: print('The HDF5 '+inDictionary['Output'][i].name+' has been initialized')
+#        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+#      except AttributeError as ae: print("Error2: "+repr(ae))    
+#    #the first batch of input is generated (and run if the model is not a code)
+#    newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
+#    for newInput in newInputs:
+#      inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
+#      if inDictionary["Model"].type != 'Code':
+#        # if the model is not a code, collect the output right after the evaluation => the response is overwritten at each "run"
+#        newOutputLoop = True
+#        for output in inDictionary['Output']: 
+#          if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output,newOutputLoop=newOutputLoop)
+#          newOutputLoop = False
+#        for output in inDictionary['Output']: 
+#          if output.type in ['OutStreamPlot','OutStreamPrint'] : output.addOutput()
+#
+#  def localTakeAstepRun(self,inDictionary):
+#    jobHandler = inDictionary['jobHandler']
+#    while True:
+#      if inDictionary["Model"].type == 'Code': 
+#        finishedJobs = jobHandler.getFinished()
+#        #loop on the finished jobs
+#        for finishedJob in finishedJobs:
+#          if 'Sampler' in inDictionary.keys(): inDictionary['Sampler'].finalizeActualSampling(finishedJob,inDictionary['Model'],inDictionary['Input'])
+#          if not finishedJob.getReturnCode() == 1:
+#            # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+#            newOutputLoop = True
+#            for output in inDictionary['Output']:                                                      #for all expected outputs
+#              if output.type not in ['OutStreamPlot','OutStreamPrint']:inDictionary['Model'].collectOutput(finishedJob,output,newOutputLoop=newOutputLoop) #the model is tasked to provide the needed info to harvest the output
+#              newOutputLoop = False
+#            for output in inDictionary['Output']:                                                      #for all expected outputs
+#              if output.type in ['OutStreamPlot','OutStreamPrint']:output.addOutput()                  #the model is tasked to provide the needed info to harvest the output
+#          if 'ROM' in inDictionary.keys(): inDictionary['ROM'].trainROM(inDictionary['Output'])      #train the ROM for a new run
+#          for freeSpot in xrange(jobHandler.howManyFreeSpots()):                                     #the harvesting process is done moving forward with the convergence checks
+#            if inDictionary['Sampler'].amIreadyToProvideAnInput(inLastOutput=inDictionary['TargetEvaluation']):
+#              newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+#              inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
+#        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
+#          break
+#        time.sleep(self.sleepTime)
+#      else:
+#        finishedJob = 'empty'
+#        if inDictionary['Sampler'].amIreadyToProvideAnInput(inLastOutput=inDictionary['TargetEvaluation']):
+#          newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
+#          inDictionary['Model'].run(newInput,inDictionary['jobHandler'])
+#          newOutputLoop = False
+#          for output in inDictionary['Output']:
+#            if output.type not in ['OutStreamPlot','OutStreamPrint'] : inDictionary['Model'].collectOutput(inDictionary['jobHandler'],output,newOutputLoop=newOutputLoop)
+#            newOutputLoop = False
+#          for output in inDictionary['Output']:
+#            if output.type in ['OutStreamPlot','OutStreamPrint']     : output.addOutput()
+#        else:
+#          break
+#        time.sleep(self.sleepTime)
+#    #remember to close the rom to decouple the data stroed in the rom from the framework
+#    if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
 #
 #
 #
@@ -456,23 +559,28 @@ class RomTrainer(Step):
   '''This step type is used only to train a ROM
     @Input, DataBase (for example, HDF5)
   '''
-
+  def localInputAndChecks(self,xmlNode):
+    if [item[0] for item in self.parList].count('Input')!=1: raise IOError('Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
+    if [item[0] for item in self.parList].count('Output')<1: raise IOError('At least one Output is need in a training step. Step name: '+str(self.name))
+    for item in self.parList:
+      if item[0]=='Output' and item[2]!='ROM': raise IOError('Only ROM output class are allowed in a training step. Step name: '+str(self.name))
+  
+  def localInitializeStep(self,inDictionary): pass
+  
+  def localAddInitParams(self,tempDict):
+    del tempDict['Initial seed'] #this entry in not meaningful for a training step
+    
   def addCurrentSetting(self,originalDict):
     Step.addCurrentSetting(self,originalDict)
 
-  def localInitializeStep(self,inDictionary):
-    '''The initialization step  for a ROM is copying the data out to the ROM (it is a copy not a reference) '''
-    for i in xrange(len(inDictionary['Output'])):
-      inDictionary['Output'][i].initializeTrain(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'][0])
-    try: #try is used since files for the moment have no type attribute
-      if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-      
-      if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPlot']: inDictionary['Output'][i].initialize(inDictionary)
-    except AttributeError as ae: print("Error4: "+repr(ae))
-
   def takeAstepIni(self,inDictionary):
     print('STEPS         : beginning of step named: ' + self.name)
+    for ROM in inDictionary['Output']:
+      ROM.train(inDictionary['Input'][0])
+      
+      
     for i in xrange(len(inDictionary['Output'])):
+      
       if (inDictionary['Output'][i].type != 'ROM'):
         raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts a ROM as Output only. Got ' + inDictionary['Output'][i].type)
     if len(inDictionary['Input']) > 1: raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts an Input Only. Number of Inputs = ' + str(len(inDictionary['Input'])))
@@ -485,13 +593,6 @@ class RomTrainer(Step):
       inDictionary['Output'][i].close()
     return
 
-  def localAddInitParams(self,tempDict):
-    #TODO implement
-    pass
-
-  def localInputAndChecks(self,xmlNode):
-    #TODO implement
-    pass
 #
 #
 #

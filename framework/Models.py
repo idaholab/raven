@@ -29,7 +29,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   '''
   A model is something that given an input will return an output reproducing some physical model
   it could as complex as a stand alone code, a reduced order model trained somehow or something
-  build and imported by the user
+  externally build and imported by the user
   '''
   validateDict                  = {}
   validateDict['Input'  ]       = []
@@ -255,14 +255,12 @@ class ROM(Dummy):
   def __init__(self):
     Dummy.__init__(self)
     self.initializzationOptionDict = {}
-    self.inputNames = []
-    self.outputName = ''
+    self.inputNames   = []
+    self.outputName   = ''
     self.admittedData = []
     self.admittedData.append('TimePoint')
     self.admittedData.append('TimePointSet')
-
-  def __returnAdmittedData(self):
-    return self.admittedData
+    self.amItrained   = False
 
   def readMoreXML(self,xmlNode):
     Dummy.readMoreXML(self, xmlNode)
@@ -276,31 +274,32 @@ class ROM(Dummy):
     self.SupervisedEngine = self.ROM(**self.initializzationOptionDict)
     
   def addInitParams(self,originalDict):
+    '''the ROM setting parameters are added'''
     ROMdict = self.SupervisedEngine.returnInitialParamters()
-    for key in ROMdict.keys():
-      originalDict[key] = ROMdict[key]
+    for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
 
-  def addCurrentSetting(self,originalDict):
-    ROMdict = self.SupervisedEngine.returnCurrentSetting()
-    for key in ROMdict.keys():
-      originalDict[key] = ROMdict[key]
-
-  def initializeTrain(self,runInfoDict,loadFrom):
-    '''just provide an internal pointer to the external data and check compatibility'''
-    if loadFrom.type not in self.__returnAdmittedData(): raise IOError('type '+loadFrom.type+' is not compatible with the ROM '+self.name)
-    else: self.toLoadFrom = loadFrom
+  def _trainingSetToInternal(self,dataIN):
+    '''check to compatibility of the trainig set given from outside and transform it in the internal format'''
+    localTrainSet = {}
+    if type(dataIN)!=dict:
+      if  self.trainingSet.type not in self.admittedData:
+        raise IOError('type '+dataIN.type+' is not compatible with the ROM '+self.name)
+      else:
+        for entries in dataIN.getParaKeys('inputs' ): localTrainSet[entries] = dataIN.getParam('inputs' ,entries)
+        for entries in dataIN.getParaKeys('outputs'): localTrainSet[entries] = dataIN.getParam('outputs',entries)
+    if type(dataIN)!=dict: localTrainSet = dataIN
+    return localTrainSet
   
-  def close(self):
-    '''remember to call this function to decouple the data owned by the ROM and the environment data after each training'''
-    self.toLoadFrom = copy.copy(self.toLoadFrom)
-
-  def train(self):
+  def train(self,trainingSet):
     '''Here we do the training of the ROM'''
     '''Fit the model according to the given training data.
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    self.SupervisedEngine.train(self.toLoadFrom)
+    self.trainingSet = copy.copy(self._trainingSetToInternal(trainingSet))
+    self.SupervisedEngine.train(self.trainingSet)
+    self.amItrained = True
+    print('FIXME: add self.amItrained to currentParamters')
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     ''' This function creates a new input
@@ -309,54 +308,35 @@ class ROM(Dummy):
         dictionary input and datas input
         NB. This input preparation needs to remain here...The input preparation is one of the Model duties
     '''
-    import itertools
     if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
-    else: currentInput =currentInput[0]
-    if  type(currentInput)==str:#one input point requested a as a string
-      inputNames  = [component.split('=')[0] for component in currentInput.split(',')]
-      inputValues = [component.split('=')[1] for component in currentInput.split(',')]
-      for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
-        inputValues[inputNames.index(name)] = newValue
-      newInput = [inputNames[i]+'='+inputValues[i] for i in range(inputNames)]
-      newInput = newInput.join(',')
-    elif type(currentInput)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()): 
-        currentInput[name] = newValue
-      newInput = copy.deepcopy(currentInput)
-    else:#as a internal data type
-      try: #try is used to be sure input.type exist
-        if currentInput.type in self.__returnAdmittedData():
-          newInput = Datas.returnInstance(currentInput.type)
-          newInput.type = currentInput.type
-          for name,value in zip(currentInput.getInpParametersValues().keys(),currentInput.getInpParametersValues().values()): newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(value)))
-          for name, newValue in zip(Kwargs['SampledVars'].keys(),Kwargs['SampledVars'].values()):
-            print('FIXME: for now, even if the ROM accepts a TimePointSet, we create a TimePoint')
-            newInput.updateInputValue(name,numpy.atleast_1d(numpy.array(newValue)))
-      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible input')
-    currentInput = [newInput]
-    return currentInput
+    inputToROM = self._trainingSetToInternal(currentInput[0])
+    if 'SampledVars' not in Kwargs.keys(): raise IOError('the keyworded input does not contain SampledVars')
+    for key in inputToROM.keys():
+      if key in Kwargs['SampledVars'].keys(): inputToROM[key] = numpy.asarray(Kwargs['SampledVars'][key])
+    return [inputToROM]
+
+  def evaluate(self,request):
+    inputToROM = self._trainingSetToInternal(request)
+    return self.SupervisedEngine.evaluate(inputToROM)
 
   def run(self,request,jobHandler):
-    '''This call run a ROM as a model
-    The input should be translated in to a set of coordinate where to perform the predictions
-    It is possible either to send in just one point in the input space or a set of points
-    input are accepted in the following form:
-    -as a strings: 'input_name=value,input_name=value,..' this supports only one point in the input space
-    -as a dictionary where keys are the input names and the values the corresponding values (it should be either vector or list)
-    -as one of the admitted data for the specific ROM sub-type among the data type available in the datas.py module'''  
-    self.request = self.SupervisedEngine.prepareInputForPrediction(request)
-    ############################------FIXME----------#######################################################
-    # we need to submit self.ROM.evaluate(self.request) to the job handler
-    self.output = self.SupervisedEngine.evaluate(self.request)
+    '''This call run a ROM as a model'''
+    self.request = copy.copy(request)
+    self.output  = self.evaluate(self.request)
+    return
 
   def collectOutput(self,finishedJob,output,newOutputLoop=True):
     '''This method append the ROM evaluation into the output'''
     # since the underlayer of the ROM is the only guy who knows how its output is formatted,
     # it's its responsability to update the output
     try:
-      if output.type in self.__returnAdmittedData(): self.SupervisedEngine.collectOut(finishedJob,output,self.output)
-      else: raise IOError('the output of the ROM is requested on a not compatible data')
-    except AttributeError: raise IOError('the output of the ROM is requested on a not compatible data')
+      if output.type not in self.__returnAdmittedData():raise IOError('the output of the ROM is requested on a not compatible data')
+    except AttributeError:
+      raise IOError('the output of the ROM is requested on a not compatible data')
+    for key in output.getParaKeys('inputs'):
+      if key in self.request.keys(): output.updateInputValue(key,self.request[key])
+    for key in output.getParaKeys('ouputs'):
+      if key in self.request.keys(): output.updateOutputValue(key,self.request[key])
 #
 #
 #  

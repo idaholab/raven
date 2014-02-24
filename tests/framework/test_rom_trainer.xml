@@ -20,7 +20,7 @@
     <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
     <ROM  name='ROM1' subType='SVMscikitLearn' target_response_name='CladTempTreshold'>
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
-      <Targets>CladTempTreshold</Targets>
+      <Target>CladTempTreshold</Target>
       <SVMtype>LinearSVC</SVMtype>
       <C>1.0</C>
       <tol>0.0001</tol>

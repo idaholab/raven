@@ -13,6 +13,7 @@ import numpy as np
 import Datas
 import numpy
 import h5py
+import abc
 from itertools import product as itprod
 try:
   import cPickle as pk
@@ -23,7 +24,7 @@ if sys.version_info.major > 2:
   import interpolationNDpy3 as interpolationND
 else:
   import interpolationNDpy2 as interpolationND  
-
+from utils import metaclass_insert
 #import DataBases #TODO shouldn't need this, see StochPoly.train() for instance check
 '''here we intend ROM as super-visioned learning, 
    where we try to understand the underlying model by a set of labeled sample
@@ -45,107 +46,100 @@ else:
  Isotonic regression
  '''
 
-class superVisioned(object):
+class superVisioned(metaclass_insert(abc.ABCMeta)):
   '''
   This is the general interface to any supervisioned learning method.
   Essentially it contains a train, and evaluate methods
   '''
+  @classmethod 
+  def checkArrayConsistency(self,arrayin):
+    '''
+      This method checks the consistency of the in-array
+      @ In, object... It should be an array
+      @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
+    '''
+    if type(arrayin) != numpy.ndarray: return (False,' The object is not a numpy array')
+    if arrayin.dim > 1: return(False, ' The array must be 1-d')  
+    return (True,'')
+  
   def __init__(self,**kwargs):                      
-    if 'Features' not in kwargs.keys(): raise IOError('Super Visioned: Feature names not provided')
-    if 'Targets'  not in kwargs.keys(): raise IOError('Super Visioned: Target name not provided')
+    if 'Features' not in kwargs.keys(): raise IOError('Super Visioned: ERROR -> Feature names not provided')
+    if 'Target'   not in kwargs.keys(): raise IOError('Super Visioned: ERROR ->Target name not provided')
     self.features = kwargs['Features'].split(',')
-    self.target   = kwargs['Targets' ] 
-    self.featureValues = None
+    self.target   = kwargs['Target'  ] 
+    if self.features.count(self.target) > 0: raise IOError('Super Visioned: ERROR -> The target and one of the features have the same name!!!!')
     self.initializzationOptionDict = kwargs
-    self.output = None
-    self.targetValues = None
 
-  def train(self,obj):
-    '''override this method to train the ROM'''
-    inputNames, inputValues  = list(obj.getInpParametersValues().keys()), list(obj.getInpParametersValues().values()) 
-    if self.target in obj.getOutParametersValues(): 
-      outputValues = obj.getOutParametersValues()[self.target]
-    else: raise IOError('The output sought '+self.target+' is not in the training set')
-    self.featureValues = np.zeros(shape=(outputValues.size,len(self.features)))
-    self.targetValues  = np.zeros(shape=(outputValues.size))
+  def train(self,tdict):
+    '''
+      Method to perform the training of the SuperVisioned algorithm
+      NB.the SuperVisioned object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires.
+      @ In, tdict, training dictionary
+      @ Out, None
+    '''
+    if type(tdict) != dict: raise IOError('Super Visioned: ERROR -> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    names, values  = list(tdict.keys()), list(tdict.values()) 
+    if self.target in names: targetValues = values[names.index(self.target)]  
+    else                   : raise IOError('Super Visioned: ERROR -> The output sought '+self.target+' is not in the training set')    
+    # check if the targetValues are consistent with the expected structure
+    resp = self.checkArrayConsistency(targetValues)
+    if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for target '+self.target+':'+resp[1])
+    # construct the evaluation matrix
+    featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for feat in self.features:
-      if feat not in inputNames: raise IOError('The feature sought '+feat+' is not in the training set')   
-      else: self.featureValues[:,inputNames.index(feat)] = inputValues[inputNames.index(feat)][:]
-    self.targetValues[:] = outputValues[:]
-  
-  def prepareInputForPrediction(self,request):
-    if len(request)>1: raise IOError('SVM accepts only one input not a list of inputs')
-    else: self.request =request[0]
-    #first we extract the input names and the corresponding values (it is an implicit mapping)
-    if  type(self.request)==str:#one input point requested a as a string
-      inputNames  = [entry.split('=')[0]  for entry in self.request.split(',')]
-      inputValues = [entry.split('=')[1]  for entry in self.request.split(',')]
-    elif type(self.request)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      inputNames, inputValues = self.request.keys(), self.request.values()
-    else:#as a internal data type
-      try: #try is used to be sure input.type exist
-        print(self.request.type)
-        inputNames, inputValues = list(self.request.getInpParametersValues().keys()), list(self.request.getInpParametersValues().values())
-      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible data')
-    #now that the prediction points are read we check the compatibility with the ROM input-output set
-    lenght = len(set(inputNames).intersection(self.features))
-    if lenght!=len(self.features) or lenght!=len(inputNames):
-      raise IOError ('there is a mismatch between the provided request and the ROM structure')
-    #build a mapping from the ordering of the input sent in and the ordering inside the ROM
-    self.requestToLocalOrdering = []
-    for local in self.features:
-      self.requestToLocalOrdering.append(inputNames.index(local))
-    #building the arrays to send in for the prediction by the ROM
-    self.request = np.array([inputValues[index] for index in self.requestToLocalOrdering]).T[0]
-    return self.request
- 
-  def collectOut(self,finishedJob,output,predection):
-    '''This method append the ROM evaluation into the output'''
-    for feature in self.features:
-      output.updateInputValue(feature,self.request[self.features.index(feature)])
-    output.updateOutputValue(self.target,predection)
-  
-  def prepareInputForPredection(self,request):
-    if len(request)>1: raise IOError('SVM accepts only one input not a list of inputs')
-    else: self.request =request[0]
-    #first we extract the input names and the corresponding values (it is an implicit mapping)
-    if  type(self.request)==str:#one input point requested a as a string
-      inputNames  = [entry.split('=')[0]  for entry in self.request.split(',')]
-      inputValues = [entry.split('=')[1]  for entry in self.request.split(',')]
-    elif type(self.request)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      inputNames, inputValues = self.request.keys(), self.request.values()
-    else:#as a internal data type
-      try: #try is used to be sure input.type exist
-        print(self.request.type)
-        inputNames, inputValues = list(self.request.getInpParametersValues().keys()), list(self.request.getInpParametersValues().values())
-      except AttributeError: raise IOError('the request of ROM evaluation is done via a not compatible data')
-    #now that the prediction points are read we check the compatibility with the ROM input-output set
-    lenght = len(set(inputNames).intersection(self.features))
-    if lenght!=len(self.features) or lenght!=len(inputNames):
-      raise IOError ('there is a mismatch between the provided request and the ROM structure')
-    #build a mapping from the ordering of the input sent in and the ordering inside the ROM
-    self.requestToLocalOrdering = []
-    for local in self.features:
-      self.requestToLocalOrdering.append(inputNames.index(local))
-    #building the arrays to send in for the prediction by the ROM
-    self.request = np.array([inputValues[index] for index in self.requestToLocalOrdering]).T[0]
-    return self.request
- 
-  def collectOut(self,finishedJob,output,predection):
-    '''This method append the ROM evaluation into the output'''
-    for feature in self.features:
-      output.updateInputValue(feature,self.request[self.features.index(feature)])
-    output.updateOutputValue(self.target,predection)
+      if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the training set')   
+      else: 
+        resp = self.checkArrayConsistency(values[names.index(feat)])
+        if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
+        if values[names.index(feat)].size != featureValues[:,0].size: raise IOError('Super Visioned: ERROR -> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        featureValues[:,names.index(feat)] = values[names.index(feat)][:]
+    self.__trainLocal__(featureValues,targetValues)
 
-  
+  @abc.abstractmethod
+  def __trainLocal__(self,featureVals,targetVals):
+    '''
+      this method must be overwritten by the base classes
+      @ In, featureVals, 2-D numpy array [n_samples,n_features]
+      @ In,  targetVals, 1-D numpy arrat [n_samples]
+    '''
+    pass
+
+  def evaluate(self,edict):
+    '''
+      Method to perform the evaluation of a point or a set of points through the previous trained superVisioned algorithm 
+      NB.the SuperVisioned object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires.
+      @ In, tdict, evaluation dictionary
+      @ Out, numpy array of evaluated points
+    '''
+    if type(edict) != dict: raise IOError('Super Visioned: ERROR -> method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    names, values  = list(edict.keys()), list(edict.values()) 
+    for index in range(len(values)): 
+      resp = self.checkArrayConsistency(values[index])
+      if not resp[0]: raise IOError('Super Visioned: ERROR -> In evaluate request for feature '+names[index]+':'+resp[1])
+    # construct the evaluation matrix
+    featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+    for feat in self.features:
+      if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the evaluate set')   
+      else: 
+        resp = self.checkArrayConsistency(values[names.index(feat)])
+        if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
+        featureValues[:,names.index(feat)] = values[names.index(feat)][:]
+    return self.__evaluateLocal__(featureValues)
+
+  @abc.abstractmethod
+  def __evaluateLocal__(self,featureVals):
+    '''
+      this method must be overwritten by the base classes
+      @ In, featureVals, 2-D numpy array [n_samples,n_features]
+    '''
+    pass
+
   def reset(self):
     '''override this method to re-instance the ROM'''
     return
 
-  def evaluate(self):
-    '''override this method to get the prediction from the ROM'''
-    return
-    
   def returnInitialParamters(self):
     '''override this method to pass the fix set of parameters of the ROM'''
     InitialParamtersDict={}
@@ -161,6 +155,12 @@ class superVisioned(object):
 class StochasticPolynomials(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
+  
+  def __trainLocal__(self,featureVals,targetVals):
+    pass
+  
+  def __evaluateLocal__(self,featureVals):
+    pass  
 
   def train(self,inDictionary):
     pass
@@ -185,38 +185,33 @@ class SVMsciKitLearn(superVisioned):
     if not self.initializzationOptionDict['SVMtype'] in self.availSVM.keys(): raise IOError ('not known support vector machine type ' + self.initializzationOptionDict['SVMtype'])
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
     kwargs.pop('SVMtype')
-    kwargs.pop('Targets')
+    kwargs.pop('Target')
     kwargs.pop('Features')
     self.SVM.set_params(**kwargs)
 
-  def train(self,obj):
+  def __trainLocal__(self,featureVals,targetVals):
     """Perform training on samples in X with responses y.
         For an one-class model, +1 or -1 is returned.
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+        featureVals : {array-like, sparse matrix}, shape = [n_samples, n_features]
         Returns
         -------
-        y : array, shape = [n_samples]
+        targetVals : array, shape = [n_samples]
     """
-    #print("X ",X,"y ",y)
-    superVisioned.train(self, obj)
-    self.SVM.fit(self.featureValues,self.targetValues)
+    self.SVM.fit(featureVals,targetVals)
 
   def returnInitialParamters(self):
     return self.SVM.get_params()
 
-  def evaluate(self,X):
-    """Perform regression on samples in X.
+  def __evaluateLocal__(self,featureVals):
+    '''
+      Perform regression on samples in featureVals.
         For an one-class model, +1 or -1 is returned.
-        Parameters
-        ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
-        Returns
-        -------
-        y_pred : array, shape = [n_samples]
-        predict(self, X)"""
-    prediction = self.SVM.predict(X)
+        @ In, numpy.array 2-D, features 
+        @ Out, numpy.array 1-D, predicted values
+    '''
+    prediction = self.SVM.predict(featureVals)
     print('SVM           : Prediction by ' + self.initializzationOptionDict['SVMtype'] + '. Predicted value is ' + str(prediction))
     return prediction
   
@@ -228,35 +223,32 @@ class NDinterpolatorRom(superVisioned):
     superVisioned.__init__(self,**kwargs)
     self.interpolator = None
     self.initParams   = kwargs
-  def train(self,X,y):
+
+  def __trainLocal__(self,featureVals,targetVals):
     """Perform training on samples in X with responses y.
         For an one-class model, +1 or -1 is returned.
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
+        featureVals : {array-like, sparse matrix}, shape = [n_samples, n_features]
         Returns
         -------
-        y : array, shape = [n_samples]
+        targetVals : array, shape = [n_samples]
     """
-    #print("X",X,"y",y)
-    self.interpolator.fit(X,y)
+    self.interpolator.fit(featureVals,targetVals)
 
   def returnInitialParamters(self):
     return self.initializzationOptionDict
 
-  def evaluate(self,X):
-    """Perform regression on samples in X.
+  def __evaluateLocal__(self,featureVals):
+    '''
+      Perform regression on samples in featureVals.
         For an one-class model, +1 or -1 is returned.
-        Parameters
-        ----------
-        X : {array-like, sparse matrix}, shape = [n_samples, n_features]
-        Returns
-        -------
-        y_pred : array, shape = [n_samples]
-        predict(self, X)"""
-    prediction = np.zeros(X[:,0].shape)
-    for n_sample in range(X[:,0].shape):
-      prediction[n_sample] = self.interpolator.interpolateAt(X[:,n_sample])
+        @ In, numpy.array 2-D, features 
+        @ Out, numpy.array 1-D, predicted values
+    '''
+    prediction = np.zeros(featureVals[:,0].shape)
+    for n_sample in range(featureVals[:,0].shape):
+      prediction[n_sample] = self.interpolator.interpolateAt(featureVals[:,n_sample])
       print('NDinterpRom   : Prediction by ' + self.name + '. Predicted value is ' + str(prediction))
     return prediction
   
