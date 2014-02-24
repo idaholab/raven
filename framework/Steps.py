@@ -565,26 +565,15 @@ class RomTrainer(Step):
     for item in self.parList:
       if item[0]=='Output' and item[2]!='ROM': raise IOError('Only ROM output class are allowed in a training step. Step name: '+str(self.name))
   
-  def localInitializeStep(self,inDictionary): pass
-  
   def localAddInitParams(self,tempDict):
     del tempDict['Initial seed'] #this entry in not meaningful for a training step
-    
-  def addCurrentSetting(self,originalDict):
-    Step.addCurrentSetting(self,originalDict)
 
-  def takeAstepIni(self,inDictionary):
-    print('STEPS         : beginning of step named: ' + self.name)
-    self.localInitializeStep(inDictionary)
-    
+  def localInitializeStep(self,inDictionary): pass
+        
   def localTakeAstepRun(self,inDictionary):
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
     for ROM in inDictionary['Output']:
       ROM.train(inDictionary['Input'][0])
-    for i in xrange(len(inDictionary['Output'])):
-      if (inDictionary['Output'][i].type != 'ROM'):
-        raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts a ROM as Output only. Got ' + inDictionary['Output'][i].type)
-    if len(inDictionary['Input']) > 1: raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts an Input Only. Number of Inputs = ' + str(len(inDictionary['Input'])))
 
 
 #

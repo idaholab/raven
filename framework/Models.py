@@ -316,6 +316,7 @@ class ROM(Dummy):
     return [inputToROM]
 
   def evaluate(self,request):
+    '''when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used'''
     inputToROM = self._trainingSetToInternal(request)
     return self.SupervisedEngine.evaluate(inputToROM)
 
