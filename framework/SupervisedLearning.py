@@ -59,7 +59,7 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
       @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     '''
     if type(arrayin) != numpy.ndarray: return (False,' The object is not a numpy array')
-    if arrayin.dim > 1: return(False, ' The array must be 1-d')  
+    if len(arrayin.shape) > 1: return(False, ' The array must be 1-d')  
     return (True,'')
   
   def __init__(self,**kwargs):                      
@@ -86,14 +86,17 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
     resp = self.checkArrayConsistency(targetValues)
     if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for target '+self.target+':'+resp[1])
     # construct the evaluation matrix
-    featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
+    featureValues = np.zeros(shape=(targetValues.size,len(self.features))) 
+    cnt = 0
     for feat in self.features:
       if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the training set')   
       else: 
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError('Super Visioned: ERROR -> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        featureValues[:,names.index(feat)] = values[names.index(feat)][:]
+        #featureValues[:,cnt] = values[names.index(feat)][:]
+        featureValues[:,cnt] = values[names.index(feat)]
+        cnt+=1
     self.__trainLocal__(featureValues,targetValues)
 
   @abc.abstractmethod
@@ -120,12 +123,15 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
       if not resp[0]: raise IOError('Super Visioned: ERROR -> In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+    cnt = 0
     for feat in self.features:
       if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the evaluate set')   
       else: 
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
-        featureValues[:,names.index(feat)] = values[names.index(feat)][:]
+        #featureValues[:,names.index(feat)] = values[names.index(feat)][:]
+        featureValues[:,cnt] = values[names.index(feat)]
+        cnt+=1
     return self.__evaluateLocal__(featureValues)
 
   @abc.abstractmethod

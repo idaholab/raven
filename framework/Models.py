@@ -261,7 +261,7 @@ class ROM(Dummy):
     self.admittedData.append('TimePoint')
     self.admittedData.append('TimePointSet')
     self.amItrained   = False
-
+  
   def readMoreXML(self,xmlNode):
     Dummy.readMoreXML(self, xmlNode)
     for child in xmlNode:
@@ -282,12 +282,12 @@ class ROM(Dummy):
     '''check to compatibility of the trainig set given from outside and transform it in the internal format'''
     localTrainSet = {}
     if type(dataIN)!=dict:
-      if  self.trainingSet.type not in self.admittedData:
+      if  dataIN.type not in self.admittedData:
         raise IOError('type '+dataIN.type+' is not compatible with the ROM '+self.name)
       else:
-        for entries in dataIN.getParaKeys('inputs' ): localTrainSet[entries] = dataIN.getParam('inputs' ,entries)
-        for entries in dataIN.getParaKeys('outputs'): localTrainSet[entries] = dataIN.getParam('outputs',entries)
-    if type(dataIN)!=dict: localTrainSet = dataIN
+        for entries in dataIN.getParaKeys('inputs' ): localTrainSet[entries] = dataIN.getParam('input' ,entries)
+        for entries in dataIN.getParaKeys('outputs'): localTrainSet[entries] = dataIN.getParam('output',entries)
+    if type(dataIN)==dict: localTrainSet = dataIN
     return localTrainSet
   
   def train(self,trainingSet):
@@ -322,7 +322,8 @@ class ROM(Dummy):
 
   def run(self,request,jobHandler):
     '''This call run a ROM as a model'''
-    self.request = copy.copy(request)
+    if len(request)>1: raise IOError('ROM accepts only one input in its run method')
+    self.request = copy.copy(request[0])
     self.output  = self.evaluate(self.request)
     return
 
@@ -331,12 +332,12 @@ class ROM(Dummy):
     # since the underlayer of the ROM is the only guy who knows how its output is formatted,
     # it's its responsability to update the output
     try:
-      if output.type not in self.__returnAdmittedData():raise IOError('the output of the ROM is requested on a not compatible data')
+      if output.type not in self.admittedData: raise IOError('the output of the ROM is requested on a not compatible data')
     except AttributeError:
       raise IOError('the output of the ROM is requested on a not compatible data')
     for key in output.getParaKeys('inputs'):
       if key in self.request.keys(): output.updateInputValue(key,self.request[key])
-    for key in output.getParaKeys('ouputs'):
+    for key in output.getParaKeys('outputs'):
       if key in self.request.keys(): output.updateOutputValue(key,self.request[key])
 #
 #
