@@ -26,7 +26,7 @@ class RavenFramework(Tester):
     Tester.__init__(self, name, params)
     self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
     self.csv_files = self.specs['csv'].split(" ") if len(self.specs['csv']) > 0 else []
-    for filename in self.check_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
+    for filename in self.check_files+self.csv_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
       if os.path.exists(filename):
         os.remove(filename)
     self.required_executable = self.specs['required_executable']
