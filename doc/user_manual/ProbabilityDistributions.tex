@@ -20,7 +20,12 @@ outcome of \distattrib{n} experiments with each experiment having the
 success probability \distattrib{p}.
 
 %exponential - BasicExponentialDistribution - continuous
-%missing from Distributions
+%lambda
+
+The \distname{Exponential} distribution is a continuous distribution
+of which can be used to model the time between independent events that
+happen at a constant average time.  It uses the rate parameter
+\distattrib{lambda}.
 
 %logistic - BasicLogisticDistribution - continuous
 %location
@@ -33,7 +38,13 @@ is the most common value and the center, and \distattrib{scale} which
 determines the shape.
 
 %log-normal - BasicLogNormalDistribution - continuous
-%missing from Distributions
+%mean
+%sigma
+
+The \distname{LogNormal} distribution is a continuous distribution
+with the logarithm of the random variable being normally distributed.
+It has two parameters, \distattrib{mean} which is the middle value,
+and \distattrib{sigma} which is the standard deviation.
 
 %normal - BasicNormalDistribution - continuous
 %mean
@@ -72,7 +83,13 @@ a rectangular shaped PDF.  It goes from \distattrib{low} to
 \distattrib{high}.
 
 %weibull - BasicWeibullDistribution - continuous
-%missing from Distributions
+%k
+%lambda
+
+The \distname{Weibull} distribution is a continuous distribution that
+can be used is failure analysis.  It takes two parameters,
+\distattrib{k} or the shape parameter, and \distattrib{lambda} or the
+scale parameter.
 
 %gamma - BasicGammaDistribution - continuous 
 %low
