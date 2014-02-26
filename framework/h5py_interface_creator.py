@@ -60,6 +60,7 @@ class hdf5Database(object):
       self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
       # and the dictionary "self.allGroupEnds" based on the database that already exists
+      self.parent_group_name = b'/'
       self.__createObjFromFile()
       # "self.firstRootGroup", true if the root group is present (or added), false otherwise
       self.firstRootGroup = True
@@ -103,6 +104,7 @@ class hdf5Database(object):
       else: 
         print('DATABASE HDF5 : not found attribute EndGroup in group ' + name + '.Set True.')
         self.allGroupEnds[name]  = True
+      if "rootname" in obj.attrs: self.parent_group_name = name
     return
    
   def addGroup(self,gname,attributes,source,upGroup=False):
@@ -154,7 +156,8 @@ class hdf5Database(object):
     if attributes:
       for key in attributes.keys():
         grp.attrs[key] = attributes[key]
-
+    grp.attrs['rootname'] = True
+    grp.attrs['EndGroup'] = False
     self.allGroupPaths.append("/" + gname)
     self.allGroupEnds["/" + gname] = False
     return
@@ -560,7 +563,6 @@ class hdf5Database(object):
         path  = self.allGroupPaths[i]
         list_path = list_str_w
         break
-    
     if found:
       # Check the filter type
       if not filter or filter == 0:

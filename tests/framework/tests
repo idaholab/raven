@@ -70,6 +70,16 @@
   max_time = 1000
   rel_err = 0.001
  [../]
+
+ [./test_rom_train_from_already_dumped_HDF5]
+  type = 'RavenFramework'
+  input = 'test_rom_train_from_already_dumped_HDF5.xml'
+  #skip = 'working in progress'
+  output='test_rom_trainer/outputMontecarloRom_dump.csv'
+  csv = 'test_rom_trainer/outputMontecarloRom_dump.csv'
+  max_time = 1000
+  rel_err = 0.001
+ [../]
  
  [./testGrid]
   type = 'RavenFramework'
