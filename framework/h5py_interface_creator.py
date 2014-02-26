@@ -56,6 +56,8 @@ class hdf5Database(object):
     # We can create a base empty database or we open an existing one
     if self.fileExist:
       # self.h5_file_w is the HDF5 object. Open the database in "update" mode 
+      # check if the file exists
+      if not os.path.isfile(self.filenameAndPath): raise IOError('DATABASE HDF5 : ERROR -> when you specify a filename for HDF5, the file must exist \n File not found: '+self.filenameAndPath)
       # Open file
       self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
@@ -65,6 +67,10 @@ class hdf5Database(object):
       # "self.firstRootGroup", true if the root group is present (or added), false otherwise
       self.firstRootGroup = True
     else:
+      # check if the file exists, in case warn the user and delete it
+      if os.path.isfile(self.filenameAndPath):
+        print('DATABASE HDF5 : Warning -> The HDF5 database already exist in directory "'+self.databaseDir+'". \nDATABASE HDF5 : Warning -> This action will delete the old database!')
+        os.remove(self.filenameAndPath)
       # self.h5_file_w is the HDF5 object. Open the database in "write only" mode 
       self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'w')
       # Add the root as first group
