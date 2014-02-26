@@ -266,6 +266,61 @@ checkAnswer("logistic ppf(0.25)",logistic.ppf(0.25),2.90138771133)
 checkAnswer("logistic ppf(0.50)",logistic.ppf(0.50),4.0)
 checkAnswer("logistic ppf(0.75)",logistic.ppf(0.75),5.09861228867)
 
+#Test Exponential 
+
+exponentialElement = ET.Element("exponential")
+exponentialElement.append(createElement("lambda",text="5.0"))
+
+exponential = Distributions.Exponential()
+exponential.readMoreXML(exponentialElement)
+exponential.initializeDistribution()
+
+checkAnswer("exponential cdf(0.3)",exponential.cdf(0.3),0.7768698399)
+checkAnswer("exponential cdf(1.0)",exponential.cdf(1.0),0.993262053001)
+checkAnswer("exponential cdf(3.0)",exponential.cdf(3.0),0.999999694098)
+
+checkAnswer("exponential ppf(0.7768698399)",exponential.ppf(0.7768698399),0.3)
+checkAnswer("exponential ppf(0.2)",exponential.ppf(0.2),0.0446287102628)
+checkAnswer("exponential ppf(0.5)",exponential.ppf(0.5),0.138629436112)
+
+#Test log normal
+
+logNormalElement = ET.Element("logNormal")
+logNormalElement.append(createElement("mean",text="3.0"))
+logNormalElement.append(createElement("sigma",text="2.0"))
+
+logNormal = Distributions.LogNormal()
+logNormal.readMoreXML(logNormalElement)
+logNormal.initializeDistribution()
+
+checkAnswer("logNormal cdf(2.0)",logNormal.cdf(2.0),0.124367703363)
+checkAnswer("logNormal cdf(1.0)",logNormal.cdf(1.0),0.0668072012689)
+checkAnswer("logNormal cdf(3.0)",logNormal.cdf(3.0),0.170879904093)
+
+checkAnswer("logNormal ppf(0.1243677033)",logNormal.ppf(0.124367703363),2.0)
+checkAnswer("logNormal ppf(0.1)",logNormal.ppf(0.1),1.54789643258)
+checkAnswer("logNormal ppf(0.5)",logNormal.ppf(0.5),20.0855369232)
+
+#Test Weibull
+
+weibullElement = ET.Element("weibull")
+weibullElement.append(createElement("k", text="1.5"))
+weibullElement.append(createElement("lambda", text="1.0"))
+
+weibull = Distributions.Weibull()
+weibull.readMoreXML(weibullElement)
+weibull.initializeDistribution()
+
+checkAnswer("weibull cdf(0.5)",weibull.cdf(0.5),0.29781149863)
+checkAnswer("weibull cdf(0.2)",weibull.cdf(0.2),0.0855593563928)
+checkAnswer("weibull cdf(2.0)",weibull.cdf(2.0),0.940894253438)
+
+checkAnswer("weibull ppf(0.29781149863)",weibull.ppf(0.29781149863),0.5)
+checkAnswer("weibull ppf(0.1)",weibull.ppf(0.1),0.223075525637)
+checkAnswer("weibull ppf(0.9)",weibull.ppf(0.9),1.7437215136)
+
+
+
 print(results)
 
 sys.exit(results["fail"])

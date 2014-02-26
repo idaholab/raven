@@ -526,6 +526,85 @@ class Logistic(BoostDistribution):
     else:
       raise IOError ('Truncated Logistic not yet implemented')
 
+class Exponential(BoostDistribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.lambda_var = 1.0
+    self.type = 'Exponential'
+
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    lambda_find = xmlNode.find('lambda')
+    if lambda_find != None: self.lambda_var = float(lambda_find.text)
+    else: raise Exception('lambda value needed for Exponential distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    Distributions.addInitParams(self, tempDict)
+    tempDict['lambda'] = self.lambda_var
+    
+  def initializeDistribution(self):
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var)
+    else:
+      raise IOError ('Truncated Exponential not yet implemented')
+    
+class LogNormal(BoostDistribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.mean = 1.0
+    self.sigma = 1.0
+    self.type = 'LogNormal'
+
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    mean_find = xmlNode.find('mean')
+    if mean_find != None: self.mean = float(mean_find.text)
+    else: raise Exception('mean value needed for LogNormal distribution')
+    sigma_find = xmlNode.find('sigma')
+    if sigma_find != None: self.sigma = float(sigma_find.text)
+    else: raise Exception('sigma value needed for LogNormal distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    Distributions.addInitParams(self, tempDict)
+    tempDict['mean' ] = self.mean
+    tempDict['sigma'] = self.sigma
+    
+  def initializeDistribution(self):
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma)
+    else:
+      raise IOError ('Truncated LogNormal not yet implemented')
+    
+class Weibull(BoostDistribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.lambda_var = 1.0
+    self.k = 1.0
+    self.type = 'Weibull'
+
+  def readMoreXML(self,xmlNode):
+    Distribution.readMoreXML(self, xmlNode)
+    lambda_find = xmlNode.find('lambda')
+    if lambda_find != None: self.lambda_var = float(lambda_find.text)
+    else: raise Exception('lambda (scale) value needed for Weibull distribution')
+    k_find = xmlNode.find('k')
+    if k_find != None: self.k = float(k_find.text)
+    else: raise Exception('k (shape) value needed for Weibull distribution')
+    self.initializeDistribution()
+    
+  def addInitParams(self,tempDict):
+    Distributions.addInitParams(self, tempDict)
+    tempDict['lambda'] = self.lambda_var
+    tempDict['k'     ] = self.k
+    
+  def initializeDistribution(self):
+    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
+    else:
+      raise IOError ('Truncated Weibull not yet implemented')
+
 class NDimensionalDistributions(Distribution):
   def __init__(self):
     Distribution.__init__(self)

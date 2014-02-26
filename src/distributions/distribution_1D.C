@@ -353,7 +353,17 @@ BasicLogNormalDistribution::BasicLogNormalDistribution(double mu, double sigma)
 {
   _dis_parameters["mu"] = mu;
   _dis_parameters["sigma"] = sigma;
-    
+
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  if(not hasParameter("xMin")) {
+    _dis_parameters["xMin"] = 0.0;
+  }
+  if(not hasParameter("xMax")) {
+    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+  }
+
   if (mu<0)
     throwError("ERROR: incorrect value of mu for lognormaldistribution");  
 
@@ -492,6 +502,17 @@ public:
 BasicExponentialDistribution::BasicExponentialDistribution(double lambda)
 {
   _dis_parameters["lambda"] = lambda;
+
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  if(not hasParameter("xMin")) {
+    _dis_parameters["xMin"] = 0.0;
+  }
+  if(not hasParameter("xMax")) {
+    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+  }
+
     
   if (lambda<0)
     throwError("ERROR: incorrect value of lambda for exponential distribution"); 
@@ -534,6 +555,16 @@ BasicWeibullDistribution::BasicWeibullDistribution(double k, double lambda)
 {
   _dis_parameters["k"] = k; //shape
   _dis_parameters["lambda"] = lambda; //scale
+
+  if(not hasParameter("truncation")) {
+    _dis_parameters["truncation"] = 1.0;
+  }
+  if(not hasParameter("xMin")) {
+    _dis_parameters["xMin"] = 0.0;
+  }
+  if(not hasParameter("xMax")) {
+    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+  }
 
   if ((lambda<0) || (k<0))
     throwError("ERROR: incorrect value of k or lambda for weibull distribution");
