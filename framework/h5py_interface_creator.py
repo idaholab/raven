@@ -56,8 +56,6 @@ class hdf5Database(object):
     # We can create a base empty database or we open an existing one
     if self.fileExist:
       # self.h5_file_w is the HDF5 object. Open the database in "update" mode 
-      # check if the file exists
-      if not os.path.isfile(self.filenameAndPath): raise IOError('DATABASE HDF5 : ERROR -> when you specify a filename for HDF5, the file must exist \n File not found: '+self.filenameAndPath)
       # Open file
       self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
@@ -67,10 +65,6 @@ class hdf5Database(object):
       # "self.firstRootGroup", true if the root group is present (or added), false otherwise
       self.firstRootGroup = True
     else:
-      # check if the file exists, in case warn the user and delete it
-      if os.path.isfile(self.filenameAndPath):
-        print('DATABASE HDF5 : Warning -> The HDF5 database already exist in directory "'+self.databaseDir+'". \nDATABASE HDF5 : Warning -> This action will delete the old database!')
-        os.remove(self.filenameAndPath)
       # self.h5_file_w is the HDF5 object. Open the database in "write only" mode 
       self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'w')
       # Add the root as first group
@@ -154,7 +148,9 @@ class hdf5Database(object):
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
-        if gname in comparisonName: raise IOError("Root Group named " + gname + " already present in database " + self.name)
+        splittedPath=comparisonName.split('/')
+        if len(splittedPath) > 0:
+          if gname == splittedPath[0]: raise IOError("Group named " + gname + " already present as root group in database " + self.name + ". new group " + gname + " is equal to old group " + splittedPath[0])
     self.parent_group_name = "/" + gname 
     # Create the group
     grp = self.h5_file_w.create_group(gname)
@@ -181,7 +177,9 @@ class hdf5Database(object):
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
-        if gname in comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
+        splittedPath=comparisonName.split('/')
+        for splgroup in splittedPath:
+          if gname == splgroup: raise IOError("Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
       f = open(source['name'],'rb')
@@ -262,7 +260,9 @@ class hdf5Database(object):
     if not upGroup:
       for index in xrange(len(self.allGroupPaths)):
         comparisonName = self.allGroupPaths[index]
-        if gname in comparisonName: raise IOError("Group named " + gname + " already present in database " + self.name)
+        splittedPath=comparisonName.split('/')
+        for splgroup in splittedPath:
+          if gname == splgroup: raise IOError("Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     parent_name = self.parent_group_name.replace('/', '')
     # Create the group
     if parent_name != '/':
