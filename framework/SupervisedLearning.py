@@ -107,6 +107,10 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
       @ In,  targetVals, 1-D numpy arrat [n_samples]
     '''
     pass
+  
+  def confidence(self,edict):
+    raise IOError('the confidence method has not been implemented in the supervised class used')
+    
 
   def evaluate(self,edict):
     '''

@@ -266,14 +266,13 @@ class AdaptiveSampler(Sampler):
     self.repetition       = 0                #the actual number of time the error was below the requested threshold
     self.forceIteration   = False            #this flag control if at least a self.limit number of iteration should be done
     self.axisName         = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
-    self.gridStepSize     = None             #For each coordinate the size of the step in the testing grid
     self.gridVectors      = {}               # {'name of the variable':numpy.ndarray['the coordinate']}
     self.testGridLenght   = 0                #this the total number of point in the testing grid
     self.testMatrix       = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
     self.gridShape        = None             #tuple describing the shape of the grid matrix
     self.gridCoorShape    = None             #tuple describing the shape of the grid containing also the coordinate 
-    self.functionValue    = None             #This an ndarray each row is the values of the input space of a realization plus the value of the goal function
+    self.functionValue    = {}               #This a dictionary that contains np vectors for each variable and the goal function
     self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
     self.gridCoord        = None             #this is the matrix that contains for each entry of the grid the coordinate
     self.nVar             = 0                #this is the number of the variable sampled
@@ -323,18 +322,41 @@ class AdaptiveSampler(Sampler):
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
   
   def _cKDTreeInterface(self,action,data):
+    m = len(list(data.keys()))
+    n = len(data[list(data.keys())[0]])
+    dataMatrix = np.zeros((n,m-1))
     if action=='train':
-      self._tree = scipy.spatial.cKDTree(data)
-      return self._tree
+      self._mappingList = []
+      index = 0
+      for key in data.keys():
+        if key != self.goalFunction.name:
+          self._mappingList.append(key)
+          dataMatrix[:,index] = data[key]
+          index +=1
+      self._tree = scipy.spatial.cKDTree(copy.copy(dataMatrix),leafsize=18)
     elif action=='evaluate':
-      return self._tree(data)
+      print('FIXME: here rather than using self.gridCoord a conversion of data would be more coherent')
+      distance, outId    = self._tree.query(self.gridCoord)
+      return [self.functionValue[self.goalFunction.name][myID] for myID in outId]
+    elif action=='confidence':
+      distance, outId    = self._tree.query(self.surfPoint)
+      return distance, outId
    
   def localInitialize(self,goalFunction=None,solutionExport=None,ROM=None):
     self.goalFunction   = goalFunction
     self.solutionExport = solutionExport
+    #build a lambda function to masquerade the ROM <-> cKDTree presence
     if ROM==None:
-      self.ROM.train    = lambda x: self._cKDTreeInterface('train',x)
-      self.ROM.evaluate = lambda x: self._cKDTreeInterface('evaluate',x)
+      class ROM(object):
+        def __init__(self,cKDTreeInterface):
+          self.amITrained = False
+          self._cKDTreeInterface = cKDTreeInterface
+        def train(self,trainSet):
+          self._cKDTreeInterface('train',trainSet)
+          self.amITrained = True
+        def evaluate(self,coordinateVect): return self._cKDTreeInterface('evaluate',coordinateVect)
+        def confidence(self,coordinateVect): return self._cKDTreeInterface('confidence',coordinateVect)
+      self.ROM = ROM(self._cKDTreeInterface)
     else: self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.tolleranceWeight!='probability':
@@ -343,33 +365,38 @@ class AdaptiveSampler(Sampler):
           raise Exception('It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
     #setup the grid. The grid is build such as each element has a volume equal to the tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
-    nVariables        = len(self.distDict.keys())              #Total number of varibales 
-    stepLenght        = self.tolerance**(1./float(nVariables)) #build the step size in 0-1 range
-    self.gridStepSize = np.zeros(nVariables)                   #the step size for each grid dimension
-    self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering
+    self.nVar        = len(self.distDict.keys())              #Total number of variables 
+    stepLenght        = self.tolerance**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance 
+    self.gridStepSize = np.zeros(self.nVar)                   #the step size for each grid dimension
+    self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
+    #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
     if self.tolleranceWeight!='probability':
       stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
-    else: stepParam = lambda x: [stepLenght, 0.0, 1.0]
-    self.nVar  = len(self.distDict.keys())
-    pointByVar = [None]*self.nVar
+    else:
+      stepParam = lambda x: [stepLenght, 0.0, 1.0]
+    #moving forward building all the information set
+    pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
+    #building the grid point coordinates
     for varId, varName in enumerate(self.distDict.keys()):
-      [myStepLenght, start, end] = stepParam(varName)
-      start                     += 0.5*myStepLenght
-      self.axisName.append(varName)
-      self.gridStepSize[varId]   = myStepLenght
-      self.gridVectors[varName]  = np.arange(start,end,myStepLenght)
-      pointByVar[varId]          = np.shape(self.gridVectors[varName])[0]
-    self.gridShape             = tuple   (pointByVar)
-    self.testGridLenght        = np.prod (pointByVar)
-    self.testMatrix            = np.zeros(self.gridShape)
-    self.oldTestMatrix         = np.zeros(self.gridShape)
-    self.gridCoorShape         = tuple(pointByVar+[self.nVar])
-    self.gridCoord             = np.zeros(self.gridCoorShape)
-    self.functionValue         = np.zeros((0,self.nVar+1))        #here we generate a zero row matrix with self.nVar+1 column
+      self.axisName.append(varName)     
+      [myStepLenght, start, end]  = stepParam(varName)
+      start                      += 0.5*myStepLenght
+      if self.tolleranceWeight=='probability': self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
+      else                                   : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
+      pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
+    self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
+    self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
+    self.testMatrix               = np.zeros(self.gridShape)      #grid where the values of the goalfunction are stored
+    self.oldTestMatrix            = np.zeros(self.gridShape)      #swap matrix fro convergence test
+    self.gridCoorShape            = tuple(pointByVar+[self.nVar]) #shape of the matrix containing all coordinate of all points in the grid
+    self.gridCoord                = np.zeros(self.gridCoorShape)  #the matrix containing all coordinate of all points in the grid
     #filling the coordinate on the grid
-    myIterator = np.nditer(self.testMatrix,flags=['multi_index'])
+    myIterator = np.nditer(self.gridCoord,flags=['multi_index'])
     while not myIterator.finished:
-      self.gridCoord[myIterator.multi_index] = np.multiply(np.asarray(myIterator.multi_index), self.gridStepSize)+self.gridStepSize*0.5
+      coordinateID  = myIterator.multi_index[-1]
+      axisName      = self.axisName[coordinateID]
+      valuePosition = myIterator.multi_index[coordinateID]
+      self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition] 
       myIterator.iternext()
     #printing
     if self.debug:
@@ -392,75 +419,66 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightbur value is used
     '''
+    self.debug=False
     if self.debug: print('From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
-    if lastOutput == None  : return ready #if the last output is not provided I am still generating an input batch  
+    if lastOutput == None and self.ROM.amITrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
+      
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue
-    if np.shape(self.functionValue)[0]<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0])):  #in this way we check if an input batch had been used and not yet harvested 
+    if lastOutput !=None:
+      self.functionValue.update(lastOutput.getParametersValues('input'))
+      self.functionValue.update(lastOutput.getParametersValues('output'))
+      if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
+      else:                                                   indexLast = -1
+      indexEnd  = len(self.functionValue[self.axisName[0]])-1
+      tempDict  = {}
+      if self.goalFunction.name in self.functionValue.keys():
+        self.functionValue[self.goalFunction.name].resize(indexEnd+1)
+      else: self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
+      for myIndex in range(indexLast+1,indexEnd+1):
+        for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
+        self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
+      #printing----------------------
+      if self.debug: print('Mapping of the goal function evaluation done')
+      if self.debug:
+        print('already evaluated points and function value')
+        keyList = list(self.functionValue.keys())
+        print(','.join(keyList))
+        for index in range(indexEnd+1):
+          print(','.join([str(self.functionValue[key][index]) for key in keyList]))
+      #printing----------------------
       tempDict = {}
-      #if there are missed input not collected we catch up and perform the function evaluation on it
-      while np.shape(self.functionValue)[0]<len(lastOutput.extractValue('numpy.ndarray',self.axisName[0])):
-        self.functionValue = np.vstack([self.functionValue,np.zeros(self.nVar+1)])
-        for varName in lastOutput.dataParameters['outParam']+lastOutput.dataParameters['inParam']: 
-          tempDict[varName] = lastOutput.extractValue('numpy.ndarray',varName)[0:np.shape(self.functionValue)[0]]
-          if varName in self.axisName:
-            if self.tolleranceWeight=='probability': self.functionValue[-1:,self.axisName.index(varName)]= self.distDict[varName].cdf(tempDict[varName][-1:])
-            else                                   : self.functionValue[-1:,self.axisName.index(varName)]= tempDict[varName][-1:]
-        self.functionValue[-1:,-1:] = self.goalFunction.evaluate('residualSign',tempDict)
-    if self.debug: print('Mapping of the goal function evaluation done')
-    #copy the old solution for convergence check
-    np.copyto(self.oldTestMatrix,self.testMatrix)
-    #printing 
-    if self.debug:
-      print('already evaluated points and function value')
-      if self.tolleranceWeight=='probability':
-        for values in np.rollaxis(self.functionValue,0):
-          myStr = ''
-          for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].ppf(values[iVar]))+'      '
-          print(myStr+'  value: '+str(values[-1]))
-      else:
-        for values in np.rollaxis(self.functionValue,0):
-          myStr = ''
-          for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(values[iVar])+', '+str(self.distDict[varName].cdf(values[iVar]))+'      '
-          print(myStr+'  value: '+str(values[-1]))
-
-    self.ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
-    
-    
-    if ROM==None: self.myTree = scipy.spatial.cKDTree(self.functionValue[:,:-1]) #build the tree for the fast recovery of the nearest point
-    else        : self.myTree = ROM.train(self.functionValue[:,:-1],self.functionValue[:,-1:])
-    self.testMatrix.shape     = (self.testGridLenght)                                 #rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                       #rearrange the grid coordinate matrix such as is an array of coordinate values
-    if self.debug: print('Training finished')
-    #predicting on the grid
-    if ROM==None: 
-      distance, outId         = self.myTree.query(self.gridCoord)                     #for each point in the grid get the distance and the id of the closest point that belong to the input set
-      self.testMatrix[:]      = [self.functionValue[myID,-1:] for myID in outId]      #for each point on the grid retrieve the function evaluation
-    else: self.testMatrix[:]  = ROM.predict(self.gridCoord)                           #use the ROM to perform the prediction
-    self.testMatrix.shape     = self.gridShape                                        #bring back the grid structure
-    self.gridCoord.shape      = self.gridCoorShape                                    #bring back the grid structure
-    if self.debug: print('Prediction finished')    
-    
-    #compute the error
-    testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))
-    #check error and permanence of the error
-    if (testError > 0): 
-      ready = True
-      self.repetition = 0
-    else:
-      self.repetition +=1
-      if self.persistence<self.repetition : ready = False #we are done
+      print('FIXME: please find a more elegant way to remove the output variables from the training set')
+      for name in self.axisName: tempDict[name] = self.functionValue[name]
+      tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
+      self.ROM.train(tempDict) 
+    if self.debug: print('Training finished')                                    #happy thinking :)
+    np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
+    self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
+    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
+    tempDict ={}
+    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
+    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                #get the prediction on the testing grid
+    #print(self.testMatrix)
+    self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
+    self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
+    if self.debug: print('Prediction finished')      
+    testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))#compute the error
+    if (testError > 0): ready, self.repetition = True, 0                        #we still have error
+    else              : self.repetition +=1                                     #we are increasing persistence
+    if self.persistence<self.repetition : ready = False                         #we are done
     print('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
-    #use a gradient operator to preselect the candidate
-    toBeTested       = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0)))) #preselect a set of possible candidate by non zero gradient. Array is (number of candidate)x(nVar)
-    #printing
+    #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
+    toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
+    #printing----------------------
     if self.debug:
       print('Limit surface candidate points')
       for coordinate in np.rollaxis(toBeTested,0):
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
         print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+    #printing----------------------
     #check which one of the preselected points is really on the limit surface
     listsurfPoint = []
     myIdList      = np.zeros(self.nVar)
@@ -468,82 +486,56 @@ class AdaptiveSampler(Sampler):
       myIdList[:] = copy.deepcopy(coordinate)
       if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
         for iVar in range(self.nVar):
-          if coordinate[iVar]<self.gridShape[iVar]-1:
+          if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
             myIdList[iVar]+=1
             if self.testMatrix[tuple(myIdList)]>0:
-              listsurfPoint.append(coordinate)
-              myIdList[iVar]-=1
+              listsurfPoint.append(copy.copy(coordinate))
               break
             myIdList[iVar]-=1
           if coordinate[iVar]>0:
             myIdList[iVar]-=1
             if self.testMatrix[tuple(myIdList)]>0:
-              listsurfPoint.append(coordinate)
-              myIdList[iVar]+=1
+              listsurfPoint.append(copy.copy(coordinate))
               break
-            myIdList[iVar] += 1
-    #printing    
+            myIdList[iVar]+=1
+    #printing----------------------
     if self.debug:
       print('Limit surface points')
       for coordinate in listsurfPoint:
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
         print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-   
-    #if the number of point on the limit surface is > than zero than convert in real coordinate
+    #printing----------------------
+    
+    #if the number of point on the limit surface is > than zero than save it
     if len(listsurfPoint)>0:
       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
-      self.surfPoint[:,:] = listsurfPoint[:][:]
-      offSet       = np.ndarray(self.nVar)
-      offSet[:]    = [self.gridStepSize[i]*0.5 for i in range(self.nVar)]
-      #from indexes to coordinate
-      for poinIndex, arraySlice in enumerate(np.rollaxis(self.surfPoint,0)):
-        self.surfPoint[poinIndex,:] = np.multiply(np.copy(arraySlice),self.gridStepSize)+offSet
-      #from probability to real coordinate
-      if self.tolleranceWeight=='probability':
-        for coorIndex, arraySlice in enumerate(np.rollaxis(self.surfPoint,1)):
-          varName                     = self.axisName[coorIndex]
-          vectorPPF                   = np.vectorize(self.distDict[varName].ppf)
-          self.surfPoint[:,coorIndex] = vectorPPF(arraySlice)
+      for pointID, coordinate in enumerate(listsurfPoint): self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
       if self.solutionExport!=None:
         for varName in self.solutionExport.dataParameters['inParam']:
           for varIndex in range(len(self.axisName)):
-            if varName in self.axisName[varIndex]:
+            if varName == self.axisName[varIndex]:
               self.solutionExport.getInpParametersValues()[varName] = self.surfPoint[:,varIndex]
-    #printing 
-    if self.debug:
-      print('Limit surface points')
-      for coordinate in np.rollaxis(self.surfPoint,0):
-        myStr = ''
-        print(coordinate)
-        for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-    #no matter what happened up to know if we are forcing the iteration to reach limit we perform the check and we return that
-    if self.forceIteration:
-      if self.counter<self.limit: ready=True
     
     return ready
     
   def localGenerateInput(self,model,oldInput):
-    
     #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
     # create values dictionary
     if self.debug: print('generating input')
     if self.surfPoint!=None and len(self.surfPoint)>0:
-      surfPointInPb = np.empty_like(self.surfPoint)
-      if self.tolleranceWeight=='probability':
-        for varID, varName in enumerate(self.axisName):
-          surfPointInPb[:,varID] = map(self.distDict[varName].cdf,self.surfPoint[:,varID])
-      else: surfPointInPb=self.surfPoint
-      distance, outId       =  self.myTree.query(surfPointInPb)
-      maxIndex = distance.argmax()
+      tempDict = {}
+      for myIndex, varName in enumerate(self.axisName): tempDict[varName] = self.surfPoint[:,myIndex]
+      confidence, outId = self.ROM.confidence(tempDict)
+      minIndex = confidence.argmax()
       for varId, varName in enumerate(self.axisName):
-#        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId]+self.gridStepSize[varId]*(np.random.rand()-0.5)*0.99)
-        if self.tolleranceWeight=='probability': self.values[varName] = self.distDict[varName].ppf(surfPointInPb[maxIndex,varId])
-        else:self.values[varName] = surfPointInPb[maxIndex,varId]*self.gridStepSize[varId]#*(np.random.rand()-0.5)*0.99
+        self.values[varName] = copy.copy(float(self.surfPoint[minIndex,varId]))
     else:
       #here we are still generating the batch
-      for key in self.distDict:
+      for key in self.distDict.keys():
+        print(key)
         self.values[key]=self.distDict[key].ppf(float(Distributions.random()))
+        print(self.values[key])
     if self.debug:
       print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
 

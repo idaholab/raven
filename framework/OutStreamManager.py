@@ -293,7 +293,7 @@ class OutStreamPlot(OutStreamManager):
         if 'frameon' not in self.options[key].keys():   self.options[key]['frameon'  ] = 'True'
         elif self.options[key]['frameon'].lower() in ['t','true']: self.options[key]['frameon'] = 'True'
         elif self.options[key]['frameon'].lower() in ['f','false']: self.options[key]['frameon'] = 'False'           
-        if 'attributes' in self.options[key].keys(): self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']),**self.options[key]['attrobutes'])
+        if 'attributes' in self.options[key].keys(): self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']),**self.options[key]['attributes'])
         else: self.plt.figure(num=None, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']))
       for key in self.options.keys():
         if key == 'range': 
@@ -319,7 +319,10 @@ class OutStreamPlot(OutStreamManager):
             try: self.options[key]['fontdict'] = ast.literal_eval(self.options[key]['fontdict'])
             except AttributeError: raise('STREAM MANAGER: ERROR -> In ' + key +' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
           if 'attributes' in self.options[key].keys(): self.plt.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),self.options[key]['text'],fontdict=self.options[key]['fontdict'],**self.options[key]['attributes'])
-          else: self.plt.text(ast.literal_eval(self.options[key]['position'].split(',')[0]),ast.literal_eval(self.options[key]['position'].split(',')[1]),self.options[key]['text'],fontdict=self.options[key]['fontdict'])    
+          else: self.plt.text(ast.literal_eval(self.options[key]['position'].split(',')[0]),ast.literal_eval(self.options[key]['position'].split(',')[1]),self.options[key]['text'],fontdict=self.options[key]['fontdict'])
+        elif key== 'scale':
+          if 'xscale' in self.options[key].keys(): self.plt.xscale(self.options[key]['xscale'])
+          if 'yscale' in self.options[key].keys(): self.plt.yscale(self.options[key]['yscale'])
         elif key == 'autoscale':
           if 'enable' not in self.options[key].keys(): self.options[key]['enable'] = 'True'
           elif self.options[key]['enable'].lower() in ['t','true']: self.options[key]['enable'] = 'True'

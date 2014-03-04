@@ -287,7 +287,7 @@ class ROM(Dummy):
       else:
         for entries in dataIN.getParaKeys('inputs' ): localTrainSet[entries] = dataIN.getParam('input' ,entries)
         for entries in dataIN.getParaKeys('outputs'): localTrainSet[entries] = dataIN.getParam('output',entries)
-    if type(dataIN)==dict: localTrainSet = dataIN
+    else: localTrainSet = dataIN
     return localTrainSet
   
   def train(self,trainingSet):
@@ -298,7 +298,7 @@ class ROM(Dummy):
             are supposed to have weight one.'''
     self.trainingSet = copy.copy(self._trainingSetToInternal(trainingSet))
     self.SupervisedEngine.train(self.trainingSet)
-    self.amItrained = True
+    self.amITrained = True
     print('FIXME: add self.amItrained to currentParamters')
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
@@ -322,7 +322,7 @@ class ROM(Dummy):
 
   def run(self,request,jobHandler):
     '''This call run a ROM as a model'''
-    if len(request)>1: raise IOError('ROM accepts only one input in its run method')
+    if(len(request)) > 1: raise IOError('ROM accepts only one request not a list of requests')
     self.request = copy.copy(request[0])
     self.output  = self.evaluate(self.request)
     return

@@ -15,6 +15,7 @@ sys.path.append(pmoduleDir)
 
 import Distributions
 
+print (Distributions)
 def createElement(tag,attrib={},text={}):
   element = ET.Element(tag,attrib)
   element.text = text

@@ -6,12 +6,12 @@ This module contains interfaces to import external functions
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import numpy
+import types
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
-import Datas
+#import Datas
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Function(BaseType):
@@ -23,52 +23,50 @@ class Function(BaseType):
   '''
   def __init__(self):
     BaseType.__init__(self)
-    self.__functionFile                  = '' 
-    self.name                            = ''
-    self.__varType__                     = {}
-    self.__actionDictionary__            = {}
-    self.__actionImplemented__           = {}
-    self.__inputFromWhat__               = {}
-    self.__inputFromWhat__['dict']       = self.__inputFromDict__
-    self.__inputFromWhat__['Data']       = self.__inputFromData__
+    self.__functionFile                  = ''
+    self.__varType                       = {}
+    self.__actionDictionary              = {}
+    self.__actionImplemented             = {}
+    self.__inputFromWhat                 = {}
+    self.__inputFromWhat['dict']         = self.__inputFromDict
+    self.__inputFromWhat['Data']         = self.__inputFromData    
     
   def readMoreXML(self,xmlNode):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
       moduleName        = ''.join(xmlNode.attrib['file'].split('.')[:-1]) #remove the .py
-      print('moduleName '+moduleName)
       exec('import '+ moduleName)
+      if isinstance(locals()[moduleName], types.ModuleType): importedModule = locals()[moduleName]
+      else: raise IOError('It was not possible to import the module for the external function: '+self.name)
       #here the methods in the imported file are brought inside the class
-      exec('methoList='+moduleName+'.__dict__.keys()')
-      for method in methoList:
-        if method == '__residualSign__':
-          exec('self.__residualSign__                          ='+moduleName+'.__dict__["__residualSign__"]')
-          self.__actionDictionary__['residualSign'    ]        = self.__residualSign__
-          self.__actionImplemented__['residualSign'   ]        = True
-        else:self.__actionImplemented__['residualSign']        = False
-        if method == '__supportBoundingTest__':
-          exec('self.__supportBoundingTest__                   ='+moduleName+'.__dict__["__supportBoundingTest__"]')
-          self.__actionDictionary__['supportBoundingTest'    ] = self.__supportBoundingTest__
-          self.__actionImplemented__['supportBoundingTest'   ] = True
-        else:self.__actionImplemented__['supportBoundingTest'] = False
-        if method == '__residuum__':
-          exec('self.__residuum__                              ='+moduleName+'.__dict__["__residuum__"]')
-          self.__actionDictionary__['residuum'    ]            = self.__residuum__
-          self.__actionImplemented__['residuum'   ]            = True
-        else:self.__actionImplemented__['residuum']            = False
-        if method == '__gradient__':
-          exec('self.__gradient__                              ='+moduleName+'.__dict__["__gradient__"]')
-          self.__actionDictionary__['gradient'    ]            = self.__gradient__
-          self.__actionImplemented__['gradient'   ]            = True
-        else:self.__actionImplemented__['gradient']            = False
+      for method in importedModule.__dict__.keys():
+        if method == '__residuumSign':
+          self.__residuumSign                                =  importedModule.__dict__['__residuumSign']
+          self.__actionDictionary['residuumSign' ]           = self.__residuumSign
+          self.__actionImplemented['residuumSign']           = True
+        else:self.__actionImplemented['residuumSign']        = False
+        if method == '__supportBoundingTest':
+          self.__supportBoundingTest                         =  importedModule.__dict__['__supportBoundingTest']
+          self.__actionDictionary['supportBoundingTest' ]    = self.__supportBoundingTest
+          self.__actionImplemented['supportBoundingTest']    = True
+        else:self.__actionImplemented['supportBoundingTest'] = False
+        if method == '__residuum':
+          self.__residuum                                    =  importedModule.__dict__['__residuum']
+          self.__actionDictionary['residuum' ]               = self.__residuum
+          self.__actionImplemented['residuum']               = True
+        else:self.__actionImplemented['residuum']            = False
+        if method == '__gradient':
+          self.__gradient                                    =  importedModule.__dict__['__gradient']
+          self.__actionDictionary['gradient']                = self.__gradient
+          self.__actionImplemented['gradient']               = True
+        else:self.__actionImplemented['gradient']            = False
     else: raise IOError('No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
     for child in xmlNode:
       if child.tag=='variable':
-#        exec('self.'+child.text+' = self.inVarValues['+'child.text'+']')
         exec('self.'+child.text+' = None')
-        if 'type' in child.attrib.keys(): self.__varType__[child.text] = child.attrib['type']
+        if 'type' in child.attrib.keys(): self.__varType[child.text] = child.attrib['type']
         else                            : raise IOError('the type for the variable '+child.text+' is missed')
-    if len(self.__varType__.keys())==0: raise IOError('not variable found in the definition of the function '+self.name)
+    if len(self.__varType.keys())==0: raise IOError('not variable found in the definition of the function '+self.name)
         
   def addInitParams(self,tempDict):
     '''
@@ -78,12 +76,10 @@ class Function(BaseType):
     @ In/Out tempDict: {'attribute name':value}
     '''
     tempDict['Module file name'                    ] = self.functionFile
-    tempDict['The residuum is provided'            ] = self.__actionImplemented__['residuum']
-    tempDict['The sign of the residuum is provided'] = self.__actionImplemented__['residualSign']
-    tempDict['The gradient is provided'            ] = self.__actionImplemented__['gradient']
-    tempDict['The support bonding is provided'     ] = self.__actionImplemented__['supportBoundingTest']
-    for key in self.__varType__.keys():
-      tempDict['Variable:type'                     ] = key+':'+self.__varType__[key]
+    tempDict['The residuum is provided'            ] = self.__actionImplemented['residuum']
+    tempDict['The sign of the residuum is provided'] = self.__actionImplemented['residuumSign']
+    tempDict['The gradient is provided'            ] = self.__actionImplemented['gradient']
+    tempDict['The support bonding is provided'     ] = self.__actionImplemented['supportBoundingTest']
 
   def addCurrentSetting(self,tempDict):
     '''
@@ -94,23 +90,24 @@ class Function(BaseType):
     @ In, tempDict
     @ Out, tempDict 
     '''
-    for key in self.__varType__.keys():
-      exec("tempDict['variable '+key+' has value'] = self."+key)
-      exec("tempDict['variable '+key+' is of type'] = self.__varType__[key]")
+    for key in self.__varType.keys():
+      exec("tempDict['variable "+str(key)+" has value']=self."+key)
+      exec("tempDict['variable "+str(key)+" is of type'] = self._Function__varType[key]")
 
 
-  def __importValues__(self,myInput):
+  def __importValues(self,myInput):
     '''this makes available the variable values sent in as self.key'''
-    if type(myInput)==dict         :self.__inputFromWhat__['dict'](myInput)
-    elif 'Data' in [x.__name__ for x in myInput.__class__.__bases__]:self.__inputFromWhat__['Data'](myInput)
-    else: raise Exception('Unknown type of input provided to the function '+str(self.name))
+    if type(myInput)==dict         :self.__inputFromWhat['dict'](myInput)
+    elif 'Data' in myInput.__base__:self.__inputFromWhat['Data'](myInput)
+    else: raise 'Unknown type of input provided to the function '+str(self.name)
 
-  def __inputFromData__(self,inputData):
+  def __inputFromData(self,inputData):
     '''
     This is meant to be used to collect the input from a Data. A conversion to the declared type of data is attempted by inputData.extractValue'''
-    for key, myType in self.__varType__.items():
+    for key, myType in self.__varType.items():
       #exec('self.'+key+'=inputData.extractValue(myType,key)')
       ##### TEMPORARY FIXXXXXXXX - ALIAS NEEDED#######
+      print('FIXME: Alias are already in place why we have still the fixme???')
       foundperfectly = False
       for index in range(len(inputData.dataParameters['inParam'])):
         if key == inputData.dataParameters['inParam'][index]: foundperfectly = True
@@ -131,7 +128,7 @@ class Function(BaseType):
               semifound = True
         if semifound: exec('self.'+key+'=inputData.extractValue(myType,similarVariable)')     
         
-  def __inputFromDict__(self,myInputDict):
+  def __inputFromDict(self,myInputDict):
     '''
     This is meant to be used to collect the input directly from a sampler generated input or simply from a generic dictionary
     In case the input come from a sampler the expected structure is myInputDict['SampledVars'][variable name] = value
@@ -139,16 +136,16 @@ class Function(BaseType):
     '''
     if 'SampledVars' in myInputDict.keys(): inDict = myInputDict['SampledVars']
     else                                  : inDict = myInputDict
-    for name, myType in self.__varType__.items():
+    for name, myType in self.__varType.items():
       if name in inDict.keys():
         if myType.split('.')[-1] == type(inDict[name]).__name__: exec("self."+name+"=inDict[name]")
-        else: raise Exception('Not proper type for the variable '+name+' in external function '+self.name)
+        else: raise Exception('Not proper type for the variable '+name+' in external function '+self.name + '.\nExpected type: ' + myType.split('.')[-1] + '. Got ' + type(inDict[name]).__name__)
       else: raise Exception('The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):
     '''return the result of the type of action described by 'what' '''
-    self.__importValues__(myInput)
-    toBeReturned=self.__actionDictionary__[what](self)
+    self.__importValues(myInput)
+    toBeReturned=self.__actionDictionary[what](self)
     return toBeReturned
   
     
@@ -159,8 +156,8 @@ class Function(BaseType):
 
 __base = 'function'
 __interFaceDict = {}
-__interFaceDict['External'      ] = Function
-__knownTypes                      = __interFaceDict.keys()
+__interFaceDict['External'] = Function
+__knownTypes                = __interFaceDict.keys()
 
 
 def knonwnTypes():
@@ -168,8 +165,8 @@ def knonwnTypes():
 
 def returnInstance(Type,debug=False):
   '''This function return an instance of the request model type'''
-  try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)
+  if Type in knonwnTypes():return __interFaceDict[Type]() 
+  else: raise NameError('not known '+__base+' type '+Type)
   
     
     
