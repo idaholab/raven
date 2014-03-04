@@ -118,6 +118,8 @@ class JobHandler:
     self.__queue = queue.Queue()
     self.__nextId = 0
     self.__numSubmitted = 0
+    self.__numFailed = 0
+    self.__failedJobs = []
     
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
@@ -147,7 +149,13 @@ class JobHandler:
       if self.__running[i] and not self.__running[i].isDone():
         return False
     return True
-
+  
+  def getNumberOfFailures(self):
+    return self.__numFailed
+  
+  def getListOfFailedJobs(self):
+    return self.__failedJobs
+  
   def howManyFreeSpots(self):
     cnt_free_spots = 0
     if self.__queue.empty():
@@ -171,6 +179,8 @@ class JobHandler:
           returncode = running.getReturnCode()
           if returncode != 0:
             print("JOB HANDLER   : Process Failed",running,running.command," returncode",returncode)
+            self.__numFailed += 1
+            self.__failedJobs.append(running.identifier)
             outputFilename = running.getOutputFilename()
             if os.path.exists(outputFilename):
               print(open(outputFilename,"r").read())

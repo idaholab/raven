@@ -140,7 +140,7 @@ class SingleRun(Step):
         modelIndex = index
       else: rolesItem.append(parameter[0])
     #test the presence of one and only one model
-    if found !=1: raise IOError ('Only one model is allowed for the step named '+str(self.name))
+    if found > 1: raise IOError ('Only one model is allowed for the step named '+str(self.name))
     roles      = set(rolesItem)
     toBeTested = {}
     for role in roles: toBeTested[role]=[]
@@ -149,7 +149,7 @@ class SingleRun(Step):
     #use the models static testing of roles compatibility
     for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
     if 'Input'  not in roles: raise IOError ('It is not possible a run without an Input!!!')
-    if 'Output' not in roles: raise IOError ('It is not possible a run without an Input!!!')
+    if 'Output' not in roles: raise IOError ('It is not possible a run without an Output!!!')
     
   def localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
@@ -158,14 +158,9 @@ class SingleRun(Step):
     if self.debug: print('The model '+inDictionary['Model'].name+' has been initialized')
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
-      try: #try is used since files for the moment have no type attribute
-        print('FIXME: HDF5, OutStreamPlot,  and OutStreamPrint should be better initialized')
-        if 'HDF5' in inDictionary['Output'][i].type:
-          inDictionary['Output'][i].initialize(self.name)
-        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
-          inDictionary['Output'][i].initialize(inDictionary)
-        print('FIXME: the HDF5 file type need to be tested in another fashion in the localInitializeStep')
-      except AttributeError as ae: print("Error1: "+repr(ae))
+      if type(inDictionary['Output'][i]) not in [str,bytes,unicode]:
+        if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
+        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:  inDictionary['Output'][i].initialize(inDictionary)
     
   def localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
@@ -178,14 +173,17 @@ class SingleRun(Step):
       while True:
         finishedJobs = jobHandler.getFinished()
         for finishedJob in finishedJobs:
-          if not finishedJob.getReturnCode() == 1:
-            # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
-            print('FIXME: we are trashing a job since it failed but a proper reporting will be needed to adjust statistics')
+          if finishedJob.getReturnCode() == 0:
+            # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
             newOutputLoop = True #used to check if, for a given input, all outputs has been harvested
             for output in outputs:
               if output.type not in ['OutStreamPlot','OutStreamPrint']: model.collectOutput(finishedJob,output,newOutputLoop=newOutputLoop)
               elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
               newOutputLoop = False
+          else: 
+            print('the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
+            print('a job failed... call the handler for this situation')
+            
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
         time.sleep(self.sleepTime)
     else:
@@ -242,15 +240,18 @@ class MultiRun(SingleRun):
         finishedJobs = jobHandler.getFinished()
         for finishedJob in finishedJobs:
           sampler.finalizeActualSampling(finishedJob,model,inputs)
-          if finishedJob.getReturnCode() == 1: print("FIXME: Houston, we've had a problem: there was a job failure, we could remove it but it would spoil statistics...")
-          newOutputLoop = True
-          for outIndex, myLambda in enumerate(self._outputCollectionLambda):
-            myLambda([finishedJob,outputs[outIndex],newOutputLoop])
-            newOutputLoop = False
-          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
-            if sampler.amIreadyToProvideAnInput():
-              newInput =sampler.generateInput(model,inputs)
-              model.run(newInput,jobHandler)
+          if finishedJob.getReturnCode() == 0: 
+            newOutputLoop = True
+            for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+              myLambda([finishedJob,outputs[outIndex],newOutputLoop])
+              newOutputLoop = False
+            for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+              if sampler.amIreadyToProvideAnInput():
+                newInput =sampler.generateInput(model,inputs)
+                model.run(newInput,jobHandler)
+          else: 
+            print(' the job failed... call the handler for this situation... not yet implemented...')
+            print("The JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
         time.sleep(self.sleepTime)
       else:
@@ -338,16 +339,19 @@ class Adaptive(MultiRun):
         #loop on the finished jobs
         for finishedJob in finishedJobs:
           sampler.finalizeActualSampling(finishedJob,model,inputs)
-          if finishedJob.getReturnCode() == 1: print("FIXME: Houston, we've had a problem: there was a job failure, we could remove it but it would spoil statistics ")
-          # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
-          newOutputLoop = True
-          for outIndex, myLambda in enumerate(self._outputCollectionLambda):
-            myLambda([finishedJob,outputs[outIndex],newOutputLoop])
-            newOutputLoop = False
-          for freeSpot in xrange(jobHandler.howManyFreeSpots()):
-            if sampler.amIreadyToProvideAnInput(targetOutput):
-              newInput = sampler.generateInput(model,inputs)
-              model.run(newInput,jobHandler)
+          if finishedJob.getReturnCode() == 0:
+            # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+            newOutputLoop = True
+            for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+              myLambda([finishedJob,outputs[outIndex],newOutputLoop])
+              newOutputLoop = False
+            for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+              if sampler.amIreadyToProvideAnInput(targetOutput):
+                newInput = sampler.generateInput(model,inputs)
+                model.run(newInput,jobHandler)
+          else:
+            print('the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
+            print('a job failed... call the handler for this situation')
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
         time.sleep(self.sleepTime)
       else:
@@ -404,13 +408,12 @@ class InOutFromDataBase(Step):
         else: self.actionType.append('HDF5-DATAS')
     databases = []
     for i in range(len(inDictionary['Output'])):
-      try: #try is used since files for the moment have no type attribute
+      if type(inDictionary['Output'][i]) not in [str,bytes,unicode]:
         if 'HDF5' in inDictionary['Output'][i].type:
           if inDictionary['Output'][i].name not in databases:
             databases.append(inDictionary['Output'][i].name)
             inDictionary['Output'][i].initialize(self.name)
-        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-      except AttributeError as ae: print("Error3: "+repr(ae))    
+        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)   
       
     
   def localTakeAstepRun(self,inDictionary):
