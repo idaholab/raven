@@ -329,8 +329,6 @@ class ROM(Dummy):
 
   def collectOutput(self,finishedJob,output,newOutputLoop=True):
     '''This method append the ROM evaluation into the output'''
-    # since the underlayer of the ROM is the only guy who knows how its output is formatted,
-    # it's its responsability to update the output
     try:
       if output.type not in self.admittedData: raise IOError('the output of the ROM is requested on a not compatible data')
     except AttributeError:
@@ -338,7 +336,7 @@ class ROM(Dummy):
     for key in output.getParaKeys('inputs'):
       if key in self.request.keys(): output.updateInputValue(key,self.request[key])
     for key in output.getParaKeys('outputs'):
-      if key in self.request.keys(): output.updateOutputValue(key,self.request[key])
+      if key in self.SupervisedEngine.returnInitialParameters()['Target']: output.updateOutputValue(key,self.output)
 #
 #
 #  

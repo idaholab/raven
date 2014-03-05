@@ -150,10 +150,9 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
     '''override this method to re-instance the ROM'''
     return
 
-  def returnInitialParamters(self):
+  def returnInitialParameters(self):
     '''override this method to pass the fix set of parameters of the ROM'''
-    InitialParamtersDict={}
-    return InitialParamtersDict
+    return self.initializzationOptionDict
 
   def returnCurrentSetting(self):
     '''override this method to pass the set of parameters of the ROM that can change during simulation'''
@@ -233,6 +232,7 @@ class NDinterpolatorRom(superVisioned):
     superVisioned.__init__(self,**kwargs)
     self.interpolator = None
     self.initParams   = kwargs
+    self.type         = None
 
   def __trainLocal__(self,featureVals,targetVals):
     """Perform training on samples in X with responses y.
@@ -244,7 +244,9 @@ class NDinterpolatorRom(superVisioned):
         -------
         targetVals : array, shape = [n_samples]
     """
-    self.interpolator.fit(featureVals,targetVals)
+    featv = interpolationND.vectd2d(featureVals[:][:])
+    targv = interpolationND.vectd(targetVals)
+    self.interpolator.fit(featv,targv)
 
   def returnInitialParamters(self):
     return self.initializzationOptionDict
@@ -256,10 +258,11 @@ class NDinterpolatorRom(superVisioned):
         @ In, numpy.array 2-D, features 
         @ Out, numpy.array 1-D, predicted values
     '''
-    prediction = np.zeros(featureVals[:,0].shape)
-    for n_sample in range(featureVals[:,0].shape):
-      prediction[n_sample] = self.interpolator.interpolateAt(featureVals[:,n_sample])
-      print('NDinterpRom   : Prediction by ' + self.name + '. Predicted value is ' + str(prediction))
+    prediction = np.zeros(featureVals.shape[0])
+    for n_sample in range(featureVals.shape[0]):
+      featv = interpolationND.vectd(featureVals[n_sample][:])
+      prediction[n_sample] = self.interpolator.interpolateAt(featv)
+      print('NDinterpRom   : Prediction by ' + self.type + '. Predicted value is ' + str(prediction[n_sample]))
     return prediction
   
   def reset(self):
@@ -269,6 +272,7 @@ class NDsplineRom(NDinterpolatorRom):
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
     self.interpolator = interpolationND.NDspline()
+    self.type         = 'NDsplineRom'
 
   def reset(self):
     '''
@@ -282,7 +286,7 @@ class NDinvDistWeigth(NDinterpolatorRom):
     NDinterpolatorRom.__init__(self,**kwargs)
     if not 'p' in self.initializzationOptionDict.keys(): raise IOError ('NDinvDistWeigth: the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
     self.interpolator = interpolationND.inverseDistanceWeigthing(float(self.initializzationOptionDict['p']))
-
+    self.type         = 'NDinvDistWeigth'
   def reset(self):
     '''
       The reset here erase the Interpolator...
@@ -292,12 +296,11 @@ class NDinvDistWeigth(NDinterpolatorRom):
 
 class NDmicroSphere(NDinterpolatorRom):
   def __init__(self,**kwargs):
-    
     NDinterpolatorRom.__init__(self,**kwargs)
     if not 'p' in self.initializzationOptionDict.keys(): raise IOError ('NDmicroSphere : the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
     if not 'precision' in self.initializzationOptionDict.keys(): raise IOError ('NDmicroSphere : the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
     self.interpolator = interpolationND.microSphere(float(self.initializzationOptionDict['p']),int(self.initializzationOptionDict['precision']))
-
+    self.type         = 'NDmicroSphere'
   def reset(self):
     '''
       The reset here erase the Interpolator...
