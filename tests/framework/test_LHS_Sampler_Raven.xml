@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>LHStestRaven</WorkingDir>
+    <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>3</batchSize>
+    <NumThreads>4</NumThreads>    
+    <mode>mpi</mode>
+    <NumMPI>2</NumMPI>
+    <!--<ParallelCommand></ParallelCommand>
+        <ThreadingCommand></ThreadingCommand>
+        <quequingSoftware></quequingSoftware>
+        <procByNode></procByNode>
+        <numProcByRun></numProcByRun>
+        <totalNumCoresUsed></totalNumCoresUsed>-->
+  </RunInfo>
+
+  <Models>
+    <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD% </Code>
+    <!-- <Code name='MyRAVEN' type='RAVEN'>%FRAMEWORK_DIR%/fix_stdin.sh %FRAMEWORK_DIR%/../RAVEN-%METHOD% </Code> -->
+    <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter>
+    <Filter name='Plot1' subType='Plot'> 
+      <historyID>ALL</historyID>
+      <variables>ALL</variables>
+    </Filter>
+  </Models>
+
+  <Distributions>
+    <Normal name='Gauss1'>
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+      <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='auxBackUpTimeDist'>
+      <mean>1</mean>
+      <sigma>0.001</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+      <adjustement>up</adjustement>
+    </Normal>    
+    <Normal name='Gauss2'>
+      <mean>1</mean>
+      <sigma>0.4</sigma>
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+      <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='CladFailureDist'>
+      <apex>1</apex>
+      <min>-0.1</min>
+      <max>3</max>
+      <!--         <lowerBound>0</lowerBound> This is not yet supported
+           <upperBound>2</upperBound>
+           <adjustement>up</adjustement>  -->
+    </Triangular>
+  </Distributions>
+
+  <Samplers>
+    <LHS name='myLHS' initial_seed='1'>
+      <Variable name='Components|pipe|Tw'>
+        <distribution type='Normal'>Gauss1</distribution>
+        <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
+      </Variable>
+      <Variable name='Components|inlet|T_bc'>
+        <distribution type='Normal'>Gauss2</distribution>
+        <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
+      </Variable>
+    </LHS>
+  </Samplers>
+  <Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+  </Tests>
+  <Steps>
+    <MultiRun name='FirstMRun'>
+      <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>
+      <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
+      <Model      class='Models'     type='Code'      >MyRAVEN</Model>
+      <Sampler    class='Samplers'   type='LHS'>myLHS</Sampler>
+      <!-- <DataBases  class='DataBases'  type=''          >testMPIDataBase</DataBases> -->
+      <Output     class='DataBases'  type='HDF5'      >testLHSRavenDataBase</Output>
+      <Output     class='Datas'      type='Histories' >stories</Output>
+    </MultiRun >
+  </Steps>
+  <DataBases>
+    <HDF5 name="testLHSRavenDataBase"/> 
+  </DataBases>
+  <Datas>
+    <Histories name='stories'>
+      <Input>pipe_Area,pipe_Dh</Input>
+      <Output>pipe_Hw,pipe_Tw</Output>
+    </Histories>
+  </Datas>
+</Simulation>
+
+
+
