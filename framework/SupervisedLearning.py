@@ -87,16 +87,13 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
     if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for target '+self.target+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(targetValues.size,len(self.features))) 
-    cnt = 0
-    for feat in self.features:
+    for cnt, feat in enumerate(self.features):
       if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the training set')   
       else: 
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError('Super Visioned: ERROR -> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        #featureValues[:,cnt] = values[names.index(feat)][:]
         featureValues[:,cnt] = values[names.index(feat)]
-        cnt+=1
     self.__trainLocal__(featureValues,targetValues)
 
   @abc.abstractmethod
@@ -109,9 +106,20 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
     pass
   
   def confidence(self,edict):
-    raise IOError('the confidence method has not been implemented in the supervised class used')
+    if type(edict) != dict: raise IOError('Super Visioned: ERROR -> method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    names, values   = list(edict.keys()), list(edict.values()) 
+    for index in range(len(values)): 
+      resp = self.checkArrayConsistency(values[index])
+      if not resp[0]: raise IOError('Super Visioned: ERROR -> In evaluate request for feature '+names[index]+':'+resp[1])
+    featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+    for cnt, feat in enumerate(self.features):
+      if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the evaluate set')   
+      else: 
+        resp = self.checkArrayConsistency(values[names.index(feat)])
+        if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
+        featureValues[:,cnt] = values[names.index(feat)]
+    return self.__confidenceLocal__(featureValues)
     
-
   def evaluate(self,edict):
     '''
       Method to perform the evaluation of a point or a set of points through the previous trained superVisioned algorithm 
@@ -127,15 +135,12 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
       if not resp[0]: raise IOError('Super Visioned: ERROR -> In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
-    cnt = 0
-    for feat in self.features:
+    for cnt, feat in enumerate(self.features):
       if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the evaluate set')   
       else: 
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
-        #featureValues[:,names.index(feat)] = values[names.index(feat)][:]
         featureValues[:,cnt] = values[names.index(feat)]
-        cnt+=1
     return self.__evaluateLocal__(featureValues)
 
   @abc.abstractmethod
@@ -196,6 +201,8 @@ class SVMsciKitLearn(superVisioned):
     kwargs.pop('SVMtype')
     kwargs.pop('Target')
     kwargs.pop('Features')
+    if 'probability' not in kwargs.keys(): kwargs['probability'] = True
+    if self.initializzationOptionDict['SVMtype'] == 'LinearSVC': kwargs.pop('probability')
     self.SVM.set_params(**kwargs)
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -208,10 +215,25 @@ class SVMsciKitLearn(superVisioned):
         -------
         targetVals : array, shape = [n_samples]
     """
-    self.SVM.fit(featureVals,targetVals)
+    #here first we test if at least two class are present otherwise the classifier is just the value itself
+    if len(np.unique(targetVals))>1: 
+      self.SVM.fit(featureVals,targetVals)
+      self.evaluate = lambda edict : superVisioned.evaluate(self,edict)   #lambda self : myNumber superVisioned.evaluate()
+    else:
+      myNumber = np.unique(targetVals)[0]
+      myReturn = lambda edict : myNumber
+      self.evaluate = myReturn
 
   def returnInitialParamters(self):
     return self.SVM.get_params()
+
+  def __confidenceLocal__(self,edict):
+    probability = self.SVM.predict_proba(edict)
+    np.sort(probability)
+    print(probability.shape)
+    probability = probability[:,-1]
+    return 1./probability
+
 
   def __evaluateLocal__(self,featureVals):
     '''

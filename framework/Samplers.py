@@ -355,7 +355,7 @@ class AdaptiveSampler(Sampler):
           self._cKDTreeInterface('train',trainSet)
           self.amITrained = True
         def evaluate(self,coordinateVect): return self._cKDTreeInterface('evaluate',coordinateVect)
-        def confidence(self,coordinateVect): return self._cKDTreeInterface('confidence',coordinateVect)
+        def confidence(self,coordinateVect): return self._cKDTreeInterface('confidence',coordinateVect)[0]
       self.ROM = ROM(self._cKDTreeInterface)
     else: self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
@@ -417,7 +417,7 @@ class AdaptiveSampler(Sampler):
     ready is returned
     lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
     lastOutput it is not considered to be present during the test performed for generating an input batch
-    ROM if passed in it is used to construct the test matrix otherwise the nearest neightbur value is used
+    ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
     self.debug=False
     if self.debug: print('From method localStillReady...')
@@ -434,7 +434,8 @@ class AdaptiveSampler(Sampler):
       indexEnd  = len(self.functionValue[self.axisName[0]])-1
       tempDict  = {}
       if self.goalFunction.name in self.functionValue.keys():
-        self.functionValue[self.goalFunction.name].resize(indexEnd+1)
+        print(self.functionValue[self.goalFunction.name])
+        self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
       else: self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
       for myIndex in range(indexLast+1,indexEnd+1):
         for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
@@ -526,16 +527,17 @@ class AdaptiveSampler(Sampler):
     if self.surfPoint!=None and len(self.surfPoint)>0:
       tempDict = {}
       for myIndex, varName in enumerate(self.axisName): tempDict[varName] = self.surfPoint[:,myIndex]
-      confidence, outId = self.ROM.confidence(tempDict)
+      confidence = self.ROM.confidence(tempDict)
       minIndex = confidence.argmax()
       for varId, varName in enumerate(self.axisName):
         self.values[varName] = copy.copy(float(self.surfPoint[minIndex,varId]))
     else:
       #here we are still generating the batch
       for key in self.distDict.keys():
-        print(key)
-        self.values[key]=self.distDict[key].ppf(float(Distributions.random()))
-        print(self.values[key])
+        if self.tolleranceWeight=='probability':
+          self.values[key]= self.distDict[key].ppf(float(Distributions.random()))
+        else:
+          self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
     if self.debug:
       print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
 

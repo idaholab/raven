@@ -337,6 +337,7 @@ class ROM(Dummy):
       if key in self.request.keys(): output.updateInputValue(key,self.request[key])
     for key in output.getParaKeys('outputs'):
       if key in self.SupervisedEngine.returnInitialParameters()['Target']: output.updateOutputValue(key,self.output)
+      if key in self.request.keys() and key not in self.SupervisedEngine.returnInitialParameters()['Target']: output.updateOutputValue(key,self.request[key])
 #
 #
 #  
