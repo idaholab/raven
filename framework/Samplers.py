@@ -349,11 +349,11 @@ class AdaptiveSampler(Sampler):
     if ROM==None:
       class ROM(object):
         def __init__(self,cKDTreeInterface):
-          self.amITrained = False
+          self.amItrained = False
           self._cKDTreeInterface = cKDTreeInterface
         def train(self,trainSet):
           self._cKDTreeInterface('train',trainSet)
-          self.amITrained = True
+          self.amItrained = True
         def evaluate(self,coordinateVect): return self._cKDTreeInterface('evaluate',coordinateVect)
         def confidence(self,coordinateVect): return self._cKDTreeInterface('confidence',coordinateVect)[0]
       self.ROM = ROM(self._cKDTreeInterface)
@@ -423,7 +423,7 @@ class AdaptiveSampler(Sampler):
     if self.debug: print('From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
-    if lastOutput == None and self.ROM.amITrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
+    if lastOutput == None and self.ROM.amItrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
       
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue
     if lastOutput !=None:
@@ -452,7 +452,9 @@ class AdaptiveSampler(Sampler):
       tempDict = {}
       print('FIXME: please find a more elegant way to remove the output variables from the training set')
       for name in self.axisName: tempDict[name] = self.functionValue[name]
-      tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
+      print('Why the target for the ROM should be the function name??? We can retrieve the target name from the ROM and use that one.... Fixed by Andrea...feel free to modify it.')
+      #tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
+      tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]    
       self.ROM.train(tempDict) 
     if self.debug: print('Training finished')                                    #happy thinking :)
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check

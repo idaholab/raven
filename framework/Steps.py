@@ -309,7 +309,7 @@ class Adaptive(MultiRun):
       elif role[0] == 'ROM':
         foundROM   = True
         ROMCounter+=1
-        if not(role[1]=='Model' and role[2]=='ROM')       : raise Exception('The ROM could be only class=Model and type=ROM. It does not seems so in the step '+self.name)
+        if not(role[1]=='Models' and role[2]=='ROM')       : raise Exception('The ROM could be only class=Models and type=ROM. It does not seems so in the step '+self.name)
     if foundSampler ==False: raise Exception('It is not possible to run an adaptive step without a sampler in step '           +self.name)
     if foundTargEval==False: raise Exception('It is not possible to run an adaptive step without a target output in step '     +self.name)
     if foundFunction==False: raise Exception('It is not possible to run an adaptive step without a proper function, in step '  +self.name)

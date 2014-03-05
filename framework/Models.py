@@ -299,7 +299,16 @@ class ROM(Dummy):
     self.trainingSet = copy.copy(self._trainingSetToInternal(trainingSet))
     self.SupervisedEngine.train(self.trainingSet)
     self.amITrained = True
-    print('FIXME: add self.amItrained to currentParamters')
+    print('FIXME: add self.amITrained to currentParamters')
+  
+  def confidence(self,request):
+    '''
+    This is to get a value that is inversely proportional to the confidence that we have
+    forecasting the target value for the given set of features. The reason to chose the inverse is because
+    in case of normal distance this would be 1/distance that could be infinity
+    '''
+    inputToROM = self._trainingSetToInternal(request)
+    return self.SupervisedEngine.confidence(inputToROM)
 
   def createNewInput(self,currentInput,samplerType,**Kwargs):
     ''' This function creates a new input

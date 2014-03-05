@@ -14,6 +14,7 @@ import Datas
 import numpy
 import h5py
 import abc
+import ast
 from itertools import product as itprod
 try:
   import cPickle as pk
@@ -203,6 +204,9 @@ class SVMsciKitLearn(superVisioned):
     kwargs.pop('Features')
     if 'probability' not in kwargs.keys(): kwargs['probability'] = True
     if self.initializzationOptionDict['SVMtype'] == 'LinearSVC': kwargs.pop('probability')
+    for key,value in kwargs.items():
+      try:kwargs[key] = ast.literal_eval(value)
+      except: pass
     self.SVM.set_params(**kwargs)
 
   def __trainLocal__(self,featureVals,targetVals):
