@@ -74,11 +74,11 @@
         <Sampler class='Samplers'  type='DynamicEventTree'>DET</Sampler>
         <Output  class='DataBases' type='HDF5'              >DET_SBO_RUN_eqPb</Output>
     </MultiRun>
-    <InOutFromDataBase name='test_extract'>
+    <IODataBase name='test_extract'>
         <Input   class='DataBases' type='HDF5'   >DET_SBO_RUN_eqPb</Input>
         <Output  class='Datas'    type='Histories'>stories_from_database</Output>
         <Output    class='OutStreamManager' type='Print'     >stories_from_database_dump</Output>
-    </InOutFromDataBase>    
+    </IODataBase>    
 </Steps>
 <DataBases>
         <HDF5 name="DET_SBO_RUN_eqPb"/> 

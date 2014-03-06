@@ -74,6 +74,7 @@
     <Sampler class = 'Samplers'   type='MonteCarlo' >Bison1</Sampler>
     <Output  class = 'DataBases'  type='HDF5'       >test_bison_mc_simple</Output>
     <Output  class = 'Datas'      type='Histories'  >stories</Output>
+    <Output  class = 'OutStreamManager'      type='Print'  >testprint</Output>
   </MultiRun >
   <!-- Step noalias--> 
   <MultiRun name='CustomSampler_noalias'>
@@ -85,7 +86,15 @@
     <Output  class ='Datas'       type='Histories'  >stories_noalias</Output>
   </MultiRun >
 </Steps>
-
+<OutStreamManager>
+    <Print name='testprint'>
+        <type>csv</type>
+        <source>stories</source>
+    </Print>
+</OutStreamManager>
+    
+    
+    
 <DataBases>
         <HDF5 name="test_bison_mc_simple"/>
         <HDF5 name="test_bison_mc_simple_noalias"/>

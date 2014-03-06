@@ -187,11 +187,6 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
     
-  def readMoreXML(self,xmlNode):
-    Model.readMoreXML(self, xmlNode)
-    if 'print' in xmlNode.attrib.keys(): self.printFile = bool(xmlNode.attrib['print'])
-    else: self.printFile = False
-
   def initialize(self,runInfo,inputs):
     self.counterInput = 0
     self.counterOutput= 0
@@ -350,15 +345,15 @@ class ROM(Dummy):
 #
 #
 #  
-class ExternalModel(Model):
+class ExternalModel(Dummy):
   ''' External model class: this model allows to interface with an external python module'''
   @classmethod
   def specializeValidateDict(cls):
     #one data is needed for the input
-    print('think about how to import the roles to allowed class for the external model. For the moment we have just all')
+    print('FIXME: think about how to import the roles to allowed class for the external model. For the moment we have just all')
 
   def __init__(self):
-    Model.__init__(self)
+    Dummy.__init__(self)
     self.modelVariableValues = {}
     self.modelVariableType   = {}
     self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
@@ -366,13 +361,11 @@ class ExternalModel(Model):
 
   def initialize(self,runInfo,inputs):
     if 'initialize' in dir(self.sim): self.sim.initialize(self,runInfo,inputs)
+    Dummy.initialize(self, runInfo, inputs)      
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    if 'createNewInput' in dir(self.sim):
-      newInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
-      return [newInput] 
-    else:
-      return [None]
+    if 'createNewInput' in dir(self.sim): return self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
+    else                                : return Dummy.createNewInput(self, myInput,samplerType,**Kwargs)   
 
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
@@ -396,18 +389,21 @@ class ExternalModel(Model):
           self.modelVariableType[son.text] = son.attrib['type']
         else: raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
     # check if there are other information that the external module wants to load
-    if 'readMoreXML' in dir(self.sim):
-      self.sim.readMoreXML(self,xmlNode)
+    if 'readMoreXML' in dir(self.sim): self.sim.readMoreXML(self,xmlNode)
 
   def run(self,Input,jobHandler):
+    if 'createNewInput' not in dir(self.sim):
+      for key in Input[0][0].keys(): self.modelVariableValues[key] = Input[0][0][key]
+      self.__uploadValues()
     self.sim.run(self,Input,jobHandler)
+    self.__pointSolution()      
     self.counter += 1
     
   def collectOutput(self,finisishedjob,output,newOutputLoop=True):
     #####this need more attention... why it is done somehow here, should not be all in the interface (FIXME)
     if 'collectOutput' in dir(self.sim):
       self.sim.collectOutput(self,finisishedjob,output)
-    self.__pointSolution()
+
     def typeMatch(var,var_type_str):
       type_var = type(var)
       return type_var.__name__ == var_type_str or \
@@ -430,6 +426,9 @@ class ExternalModel(Model):
     
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
+
+  def __uploadValues(self):
+    for variable in self.modelVariableValues.keys(): exec('self.'+ variable +' = self.modelVariableValues[variable]')
 #
 #
 #

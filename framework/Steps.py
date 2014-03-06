@@ -216,25 +216,27 @@ class MultiRun(SingleRun):
     self._outputCollectionLambda = []
     for outIndex, output in enumerate(inDictionary['Output']):
       if output.type not in ['OutStreamPlot','OutStreamPrint']:
-        self._outputCollectionLambda.append(lambda x: inDictionary['Model'].collectOutput(x[0],x[1],newOutputLoop=x[2]))
-      elif output.type in ['OutStreamPlot','OutStreamPrint']:
-        self._outputCollectionLambda.append(lambda x: x[1].addOutput())
+        self._outputCollectionLambda.append((lambda x: inDictionary['Model'].collectOutput(x[0],x[1],newOutputLoop=x[2]), outIndex))
+    for outIndex, output in enumerate(inDictionary['Output']):
+      if output.type in ['OutStreamPlot','OutStreamPrint']:
+        self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for newInput in newInputs:
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       if inDictionary["Model"].type != 'Code':
         time.sleep(self.sleepTime)
         newOutputLoop = True
-        for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+        for myLambda, outIndex in self._outputCollectionLambda:
           myLambda([None,inDictionary['Output'][outIndex],newOutputLoop])
           newOutputLoop = False
+    time.sleep(10)
 
   def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
     model      = inDictionary['Model'     ]
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
-    sampler    = inDictionary['Sampler'    ]
+    sampler    = inDictionary['Sampler'   ]
     while True:
       if model.type == 'Code': 
         finishedJobs = jobHandler.getFinished()
@@ -242,7 +244,11 @@ class MultiRun(SingleRun):
           sampler.finalizeActualSampling(finishedJob,model,inputs)
           if finishedJob.getReturnCode() == 0: 
             newOutputLoop = True
-            for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+            for myLambda, outIndex in self._outputCollectionLambda:
+              print(myLambda)
+              print(finishedJob)
+              print(outIndex)
+              print(newOutputLoop)
               myLambda([finishedJob,outputs[outIndex],newOutputLoop])
               newOutputLoop = False
             for freeSpot in xrange(jobHandler.howManyFreeSpots()):
@@ -260,7 +266,7 @@ class MultiRun(SingleRun):
           newInput = sampler.generateInput(model,inputs)
           model.run(newInput,jobHandler)
           newOutputLoop = True
-          for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+          for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,inDictionary['Output'][outIndex],newOutputLoop])
             newOutputLoop = False
         else: break
@@ -342,7 +348,7 @@ class Adaptive(MultiRun):
           if finishedJob.getReturnCode() == 0:
             # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
             newOutputLoop = True
-            for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+            for myLambda, outIndex in self._outputCollectionLambda:
               myLambda([finishedJob,outputs[outIndex],newOutputLoop])
               newOutputLoop = False
             for freeSpot in xrange(jobHandler.howManyFreeSpots()):
@@ -360,7 +366,7 @@ class Adaptive(MultiRun):
           newInput = sampler.generateInput(model,inputs)
           model.run(newInput,jobHandler)
           newOutputLoop = True
-          for outIndex, myLambda in enumerate(self._outputCollectionLambda):
+          for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex],newOutputLoop])
             newOutputLoop = False
         else: break
@@ -371,7 +377,7 @@ class Adaptive(MultiRun):
 #
 #
 #
-class InOutFromDataBase(Step):
+class IODataBase(Step):
   '''
     This step type is used only to extract or push information from/into a DataBase
     @Input, DataBase (for example, HDF5) or Datas
@@ -469,7 +475,7 @@ __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
 __interFaceDict['Adaptive'         ] = Adaptive
-__interFaceDict['InOutFromDataBase'] = InOutFromDataBase 
+__interFaceDict['IODataBase'       ] = IODataBase 
 __interFaceDict['RomTrainer'       ] = RomTrainer
 __base                               = 'Step'
 

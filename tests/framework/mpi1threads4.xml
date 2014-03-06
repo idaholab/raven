@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Simulation>
-  <RunInfo>
-    <NumThreads>4</NumThreads>
-    <mode>mpi</mode>
-    <NumMPI>1</NumMPI>
-  </RunInfo>
-</Simulation>
