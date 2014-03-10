@@ -233,8 +233,10 @@ class HDF5(DateBase):
       field_names = attributes['outParam']
       field_names.insert(0, 'time') 
       #all_field_names = histVar[1]["headers"]
-    if 'input_ts' in attributes.keys(): ints = int(attributes['input_ts'])
-    else:                               ints=0
+    ints = 0
+    if 'input_ts' in attributes.keys(): 
+      if attributes['input_ts']: ints = int(attributes['input_ts'])
+    else:                               ints = 0   
     
     # fill input param dictionary
     for key in attributes["inParam"]:
@@ -327,8 +329,10 @@ class HDF5(DateBase):
       time_end = False
       time_float = float(attributes['time'])
 
-    if 'input_ts' in attributes.keys(): ints = int(attributes['input_ts'])
-    else:                               ints = 0
+    ints = 0
+    if 'input_ts' in attributes.keys(): 
+      if attributes['input_ts']: ints = int(attributes['input_ts'])
+    else:                               ints = 0   
           
     inDict  = {}
     outDict = {}    
@@ -447,7 +451,9 @@ class HDF5(DateBase):
         time_float = [float(x) for x in attributes['time']]
     else: time_all = True
     
-    if 'input_ts' in attributes.keys(): ints = int(attributes['input_ts'])
+    ints = 0
+    if 'input_ts' in attributes.keys(): 
+      if attributes['input_ts']: ints = int(attributes['input_ts'])
     else:                               ints = 0   
                     
     inDict  = {}
