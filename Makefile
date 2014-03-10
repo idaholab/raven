@@ -16,17 +16,14 @@ FRAMEWORK_DIR      ?= $(MOOSE_DIR)/framework
 CURR_DIR    := $(shell pwd)
 ROOT_DIR    := $(HERD_TRUNK_DIR)
 
-################################## ELK MODULES ################################
-ALL_ELK_MODULES := yes
-###############################################################################
-
 # framework
 include $(FRAMEWORK_DIR)/build.mk
 include $(FRAMEWORK_DIR)/moose.mk
 
-# modules
-ELK_DIR ?= $(HERD_TRUNK_DIR)/elk
-include $(ELK_DIR)/elk.mk
+################################## MODULES ####################################
+ALL_MODULES := yes
+include           $(MOOSE_DIR)/modules/modules.mk
+###############################################################################
 
 # dep apps
 APPLICATION_DIR    := $(HERD_TRUNK_DIR)/r7_moose
