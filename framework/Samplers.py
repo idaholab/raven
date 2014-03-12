@@ -593,6 +593,7 @@ class Grid(Sampler):
     self.gridCoordinate       = [] #the grid point to be used for each distribution (changes at each step)
     self.axisName             = [] #the name of each axis (variable)
     self.gridInfo             = {} # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal    
+    #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
@@ -640,15 +641,15 @@ class Grid(Sampler):
             raise Exception('the variable '+varName+'can not be sampled at '+str(min(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution')
         
   def localGenerateInput(self,model,myInput):
-    remainder = self.counter - 1
-    total = self.limit+1
+    remainder = self.counter - 1 #used to keep track as we get to smaller strides
+    stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
     for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
-      temp, remainder = divmod(remainder, int(total/ len(self.gridInfo[varName][2]) ) )
-      total = total/len(self.gridInfo[varName][2])
-      if   remainder == 0 and temp != 0 : self.gridCoordinate[i] = temp-1
-      elif remainder == 0 and temp == 0 : self.gridCoordinate[i] = len(self.gridInfo[varName][2])-1
-      else: self.gridCoordinate[i] = temp
+      stride = stride // len(self.gridInfo[varName][2]) 
+      #index is the index into the array self.gridInfo[varName][2]
+      index, remainder = divmod(remainder, stride )
+      self.gridCoordinate[i] = index
+      #print("i",i,"gridCoordinate[i]",self.gridCoordinate[i])
       if self.gridInfo[varName][0]=='CDF':
         self.values[varName] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
       elif self.gridInfo[varName][0]=='value':
