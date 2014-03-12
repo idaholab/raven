@@ -245,10 +245,6 @@ class MultiRun(SingleRun):
           if finishedJob.getReturnCode() == 0: 
             newOutputLoop = True
             for myLambda, outIndex in self._outputCollectionLambda:
-              print(myLambda)
-              print(finishedJob)
-              print(outIndex)
-              print(newOutputLoop)
               myLambda([finishedJob,outputs[outIndex],newOutputLoop])
               newOutputLoop = False
             for freeSpot in xrange(jobHandler.howManyFreeSpots()):

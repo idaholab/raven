@@ -297,10 +297,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:
       if typeVar.lower() in "input":
         if keyword in self.dataContainer['inputs'].keys(): return self.dataContainer['inputs'][keyword]
-        else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in inpParametersValues dictionary. Function: Data.getParam")    
+        else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in inpParametersValues dictionary. Available keys are "+str(self.dataContainer['inputs'].keys())+".Function: Data.getParam")    
       elif typeVar.lower() in "output":
         if keyword in self.dataContainer['outputs'].keys(): return self.dataContainer['outputs'][keyword]    
-        else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in outParametersValues dictionary. Function: Data.getParam")
+        else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in outParametersValues dictionary. Available keys are "+str(self.dataContainer['outputs'].keys())+".Function: Data.getParam")
     
   def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''

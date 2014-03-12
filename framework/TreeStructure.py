@@ -28,7 +28,7 @@ class Node(object):
     '''
       Overload the representation of this object... We want to show the name and the number of branches!!!!
     '''
-    return "<TreeNode %s at 0x%x containing %s branches>" % (repr(self.name), id(self), repr(str(len(self._branches))))
+    return "<Node %s at 0x%x containing %s branches>" % (repr(self.name), id(self), repr(str(len(self._branches))))
 
   def copyNode(self):
     '''
@@ -90,7 +90,7 @@ class Node(object):
       @ In, path, string, is the name of the branch or the path 
       @ Out, the matching subnode
     '''
-    return NodePath.find(self, path)
+    return NodePath().find(self, path)
 
   def findallBranch(self, path):
     '''
@@ -98,7 +98,7 @@ class Node(object):
       @ In, path, string, is the name of the branch or the path 
       @ Out, all the matching subnodes
     '''
-    return NodePath.findall(self, path)
+    return NodePath().findall(self, path)
 
   def iterfind(self, path):
     '''
@@ -106,7 +106,7 @@ class Node(object):
       @ In, path, string, is the name of the branch or the path 
       @ Out, iterator containing all matching nodes
     '''
-    return NodePath.iterfind(self, path)
+    return NodePath().iterfind(self, path)
 
   def getParentName(self):
     '''
@@ -197,7 +197,16 @@ class Node(object):
       parent, ego  =  parent.parent, parent
     if ego.parentname == 'root': result.insert (0, ego)
     return result
-
+  
+  def writeNode(self,dumpFile):
+    '''
+      This method is used to write the content of the node into a file
+      @ In, file instance or string, filename (string) or file instance(opened file)
+    '''
+    pass
+  
+  
+  
 #################
 #   NODE TREE   #
 #################
@@ -269,6 +278,14 @@ class NodeTree(object):
     if path[:1] == "/":
       path = "." + path
     return self._rootnode.iterfind(path, namespaces)
+  
+  def writeNodeTree(self,dumpFile):
+    '''
+      This method is used to write the content of the whole tree into a file
+      @ In, file instance or string, filename (string) or file instance(opened file)
+    '''
+    pass
+
 
 ####################
 #  NodePath Class  #
@@ -291,4 +308,4 @@ class NodePath(object):
     return list(self.iterfind(node, name))
 
 def isnode(node):
-  return isinstance(node, TreeNode) or hasattr(node, "name")
+  return isinstance(node, Node) or hasattr(node, "name")

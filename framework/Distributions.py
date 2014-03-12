@@ -33,6 +33,7 @@ class Distribution(BaseType):
     self.lowerBound       = 0.0  #Left bound
     self.__adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.bestQuad         = None #the quadrature that best integrate the distribution
+    self.dimensionality   = None #Dimensionality of the distribution (1D or ND)
     
   def readMoreXML(self,xmlNode):
     #this is part of the stochastic collocation sampler not of the distribution!!!!!!
@@ -60,6 +61,7 @@ class Distribution(BaseType):
     tempDict['lowerBound'    ] = self.lowerBound
     tempDict['adjustmentType'] = self.__adjustmentType
     tempDict['bestQuad'      ] = self.bestQuad
+    tempDict['dimensionality'] = self.dimensionality
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
     point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
@@ -107,6 +109,10 @@ def random_permutation(l):
   return new_list
 
 class BoostDistribution(Distribution):
+  def __init__(self):
+    Distribution.__init__(self)
+    self.dimensionality  = '1D'
+  
   def cdf(self,x):
     return self._distribution.Cdf(x)
 
@@ -610,7 +616,8 @@ class NDimensionalDistributions(Distribution):
     Distribution.__init__(self)
     self.data_filename = None
     self.function_type = None
-    self.type = 'NDInverseWeight'
+    self.type = 'NDimensionalDistributions'
+    self.dimensionality  = 'ND'
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
     data_filename = xmlNode.find('data_filename')
