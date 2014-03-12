@@ -113,7 +113,7 @@
   type = 'RavenFramework'
   input = 'test_Grid_Sampler_Bison.xml'
   output = 'GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
-  csv = 'GridTestBison/CustomSampler/out~18~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv'
+  csv = 'GridTestBison/CustomSampler/out~18~gap_perfect_transfer_test.csv GridTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv GridTestBison/outGrid_dump.csv'
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../bison/bison-%METHOD%'

@@ -16,20 +16,20 @@
     <Normal name='Gauss1'>
         <mean>1</mean>
         <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+        <lowerBound>0.5</lowerBound>
+        <upperBound>1.5</upperBound>
         <adjustement>up</adjustement>
     </Normal>
     <Normal name='Gauss2'>
         <mean>1</mean>
         <sigma>0.4</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
+        <lowerBound>0.5</lowerBound>
+        <upperBound>1.5</upperBound>
         <adjustement>scaling</adjustement>
     </Normal>
     <Triangular name='DistTri1'>
         <apex>1</apex>
-        <min>-0.1</min>
+        <min>0.1</min>
         <max>3</max>
     </Triangular>
 </Distributions>
@@ -37,9 +37,9 @@
     <Grid name='myGrid'>
       <Variable name='Materials|heat1|thermal_conductivity' >
         <distribution type='Normal'>Gauss1</distribution>
-        <grid         type='value' construction='custom' >0.02 0.5 0.6</grid>
+        <grid         type='value' construction='custom' >0.6 0.7 0.8</grid>
       </Variable>
-      <Variable name='Materials|heat1|thermal_conductivity' >
+      <Variable name='Materials|heat1|specific_heat' >
         <distribution type='Normal' >Gauss2</distribution>
         <grid         type='CDF'    construction='custom'>0.5 1.0 0.0</grid>
       </Variable>
@@ -50,7 +50,19 @@
     </Grid>
 </Samplers>
 
+<OutStreamManager>
+    <Print name='outGrid_dump'>
+        <type>csv</type>
+        <source>outGrid</source>
+    </Print>
+</OutStreamManager>
+
 <Datas>
+    <TimePointSet name='outGrid'>
+      <Input>Materials|heat1|thermal_conductivity,Materials|heat1|specific_heat,Materials|heat2|thermal_conductivity</Input>
+      <Output>aveTempLeft,aveTempRight</Output>
+    </TimePointSet>
+
     <Histories name='stories'>
         <Input>Materials|heat1|thermal_conductivity,Materials|heat2|thermal_conductivity</Input>
         <Output>aveTempLeft,aveTempRight</Output>
@@ -65,6 +77,8 @@
     <Sampler class = 'Samplers'  type='Grid'     >myGrid</Sampler>
     <Output  class = 'DataBases' type='HDF5'     >test_bison_grid</Output>
     <Output  class = 'Datas'     type='Histories'>stories</Output>
+    <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
+    <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >
 </Steps>
 <DataBases>
