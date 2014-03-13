@@ -87,8 +87,8 @@ class DistributionContainer{
      /* the inverseCdf functions are just another name for randGen */
      double inverseCdf(std::string DistAlias, double RNG);
      double inverseCdf(char * DistAlias, double RNG);
-     double inverseCdf(std::string DistAlias, std::vector<double> RNG);
-     double inverseCdf(char * DistAlias, std::vector<double> RNG);
+     std::vector<double> inverseCdf(char * DistAlias, double min, double max);
+     std::vector<double> inverseCdf(std::string DistAlias, double min, double max);
 
      double random(); // return a random number
 

@@ -28,7 +28,7 @@ public:
    void updateVariable(std::string & variableName, double & newValue);
    virtual double  Pdf(std::vector<double> x) = 0;                           ///< Pdf function at coordinate x
    virtual double  Cdf(std::vector<double> x) = 0;                     ///< Cdf function at coordinate x
-   virtual double  InverseCdf(std::vector<double> x) = 0;
+   virtual std::vector<double> InverseCdf(double min, double max) = 0;
 
    std::string & getType();
 
@@ -49,10 +49,28 @@ public:
   virtual ~BasicMultiDimensionalInverseWeight(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
-  double  InverseCdf(std::vector<double> x){return -1.0;};
+  std::vector<double> InverseCdf(double min, double max) {return _interpolator.NDinverseFunction(min, max);};
 protected:
   inverseDistanceWeigthing  _interpolator;
 };
+
+class BasicMultivariateNormal: public virtual BasicDistributionND
+{
+public:
+  BasicMultivariateNormal(std::string data_filename, std::vector<double> mu,std::vector<double> sigma);
+  BasicMultivariateNormal(std::vector<std::vector<double> > covMatrix, std::vector<double> mu, std::vector<double> sigma);
+  virtual ~BasicMultivariateNormal();
+  double  Pdf(std::vector<double> x);
+  double  Cdf(std::vector<double> x);
+  std::vector<double> InverseCdf(double min, double max) {return std::vector<double> {-1,-1};};
+private:
+  std::vector<double> _mu;
+  std::vector<double> _sigma;
+  std::vector<std::vector<double> > _covMatrix;
+  std::vector<std::vector<double> > _inverseCovMatrix;
+  double _determinantCovMatrix;
+};
+
 
 class BasicMultiDimensionalScatteredMS: public virtual BasicDistributionND
 {
@@ -63,6 +81,7 @@ public:
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
   double  InverseCdf(std::vector<double> x){return -1.0;};
+  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>{-1,-1};};
 protected:
   microSphere _interpolator;
 };
@@ -76,6 +95,7 @@ public:
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
   double  InverseCdf(std::vector<double> x){return -1.0;};
+  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>{-1,-1};};
 protected:
   NDspline _interpolator;
 };

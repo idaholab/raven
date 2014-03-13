@@ -45,6 +45,21 @@ protected:
 };
 
 /*
+ * CLASS MultivariateNormal DISTRIBUTION
+ */
+class MultivariateNormal;
+
+template<>
+InputParameters validParams<MultivariateNormal>();
+
+class MultivariateNormal : public distributionND, public BasicMultivariateNormal {
+public:
+  MultivariateNormal(const std::string & name, InputParameters parameters);
+  virtual ~MultivariateNormal();
+protected:
+};
+
+/*
  * CLASS MultiDimensionalScatteredMS DISTRIBUTION
  */
 
@@ -75,6 +90,8 @@ public:
   virtual ~MultiDimensionalCartesianSpline();
 protected:
 };
+
+
 
 
 #endif

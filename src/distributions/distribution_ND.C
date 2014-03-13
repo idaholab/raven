@@ -68,6 +68,31 @@ MultiDimensionalInverseWeight::~MultiDimensionalInverseWeight()
 }
 
 /*
+ * CLASS ND DISTRIBUTION MultivariateNormal
+ */
+
+template<>
+InputParameters validParams<MultivariateNormal>(){
+
+   InputParameters params = validParams<distributionND>();
+   params.addRequiredParam<std::vector<double> >("mu", "Mu vector");
+   params.addRequiredParam<std::vector<double> >("sigma", "Sigma vector");
+   return params;
+
+}
+
+MultivariateNormal::MultivariateNormal(const std::string & name, InputParameters parameters):
+    distributionND(name,parameters),
+    BasicMultivariateNormal(getParam<std::string>("data_filename"),getParam<std::vector<double> >("mu"), getParam<std::vector<double> >("sigma"))
+{
+}
+
+MultivariateNormal::~MultivariateNormal()
+{
+}
+
+
+/*
  * CLASS ND DISTRIBUTION MultiDimensionalScatteredMS
  */
 

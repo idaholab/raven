@@ -353,16 +353,15 @@ DistributionContainer::inverseCdf(char * DistAlias, double RNG) {
   return randGen(DistAlias,RNG);
 }
 
-double
-DistributionContainer::inverseCdf(char * DistAlias, std::vector<double> x){
-   return inverseCdf(std::string(DistAlias),x);
+std::vector<double>
+DistributionContainer::inverseCdf(char * DistAlias, double min, double max){
+   return inverseCdf(std::string(DistAlias),min,max);
 }
 
-double
-DistributionContainer::inverseCdf(std::string DistAlias, std::vector<double> x){
+std::vector<double>
+DistributionContainer::inverseCdf(std::string DistAlias, double min, double max){
     throwError("inverseCdf not yet implemented for MultiDimensional Distributions");
-    return -1.0;
-
+    return std::vector<double> {-1,-1};
 }
 
 std::string DistributionContainer::lastDistributionTriggered(){
