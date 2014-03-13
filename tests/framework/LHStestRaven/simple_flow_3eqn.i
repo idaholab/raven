@@ -131,3 +131,10 @@
 []
 [Monitored]
 []
+[Distributions]
+  [./ANormalDistribution]
+    mu = -4
+    type = NormalDistribution
+    sigma = 2
+  [../]
+[]

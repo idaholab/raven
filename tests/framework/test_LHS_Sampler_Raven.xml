@@ -5,9 +5,9 @@
     <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
-    <NumThreads>4</NumThreads>    
+    <!-- <NumThreads>4</NumThreads>    
     <mode>mpi</mode>
-    <NumMPI>2</NumMPI>
+    <NumMPI>2</NumMPI> -->
     <!--<ParallelCommand></ParallelCommand>
         <ThreadingCommand></ThreadingCommand>
         <quequingSoftware></quequingSoftware>
@@ -56,6 +56,10 @@
            <upperBound>2</upperBound>
            <adjustement>up</adjustement>  -->
     </Triangular>
+    <Normal name='ANormalDistribution'>
+      <mean>-4</mean>
+      <sigma>2</sigma>
+    </Normal>
   </Distributions>
 
   <Samplers>
@@ -67,6 +71,10 @@
       <Variable name='Components|inlet|T_bc'>
         <distribution type='Normal'>Gauss2</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
+      </Variable>
+      <Variable>
+        <distribution type='Normal'>ANormalDistribution</distribution>
+        <grid type='CDF' construction='equal' upperBound='0.9' steps='3'>0.01</grid>
       </Variable>
     </LHS>
   </Samplers>
@@ -83,12 +91,25 @@
       <!-- <DataBases  class='DataBases'  type=''          >testMPIDataBase</DataBases> -->
       <Output     class='DataBases'  type='HDF5'      >testLHSRavenDataBase</Output>
       <Output     class='Datas'      type='Histories' >stories</Output>
+      <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
+      <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >
   </Steps>
   <DataBases>
     <HDF5 name="testLHSRavenDataBase"/> 
   </DataBases>
+  <OutStreamManager>
+    <Print name='outGrid_dump'>
+        <type>csv</type>
+        <source>outGrid</source>
+    </Print>
+  </OutStreamManager>
   <Datas>
+    <TimePointSet name='outGrid'>
+      <Input>pipe_Area,pipe_Dh</Input>
+      <Output>pipe_Hw,pipe_Tw</Output>
+    </TimePointSet>
+    
     <Histories name='stories'>
       <Input>pipe_Area,pipe_Dh</Input>
       <Output>pipe_Hw,pipe_Tw</Output>
