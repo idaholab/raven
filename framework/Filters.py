@@ -154,9 +154,9 @@ class PrintCSV:
                 string_work = string_work + string_work_2 + ','                
               addcsvfile.write(b'#conditional probability,\n')
               addcsvfile.write(toBytes(str(string_work))+b'\n')
-            if 'Probability_threshold' in attributes:
+            if 'PbThreshold' in attributes:
               string_work = ''
-              pb_thresholds = attributes['Probability_threshold']
+              pb_thresholds = attributes['PbThreshold']
               for i in range(len(pb_thresholds)):
                 string_work_2 = ''
                 for j in pb_thresholds[i]:

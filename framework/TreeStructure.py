@@ -23,6 +23,7 @@ class Node(object):
     self._branches = []
     self.parentname= None
     self.parent    = None
+    self.depth     = 0
 
   def __repr__(self):
     '''
@@ -55,6 +56,7 @@ class Node(object):
     '''
     node.parentname = self.name
     node.parent     = self
+    node.depth      = self.depth + 1
     self._branches.append(node)
 
   def extendBranch(self, nodes):
@@ -198,14 +200,17 @@ class Node(object):
     if ego.parentname == 'root': result.insert (0, ego)
     return result
   
-  def writeNode(self,dumpFile):
+  def writeNode(self,dumpFileObj):
     '''
-      This method is used to write the content of the node into a file
-      @ In, file instance or string, filename (string) or file instance(opened file)
+      This method is used to write the content of the node into a file (it recorsevely prints all the sub-nodes and sub-sub-nodes, etc)
+      @ In, dumpFileObj, file instance, file instance(opened file)
     '''
-    pass
-  
-  
+    dumpFileObj.write(' '+'  '*self.depth + '<branch name="' + self.name + '" parent_name="' + self.parentname + '"'+ 'n_branches="'+str(self.numberBranches())+'" >\n')
+    if len(self.values.keys()) >0: dumpFileObj.write(' '+'  '*self.depth +'  <attributes>\n')
+    for key,value in self.values.items(): dumpFileObj.write(' '+'  '*self.depth+'    <'+ key +'>' + str(value) + '</'+key+'>\n')
+    if len(self.values.keys()) >0: dumpFileObj.write(' '+'  '*self.depth +'  </attributes>\n')
+    for e in self._branches: e.writeNode(dumpFileObj)
+    if self.numberBranches()>0: dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
   
 #################
 #   NODE TREE   #
@@ -284,8 +289,11 @@ class NodeTree(object):
       This method is used to write the content of the whole tree into a file
       @ In, file instance or string, filename (string) or file instance(opened file)
     '''
-    pass
-
+    myFile = open(dumpFile,'w')
+    myFile.write('<NodeTree>\n')
+    self._rootnode.writeNode(myFile)
+    myFile.write('</NodeTree>\n')
+    myFile.close()
 
 ####################
 #  NodePath Class  #

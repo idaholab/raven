@@ -241,12 +241,6 @@ class OutStreamPlot(OutStreamManager):
           if self.z_cordinates: self.z_values[pltindex][cnt] = []
           for i in range(len(self.x_cordinates[pltindex])): 
             xsplit = self.__splitVariableNames('x', (pltindex,i)) 
-            print('xsplit[0] ' + str(xsplit[0]))
-            print('xsplit[1] ' + str(xsplit[1]))
-            print('xsplit[2] ' + str(xsplit[2]))
-            print('cnt       ' + str(cnt))
-            print('key       ' + str(key))
-            print('def getParam(self,typeVar,keyword,nodeid=None,serialize=False)')
             self.x_values[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],cnt+1)[xsplit[2]]))
           if self.y_cordinates:
             for i in range(len(self.y_cordinates[pltindex])): 
@@ -291,7 +285,7 @@ class OutStreamPlot(OutStreamManager):
       if self.dim == 2: self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
       if self.dim == 3: self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
     if 'title'        not in self.options.keys():
-      if self.dim == 2: self.plt3D.set_title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})
+      if self.dim == 2: self.plt.title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})
       if self.dim == 3: self.plt3D.set_title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})    
     for key in self.options.keys():
       if   key in ['how','plot_settings','figure_properties']: pass

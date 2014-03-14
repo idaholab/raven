@@ -3,12 +3,22 @@ def toString(s):
     return s
   else:
     return s.decode()
-
+    
 def toBytes(s):
   if type(s) == type(""):
     return s.encode()
+  elif type(s) in [unicode,str,bytes]: return bytes(s)
   else:
     return s
+
+def toBytesIterative(s):
+  if type(s) == list: return [toBytes(x) for x in s]
+  elif type(s) == dict:
+    if len(s.keys()) == 0: return None
+    tempdict = {}
+    for key,value in s.items(): tempdict[toBytes(key)] = toBytesIterative(value)
+    return tempdict
+  else: return toBytes(s) 
 
 def toStrish(s):
   if type(s) == type(""):
@@ -17,6 +27,19 @@ def toStrish(s):
     return s
   else:
     return str(s)
+
+def convertDictToListOfLists(inputDict):
+  if type(inputDict) == dict:
+    returnList = [[],[]]
+    for key, value in inputDict.items():
+      returnList[0].append(key)
+      if type(value) == dict: returnList[1].append(convertDictToListOfLists(value))
+      else: returnList[1].append(value)
+  else:   
+    print('UTILS         : WARNING -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
+    returnList = None
+  return returnList
+
 
 def metaclass_insert(metaclass,*base_classes):
   """This allows a metaclass to be inserted as a base class.

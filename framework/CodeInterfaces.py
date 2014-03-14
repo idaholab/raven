@@ -230,7 +230,6 @@ class MooseBasedAppInterface:
           listDict.append({'name':['AuxVariables',varname],'initial_condition':Kwargs['SampledVars'][var]})
           listDict.append({'name':['Postprocessors',varname],'type':'ScalarVariable'})
           listDict.append({'name':['Postprocessors',varname],'variable':varname})
-  
     return listDict
   
   def dynamicEventTreeForMooseBasedApp(self,**Kwargs):

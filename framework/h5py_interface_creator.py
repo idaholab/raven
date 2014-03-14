@@ -86,8 +86,7 @@ class hdf5Database(object):
     '''
     self.allGroupPaths = []
     self.allGroupEnds  = {}
-    if not self.fileOpen:
-      self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'a')
+    if not self.fileOpen: self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'a')
     self.h5_file_w.visititems(self.__isGroup)
 
   def __isGroup(self,name,obj):
@@ -120,9 +119,7 @@ class hdf5Database(object):
       return
     
     if 'parent_id' in attributes.keys():
-      '''
-        If Hierarchical structure, firstly add the root group 
-      '''
+      #If Hierarchical structure, firstly add the root group 
       if not self.firstRootGroup:
         self.__addGroupRootLevel(gname,attributes,source,upGroup)
         self.firstRootGroup = True
@@ -135,6 +132,7 @@ class hdf5Database(object):
       self.__addGroupRootLevel(gname,attributes,source,upGroup)
       self.firstRootGroup = True
       self.type = 'MC'
+    self.h5_file_w.flush()
     return
 
   def addGroupInit(self,gname,attributes=None,upGroup=False):
@@ -156,13 +154,12 @@ class hdf5Database(object):
     grp = self.h5_file_w.create_group(gname)
     # Add metadata
     if attributes:
-      for key in attributes.keys():
-        grp.attrs[key] = attributes[key]
+      for key in attributes.keys(): grp.attrs[key] = attributes[key]
     grp.attrs['rootname'] = True
     grp.attrs['EndGroup'] = False
     self.allGroupPaths.append("/" + gname)
     self.allGroupEnds["/" + gname] = False
-    return
+    self.h5_file_w.flush()
 
   def __addGroupRootLevel(self,gname,attributes,source,upGroup=False):
     '''
@@ -210,34 +207,35 @@ class hdf5Database(object):
       dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
       # Add metadata
       grp.attrs["output_space_headers"   ] = headers
-      grp.attrs["n_params"  ] = data[0,:].size
-      grp.attrs["parent_id" ] = "root"
-      grp.attrs["start_time"] = data[0,0]
-      grp.attrs["end_time"  ] = data[data[:,0].size-1,0]
-      grp.attrs["n_ts"      ] = data[:,0].size
-      grp.attrs["EndGroup"  ] = True
-      #FIXME should all the exceptions below be except KeyError to allow for other errors to break code?
-      if "input_file" in attributes: grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
-      grp.attrs["source_type"] = source['type']
-          
+      grp.attrs["n_params"               ] = data[0,:].size
+      grp.attrs["parent_id"              ] = "root"
+      grp.attrs["start_time"             ] = data[0,0]
+      grp.attrs["end_time"               ] = data[data[:,0].size-1,0]
+      grp.attrs["n_ts"                   ] = data[:,0].size
+      grp.attrs["EndGroup"               ] = True
+      grp.attrs["source_type"            ] = source['type']
       if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
+      for attr in attributes.keys(): 
+        if type(attributes[attr]) == dict: converted = convertDictToListOfLists(toBytesIterative(attributes[attr]))
+        else                             : converted = toBytesIterative(attributes[attr]) 
+        if converted: grp.attrs[toBytes(attr)]=converted
+      if "input_file" in attributes.keys(): grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
 
-      #look for keyword attributes from the sampler
-      attempt_attr= {'branch_changed_param'      :'branch_changed_param',
-                     'branch_changed_param_value':'branch_changed_param_value',
-                     'conditional_prb'           :'conditional_prb',
-                     'initiator_distribution'    :'initiator_distribution',
-                     'Probability_threshold'     :'PbThreshold',
-                     'quad_pts'                  :'quad_pts',
-                     'partial_coeffs'            :'partial_coeffs',
-                     'exp_order'                 :'exp_order',
-                     }
-      for attr in attempt_attr.keys():
-        if attempt_attr[attr] in attributes:
-          grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
-    else:
-      # do something else
-      pass
+          
+#       #look for keyword attributes from the sampler
+#       attempt_attr= {'branch_changed_param'      :'branch_changed_param',
+#                      'branch_changed_param_value':'branch_changed_param_value',
+#                      'conditional_prb'           :'conditional_prb',
+#                      'initiator_distribution'    :'initiator_distribution',
+#                      'Probability_threshold'     :'PbThreshold',
+#                      'quad_pts'                  :'quad_pts',
+#                      'partial_coeffs'            :'partial_coeffs',
+#                      'exp_order'                 :'exp_order',
+#                      }
+#       for attr in attempt_attr.keys():
+#         if attempt_attr[attr] in attributes:
+#           grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
+    else: pass
     # Add the group name into the list "self.allGroupPaths" and 
     # set the relative bool flag into the dictionary "self.allGroupEnds"
     if parent_group_name != "/":
@@ -273,7 +271,6 @@ class hdf5Database(object):
     else: parentgroup_obj = self.h5_file_w
     
     if type(source['name']) == dict:
-      print('Please Andrea change bytes ')
       # create the group
       if upGroup: 
         groups = parentgroup_obj.require_group(gname)
@@ -443,28 +440,14 @@ class hdf5Database(object):
       sgrp.attrs["end_time"  ] = data[data[:,0].size-1,0]
       sgrp.attrs["n_ts"      ] = data[:,0].size
       sgrp.attrs["EndGroup"  ] = True
-
-      if "input_file" in attributes:
-        grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
       grp.attrs["source_type"] = source['type']
-          
       if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
-      #look for keyword attributes from the sampler
-      attempt_attr= {'branch_changed_param'      :'branch_changed_param',
-                     'branch_changed_param_value':'branch_changed_param_value',
-                     'conditional_prb'           :'conditional_prb',
-                     'initiator_distribution'    :'initiator_distribution',
-                     'Probability_threshold'     :'PbThreshold',
-                     'quad_pts'                  :'quad_pts',
-                     'partial_coeffs'            :'partial_coeffs',
-                     'exp_order'                 :'exp_order',
-                     }
-      for attr in attempt_attr.keys():
-        if attempt_attr[attr] in attributes:
-          sgrp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
-    else:
-      # do something else
-      pass
+      for attr in attributes.keys(): 
+        if type(attributes[attr]) == dict: converted = convertDictToListOfLists(toBytesIterative(attributes[attr]))
+        else                             : converted = toBytesIterative(attributes[attr]) 
+        if converted: grp.attrs[toBytes(attr)]=converted
+      if "input_file" in attributes: grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
+    else: pass
     # The sub-group is the new ending group
     if parent_group_name != "/":
       self.allGroupPaths.append(parent_group_name + "/" + gname)
@@ -649,17 +632,13 @@ class hdf5Database(object):
         attrs["source_file"]     = []
         for param_key in ["branch_changed_param","conditional_prb",
                           "branch_changed_param_value",
-                          "initiator_distribution","Probability_threshold",
+                          "initiator_distribution","PbThreshold",
                           "end_timestep"]:
           if param_key in gb_attrs[0]:
             attrs[param_key] = []
         for key in gb_res.keys():
-          for param_key in ["input_file","branch_changed_param",
-                            "conditional_prb","branch_changed_param_value",
-                            "initiator_distribution","Probability_threshold",
-                            "end_timestep"]:
-            if param_key in gb_attrs[key]:
-              attrs[param_key].append(gb_attrs[key][param_key])
+          for param_key in ["input_file","branch_changed_param", "conditional_prb","branch_changed_param_value", "initiator_distribution","PbThreshold", "end_timestep"]:
+            if param_key in gb_attrs[key]: attrs[param_key].append(gb_attrs[key][param_key])
           if attrs["source_type"] == 'csv' and 'source_file' in gb_attrs[key].keys(): attrs["source_file"].append(gb_attrs[key]["source_file"])
   
       else:
@@ -745,7 +724,7 @@ class hdf5Database(object):
           for key in gb_res:
             for param_key in ["input_file","branch_changed_param",
                               "conditional_prb","branch_changed_param_value",
-                              "initiator_distribution","Probability_threshold",
+                              "initiator_distribution","PbThreshold",
                               "end_timestep"]:
               if param_key in gb_attrs[key]:
                 attrs[param_key].append(gb_attrs[key][param_key])

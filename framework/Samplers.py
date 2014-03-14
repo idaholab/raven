@@ -763,7 +763,9 @@ class DynamicEventTree(Sampler):
     @ Out, boolean 
     '''
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0): return True
-    else: return False
+    else: 
+      if self.print_end_xml: self.TreeInfo.writeNodeTree(self.workingDir+"/"+self.name + "_output_summary.xml")
+      return False
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''
@@ -1077,8 +1079,7 @@ class DynamicEventTree(Sampler):
       self.limit = self.counter
       # If the user specified to print the xml representation of the calculation
       #  Print it out
-      if self.print_end_xml:
-        self.TreeInfo.writeNodeTree(self.name + "_xml_output_summary")
+      if self.print_end_xml: self.TreeInfo.writeNodeTree(self.workingDir+"/"+self.name + "_output_summary.xml")
       return None
     else:
       # Pop out the first input in queue
@@ -1086,7 +1087,6 @@ class DynamicEventTree(Sampler):
       jobId     = self.RunQueue['identifiers'].pop(0)
       #set running flags in self.TreeInfo
       root = self.TreeInfo.getrootnode()
-      print(root)
       # Update the run information flags
       if (root.name == jobId):
         root.add('runEnded',str(False))
