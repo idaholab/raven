@@ -7,7 +7,9 @@ JOBS=${JOBS:=1}
 mkdir -p $BUILD_DIR
 mkdir -p $INSTALL_DIR
 mkdir -p $DOWNLOAD_DIR
-DOWNLOADER='curl -C - -L -O '
+#--insecure added to get it to work on fission computer, but should
+# probably be removed at some point when running on fission is not required.
+DOWNLOADER='curl -C - -L --insecure -O '
 
 ORIGPYTHONPATH="$PYTHONPATH"
 if which shasum;
