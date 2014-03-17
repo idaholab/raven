@@ -198,16 +198,17 @@ class SVMsciKitLearn(superVisioned):
     self.availSVM['NuSVC'    ] = svm.NuSVC
     self.availSVM['epsSVR'   ] = svm.SVR
     if not self.initializzationOptionDict['SVMtype'] in self.availSVM.keys(): raise IOError ('not known support vector machine type ' + self.initializzationOptionDict['SVMtype'])
-    self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
     kwargs.pop('SVMtype')
     kwargs.pop('Target')
     kwargs.pop('Features')
-    if 'probability' not in kwargs.keys(): kwargs['probability'] = True
-    if self.initializzationOptionDict['SVMtype'] == 'LinearSVC': kwargs.pop('probability')
-    for key,value in kwargs.items():
-      try:kwargs[key] = ast.literal_eval(value)
+    self.kwargs = kwargs
+    self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
+    if 'probability' not in self.kwargs.keys(): self.kwargs['probability'] = True
+    if self.initializzationOptionDict['SVMtype'] == 'LinearSVC': self.kwargs.pop('probability')
+    for key,value in self.kwargs.items():
+      try:self.kwargs[key] = ast.literal_eval(value)
       except: pass
-    self.SVM.set_params(**kwargs)
+    self.SVM.set_params(**self.kwargs)
 
   def __trainLocal__(self,featureVals,targetVals):
     """Perform training on samples in X with responses y.
@@ -233,10 +234,9 @@ class SVMsciKitLearn(superVisioned):
 
   def __confidenceLocal__(self,edict):
     probability = self.SVM.predict_proba(edict)
-    np.sort(probability)
-    print(probability.shape)
-    probability = probability[:,-1]
-    return 1./probability
+#    np.sort(probability)
+    #probability = probability[:,0]
+    return probability
 
 
   def __evaluateLocal__(self,featureVals):

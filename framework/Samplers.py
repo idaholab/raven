@@ -278,6 +278,7 @@ class AdaptiveSampler(Sampler):
     self.gridCoord        = None             #this is the matrix that contains for each entry of the grid the coordinate
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
+    self.sign             = -1
     
   def localInputAndChecks(self,xmlNode):
     #setting up the adaptive algorithm
@@ -368,7 +369,6 @@ class AdaptiveSampler(Sampler):
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
     self.nVar        = len(self.distDict.keys())              #Total number of variables 
     stepLenght        = self.tolerance**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance 
-    self.gridStepSize = np.zeros(self.nVar)                   #the step size for each grid dimension
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
     if self.tolleranceWeight!='probability':
@@ -399,18 +399,22 @@ class AdaptiveSampler(Sampler):
       valuePosition = myIterator.multi_index[coordinateID]
       self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition] 
       myIterator.iternext()
+    self.axisStepSize = {}
+    for varName in self.distDict.keys():
+      self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
+      
     #printing
     if self.debug:
       print('self.gridShape '+str(self.gridShape))
       print('self.testGridLenght '+str(self.testGridLenght))
       print('self.gridCoorShape '+str(self.gridCoorShape))
-      print('self.gridStepSize '+str(self.gridStepSize))
       for key in self.gridVectors.keys():
         print('the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
       myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
       while not myIterator.finished:
         print ('Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
+    print('Initializzation done')
 
   def localStillReady(self,ready,lastOutput=None):
     '''
@@ -425,9 +429,9 @@ class AdaptiveSampler(Sampler):
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
     if lastOutput == None and self.ROM.amItrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
-      
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue
     if lastOutput !=None:
+      print('Initiate training')
       self.functionValue.update(lastOutput.getParametersValues('input'))
       self.functionValue.update(lastOutput.getParametersValues('output'))
       if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
@@ -435,7 +439,6 @@ class AdaptiveSampler(Sampler):
       indexEnd  = len(self.functionValue[self.axisName[0]])-1
       tempDict  = {}
       if self.goalFunction.name in self.functionValue.keys():
-        print(self.functionValue[self.goalFunction.name])
         self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
       else: self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
       for myIndex in range(indexLast+1,indexEnd+1):
@@ -453,10 +456,9 @@ class AdaptiveSampler(Sampler):
       tempDict = {}
       print('FIXME: please find a more elegant way to remove the output variables from the training set')
       for name in self.axisName: tempDict[name] = self.functionValue[name]
-      print('Why the target for the ROM should be the function name??? We can retrieve the target name from the ROM and use that one.... Fixed by Andrea...feel free to modify it.')
-      #tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
       tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]    
       self.ROM.train(tempDict) 
+      print('Training done')
     if self.debug: print('Training finished')                                    #happy thinking :)
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
@@ -492,13 +494,13 @@ class AdaptiveSampler(Sampler):
         for iVar in range(self.nVar):
           if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
             myIdList[iVar]+=1
-            if self.testMatrix[tuple(myIdList)]>0:
+            if self.testMatrix[tuple(myIdList)]>=0:
               listsurfPoint.append(copy.copy(coordinate))
               break
             myIdList[iVar]-=1
           if coordinate[iVar]>0:
             myIdList[iVar]-=1
-            if self.testMatrix[tuple(myIdList)]>0:
+            if self.testMatrix[tuple(myIdList)]>=0:
               listsurfPoint.append(copy.copy(coordinate))
               break
             myIdList[iVar]+=1
@@ -526,14 +528,101 @@ class AdaptiveSampler(Sampler):
   def localGenerateInput(self,model,oldInput):
     #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
     # create values dictionary
+    '''compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
+     check the points where the derivative probability is the lowest'''  
     if self.debug: print('generating input')
     if self.surfPoint!=None and len(self.surfPoint)>0:
       tempDict = {}
-      for myIndex, varName in enumerate(self.axisName): tempDict[varName] = self.surfPoint[:,myIndex]
-      confidence = self.ROM.confidence(tempDict)
-      minIndex = confidence.argmax()
-      for varId, varName in enumerate(self.axisName):
-        self.values[varName] = copy.copy(float(self.surfPoint[minIndex,varId]))
+      for name in self.axisName: tempDict[name] = self.functionValue[name]
+      tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]    
+      self._cKDTreeInterface('train',tempDict)
+      tempDict = {}
+      for varIndex, varName in enumerate(self.axisName):
+        tempDict[varIndex] = self.surfPoint[:,varIndex]
+      distance, ids = self._cKDTreeInterface('confidence',tempDict)
+      minIndex = np.argmax(distance)
+      for varIndex, varName in enumerate(self.axisName):
+        self.values[varName] = copy.copy(float(self.surfPoint[minIndex,varIndex]))
+     
+      
+      
+#      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
+#      for pointIndex, point in enumerate(self.surfPoint):
+#        temp = copy.copy(point)
+#        pbMapPointCoord[pointIndex,2*self.nVar,:] = temp
+#        for varIndex, varName in enumerate(self.axisName):
+#          temp[varIndex] -= np.max(self.axisStepSize[varName])
+#          pbMapPointCoord[pointIndex,varIndex,:] = temp
+#          temp[varIndex] += 2.*np.max(self.axisStepSize[varName])
+#          pbMapPointCoord[pointIndex,varIndex+self.nVar,:] = temp
+#          temp[varIndex] -= np.max(self.axisStepSize[varName])
+#      print('Indexing of close point to the limit surface done')
+#      #getting the coordinate ready to be evaluated by the ROM
+#      pbMapPointCoord.shape = (len(self.surfPoint)*(self.nVar*2+1),self.nVar)
+#      tempDict = {}
+#      for varIndex, varName in enumerate(self.axisName):
+#        tempDict[varName] = pbMapPointCoord.T[varIndex,:]
+#      print('ready to request pb')
+#      #acquiring Pb evaluation
+#      pbPoint       = self.ROM.confidence(tempDict)
+#      pbPoint.shape = (len(self.surfPoint),self.nVar*2+1,2)
+#      pbMapPointCoord.shape = (len(self.surfPoint),self.nVar*2+1,self.nVar)
+#      #computing gradient
+#      modGrad   = np.zeros((len(self.surfPoint)))
+#      gradVect  = np.zeros((len(self.surfPoint),self.nVar))
+#      for pointIndex in range(len(self.surfPoint)):
+#        centralCoor = pbMapPointCoord[pointIndex,2*self.nVar,:]
+#        centraPb    = pbPoint[pointIndex,2*self.nVar][0]
+#        sum = 0.0
+#        for varIndex in range(self.nVar):
+#          d1Down     = (centraPb-pbPoint[pointIndex,varIndex][0])/(centralCoor[varIndex]-pbMapPointCoord[pointIndex,varIndex,varIndex])
+#          d1Up       = (pbPoint[pointIndex,varIndex+self.nVar][0]-centraPb)/(pbMapPointCoord[pointIndex,varIndex+self.nVar,varIndex]-centralCoor[varIndex])
+#          if np.abs(d1Up)>np.abs(d1Down): d1Avg = d1Up
+#          else                          : d1Avg = d1Down          
+#          gradVect[pointIndex,varIndex] = d1Avg
+#          sum +=d1Avg
+#          modGrad[pointIndex] += d1Avg**2
+#        modGrad[pointIndex] = np.sqrt(modGrad[pointIndex])*np.abs(sum)/sum
+#        #concavityPb[pointIndex] = concavityPb[pointIndex]/float(self.nVar)
+#      print('concavity computed')
+#      print(self.axisName)
+#      for pointIndex, point in enumerate(self.surfPoint):
+#        myStr  = ''
+#        myStr  += '['       
+#        for varIndex in range(self.nVar):
+#          myStr += '{:+6.4f}'.format(pbMapPointCoord[pointIndex,2*self.nVar,varIndex])
+#        myStr += '] '+'{:+6.4f}'.format(pbPoint[pointIndex,2*self.nVar,0])+'   '
+#        for varIndex in range(2*self.nVar):
+#          myStr += '['
+#          for varIndex2 in range(self.nVar):
+#            myStr += '{:+6.4f}'.format(pbMapPointCoord[pointIndex,varIndex,varIndex2])+' '
+#          myStr += '] '+'{:+6.4f}'.format(pbPoint[pointIndex,varIndex,0])+'   '
+#        myStr += '   gradient  ['
+#        for varIndex in range(self.nVar):
+#          myStr += '{:+6.4f}'.format(gradVect[pointIndex,varIndex])+'  '
+#        myStr += ']'
+#        myStr += '    Module '+'{:+6.4f}'.format(modGrad[pointIndex])
+#        print(myStr)
+#      print('probability acquired')
+#                                 
+#      minIndex = np.argmin(np.abs(modGrad))
+#      print('index on the limit surface of the smallest gradient '+ str(minIndex)+'corresponding gradient module '+str(modGrad[minIndex])+' and probability '+str(pbPoint[minIndex,2*self.nVar][0]))
+#      pdDist = self.sign*(pbPoint[minIndex,2*self.nVar][0]-0.5-10*self.tolerance)/modGrad[minIndex]
+#      print('extrapolation length' +str(pdDist))
+#      for varIndex, varName in enumerate(self.axisName):
+#        self.values[varName] = copy.copy(float(pbMapPointCoord[minIndex,2*self.nVar,varIndex]+pdDist*gradVect[minIndex,varIndex]))
+#      gradVect = np.ndarray(self.nVar)
+#      centraPb = pbPoint[minIndex,2*self.nVar]
+#      centralCoor = pbMapPointCoord[minIndex,2*self.nVar,:]
+#      for varIndex in range(self.nVar):
+#        d1Down = (centraPb-pbPoint[minIndex,varIndex])/(centralCoor[varIndex]-pbMapPointCoord[minIndex,varIndex,varIndex])
+#        d1Up   = (pbPoint[minIndex,varIndex+self.nVar]-centraPb)/(pbMapPointCoord[minIndex,varIndex+self.nVar,varIndex]-centralCoor[varIndex])
+#        d1Avg   = (d1Up+d1Down)/2.0
+#        gradVect[varIndex] = d1Avg
+#      gradVect = gradVect*pdDist
+#      gradVect = gradVect+centralCoor
+#      for varIndex, varName in enumerate(self.axisName):
+#        self.values[varName] = copy.copy(float(gradVect[varIndex]))
     else:
       #here we are still generating the batch
       for key in self.distDict.keys():
@@ -541,9 +630,11 @@ class AdaptiveSampler(Sampler):
           self.values[key]= self.distDict[key].ppf(float(Distributions.random()))
         else:
           self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+    self.debug=True
     if self.debug:
       print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
-
+    self.debug=False
+    self.sign = -1*self.sign
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''generate representation of goal function'''
     pass
