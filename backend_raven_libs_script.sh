@@ -10,6 +10,12 @@ mkdir -p $DOWNLOAD_DIR
 DOWNLOADER='curl -C - -L -O '
 
 ORIGPYTHONPATH="$PYTHONPATH"
+if which shasum;
+then
+    SHASUM_CMD=shasum
+else
+    SHASUM_CMD=sha1sum
+fi
 
 update_python_path ()
 {
@@ -27,7 +33,7 @@ download_files ()
     URL=$3
     cd $DOWNLOAD_DIR
     if test -f $DL_FILENAME; then
-        NEW_SHA_SUM=`shasum $DL_FILENAME | cut -d " " -f 1`
+        NEW_SHA_SUM=`$SHASUM_CMD $DL_FILENAME | cut -d " " -f 1`
     else
         NEW_SHA_SUM=no_file
     fi
@@ -36,7 +42,7 @@ download_files ()
     else
         rm -f $DL_FILENAME
         $DOWNLOADER $URL
-        if test $SHA_SUM != `shasum $DL_FILENAME | cut -d " " -f 1`; then 
+        if test $SHA_SUM != `$SHASUM_CMD $DL_FILENAME | cut -d " " -f 1`; then 
             echo Download of $URL failed
         else
             echo Download of $URL succeeded 
@@ -130,9 +136,9 @@ else
 #h5py
 #depends on numpy, hdf5, cython
     cd $BUILD_DIR
-    download_files h5py-2.2.0.tar.gz 65e5d6cc83d9c1cb562265a77a46def22e9e6593 http://h5py.googlecode.com/files/h5py-2.2.0.tar.gz
-    tar -xvzf $DOWNLOAD_DIR/h5py-2.2.0.tar.gz
-    cd h5py-2.2.0
+    download_files h5py-2.2.1.tar.gz 4b511ed7aa28ac4c61188a121d42f17f3096c15a https://pypi.python.org/packages/source/h/h5py/h5py-2.2.1.tar.gz
+    tar -xvzf $DOWNLOAD_DIR/h5py-2.2.1.tar.gz
+    cd h5py-2.2.1
     (unset CC CXX; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR --hdf5=$INSTALL_DIR )
 fi
