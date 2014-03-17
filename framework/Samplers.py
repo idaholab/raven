@@ -630,7 +630,7 @@ class AdaptiveSampler(Sampler):
           self.values[key]= self.distDict[key].ppf(float(Distributions.random()))
         else:
           self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
-    self.debug=True
+    #self.debug=True
     if self.debug:
       print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.debug=False

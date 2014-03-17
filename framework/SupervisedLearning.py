@@ -247,7 +247,7 @@ class SVMsciKitLearn(superVisioned):
         @ Out, numpy.array 1-D, predicted values
     '''
     prediction = self.SVM.predict(featureVals)
-    print('SVM           : Prediction by ' + self.initializzationOptionDict['SVMtype'] + '. Predicted value is ' + str(prediction))
+    print('SVM           : Prediction by ' + self.initializzationOptionDict['SVMtype'] + '. Predicted value is ' + str(prediction[-1]))
     return prediction
   
   def reset(self):

@@ -62,7 +62,7 @@ public:
   virtual ~BasicMultivariateNormal();
   double  Pdf(std::vector<double> x);
   double  Cdf(std::vector<double> x);
-  std::vector<double> InverseCdf(double min, double max) {return std::vector<double> {-1,-1};};
+  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>(-1,-1);};
 private:
   std::vector<double> _mu;
   std::vector<double> _sigma;
@@ -81,7 +81,7 @@ public:
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
   double  InverseCdf(std::vector<double> x){return -1.0;};
-  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>{-1,-1};};
+  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>(-1,-1);};
 protected:
   microSphere _interpolator;
 };
@@ -95,7 +95,7 @@ public:
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
   double  InverseCdf(std::vector<double> x){return -1.0;};
-  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>{-1,-1};};
+  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>(-1,-1);};
 protected:
   NDspline _interpolator;
 };
