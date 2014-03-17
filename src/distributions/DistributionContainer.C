@@ -371,7 +371,7 @@ DistributionContainer::inverseCdf(char * DistAlias, double min, double max){
 std::vector<double>
 DistributionContainer::inverseCdf(std::string DistAlias, double min, double max){
     throwError("inverseCdf not yet implemented for MultiDimensional Distributions");
-    return std::vector<double>(-1,-1);
+    return std::vector<double>(2,-1.0);
 }
 
 std::string DistributionContainer::lastDistributionTriggered(){
