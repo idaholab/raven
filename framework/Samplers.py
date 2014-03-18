@@ -97,7 +97,12 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     except KeyError: pass
     for child in xmlNode:
       for childChild in child:
-        if childChild.tag =='distribution': self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
+        if childChild.tag =='distribution': 
+          if child.tag == 'Distribution':
+            #Add <distribution> to name so we know it is not the direct variable
+            self.toBeSampled["<distribution>"+child.attrib['name']] = [childChild.attrib['type'],childChild.text]
+          else:
+            self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
     self.localInputAndChecks(xmlNode)
 
   def localInputAndChecks(self,xmlNode):
@@ -691,7 +696,12 @@ class Grid(Sampler):
     '''reading and construction of the grid'''
     self.limit = 1
     for child in xmlNode:
-      varName = child.attrib['name']
+      if child.tag == "Distribution":
+        #Add <distribution> to name so we know it is not a direct variable
+        varName = "<distribution>"+child.attrib['name']
+      else:
+        varName = child.attrib['name']
+
       for childChild in child:
         if childChild.tag =='grid':
           self.axisName.append(varName)
@@ -735,8 +745,12 @@ class Grid(Sampler):
   def localGenerateInput(self,model,myInput):
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
+    #self.inputInfo['distributionInfo'] = {}
+    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
+      #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
+      self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
       stride = stride // len(self.gridInfo[varName][2]) 
       #index is the index into the array self.gridInfo[varName][2]
       index, remainder = divmod(remainder, stride )
@@ -784,12 +798,16 @@ class LHS(Grid):
 
   def localGenerateInput(self,model,myInput):
     j=0
+    #self.inputInfo['distributionInfo'] = {}
+    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     for varName in self.axisName:
       upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
       lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
       j +=1
       intervalFraction = Distributions.random()
       coordinate = lower + (upper-lower)*intervalFraction
+      #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
+      self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
       if self.gridInfo[varName][0] =='CDF':
         self.values[varName] = self.distDict[varName].ppf(coordinate)
         self.inputInfo['upper'][varName] = self.distDict[varName].ppf(max(upper,lower))

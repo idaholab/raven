@@ -137,6 +137,21 @@
   required_executable = '../../../ferret/ferret-%METHOD%'
  [../]
 
+ [./testLHSRaven]
+   type = 'RavenFramework'
+   input = 'test_LHS_Sampler_Raven.xml'
+   output = 'LHStestRaven/FirstMRun/out~1~simple_flow_3eqn_displaced.e'
+   csv = 'LHStestRaven/outGrid_dump.csv'
+ [../]
+
+ [./testGridRaven]
+   type = 'RavenFramework'
+   input = 'test_Grid_Sampler_Raven.xml'
+   output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn_displaced.e'
+   csv = 'GridTestRaven/outGrid_dump.csv'
+ [../]
+ 
+
  [./testExternalModel]
   type = 'RavenFramework'
   input = 'test_Lorentz.xml'

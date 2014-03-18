@@ -4,7 +4,7 @@
     <WorkingDir>GridTestRaven</WorkingDir>
     <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
     <!-- <NumThreads>4</NumThreads>    
     <mode>mpi</mode>
     <NumMPI>2</NumMPI> -->
@@ -66,16 +66,16 @@
     <Grid name='myGrid' initial_seed='1'>
       <Variable name='Components|pipe|Tw'>
         <distribution type='Normal'>Gauss1</distribution>
-        <grid type='value' construction='equal' lowerBound='0.02' steps='2'>0.3</grid>
+        <grid type='value' construction='equal' lowerBound='0.02' steps='1'>0.3</grid>
       </Variable>
       <Variable name='Components|inlet|T_bc'>
         <distribution type='Normal'>Gauss2</distribution>
-        <grid type='CDF' construction='equal' upperBound='0.2' steps='2'>0.01</grid>
+        <grid type='CDF' construction='equal' upperBound='0.2' steps='1'>0.01</grid>
       </Variable>
-      <Variable>
+      <Distribution name='Dummy1'>
         <distribution type='Normal'>ANormalDistribution</distribution>
         <grid type='CDF' construction='equal' upperBound='0.9' steps='2'>0.01</grid>
-      </Variable>
+      </Distribution>
     </Grid>
   </Samplers>
   <Tests>
@@ -106,7 +106,7 @@
   </OutStreamManager>
   <Datas>
     <TimePointSet name='outGrid'>
-      <Input>pipe_Area,pipe_Dh</Input>
+      <Input>pipe_Area,pipe_Dh,Dummy1</Input>
       <Output>pipe_Hw,pipe_Tw</Output>
     </TimePointSet>
     

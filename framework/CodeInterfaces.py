@@ -154,14 +154,59 @@ class RavenInterface:
           del modifDict
     return listDict  
 
+  def __genBasePointSampler(self,**Kwargs):
+    """Figure out which distributions need to be handled by 
+    the grid or LHS samplers by modifying distributions in the .i file.
+    Let the regular moose point sampler take care of the rest.
+    Returns (distributions,listDict) where listDict is the 
+    start of the listDict that tells how to modify the input, and
+    distributions is a dictionary with keys that are the 'variable name'
+    and values of [computedValue,distribution name in .i file]
+    Note that the key has "<distribution>" in front of the variable name.
+    The actual variable can be gotten from the full key by:
+    key[len('<distribution>'):]
+    TODO This should check that the distributions in the .i file (if 
+    they exist) are consistent with the ones in the .xml file.
+    TODO For variables, it should add them to the .csv file.
+    """
+    #print("Kwargs",Kwargs,"SampledVars",Kwargs["SampledVars"])
+    distributionKeys = [key for key in Kwargs["SampledVars"] if key.startswith("<distribution>")]
+    distributions = {}
+    for key in distributionKeys:
+      distributionName = Kwargs['distributionName'][key]
+      distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName]
+    mooseApp = MooseBasedAppInterface()
+    listDict = mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
+    return distributions,listDict
+
   def gridForRAVEN(self,**Kwargs):
-    raise IOError('EquallySpacedForRAVEN not yet implemented')
-    listDict = []
+    """Uses point sampler to generate variable points, and 
+    modifies distributions to be normal distribution with small sigma
+    at the grid point.  
+    XXX, this should probable use a zerowidth (constant) distribution 
+    """
+    distributions,listDict = self.__genBasePointSampler(**Kwargs)
+    for key in distributions.keys():
+      distName = distributions[key][1]
+      listDict.append({'name':['Distributions',distName],'mu':distributions[key][0]})
+      listDict.append({'name':['Distributions',distName],'sigma':1e-10})
+      listDict.append({'name':['Distributions',distName],'type':'NormalDistribution'})
+    #print("listDict",listDict,"distributions",distributions)
     return listDict
   
   def latinHyperCubeForRAVEN(self,**Kwargs):
-    raise IOError('latinHyperCubeForRAVEN not yet implemented')
-    listDict = []
+    """Uses point sampler to generate variable points, and truncates 
+    distribution to be inside of the latin hyper cube upper and lower
+    bounds.
+    """
+    distributions,listDict = self.__genBasePointSampler(**Kwargs)
+    for key in distributions.keys():
+      distName = distributions[key][1]
+      listDict.append({'name':['Distributions',distName],
+                       'xMax':Kwargs['upper'][key]})
+      listDict.append({'name':['Distributions',distName],
+                       'xMin':Kwargs['lower'][key]})
+    #print("listDict",listDict,"distributions",distributions)
     return listDict
 
 class MooseBasedAppInterface:

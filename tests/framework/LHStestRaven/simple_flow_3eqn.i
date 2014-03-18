@@ -77,7 +77,7 @@
   l_tol = 1e-8 # Relative linear tolerance for each Krylov solve
   l_max_its = 100 # Number of linear iterations for each Krylov solve
   start_time = 0.0
-  num_steps = 10 # The number of timesteps in a transient run
+  num_steps = 1 # The number of timesteps in a transient run
   [./Quadrature]
     # Specify the order as FIRST, otherwise you will get warnings in DEBUG mode...
     type = TRAP
@@ -136,5 +136,12 @@
     mu = -4
     type = NormalDistribution
     sigma = 2
+  [../]
+[]
+[RavenAuxiliary]
+  [./Dummy1]
+    print_csv = true
+    data_type = double
+    initial_value = 0.0
   [../]
 []

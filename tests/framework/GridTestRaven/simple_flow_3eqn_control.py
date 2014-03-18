@@ -1,7 +1,7 @@
 
-
 def initial_function(monitored, controlled, auxiliary):
     print("monitored",monitored,"controlled",controlled,"auxiliary",auxiliary)
+    auxiliary.Dummy1 = distributions.ANormalDistribution.randGen(stochasticEnv.random())
     mult = 1.0
     controlled.pipe_Area = mult*controlled.pipe_Area
     controlled.pipe_Dh = mult*controlled.pipe_Dh
