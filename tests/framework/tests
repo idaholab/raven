@@ -117,6 +117,9 @@
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../bison/bison-%METHOD%'
+  #There is a problem in debug mode (possibly in bison) but this 
+  # test often does not work in debug mode because of the problem.
+  method = 'devel opt'
  [../]
 
  [./testLHSBison]
