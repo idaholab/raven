@@ -79,6 +79,22 @@
         <source>Historyy</source>
         <variables>Output,Input|pipe1_Area</variables>
     </Print>
+    <Print name='fullprint_histories'>
+      <type>csv</type>
+      <source>stories</source>
+    </Print>
+    <Print name='fullprint_history'>
+      <type>csv</type>
+      <source>Historyy</source>
+    </Print>
+    <Print name='fullprint_timepoint'>
+      <type>csv</type>
+      <source>TimePointt</source>
+    </Print>
+    <Print name='fullprint_timepointset'>
+      <type>csv</type>
+      <source>TimePointSets</source>
+    </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
     <plot_settings>
        <plot>
@@ -131,6 +147,10 @@
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_timepointset</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_timepoint</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_history</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_histories</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_history</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_timepoint</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
     </MultiRun >
 </Steps>
 <DataBases>

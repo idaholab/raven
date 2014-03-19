@@ -10,7 +10,8 @@
  [./test_output]
   type = 'RavenFramework'
   input = 'test_output.xml'
-  output = 'output_check/6-2DHistoryPlot_line-line.png output_check/6-2DHistoryPlot_line-line.eps output_check/6-2DHistoryPlot_line-line.pdf output_check/testprint_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_history.csv output_check/testprint_selective_timepoint.csv output_check/testprint_selective_timepointset.csv'
+  output = 'output_check/6-2DHistoryPlot_line-line.png output_check/6-2DHistoryPlot_line-line.eps output_check/6-2DHistoryPlot_line-line.pdf output_check/fullprint_histories_2.csv output_check/fullprint_history.csv output_check/fullprint_timepoint.csv output_check/testprint_4.csv output_check/testprint_selective_history.csv output_check/testprint_selective_timepoint.csv output_check/testprint_selective_hist1_4.csv'
+  csv = 'output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_timepointset.csv output_check/fullprint_timepointset.csv'
 #  skip = 'Cannot run headless'
  [../]
 

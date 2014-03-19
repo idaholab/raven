@@ -146,6 +146,27 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     pass
 
+  def __getVariablesToPrint(self,var,inOrOut):
+    """ Returns a list of variables to print.
+    Takes the variable and either "input" or "output"
+    """
+    variables_to_print = []
+    lvar = var.lower()
+    if type(list(self.dataContainer[inOrOut+'s'].values())[0]) == dict: 
+      varKeys = list(self.dataContainer[inOrOut+'s'].values())[0].keys()
+    else:
+      varKeys = self.dataContainer[inOrOut+'s'].keys()
+    if lvar == inOrOut: 
+      for invar in varKeys: variables_to_print.append(inOrOut+'|'+str(invar))  
+    elif '|' in var and lvar.startswith(inOrOut+'|'):
+      varName = var.split('|')[1]
+      if varName not in varKeys: 
+        raise Exception("DATAS     : ERROR -> variable " + varName + " is not present among the "+inOrOut+"s of Data " + self.name)
+      else: variables_to_print.append(inOrOut+'|'+str(varName))
+    else:
+      raise Exception("DATAS    : ERROR -> unexpected variable "+ var)
+    return variables_to_print
+
   def printCSV(self,options=None):
     '''
     Function used to dump the data into a csv file
@@ -165,33 +186,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if 'variables' in options.keys():
         variables_to_print = []
         for var in options['variables'].split(','):
-          if   var.lower() == 'input' : 
-            if type(list(self.dataContainer['inputs'].values())[0]) == dict: 
-              for invar in list(self.dataContainer['inputs'].values())[0].keys(): variables_to_print.append('input|'+str(invar))  
-            else: 
-              for invar in self.dataContainer['inputs'].keys(): variables_to_print.append('input|'+str(invar))
-          elif var.lower() == 'output': 
-            if type(list(self.dataContainer['outputs'].values())[0]) == dict:
-              for outvar in list(self.dataContainer['outputs'].values())[0].keys(): variables_to_print.append('output|'+str(outvar))  
-            else:
-              for outvar in self.dataContainer['outputs'].keys(): variables_to_print.append('output|'+str(outvar))
-          elif '|' in var:
-            if var.split('|')[0].lower() == 'input':
-              if type(list(self.dataContainer['inputs'].values())[0]) == dict:
-                if var.split('|')[1] not in list(self.dataContainer['inputs'].values())[0].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Inputs of Data " + self.name)
-                else: variables_to_print.append('input|'+str(var.split('|')[1]))
-              else:
-                if var.split('|')[1] not in self.dataContainer['inputs'].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Inputs of Data " + self.name)
-                else: variables_to_print.append('input|'+str(var.split('|')[1]))
-            elif var.split('|')[0].lower() == 'output':
-              if type(list(self.dataContainer['outputs'].values())[0]) == dict:
-                if var.split('|')[1] not in list(self.dataContainer['outputs'].values())[0].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Outputs of Data " + self.name)
-                else: variables_to_print.append('output|'+str(var.split('|')[1]))
-              else:
-                if var.split('|')[1] not in self.dataContainer['outputs'].keys(): raise Exception("DATAS     : ERROR -> variable " + var.split('|')[1] + " is not present among the Outputs of Data " + self.name)
-                else: variables_to_print.append('output|'+str(var.split('|')[1]))
+          lvar = var.lower()
+          if lvar.startswith('input'):
+            variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
+          elif lvar.startswith('output'):
+            variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
           else: raise Exception("DATAS     : ERROR -> variable " + var + " is unknown in Data " + self.name + ". You need to specify an input or a output")
-        options_int['variables'] = variables_to_print            
+        options_int['variables'] = variables_to_print
     else:   filenameLocal = self.name + '_dump'
     
     self.specializedPrintCSV(filenameLocal,options_int)
