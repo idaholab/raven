@@ -5,7 +5,7 @@
     <WorkingDir>GridTestBison</WorkingDir>
     <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>CustomSampler</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
