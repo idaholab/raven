@@ -11,10 +11,12 @@ if not 'xrange' in dir(__builtins__):
 from BaseType import BaseType
 from Csv_loader import CsvLoader as ld
 import copy
+import itertools
 import abc
 import numpy as np
 import utils
 import TreeStructure as TS
+import xml.etree.ElementTree as ET
 
 # Custom exceptions
 class NotConsistentData(Exception):
@@ -196,6 +198,23 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     else:   filenameLocal = self.name + '_dump'
     
     self.specializedPrintCSV(filenameLocal,options_int)
+
+  def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
+    """Creates an XML file to contain the input and output data list
+    and the type.
+    """
+    myXMLFile = open(filenameLocal + '.xml', 'w')
+    root = ET.Element("data",{"name":filenameLocal,"type":fileType})
+    inputNode = ET.SubElement(root,'input')
+    inputNode.text = ','.join(inpKeys)
+    outputNode = ET.SubElement(root,'output')
+    outputNode.text = ','.join(outKeys)
+    filenameNode = ET.SubElement(root,'input_filename')
+    filenameNode.text = filenameLocal + ".csv"
+    myXMLFile.write(ET.tostring(root))
+    myXMLFile.write("\n")
+    myXMLFile.close()
+
 
   def addOutput(self,toLoadFrom,options=None):
     ''' 
@@ -474,7 +493,7 @@ class TimePoint(Data):
     if name not in self.dataParameters['outParam']: self.dataParameters['outParam'].append(name)
     self.dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def specializedPrintCSV(self,filenameLocal,options):
+  def oldSpecializedPrintCSV(self,filenameLocal,options):
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
       @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
@@ -521,6 +540,55 @@ class TimePoint(Data):
     if len(outValues) > 0: myFile.write(b'\n')
     
     myFile.close()
+
+  def specializedPrintCSV(self,filenameLocal,options):
+    ''' 
+      This function prints a CSV file with the content of this class (Input and Output space)
+      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
+      @ In,  options, dictionary, dictionary of printing options
+      @ Out, None (a csv is gonna be printed)
+    '''    
+
+    #For timepoint it creates an XML file and one csv file.  The
+    #CSV file will have a header with the input names and output
+    #names, and one line of data with the input and output numeric
+    #values.
+    inpKeys   = []
+    inpValues = []
+    outKeys   = []
+    outValues = []
+    #Print input values
+    if 'variables' in options.keys():
+      for var in options['variables']:
+        if var.split('|')[0] == 'input': 
+          inpKeys.append(var.split('|')[1])
+          inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+        if var.split('|')[0] == 'output': 
+          outKeys.append(var.split('|')[1])
+          outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+    else:
+      inpKeys   = self.dataContainer['inputs'].keys()
+      inpValues = self.dataContainer['inputs'].values()
+      outKeys   = self.dataContainer['outputs'].keys()
+      outValues = self.dataContainer['outputs'].values()
+    
+    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+    else: return
+
+    #Print header
+    myFile.write(b','.join([utils.toBytes(item) for item in 
+                            itertools.chain(inpKeys,outKeys)]))
+    myFile.write(b'\n')
+    
+    #Print values
+    myFile.write(b','.join([utils.toBytes(str(item[0])) for item in 
+                            itertools.chain(inpValues,outValues)]))
+    myFile.write(b'\n')
+    
+    myFile.close()
+
+    self._createXMLFile(filenameLocal,"timepoint",inpKeys,outKeys)
+    
   
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
@@ -636,7 +704,7 @@ class TimePointSet(Data):
         if name not in self.dataParameters['outParam']: self.dataParameters['outParam'].append(name)
         self.dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def specializedPrintCSV(self,filenameLocal,options): 
+  def oldSpecializedPrintCSV(self,filenameLocal,options): 
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
       @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
@@ -737,6 +805,108 @@ class TimePointSet(Data):
         
       myFile.close()
 
+  def specializedPrintCSV(self,filenameLocal,options): 
+    ''' 
+      This function prints a CSV file with the content of this class (Input and Output space)
+      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
+      @ In,  options, dictionary, dictionary of printing options
+      @ Out, None (a csv is gonna be printed)
+    '''    
+    inpKeys   = []
+    inpValues = []
+    outKeys   = []
+    outValues = []
+    #Print input values
+    if self.dataParameters['hierarchical']:
+      # retrieve a serialized of datas from the tree
+      O_o = self.getHierParam('inout','*',serialize=True)
+      for key in O_o.keys():
+        inpKeys.append([])
+        inpValues.append([])
+        outKeys.append([])
+        outValues.append([])
+        if 'variables' in options.keys():
+          for var in options['variables']:
+            if var.split('|')[0] == 'input': 
+              inpKeys[-1].append(var.split('|')[1])
+              axa = np.zeros(len(O_o[key]))
+              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var.split('|')[1]][0]
+              inpValues[-1].append(axa)
+            if var.split('|')[0] == 'output': 
+              outKeys[-1].append(var.split('|')[1])
+              axa = np.zeros(len(O_o[key]))
+              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var.split('|')[1]][0]
+              outValues[-1].append(axa)
+        else:
+          inpKeys[-1] = O_o[key][0]['inputs'].keys()
+          for var in inpKeys[-1]:
+            axa = np.zeros(len(O_o[key]))
+            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var][0]
+            inpValues[-1].append(copy.deepcopy(axa))
+          outKeys[-1] = O_o[key][0]['outputs'].keys()
+          for var in outKeys[-1]:
+            axa = np.zeros(len(O_o[key]))
+            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var][0]
+            outValues[-1].append(copy.deepcopy(axa))         
+
+      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+      else: return 
+      for index in range(len(O_o.keys())):
+        myFile.write(b'Ending branch,'+O_o.keys()[index]+'\n')
+        myFile.write(b'branch #')
+        for i in range(len(inpKeys[index])):
+            myFile.write(b',' + utils.toBytes(inpKeys[index][i]))
+        for i in range(len(outKeys[index])):
+            myFile.write(b',' + utils.toBytes(outKeys[index][i]))
+        myFile.write(b'\n')
+        for j in range(outValues[index][0].size):
+          myFile.write(utils.toBytes(str(j+1)))
+          for i in range(len(inpKeys[index])):
+            myFile.write(b',' + utils.toBytes(str(inpValues[index][i][j])))
+          for i in range(len(outKeys[index])):
+            myFile.write(b',' + utils.toBytes(str(outValues[index][i][j])))
+          myFile.write(b'\n')    
+      myFile.close()                       
+    else:
+      #If not hierarchical 
+
+      #For timepointset it will create an XML file and one CSV file.
+      #The CSV file will have a header with the input names and output
+      #names, and multiple lines of data with the input and output
+      #numeric values, one line for each input.
+
+      if 'variables' in options.keys():
+        for var in options['variables']:
+          if var.split('|')[0] == 'input': 
+            inpKeys.append(var.split('|')[1])
+            inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+          if var.split('|')[0] == 'output': 
+            outKeys.append(var.split('|')[1])
+            outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+      else:
+        inpKeys   = self.dataContainer['inputs'].keys()
+        inpValues = self.dataContainer['inputs'].values()
+        outKeys   = self.dataContainer['outputs'].keys()
+        outValues = self.dataContainer['outputs'].values()
+      
+      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+      else: return
+      
+      #Print header
+      myFile.write(b','.join([utils.toBytes(str(item)) for item in
+                              itertools.chain(inpKeys,outKeys)]))
+      myFile.write(b'\n')
+      
+      #Print values
+      for j in range(len(next(iter(outValues)))):
+        myFile.write(b','.join([utils.toBytes(str(item[j])) for item in
+                                itertools.chain(inpValues,outValues)]))
+        myFile.write(b'\n')
+        
+      myFile.close()
+
+      self._createXMLFile(filenameLocal,"timepointset",inpKeys,outKeys)
+
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
     if stepID!=None: raise Exception('DATAS     : ERROR -> seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
@@ -808,7 +978,7 @@ class History(Data):
     if name not in self.dataParameters['outParam']: self.dataParameters['outParam'].append(name)
     self.dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def specializedPrintCSV(self,filenameLocal,options):
+  def oldSpecializedPrintCSV(self,filenameLocal,options):
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
       @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
@@ -856,6 +1026,72 @@ class History(Data):
         myFile.write(b'\n')
     
     myFile.close()
+
+  def specializedPrintCSV(self,filenameLocal,options):
+    ''' 
+      This function prints a CSV file with the content of this class (Input and Output space)
+      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
+      @ In,  options, dictionary, dictionary of printing options
+      @ Out, None (a csv is gonna be printed)
+    '''    
+
+    #For history, create an XML file and two CSV files.  The
+    #first CSV file has a header with the input names, and a column
+    #for the filename.  The second CSV file is named the same as the
+    #filename, and has the output names for a header, a column for
+    #time, and the rest of the file is data for different times.
+
+    inpKeys   = []
+    inpValues = []
+    outKeys   = []
+    outValues = []
+    #Print input values
+    if 'variables' in options.keys():
+      for var in options['variables']:
+        if var.split('|')[0] == 'input':
+          inpKeys.append(var.split('|')[1])
+          inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+        if var.split('|')[0] == 'output':
+          outKeys.append(var.split('|')[1])
+          outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+    else:
+      inpKeys   = self.dataContainer['inputs'].keys()
+      inpValues = self.dataContainer['inputs'].values()
+      outKeys   = self.dataContainer['outputs'].keys()
+      outValues = self.dataContainer['outputs'].values()
+    
+    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+    else: return
+
+    #Create Input file
+    #Print header 
+    myFile.write(b','.join([utils.toBytes(item) for item in
+                            itertools.chain(inpKeys,["filename"])]))
+    myFile.write(b'\n')
+    
+    #Print data
+    myFile.write(b','.join([utils.toBytes(str(item[0])) for item in
+                            itertools.chain(inpValues,[[filenameLocal + '_0' + '.csv']])]))
+    myFile.write(b'\n')
+
+    myFile.close()
+    
+    #Create Output file
+    myDataFile = open(filenameLocal + '_0' + '.csv', 'wb')
+    #Print headers
+    #Print time + output values
+    myDataFile.write(b','.join([utils.toBytes(item) for item in outKeys]))
+    myDataFile.write(b'\n')
+
+    #Print data
+    for j in range(outValues[0].size):
+      myDataFile.write(b','.join([utils.toBytes(str(item[j])) for item in
+                                  outValues]))
+      myDataFile.write(b'\n')
+    
+    myDataFile.close()
+
+    self._createXMLFile(filenameLocal,"history",inpKeys,outKeys)
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
@@ -1030,7 +1266,7 @@ class Histories(Data):
             self.dataContainer['outputs'][hisn] = {}
           self.dataContainer['outputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
       
-  def specializedPrintCSV(self,filenameLocal,options):
+  def oldSpecializedPrintCSV(self,filenameLocal,options):
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
       @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
@@ -1155,6 +1391,141 @@ class Histories(Data):
             myFile.write(b'\n')    
         
         myFile.close()
+
+  def specializedPrintCSV(self,filenameLocal,options):
+    ''' 
+      This function prints a CSV file with the content of this class (Input and Output space)
+      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
+      @ In,  options, dictionary, dictionary of printing options
+      @ Out, None (a csv is gonna be printed)
+    '''    
+    
+    if self.dataParameters['hierarchical']:
+      outKeys   = []
+      inpKeys   = []
+      inpValues = []
+      outValues = []
+      # retrieve a serialized of datas from the tree
+      O_o = self.getHierParam('inout','*',serialize=True)
+      for key in O_o.keys():
+        inpKeys.append([])
+        inpValues.append([])
+        outKeys.append([])
+        outValues.append([])
+        if 'variables' in options.keys():
+          for var in options['variables']:
+            if var.split('|')[0] == 'input': 
+              inpKeys[-1].append(var.split('|')[1])
+              axa = np.zeros(len(O_o[key]))
+              for index in range(len(O_o[key])): 
+                axa[index] = O_o[key][index]['inputs'][var.split('|')[1]][0]
+              inpValues[-1].append(axa)
+            if var.split('|')[0] == 'output': 
+              outKeys[-1].append(var.split('|')[1])
+              axa = O_o[key][0]['outputs'][var.split('|')[1]]
+              for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var.split('|')[1]]))
+              outValues[-1].append(axa)
+        else: 
+          inpKeys[-1] = O_o[key][0]['inputs'].keys()
+          outKeys[-1] = O_o[key][0]['outputs'].keys()
+          for var in O_o[key][0]['inputs'].keys():
+            axa = np.zeros(len(O_o[key]))
+            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var][0]
+            inpValues[-1].append(copy.deepcopy(axa))
+          for var in O_o[key][0]['outputs'].keys():
+            axa = O_o[key][0]['outputs'][var]
+            for index in range(len(O_o[key])-1): 
+              axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var]))
+            outValues[-1].append(copy.deepcopy(axa))
+            
+        if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '_' + key + '.csv', 'wb')
+        else: return 
+        myFile.write(b'Ending branch,'+key+'\n')
+        myFile.write(b'branch #')
+        for i in range(len(inpKeys[-1])):
+          myFile.write(b',' + utils.toBytes(inpKeys[-1][i]))
+        myFile.write(b'\n')
+        # write the input paramters' values for each branch
+        for i in range(inpValues[-1][0].size):
+          myFile.write(utils.toBytes(str(i+1)))
+          for index in range(len(inpValues[-1])):
+            myFile.write(b',' + utils.toBytes(str(inpValues[-1][index][i])))
+          myFile.write(b'\n')
+        # write out keys
+        myFile.write(b'\n')
+        myFile.write(b'TimeStep #')
+        for i in range(len(outKeys[-1])):
+          myFile.write(b',' + utils.toBytes(outKeys[-1][i]))
+        myFile.write(b'\n')
+        for i in range(outValues[-1][0].size):
+          myFile.write(utils.toBytes(str(i+1)))
+          for index in range(len(outValues[-1])):
+            myFile.write(b',' + utils.toBytes(str(outValues[-1][index][i])))
+          myFile.write(b'\n')
+        myFile.close() 
+    else:
+      #if not hierarchical
+
+      #For histories, create an XML file, and multiple CSV
+      #files.  The first CSV file has a header with the input names,
+      #and a column for the filenames.  There is one CSV file for each
+      #data line in the first CSV and they are named with the
+      #filename.  They have the output names for a header, a column
+      #for time, and the rest of the file is data for different times.
+
+      inpValues = list(self.dataContainer['inputs'].values())
+      outKeys   = self.dataContainer['outputs'].keys()
+      outValues = list(self.dataContainer['outputs'].values())
+
+      #Create Input file
+      myFile = open(filenameLocal + '.csv','wb')      
+      
+      for n in range(len(outKeys)):
+        inpKeys_h   = []
+        inpValues_h = []
+        outKeys_h   = []
+        outValues_h = []
+        if 'variables' in options.keys():
+          for var in options['variables']:
+            if var.split('|')[0] == 'input': 
+              inpKeys_h.append(var.split('|')[1])
+              inpValues_h.append(inpValues[n][var.split('|')[1]])
+            if var.split('|')[0] == 'output': 
+              outKeys_h.append(var.split('|')[1])
+              outValues_h.append(outValues[n][var.split('|')[1]])
+        else:
+          inpKeys_h   = list(inpValues[n].keys())
+          inpValues_h = list(inpValues[n].values())
+          outKeys_h   = list(outValues[n].keys())
+          outValues_h = list(outValues[n].values())
+      
+        dataFilename = filenameLocal + '_'+ str(n) + '.csv'
+        if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'wb')
+        else: return #XXX should this just skip this iteration?
+
+        #Write header for main file
+        if n == 0:
+          myFile.write(b','.join([utils.toBytes(item) for item in 
+                                  itertools.chain(inpKeys_h,["filename"])]))
+          myFile.write(b'\n')
+          self._createXMLFile(filenameLocal,"histories",inpKeys_h,outKeys_h)
+        
+        myFile.write(b','.join([utils.toBytes(str(item[0])) for item in 
+                                itertools.chain(inpValues_h,[[dataFilename]])]))
+        myFile.write(b'\n')
+
+        #Data file
+        #Print time + output values
+        myDataFile.write(b','.join([utils.toBytes(item) for item in outKeys_h]))
+        if len(outKeys_h) > 0: 
+          myDataFile.write(b'\n')
+          for j in range(outValues_h[0].size):
+            myDataFile.write(b','.join([utils.toBytes(str(item[j])) for item in
+                                    outValues_h]))
+            myDataFile.write(b'\n')
+
+        myDataFile.close()
+      myFile.close()
       
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''
