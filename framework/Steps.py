@@ -390,7 +390,7 @@ class IODataBase(Step):
         for i in xrange(len(inDictionary['Output'])): 
           if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: noutputs -= 1
         if len(inDictionary['Input']) != noutputs: raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
-      else: raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
+      else: raise IOError('STEPS         : ERROR -> In Step named ' + self.name + ', the number of Inputs != number of Outputs')
     self.actionType = []
     incnt = -1
     for i in range(len(inDictionary['Output'])):
@@ -431,9 +431,9 @@ class IODataBase(Step):
         inDictionary['Output'][i].addOutput(inDictionary['Input'][incnt])
       else: inDictionary['Output'][i].addGroupDatas({'group':inDictionary['Input'][incnt].name},inDictionary['Input'][incnt])
     for output in inDictionary['Output']:
-      try: 
-        if output.type in ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
-      except AttributeError as ae: pass
+      #try: 
+      if output.type in ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
+      #except AttributeError as ae: print('STEPS         : ERROR -> ' + ae)
   
   def localAddInitParams(self,tempDict):
     pass # no inputs

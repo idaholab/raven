@@ -56,6 +56,8 @@ class hdf5Database(object):
     # We can create a base empty database or we open an existing one
     if self.fileExist:
       # self.h5_file_w is the HDF5 object. Open the database in "update" mode 
+      # check if it exists
+      if not os.path.exists(self.filenameAndPath): raise IOError('DATABASE HDF5 : ERROR -> database file has not been found \n                         Searched Path is: ' + self.filenameAndPath )
       # Open file
       self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
