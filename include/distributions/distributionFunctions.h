@@ -41,7 +41,7 @@ using namespace std;
 void matrixConversion(std::vector<std::vector<double> > original, double converted[]);
 void matrixBackConversion(double original[], std::vector<std::vector<double> > converted);
 void inverseMatrix(double* A, int N);
-void computeInverse(std::vector<std::vector<double> > matrix, std::vector<std::vector<double> > inverse);
+void computeInverse(const std::vector<std::vector<double> > & matrix, std::vector<std::vector<double> > & inverse);
 double getDeterminant(std::vector<std::vector<double> > matrix);
 
 void nrerror(const char error_text[]);

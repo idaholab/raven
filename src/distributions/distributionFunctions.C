@@ -32,6 +32,9 @@
 #include "distribution_1D.h"
 #include "distributionFunctions.h"
 
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/lu.hpp>
+
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
 #define _USE_MATH_DEFINES
@@ -47,6 +50,21 @@ extern "C" {
     void dgetri_(int* N, double* A, int* lda, int* IPIV, double* WORK, int* lwork, int* INFO);
 }
 
+typedef boost::numeric::ublas::matrix<double> matrixDouble;
+
+void matrixConversionBoost(const std::vector<std::vector<double> > & original, matrixDouble & converted) 
+{
+  converted.resize(original.size(),original.at(0).size());
+  for(unsigned int r=0; r < original.size(); r++)
+  {
+    for(unsigned int c=0; c < original.at(r).size(); c++)
+    {
+      converted(r,c)  = original.at(r).at(c);
+    }
+  }
+}
+
+
 void matrixConversion(std::vector<std::vector<double> > original, double converted[]){
 	if (original.size() == original[0].size()){
 		int dimensions = original.size();
@@ -57,6 +75,18 @@ void matrixConversion(std::vector<std::vector<double> > original, double convert
 	}else
 		throwError("Error in matrixConversion: matrix is not squared.");
 }
+
+void matrixBackConversionBoost(const matrixDouble & original, std::vector<std::vector<double> > & converted) 
+{
+  for(unsigned int r=0; r < original.size1(); r++)
+  {
+    for(unsigned int c = 0; c < original.size2(); c++)
+    {
+      converted.at(r).at(c) = original(r,c);
+    }
+  }
+}
+
 
 void matrixBackConversion(double original[], std::vector<std::vector<double> > converted){
 	int dimensions = int(sizeof(original)/sizeof(double));
@@ -84,7 +114,24 @@ void inverseMatrix(double* A, int N)
 }
 
 
-void computeInverse(std::vector<std::vector<double> > matrix, std::vector<std::vector<double> > inverse){
+//Roughly based on http://savingyoutime.wordpress.com/2009/09/21/c-matrix-inversion-boostublas/ and libs/numeric/ublas/test/test_lu.cpp
+void invertMatrixBoost(matrixDouble & a, matrixDouble & aInverted) 
+{
+  boost::numeric::ublas::permutation_matrix<std::size_t> pm(a.size1());
+
+  int result = boost::numeric::ublas::lu_factorize<matrixDouble,
+                                                   boost::numeric::ublas::permutation_matrix<> >(a, pm);
+
+  aInverted.assign(boost::numeric::ublas::identity_matrix<double>(a.size1()));
+
+  boost::numeric::ublas::lu_substitute(a, pm, aInverted);
+  
+
+}
+
+
+
+void computeInverseOld(std::vector<std::vector<double> > matrix, std::vector<std::vector<double> > inverse){
 	int dimensions = matrix.size();
 	double A [dimensions*dimensions];
 
@@ -93,6 +140,46 @@ void computeInverse(std::vector<std::vector<double> > matrix, std::vector<std::v
 	inverseMatrix(A,dimensions);
 
 	matrixBackConversion(A, inverse);
+}
+
+void computeInverse(const std::vector<std::vector<double> > & matrix, std::vector<std::vector<double> > & inverse){
+	int dimensions = matrix.size();
+	matrixDouble A(dimensions,dimensions),inverted(dimensions,dimensions);
+
+	matrixConversionBoost(matrix, A);
+
+	invertMatrixBoost(A,inverted);
+
+	matrixBackConversionBoost(inverted, inverse);
+}
+
+//See for example http://en.wikipedia.org/wiki/LU_decomposition or
+// http://programmingexamples.net/wiki/CPP/Boost/Math/uBLAS/determinant
+double getDeterminantBoost(matrixDouble & a)
+{
+  boost::numeric::ublas::permutation_matrix<std::size_t> pm(a.size1());
+  double determinant = 1.0;
+
+  int result = boost::numeric::ublas::lu_factorize<matrixDouble,boost::numeric::ublas::permutation_matrix<> >(a, pm);
+
+  if(result) 
+  {
+    return 0.0;
+  }
+  //det(a) = det(P^-1)det(L)det(U) = (-1)^S*(product(u_ii))
+  //Where S is the number of row exchanges
+  for(int i = 0; i < a.size1(); i++) 
+  {
+    //Multiple by current diagonal entry
+    determinant *= a(i,i);
+    if(i != pm(i)) 
+    {
+      //Found a row exchange 
+      determinant *= -1;      
+    }
+    
+  }
+  return determinant;
 }
 
 
