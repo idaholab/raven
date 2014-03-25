@@ -20,7 +20,7 @@
 </Distributions>
 
 <Samplers>
-  <DynamicEventTree name='DET_test'>
+  <DynamicEventTree name='DET_test' print_end_xml="True">
       <varibale name='zeroToOne' >
         <distribution type='Uniform' ProbabilityThresholds='0.1 0.5 0.8'>zeroToOne</distribution>
       </varibale>  

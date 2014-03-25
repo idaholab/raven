@@ -28,34 +28,19 @@
 
   <Distributions>
     <Normal name='Gauss1'>
-      <mean>1</mean>
-      <sigma>0.001</sigma>
-      <lowerBound>0</lowerBound>
-      <upperBound>2</upperBound>
+      <mean>310</mean>
+      <sigma>3</sigma>
+      <lowerBound>300</lowerBound>
+      <upperBound>320</upperBound>
       <adjustement>up</adjustement>
-    </Normal>
-    <Normal name='auxBackUpTimeDist'>
-      <mean>1</mean>
-      <sigma>0.001</sigma>
-      <lowerBound>0</lowerBound>
-      <upperBound>2</upperBound>
-      <adjustement>up</adjustement>
-    </Normal>    
+    </Normal>   
     <Normal name='Gauss2'>
-      <mean>1</mean>
-      <sigma>0.4</sigma>
-      <lowerBound>0</lowerBound>
-      <upperBound>2</upperBound>
+      <mean>300</mean>
+      <sigma>3</sigma>
+      <lowerBound>290</lowerBound>
+      <upperBound>310</upperBound>
       <adjustement>scaling</adjustement>
     </Normal>
-    <Triangular name='CladFailureDist'>
-      <apex>1</apex>
-      <min>-0.1</min>
-      <max>3</max>
-      <!--         <lowerBound>0</lowerBound> This is not yet supported
-           <upperBound>2</upperBound>
-           <adjustement>up</adjustement>  -->
-    </Triangular>
     <Normal name='ANormalDistribution'>
       <mean>-4</mean>
       <sigma>2</sigma>
@@ -66,7 +51,7 @@
     <Grid name='myGrid' initial_seed='1'>
       <Variable name='Components|pipe|Tw'>
         <distribution type='Normal'>Gauss1</distribution>
-        <grid type='value' construction='equal' lowerBound='0.02' steps='1'>0.3</grid>
+        <grid type='value' construction='equal' lowerBound='300' steps='1'>3</grid>
       </Variable>
       <Variable name='Components|inlet|T_bc'>
         <distribution type='Normal'>Gauss2</distribution>
@@ -78,10 +63,6 @@
       </Distribution>
     </Grid>
   </Samplers>
-  <Tests>
-    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
-    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
-  </Tests>
   <Steps>
     <MultiRun name='FirstMRun'>
       <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>

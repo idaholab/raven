@@ -51,9 +51,6 @@
         <apex>1</apex>
         <min>-0.1</min>
         <max>3</max>
-<!--         <lowerBound>0</lowerBound> This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>  -->
     </Triangular>
 </Distributions>
 
