@@ -157,7 +157,9 @@ clean::
           $(RAVEN_DIR)/control_modules/distribution1D.py \
           $(RAVEN_DIR)/control_modules/libdistribution1D.* \
           $(RAVEN_DIR)/control_modules/*.so* \
-          $(RAVEN_DIR)/python_modules/*.so*
+          $(RAVEN_DIR)/python_modules/*.so* \
+          $(RAVEN_DIR)/python_modules/*_wrap.cxx \
+          $(RAVEN_DIR)/python_modules/*py[23].py
 
 clobber::
 	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \
