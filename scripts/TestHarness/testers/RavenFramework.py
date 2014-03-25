@@ -2,6 +2,7 @@ from util import *
 from Tester import Tester
 from CSVDiffer import CSVDiffer
 import os
+import subprocess
 
 class RavenFramework(Tester):
 
@@ -15,8 +16,11 @@ class RavenFramework(Tester):
     return params
   getValidParams = staticmethod(getValidParams)
 
+  def inPython3(self):
+    return os.environ.get("CHECK_PYTHON3","0") == "1"
+
   def getCommand(self, options):
-    if os.environ.get("CHECK_PYTHON3","0") == "1":
+    if self.inPython3():
       return "python3 ../../framework/Driver.py "+self.specs["input"]  
     else:
       return "python ../../framework/Driver.py "+self.specs["input"]
@@ -35,26 +39,18 @@ class RavenFramework(Tester):
 
   def checkRunnable(self, option):
     missing = []
-    try:
-      import h5py
-    except:
-      missing.append('h5py')
-    try:
-      import numpy
-    except:
-      missing.append('numpy')
-    try:
-      import scipy
-    except:
-      missing.append('scipy')
-    try:
-      import sklearn
-    except:
-      missing.append('sklearn')
-    try:
-      import matplotlib
-    except:
-      missing.append('matplotlib')
+    to_try = ["numpy","h5py","scipy","sklearn","matplotlib"]
+    for i in to_try:
+      if self.inPython3():
+        if subprocess.call(['python3','-c','import '+i]) == 0:
+          pass
+        else:
+          missing.append(i)
+      else:
+        try:
+          __import__(i)
+        except:
+          missing.append(i)
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
