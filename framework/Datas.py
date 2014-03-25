@@ -1440,10 +1440,10 @@ class Histories(Data):
             
         if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '_' + key + '.csv', 'wb')
         else: return 
-        myFile.write(b'Ending branch,'+key+'\n')
+        myFile.write(b'Ending branch,'+utils.toBytes(key)+b'\n')
         myFile.write(b'branch #')
-        for i in range(len(inpKeys[-1])):
-          myFile.write(b',' + utils.toBytes(inpKeys[-1][i]))
+        for item in inpKeys[-1]:
+          myFile.write(b',' + utils.toBytes(item))
         myFile.write(b'\n')
         # write the input paramters' values for each branch
         for i in range(inpValues[-1][0].size):
@@ -1454,8 +1454,8 @@ class Histories(Data):
         # write out keys
         myFile.write(b'\n')
         myFile.write(b'TimeStep #')
-        for i in range(len(outKeys[-1])):
-          myFile.write(b',' + utils.toBytes(outKeys[-1][i]))
+        for item in outKeys[-1]:
+          myFile.write(b',' + utils.toBytes(item))
         myFile.write(b'\n')
         for i in range(outValues[-1][0].size):
           myFile.write(utils.toBytes(str(i+1)))

@@ -527,7 +527,7 @@ class HDF5(DateBase):
       listhist_in  = {}
       listhist_out = {}
       endGroupNames = self.getEndingGroupNames()
-      for index in xrange(len(endGroupNames)):
+      for index in range(len(endGroupNames)):
         attributes['history'] = endGroupNames[index]
         tupleVar = self.__retrieveDataHistory(attributes)
         # dictionary of dictionary key = i => ith history ParameterValues dictionary

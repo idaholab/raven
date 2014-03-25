@@ -285,7 +285,7 @@ class hdf5Database(object):
         testvalue = []
         input_space_params_keys = list(source['name']['input_space_params'].keys())
         for i in range(len(input_space_params_keys)): 
-          testkey.append(bytes(input_space_params_keys[i]))
+          testkey.append(toBytes(input_space_params_keys[i]))
         input_space_params_values = list(source['name']['input_space_params'].values())
         for i in range(len(input_space_params_values)): 
           testvalue.append(toBytes(input_space_params_values[i]))  
