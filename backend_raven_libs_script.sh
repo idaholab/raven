@@ -4,6 +4,7 @@ INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}
 DOWNLOAD_DIR=${DOWNLOAD_DIR:=$BUILD_DIR/../downloads}
 PYTHON_CMD=${PYTHON_CMD:=python}
 JOBS=${JOBS:=1}
+OS_NAME=`uname -sr | sed 's/\..*//'`
 mkdir -p $BUILD_DIR
 mkdir -p $INSTALL_DIR
 mkdir -p $DOWNLOAD_DIR
@@ -141,7 +142,12 @@ else
     download_files h5py-2.2.1.tar.gz 4b511ed7aa28ac4c61188a121d42f17f3096c15a https://pypi.python.org/packages/source/h/h5py/h5py-2.2.1.tar.gz
     tar -xvzf $DOWNLOAD_DIR/h5py-2.2.1.tar.gz
     cd h5py-2.2.1
-    (unset CC CXX; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
+    if test "$OS_NAME" = "Darwin 13"
+    then
+	$PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR
+    else
+	(unset CC CXX; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
+    fi
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR --hdf5=$INSTALL_DIR )
 fi
 
@@ -190,7 +196,7 @@ else
     download_files scikit-learn-0.14.1.tar.gz 98128859b75e3c82c995cb7524e9dbd49c1a3d9f https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.14.1.tar.gz 
     tar -xvzf $DOWNLOAD_DIR/scikit-learn-0.14.1.tar.gz
     cd scikit-learn-0.14.1
-    if test "`uname -sr | sed 's/\..*//'`" = "Darwin 13"
+    if test "$OS_NAME" = "Darwin 13"
     then
 	($PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
     else
