@@ -410,7 +410,7 @@ class IODataBase(Step):
         else: self.actionType.append('HDF5-DATAS')
     databases = []
     for i in range(len(inDictionary['Output'])):
-      if type(inDictionary['Output'][i]) not in [str,bytes,unicode]:
+      if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
         if 'HDF5' in inDictionary['Output'][i].type:
           if inDictionary['Output'][i].name not in databases:
             databases.append(inDictionary['Output'][i].name)

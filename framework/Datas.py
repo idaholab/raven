@@ -211,7 +211,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     outputNode.text = ','.join(outKeys)
     filenameNode = ET.SubElement(root,'input_filename')
     filenameNode.text = filenameLocal + ".csv"
-    myXMLFile.write(ET.tostring(root))
+    myXMLFile.write(utils.toString(ET.tostring(root)))
     myXMLFile.write("\n")
     myXMLFile.close()
 
