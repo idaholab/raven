@@ -6,8 +6,8 @@ RAVEN_PMODULES=$(RAVEN_DIR)/python_modules
 DISTRIBUTION_COMPILE_COMMAND=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet \
           $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) -I$(RAVEN_LIB_INCLUDE_DIR) -I$(RAVEN_DIR)/include/distributions/ -I$(RAVEN_DIR)/include/utilities/  -MMD -MF $@.d -MT $@ -c $< -o $@
 
-include $(PETSC_DIR)/conf/variables
-EXTRA_MODULE_LIBS=$(BLASLAPACK_LIB)
+#include $(PETSC_DIR)/conf/variables
+EXTRA_MODULE_LIBS= #$(BLASLAPACK_LIB)
 
 $(RAVEN_DIR)/src/distributions/DistributionContainer.$(obj-suffix): $(RAVEN_DIR)/src/distributions/DistributionContainer.C
 	$(DISTRIBUTION_COMPILE_COMMAND)

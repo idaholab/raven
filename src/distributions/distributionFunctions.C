@@ -41,7 +41,7 @@
 
 using namespace std;
 
-
+/*
 extern "C" {
     // LU decomoposition of a general matrix
     void dgetrf_(int* M, int *N, double* A, int* lda, int* IPIV, int* INFO);
@@ -49,6 +49,7 @@ extern "C" {
     // generate inverse of a matrix given its LU decomposition
     void dgetri_(int* N, double* A, int* lda, int* IPIV, double* WORK, int* lwork, int* INFO);
 }
+*/
 
 typedef boost::numeric::ublas::matrix<double> matrixDouble;
 
@@ -64,7 +65,7 @@ void matrixConversionBoost(const std::vector<std::vector<double> > & original, m
   }
 }
 
-
+/*
 void matrixConversion(std::vector<std::vector<double> > original, double converted[]){
 	if (original.size() == original[0].size()){
 		int dimensions = original.size();
@@ -75,6 +76,7 @@ void matrixConversion(std::vector<std::vector<double> > original, double convert
 	}else
 		throwError("Error in matrixConversion: matrix is not squared.");
 }
+*/
 
 void matrixBackConversionBoost(const matrixDouble & original, std::vector<std::vector<double> > & converted) 
 {
@@ -87,7 +89,7 @@ void matrixBackConversionBoost(const matrixDouble & original, std::vector<std::v
   }
 }
 
-
+/*
 void matrixBackConversion(double original[], std::vector<std::vector<double> > converted){
 	int dimensions = int(sizeof(original)/sizeof(double));
 	dimensions = sqrt(dimensions);
@@ -96,8 +98,9 @@ void matrixBackConversion(double original[], std::vector<std::vector<double> > c
 		for (int c=0; c<dimensions; c++)
 			converted[r][c] = original[r*dimensions+c];
 }
+*/
 
-
+/*
 //http://stackoverflow.com/questions/3519959/computing-the-inverse-of-a-matrix-using-lapack-in-c
 void inverseMatrix(double* A, int N)
 {
@@ -112,6 +115,7 @@ void inverseMatrix(double* A, int N)
     delete IPIV;
     delete WORK;
 }
+*/
 
 
 //Roughly based on http://savingyoutime.wordpress.com/2009/09/21/c-matrix-inversion-boostublas/ and libs/numeric/ublas/test/test_lu.cpp
@@ -130,7 +134,7 @@ void invertMatrixBoost(matrixDouble & a, matrixDouble & aInverted)
 }
 
 
-
+/*
 void computeInverseOld(std::vector<std::vector<double> > matrix, std::vector<std::vector<double> > inverse){
 	int dimensions = matrix.size();
 	double A [dimensions*dimensions];
@@ -141,6 +145,7 @@ void computeInverseOld(std::vector<std::vector<double> > matrix, std::vector<std
 
 	matrixBackConversion(A, inverse);
 }
+*/
 
 void computeInverse(const std::vector<std::vector<double> > & matrix, std::vector<std::vector<double> > & inverse){
 	int dimensions = matrix.size();
@@ -182,7 +187,18 @@ double getDeterminantBoost(matrixDouble & a)
   return determinant;
 }
 
+double getDeterminant(std::vector<std::vector<double> > matrix){
+	int dimensions = matrix.size();
+	matrixDouble A(dimensions,dimensions);
 
+	matrixConversionBoost(matrix, A);
+
+        return getDeterminantBoost(A);
+        
+}
+
+
+/*
 double getDeterminant(std::vector<std::vector<double> > matrix){
 	int dimensions = matrix.size();
 	double A [dimensions*dimensions];
@@ -206,6 +222,7 @@ double getDeterminant(std::vector<std::vector<double> > matrix){
 
 	return determinant;
 }
+*/
 
 //	void nrerror(const char error_text[]){					// added const to avoid "warning: deprecated conversion from string constant to *char
 //	/* Numerical Recipes standard error handler */
