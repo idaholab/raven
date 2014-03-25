@@ -7,7 +7,7 @@ def toString(s):
 def toBytes(s):
   if type(s) == type(""):
     return s.encode()
-  elif type(s) in [unicode,str,bytes]: return bytes(s)
+  elif type(s).__name__ in ['unicode','str','bytes']: return bytes(s)
   else:
     return s
 

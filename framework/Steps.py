@@ -158,7 +158,7 @@ class SingleRun(Step):
     if self.debug: print('The model '+inDictionary['Model'].name+' has been initialized')
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
-      if type(inDictionary['Output'][i]) not in [str,bytes,unicode]:
+      if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:  inDictionary['Output'][i].initialize(inDictionary)
     
