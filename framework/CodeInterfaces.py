@@ -216,8 +216,14 @@ class MooseBasedAppInterface:
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
-    ' Output/file_base='+ outputfile)
+    executable_tail = os.path.split(executable)[-1]
+    #XXX What is the proper test to see if we should use Outputs or Output?
+    if not executable_tail.startswith("ferret"): #executable_tail.startswith("RAVEN") or executable_tail.startswith("r7_moose"):
+      executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
+                        ' Output/file_base='+ outputfile)
+    else:
+      executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Outputs/csv=true' + 
+                        ' Outputs/file_base='+ outputfile)
     return executeCommand,outputfile
 
   def appendLoadFileExtension(self,fileRoot):
