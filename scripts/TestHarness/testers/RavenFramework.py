@@ -42,15 +42,11 @@ class RavenFramework(Tester):
     to_try = ["numpy","h5py","scipy","sklearn","matplotlib"]
     for i in to_try:
       if self.inPython3():
-        if subprocess.call(['python3','-c','import '+i]) == 0:
-          pass
-        else:
-          missing.append(i)
+        result = subprocess.call(['python3','-c','import '+i])
       else:
-        try:
-          __import__(i)
-        except:
-          missing.append(i)
+        result = subprocess.call(['python','-c','import '+i])
+      if result != 0:
+        missing.append(i)
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
