@@ -479,6 +479,19 @@ class OutStreamPlot(OutStreamManager):
     '''
     self.x_cordinates = []
     self.sourceName   = []
+    if 'figure_properties' in self.options.keys():
+      key = 'figure_properties'
+      if 'figsize' not in self.options[key].keys():   self.options[key]['figsize'  ] = 'None' 
+      if 'dpi' not in self.options[key].keys():       self.options[key]['dpi'      ] = 'None'
+      if 'facecolor' not in self.options[key].keys(): self.options[key]['facecolor'] = 'None'
+      if 'edgecolor' not in self.options[key].keys(): self.options[key]['edgecolor'] = 'None'
+      if 'frameon' not in self.options[key].keys():   self.options[key]['frameon'  ] = 'True'
+      elif self.options[key]['frameon'].lower() in ['t','true']: self.options[key]['frameon'] = 'True'
+      elif self.options[key]['frameon'].lower() in ['f','false']: self.options[key]['frameon'] = 'False'           
+      if 'attributes' in self.options[key].keys():  self.fig = self.plt.figure(self.name, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']),**self.options[key]['attributes'])
+      else:  self.fig = self.plt.figure(self.name, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']))
+    else: self.fig = self.plt.figure(self.name)
+    if self.dim == 3: self.plt3D = self.fig.add_subplot(111, projection='3d')
     for pltindex in range(len(self.options['plot_settings']['plot'])):
       if 'y' in self.options['plot_settings']['plot'][pltindex].keys(): self.y_cordinates = [] 
       if 'z' in self.options['plot_settings']['plot'][pltindex].keys(): self.z_cordinates = [] 
@@ -562,19 +575,6 @@ class OutStreamPlot(OutStreamManager):
     exec('self.plt =  importlib.import_module("matplotlib.pyplot")')
     if self.interactive:self.plt.ion()
     if self.dim == 3:  exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
-    if 'figure_properties' in self.options.keys():
-      key = 'figure_properties'
-      if 'figsize' not in self.options[key].keys():   self.options[key]['figsize'  ] = 'None' 
-      if 'dpi' not in self.options[key].keys():       self.options[key]['dpi'      ] = 'None'
-      if 'facecolor' not in self.options[key].keys(): self.options[key]['facecolor'] = 'None'
-      if 'edgecolor' not in self.options[key].keys(): self.options[key]['edgecolor'] = 'None'
-      if 'frameon' not in self.options[key].keys():   self.options[key]['frameon'  ] = 'True'
-      elif self.options[key]['frameon'].lower() in ['t','true']: self.options[key]['frameon'] = 'True'
-      elif self.options[key]['frameon'].lower() in ['f','false']: self.options[key]['frameon'] = 'False'           
-      if 'attributes' in self.options[key].keys():  self.fig = self.plt.figure(self.name, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']),**self.options[key]['attributes'])
-      else:  self.fig = self.plt.figure(self.name, figsize=ast.literal_eval(self.options[key]['figsize']), dpi=ast.literal_eval(self.options[key]['dpi']), facecolor=self.options[key]['facecolor'],edgecolor=self.options[key]['edgecolor'],frameon=ast.literal_eval(self.options[key]['frameon']))
-    else: self.fig = self.plt.figure(self.name)
-    if self.dim == 3: self.plt3D = self.fig.add_subplot(111, projection='3d')
   def addOutput(self):
     '''
     Function to show and/or save a plot 
