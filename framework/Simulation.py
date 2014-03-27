@@ -231,7 +231,7 @@ class Simulation(object):
   
   Comments on the simulation environment
   -every type of element living in the simulation should be uniquely identified by type and name not by sub-type
-  !!!!Wrong:
+  !!!!Wrong!!!!!!!!!!!!!!!!:
   Class: distribution, subtype: normal,     name: myDistribution
   Class: distribution, subtype: triangular, name: myDistribution
   Correct:
@@ -271,17 +271,17 @@ class Simulation(object):
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
     #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
     #The value corresponding to a keyword is the instance of the corresponding class
-    self.stepsDict         = {}
-    self.dataDict          = {}
-    self.samplersDict      = {}
-    self.modelsDict        = {}
-    self.testsDict         = {}
-    self.distributionsDict = {}
-    self.dataBasesDict     = {}
-    self.functionsDict     = {}
-    self.filesDict         = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
+    self.stepsDict            = {}
+    self.dataDict             = {}
+    self.samplersDict         = {}
+    self.modelsDict           = {}
+    self.testsDict            = {}
+    self.distributionsDict    = {}
+    self.dataBasesDict        = {}
+    self.functionsDict        = {}
+    self.filesDict            = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
     self.OutStreamManagerDict = {}
-    self.stepSequenceList  = [] #the list of step of the simulation
+    self.stepSequenceList     = [] #the list of step of the simulation
     
     #list of supported queue-ing software:
     self.knownQuequingSoftware = []
@@ -291,30 +291,30 @@ class Simulation(object):
     #Class Dictionary when a new function is added to the simulation this dictionary need to be expanded
     #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
     self.addWhatDict  = {}
-    self.addWhatDict['Steps'         ] = Steps
-    self.addWhatDict['Datas'         ] = Datas
-    self.addWhatDict['Samplers'      ] = Samplers
-    self.addWhatDict['Models'        ] = Models
-    self.addWhatDict['Tests'         ] = Tests
-    self.addWhatDict['Distributions' ] = Distributions
-    self.addWhatDict['DataBases'     ] = DataBases
-    self.addWhatDict['Functions'     ] = Functions
-    self.addWhatDict['OutStreamManager'    ] = OutStreamManager
+    self.addWhatDict['Steps'            ] = Steps
+    self.addWhatDict['Datas'            ] = Datas
+    self.addWhatDict['Samplers'         ] = Samplers
+    self.addWhatDict['Models'           ] = Models
+    self.addWhatDict['Tests'            ] = Tests
+    self.addWhatDict['Distributions'    ] = Distributions
+    self.addWhatDict['DataBases'        ] = DataBases
+    self.addWhatDict['Functions'        ] = Functions
+    self.addWhatDict['OutStreamManager' ] = OutStreamManager
 
     #Mapping between a class type and the dictionary containing the instances for the simulation
     #the dictionary keyword should match the subnodes of a step definition so that the step can find the instances
     self.whichDict = {}
-    self.whichDict['Steps'        ] = self.stepsDict
-    self.whichDict['Datas'        ] = self.dataDict
-    self.whichDict['Samplers'     ] = self.samplersDict
-    self.whichDict['Models'       ] = self.modelsDict
-    self.whichDict['Tests'        ] = self.testsDict
-    self.whichDict['RunInfo'      ] = self.runInfoDict
-    self.whichDict['Files'        ] = self.filesDict
-    self.whichDict['Distributions'] = self.distributionsDict
-    self.whichDict['DataBases'    ] = self.dataBasesDict
-    self.whichDict['Functions'    ] = self.functionsDict
-    self.whichDict['OutStreamManager'   ] = self.OutStreamManagerDict
+    self.whichDict['Steps'           ] = self.stepsDict
+    self.whichDict['Datas'           ] = self.dataDict
+    self.whichDict['Samplers'        ] = self.samplersDict
+    self.whichDict['Models'          ] = self.modelsDict
+    self.whichDict['Tests'           ] = self.testsDict
+    self.whichDict['RunInfo'         ] = self.runInfoDict
+    self.whichDict['Files'           ] = self.filesDict
+    self.whichDict['Distributions'   ] = self.distributionsDict
+    self.whichDict['DataBases'       ] = self.dataBasesDict
+    self.whichDict['Functions'       ] = self.functionsDict
+    self.whichDict['OutStreamManager'] = self.OutStreamManagerDict
     
     self.jobHandler    = JobHandler()
     self.__modeHandler = SimulationMode(self)
@@ -463,6 +463,8 @@ class Simulation(object):
       stepInputDict['Output']          = []                         #set the Output to an empty list
       #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
       for [key,b,c,d] in stepInstance.parList: 
+        if d not in list(self.whichDict[b].keys()):
+          raise IOError ('in step '+stepName+' for role '+key+' using the class type '+b+' and subtype '+c+' the instance with name '+d+' is not in the pool')
         if key == 'Input' or key == 'Output':                        #Only for input and output we allow more than one object passed to the step, so for those we build a list
           stepInputDict[key].append(self.whichDict[b][d])        
         else:

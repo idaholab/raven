@@ -229,7 +229,7 @@ class MultiRun(SingleRun):
         for myLambda, outIndex in self._outputCollectionLambda:
           myLambda([None,inDictionary['Output'][outIndex],newOutputLoop])
           newOutputLoop = False
-    time.sleep(self.sleepTime) 
+    time.sleep(self.sleepTime)
 
   def localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
