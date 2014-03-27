@@ -349,8 +349,8 @@ class OutStreamPlot(OutStreamManager):
         if 'limits' not in self.options[key].keys(): self.options[key]['limits'      ] = '(0,0)'
         if 'useOffset' not in self.options[key].keys(): self.options[key]['useOffset'] = 'False'
         if 'axis' not in self.options[key].keys(): self.options[key]['axis'          ] = 'both'
-        if self.dim == 2:  self.plt.ticklabel_format(**{'style':self.options[key]['style'],scilimits:ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})          
-        elif self.dim == 3:self.plt3D.ticklabel_format(**{'style':self.options[key]['style'],scilimits:ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})        
+        if self.dim == 2:  self.plt.ticklabel_format(**{'style':self.options[key]['style'],'scilimits':ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})          
+        elif self.dim == 3:self.plt3D.ticklabel_format(**{'style':self.options[key]['style'],'scilimits':ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})        
       elif key == 'camera': 
         if self.dim == 2: print('STREAM MANAGER: Warning -> 2D plots have not a camera attribute... They are 2D!!!!')
         elif self.dim == 3:
@@ -457,7 +457,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2:  exec('self.plt.' + key + '(' + command_args + ')')
           elif self.dim == 3:exec('self.plt3D.' + key + '(' + command_args + ')')      
         except ValueError as ae: 
-          raise Exception('STREAM MANAGER: ERROR -> in execution custom action "' + key + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')         
+          raise Exception('STREAM MANAGER: ERROR <'+ae+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')         
 
   ####################
   #  PUBLIC METHODS  #
@@ -503,8 +503,7 @@ class OutStreamPlot(OutStreamManager):
         if 'epsilon' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['smooth'] = '0.0'
         if 'cmap' not in self.options['plot_settings']['plot'][pltindex].keys(): self.options['plot_settings']['plot'][pltindex]['cmap'] = 'jet'
-        elif self.options['plot_settings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))    
-    
+        elif self.options['plot_settings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))     
     self.numberAggregatedOS = len(self.options['plot_settings']['plot'])
     # initialize here the base class
     OutStreamManager.initialize(self,inDict)
@@ -540,14 +539,14 @@ class OutStreamPlot(OutStreamManager):
       if subnode.tag in 'title':
         self.options[subnode.tag] = {}
         for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text
-        if 'text'     not in self.options[subnode.tag].keys(): self.options[subnode.tag]['text'    ] = node.attrib['name']
+        if 'text'     not in self.options[subnode.tag].keys(): self.options[subnode.tag]['text'    ] = xmlNode.attrib['name']
         if 'location' not in self.options[subnode.tag].keys(): self.options[subnode.tag]['location'] = 'center'   
       if subnode.tag == 'figure_properties':
         self.options[subnode.tag] = {}
         for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text         
     self.type = 'OutStreamPlot'
     if not 'plot_settings' in self.options.keys(): raise IOError('STREAM MANAGER: ERROR -> For plot named ' + self.name + ' the plot_settings block IS REQUIRED!!')
-    if not foundPlot: raise IOErrror('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot section has been found in the plot_settings block!')
+    if not foundPlot: raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot section has been found in the plot_settings block!')
     self.outStreamTypes = []
     for pltindex in range(len(self.options['plot_settings']['plot'])):
       if not 'type' in self.options['plot_settings']['plot'][pltindex].keys(): raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot type keyword has been found in the plot_settings/plot block!')
@@ -695,7 +694,7 @@ class OutStreamPlot(OutStreamManager):
                       else: zi = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
                     else:
                       rbf = Rbf(self.x_values[pltindex][key][x_index], self.y_values[pltindex][key][y_index], self.z_values[pltindex][key][z_index],function=str(str(self.options['plot_settings']['plot'][pltindex]['interpolation_type']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['smooth']))
-                      zi  = rbf(xig, yig) 
+                      zi  = rbf(xi, yi) 
                     if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot(xi,yi,zi,**self.options['plot_settings']['plot'][pltindex]['attributes'])
                     else: self.actPlot = self.plt3D.plot(xi,yi,zi)
       ##################
@@ -747,8 +746,8 @@ class OutStreamPlot(OutStreamManager):
                 if 'dy' in self.options['plot_settings']['plot'][pltindex].keys(): dys = float(self.options['plot_settings']['plot'][pltindex]['dy'])
                 else: dys = (self.y_values[pltindex][key][y_index].max() - self.y_values[pltindex][key][y_index].min())/self.options['plot_settings']['plot'][pltindex]['bins']
                 xpos, ypos = np.meshgrid(xedges[:-1]+xoffset, yedges[:-1]+yoffset)
-                if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.bar3d(xpos.flatten(), ypos.flatten(), np.zeros(elements), dxs * np.ones_like(zpos), dys * np.ones_like(zpos), hist.flatten(), color=colorss, zsort='average', **self.options['plot_settings']['plot'][pltindex]['attributes'])
-                else: self.actPlot = self.plt3D.bar3d(xpos.flatten(), ypos.flatten(), np.zeros(elements), dxs * np.ones_like(zpos), dys * np.ones_like(zpos), hist.flatten(), color=colorss, zsort='average')
+                if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.bar3d(xpos.flatten(), ypos.flatten(), np.zeros(elements), dxs * np.ones_like(elements), dys * np.ones_like(elements), hist.flatten(), color=colorss, zsort='average', **self.options['plot_settings']['plot'][pltindex]['attributes'])
+                else: self.actPlot = self.plt3D.bar3d(xpos.flatten(), ypos.flatten(), np.zeros(elements), dxs * np.ones_like(elements), dys * np.ones_like(elements), hist.flatten(), color=colorss, zsort='average')
       ##################
       #    STEM PLOT   #
       ##################                      
@@ -935,9 +934,9 @@ class OutStreamPlot(OutStreamManager):
       ########################           
       elif self.outStreamTypes[pltindex] == 'contour' or self.outStreamTypes[pltindex] == 'filled_contour':
         if self.dim == 2:
-           if 'number_bins' in self.options['plot_settings']['plot'][pltindex].keys(): nbins = int(self.options['plot_settings']['plot'][pltindex]['number_bins'])
-           else: nbins = 5
-           for key in self.x_values[pltindex].keys():
+          if 'number_bins' in self.options['plot_settings']['plot'][pltindex].keys(): nbins = int(self.options['plot_settings']['plot'][pltindex]['number_bins'])
+          else: nbins = 5
+          for key in self.x_values[pltindex].keys():
             if not self.color_map_coordinates: 
               print('STREAM MANAGER: '+self.outStreamTypes[pltindex]+' Plot needs coordinates for color map... Returning without plotting')
               return
@@ -969,11 +968,11 @@ class OutStreamPlot(OutStreamManager):
           print('STREAM MANAGER: contour3D/filled_contour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filled_contour"!')
           return 
         elif self.dim == 3:
-           if 'number_bins' in self.options['plot_settings']['plot'][pltindex].keys(): nbins = int(self.options['plot_settings']['plot'][pltindex]['number_bins'])
-           else: nbins = 5
-           if 'extend3D' in self.options['plot_settings']['plot'][pltindex].keys(): ext3D = bool(self.options['plot_settings']['plot'][pltindex]['extend3D'])
-           else: ext3D = False
-           for key in self.x_values[pltindex].keys():
+          if 'number_bins' in self.options['plot_settings']['plot'][pltindex].keys(): nbins = int(self.options['plot_settings']['plot'][pltindex]['number_bins'])
+          else: nbins = 5
+          if 'extend3D' in self.options['plot_settings']['plot'][pltindex].keys(): ext3D = bool(self.options['plot_settings']['plot'][pltindex]['extend3D'])
+          else: ext3D = False
+          for key in self.x_values[pltindex].keys():
             for x_index in range(len(self.x_values[pltindex][key])):
               xi = np.linspace(self.x_values[pltindex][key][x_index].min(),self.x_values[pltindex][key][x_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsX']))
               for y_index in range(len(self.y_values[pltindex][key])):
@@ -1008,7 +1007,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2:  exec('self.actPlot = self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
           elif self.dim == 3:exec('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')      
         except ValueError as ae: 
-          raise Exception('STREAM MANAGER: ERROR -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')         
+          raise Exception('STREAM MANAGER: ERROR <'+ae+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')         
     # SHOW THE PICTURE
     if 'screen' in self.options['how']['how'].split(','): 
       if self.dim == 2 or 'pseudocolor' in self.outStreamTypes: self.fig.canvas.draw()

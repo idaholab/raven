@@ -18,7 +18,7 @@ class RavenInterface:
     '''seek which is which of the input files and generate According the running command'''
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]            
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
     ' Output/file_base='+ outputfile)
     return executeCommand,outputfile
@@ -218,11 +218,12 @@ class MooseBasedAppInterface:
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executable_tail = os.path.split(executable)[-1]
     #XXX What is the proper test to see if we should use Outputs or Output?
-    if not executable_tail.startswith("ferret"): #executable_tail.startswith("RAVEN") or executable_tail.startswith("r7_moose"):
+    print('FIXME: Fix this if statement when r7_moose gets consistent with the other moose-base-app for Output')
+    if executable_tail.count('RAVEN') !=0 or executable_tail.count('r7_moose') !=0:
       executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
-                        ' Output/file_base='+ outputfile)
+                        ' Output/file_base='+ outputfile)      
     else:
-      executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Outputs/csv=true' + 
+      executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] + 
                         ' Outputs/file_base='+ outputfile)
     return executeCommand,outputfile
 
@@ -244,6 +245,12 @@ class MooseBasedAppInterface:
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
+    modifDict.append(copy.deepcopy({'name':['Outputs'],'erase_block':True}))
+    modifDict.append(copy.deepcopy({'name':['Outputs'],'exodus':'true'}))
+    modifDict.append(copy.deepcopy({'name':['Outputs'],'interval':'1'}))
+    modifDict.append(copy.deepcopy({'name':['Outputs'],'output_initial':'true'}))
+    modifDict.append(copy.deepcopy({'name':['Outputs'],'csv':'true'}))
+    modifDict.append(copy.deepcopy({'name':['Output'], 'erase_block':True}))
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)

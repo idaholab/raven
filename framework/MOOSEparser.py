@@ -113,8 +113,7 @@ class MOOSEparser:
       found,true_name = self.__findInXML(returnElement,name[0])
       if found:   #if the first level name is present
         if 'erase_block' in modiDictionaryList[i].keys():
-          if modiDictionaryList[i]['erase_block']:
-            returnElement.remove(returnElement.find(true_name))
+          if modiDictionaryList[i]['erase_block']: returnElement.remove(returnElement.find(true_name))
         else:
           child = returnElement.find(true_name)
           if len(name)>1:
@@ -123,14 +122,14 @@ class MOOSEparser:
               self.__updateDict(child.find(sub_true_name).attrib,modiDictionaryList[i])
             else:
               ET.SubElement(child,name[1],modiDictionaryList[i])
-          else:
-            child.attrib.update(modiDictionaryList[i])
+          else: child.attrib.update(modiDictionaryList[i])
         del true_name
       else:
         if not 'erase_block' in modiDictionaryList[i].keys():
-          ET.SubElement(returnElement,name[0])
+          topelement = ET.SubElement(returnElement,name[0])
           if len(name) > 1:
             child = returnElement.find(name[0])
             ET.SubElement(child,name[1],modiDictionaryList[i])
+          else: topelement.attrib.update(modiDictionaryList[i]) 
     if save: return returnElement
 
