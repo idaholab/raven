@@ -66,15 +66,15 @@
         <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" directory='DataBaseStorage' filename='MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER.h5'/>
 </DataBases>
 <Datas>
-   <TimePointSet name='timepointset_from_database_for_rom_trainer' input_ts='1867'>
+   <TimePointSet name='timepointset_from_database_for_rom_trainer' input_ts='3'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold</Output>
    </TimePointSet>
-   <TimePoint name='data_for_sampling_empty_at_begin' input_ts='1867'>
+   <TimePoint name='data_for_sampling_empty_at_begin' input_ts='3'>
         <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold</Output>
    </TimePoint>
-   <TimePointSet name='outputMontecarloRom' input_ts='1867'>
+   <TimePointSet name='outputMontecarloRom' input_ts='3'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
         <Output>CladTempTreshold</Output>
    </TimePointSet>

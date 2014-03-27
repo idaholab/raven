@@ -18,7 +18,7 @@
  [./test_branch]
   type = 'RavenFramework'
   input = 'test_branch.xml'
-  #skip = 'waiting for restart new capability'
+  skip = 'waiting for new output system fix'
   output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf' 
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
  [../]
@@ -26,7 +26,7 @@
  [./test_branch_heavy]
   type = 'RavenFramework'
   input = 'test_sbo_heavy_det.xml'
-  #skip = 'waiting for restart new capability'
+  skip = 'waiting for new output system fix'
   output = 'SBO_DET/DET/out~DET_1-2-2~TMI.e SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv' 
   csv = 'SBO_DET/stories_from_database_dump_1.csv'
   max_time = 100000
