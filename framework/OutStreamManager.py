@@ -226,8 +226,9 @@ class OutStreamPlot(OutStreamManager):
           parame = self.sourceData[pltindex].getParam(xsplit[1],xsplit[2])
           if type(parame) == np.ndarray: self.x_values[pltindex][1].append(np.asarray(parame))
           else:
-            conarr = np.zeros(len(parame.keys())) 
-            for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
+            conarr = np.zeros(len(parame.keys()))
+            index = 0
+            for item in parame.values(): conarr[index] = item[0]; index += 1
             self.x_values[pltindex][1].append(np.asarray(conarr))           
         if self.y_cordinates:
           for i in range(len(self.y_cordinates[pltindex])): 
@@ -236,7 +237,8 @@ class OutStreamPlot(OutStreamManager):
             if type(parame) == np.ndarray: self.y_values[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys())) 
-              for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
+              index = 0
+              for item in parame.values(): conarr[index] = item[0]; index += 1
               self.y_values[pltindex][1].append(np.asarray(conarr))           
         if self.z_cordinates and self.dim>2:
           for i in range(len(self.z_cordinates[pltindex])):

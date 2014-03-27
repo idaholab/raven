@@ -312,7 +312,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     if typeVar.lower() not in ["input","output"]: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
     if self.dataParameters['hierarchical']: 
-      if type(keyword) == int: return self.getHierParam(typeVar.lower(),nodeid,None,serialize).values()[keyword-1]
+      if type(keyword) == int: return list(self.getHierParam(typeVar.lower(),nodeid,None,serialize).values())[keyword-1]
       else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
     else:
       if typeVar.lower() in "input":
@@ -851,13 +851,14 @@ class TimePointSet(Data):
 
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
       else: return 
+      O_o_keys = list(O_o.keys())
       for index in range(len(O_o.keys())):
-        myFile.write(b'Ending branch,'+O_o.keys()[index]+'\n')
+        myFile.write(b'Ending branch,'+utils.toBytes(O_o_keys[index])+b'\n')
         myFile.write(b'branch #')
-        for i in range(len(inpKeys[index])):
-            myFile.write(b',' + utils.toBytes(inpKeys[index][i]))
-        for i in range(len(outKeys[index])):
-            myFile.write(b',' + utils.toBytes(outKeys[index][i]))
+        for item in inpKeys[index]:
+            myFile.write(b',' + utils.toBytes(item))
+        for item in outKeys[index]:
+            myFile.write(b',' + utils.toBytes(item))
         myFile.write(b'\n')
         for j in range(outValues[index][0].size):
           myFile.write(utils.toBytes(str(j+1)))
