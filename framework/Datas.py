@@ -1084,7 +1084,7 @@ class History(Data):
     myDataFile.write(b'\n')
 
     #Print data
-    for j in range(outValues[0].size):
+    for j in range(next(iter(outValues)).size):
       myDataFile.write(b','.join([utils.toBytes(str(item[j])) for item in
                                   outValues]))
       myDataFile.write(b'\n')
