@@ -36,13 +36,6 @@ class Distribution(BaseType):
     self.dimensionality   = None #Dimensionality of the distribution (1D or ND)
     
   def readMoreXML(self,xmlNode):
-    #this is part of the stochastic collocation sampler not of the distribution!!!!!!
-    #FIXME
-    try:
-      QuadType = xmlNode.attrib['ExpansionQuadrature']
-      self.bestQuad = Quadrature.returnInstance(QuadType)
-    except KeyError:
-      pass
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True

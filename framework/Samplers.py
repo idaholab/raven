@@ -93,13 +93,16 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
     except KeyError: self.initSeed = Distributions.random_integers(0,2**31)
-    try            : self.limit    = int(xmlNode.attrib['limit'])
-    except KeyError: pass
+    if 'limit' in xmlNode.attrib.keys():
+      try: self.limit = int(xmlNode.attrib['limit'])
+      except:
+        IOError ('reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     for child in xmlNode:
       for childChild in child:
         if childChild.tag =='distribution': 
           if child.tag == 'Distribution':
             #Add <distribution> to name so we know it is not the direct variable
+            print('FIXME: #Add <distribution> to name so we know it is not the direct variable# does not seems to be bullet proof please talk to me Cristian')
             self.toBeSampled["<distribution>"+child.attrib['name']] = [childChild.attrib['type'],childChild.text]
           else:
             self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
@@ -550,7 +553,7 @@ class AdaptiveSampler(Sampler):
         self.values[varName] = copy.copy(float(self.surfPoint[minIndex,varIndex]))
      
       
-      
+#This is the normal derivation to be used later on
 #      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
 #      for pointIndex, point in enumerate(self.surfPoint):
 #        temp = copy.copy(point)
@@ -755,12 +758,10 @@ class Grid(Sampler):
       #index is the index into the array self.gridInfo[varName][2]
       index, remainder = divmod(remainder, stride )
       self.gridCoordinate[i] = index
-      #print("i",i,"gridCoordinate[i]",self.gridCoordinate[i])
       if self.gridInfo[varName][0]=='CDF':
         self.values[varName] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
       elif self.gridInfo[varName][0]=='value':
         self.values[varName] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-
 #
 #
 #
