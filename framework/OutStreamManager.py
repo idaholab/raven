@@ -657,13 +657,13 @@ class OutStreamPlot(OutStreamManager):
         for key in self.x_values[pltindex].keys():
           for x_index in range(len(self.x_values[pltindex][key])):
             if self.color_map_coordinates: self.options['plot_settings']['plot'][pltindex]['interpPointsX'] = str(max(100,len(self.x_values[pltindex][key][x_index])))
-            if self.x_values[pltindex][key][x_index].size < 2: xi = self.x_values[pltindex][key][x_index]
+            if self.x_values[pltindex][key][x_index].size <= 2: xi = self.x_values[pltindex][key][x_index]
             else: xi = np.linspace(self.x_values[pltindex][key][x_index].min(),self.x_values[pltindex][key][x_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsX']))
             for y_index in range(len(self.y_values[pltindex][key])):
               if self.dim == 2:
-                if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0:
-                  if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.y_values[pltindex][key][y_index].size > 2: yi = griddata((self.x_values[pltindex][key][x_index]), self.y_values[pltindex][key][y_index], (xi[None,:]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
-                  else: yi = griddata((self.x_values[pltindex][key][x_index]), self.y_values[pltindex][key][y_index], (xi[None,:]), method='nearest')
+                if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0 or self.y_values[pltindex][key][y_index].size <= 2:
+                  if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.y_values[pltindex][key][y_index].size > 2: yi = griddata((self.x_values[pltindex][key][x_index]), self.y_values[pltindex][key][y_index], (xi[:]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
+                  else: yi = griddata((self.x_values[pltindex][key][x_index]), self.y_values[pltindex][key][y_index], (xi[:]), method='nearest')
                 else:
                   rbf = Rbf(self.x_values[pltindex][key][x_index], self.y_values[pltindex][key][y_index],function=str(str(self.options['plot_settings']['plot'][pltindex]['interpolation_type']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['smooth']))
                   yi  = rbf(xi) 
@@ -689,7 +689,7 @@ class OutStreamPlot(OutStreamManager):
                     actcm = self.plt.colorbar(m) 
                     actcm.set_label(self.color_map_coordinates[pltindex][key-1].split('|')[-1].replace(')',''))  
                   else:
-                    if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0:
+                    if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0 or self.z_values[pltindex][key][z_index].size <= 3:
                       if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.z_values[pltindex][key][z_index].size > 3: zi = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                       else: zi = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
                     else:
@@ -776,7 +776,7 @@ class OutStreamPlot(OutStreamManager):
               if self.x_values[pltindex][key][x_index].size < 2: xi = self.x_values[pltindex][key][x_index]
               else: xi = np.linspace(self.x_values[pltindex][key][x_index].min(),self.x_values[pltindex][key][x_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsX']))
               for y_index in range(len(self.y_values[pltindex][key])):
-                if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0:
+                if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0 or self.y_values[pltindex][key][y_index].size <= 2:
                   if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.y_values[pltindex][key][y_index].size > 2: yi = griddata((self.x_values[pltindex][key][x_index]), self.y_values[pltindex][key][y_index], (xi[None,:]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                   else: yi = griddata((self.x_values[pltindex][key][x_index]), self.y_values[pltindex][key][y_index], (xi[None,:]), method='nearest')
                 else:
@@ -802,7 +802,7 @@ class OutStreamPlot(OutStreamManager):
                   print('STREAM MANAGER: pseudocolor Plot needs coordinates for color map... Returning without plotting')
                   return
                 for z_index in range(len(self.color_map_values[pltindex][key])):
-                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0:
+                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0 or self.color_map_values[pltindex][key][z_index].size <= 3:
                     if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.color_map_values[pltindex][key][z_index].size > 3: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                     else: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
                   else:
@@ -836,7 +836,7 @@ class OutStreamPlot(OutStreamManager):
                 yi = np.linspace(self.y_values[pltindex][key][y_index].min(),self.y_values[pltindex][key][y_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsY']))
                 xig, yig = np.meshgrid(xi, yi)
                 for z_index in range(len(self.z_values[pltindex][key])):        
-                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0:
+                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0 or self.z_values[pltindex][key][z_index].size <= 3:
                     if self.color_map_coordinates:
                       if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.color_map_values[pltindex][key][z_index].size > 3: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                       else: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')           
@@ -873,6 +873,7 @@ class OutStreamPlot(OutStreamManager):
             for x_index in range(len(self.x_values[pltindex][key])):
               for y_index in range(len(self.y_values[pltindex][key])):
                 for z_index in range(len(self.z_values[pltindex][key])):
+                  if self.z_values[pltindex][key][z_index].size <= 3: return
                   if self.color_map_coordinates:
                     if 'attributes' in self.options['plot_settings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot_trisurf(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index], color = self.options['plot_settings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['shade']),**self.options['plot_settings']['plot'][pltindex]['attributes'])    
                     else: self.actPlot = self.plt3D.plot_trisurf(self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index],self.z_values[pltindex][key][z_index], color = self.options['plot_settings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plot_settings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['shade']))
@@ -897,7 +898,7 @@ class OutStreamPlot(OutStreamManager):
                 yi = np.linspace(self.y_values[pltindex][key][y_index].min(),self.y_values[pltindex][key][y_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsY']))
                 xig, yig = np.meshgrid(xi, yi)
                 for z_index in range(len(self.z_values[pltindex][key])):        
-                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0:
+                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0 or self.z_values[pltindex][key][z_index].size <= 3:
                     if self.color_map_coordinates:
                       if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.color_map_values[pltindex][key][z_index].size > 3: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                       else: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')           
@@ -946,7 +947,7 @@ class OutStreamPlot(OutStreamManager):
                 yi = np.linspace(self.y_values[pltindex][key][y_index].min(),self.y_values[pltindex][key][y_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsY']))
                 xig, yig = np.meshgrid(xi, yi)
                 for z_index in range(len(self.color_map_values[pltindex][key])):        
-                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0:
+                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0 or self.y_values[pltindex][key][y_index].size <= 3:
                     if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.color_map_values[pltindex][key][z_index].size > 3: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                     else: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')           
                   else:    
@@ -979,7 +980,7 @@ class OutStreamPlot(OutStreamManager):
                 yi = np.linspace(self.y_values[pltindex][key][y_index].min(),self.y_values[pltindex][key][y_index].max(),ast.literal_eval(self.options['plot_settings']['plot'][pltindex]['interpPointsY']))
                 xig, yig = np.meshgrid(xi, yi)
                 for z_index in range(len(self.color_map_values[pltindex][key])):        
-                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0:
+                  if ['nearest','linear','cubic'].count(self.options['plot_settings']['plot'][pltindex]['interpolation_type']) > 0 or self.z_values[pltindex][key][z_index].size <= 3:
                     if self.options['plot_settings']['plot'][pltindex]['interpolation_type'] != 'nearest' and self.color_map_values[pltindex][key][z_index].size > 3: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.color_map_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plot_settings']['plot'][pltindex]['interpolation_type'])
                     else: Ci = griddata((self.x_values[pltindex][key][x_index],self.y_values[pltindex][key][y_index]), self.z_values[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')           
                   else:    
