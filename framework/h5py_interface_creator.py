@@ -325,11 +325,11 @@ class hdf5Database(object):
         self.allGroupEnds["/" + gname] = True         
     else:
       # Retrieve the headers from the data (inputs and outputs)
-      headers_in  = source['name'].getInpParametersValues().keys()
-      headers_out = source['name'].getOutParametersValues().keys()
+      headers_in  = list(source['name'].getInpParametersValues().keys())
+      headers_out = list(source['name'].getOutParametersValues().keys())
       # for a "histories" type we create a number of groups = number of histories (compatibility with loading structure)
-      data_in  = source['name'].getInpParametersValues().values()
-      data_out = source['name'].getOutParametersValues().values()    
+      data_in  = list(source['name'].getInpParametersValues().values())
+      data_out = list(source['name'].getOutParametersValues().values())
       if source['name'].type in ['Histories','TimePointSet']:
         groups = []
         if 'Histories' in source['name'].type: nruns = len(data_in)
@@ -338,25 +338,26 @@ class hdf5Database(object):
           if upGroup: 
             groups.append(parentgroup_obj.require_group(gname + b'|' +str(run)))
             if (gname + "_data") in groups[run] : del groups[run][gname+"_data"]
-          else:groups.append(parentgroup_obj.create_group(gname + b'|' +str(run)))
+          else:
+            groups.append(parentgroup_obj.create_group(gname + '|' +str(run)))
           
-          groups[run].attrs[b'source_type'] = bytes(source['name'].type)
+          groups[run].attrs[b'source_type'] = toBytes(source['name'].type)
           groups[run].attrs[b'main_class' ] = b'Datas'
           groups[run].attrs[b'EndGroup'   ] = True
           groups[run].attrs[b'parent_id'  ] = parent_name
           if source['name'].type == 'Histories': 
-            groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([bytes(data_in[run].keys()[i])  for i in range(len(data_in[run].keys()))]) 
-            groups[run].attrs[b'output_space_headers'] = copy.deepcopy([bytes(data_out[run].keys()[i])  for i in range(len(data_out[run].keys()))]) 
-            groups[run].attrs[b'input_space_values'  ] = copy.deepcopy(data_in[run].values())
+            groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([toBytes(list(data_in[run].keys())[i])  for i in range(len(data_in[run].keys()))]) 
+            groups[run].attrs[b'output_space_headers'] = copy.deepcopy([toBytes(list(data_out[run].keys())[i])  for i in range(len(data_out[run].keys()))]) 
+            groups[run].attrs[b'input_space_values'  ] = copy.deepcopy(list(data_in[run].values()))
             groups[run].attrs[b'n_params'            ] = len(data_out[run].keys())
             #collect the outputs
-            dataout = np.zeros((data_out[run].values()[0].size,len(data_out[run].values())))
-            for param in range(len(data_out[run].values())): dataout[:,param] = data_out[run].values()[param][:]
+            dataout = np.zeros((next(iter(data_out[run].values())).size,len(data_out[run].values())))
+            for param in range(len(data_out[run].values())): dataout[:,param] = list(data_out[run].values())[param][:]
             groups[run].create_dataset(gname +"_data" , dtype="float", data=copy.deepcopy(dataout))
             groups[run].attrs[b'n_ts'                ] = len(data_out[run].values())
           else:
-            groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([bytes(headers_in[i])  for i in range(len(headers_in))]) 
-            groups[run].attrs[b'output_space_headers'] = copy.deepcopy([bytes(headers_out[i])  for i in range(len(headers_out))]) 
+            groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([toBytes(headers_in[i])  for i in range(len(headers_in))]) 
+            groups[run].attrs[b'output_space_headers'] = copy.deepcopy([toBytes(headers_out[i])  for i in range(len(headers_out))]) 
             groups[run].attrs[b'input_space_values'  ] = copy.deepcopy([np.atleast_1d(np.array(data_in[x][run])) for x in range(len(data_in))])
             groups[run].attrs[b'n_params'            ] = len(headers_out)
             groups[run].attrs[b'n_ts'                ] = 1
@@ -376,12 +377,12 @@ class hdf5Database(object):
           del groups[gname+"_data"]
         else: groups = parentgroup_obj.create_group(gname)
         groups.attrs[b'main_class' ] = b'Datas'
-        groups.attrs[b'source_type'] = bytes(source['name'].type)
+        groups.attrs[b'source_type'] = toBytes(source['name'].type)
         groups.attrs[b'n_params'   ] = len(headers_out)
-        groups.attrs[b'input_space_headers' ] = copy.deepcopy([bytes(headers_in[i])  for i in range(len(headers_in))]) 
-        groups.attrs[b'output_space_headers'] = copy.deepcopy([bytes(headers_out[i])  for i in range(len(headers_out))]) 
+        groups.attrs[b'input_space_headers' ] = copy.deepcopy([toBytes(headers_in[i])  for i in range(len(headers_in))]) 
+        groups.attrs[b'output_space_headers'] = copy.deepcopy([toBytes(headers_out[i])  for i in range(len(headers_out))]) 
         groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(data_in[i])  for i in range(len(data_in))])
-        groups.attrs[b'source_type'] = bytes(source['name'].type)
+        groups.attrs[b'source_type'] = toBytes(source['name'].type)
         groups.attrs[b'EndGroup'   ] = True
         groups.attrs[b'parent_id'  ] = parent_name
         dataout = np.zeros((data_out[0].size,len(data_out)))

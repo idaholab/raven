@@ -40,6 +40,24 @@ def convertDictToListOfLists(inputDict):
     returnList = None
   return returnList
 
+def keyIn(dictionary,key):
+  """Returns the key or toBytes key if in,
+  else returns none.  Use like
+  inKey = keyIn(adict,key)
+  if inKey is not None:
+     foo = adict[inKey]
+  else:
+     pass #not found"""
+  if key in dictionary:
+    return key
+  else:
+    bin_key = toBytes(key)
+    if bin_key in dictionary:
+      return bin_key
+    else:
+      return None
+
+
 
 def metaclass_insert(metaclass,*base_classes):
   """This allows a metaclass to be inserted as a base class.

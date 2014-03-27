@@ -14,7 +14,7 @@ from h5py_interface_creator import hdf5Database as h5Data
 import copy
 import os
 import gc
-from utils import toBytes
+from utils import toBytes,keyIn
 
 class DateBase(BaseType):
   '''
@@ -241,11 +241,13 @@ class HDF5(DateBase):
     # fill input param dictionary
     for key in attributes["inParam"]:
         if 'input_space_headers' in histVar[1]:
-          if key in histVar[1]['input_space_headers']:
-            ix = histVar[1]['input_space_headers'].index(key)
+          inInKey = keyIn(histVar[1]['input_space_headers'],key)
+          inOutKey = keyIn(histVar[1]["output_space_headers"],key)
+          if inInKey is not None:
+            ix = histVar[1]['input_space_headers'].index(inInKey)
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
-          elif key in histVar[1]["output_space_headers"]:
-            ix = histVar[1]["output_space_headers"].index(key)
+          elif inOutKey is not None:
+            ix = histVar[1]["output_space_headers"].index(inOutKey)
             if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +attributes['history']+ '!') 
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception("ERROR: the parameter " + key + " has not been found")            
@@ -352,23 +354,22 @@ class HDF5(DateBase):
 
       for key in attributes["inParam"]:
         if 'input_space_headers' in histVar[1]:
-          if key in histVar[1]['input_space_headers']:
-            ix = histVar[1]['input_space_headers'].index(key)
+          inInKey = keyIn(histVar[1]['input_space_headers'],key)
+          inOutKey = keyIn(histVar[1]["output_space_headers"],key)
+          if inInKey is not None:
+            ix = histVar[1]['input_space_headers'].index(inInKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
             inDict[key][i] = histVar[1]['input_space_values'][ix][0]
-          elif key in histVar[1]["output_space_headers"]:
-            ix = histVar[1]["output_space_headers"].index(key)
+          elif inOutKey is not None:
+            ix = histVar[1]["output_space_headers"].index(inOutKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
             if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = np.array(histVar[0][ints,ix])
           else: raise Exception("ERROR: the parameter " + key + " has not been found")            
         else:
-          if key in histVar[1]["output_space_headers"] or\
-             toBytes(key) in histVar[1]["output_space_headers"]:
-            if key in histVar[1]["output_space_headers"]:
-              ix = histVar[1]["output_space_headers"].index(key)
-            else:
-              ix = histVar[1]["output_space_headers"].index(toBytes(key))
+          inKey = keyIn(histVar[1]["output_space_headers"],key)
+          if inKey is not None:
+            ix = histVar[1]["output_space_headers"].index(inKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
             if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = histVar[0][ints,ix]
@@ -471,20 +472,23 @@ class HDF5(DateBase):
     # fill input param dictionary
     for key in attributes["inParam"]:
         if 'input_space_headers' in histVar[1]:
-          if key in histVar[1]['input_space_headers']:
-            ix = histVar[1]['input_space_headers'].index(key)
+          inInKey = keyIn(histVar[1]['input_space_headers'],key)
+          inOutKey = keyIn(histVar[1]["output_space_headers"],key)
+          if inInKey is not None:
+            ix = histVar[1]['input_space_headers'].index(inInKey)
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
-          elif key in histVar[1]["output_space_headers"]:
-            ix = histVar[1]["output_space_headers"].index(key)
+          elif inOutKey is not None:
+            ix = histVar[1]["output_space_headers"].index(inOutKey)
             if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
-          else: raise Exception("ERROR: the parameter " + key + " has not been found")            
+          else: raise Exception("ERROR: the parameter " + key + " has not been found in "+str(histVar[1]['input_space_headers'])+" or "+str(histVar[1]["output_space_headers"]))
         else:
-          if key in histVar[1]["output_space_headers"]:
-            ix = histVar[1]["output_space_headers"].index(key)
+          inKey = keyIn(histVar[1]["output_space_headers"],key)
+          if inKey is not None:
+            ix = histVar[1]["output_space_headers"].index(inKey)
             if ints > histVar[0][:,0].size : raise IOError('DATABASE      : ******ERROR input_ts is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
-          else: raise Exception("ERROR: the parameter " + key + " has not been found")   
+          else: raise Exception("ERROR: the parameter " + key + " has not been found in "+str(histVar[1]["output_space_headers"]))
 
     # Time all case => The history is completed (from start_time to end_time)
     if time_all:
@@ -493,10 +497,11 @@ class HDF5(DateBase):
           outDict[key] = histVar[0][:,histVar[1]["output_space_headers"].index(key)]
       else:
         for key in attributes["outParam"]:
-          if key in histVar[1]["output_space_headers"]:
-            outDict[key] = histVar[0][:,histVar[1]["output_space_headers"].index(key)]        
+          inKey = keyIn(histVar[1]["output_space_headers"],key)
+          if inKey:
+            outDict[key] = histVar[0][:,histVar[1]["output_space_headers"].index(inKey)]
           else:
-            raise Exception("ERROR: the parameter " + key + " has not been found")
+            raise Exception("ERROR: the parameter " + key + " has not been found in "+str(histVar[1]["output_space_headers"]))
     else:
       # **************************************************************************
       # * it will be implemented when we decide a strategy about time filtering  *
