@@ -76,24 +76,41 @@ class MOOSEparser:
         IOfile.write(b'  [../]\n')
       IOfile.write(b'[]\n')
 
+  def __findInXML(self,element,name):
+    """Checks if there is a tag with name or binary name in
+    element, and returns the (found,actual_name)"""
+    if element.find(name) is not None:
+      return (True,name)
+    else:
+      binary_name = toBytes(name)
+      if element.find(binary_name) is not None:
+        return (True,binary_name)
+      else:
+        return (False,None)
+
+  def __updateDict(self,dictionary,other):
+    for key in other:
+      if key in dictionary:
+        dictionary[key] = other[key]
+      else:
+        bin_key = toBytes(key)
+        if bin_key in dictionary:
+          dictionary[bin_key] = other[key]
+        else:
+          dictionary[key] = other[key]
+    
+
   def modifyOrAdd(self,modiDictionaryList,save=True):
     '''ModiDictionaryList is a list of dictionaries of the required addition or modification
     -name- key should return a ordered list of the name e.g. ['Components','Pipe']
     the other keywords possible are used as attribute names'''
     if save: returnElement = copy.deepcopy(self.root)         #make a copy if save is requested
     else: returnElement = self.root                           #otherwise return the original modified
+    #print(modiDictionaryList)
     for i in xrange(len(modiDictionaryList)):
       name = modiDictionaryList[i]['name']
       del modiDictionaryList[i]['name']
-      found = False
-      if returnElement.find(name[0])!=None:
-        found = True
-        true_name = name[0]
-      else:
-        binary_name = toBytes(name[0])
-        if returnElement.find(binary_name) != None:
-          true_name = binary_name
-          found = True
+      found,true_name = self.__findInXML(returnElement,name[0])
       if found:   #if the first level name is present
         if 'erase_block' in modiDictionaryList[i].keys():
           if modiDictionaryList[i]['erase_block']:
@@ -101,8 +118,11 @@ class MOOSEparser:
         else:
           child = returnElement.find(true_name)
           if len(name)>1:
-            if child.find(name[1])!=None: child.find(name[1]).attrib.update(modiDictionaryList[i])
-            else: ET.SubElement(child,name[1],modiDictionaryList[i])
+            sub_found, sub_true_name = self.__findInXML(child,name[1])
+            if sub_found:
+              self.__updateDict(child.find(sub_true_name).attrib,modiDictionaryList[i])
+            else:
+              ET.SubElement(child,name[1],modiDictionaryList[i])
           else:
             child.attrib.update(modiDictionaryList[i])
         del true_name
