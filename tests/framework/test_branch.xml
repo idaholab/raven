@@ -38,19 +38,19 @@
   <Print name='testprint_hist_hier_variables'>
     <type>csv</type>
     <source>stories</source>
-    <variables>Output,Input|pipe1_Area</variables>
+    <variables>Output,Input|dummy_for_branch</variables>
   </Print>
   <Print name='testprint_tpset_hier_variables'>
     <type>csv</type>
     <source>timepointset</source>
-    <variables>Output,Input|pipe1_Area</variables>
+    <variables>Output,Input|dummy_for_branch</variables>
   </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
         <plot_settings>
             <plot>
                 <type>line</type>
                 <x>stories|Output|time</x>
-                <y>stories|Output|pipe1_Hw</y>
+                <y>stories|Output|pump_mass_flow_rate</y>
                 <kwargs>
                     <color>green</color>
                     <label>pipe1-Hw</label>
@@ -71,7 +71,7 @@
             <plot>
                 <type>scatter</type>
                 <x>timepointset|Output|time</x>
-                <y>timepointset|Output|pipe1_Hw</y>
+                <y>timepointset|Output|pump_mass_flow_rate</y>
                 <kwargs>
                     <color>green</color>
                     <label>pipe1-Hw</label>
@@ -115,12 +115,12 @@
 </DataBases>
 <Datas>
     <Histories name='stories' hierarchical='true'>
-        <Input>pipe1_Area</Input>
-        <Output>pipe1_Hw</Output>
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate</Output>
    </Histories>
     <TimePointSet name='timepointset' hierarchical='true'>
-        <Input>pipe1_Area,dummy_for_branch</Input>
-        <Output>pipe1_Hw,pump_mass_flow_rate</Output>
+        <Input>dummy_for_branch</Input>
+        <Output>pump_mass_flow_rate</Output>
     </TimePointSet>
 </Datas>
 </Simulation>
