@@ -5,7 +5,7 @@ import sys, os
 app_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
 
 # Set the name of the application here and moose directory relative to the application
-app_name = 'raven'
+app_name = 'RAVEN'
 
 MOOSE_DIR = os.path.abspath(os.path.join(app_path, '..' 'moose'))
 FRAMEWORK_DIR = os.path.abspath(os.path.join(app_path, '..', 'moose', 'framework'))
