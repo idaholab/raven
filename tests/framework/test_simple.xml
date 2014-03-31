@@ -19,10 +19,6 @@
 <Models>
     <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
     <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter>
-    <Filter name='Plot1' subType='Plot'> 
-      <historyID>ALL</historyID>
-      <variables>ALL</variables>
-    </Filter>
 </Models>
 
 <Distributions>

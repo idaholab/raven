@@ -140,7 +140,6 @@ class RavenInterface:
     modifDict['name'] = ['RestartInitialize']
     modifDict['erase_block'] = True
     listDict.append(modifDict)
-    
     del modifDict    
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block

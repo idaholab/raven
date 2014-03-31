@@ -60,9 +60,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         try:   self.dataParameters['time'] = float(time)
         except ValueError: self.dataParameters['time'] = float(time.split(','))
     except KeyError:self.dataParameters['time'] = None
-    # check if input_ts is provided => the time step that the inputs refer to
-    try: self.dataParameters['input_ts'] = int(xmlNode.attrib['input_ts'])
-    except KeyError:self.dataParameters['input_ts'] = None
+    # check if inputTs is provided => the time step that the inputs refer to
+    try: self.dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
+    except KeyError:self.dataParameters['inputTs'] = None
     # check if this data needs to be in hierarchical fashion 
     try:
       if xmlNode.attrib['hierarchical'].lower() in ['true','t','1']: self.dataParameters['hierarchical'] = True
@@ -83,7 +83,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for i in range(len(self.dataParameters['outParam'])):  tempDict['Output_'+str(i)] = self.dataParameters['outParam'][i]
     tempDict['Time'                       ] = self.dataParameters['time']
     tempDict['Hierarchical mode'          ] = self.dataParameters['hierarchical']
-    tempDict['TimeStep of the input space'] = self.dataParameters['input_ts']
+    tempDict['TimeStep of the input space'] = self.dataParameters['inputTs']
     return tempDict
   
   def removeInputValue(self,name):

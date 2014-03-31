@@ -93,16 +93,16 @@ class CsvLoader:
     @ In, options, dictionary of options
     '''
     if   options['type'] == 'TimePoint':
-      return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'],options['input_ts'])
+      return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'])
     elif options['type'] == 'TimePointSet':
-      return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'],options['input_ts'])
+      return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'],options['inputTs'])
     elif options['type'] == 'History':
-      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'],options['input_ts'])
+      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'])
     elif options['type'] == 'Histories':
       listhist_in  = {}
       listhist_out = {}
       for index in xrange(len(filein)):
-        tupleVar = self.__csvLoaderForHistory(filein[index],options['time'],options['inParam'],options['outParam'],options['input_ts'])
+        tupleVar = self.__csvLoaderForHistory(filein[index],options['time'],options['inParam'],options['outParam'],options['inputTs'])
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         listhist_in[index]  = tupleVar[0]
         listhist_out[index] = tupleVar[1]
@@ -112,7 +112,7 @@ class CsvLoader:
       raise IOError ('CSV LOADER : ******ERROR Type ' + options['type'] + 'unknown')
     
   # loader for time point data type
-  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,input_ts):
+  def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,inputTs):
     '''
     @ In, filein = file name
     @ In, time   = time
@@ -133,9 +133,9 @@ class CsvLoader:
       # convert the time in float
       time_end = False
       time_float = float(time)
-    if input_ts: ints = int(input_ts)
+    if inputTs: ints = int(inputTs)
     else: ints = 0
-    if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR input_ts is greater than number of actual ts in file '+ str(filein) + '!')
+    if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR inputTs is greater than number of actual ts in file '+ str(filein) + '!')
        
     #inDict  = inParamDict
     #outDict = outParamDict       
@@ -201,7 +201,7 @@ class CsvLoader:
                 raise Exception("ERROR: the parameter " + key + " has not been found")
     return (inDict,outDict)
 
-  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,input_ts):
+  def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,inputTs):
     '''
     loader for time point set data type
     @ In, filesin = file names
@@ -221,7 +221,7 @@ class CsvLoader:
       # convert the time in float
       time_end = False
       time_float = float(time)
-    if input_ts: ints = int(input_ts)
+    if inputTs: ints = int(inputTs)
     else: ints = 0
     
           
@@ -231,7 +231,7 @@ class CsvLoader:
     for i in range(len(filesin)): 
       #load the data into the numpy array
       data = self.loadCsvFile(filesin[i])
-      if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR input_ts is greater than number of actual ts in file '+ str(filesin[i]) + '!') 
+      if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR inputTs is greater than number of actual ts in file '+ str(filesin[i]) + '!') 
       if i == 0:
         if(self.all_out_param):
           self.field_names = self.all_field_names
@@ -316,7 +316,7 @@ class CsvLoader:
       del data 
     return (inDict,outDict)
 
-  def __csvLoaderForHistory(self,filein,time,inParam,outParam,input_ts):
+  def __csvLoaderForHistory(self,filein,time,inParam,outParam,inputTs):
     '''
     loader for history data type
     @ In, filein = file name
@@ -345,9 +345,9 @@ class CsvLoader:
       
       time_all = True
       #time_float[0] = -1.0
-    if input_ts: ints = int(input_ts)
+    if inputTs: ints = int(inputTs)
     else: ints = 0
-    if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR input_ts is greater than number of actual ts in file '+ str(filein) + '!')    
+    if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR inputTs is greater than number of actual ts in file '+ str(filein) + '!')    
     inDict  = {}
     outDict = {}  
     

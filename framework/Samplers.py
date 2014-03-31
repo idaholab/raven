@@ -92,7 +92,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     In case of a code the syntax is specified by the code interface itself
     '''
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
-    except KeyError: self.initSeed = Distributions.random_integers(0,2**31)
+    except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
     if 'limit' in xmlNode.attrib.keys():
       try: self.limit = int(xmlNode.attrib['limit'])
       except:
@@ -156,7 +156,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in availableDist: {'distribution name':instance}
     '''
     if self.initSeed != None:
-      Distributions.random_seed(self.initSeed)
+      Distributions.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys(): self.distDict[key] = availableDist[self.toBeSampled[key][1]]
     
   def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None,ROM=None):
@@ -166,9 +166,9 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in goalFunction:   in goal oriented sampling this is the function to be used
     '''
     self.counter = 0
-    if   externalSeeding==None: Distributions.random_seed(self.initSeed)            #use the sampler initializzation seed
+    if   externalSeeding==None: Distributions.randomSeed(self.initSeed)            #use the sampler initializzation seed
     elif externalSeeding=='continue': pass                                          #in this case the random sequence wants to be preserved
-    else                            : Distributions.random_seed(externalSeeding)    #the external seeding is used
+    else                            : Distributions.randomSeed(externalSeeding)    #the external seeding is used
     for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution() #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport!=None:
@@ -791,7 +791,7 @@ class LHS(Grid):
     tempFillingCheck = [None]*len(self.axisName) #for all variables
     for i in range(len(tempFillingCheck)):
       tempFillingCheck[i] = [None]*(self.pointByVar-1) #intervals are n-points-1
-      tempFillingCheck[i][:] = Distributions.random_permutation(list(range(self.pointByVar-1))) #pick a random interval sequence
+      tempFillingCheck[i][:] = Distributions.randomPermutation(list(range(self.pointByVar-1))) #pick a random interval sequence
     self.sampledCoordinate = [None]*(self.pointByVar-1)
     for i in range(self.pointByVar-1):
       self.sampledCoordinate[i] = [None]*len(self.axisName)

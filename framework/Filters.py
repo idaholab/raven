@@ -41,23 +41,17 @@ class PrintCSV:
   def collectOutput(self,finishedjob,output):
     # Check the input type 
     if(self.inObj.type == "HDF5"):
-
       #  Input source is a database (HDF5)
-      
       #  Retrieve the ending groups' names
       endGroupNames = self.inObj.getEndingGroupNames()
       histories = {}
 
       #  Construct a dictionary of all the histories
       for index in range(len(endGroupNames)): histories[endGroupNames[index]] = self.inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
-      
       try:
         # not yet implemented 
         outType = output.type
       except AttributeError:
-#        splitted = outObj.split('.')
-#        addfile = splitted[0] + '_additional_info.' + splitted[1]
-#        with open(outObj, 'w') as csvfile, open(addfile, 'w') as addcsvfile:
         #  If file, split the strings and add the working directory if present
         for key in histories:
           #  Loop over histories
@@ -87,8 +81,7 @@ class PrintCSV:
             #  Add history to the csv file
             np.savetxt(csvfile, histories[key][0], delimiter=",",header=toString(headers))
             csvfile.write(b' \n')
-            #  process the attributes in a different csv file (different kind of informations)
-            
+            #  process the attributes in a different csv file (different kind of informations) 
             #  Add metadata to additional info csv file
             addcsvfile.write(b'# History Metadata, \n')
             addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+b'\n')
@@ -185,83 +178,12 @@ class PrintCSV:
     self.workingDir = workingDir
     return
 
-
-class Plot:
-  '''
-    Plot filter class. It plots histories from a database HDF5 or CSV file/s
-  '''
-  def __init__(self):
-    self.paramters = []
-
-  def readMoreXML(self,xmlNode):
-    '''
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode    : Xml element node
-      @ Out, None
-    '''
- #   param = ''
- #   param = xmlNode.text
-    return
-
-  def finalizeFilter(self,inObj,outObj,workingDir=None):
-    '''
-      Function to finalize the filter => execute the filtering 
-      @ In, inObj      : Input object (for example HDF5 object)
-      @ In, outObj     : Output object (Plot type)
-      @ In, workingDir : Working directory (where to store the csvs)
-    '''
-
-    #  Check the input type 
-    if(inObj.type == "HDF5"):
-      #  Input source is a database (HDF5)
-
-      #  Retrieve the ending groups' names
-      endGroupNames = inObj.getEndingGroupNames()
-      histories = {}
-      #  Retrieve histories from HDF5 database
-      for index in range(len(endGroupNames)):
-        histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
-      
-    elif (inObj.type == "CSV"):
-      #  not implemented yet
-      pass
-    else:
-      raise NameError ('Filter Plot for input type ' + inObj.type + ' not yet implemented.')
-    #  Plot the histories
-    fig = [None]*len(endGroupNames)
-    for i in range (len(endGroupNames)):
-      fig[i]=plt.figure()
-      plt.plot(histories[endGroupNames[1]],histories[endGroupNames[i]])
-      plt.xlabel('Time')
-      plt.ylabel(histories[key][1]['headers'][i])
-      plt.title('Plot of history:', i)
-      if (outObj.type == "screen"):
-        plt.show()
-      elif (outObj.type == "jpeg"):
-        fileName=str(histories[endGroupNames[i]])+'.jpeg'
-        fig[i].savefig(fileName,dpi=fig.dpi)  # dpi=fig.dpi is to keep same same figure rendering of show() also for savefig()
-      elif (outObj.type == "png"):
-        fileName=str(histories[endGroupNames[i]])+'.png'
-        fig[i].savefig(fileName,dpi=fig.dpi)
-      elif (outObj.type == "eps"):
-        fileName=str(histories[endGroupNames[i]])+'.eps'
-        fig[i].savefig(fileName,dpi=fig.dpi)        
-      elif (outObj.type == "pdf"):
-        fileName=str(histories[endGroupNames[i]])+'.pdf'
-        fig[i].savefig(fileName,dpi=fig.dpi)        
-      else:
-        raise NameError ('Filter Plot for output type ' + outObj.type + ' not implemented.')  
-    return
-
-
 '''
  Interface Dictionary (factory) (private)
 '''
 __base                          = 'Filter'
 __interFaceDict                 = {}
-__interFaceDict['PrintCSV'] = PrintCSV
-__interFaceDict['Plot'    ] = Plot
+__interFaceDict['PrintCSV']     = PrintCSV
 __knownTypes                    = __interFaceDict.keys()
 
 def knonwnTypes():

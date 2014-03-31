@@ -80,12 +80,12 @@ class Distribution(BaseType):
 def random():
   return stochasticEnv.random()
 
-def random_seed(value):
+def randomSeed(value):
   print(value)
   print(type(value))
   return stochasticEnv.seedRandom(value)
 
-def random_integers(low,high):
+def randomIntegers(low,high):
   int_range = high-low
   raw_num = low + random()*int_range
   raw_int = int(round(raw_num))
@@ -94,11 +94,11 @@ def random_integers(low,high):
     raw_int = max(low,min(raw_int,high))
   return raw_int
   
-def random_permutation(l):
+def randomPermutation(l):
   new_list = []
   old_list = l[:]
   while len(old_list) > 0:
-    new_list.append(old_list.pop(random_integers(0,len(old_list)-1)))
+    new_list.append(old_list.pop(randomIntegers(0,len(old_list)-1)))
   return new_list
 
 class BoostDistribution(Distribution):
@@ -144,14 +144,14 @@ class BoostDistribution(Distribution):
 
 class Uniform(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.low = 0.0
     self.hi = 0.0
     self.type = 'Uniform'
     self.bestQuad = Quadrature.Legendre
 
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self,xmlNode)
+    BoostDistribution.readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception('low value needed for uniform distribution')
@@ -195,7 +195,7 @@ class Uniform(BoostDistribution):
 
 
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self,tempDict)
+    BoostDistribution.addInitParams(self,tempDict)
     tempDict['low'] = self.low
     tempDict['hi'] = self.hi
     # no other additional parameters required
@@ -222,14 +222,14 @@ class Uniform(BoostDistribution):
 
 class Normal(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.mean  = 0.0
     self.sigma = 0.0
     self.type = 'Normal'
     self.bestQuad = Quadrature.StatHermite
 
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean' )
     if mean_find != None: self.mean  = float(mean_find.text)
     else: raise Exception('mean value needed for normal distribution')
@@ -239,7 +239,7 @@ class Normal(BoostDistribution):
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['mean' ] = self.mean
     tempDict['sigma'] = self.sigma
 
@@ -286,7 +286,7 @@ class Normal(BoostDistribution):
     
 class Gamma(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.low = 0.0
     self.alpha = 0.0
     self.beta = 1.0
@@ -294,7 +294,7 @@ class Gamma(BoostDistribution):
     self.bestQuad = Quadrature.Laguerre
 
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self,xmlNode)
+    BoostDistribution.readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception('low value needed for Gamma distribution')
@@ -307,7 +307,7 @@ class Gamma(BoostDistribution):
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self,tempDict)
+    BoostDistribution.addInitParams(self,tempDict)
     tempDict['low'] = self.low
     tempDict['alpha'] = self.alpha
     tempDict['beta'] = self.beta
@@ -339,7 +339,7 @@ class Gamma(BoostDistribution):
 
 class Beta(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.low = 0.0
     self.hi = 0.0
     self.alpha = 0.0
@@ -349,7 +349,7 @@ class Beta(BoostDistribution):
     # TODO default to specific Beta distro?
 
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self,xmlNode)
+    BoostDistribution.readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception('low value needed for Gamma distribution')
@@ -367,7 +367,7 @@ class Beta(BoostDistribution):
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self,tempDict)
+    BoostDistribution.addInitParams(self,tempDict)
     tempDict['low'] = self.low
     tempDict['hi'] = self.hi
     tempDict['alpha'] = self.alpha
@@ -385,7 +385,7 @@ class Beta(BoostDistribution):
 # Add polynomials, shifting, zero-to-one to these!
 class Triangular(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.apex = 0.0
     self.min  = 0.0
     self.max  = 0.0
@@ -393,7 +393,7 @@ class Triangular(BoostDistribution):
     self.bestQuad = None
 
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     apex_find = xmlNode.find('apex')
     if apex_find != None: self.apex = float(apex_find.text)
     else: raise Exception('apex value needed for normal distribution')
@@ -406,15 +406,13 @@ class Triangular(BoostDistribution):
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['apex' ] = self.apex
     tempDict['min'  ] = self.min
     tempDict['max'  ] = self.max
 
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      #c = (self.apex-self.min)/(self.max-self.min)
-      #self._distribution = dist.triang(c,loc=self.min,scale=(self.max-self.min))
       self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
       raise IOError ('Truncated triangular not yet implemented')
@@ -422,24 +420,23 @@ class Triangular(BoostDistribution):
     
 class Poisson(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.mu  = 0.0
     self.type = 'Poisson'
     
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     mu_find = xmlNode.find('mu')
     if mu_find != None: self.mu = float(mu_find.text)
     else: raise Exception('mu value needed for poisson distribution')
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['mu'  ] = self.mu
     
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      #self._distribution = dist.poisson(self.mu)
       self._distribution = distribution1D.BasicPoissonDistribution(self.mu)
     else:
       raise IOError ('Truncated poisson not yet implemented')    
@@ -447,13 +444,13 @@ class Poisson(BoostDistribution):
     
 class Binomial(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.n  = 0.0
     self.p  = 0.0
     self.type = 'Binomial'
     
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     n_find = xmlNode.find('n')
     if n_find != None: self.n = float(n_find.text)
     else: raise Exception('n value needed for Binomial distribution')
@@ -463,7 +460,7 @@ class Binomial(BoostDistribution):
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['n'  ] = self.n
     tempDict['p'  ] = self.p
     
@@ -476,19 +473,19 @@ class Binomial(BoostDistribution):
 
 class Bernoulli(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.p  = 0.0
     self.type = 'Bernoulli'
     
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
     else: raise Exception('p value needed for Bernoulli distribution')
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['p'  ] = self.p
     
   def initializeDistribution(self):
@@ -499,13 +496,13 @@ class Bernoulli(BoostDistribution):
 
 class Logistic(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
     
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     location_find = xmlNode.find('location')
     if location_find != None: self.location = float(location_find.text)
     else: raise Exception('location value needed for Logistic distribution')
@@ -515,7 +512,7 @@ class Logistic(BoostDistribution):
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
-    Distribution.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['location'] = self.location
     tempDict['scale'   ] = self.scale
     
@@ -527,19 +524,19 @@ class Logistic(BoostDistribution):
 
 class Exponential(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.lambda_var = 1.0
     self.type = 'Exponential'
 
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception('lambda value needed for Exponential distribution')
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
-    Distributions.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
     
   def initializeDistribution(self):
@@ -550,13 +547,13 @@ class Exponential(BoostDistribution):
     
 class LogNormal(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.mean = 1.0
     self.sigma = 1.0
     self.type = 'LogNormal'
 
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean')
     if mean_find != None: self.mean = float(mean_find.text)
     else: raise Exception('mean value needed for LogNormal distribution')
@@ -566,7 +563,7 @@ class LogNormal(BoostDistribution):
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
-    Distributions.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['mean' ] = self.mean
     tempDict['sigma'] = self.sigma
     
@@ -578,13 +575,13 @@ class LogNormal(BoostDistribution):
     
 class Weibull(BoostDistribution):
   def __init__(self):
-    Distribution.__init__(self)
+    BoostDistribution.__init__(self)
     self.lambda_var = 1.0
     self.k = 1.0
     self.type = 'Weibull'
 
   def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+    BoostDistribution.readMoreXML(self, xmlNode)
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception('lambda (scale) value needed for Weibull distribution')
@@ -594,7 +591,7 @@ class Weibull(BoostDistribution):
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
-    Distributions.addInitParams(self, tempDict)
+    BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
     tempDict['k'     ] = self.k
     

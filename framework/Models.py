@@ -22,7 +22,7 @@ from BaseType import BaseType
 import SupervisedLearning
 from Filters import returnFilterInterface
 import Samplers
-import CodeInterfaces
+#import CodeInterfaces
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(metaclass_insert(abc.ABCMeta,BaseType)):
@@ -528,16 +528,10 @@ class Code(Model):
   def collectOutput(self,finisishedjob,output,newOutputLoop=True):
     '''collect the output file in the output object'''
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
-    #if output.type == "HDF5": self.__addDataBaseGroup(finisishedjob,output)
-    attributes={}
-    attributes["input_file"] = self.currentInputFiles
-    attributes["type"] = "csv"
-    attributes["name"] = os.path.join(self.workingDir,finisishedjob.output+'.csv')
+    attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     if finisishedjob.identifier in self.infoForOut.keys():
-      #infoForOut = self.infoForOut.pop(finisishedjob.identifier)
       for key in self.infoForOut[finisishedjob.identifier].keys(): attributes[key] = self.infoForOut[finisishedjob.identifier][key]
-  
-    try:output.addGroup(attributes,attributes)
+    try:                   output.addGroup(attributes,attributes)
     except AttributeError: output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
 #
 #
@@ -566,7 +560,7 @@ class Projector(Model):
     #   directory with the starting input files
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
-    try: os.mkdir(self.workingDir)
+    try:                   os.mkdir(self.workingDir)
     except AttributeError: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
