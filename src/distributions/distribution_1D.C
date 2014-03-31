@@ -838,6 +838,9 @@ BasicPoissonDistribution::InverseCdf(double x){
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
    
+   if(x == 1.0) {
+     return xMax;
+   }
    if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
       double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
