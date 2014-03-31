@@ -455,22 +455,20 @@ class Code(Model):
     !!!!generate also the code interface for the proper type of code!!!!'''
     import CodeInterfaces
     Model.readMoreXML(self, xmlNode)
-    
-    if 'executable' in xmlNode.attrib.keys(): self.executable = xmlNode.attrib['executable']
-    else: 
-      try: self.executable = str(xmlNode.text)
-      except IOError: raise Exception ('not found the attribute executable in the definition of the code model '+str(self.name))
+
     for child in xmlNode:
-      if child.tag=='alias':
+      if child.tag=='executable': 
+        self.executable = str(child.text)
+      elif child.tag=='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
         else: raise Exception ('not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
       else: raise Exception ('unknown tag within the definition of the code model '+str(self.name))
-
+    if self.executable == '': raise IOError('MODEL CODE    : not found the node <executable> in the body of the code model '+str(self.name))
     abspath = os.path.abspath(self.executable)
     if os.path.exists(abspath):
       self.executable = abspath
-    else: print('not found executable '+xmlNode.text)
+    else: print('not found executable '+self.executable)
 #    self.code = __import__(self.subType) #importing the proper code interface
     self.code = CodeInterfaces.returnCodeInterface(self.subType)
     print('please finisih the importing of avaialbel codes and vlaid interface form the codeInterfaces')

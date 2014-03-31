@@ -17,7 +17,7 @@
     </Uniform>
 </Distributions>
 <Models>
-    <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
     <ROM  name='ROM1' subType='SVMscikitLearn' target_response_name='CladTempTreshold'>
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempTreshold</Target>

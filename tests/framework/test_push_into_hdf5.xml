@@ -7,7 +7,7 @@
     <batchSize>3</batchSize>
 </RunInfo>
 <Models>
-    <Code name='MyRAVEN' subType='RAVEN'>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</Code>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
 </Models>
 <Samplers>
   <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>     

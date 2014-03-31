@@ -13,12 +13,15 @@
        I added here the two different codes (from the framework point of view) in order to show how the input changes when we use the alias system.
                                       Search for 'noalias' in order to compare. Andrea
      -->
-    <Code name='Bison' subType='MooseBasedApp' executable='%FRAMEWORK_DIR%/../../bison/bison-%METHOD%'>
+    <Code name='Bison' subType='MooseBasedApp'>
+        <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
         <alias variable='tc_heat1'>Materials|heat1|thermal_conductivity</alias>
         <alias variable='tc_heat2'>Materials|heat2|thermal_conductivity</alias>
     </Code>
     <!-- You can define the code, when there are no alias, in the following way -->
-    <Code name='Bison_code_noalias' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</Code>
+    <Code name='Bison_code_noalias' subType='MooseBasedApp'>
+        <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+    </Code>
     <!-- or <Code name='Bison' subType='MooseBasedApp' executable='%FRAMEWORK_DIR%/../../bison/bison-%METHOD%'/> -->
 </Models>
 

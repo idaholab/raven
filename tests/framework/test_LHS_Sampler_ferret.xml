@@ -9,7 +9,7 @@
 </RunInfo>
 
 <Models>
-    <Code name='Ferret' subType='MooseBasedApp'>%FRAMEWORK_DIR%/../../ferret/ferret-%METHOD%</Code>
+    <Code name='Ferret' subType='MooseBasedApp'><executable>%FRAMEWORK_DIR%/../../ferret/ferret-%METHOD%</executable></Code>
 </Models>
 
 <Distributions>
