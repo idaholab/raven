@@ -333,6 +333,7 @@ class Simulation(object):
   def __createAbsPath(self,filein):
     '''assuming that the file in is already in the self.filesDict it places, as value, the absolute path'''
     print('FIXME: how can I use continuation lines in the xml')
+    if '~' in filein : filein = os.path.expanduser(filein)
     if not os.path.isabs(filein):
       self.filesDict[filein] = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
   
@@ -394,8 +395,9 @@ class Simulation(object):
         print("SIMULATION    : WARNING: Skipped element ",element.tag)
       elif   element.tag == 'WorkingDir'        :
         temp_name = element.text
-        if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = element.text
-        else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(element.text)
+        if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
+        if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
+        else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()

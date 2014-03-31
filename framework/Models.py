@@ -373,6 +373,7 @@ class ExternalModel(Dummy):
       self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
       if (os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0] != ''):
         abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
+        if '~' in abspath:abspath = os.path.expanduser(abspath)
         if os.path.exists(abspath): os.sys.path.append(abspath)
         else: raise IOError('MODEL EXTERNAL: ERROR -> The path provided for the external model does not exist!!! Got ' + abspath)
     else: raise IOError('MODEL EXTERNAL: ERROR -> ModuleToLoad not provided for module externalModule')
@@ -465,6 +466,7 @@ class Code(Model):
         else: raise Exception ('not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
       else: raise Exception ('unknown tag within the definition of the code model '+str(self.name))
     if self.executable == '': raise IOError('MODEL CODE    : not found the node <executable> in the body of the code model '+str(self.name))
+    if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
     abspath = os.path.abspath(self.executable)
     if os.path.exists(abspath):
       self.executable = abspath
