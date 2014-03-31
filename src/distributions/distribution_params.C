@@ -14,8 +14,8 @@ InputParameters validParams<distribution>(){
 
    InputParameters params = validParams<RavenObject>();
 
-   params.addParam<double>("xMin", -std::numeric_limits<double>::max( ),"Lower bound");
-   params.addParam<double>("xMax", std::numeric_limits<double>::max( ),"Upper bound");
+   params.addParam<double>("xMin", "Lower bound");
+   params.addParam<double>("xMax", "Upper bound");
 
    params.addParam<double>("PB_window_Low", 0.0, "Probability window lower bound");
    params.addParam<double>("PB_window_Up" , 1.0, "Probability window upper bound");
@@ -40,8 +40,14 @@ distribution::distribution(const std::string & name, InputParameters parameters)
 {
    _type=getParam<std::string>("type");
    if(_type != "CustomDistribution"){
-      _dis_parameters["xMin"] = getParam<double>("xMin");
-      _dis_parameters["xMax"] = getParam<double>("xMax");
+     if(parameters.isParamValid("xMin")) {
+       _dis_parameters["xMin"] = getParam<double>("xMin");
+     }
+     
+     if(parameters.isParamValid("xMax")) {
+       _dis_parameters["xMax"] = getParam<double>("xMax");
+     }
+     
    }
    else
    {

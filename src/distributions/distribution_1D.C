@@ -101,6 +101,18 @@ BasicTruncatedDistribution::InverseCdf(double x){
   double value;
   double xMin = _dis_parameters.find("xMin") ->second;
   double xMax = _dis_parameters.find("xMax") ->second;
+  if(x == 0.0) {
+    //Using == in floats is generally a bad idea, but 
+    // 0.0 can be represented exactly.
+    //In this case, return the minimum value
+    return xMin;
+  }
+  if(x == 1.0) {
+    //Using == in floats is generally a bad idea, but 
+    // 1.0 can be represented exactly.
+    //In this case, return the maximum value
+    return xMax;
+  }
   if(_force_dist == 0){
     if (_dis_parameters.find("truncation") ->second == 1){
       double temp=untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
@@ -461,10 +473,10 @@ BasicTriangularDistribution::BasicTriangularDistribution(double xPeak, double lo
     _dis_parameters["truncation"] = 1.0;
   }
   if(not hasParameter("xMin")) {
-    _dis_parameters["xMin"] = -std::numeric_limits<double>::max( );
+    _dis_parameters["xMin"] = lowerBound;
   }
   if(not hasParameter("xMax")) {
-    _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
+    _dis_parameters["xMax"] = upperBound;
   }
      
     
@@ -614,7 +626,7 @@ BasicGammaDistribution::BasicGammaDistribution(double k, double theta, double lo
     _dis_parameters["truncation"] = 1.0;
   }
   if(not hasParameter("xMin")) {
-    _dis_parameters["xMin"] = -std::numeric_limits<double>::max( );
+    _dis_parameters["xMin"] = low;
   }
   if(not hasParameter("xMax")) {
     _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
@@ -635,10 +647,11 @@ BasicGammaDistribution::~BasicGammaDistribution()
 
 double
 BasicGammaDistribution::untrCdf(double x){
+  double low = _dis_parameters.find("low") ->second;
   if(x > 1.0e100) {
     return 1.0;
-  } else if(x >= 0) {
-    return _backend->cdf(x);
+  } else if(x >= low) {
+    return _backend->cdf(x - low);
   } else  {
     return 0.0;
   } 
@@ -646,21 +659,15 @@ BasicGammaDistribution::untrCdf(double x){
 
 
 double
-BasicGammaDistribution::Pdf(double x){
+BasicGammaDistribution::untrPdf(double x){
   double low = _dis_parameters.find("low") ->second;
-  return BasicTruncatedDistribution::Pdf(x - low);
+  return BasicTruncatedDistribution::untrPdf(x - low);
 }
 
 double
-BasicGammaDistribution::Cdf(double x){
-   double low = _dis_parameters.find("low") ->second;
-   return BasicTruncatedDistribution::Cdf(x - low);
-}
-
-double
-BasicGammaDistribution::InverseCdf(double x){
+BasicGammaDistribution::untrInverseCdf(double x){
   double low = _dis_parameters.find("low") ->second;
-  return BasicTruncatedDistribution::InverseCdf(x) + low;
+  return BasicTruncatedDistribution::untrInverseCdf(x) + low;
 }
 
 /*
@@ -689,7 +696,7 @@ BasicBetaDistribution::BasicBetaDistribution(double alpha, double beta, double s
     _dis_parameters["truncation"] = 1.0;
   }
   if(not hasParameter("xMin")) {
-    _dis_parameters["xMin"] = -std::numeric_limits<double>::max( );
+    _dis_parameters["xMin"] = 0.0;
   }
   if(not hasParameter("xMax")) {
     _dis_parameters["xMax"] = std::numeric_limits<double>::max( );

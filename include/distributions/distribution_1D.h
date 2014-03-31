@@ -195,11 +195,10 @@ public:
   BasicGammaDistribution(double k, double theta, double low);
   virtual ~BasicGammaDistribution();
 
-  double  Pdf(double x);                ///< Pdf function at coordinate x
-  double  Cdf(double x);                ///< Cdf function at coordinate x
-  double  InverseCdf(double x);        ///< x
+  double  untrPdf(double x);                ///< Pdf function at coordinate x
+  double  untrCdf(double x);                ///< Cdf function at coordinate x
+  double  untrInverseCdf(double x);        ///< x
   
-  double  untrCdf(double x);
 };
 
 /*
