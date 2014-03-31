@@ -96,7 +96,7 @@
       <source>TimePointSets</source>
     </Print>
   <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
-    <plot_settings>
+    <plotSettings>
        <plot>
         <type>line</type>
         <x>stories|Output|time</x>
@@ -117,7 +117,7 @@
       </plot>
       <xlabel>time [s]</xlabel>
       <ylabel>evolution</ylabel>
-    </plot_settings>
+    </plotSettings>
     <actions>
       <how>pdf,png,eps</how>
       <title>
