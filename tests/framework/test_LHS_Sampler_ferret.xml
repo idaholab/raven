@@ -27,14 +27,14 @@
 </Distributions>
 <Samplers>
     <LHS name='myLHS'>
-      <Variable name='BCs|left|value' >
+      <variable name='BCs|left|value' >
         <distribution type='Normal'>Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
-      </Variable>
-      <Variable name='BCs|right|value'>
+      </variable>
+      <variable name='BCs|right|value'>
         <distribution type='Uniform'>Uniform1</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
-      </Variable>
+      </variable>
     </LHS>
 </Samplers>
 

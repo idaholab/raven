@@ -28,14 +28,14 @@
 </Distributions>
 <Samplers>
     <LHS name='myLHS' initial_seed ='1'>
-      <Variable name='Materials|heat1|thermal_conductivity' >
+      <variable name='Materials|heat1|thermal_conductivity' >
         <distribution type='Triangular' >DistTri1</distribution>
         <grid         type='value'      construction='custom'>0.02 0.5 0.6 0.8</grid>
-      </Variable>
-      <Variable name='Materials|heat2|thermal_conductivity'>
+      </variable>
+      <variable name='Materials|heat2|thermal_conductivity'>
         <distribution type='Normal'>Gauss1</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
-      </Variable>
+      </variable>
     </LHS>
 </Samplers>
 

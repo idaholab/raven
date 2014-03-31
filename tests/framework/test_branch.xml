@@ -21,9 +21,9 @@
 
 <Samplers>
   <DynamicEventTree name='DET_test' print_end_xml="False">
-      <varibale name='zeroToOne' >
+      <variable name='zeroToOne' >
         <distribution type='Uniform' ProbabilityThresholds='0.1 0.5 0.8'>zeroToOne</distribution>
-      </varibale>  
+      </variable>  
   </DynamicEventTree>   
 </Samplers>
 <OutStreamManager>

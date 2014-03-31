@@ -32,7 +32,6 @@ class PrintCSV:
       @ In, xmlNode    : Xml element node
       @ Out, None
     '''
-    param = ''
     param = xmlNode.text
     if(param.lower() != 'all'): self.paramters = param.strip().split(',')
     else: self.paramters.append(param) 

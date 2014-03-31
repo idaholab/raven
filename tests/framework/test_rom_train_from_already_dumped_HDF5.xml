@@ -28,12 +28,12 @@
 </Models>
 <Samplers>
   <MonteCarlo     name='RAVENmc3'  limit='2' initial_seed='200286'>
-    <Variable name='DeltaTimeScramToAux'>
+    <variable name='DeltaTimeScramToAux'>
       <distribution type='Uniform'>auxbackup</distribution>
-    </Variable>
-    <Variable name='DG1recoveryTime'>
+    </variable>
+    <variable name='DG1recoveryTime'>
       <distribution type='Uniform'>DG1backup</distribution>
-    </Variable>
+    </variable>
   </MonteCarlo>
 </Samplers>
 <Steps> 

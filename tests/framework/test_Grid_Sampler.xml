@@ -34,18 +34,18 @@
 </Distributions>
 <Samplers>
     <Grid name='myGrid'>
-      <varibale name='VarGauss1' >
+      <variable name='VarGauss1' >
         <distribution type='Normal'>Gauss1</distribution>
         <grid         type='value' construction='custom' >0.02 0.5 0.6</grid>
-      </varibale>
-      <varibale name='VarGauss2' >
+      </variable>
+      <variable name='VarGauss2' >
         <distribution type='Normal' >Gauss2</distribution>
         <grid         type='CDF'    construction='custom'>0.5 1.0 0.0</grid>
-      </varibale>
-      <varibale name='VarTri1'>
+      </variable>
+      <variable name='VarTri1'>
         <distribution type='Triangular' >DistTri1</distribution>
         <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
-      </varibale>
+      </variable>
     </Grid>
 </Samplers>
 

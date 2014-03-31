@@ -104,8 +104,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
             #Add <distribution> to name so we know it is not the direct variable
             print('FIXME: #Add <distribution> to name so we know it is not the direct variable# does not seems to be bullet proof please talk to me Cristian')
             self.toBeSampled["<distribution>"+child.attrib['name']] = [childChild.attrib['type'],childChild.text]
-          else:
-            self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
+          elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
+          else: raise IOError('SAMPLER       : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
     self.localInputAndChecks(xmlNode)
 
   def localInputAndChecks(self,xmlNode):

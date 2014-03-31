@@ -38,14 +38,14 @@
 </Distributions>
 <Samplers>
     <LatinHyperCube name='myLHS' initial_seed ='1'>
-      <Variable name='BCs|freesurf_temp|value' >
+      <variable name='BCs|freesurf_temp|value' >
         <distribution type='Normal'>Gauss1</distribution>
         <grid type='CDF' construction='equal' lowerBound='0.01' steps='9'>0.1</grid>
-      </Variable>
-      <Variable name='BCs|exterior_pressure_y|factor'>
+      </variable>
+      <variable name='BCs|exterior_pressure_y|factor'>
         <distribution type='Normal'>Gauss2</distribution>
         <grid type='CDF' construction='equal' upperBound='0.99' steps='9'>0.1</grid>
-      </Variable>
+      </variable>
     </LatinHyperCube>
 </Samplers>
 
