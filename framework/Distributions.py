@@ -135,9 +135,6 @@ class BoostDistribution(Distribution):
       return self.ppf(random())
     else:
       return [self.rvs() for x in range(args[0])]
-
-
-
 #==============================================================\
 #    Distributions convenient for stochastic collocation
 #==============================================================\
@@ -162,6 +159,13 @@ class Uniform(BoostDistribution):
     else: raise Exception('hi or high value needed for uniform distribution')
 #    self.initializeDistribution() this call is done by the sampler each time a new step start
     self.range=self.hi-self.low
+    # check if lower or upper bounds are set, otherwise default 
+    if not self.upperBoundUsed: 
+      self.upperBoundUsed = True
+      self.upperBound     = self.hi
+    if not self.lowerBoundUsed: 
+      self.lowerBoundUsed = True
+      self.lowerBound     = self.low 
     #assign associated polynomial types
     self.polynomial = polys.legendre
     #define functions locally, then point to them
@@ -191,8 +195,6 @@ class Uniform(BoostDistribution):
     self.std_point = actualToStandardPoint
     self.actual_weight = standardToActualWeight
     self.probability_norm = probNorm
-
-
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
@@ -304,6 +306,10 @@ class Gamma(BoostDistribution):
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
     else: self.beta=1.0
+    # check if lower bound are set, otherwise default 
+    if not self.lowerBoundUsed: 
+      self.lowerBoundUsed = True
+      self.lowerBound     = self.low 
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -364,6 +370,13 @@ class Beta(BoostDistribution):
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
     else: raise Exception('beta value needed for Gamma distribution')
+    # check if lower or upper bounds are set, otherwise default 
+    if not self.upperBoundUsed: 
+      self.upperBoundUsed = True
+      self.upperBound     = self.hi
+    if not self.lowerBoundUsed: 
+      self.lowerBoundUsed = True
+      self.lowerBound     = self.low 
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -403,6 +416,13 @@ class Triangular(BoostDistribution):
     max_find = xmlNode.find('max')
     if max_find != None: self.max = float(max_find.text)
     else: raise Exception('max value needed for normal distribution')
+    # check if lower or upper bounds are set, otherwise default 
+    if not self.upperBoundUsed: 
+      self.upperBoundUsed = True
+      self.upperBound     = self.max
+    if not self.lowerBoundUsed: 
+      self.lowerBoundUsed = True
+      self.lowerBound     = self.min
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -412,7 +432,7 @@ class Triangular(BoostDistribution):
     tempDict['max'  ] = self.max
 
   def initializeDistribution(self):
-    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+    if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.min == self.lowerBound and self.max == self.upperBound):
       self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
       raise IOError ('Truncated triangular not yet implemented')
@@ -533,6 +553,10 @@ class Exponential(BoostDistribution):
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception('lambda value needed for Exponential distribution')
+    # check if lower bound is set, otherwise default 
+    if not self.lowerBoundUsed: 
+      self.lowerBoundUsed = True
+      self.lowerBound     = 0.0
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
@@ -540,7 +564,7 @@ class Exponential(BoostDistribution):
     tempDict['lambda'] = self.lambda_var
     
   def initializeDistribution(self):
-    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+    if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.lowerBound == 0.0):
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var)
     else:
       raise IOError ('Truncated Exponential not yet implemented')
@@ -588,6 +612,11 @@ class Weibull(BoostDistribution):
     k_find = xmlNode.find('k')
     if k_find != None: self.k = float(k_find.text)
     else: raise Exception('k (shape) value needed for Weibull distribution')
+    # check if lower  bound is set, otherwise default 
+    if not self.lowerBoundUsed: 
+      self.lowerBoundUsed = True
+      # lower bound = 0 since no location parameter available
+      self.lowerBound     = 0.0
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):
@@ -596,7 +625,7 @@ class Weibull(BoostDistribution):
     tempDict['k'     ] = self.k
     
   def initializeDistribution(self):
-    if self.lowerBoundUsed == False and self.upperBoundUsed == False:
+    if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or self.lowerBound == 0.0:
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
     else:
       raise IOError ('Truncated Weibull not yet implemented')

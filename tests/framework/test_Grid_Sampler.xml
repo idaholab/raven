@@ -29,7 +29,7 @@
     <Triangular name='DistTri1'>
         <apex>1</apex>
         <min>-0.1</min>
-        <max>3</max>
+        <max>4</max>
     </Triangular>
 </Distributions>
 <Samplers>
