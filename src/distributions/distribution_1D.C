@@ -936,6 +936,65 @@ BasicBernoulliDistribution::~BasicBernoulliDistribution()
   delete _backend;
 }
 
+BasicConstantDistribution::BasicConstantDistribution(double value){
+  _value = value;
+}
+BasicConstantDistribution::~BasicConstantDistribution(){}
+double  BasicConstantDistribution::Pdf(double x){
+  return untrPdf(x);
+}
+double  BasicConstantDistribution::Cdf(double x){
+  return untrCdf(x);
+}
+double  BasicConstantDistribution::InverseCdf(double x){
+  return untrInverseCdf(x);
+}
+
+double BasicConstantDistribution::untrPdf(double x){
+  if(x == _value){
+    return std::numeric_limits<double>::max( )/2.0;
+  } else {
+    return 0.0;
+  }
+}
+
+double BasicConstantDistribution::untrCdf(double x){
+  if(x < _value) {
+    return 0.0;    
+  } else if(x > _value) {
+    return 1.0;
+  } else {
+    return 0.5;
+  }
+}
+
+double BasicConstantDistribution::untrCdfComplement(double){
+  throwError("Not Implemented");
+  return _value;
+}
+
+double BasicConstantDistribution::untrInverseCdf(double){
+  return _value;
+}
+
+double BasicConstantDistribution::untrMean(){
+  return _value;
+}
+
+double BasicConstantDistribution::untrMedian(){
+  return _value;
+}
+
+double BasicConstantDistribution::untrMode(){
+  return _value;
+}
+
+double BasicConstantDistribution::untrHazard(double x){
+  throwError("Not implemented");
+  return _value;
+}
+
+
 /*
  * CLASS CUSTOM DISTRIBUTION
  */

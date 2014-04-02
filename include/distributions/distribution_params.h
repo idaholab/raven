@@ -152,6 +152,19 @@ public:
   virtual ~BernoulliDistribution();
 };
 
+class ConstantDistribution;
+
+template<>
+InputParameters validParams<ConstantDistribution>();
+
+class ConstantDistribution : public distribution, public BasicConstantDistribution {
+public:
+  ConstantDistribution(const std::string & name, InputParameters parameters);
+  virtual ~ConstantDistribution();
+};
+
+
+
 // template<>
 // InputParameters validParams<CustomDistribution>();
 

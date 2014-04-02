@@ -265,6 +265,25 @@ public:
 };
 
 
+class BasicConstantDistribution : public virtual BasicDistribution {
+public:
+  BasicConstantDistribution(double value);
+  virtual ~BasicConstantDistribution();
+  double  Pdf(double x);           ///< Pdf function at coordinate x
+  double  Cdf(double x);           ///< Cdf function at coordinate x
+  double  InverseCdf(double);    ///< x
+
+  double untrPdf(double x);
+  double untrCdf(double x);
+  double untrCdfComplement(double x);
+  double untrInverseCdf(double);
+  double untrMean();
+  double untrMedian();
+  double untrMode();
+  double untrHazard(double x);
+protected: 
+  double _value;
+};
 
 /*
  * CLASS CUSTOM DISTRIBUTION

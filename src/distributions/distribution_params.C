@@ -384,6 +384,29 @@ BernoulliDistribution::~BernoulliDistribution()
 }
 
 /*
+ * CLASS CONSTANT DISTRIBUTION
+ */
+
+template<>
+InputParameters validParams<ConstantDistribution>(){
+
+   InputParameters params = validParams<distribution>();
+
+   params.addRequiredParam<double>("value", "the value this distribution always returns");
+   return params;
+}
+
+ConstantDistribution::ConstantDistribution(const std::string & name, InputParameters parameters):
+  distribution(name,parameters),
+  BasicConstantDistribution(getParam<double>("value"))
+{
+}
+
+ConstantDistribution::~ConstantDistribution()
+{
+}
+
+/*
  * CLASS CUSTOM DISTRIBUTION
  */
 

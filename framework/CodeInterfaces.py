@@ -180,16 +180,14 @@ class RavenInterface:
 
   def gridForRAVEN(self,**Kwargs):
     """Uses point sampler to generate variable points, and 
-    modifies distributions to be normal distribution with small sigma
+    modifies distributions to be a zerowidth (constant) distribution
     at the grid point.  
-    XXX, this should probable use a zerowidth (constant) distribution 
     """
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
       distName = distributions[key][1]
-      listDict.append({'name':['Distributions',distName],'mu':distributions[key][0]})
-      listDict.append({'name':['Distributions',distName],'sigma':1e-10})
-      listDict.append({'name':['Distributions',distName],'type':'NormalDistribution'})
+      listDict.append({'name':['Distributions',distName],'value':distributions[key][0]})
+      listDict.append({'name':['Distributions',distName],'type':'ConstantDistribution'})
     #print("listDict",listDict,"distributions",distributions)
     return listDict
   
