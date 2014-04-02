@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>./mode_test</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>3</batchSize>
+    <CustomMode file="./mode_test/new_mode.py" class="NewMode">a_new_mode</CustomMode>
+    <mode>a_new_mode</mode>
+    <!--<ParallelCommand></ParallelCommand>
+    <NumMPI></NumMPI>
+    <ThreadingCommand></ThreadingCommand>
+    <NumThreads></NumThreads>
+    <numNode></numNode>
+    <quequingSoftware></quequingSoftware>
+    <procByNode></procByNode>
+    <numProcByRun></numProcByRun>
+    <totalNumCoresUsed></totalNumCoresUsed>-->
+</RunInfo>
+
+<Models>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
+    <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter>
+</Models>
+
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='auxBackUpTimeDist'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>    
+    <Normal name='Gauss2'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='CladFailureDist'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>3</max>
+    </Triangular>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo     name='RAVENmc6'  limit='2' />
+</Samplers>
+<Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+</Tests>
+<Steps>
+    <MultiRun name='FirstMRun' initial_seed='1'>
+        <Input   class='Files'     type=''>ideal_pump.i</Input>
+        <Input   class='Files'     type=''>ideal_pump_control.py</Input>
+        <Model   class='Models'    type='Code'      >MyRAVEN</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'>RAVENmc6</Sampler>
+        <Output  class='DataBases' type='HDF5' >testMCDataBase</Output>
+        <Output  class='Datas'     type='Histories' >stories</Output>
+    </MultiRun >
+</Steps>
+<DataBases>
+    <HDF5 name="testMCDataBase"/> 
+</DataBases>
+<Datas>
+    <Histories name='stories'>
+        <Input>pipe1_Area</Input>
+        <Output>pipe1_Hw</Output>
+   </Histories>
+</Datas>
+</Simulation>
+
+
+

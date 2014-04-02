@@ -288,6 +288,11 @@ class Simulation(object):
     self.knownQuequingSoftware.append('None')
     self.knownQuequingSoftware.append('PBS Professional')
 
+    #Dictionary of mode handlers
+    self.__modeHandlerDict = {}
+    self.__modeHandlerDict['pbsdsh'] = PBSDSHSimulationMode
+    self.__modeHandlerDict['mpi'] = MPISimulationMode
+
     #Class Dictionary when a new function is added to the simulation this dictionary need to be expanded
     #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
     self.addWhatDict  = {}
@@ -413,17 +418,31 @@ class Simulation(object):
       elif element.tag == 'mode'              : 
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
-        if self.runInfoDict['mode'] == 'pbsdsh':
-          self.__modeHandler = PBSDSHSimulationMode(self)
-        elif self.runInfoDict['mode'] == 'mpi':
-          self.__modeHandler = MPISimulationMode(self)
-        self.__modeHandler.XMLread(element)
+        if self.runInfoDict['mode'] in self.__modeHandlerDict:
+          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
+          self.__modeHandler.XMLread(element)
+        else:
+          raise IOError("Unknown mode "+self.runInfoDict['mode'])
       elif element.tag == 'expectedTime'      : self.runInfoDict['expectedTime'      ] = element.text.strip()
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
       elif element.tag == 'Files':
         for fileName in element.text.split(','): self.filesDict[fileName] = fileName.strip()
       elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
+      elif element.tag == 'CustomMode' : 
+        modeName = element.text.strip()
+        modeClass = element.attrib["class"]
+        modeFile = element.attrib["file"]
+        modeDir, modeFilename = os.path.split(modeFile)
+        if modeFilename.endswith(".py"):
+          modeModulename = modeFilename[:-3]
+        else:
+          modeModulename = modeFilename
+        os.sys.path.append(modeDir)
+        module = __import__(modeModulename)
+        if modeName in self.__modeHandlerDict:
+          print("SIMULATION    : WARNING: duplicate mode definition",modeName)
+        self.__modeHandlerDict[modeName] = module.__dict__[modeClass]
       else:
         print("SIMULATION    : WARNING: Unhandled element ",element.tag)
 
