@@ -416,11 +416,11 @@ class ExternalModel(Dummy):
       output.addGroupDatas({'group':str(self.counter)},self.modelVariableValues)
     else:
       if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
-      for inputName in output.dataParameters['inParam']:
+      for inputName in output.getParaKeys('inputs'):
         if not (typeMatch(self.modelVariableValues[inputName],self.modelVariableType[inputName])):
           raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' is ' + str(type(self.modelVariableValues[inputName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[inputName] +')!!!')
         output.updateInputValue(inputName,self.modelVariableValues[inputName])
-      for outName in output.dataParameters['outParam']:
+      for outName in output.getParaKeys('outputs'):
         if not (typeMatch(self.modelVariableValues[outName],self.modelVariableType[outName])):
           raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ outName + ' is ' + str(type(self.modelVariableValues[outName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[outName] +')!!!')
         output.updateOutputValue(outName,self.modelVariableValues[outName])   

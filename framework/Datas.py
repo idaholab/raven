@@ -27,18 +27,18 @@ class ConstructError(Exception):
 class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def __init__(self,inParamValues = None, outParamValues = None):
     BaseType.__init__(self)
-    self.dataParameters = {}                                         # in here we store all the data parameters (inputs params, output params,etc) 
-    self.dataParameters['inParam'     ] = []                         # inParam list
-    self.dataParameters['outParam'    ] = []                         # outParam list
-    self.dataParameters['hierarchical'] = False                      # the structure of this data is hierarchical?
-    self.toLoadFromList                 = []                         # loading source    
-    self.dataContainer                  = {'inputs':{},'outputs':{}} # Dict that contains the actual data. self.dataContainer['inputs'] contains the input space, self.dataContainer['output'] the output space          
+    self._dataParameters = {}                                         # in here we store all the data parameters (inputs params, output params,etc) 
+    self._dataParameters['inParam'     ] = []                         # inParam list
+    self._dataParameters['outParam'    ] = []                         # outParam list
+    self._dataParameters['hierarchical'] = False                      # the structure of this data is hierarchical?
+    self._toLoadFromList                 = []                         # loading source    
+    self._dataContainer                  = {'inputs':{},'outputs':{}} # Dict that contains the actual data. self._dataContainer['inputs'] contains the input space, self._dataContainer['output'] the output space          
     if inParamValues: 
       if type(inParamValues) != 'dict': raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
-      self.dataContainer['inputs'] = inParamValues
+      self._dataContainer['inputs'] = inParamValues
     if outParamValues: 
       if type(outParamValues) != 'dict': raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
-      self.dataContainer['outputs'] = outParamValues
+      self._dataContainer['outputs'] = outParamValues
                          
   def readMoreXML(self,xmlNode):
     '''
@@ -46,44 +46,44 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, xmlNode, xml node
     '''
     # retrieve input parameters' keywords
-    self.dataParameters['inParam']  = xmlNode.find('Input' ).text.strip().split(',')
+    self._dataParameters['inParam']  = xmlNode.find('Input' ).text.strip().split(',')
     # retrieve output parameters' keywords
-    self.dataParameters['outParam'] = xmlNode.find('Output').text.strip().split(',')
+    self._dataParameters['outParam'] = xmlNode.find('Output').text.strip().split(',')
     # retrieve history name if present
-    try:   self.dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
-    except KeyError:self.dataParameters['history'] = None
+    try:   self._dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
+    except KeyError:self._dataParameters['history'] = None
     try:
       # check if time information are present... in case, store it
       time = xmlNode.attrib['time']
-      if time == 'end' or time == 'all': self.dataParameters['time'] = time 
+      if time == 'end' or time == 'all': self._dataParameters['time'] = time 
       else:
-        try:   self.dataParameters['time'] = float(time)
-        except ValueError: self.dataParameters['time'] = float(time.split(','))
-    except KeyError:self.dataParameters['time'] = None
+        try:   self._dataParameters['time'] = float(time)
+        except ValueError: self._dataParameters['time'] = float(time.split(','))
+    except KeyError:self._dataParameters['time'] = None
     # check if inputTs is provided => the time step that the inputs refer to
-    try: self.dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
-    except KeyError:self.dataParameters['inputTs'] = None
+    try: self._dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
+    except KeyError:self._dataParameters['inputTs'] = None
     # check if this data needs to be in hierarchical fashion 
     try:
-      if xmlNode.attrib['hierarchical'].lower() in ['true','t','1']: self.dataParameters['hierarchical'] = True
-      else: self.dataParameters['hierarchical'] = False
-      if self.dataParameters['hierarchical'] and not self.acceptHierarchical(): 
+      if xmlNode.attrib['hierarchical'].lower() in ['true','t','1']: self._dataParameters['hierarchical'] = True
+      else: self._dataParameters['hierarchical'] = False
+      if self._dataParameters['hierarchical'] and not self.acceptHierarchical(): 
         print("DATAS     : WARNING -> hierarchical fashion is not available (No Sense) for Data named "+ self.name + "of type " + self.type + "!!!")
-        self.dataParameters['hierarchical'] = False
+        self._dataParameters['hierarchical'] = False
       else: 
         self.TSData = None
-    except KeyError:self.dataParameters['hierarchical'] = False 
+    except KeyError:self._dataParameters['hierarchical'] = False 
       
   def addInitParams(self,tempDict):
     '''
     Function to get the input params that belong to this class
     @ In, tempDict, temporary dictionary
     '''
-    for i in range(len(self.dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self.dataParameters['inParam' ][i]
-    for i in range(len(self.dataParameters['outParam'])):  tempDict['Output_'+str(i)] = self.dataParameters['outParam'][i]
-    tempDict['Time'                       ] = self.dataParameters['time']
-    tempDict['Hierarchical mode'          ] = self.dataParameters['hierarchical']
-    tempDict['TimeStep of the input space'] = self.dataParameters['inputTs']
+    for i in range(len(self._dataParameters['inParam' ])):  tempDict['Input_'+str(i)]  = self._dataParameters['inParam' ][i]
+    for i in range(len(self._dataParameters['outParam'])):  tempDict['Output_'+str(i)] = self._dataParameters['outParam'][i]
+    tempDict['Time'                       ] = self._dataParameters['time']
+    tempDict['Hierarchical mode'          ] = self._dataParameters['hierarchical']
+    tempDict['TimeStep of the input space'] = self._dataParameters['inputTs']
     return tempDict
   
   def removeInputValue(self,name):
@@ -91,22 +91,22 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     Function to remove a value from the dictionary inpParametersValues
     @ In, name, parameter name
     '''
-    if self.dataParameters['hierarchical']:
+    if self._dataParameters['hierarchical']:
       for node in list(self.TSData.iter('*')): 
         if name in node.get('dataContainer')['inputs'].keys(): node.get('dataContainer')['inputs'].pop(name)
     else:  
-      if name in self.dataContainer['inputs'].keys(): self.dataContainer['inputs'].pop(name)
+      if name in self._dataContainer['inputs'].keys(): self._dataContainer['inputs'].pop(name)
    
   def removeOutputValue(self,name):
     '''
     Function to remove a value from the dictionary outParametersValues
     @ In, name, parameter name
     '''
-    if self.dataParameters['hierarchical']:
+    if self._dataParameters['hierarchical']:
       for node in list(self.TSData.iter('*')): 
         if name in node.get('dataContainer')['outputs'].keys(): node.get('dataContainer')['outputs'].pop(name)
     else:  
-      if name in self.dataContainer['outputs'].keys(): self.dataContainer['outputs'].pop(name)
+      if name in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(name)
   
   def updateInputValue(self,name,value,options=None):
     '''
@@ -154,10 +154,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     variables_to_print = []
     lvar = var.lower()
-    if type(list(self.dataContainer[inOrOut+'s'].values())[0]) == dict: 
-      varKeys = list(self.dataContainer[inOrOut+'s'].values())[0].keys()
+    if type(list(self._dataContainer[inOrOut+'s'].values())[0]) == dict: 
+      varKeys = list(self._dataContainer[inOrOut+'s'].values())[0].keys()
     else:
-      varKeys = self.dataContainer[inOrOut+'s'].keys()
+      varKeys = self._dataContainer[inOrOut+'s'].keys()
     if lvar == inOrOut: 
       for invar in varKeys: variables_to_print.append(inOrOut+'|'+str(invar))  
     elif '|' in var and lvar.startswith(inOrOut+'|'):
@@ -223,24 +223,24 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, options, it's a dictionary of options. For example useful for metadata storing or, 
                      in case an hierarchical fashion has been requested, it must contain the parent_id and the name of the actual "branch"
     '''
-    self.toLoadFromList.append(toLoadFrom)
+    self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
 
     sourceType = None
     print('DATAS         : Constructiong data type "' +self.type +'" named "'+ self.name + '" from:')
     try:    
-      sourceType =  self.toLoadFromList[-1].type
-      print(' '*16 +'Object type "' + self.toLoadFromList[-1].type + '" named "' + self.toLoadFromList[-1].name+ '"')
+      sourceType =  self._toLoadFromList[-1].type
+      print(' '*16 +'Object type "' + self._toLoadFromList[-1].type + '" named "' + self._toLoadFromList[-1].name+ '"')
     except AttributeError: 
       print(' '*16 +'CSV "' + toLoadFrom + '"')
   
     if(sourceType == 'HDF5'):
-      tupleVar = self.toLoadFromList[-1].retrieveData(self.dataParameters)
+      tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
       if options:
-        if options['parent_id'] and self.dataParameters['hierarchical']: 
+        if options['parent_id'] and self._dataParameters['hierarchical']: 
           print('DATAS         : WARNING -> Data storing in hierarchical fashion from HDF5 not yet implemented!')
-          self.dataParameters['hierarchical'] = False
-    else: tupleVar = ld().csvLoadData([toLoadFrom],self.dataParameters) 
+          self._dataParameters['hierarchical'] = False
+    else: tupleVar = ld().csvLoadData([toLoadFrom],self._dataParameters) 
     
     for hist in tupleVar[0].keys():
       if type(tupleVar[0][hist]) == dict:
@@ -267,8 +267,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     Functions to get the parameter keys
     @ In, typePara, variable type (input or output)
     '''
-    if   typePara.lower() in 'inputs' : return self.dataParameters['inParam' ]
-    elif typePara.lower() in 'outputs': return self.dataParameters['outParam']
+    if   typePara.lower() in 'inputs' : return self._dataParameters['inParam' ]
+    elif typePara.lower() in 'outputs': return self._dataParameters['outParam']
     else: raise Exception("DATAS     : ERROR -> type " + typePara + " is not a valid type. Function: Data.getParaKeys")
 
   def isItEmpty(self):
@@ -286,10 +286,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                              otherwise check explaination for getHierParam
     @, In, serialize, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
                                 PLEASE check explaination for getHierParam
-    @, Out, Reference to self.dataContainer['inputs'] or something else in hierarchical
+    @, Out, Reference to self._dataContainer['inputs'] or something else in hierarchical
     '''
-    if self.dataParameters['hierarchical']: return self.getHierParam('inputs',nodeid,serialize=serialize)
-    else:                                   return self.dataContainer['inputs']  
+    if self._dataParameters['hierarchical']: return self.getHierParam('inputs',nodeid,serialize=serialize)
+    else:                                   return self._dataContainer['inputs']  
 
   def getOutParametersValues(self,nodeid=None,serialize=False):
     '''
@@ -298,10 +298,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                              otherwise check explaination for getHierParam
     @, In, serialize, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
                                 PLEASE check explaination for getHierParam
-    @, Out, Reference to self.dataContainer['outputs'] or something else in hierarchical
+    @, Out, Reference to self._dataContainer['outputs'] or something else in hierarchical
     '''
-    if self.dataParameters['hierarchical']: return self.getHierParam('outputs',nodeid,serialize=serialize)
-    else:                                   return self.dataContainer['outputs']      
+    if self._dataParameters['hierarchical']: return self.getHierParam('outputs',nodeid,serialize=serialize)
+    else:                                   return self._dataContainer['outputs']      
   
   def getParam(self,typeVar,keyword,nodeid=None,serialize=False):
     '''
@@ -311,16 +311,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ Out, Reference to the parameter
     '''
     if typeVar.lower() not in ["input","output"]: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
-    if self.dataParameters['hierarchical']: 
+    if self._dataParameters['hierarchical']: 
       if type(keyword) == int: return list(self.getHierParam(typeVar.lower(),nodeid,None,serialize).values())[keyword-1]
       else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
     else:
       if typeVar.lower() in "input":
-        if keyword in self.dataContainer['inputs'].keys(): return self.dataContainer['inputs'][keyword]
-        else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in inpParametersValues dictionary. Available keys are "+str(self.dataContainer['inputs'].keys())+".Function: Data.getParam")    
+        if keyword in self._dataContainer['inputs'].keys(): return self._dataContainer['inputs'][keyword]
+        else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in inpParametersValues dictionary. Available keys are "+str(self._dataContainer['inputs'].keys())+".Function: Data.getParam")    
       elif typeVar.lower() in "output":
-        if keyword in self.dataContainer['outputs'].keys(): return self.dataContainer['outputs'][keyword]    
-        else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in outParametersValues dictionary. Available keys are "+str(self.dataContainer['outputs'].keys())+".Function: Data.getParam")
+        if keyword in self._dataContainer['outputs'].keys(): return self._dataContainer['outputs'][keyword]    
+        else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in outParametersValues dictionary. Available keys are "+str(self._dataContainer['outputs'].keys())+".Function: Data.getParam")
     
   def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''
@@ -342,8 +342,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
    
     myType=self.type
-    if   varName in self.dataParameters['inParam' ]: inOutType = 'input'
-    elif varName in self.dataParameters['outParam']: inOutType = 'output'
+    if   varName in self._dataParameters['inParam' ]: inOutType = 'input'
+    elif varName in self._dataParameters['outParam']: inOutType = 'output'
     else: raise Exception('the variable named '+varName+' was not found in the data: '+self.name)
     return self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID,stepID,nodeid)
   
@@ -360,7 +360,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In,  typeVar,  string, it's the variable type... input,output, or inout
       @ In,  nodeid,   string, it's the node name... if == None or *, a dictionary of of data is returned, otherwise the actual node data is returned in a dict as well (see serialize attribute)
       @ In, keyword,   string, it's a parameter name (for example, cladTemperature), if None, the whole dict is returned, otherwise the parameter value is got (see serialize attribute)
-      @ In, serialize, bool  , if true a sequence of TimePointSet is generated (a dictionary where the keys are the "ending" branches and the values are a sorted list of dataContainers (from first branch to the ending ones)
+      @ In, serialize, bool  , if true a sequence of TimePointSet is generated (a dictionary where the keys are the "ending" branches and the values are a sorted list of _dataContainers (from first branch to the ending ones)
                                if false see explaination for nodeid 
       @ Out, a dictionary of data (see above)
     '''
@@ -449,12 +449,12 @@ class TimePoint(Data):
       @ In, None 
       @ Out, None 
     '''
-    self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
-    try: sourceType = self.toLoadFromList[0].type
+    self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
+    try: sourceType = self._toLoadFromList[0].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR -> DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
-      self.dataParameters['filter'] = "whole"
+      if(not self._dataParameters['history']): raise IOError('DATAS     : ERROR -> DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
+      self._dataParameters['filter'] = "whole"
 
   def checkConsistency(self):
     '''
@@ -462,12 +462,12 @@ class TimePoint(Data):
       @ In, None 
       @ Out, None 
     '''
-    for key in self.dataContainer['inputs'].keys():
-      if (self.dataContainer['inputs'][key].size) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self.dataContainer['inputs'][key].size))
-    for key in self.dataContainer['outputs'].keys():
-      if (self.dataContainer['outputs'][key].size) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self.dataContainer['outputs'][key].size))
+    for key in self._dataContainer['inputs'].keys():
+      if (self._dataContainer['inputs'][key].size) != 1:
+        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+    for key in self._dataContainer['outputs'].keys():
+      if (self._dataContainer['outputs'][key].size) != 1:
+        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
 
   def updateSpecializedInputValue(self,name,value,options=None):
     ''' 
@@ -476,10 +476,10 @@ class TimePoint(Data):
       @ In,  value, float, newer value (1-D array) 
       @ Out, None 
     '''
-    if name in self.dataContainer['inputs'].keys():
-      self.dataContainer['inputs'].pop(name)
-    if name not in self.dataParameters['inParam']: self.dataParameters['inParam'].append(name)
-    self.dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+    if name in self._dataContainer['inputs'].keys():
+      self._dataContainer['inputs'].pop(name)
+    if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
+    self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
@@ -488,10 +488,10 @@ class TimePoint(Data):
       @ In,  value, float, newer value (1-D array) 
       @ Out, None 
     '''
-    if name in self.dataContainer['inputs'].keys():
-      self.dataContainer['outputs'].pop(name)
-    if name not in self.dataParameters['outParam']: self.dataParameters['outParam'].append(name)
-    self.dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+    if name in self._dataContainer['inputs'].keys():
+      self._dataContainer['outputs'].pop(name)
+    if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
+    self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def oldSpecializedPrintCSV(self,filenameLocal,options):
     ''' 
@@ -509,15 +509,15 @@ class TimePoint(Data):
       for var in options['variables']:
         if var.split('|')[0] == 'input': 
           inpKeys.append(var.split('|')[1])
-          inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
         if var.split('|')[0] == 'output': 
           outKeys.append(var.split('|')[1])
-          outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
     else:
-      inpKeys   = self.dataContainer['inputs'].keys()
-      inpValues = self.dataContainer['inputs'].values()
-      outKeys   = self.dataContainer['outputs'].keys()
-      outValues = self.dataContainer['outputs'].values()
+      inpKeys   = self._dataContainer['inputs'].keys()
+      inpValues = self._dataContainer['inputs'].values()
+      outKeys   = self._dataContainer['outputs'].keys()
+      outValues = self._dataContainer['outputs'].values()
     
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
     else: return
@@ -562,15 +562,15 @@ class TimePoint(Data):
       for var in options['variables']:
         if var.split('|')[0] == 'input': 
           inpKeys.append(var.split('|')[1])
-          inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
         if var.split('|')[0] == 'output': 
           outKeys.append(var.split('|')[1])
-          outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
     else:
-      inpKeys   = self.dataContainer['inputs'].keys()
-      inpValues = self.dataContainer['inputs'].values()
-      outKeys   = self.dataContainer['outputs'].keys()
-      outValues = self.dataContainer['outputs'].values()
+      inpKeys   = self._dataContainer['inputs'].keys()
+      inpValues = self._dataContainer['inputs'].values()
+      outKeys   = self._dataContainer['outputs'].keys()
+      outValues = self._dataContainer['outputs'].values()
     
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
     else: return
@@ -603,48 +603,48 @@ class TimePointSet(Data):
 
   def addSpecializedReadingSettings(self):
     ''' 
-      This function adds in the dataParameters dict the options needed for reading and constructing this class
+      This function adds in the _dataParameters dict the options needed for reading and constructing this class
     '''
     # if hierarchical fashion has been requested, we set the type of the reading to a TimePoint, 
     #  since a TimePointSet in hierarchical fashion would be a tree of TimePoints
-    if self.dataParameters['hierarchical']: self.dataParameters['type'] = 'TimePoint'
-    # store the type into the dataParameters dictionary
-    else:                                   self.dataParameters['type'] = self.type
-    try: sourceType = self.toLoadFromList[0].type
+    if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'TimePoint'
+    # store the type into the _dataParameters dictionary
+    else:                                   self._dataParameters['type'] = self.type
+    try: sourceType = self._toLoadFromList[0].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      self.dataParameters['histories'] = self.toLoadFromList[0].getEndingGroupNames()
-      self.dataParameters['filter'   ] = "whole"
+      self._dataParameters['histories'] = self._toLoadFromList[0].getEndingGroupNames()
+      self._dataParameters['filter'   ] = "whole"
 
   def checkConsistency(self):
     '''
       Here we perform the consistency check for the structured data TimePointSet
     '''
-    try:   sourceType = self.toLoadFromList[0].type
+    try:   sourceType = self._toLoadFromList[0].type
     except AttributeError:sourceType = None
     if('HDF5' == sourceType):
-      eg = self.toLoadFromList[0].getEndingGroupNames()
-      for key in self.dataContainer['inputs'].keys():
-        if (self.dataContainer['inputs'][key].size) != len(eg):
+      eg = self._toLoadFromList[0].getEndingGroupNames()
+      for key in self._dataContainer['inputs'].keys():
+        if (self._dataContainer['inputs'][key].size) != len(eg):
           raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.inParametersValues[key].size))
-      for key in self.dataContainer['outputs'].keys():
-        if (self.dataContainer['outputs'][key].size) != len(eg):
-          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.dataContainer['outputs'][key].size))
+      for key in self._dataContainer['outputs'].keys():
+        if (self._dataContainer['outputs'][key].size) != len(eg):
+          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
     else:
-      if self.dataParameters['hierarchical']:
-        for key in self.dataContainer['inputs'].keys():
-          if (self.dataContainer['inputs'][key].size) != 1:
-            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self.dataContainer['inputs'][key].size))
-        for key in self.dataContainer['outputs'].keys():
-          if (self.dataContainer['outputs'][key].size) != 1:
-            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self.dataContainer['outputs'][key].size))
+      if self._dataParameters['hierarchical']:
+        for key in self._dataContainer['inputs'].keys():
+          if (self._dataContainer['inputs'][key].size) != 1:
+            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+        for key in self._dataContainer['outputs'].keys():
+          if (self._dataContainer['outputs'][key].size) != 1:
+            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
       else:  
-        for key in self.dataContainer['inputs'].keys():
-          if (self.dataContainer['inputs'][key].size) != len(self.toLoadFromList):
-            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.inParametersValues[key].size))
-        for key in self.dataContainer['outputs'].keys():
-          if (self.dataContainer['outputs'][key].size) != len(self.toLoadFromList):
-            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.dataContainer['outputs'][key].size))
+        for key in self._dataContainer['inputs'].keys():
+          if (self._dataContainer['inputs'][key].size) != len(self._toLoadFromList):
+            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self._toLoadFromList)) + '.Actual size is ' + str(self.inParametersValues[key].size))
+        for key in self._dataContainer['outputs'].keys():
+          if (self._dataContainer['outputs'][key].size) != len(self._toLoadFromList):
+            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self._toLoadFromList)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
   
 
   def updateSpecializedInputValue(self,name,value,options=None):
@@ -654,26 +654,26 @@ class TimePointSet(Data):
       @ In,  value, float, newer value (single value) 
       @ Out, None 
     '''
-    if options and self.dataParameters['hierarchical']:
+    if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "TimePoint" has been stored
       if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
       else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
-      self.dataContainer = tsnode.get('dataContainer')
-      if not self.dataContainer: 
+      self._dataContainer = tsnode.get('dataContainer')
+      if not self._dataContainer: 
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
-        self.dataContainer = tsnode.get('dataContainer')
-      if name in self.dataContainer['inputs'].keys():
-        self.dataContainer['inputs'].pop(name)
-      if name not in self.dataParameters['inParam']: self.dataParameters['inParam'].append(name)
-      self.dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+        self._dataContainer = tsnode.get('dataContainer')
+      if name in self._dataContainer['inputs'].keys():
+        self._dataContainer['inputs'].pop(name)
+      if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
+      self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self.dataContainer['inputs'].keys():
-        popped = self.dataContainer['inputs'].pop(name)
-        self.dataContainer['inputs'][name] = copy.deepcopy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.array(value)))))
+      if name in self._dataContainer['inputs'].keys():
+        popped = self._dataContainer['inputs'].pop(name)
+        self._dataContainer['inputs'][name] = copy.deepcopy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.array(value)))))
       else:
-        if name not in self.dataParameters['inParam']: self.dataParameters['inParam'].append(name)
-        self.dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+        if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
+        self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
@@ -682,27 +682,27 @@ class TimePointSet(Data):
       @ In,  value, float, newer value (single value) 
       @ Out, None 
     '''
-    if options and self.dataParameters['hierarchical']:
+    if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "TimePoint" has been stored
       if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
       else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
-      # we store the pointer to the container in the self.dataContainer because checkConsistency acts on this
-      self.dataContainer = tsnode.get('dataContainer')
-      if not self.dataContainer: 
+      # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
+      self._dataContainer = tsnode.get('dataContainer')
+      if not self._dataContainer: 
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
-        self.dataContainer = tsnode.get('dataContainer')
-      if name in self.dataContainer['outputs'].keys():
-        self.dataContainer['outputs'].pop(name)
-      if name not in self.dataParameters['inParam']: self.dataParameters['outParam'].append(name)
-      self.dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+        self._dataContainer = tsnode.get('dataContainer')
+      if name in self._dataContainer['outputs'].keys():
+        self._dataContainer['outputs'].pop(name)
+      if name not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(name)
+      self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self.dataContainer['outputs'].keys():
-        popped = self.dataContainer['outputs'].pop(name)
-        self.dataContainer['outputs'][name] = copy.deepcopy(np.concatenate((np.array(popped), np.atleast_1d(np.array(value)))))
+      if name in self._dataContainer['outputs'].keys():
+        popped = self._dataContainer['outputs'].pop(name)
+        self._dataContainer['outputs'][name] = copy.deepcopy(np.concatenate((np.array(popped), np.atleast_1d(np.array(value)))))
       else:
-        if name not in self.dataParameters['outParam']: self.dataParameters['outParam'].append(name)
-        self.dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+        if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
+        self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def oldSpecializedPrintCSV(self,filenameLocal,options): 
     ''' 
@@ -716,7 +716,7 @@ class TimePointSet(Data):
     outKeys   = []
     outValues = []
     #Print input values
-    if self.dataParameters['hierarchical']:
+    if self._dataParameters['hierarchical']:
       # retrieve a serialized of datas from the tree
       O_o = self.getHierParam('inout','*',serialize=True)
       for key in O_o.keys():
@@ -771,15 +771,15 @@ class TimePointSet(Data):
         for var in options['variables']:
           if var.split('|')[0] == 'input': 
             inpKeys.append(var.split('|')[1])
-            inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+            inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
           if var.split('|')[0] == 'output': 
             outKeys.append(var.split('|')[1])
-            outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+            outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
       else:
-        inpKeys   = list(self.dataContainer['inputs'].keys())
-        inpValues = list(self.dataContainer['inputs'].values())
-        outKeys   = list(self.dataContainer['outputs'].keys())
-        outValues = list(self.dataContainer['outputs'].values())
+        inpKeys   = list(self._dataContainer['inputs'].keys())
+        inpValues = list(self._dataContainer['inputs'].values())
+        outKeys   = list(self._dataContainer['outputs'].keys())
+        outValues = list(self._dataContainer['outputs'].values())
       
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
       else: return
@@ -817,7 +817,7 @@ class TimePointSet(Data):
     outKeys   = []
     outValues = []
     #Print input values
-    if self.dataParameters['hierarchical']:
+    if self._dataParameters['hierarchical']:
       # retrieve a serialized of datas from the tree
       O_o = self.getHierParam('inout','*',serialize=True)
       for key in O_o.keys():
@@ -880,15 +880,15 @@ class TimePointSet(Data):
         for var in options['variables']:
           if var.split('|')[0] == 'input': 
             inpKeys.append(var.split('|')[1])
-            inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+            inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
           if var.split('|')[0] == 'output': 
             outKeys.append(var.split('|')[1])
-            outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+            outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
       else:
-        inpKeys   = self.dataContainer['inputs'].keys()
-        inpValues = self.dataContainer['inputs'].values()
-        outKeys   = self.dataContainer['outputs'].keys()
-        outValues = self.dataContainer['outputs'].values()
+        inpKeys   = self._dataContainer['inputs'].keys()
+        inpValues = self._dataContainer['inputs'].values()
+        outKeys   = self._dataContainer['outputs'].keys()
+        outValues = self._dataContainer['outputs'].values()
       
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
       else: return
@@ -913,13 +913,13 @@ class TimePointSet(Data):
     if stepID!=None: raise Exception('DATAS     : ERROR -> seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varID!=None:
-        if self.dataParameters['hierarchical']: exec('aa ='+varTyp +'(self.getHierParam(inOutType,nodeid,varName,serialize=False)[nodeid])')    
+        if self._dataParameters['hierarchical']: exec('aa ='+varTyp +'(self.getHierParam(inOutType,nodeid,varName,serialize=False)[nodeid])')    
         else: exec('aa ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
         return aa
       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
       else: raise Exception('DATAS     : ERROR -> trying to extract a scalar value from a time point set without an index')
     else: 
-      if self.dataParameters['hierarchical']: 
+      if self._dataParameters['hierarchical']: 
         paramss = self.getHierParam(inOutType,nodeid,varName,serialize=True)
         aa = np.zeros(len(paramss[nodeid]))
         for index in range(len(paramss[nodeid])): aa[index] = paramss[nodeid][index]
@@ -933,14 +933,14 @@ class History(Data):
 
   def addSpecializedReadingSettings(self):
     ''' 
-      This function adds in the dataParameters dict the options needed for reading and constructing this class
+      This function adds in the _dataParameters dict the options needed for reading and constructing this class
     '''
-    self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
-    try: sourceType = self.toLoadFromList[0].type
+    self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
+    try: sourceType = self._toLoadFromList[0].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      if(not self.dataParameters['history']): raise IOError('DATAS     : ERROR -> In order to create a History data, history name must be provided')
-      self.dataParameters['filter'] = "whole"
+      if(not self._dataParameters['history']): raise IOError('DATAS     : ERROR -> In order to create a History data, history name must be provided')
+      self._dataParameters['filter'] = "whole"
 
   def checkConsistency(self):
     '''
@@ -948,12 +948,12 @@ class History(Data):
       @ In, None
       @ Out, None
     '''
-    for key in self.dataContainer['inputs'].keys():
-      if (self.dataContainer['inputs'][key].size) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self.dataContainer['inputs'][key])))
-    for key in self.dataContainer['outputs'].keys():
-      if (self.dataContainer['outputs'][key].ndim) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self.dataContainer['outputs'][key].ndim))
+    for key in self._dataContainer['inputs'].keys():
+      if (self._dataContainer['inputs'][key].size) != 1:
+        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
+    for key in self._dataContainer['outputs'].keys():
+      if (self._dataContainer['outputs'][key].ndim) != 1:
+        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
 
   def updateSpecializedInputValue(self,name,value,options=None):
     ''' 
@@ -962,10 +962,10 @@ class History(Data):
       @ In,  value, float, newer value (1-D array) 
       @ Out, None 
     '''
-    if name in self.dataContainer['inputs'].keys():
-      self.dataContainer['inputs'].pop(name)
-    if name not in self.dataParameters['inParam']: self.dataParameters['inParam'].append(name)
-    self.dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+    if name in self._dataContainer['inputs'].keys():
+      self._dataContainer['inputs'].pop(name)
+    if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
+    self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
@@ -974,10 +974,10 @@ class History(Data):
       @ In,  value, float, newer value (1-D array) 
       @ Out, None 
     '''
-    if name in self.dataContainer['outputs'].keys():
-      self.dataContainer['outputs'].pop(name)
-    if name not in self.dataParameters['outParam']: self.dataParameters['outParam'].append(name)
-    self.dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+    if name in self._dataContainer['outputs'].keys():
+      self._dataContainer['outputs'].pop(name)
+    if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
+    self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def oldSpecializedPrintCSV(self,filenameLocal,options):
     ''' 
@@ -995,15 +995,15 @@ class History(Data):
       for var in options['variables']:
         if var.split('|')[0] == 'input': 
           inpKeys.append(var.split('|')[1])
-          inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
         if var.split('|')[0] == 'output': 
           outKeys.append(var.split('|')[1])
-          outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
     else:
-      inpKeys   = self.dataContainer['inputs'].keys()
-      inpValues = self.dataContainer['inputs'].values()
-      outKeys   = self.dataContainer['outputs'].keys()
-      outValues = self.dataContainer['outputs'].values()
+      inpKeys   = self._dataContainer['inputs'].keys()
+      inpValues = self._dataContainer['inputs'].values()
+      outKeys   = self._dataContainer['outputs'].keys()
+      outValues = self._dataContainer['outputs'].values()
     
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
     else: return
@@ -1051,15 +1051,15 @@ class History(Data):
       for var in options['variables']:
         if var.split('|')[0] == 'input':
           inpKeys.append(var.split('|')[1])
-          inpValues.append(self.dataContainer['inputs'][var.split('|')[1]])
+          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
         if var.split('|')[0] == 'output':
           outKeys.append(var.split('|')[1])
-          outValues.append(self.dataContainer['outputs'][var.split('|')[1]])
+          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
     else:
-      inpKeys   = self.dataContainer['inputs'].keys()
-      inpValues = self.dataContainer['inputs'].values()
-      outKeys   = self.dataContainer['outputs'].keys()
-      outValues = self.dataContainer['outputs'].values()
+      inpKeys   = self._dataContainer['inputs'].keys()
+      inpValues = self._dataContainer['inputs'].values()
+      outKeys   = self._dataContainer['outputs'].keys()
+      outValues = self._dataContainer['outputs'].values()
     
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
     else: return
@@ -1098,7 +1098,7 @@ class History(Data):
     '''override of the method in the base class Datas'''
     if varID!=None: raise Exception('seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
-      if varName in self.dataParameters['inParam']: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[0])')
+      if varName in self._dataParameters['inParam']: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[0])')
       else:
         if stepID!=None and type(stepID)!=tuple: exec ('return self.getParam('+inOutType+','+varName+')['+str(stepID)+']')
         else: raise Exception('To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name)
@@ -1117,16 +1117,16 @@ class Histories(Data):
 
   def addSpecializedReadingSettings(self):
     ''' 
-      This function adds in the dataParameters dict the options needed for reading and constructing this class
+      This function adds in the _dataParameters dict the options needed for reading and constructing this class
       @ In,  None
       @ Out, None 
     '''
-    if self.dataParameters['hierarchical']: self.dataParameters['type'] = 'History'
-    else: self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
-    try: sourceType = self.toLoadFromList[0].type
+    if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'History'
+    else: self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
+    try: sourceType = self._toLoadFromList[0].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      self.dataParameters['filter'   ] = "whole"
+      self._dataParameters['filter'   ] = "whole"
 
   def checkConsistency(self):
     ''' 
@@ -1134,32 +1134,32 @@ class Histories(Data):
       @ In,  None
       @ Out, None 
     '''
-    try: sourceType = self.toLoadFromList[0].type
+    try: sourceType = self._toLoadFromList[0].type
     except AttributeError: sourceType = None
     
-    if self.dataParameters['hierarchical']:
-      for key in self.dataContainer['inputs'].keys():
-        if (self.dataContainer['inputs'][key].size) != 1:
-          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(len(self.dataContainer['inputs'][key])))
-      for key in self.dataContainer['outputs'].keys():
-        if (self.dataContainer['outputs'][key].ndim) != 1:
-          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self.dataContainer['outputs'][key].ndim))
+    if self._dataParameters['hierarchical']:
+      for key in self._dataContainer['inputs'].keys():
+        if (self._dataContainer['inputs'][key].size) != 1:
+          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
+      for key in self._dataContainer['outputs'].keys():
+        if (self._dataContainer['outputs'][key].ndim) != 1:
+          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
       if('HDF5' == sourceType):
-        eg = self.toLoadFromList[0].getEndingGroupNames()
-        if(len(eg) != len(self.dataContainer['inputs'].keys())):
-          raise NotConsistentData('DATAS     : ERROR -> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self.dataContainer['inputs'].keys())))
+        eg = self._toLoadFromList[0].getEndingGroupNames()
+        if(len(eg) != len(self._dataContainer['inputs'].keys())):
+          raise NotConsistentData('DATAS     : ERROR -> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       else:
-        if(len(self.toLoadFromList) != len(self.dataContainer['inputs'].keys())):
-          raise NotConsistentData('DATAS     : ERROR -> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self.toLoadFromList)) + ' !=' + str(len(self.dataContainer['inputs'].keys())))
-      for key in self.dataContainer['inputs'].keys():
-        for key2 in self.dataContainer['inputs'][key].keys():
-          if (self.dataContainer['inputs'][key][key2].size) != 1:
-            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self.dataContainer['inputs'][key][key2])))
-      for key in self.dataContainer['outputs'].keys():
-        for key2 in self.dataContainer['outputs'][key].keys():
-          if (self.dataContainer['outputs'][key][key2].ndim) != 1:
-            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self.dataContainer['outputs'][key][key2].ndim))
+        if(len(self._toLoadFromList) != len(self._dataContainer['inputs'].keys())):
+          raise NotConsistentData('DATAS     : ERROR -> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+      for key in self._dataContainer['inputs'].keys():
+        for key2 in self._dataContainer['inputs'][key].keys():
+          if (self._dataContainer['inputs'][key][key2].size) != 1:
+            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key][key2])))
+      for key in self._dataContainer['outputs'].keys():
+        for key2 in self._dataContainer['outputs'][key].keys():
+          if (self._dataContainer['outputs'][key][key2].ndim) != 1:
+            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key][key2].ndim))
 
   def updateSpecializedInputValue(self,name,value,options=None):
     ''' 
@@ -1175,7 +1175,7 @@ class Histories(Data):
     if isinstance(value,np.ndarray): 
       if value.size != 1: raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array of dim 1 or a single value for method "updateSpecializedInputValue". Size is ' + str(value.size))
 
-    if options and self.dataParameters['hierarchical']:
+    if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "History" has been stored
       if type(name) == list: 
         namep = name[1]
@@ -1186,35 +1186,35 @@ class Histories(Data):
         namep = name
       if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(nodeid, options['parent_id']) 
       else:                             tsnode = self.retrieveNodeInTreeMode(nodeid)
-      self.dataContainer = tsnode.get('dataContainer')
-      if not self.dataContainer: 
+      self._dataContainer = tsnode.get('dataContainer')
+      if not self._dataContainer: 
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
-        self.dataContainer = tsnode.get('dataContainer')
-      if namep in self.dataContainer['inputs'].keys():
-        self.dataContainer['inputs'].pop(name)
-      if namep not in self.dataParameters['inParam']: self.dataParameters['inParam'].append(namep)
-      self.dataContainer['inputs'][namep] = copy.deepcopy(np.atleast_1d(np.array(value)))
+        self._dataContainer = tsnode.get('dataContainer')
+      if namep in self._dataContainer['inputs'].keys():
+        self._dataContainer['inputs'].pop(name)
+      if namep not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(namep)
+      self._dataContainer['inputs'][namep] = copy.deepcopy(np.atleast_1d(np.array(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if type(name) == list:
         # there are info regarding the history number
-        if name[0] in self.dataContainer['inputs'].keys():
-          gethistory = self.dataContainer['inputs'].pop(name[0])
+        if name[0] in self._dataContainer['inputs'].keys():
+          gethistory = self._dataContainer['inputs'].pop(name[0])
           popped = gethistory[name[1]]
           if name[1] in popped.keys():
             gethistory[name[1]] = copy.deepcopy(np.atleast_1d(np.array(value)))
-            self.dataContainer['inputs'][name[0]] = copy.deepcopy(gethistory)
+            self._dataContainer['inputs'][name[0]] = copy.deepcopy(gethistory)
         else:
-          self.dataContainer['inputs'][name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
+          self._dataContainer['inputs'][name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
       else:
         # no info regarding the history number => use internal counter
-        if len(self.dataContainer['inputs'].keys()) == 0: self.dataContainer['inputs'][1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
         else:
-          hisn = max(self.dataContainer['inputs'].keys())
-          if name in list(self.dataContainer['inputs'].values())[-1]: 
+          hisn = max(self._dataContainer['inputs'].keys())
+          if name in list(self._dataContainer['inputs'].values())[-1]: 
             hisn += 1
-            self.dataContainer['inputs'][hisn] = {}
-          self.dataContainer['inputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+            self._dataContainer['inputs'][hisn] = {}
+          self._dataContainer['inputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
   def updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
@@ -1226,7 +1226,7 @@ class Histories(Data):
     '''
     if not isinstance(value,np.ndarray): raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
 
-    if options and self.dataParameters['hierarchical']:
+    if options and self._dataParameters['hierarchical']:
       if type(name) == list: 
         namep = name[1]
         if type(name[0]) == str: nodeid = name[0]
@@ -1236,36 +1236,36 @@ class Histories(Data):
         nodeid = options['prefix']
       if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(nodeid, options['parent_id']) 
       else:                             tsnode = self.retrieveNodeInTreeMode(nodeid)
-      # we store the pointer to the container in the self.dataContainer because checkConsistency acts on this
-      self.dataContainer = tsnode.get('dataContainer')
-      if not self.dataContainer: 
+      # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
+      self._dataContainer = tsnode.get('dataContainer')
+      if not self._dataContainer: 
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
-        self.dataContainer = tsnode.get('dataContainer')
-      if name in self.dataContainer['outputs'].keys():
-        self.dataContainer['outputs'].pop(name)
-      if name not in self.dataParameters['inParam']: self.dataParameters['outParam'].append(name)
-      self.dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+        self._dataContainer = tsnode.get('dataContainer')
+      if name in self._dataContainer['outputs'].keys():
+        self._dataContainer['outputs'].pop(name)
+      if name not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(name)
+      self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:    
       if type(name) == 'list':
         # there are info regarding the history number
-        if name[0] in self.dataContainer['outputs'].keys():
-          gethistory = self.dataContainer['outputs'].pop(name[0])
+        if name[0] in self._dataContainer['outputs'].keys():
+          gethistory = self._dataContainer['outputs'].pop(name[0])
           popped = gethistory[name[1]]
           if name[1] in popped.keys():
             gethistory[name[1]] = copy.deepcopy(np.atleast_1d(np.array(value)))
-            self.dataContainer['outputs'][name[0]] = copy.deepcopy(gethistory)
+            self._dataContainer['outputs'][name[0]] = copy.deepcopy(gethistory)
         else:
-          self.dataContainer['outputs'][name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
+          self._dataContainer['outputs'][name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
       else:
         # no info regarding the history number => use internal counter
-        if len(self.dataContainer['outputs'].keys()) == 0: self.dataContainer['outputs'][1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+        if len(self._dataContainer['outputs'].keys()) == 0: self._dataContainer['outputs'][1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
         else:
-          hisn = max(self.dataContainer['outputs'].keys())
-          if name in list(self.dataContainer['outputs'].values())[-1]: 
+          hisn = max(self._dataContainer['outputs'].keys())
+          if name in list(self._dataContainer['outputs'].values())[-1]: 
             hisn += 1
-            self.dataContainer['outputs'][hisn] = {}
-          self.dataContainer['outputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+            self._dataContainer['outputs'][hisn] = {}
+          self._dataContainer['outputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
       
   def oldSpecializedPrintCSV(self,filenameLocal,options):
     ''' 
@@ -1275,7 +1275,7 @@ class Histories(Data):
       @ Out, None (a csv is gonna be printed)
     '''    
     
-    if self.dataParameters['hierarchical']:
+    if self._dataParameters['hierarchical']:
       outKeys   = []
       inpKeys   = []
       inpValues = []
@@ -1339,9 +1339,9 @@ class Histories(Data):
           myFile.write(b'\n')
         myFile.close() 
     else:
-      inpValues = list(self.dataContainer['inputs'].values())
-      outKeys   = self.dataContainer['outputs'].keys()
-      outValues = list(self.dataContainer['outputs'].values())
+      inpValues = list(self._dataContainer['inputs'].values())
+      outKeys   = self._dataContainer['outputs'].keys()
+      outValues = list(self._dataContainer['outputs'].values())
       
       for n in range(len(outKeys)):
         inpKeys_h   = []
@@ -1401,7 +1401,7 @@ class Histories(Data):
       @ Out, None (a csv is gonna be printed)
     '''    
     
-    if self.dataParameters['hierarchical']:
+    if self._dataParameters['hierarchical']:
       outKeys   = []
       inpKeys   = []
       inpValues = []
@@ -1474,9 +1474,9 @@ class Histories(Data):
       #filename.  They have the output names for a header, a column
       #for time, and the rest of the file is data for different times.
 
-      inpValues = list(self.dataContainer['inputs'].values())
-      outKeys   = self.dataContainer['outputs'].keys()
-      outValues = list(self.dataContainer['outputs'].values())
+      inpValues = list(self._dataContainer['inputs'].values())
+      outKeys   = self._dataContainer['outputs'].keys()
+      outValues = list(self._dataContainer['outputs'].values())
 
       #Create Input file
       myFile = open(filenameLocal + '.csv','wb')      
@@ -1536,7 +1536,7 @@ class Histories(Data):
       IMPLEMENT COMMENT HERE
     '''
     if varTyp!='numpy.ndarray':
-      if varName in self.dataParameters['inParam']:
+      if varName in self._dataParameters['inParam']:
         if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
         else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
       else:
@@ -1545,7 +1545,7 @@ class Histories(Data):
           else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
         else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
     else:
-      if varName in self.dataParameters['inParam']:
+      if varName in self._dataParameters['inParam']:
         myOut=np.zeros(len(self.getInpParametersValues().keys()))
         for key in self.getInpParametersValues().keys():
           myOut[int(key)]=self.getParam(inOutType,key)[varName][0]
