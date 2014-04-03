@@ -257,15 +257,12 @@ class Dummy(Model):
     print('FIXME: the newOutputLoop coherence in all steps (might be removed if a jobhandler is used for internal runs')
     if newOutputLoop: self.counterOutput += 1
     if self.outputDict['OutputPlaceHolder']!=self.counterOutput: raise Exception('Synchronization has been lost between input generation and collection in the Dummy model')
-    exportDict                       = copy.copy(self.outputDict)
-    exportDict['input_space_params'] = copy.copy(self.inputDict)
-    print('FIXME: a keyword that could have an input name should not be used!!!!!!!!!!!!')
+    exportDict = {'input_space_params':copy.copy(self.inputDict),'output_space_params':copy.copy(self.outputDict)}
     if self.type!='Dummy'   : del(exportDict['OutputPlaceHolder'])
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(self.counterOutput)},exportDict,False)
     else:
-      for key in exportDict['input_space_params'] : output.updateInputValue(key,exportDict['input_space_params'][key])
-      del(exportDict['input_space_params'])
-      for key in exportDict.keys(): output.updateOutputValue(key,exportDict[key])
+      for key in exportDict['input_space_params' ] : output.updateInputValue (key,exportDict['input_space_params' ][key])
+      for key in exportDict['output_space_params'] : output.updateOutputValue(key,exportDict['output_space_params'][key])
 #
 #
 #

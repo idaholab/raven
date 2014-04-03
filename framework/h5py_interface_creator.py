@@ -222,21 +222,6 @@ class hdf5Database(object):
         else                             : converted = toBytesIterative(attributes[attr]) 
         if converted: grp.attrs[toBytes(attr)]=converted
       if "input_file" in attributes.keys(): grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
-
-          
-#       #look for keyword attributes from the sampler
-#       attempt_attr= {'branch_changed_param'      :'branch_changed_param',
-#                      'branch_changed_param_value':'branch_changed_param_value',
-#                      'conditional_prb'           :'conditional_prb',
-#                      'initiator_distribution'    :'initiator_distribution',
-#                      'Probability_threshold'     :'PbThreshold',
-#                      'quad_pts'                  :'quad_pts',
-#                      'partial_coeffs'            :'partial_coeffs',
-#                      'exp_order'                 :'exp_order',
-#                      }
-#       for attr in attempt_attr.keys():
-#         if attempt_attr[attr] in attributes:
-#           grp.attrs[toBytes(attr)]=[toBytes(x) for x in attributes[attempt_attr[attr]]]
     else: pass
     # Add the group name into the list "self.allGroupPaths" and 
     # set the relative bool flag into the dictionary "self.allGroupEnds"
@@ -280,45 +265,30 @@ class hdf5Database(object):
       else: groups = parentgroup_obj.create_group(gname)
       groups.attrs[b'main_class' ] = b'PythonType'
       groups.attrs[b'source_type'] = b'Dictionary'
-      if 'input_space_params' in source['name'].keys():
-        testkey   = []
-        testvalue = []
-        input_space_params_keys = list(source['name']['input_space_params'].keys())
-        for i in range(len(input_space_params_keys)): 
-          testkey.append(toBytes(input_space_params_keys[i]))
-        input_space_params_values = list(source['name']['input_space_params'].values())
-        for i in range(len(input_space_params_values)): 
-          testvalue.append(toBytes(input_space_params_values[i]))  
-        groups.attrs[b'input_space_headers' ] = copy.deepcopy(testkey) 
-        groups.attrs[b'input_space_values' ] = copy.deepcopy(testvalue)
-        out_headers = list(source['name'].keys())
-      else: out_headers = list(source['name'].keys())
+      # I keep this structure here because I want to mantain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
+      if set(['input_space_params']).issubset(set(source['name'].keys())): 
+        groups.attrs[b'input_space_headers' ] = copy.deepcopy(list(toBytesIterative(source['name']['input_space_params'].keys()))  ) 
+        groups.attrs[b'input_space_values'  ] = copy.deepcopy(list(toBytesIterative(source['name']['input_space_params'].values())))
+      if set(['output_space_params']).issubset(set(source['name'].keys())): outDict = source['name']['output_space_params']
+      else: outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['input_space_params'])
+      out_headers = list(toBytesIterative(outDict.keys())  )
+      out_values  = list(toBytesIterative(outDict.values()))
       groups.attrs[b'n_params'   ] = len(out_headers)  
-      groups.attrs[b'output_space_headers'] = copy.deepcopy([toBytes(str(out_headers[i]))  for i in range(len(out_headers))]) 
+      groups.attrs[b'output_space_headers'] = copy.deepcopy(out_headers) 
       groups.attrs[b'EndGroup'   ] = True
       groups.attrs[b'parent_id'  ] = parent_name
       maxsize = 0
-      for key in source['name'].keys():
-        if key == 'input_space_params': continue
-        if type(source['name'][key]) == np.ndarray:
-          if maxsize < source['name'][key].size : actualone = source['name'][key].size
-        elif type(source['name'][key]) in [int,float,bool]: actualone = 1
-        else:
-          print(type(source['name'][key]))
-          print(key)
-          print(source['name'])
-          raise IOError('DATABASE HDF5 : The type of the dictionary paramaters must be within float,bool,int,numpy.ndarray')
+      for value in out_values:
+        if type(value) == np.ndarray:
+          if maxsize < value.size : actualone = value.size
+        elif type(value) in [int,float,bool]: actualone = 1
+        else: raise IOError('DATABASE HDF5 : The type of the dictionary paramaters must be within float,bool,int,numpy.ndarray')
         if maxsize < actualone: maxsize = actualone
       groups.attrs[b'n_ts'  ] = maxsize
-      dataout = np.zeros((maxsize,len(out_headers)))
-      cnt = 0
-      for index in range(len(source['name'].keys())):
-        if list(source['name'].keys())[index]== 'input_space_params': cnt -= cnt  
-        else: 
-          cnt = index
-          name_values = list(source['name'].values())
-          if type(name_values[cnt]) == np.ndarray:  dataout[0:name_values[cnt].size,cnt] =  copy.deepcopy(name_values[cnt][:])
-          else: dataout[0,cnt] = copy.deepcopy(name_values[cnt])
+      dataout = np.zeros((maxsize,len(out_headers)))      
+      for index in range(len(out_headers)):
+        if type(out_values[index]) == np.ndarray:  dataout[0:out_values[index].size,index] =  copy.deepcopy(out_values[index][:])
+        else: dataout[0,index] = copy.deepcopy(out_values[index])
       # create the data set
       dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
       if parent_group_name != "/":
@@ -328,6 +298,7 @@ class hdf5Database(object):
         self.allGroupPaths.append("/" + gname)
         self.allGroupEnds["/" + gname] = True         
     else:
+      # Data(structure)
       # Retrieve the headers from the data (inputs and outputs)
       headers_in  = list(source['name'].getInpParametersValues().keys())
       headers_out = list(source['name'].getOutParametersValues().keys())
