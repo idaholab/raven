@@ -65,7 +65,7 @@
  [./test_rom_trainer]
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'
-  skip = 'working in progress'
+  #skip = 'working in progress'
   output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI.e test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
   csv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
   max_time = 1000

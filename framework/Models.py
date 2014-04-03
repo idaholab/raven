@@ -258,7 +258,7 @@ class Dummy(Model):
     if newOutputLoop: self.counterOutput += 1
     if self.outputDict['OutputPlaceHolder']!=self.counterOutput: raise Exception('Synchronization has been lost between input generation and collection in the Dummy model')
     exportDict = {'input_space_params':copy.copy(self.inputDict),'output_space_params':copy.copy(self.outputDict)}
-    if self.type!='Dummy'   : del(exportDict['OutputPlaceHolder'])
+    if self.type!='Dummy'   : del(exportDict['output_space_params']['OutputPlaceHolder'])
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(self.counterOutput)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] : output.updateInputValue (key,exportDict['input_space_params' ][key])
