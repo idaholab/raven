@@ -49,11 +49,11 @@
 <Datas>
   <TimePointSet name='outSet'>
     <Input>simple_var</Input>
-    <Output>whatEver</Output>
+    <Output>OutputPlaceHolder</Output>
   </TimePointSet>
   <TimePointSet name='dummyIN'>
     <Input>simple_var</Input>
-    <Output>whatEver</Output>
+    <Output>OutputPlaceHolder</Output>
   </TimePointSet>
 </Datas>
     

@@ -5,15 +5,6 @@
     <Files>simple_flow_3eqn.i,simple_flow_3eqn_control.py</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>
-    <!-- <NumThreads>4</NumThreads>    
-    <mode>mpi</mode>
-    <NumMPI>2</NumMPI> -->
-    <!--<ParallelCommand></ParallelCommand>
-        <ThreadingCommand></ThreadingCommand>
-        <quequingSoftware></quequingSoftware>
-        <procByNode></procByNode>
-        <numProcByRun></numProcByRun>
-        <totalNumCoresUsed></totalNumCoresUsed>-->
   </RunInfo>
 
   <Models>
@@ -84,12 +75,12 @@
   <Datas>
     <TimePointSet name='outGrid'>
       <Input>pipe_Area,pipe_Dh,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw</Output>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
     </TimePointSet>
     
     <Histories name='stories'>
       <Input>pipe_Area,pipe_Dh</Input>
-      <Output>pipe_Hw,pipe_Tw</Output>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
     </Histories>
   </Datas>
 </Simulation>

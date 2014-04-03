@@ -58,11 +58,11 @@
 <Datas>
     <TimePointSet name='outLHS'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
-        <Output>whatEver</Output>
+        <Output>OutputPlaceHolder</Output>
    </TimePointSet>
    <TimePointSet name='dummyIN'>
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
-      <Output>whatEver</Output>
+      <Output>OutputPlaceHolder</Output>
    </TimePointSet>
 </Datas>
 

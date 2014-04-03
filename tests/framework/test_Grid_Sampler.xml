@@ -52,11 +52,11 @@
 <Datas>
      <TimePointSet name='outGrid'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
-        <Output>whatEver</Output>
+        <Output>OutputPlaceHolder</Output>
    </TimePointSet>
    <TimePointSet name='dummyIN'>
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
-      <Output>whatEver</Output>
+      <Output>OutputPlaceHolder</Output>
    </TimePointSet>
 </Datas>
     

@@ -159,19 +159,19 @@
 <Datas>
     <Histories name='stories'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw</Output>
+        <Output>pipe1_Hw,pipe1_aw,time</Output>
    </Histories>
    <TimePointSet name='TimePointSets'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw</Output>
+        <Output>pipe1_Hw,pipe1_aw,time</Output>
    </TimePointSet>
    <TimePoint name='TimePointt'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw</Output>
+        <Output>pipe1_Hw,pipe1_aw,time</Output>
    </TimePoint>
    <History name='Historyy'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw</Output>
+        <Output>pipe1_Hw,pipe1_aw,time</Output>
    </History>
 </Datas>
 </Simulation>

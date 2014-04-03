@@ -109,23 +109,23 @@
 <Datas>
    <TimePointSet name='timepointset_from_database_for_rom_trainer' inputTs='3'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempTreshold</Output>
+        <Output>CladTempTreshold,time</Output>
    </TimePointSet>
    <TimePoint name='data_for_sampling_empty_at_begin' inputTs='3'>
         <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempTreshold</Output>
+        <Output>CladTempTreshold,time</Output>
    </TimePoint>
     <TimePoint name='data_for_sampling_empty_at_begin_nd' inputTs='3'>
         <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempTreshold</Output>
+        <Output>CladTempTreshold,time</Output>
     </TimePoint>
    <TimePointSet name='outputMontecarloRom' inputTs='3'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempTreshold</Output>
+        <Output>CladTempTreshold,time</Output>
    </TimePointSet>
     <TimePointSet name='outputMontecarloRomND' inputTs='3'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempTreshold</Output>
+        <Output>CladTempTreshold,time</Output>
     </TimePointSet>
 </Datas>
 </Simulation>

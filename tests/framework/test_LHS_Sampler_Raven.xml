@@ -103,12 +103,12 @@
   <Datas>
     <TimePointSet name='outGrid'>
       <Input>pipe_Area,pipe_Dh,Dummy1</Input>
-      <Output>pipe_Hw,pipe_Tw</Output>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
     </TimePointSet>
     
     <Histories name='stories'>
       <Input>pipe_Area,pipe_Dh</Input>
-      <Output>pipe_Hw,pipe_Tw</Output>
+      <Output>pipe_Hw,pipe_Tw,time</Output>
     </Histories>
   </Datas>
 </Simulation>
