@@ -22,7 +22,6 @@ from BaseType import BaseType
 import SupervisedLearning
 from Filters import returnFilterInterface
 import Samplers
-#import CodeInterfaces
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(metaclass_insert(abc.ABCMeta,BaseType)):
@@ -123,6 +122,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     except KeyError: 
       print("Failed in Node: ",xmlNode)
       raise Exception('missed subType for the model '+self.name)
+    del(xmlNode.attrib['subType'])
   
   def localInputAndChecks(self,xmlNode):
     '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
@@ -179,6 +179,15 @@ class Dummy(Model):
   this is a dummy model that just return the effect of the sampler. The values reported as input in the output
   are the output of the sampler and the output is the counter of the performed sampling
   '''
+  def __init__(self):
+    Model.__init__(self)
+    self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
+    #the following variable are reset at each call of the initialize method
+    self.counterInput = 0   #the number of input already generated
+    self.counterOutput= 0   #the number of output already generated
+    self.inputDict    = {}  #the input to be run
+    self.outputDict   = {}  #the output to be exported
+    
   @classmethod
   def specializeValidateDict(cls):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
@@ -193,47 +202,70 @@ class Dummy(Model):
     self.inputDict    = {}
     self.outputDict   = {}
     
+  def _inputToInternal(self,dataIN):
+    '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
+    print('FIXME: wondering if a dictionary compatibility should be kept')
+    if  type(dataIN)!=dict and dataIN.type not in self.admittedData: raise IOError('type '+dataIN.type+' is not compatible with the ROM '+self.name)
+    localInput = {}
+    if type(dataIN)!=dict:
+      for entries in dataIN.getParaKeys('inputs' ):
+        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(dataIN.getParam('input' ,entries)[-1:])
+        else:                      localInput[entries] = None
+      for entries in dataIN.getParaKeys('outputs'):
+        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(dataIN.getParam('output',entries)[-1:])
+        else:                      localInput[entries] = None
+      #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
+      if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
+    else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
+    return localInput
+  
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''
     here only TimePoint and TimePointSet are accepted a local copy of the values is performed.
     For a TimePoint all value are copied, for a TimePointSet only the last set of entry
     The copied values are returned as a dictionary back
     '''
-    inputDict = {}
-    outDict   = {}
-    #copy the original inputs. Only the last element is copied (i.e. for a timepointset the last input set)
-    for key in myInput[0].getParaKeys('inputs'):
-      if not myInput[0].isItEmpty(): inputDict[key]=copy.deepcopy(myInput[0].getParam('input',key)[-1:])
-      else                         : inputDict[key]=None
-    for key in Kwargs['SampledVars'].keys():
-      if key in inputDict.keys(): inputDict[key] = copy.deepcopy(Kwargs['SampledVars'][key])
-      else: raise Exception ('The sampled variable '+key+' is not present in the input space')
-    self.counterInput +=1
-    outDict['Counter'] = copy.deepcopy(self.counterInput)
-    return [(inputDict,outDict)]
+    if len(myInput)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
+    inputDict = self._inputToInternal(myInput[0])
+    #test if all sampled variables are in the inputs category of the data
+    if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
+      raise IOError ('When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
+    for key in Kwargs['SampledVars'].keys(): inputDict[key] = numpy.atleast_1d(Kwargs['SampledVars'][key])
+    if None in inputDict.values(): raise IOError ('While preparing the input for the model '+self.type+' with name'+self.name+' found an None input variable '+ str(inputDict.items()))
+    self.counterInput +=1 
+    #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
+    #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
+    return [(inputDict,self.counterInput)]
   
   def run(self,Input,jobHandler):
     '''
-    The input should be under the form of a tuple of dictionaries with two element.
+    The input is a list of one element.
+    The element is either a tuple of two dictionary [(InputDictionary, OutputDictionary)] if the input has been created by the  self.createNewInput
+    otherwise is one of the accepted data.
     The first is the input the second the output. The output is just the counter
     '''
-    self.inputDict  = copy.deepcopy(Input[0][0])
-    self.outputDict = copy.deepcopy(Input[0][1])
+    #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
+    if len(Input)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
+    if type(Input[0])!=tuple: self.inputDict = self._inputToInternal(Input) #this might happen when a single run is used and the input it does not come from self.createNewInput
+    else:                     self.inputDict = Input[0][0]
+    self.outputDict['OutputPlaceHolder'] = numpy.atleast_1d(Input[0][1])
     print('FIXME: Just a friendly reminder that the jobhandler for the inside model still need to be put in place')
-
-  def collectOutput(self,finisishedjob,output,newOutputLoop=True):
+    
+  def collectOutput(self,finishedJob,output,newOutputLoop=True):
     #Here there is a problem since the input and output could be already changed by several call to self.createNewInput and self.run some input might have been skipped
     #The problem should be solve delegating ownership of the input/output to the job handler, for the moment we have the newOutputLoop 
-    print('FIXME: the newOutputLoop coherence and need should be tested in all steps (might be removed if a jobhandler is used for internal runs')
+    print('FIXME: the newOutputLoop coherence in all steps (might be removed if a jobhandler is used for internal runs')
     if newOutputLoop: self.counterOutput += 1
-    if self.outputDict['Counter']!=self.counterOutput: raise Exception('Synchronization has been lost between input generation and collection in the Dummy model')
-    if output.type == 'HDF5':
-      exportDict                       = copy.deepcopy(self.outputDict)
-      exportDict['input_space_params'] = copy.deepcopy(self.inputDict)
-      output.addGroupDatas({'group':self.name+str(self.counterOutput)},exportDict,False)
+    if self.outputDict['OutputPlaceHolder']!=self.counterOutput: raise Exception('Synchronization has been lost between input generation and collection in the Dummy model')
+    exportDict                       = copy.copy(self.outputDict)
+    exportDict['input_space_params'] = copy.copy(self.inputDict)
+    print('FIXME: a keyword that could have an input name should not be used!!!!!!!!!!!!')
+    if self.type!='Dummy'   : del(exportDict['OutputPlaceHolder'])
+    if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(self.counterOutput)},exportDict,False)
     else:
-      for key in self.inputDict.keys() : output.updateInputValue(key,self.inputDict[key])
-      for key in self.outputDict.keys(): output.updateOutputValue(key,self.outputDict[key])
+      for key in exportDict['input_space_params'] : output.updateInputValue(key,exportDict['input_space_params'][key])
+      del(exportDict['input_space_params'])
+      for key in exportDict.keys(): output.updateOutputValue(key,exportDict[key])
 #
 #
 #
@@ -245,16 +277,13 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type']         = ['TimePoint','TimePointSet']
+    cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
     
   def __init__(self):
     Dummy.__init__(self)
     self.initializzationOptionDict = {}
     self.inputNames   = []
     self.outputName   = ''
-    self.admittedData = []
-    self.admittedData.append('TimePoint')
-    self.admittedData.append('TimePointSet')
     self.amItrained   = False
   
   def readMoreXML(self,xmlNode):
@@ -272,18 +301,6 @@ class ROM(Dummy):
     '''the ROM setting parameters are added'''
     ROMdict = self.SupervisedEngine.returnInitialParamters()
     for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
-
-  def _trainingSetToInternal(self,dataIN):
-    '''check to compatibility of the trainig set given from outside and transform it in the internal format'''
-    localTrainSet = {}
-    if type(dataIN)!=dict:
-      if  dataIN.type not in self.admittedData:
-        raise IOError('type '+dataIN.type+' is not compatible with the ROM '+self.name)
-      else:
-        for entries in dataIN.getParaKeys('inputs' ): localTrainSet[entries] = dataIN.getParam('input' ,entries)
-        for entries in dataIN.getParaKeys('outputs'): localTrainSet[entries] = dataIN.getParam('output',entries)
-    else: localTrainSet = dataIN
-    return localTrainSet
   
   def train(self,trainingSet):
     '''Here we do the training of the ROM'''
@@ -291,7 +308,7 @@ class ROM(Dummy):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    self.trainingSet = copy.copy(self._trainingSetToInternal(trainingSet))
+    self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
     self.SupervisedEngine.train(self.trainingSet)
     self.amITrained = True
     print('FIXME: add self.amITrained to currentParamters')
@@ -302,46 +319,18 @@ class ROM(Dummy):
     forecasting the target value for the given set of features. The reason to chose the inverse is because
     in case of normal distance this would be 1/distance that could be infinity
     '''
-    inputToROM = self._trainingSetToInternal(request)
+    inputToROM = self._inputToInternal(request)
     return self.SupervisedEngine.confidence(inputToROM)
-
-  def createNewInput(self,currentInput,samplerType,**Kwargs):
-    ''' This function creates a new input
-        It is called from a sampler to get the implementation specific for this model
-        it support string input
-        dictionary input and datas input
-        NB. This input preparation needs to remain here...The input preparation is one of the Model duties
-    '''
-    if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
-    inputToROM = self._trainingSetToInternal(currentInput[0])
-    if 'SampledVars' not in Kwargs.keys(): raise IOError('the keyworded input does not contain SampledVars')
-    for key in inputToROM.keys():
-      if key in Kwargs['SampledVars'].keys(): inputToROM[key] = numpy.asarray(Kwargs['SampledVars'][key])
-    return [inputToROM]
 
   def evaluate(self,request):
     '''when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used'''
-    inputToROM = self._trainingSetToInternal(request)
+    inputToROM = self._inputToInternal(request)
     return self.SupervisedEngine.evaluate(inputToROM)
 
-  def run(self,request,jobHandler):
+  def run(self,Input,jobHandler):
     '''This call run a ROM as a model'''
-    if(len(request)) > 1: raise IOError('ROM accepts only one request not a list of requests')
-    self.request = copy.copy(request[0])
-    self.output  = self.evaluate(self.request)
-    return
-
-  def collectOutput(self,finishedJob,output,newOutputLoop=True):
-    '''This method append the ROM evaluation into the output'''
-    try:
-      if output.type not in self.admittedData: raise IOError('the output of the ROM is requested on a not compatible data')
-    except AttributeError:
-      raise IOError('the output of the ROM is requested on a not compatible data')
-    for key in output.getParaKeys('inputs'):
-      if key in self.request.keys(): output.updateInputValue(key,self.request[key])
-    for key in output.getParaKeys('outputs'):
-      if key in self.SupervisedEngine.returnInitialParameters()['Target']: output.updateOutputValue(key,self.output)
-      if key in self.request.keys() and key not in self.SupervisedEngine.returnInitialParameters()['Target']: output.updateOutputValue(key,self.request[key])
+    Dummy.run(self, Input, jobHandler)
+    self.outputDict[self.SupervisedEngine.target] = self.evaluate(self.inputDict)
 #
 #
 #  

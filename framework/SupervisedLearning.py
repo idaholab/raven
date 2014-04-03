@@ -16,6 +16,8 @@ import h5py
 import abc
 import ast
 from itertools import product as itprod
+from sklearn import gaussian_process
+from sklearn.neighbors import KNeighborsRegressor
 try:
   import cPickle as pk
 except ImportError:
@@ -167,27 +169,6 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
 #
 #
 #
-class StochasticPolynomials(superVisioned):
-  def __init__(self,**kwargs):
-    superVisioned.__init__(self,**kwargs)
-  
-  def __trainLocal__(self,featureVals,targetVals):
-    pass
-  
-  def __evaluateLocal__(self,featureVals):
-    pass  
-
-  def train(self,inDictionary):
-    pass
-
-  def evaluate(self,valDict):
-    pass
-
-  def reset(self,*args):
-    pass
-#
-#
-#
 class SVMsciKitLearn(superVisioned):
   def __init__(self,**kwargs):
     superVisioned.__init__(self,**kwargs)
@@ -197,6 +178,8 @@ class SVMsciKitLearn(superVisioned):
     self.availSVM['C-SVC'    ] = svm.SVC
     self.availSVM['NuSVC'    ] = svm.NuSVC
     self.availSVM['epsSVR'   ] = svm.SVR
+    self.availSVM['GaussProc'] = gaussian_process.GaussianProcess
+    self.availSVM['NearestN' ] = KNeighborsRegressor
     if not self.initializzationOptionDict['SVMtype'] in self.availSVM.keys(): raise IOError ('not known support vector machine type ' + self.initializzationOptionDict['SVMtype'])
     kwargs.pop('SVMtype')
     kwargs.pop('Target')
@@ -204,7 +187,12 @@ class SVMsciKitLearn(superVisioned):
     self.kwargs = kwargs
     self.SVM = self.availSVM[self.initializzationOptionDict['SVMtype']]()
     if 'probability' not in self.kwargs.keys(): self.kwargs['probability'] = True
-    if self.initializzationOptionDict['SVMtype'] == 'LinearSVC': self.kwargs.pop('probability')
+    if self.initializzationOptionDict['SVMtype'] == 'LinearSVC' or self.initializzationOptionDict['SVMtype'] == 'GaussProc':
+      self.kwargs.pop('probability')
+      print('FIXME: the probability should be handled for GaussProc LinearSVC')
+    if self.initializzationOptionDict['SVMtype'] == 'NearestN' :
+      print('FIXME: the probability should be handled for NearestN')
+      self.kwargs.pop('probability')
     for key,value in self.kwargs.items():
       try:self.kwargs[key] = ast.literal_eval(value)
       except: pass
@@ -337,7 +325,6 @@ class NDmicroSphere(NDinterpolatorRom):
 
 __interfaceDict                          = {}
 __interfaceDict['SVMscikitLearn'          ] = SVMsciKitLearn
-__interfaceDict['StochasticPolynomials'   ] = StochasticPolynomials
 __interfaceDict['NDspline'                ] = NDsplineRom
 __interfaceDict['NDinvDistWeigth'         ] = NDinvDistWeigth  
 __interfaceDict['microSphere'             ] = NDmicroSphere 

@@ -102,7 +102,6 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
         if childChild.tag =='distribution': 
           if child.tag == 'Distribution':
             #Add <distribution> to name so we know it is not the direct variable
-            print('FIXME: #Add <distribution> to name so we know it is not the direct variable# does not seems to be bullet proof please talk to me Cristian')
             self.toBeSampled["<distribution>"+child.attrib['name']] = [childChild.attrib['type'],childChild.text]
           elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
           else: raise IOError('SAMPLER       : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
@@ -432,7 +431,6 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
-    self.debug=False
     if self.debug: print('From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
@@ -474,7 +472,6 @@ class AdaptiveSampler(Sampler):
     tempDict ={}
     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                #get the prediction on the testing grid
-    #print(self.testMatrix)
     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
     if self.debug: print('Prediction finished')      

@@ -267,7 +267,6 @@ class MultiRun(SingleRun):
             newOutputLoop = False
         else: break
         time.sleep(self.sleepTime)
-    #remember to close the rom to decouple the data stroed in the rom from the framework
 #
 #
 #
@@ -367,9 +366,6 @@ class Adaptive(MultiRun):
             newOutputLoop = False
         else: break
         time.sleep(self.sleepTime)
-    #remember to close the rom to decouple the data stroed in the rom from the framework
-    if 'ROM' in inDictionary.keys(): inDictionary['ROM'].close()
-
 #
 #
 #

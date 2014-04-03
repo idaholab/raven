@@ -27,7 +27,7 @@ class ConstructError(Exception):
 class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def __init__(self,inParamValues = None, outParamValues = None):
     BaseType.__init__(self)
-    self._dataParameters = {}                                         # in here we store all the data parameters (inputs params, output params,etc) 
+    self._dataParameters                 = {}                         # in here we store all the data parameters (inputs params, output params,etc) 
     self._dataParameters['inParam'     ] = []                         # inParam list
     self._dataParameters['outParam'    ] = []                         # outParam list
     self._dataParameters['hierarchical'] = False                      # the structure of this data is hierarchical?
@@ -39,16 +39,26 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if outParamValues: 
       if type(outParamValues) != 'dict': raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
       self._dataContainer['outputs'] = outParamValues
+    self.notAllowedInputs  = ['OutputPlaceHolder']#this is a list of keyword that are not allowed as inputs
+    self.notAllowedOutputs = ['InputPlaceHolder' ]#this is a list of keyword that are not allowed as Outputs
                          
   def readMoreXML(self,xmlNode):
     '''
     Function to read the xml input block.
     @ In, xmlNode, xml node
     '''
-    # retrieve input parameters' keywords
+    # retrieve input/outputs parameters' keywords
     self._dataParameters['inParam']  = xmlNode.find('Input' ).text.strip().split(',')
-    # retrieve output parameters' keywords
     self._dataParameters['outParam'] = xmlNode.find('Output').text.strip().split(',')
+    #test for keywords not allowed
+    if len(set(xmlNode.find('Input' ).text.strip().split(','))&set(self.notAllowedInputs))!=0:
+      raise IOError('the keyword '+str(set(xmlNode.find('Input' ).text.strip().split(','))&set(self.notAllowedInputs))+' is not allowed among inputs')
+    if len(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))!=0:
+      raise IOError('the keyword '+str(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))+' is not allowed among inputs')
+    #test for same input/output variables name
+    if len(set(xmlNode.find('Input' ).text.strip().split(','))&set(xmlNode.find('Output' ).text.strip().split(',')))!=0:
+      raise IOError('It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
+    #
     # retrieve history name if present
     try:   self._dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
     except KeyError:self._dataParameters['history'] = None
@@ -73,7 +83,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: 
         self.TSData = None
     except KeyError:self._dataParameters['hierarchical'] = False 
-      
+    
   def addInitParams(self,tempDict):
     '''
     Function to get the input params that belong to this class

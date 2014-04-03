@@ -303,7 +303,11 @@ class hdf5Database(object):
         if type(source['name'][key]) == np.ndarray:
           if maxsize < source['name'][key].size : actualone = source['name'][key].size
         elif type(source['name'][key]) in [int,float,bool]: actualone = 1
-        else: raise IOError('DATABASE HDF5 : The type of the dictionary paramaters must be within float,bool,int,numpy.ndarray')
+        else:
+          print(type(source['name'][key]))
+          print(key)
+          print(source['name'])
+          raise IOError('DATABASE HDF5 : The type of the dictionary paramaters must be within float,bool,int,numpy.ndarray')
         if maxsize < actualone: maxsize = actualone
       groups.attrs[b'n_ts'  ] = maxsize
       dataout = np.zeros((maxsize,len(out_headers)))

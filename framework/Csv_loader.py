@@ -146,7 +146,6 @@ class CsvLoader:
       self.field_names = self.all_field_names
     else:
       self.field_names = outParam
-      self.field_names.insert(0, 'time') 
     
     #fill input param dictionary
     for key in inParam:
@@ -237,7 +236,6 @@ class CsvLoader:
           self.field_names = self.all_field_names
         else:
           self.field_names = outParam
-          self.field_names.insert(0, 'time')       
       #fill input param dictionary
       for key in inParam:
         if key in self.all_field_names:
@@ -355,7 +353,6 @@ class CsvLoader:
       self.field_names = self.all_field_names
     else:
       self.field_names = outParam
-      self.field_names.insert(0, 'time') 
     
     #fill input param dictionary
     for key in inParam:
