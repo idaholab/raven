@@ -186,6 +186,7 @@ class RavenInterface:
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
       distName = distributions[key][1]
+      listDict.append({'name':['Distributions',distName],'erase_block':True})
       listDict.append({'name':['Distributions',distName],'value':distributions[key][0]})
       listDict.append({'name':['Distributions',distName],'type':'ConstantDistribution'})
     #print("listDict",listDict,"distributions",distributions)

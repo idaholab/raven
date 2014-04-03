@@ -137,6 +137,11 @@
     type = NormalDistribution
     sigma = 2
   [../]
+  [./AnotherDistribution]
+    mu = 2.0
+    type = NormalDistribution
+    sigma = 3.0
+  [../]
 []
 [RavenAuxiliary]
   [./Dummy1]

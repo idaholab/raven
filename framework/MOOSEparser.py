@@ -99,6 +99,35 @@ class MOOSEparser:
         else:
           dictionary[key] = other[key]
     
+  def __modifyOrAdd(self,returnElement,name,modiDictionary):
+    """ If erase_block in modiDictionary, then remove name from returnElement
+    else modify name in returnElement
+    """
+    assert(len(name) > 0)
+    has_erase_block = 'erase_block' in modiDictionary.keys() 
+    #If name[0] is not found and in erase_block, then done
+    found,true_name = self.__findInXML(returnElement,name[0])
+    if not found and has_erase_block:
+      #Not found, and just wanted to erase it, so quit.
+      return
+
+    #If len(name) == 1, then don't recurse anymore.  Either 
+    # erase block or modify the element.
+    if len(name) == 1:
+      if has_erase_block:
+        returnElement.remove(returnElement.find(true_name))
+      elif found:
+        self.__updateDict(returnElement.find(true_name).attrib,modiDictionary)
+      else:
+        ET.SubElement(returnElement,name[0],modiDictionary)
+    else:
+      if not found:
+        subElement = ET.SubElement(returnElement,name[0])
+        #if len(name) > 1, then if not found (and since we already checked for erasing) then add it and recurse.
+      else:
+        # if len(name) > 1 and found, then recurse on child    
+        subElement = returnElement.find(true_name)
+      self.__modifyOrAdd(subElement,name[1:],modiDictionary)
 
   def modifyOrAdd(self,modiDictionaryList,save=True):
     '''ModiDictionaryList is a list of dictionaries of the required addition or modification
@@ -110,26 +139,6 @@ class MOOSEparser:
     for i in xrange(len(modiDictionaryList)):
       name = modiDictionaryList[i]['name']
       del modiDictionaryList[i]['name']
-      found,true_name = self.__findInXML(returnElement,name[0])
-      if found:   #if the first level name is present
-        if 'erase_block' in modiDictionaryList[i].keys():
-          if modiDictionaryList[i]['erase_block']: returnElement.remove(returnElement.find(true_name))
-        else:
-          child = returnElement.find(true_name)
-          if len(name)>1:
-            sub_found, sub_true_name = self.__findInXML(child,name[1])
-            if sub_found:
-              self.__updateDict(child.find(sub_true_name).attrib,modiDictionaryList[i])
-            else:
-              ET.SubElement(child,name[1],modiDictionaryList[i])
-          else: child.attrib.update(modiDictionaryList[i])
-        del true_name
-      else:
-        if not 'erase_block' in modiDictionaryList[i].keys():
-          topelement = ET.SubElement(returnElement,name[0])
-          if len(name) > 1:
-            child = returnElement.find(name[0])
-            ET.SubElement(child,name[1],modiDictionaryList[i])
-          else: topelement.attrib.update(modiDictionaryList[i]) 
+      self.__modifyOrAdd(returnElement,name,modiDictionaryList[i])
     if save: return returnElement
 
