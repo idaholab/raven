@@ -11,7 +11,6 @@ This module contains interfaces to import external functions
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
-import Datas
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Function(BaseType):

@@ -925,6 +925,7 @@ class TimePointSet(Data):
       if varID!=None:
         if self._dataParameters['hierarchical']: exec('aa ='+varTyp +'(self.getHierParam(inOutType,nodeid,varName,serialize=False)[nodeid])')    
         else: exec('aa ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
+        print('FIXME: aa??? please use a more descriptive name')
         return aa
       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
       else: raise Exception('DATAS     : ERROR -> trying to extract a scalar value from a time point set without an index')

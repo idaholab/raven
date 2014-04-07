@@ -3,9 +3,7 @@ Created on July 11, 2013
 
 @author: nieljw
 '''
-import xml.etree.ElementTree as ET
 import os
-import copy
 import fileinput
 import re
 class RELAPparser:
@@ -52,11 +50,11 @@ class RELAPparser:
 
       
 if __name__=='__main__':
-  file=RELAPparser('restart.i')
+  myfile=RELAPparser('restart.i')
   dictlist={}
   dictlist['531']={'position':6,'value':1.0E6}
   dictlist['525']={'position':6,'value':1.0E6}
-  file.modifyOrAdd(dictlist,True)
-  file.printInput('restart.n')
+  myfile.modifyOrAdd(dictlist,True)
+  myfile.printInput('restart.n')
 
 

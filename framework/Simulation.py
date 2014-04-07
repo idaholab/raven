@@ -206,40 +206,49 @@ class MPISimulationMode(SimulationMode):
     
 #-----------------------------------------------------------------------------------------------------
 class Simulation(object):
-  '''This is a class that contain all the object needed to run the simulation
-  --Instance--
-  myInstance = Simulation()
-  myInstance.XMLread(xml.etree.ElementTree.Element) This method generates all the objects living in the simulation
+  '''
+  This is a class that contain all the object needed to run the simulation
+  Usage:
+  myInstance = Simulation()                          !Generate the instance
+  myInstance.XMLread(xml.etree.ElementTree.Element)  !This method generate all the objects living in the simulation
+  myInstance.initialize()                            !This method takes care of setting up the directory/file environment with proper checks
+  myInstance.run()                                   !This method run the simulation
+  Utility methods:
+   myInstance.printDicts                              !prints the dictionaries representing the whole simulation
+   myInstance.setInputFiles                           !re-associate the set of files owned by the simulation
+   myInstance.getDefaultInputFile                     !return the default name of the input file read by the simulation
+  Inherited from the BaseType class:
+   myInstance.whoAreYou()                             !inherited from BaseType class-
+   myInstance.myInitializzationParams()               !see BaseType class-
+   myInstance.myClassmyCurrentSetting()               !see BaseType class-
 
-  --usage--
-  myInstance = Simulation()
-  myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all the objects living in the simulation
-  myInstance.initialize()                            This method takes care of setting up the directory/file environment with proper checks
-
-  --Other external methods--
-  myInstance.printDicts prints the dictionaries representing the whole simulation
-  myInstance.whoAreYou()                 -see BaseType class-
-  myInstance.myInitializzationParams()   -see BaseType class-
-  myInstance.myClassmyCurrentSetting()           -see BaseType class-
-
-  --how to add a <myClass> of component to the simulation--
-  import the module <MyModule> where the new type of component is defined, you can name you module as you wish but so far we added an 's' t the class name (see Datas...)
-  The module should possess a function <MyModule>.returnInstance('<myClass>') that returns a pointer to the class
-  add to the class in the __init__: self.<myClass>Dict = {}
-  add to the class in the __init__: self.whichDict['<myClass>']=<MyModule>.returnInstance
-  add to the class in the __init__: self.whichDict['<myClass>'] = self.<myClass>Dict
+  --how to add a new entity <myClass> to the simulation--
+  Add an import for the module where it is defined. Convention is that the module is named with the plural
+   of the base class of the module: <MyModule>=<myClass>+'s'.
+   The base class of the module is by convention named as the new type of simulation component <myClass>.
+   The module should contain a set of classes named <myType> that are child of the base class <myClass>.
+   The module should possess a function <MyModule>.returnInstance('<myType>') that returns a pointer to the class <myType>.
+  Add in Simulation.__init__ the following
+   self.<myClass>Dict = {}
+   self.addWhatDict['<myClass>'] = <MyModule>
+   self.whichDict['<myClass>'  ] = self.<myClass>+'Dict'
+  The XML describing the new entity should be organized as it follows:
+   <MyModule (camelback with first letter capital)>
+     <MyType (camelback with first letter capital) name='here a user given name' subType='here additional specialization'>
+       <if needed more xml nodes>
+     </MyType>
+   </MyModule>
   
-  Comments on the simulation environment
-  -every type of element living in the simulation should be uniquely identified by type and name not by sub-type
+  --Comments on the simulation environment--
+  every type of element living in the simulation should be uniquely identified by type and name not by sub-type
   !!!!Wrong!!!!!!!!!!!!!!!!:
-  Class: distribution, subtype: normal,     name: myDistribution
-  Class: distribution, subtype: triangular, name: myDistribution
+  Class: distribution, type: normal,     name: myDistribution
+  Class: distribution, type: triangular, name: myDistribution
   Correct:
-  type: distribution, subtype: normal,     name: myNormalDist
-  type: distribution, subtype: triangular, name: myTriDist
+  type: distribution, type: normal,      name: myNormalDist
+  type: distribution, type: triangular,  name: myTriDist
   
-  it is therefore discouraged to use the attribute type and sub-type in the xml since they are naming inferred from the tags of the xml
-  
+  Using the attribute in the xml node <MyType> type discouraged to avoid confusion 
   '''
   
   def __init__(self,frameworkDir,debug=False):
@@ -288,13 +297,13 @@ class Simulation(object):
     self.knownQuequingSoftware.append('None')
     self.knownQuequingSoftware.append('PBS Professional')
 
-    #Dictionary of mode handlers
-    self.__modeHandlerDict = {}
+    #Dictionary of mode handlers for the 
+    self.__modeHandlerDict           = {}
     self.__modeHandlerDict['pbsdsh'] = PBSDSHSimulationMode
-    self.__modeHandlerDict['mpi'] = MPISimulationMode
+    self.__modeHandlerDict['mpi']    = MPISimulationMode
 
-    #Class Dictionary when a new function is added to the simulation this dictionary need to be expanded
-    #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
+    #this dictionary contain the static factory that return the instance of one of the allowed entities in the simulation
+    #the keywords are the name of the module that contains the specialization of that specific entity
     self.addWhatDict  = {}
     self.addWhatDict['Steps'            ] = Steps
     self.addWhatDict['Datas'            ] = Datas
@@ -306,8 +315,7 @@ class Simulation(object):
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['OutStreamManager' ] = OutStreamManager
 
-    #Mapping between a class type and the dictionary containing the instances for the simulation
-    #the dictionary keyword should match the subnodes of a step definition so that the step can find the instances
+    #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.whichDict = {}
     self.whichDict['Steps'           ] = self.stepsDict
     self.whichDict['Datas'           ] = self.dataDict
@@ -320,10 +328,10 @@ class Simulation(object):
     self.whichDict['DataBases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
     self.whichDict['OutStreamManager'] = self.OutStreamManagerDict
-    
+    #the handler of the runs within each step
     self.jobHandler    = JobHandler()
+    #handle the setting of how the jobHandler act
     self.__modeHandler = SimulationMode(self)
-    self.knownTypes    = self.whichDict.keys()
 
   def setInputFiles(self,inputFiles):
     '''Can be used to set the input files that the program received.  
@@ -337,7 +345,6 @@ class Simulation(object):
 
   def __createAbsPath(self,filein):
     '''assuming that the file in is already in the self.filesDict it places, as value, the absolute path'''
-    print('FIXME: how can I use continuation lines in the xml')
     if '~' in filein : filein = os.path.expanduser(filein)
     if not os.path.isabs(filein):
       self.filesDict[filein] = os.path.normpath(os.path.join(self.runInfoDict['WorkingDir'],filein))
@@ -349,7 +356,7 @@ class Simulation(object):
   def XMLread(self,xmlNode,runInfoSkip = set()):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
     for child in xmlNode:
-      if child.tag in self.knownTypes:
+      if child.tag in list(self.whichDict.keys()):
         print('reading Class '+str(child.tag))
         Class = child.tag
         if Class != 'RunInfo':
@@ -427,7 +434,8 @@ class Simulation(object):
       elif element.tag == 'Sequence':
         for stepName in element.text.split(','): self.stepSequenceList.append(stepName.strip())
       elif element.tag == 'Files':
-        for fileName in element.text.split(','): self.filesDict[fileName] = fileName.strip()
+        text = element.text.strip()
+        for fileName in text.split(','): self.filesDict[fileName.strip()] = fileName.strip()
       elif element.tag == 'DefaultInputFile'  : self.runInfoDict['DefaultInputFile'] = element.text.strip()
       elif element.tag == 'CustomMode' : 
         modeName = element.text.strip()

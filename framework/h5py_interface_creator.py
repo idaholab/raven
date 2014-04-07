@@ -8,12 +8,12 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
-import numpy as np
 import h5py  as h5
+import numpy as np
 import os
 import copy
 
-from utils import *
+from utils import toBytesIterative, toBytes, toString, convertDictToListOfLists
 
 '''
   *************************
@@ -560,8 +560,8 @@ class hdf5Database(object):
           for j in xrange(len(list_path) - i):
             if list_path[j] != "": path_w = path_w + "/" + list_path[j] 
           if path_w != "":  where_list.append(path_w)
-          list = where_list[i].split("/")
-          name_list.append(list[len(list)-1])
+          mylist = where_list[i].split("/")
+          name_list.append(mylist[len(mylist)-1])
           i = i + 1
         # get the relative groups' data
         gb_res ={}
@@ -641,8 +641,8 @@ class hdf5Database(object):
                 path_w = path_w + "/" + list_path[j] 
             if path_w != "":
               where_list.append(path_w)
-            list = where_list[i].split("/")
-            name_list.append(list[len(list)-1])
+            mylist = where_list[i].split("/")
+            name_list.append(mylist[len(mylist)-1])
             i = i + 1
           # get the relative groups' data
           gb_res ={}

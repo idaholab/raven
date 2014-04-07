@@ -35,7 +35,7 @@ class Node(object):
     '''
       Method to copy this node and return it
       @ In, None
-      @ Out, a new istance of this node
+      @ Out, a new instance of this node
     '''
     node = self.__class__(self.name, self.values)
     node[:] = self

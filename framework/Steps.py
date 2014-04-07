@@ -13,13 +13,11 @@ if not 'xrange' in dir(__builtins__):
 #External Modules------------------------------------------------------------------------------------
 import time
 import abc
-import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
 from utils    import metaclass_insert
-import Distributions
 import Models
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -60,11 +58,12 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.sleepTime  = 0.1  # Waiting time before checking if a run is finished
-    self.initSeed   = None #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
-                           #The option are:
-                           #-a number to be used as a new seed
-                           #-the string continue the use the already present random environment
-                           #-None is equivalent to let the sampler to reinitialize
+    #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
+    #The option are:
+    #-a number to be used as a new seed
+    #-the string continue the use the already present random environment
+    #-None is equivalent to let the sampler to reinitialize
+    self.initSeed   = None 
 
   def readMoreXML(self,xmlNode):
     '''add the readings for who plays the step roles
@@ -247,7 +246,7 @@ class MultiRun(SingleRun):
             for myLambda, outIndex in self._outputCollectionLambda:
               myLambda([finishedJob,outputs[outIndex],newOutputLoop])
               newOutputLoop = False
-            for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+            for _ in xrange(jobHandler.howManyFreeSpots()):
               if sampler.amIreadyToProvideAnInput():
                 newInput =sampler.generateInput(model,inputs)
                 model.run(newInput,jobHandler)
@@ -280,12 +279,10 @@ class Adaptive(MultiRun):
     samplCounter     = 0
     foundTargEval    = False
     targEvalCounter  = 0
-    foundSolExport   = False
     solExportCounter = 0
     functionCounter  = 0
     foundFunction    = False
     ROMCounter       = 0
-    foundROM         = False
     #explanation new roles:
     #Function        : it takes in a datas and generate the value of the goal functions
     #TargetEvaluation: is the output datas that is used for the evaluation of the goal function. It has to be declared among the outputs
@@ -308,7 +305,6 @@ class Adaptive(MultiRun):
         foundFunction   = True
         if role[1]!='Functions'                           : raise Exception('A class function is required as function in an adaptive step, in the step '+self.name)
       elif role[0] == 'ROM':
-        foundROM   = True
         ROMCounter+=1
         if not(role[1]=='Models' and role[2]=='ROM')       : raise Exception('The ROM could be only class=Models and type=ROM. It does not seems so in the step '+self.name)
     if foundSampler ==False: raise Exception('It is not possible to run an adaptive step without a sampler in step '           +self.name)
@@ -346,7 +342,7 @@ class Adaptive(MultiRun):
             for myLambda, outIndex in self._outputCollectionLambda:
               myLambda([finishedJob,outputs[outIndex],newOutputLoop])
               newOutputLoop = False
-            for freeSpot in xrange(jobHandler.howManyFreeSpots()):
+            for _ in xrange(jobHandler.howManyFreeSpots()):
               if sampler.amIreadyToProvideAnInput(targetOutput):
                 newInput = sampler.generateInput(model,inputs)
                 model.run(newInput,jobHandler)
@@ -376,7 +372,6 @@ class IODataBase(Step):
     @Output,Data(s) (for example, History) or DataBase
   '''
   def localInitializeStep(self,inDictionary):
-    avail_out = ['TimePoint','TimePointSet','History','Histories']
     print('STEPS         : beginning of step named: ' + self.name)
     # check if #inputs == #outputs
     if len(inDictionary['Input']) != len(inDictionary['Output']):
@@ -413,7 +408,6 @@ class IODataBase(Step):
             inDictionary['Output'][i].initialize(self.name)
         if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)   
       
-    
   def localTakeAstepRun(self,inDictionary):
     incnt = -1
     for i in range(len(inDictionary['Output'])):

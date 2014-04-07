@@ -14,16 +14,14 @@ import os
 import copy
 import abc
 import numpy as np
-import scipy
+from scipy import spatial
 import xml.etree.ElementTree as ET
 import TreeStructure as ETS
 from BaseType import BaseType
-from itertools import product as iterproduct
 import Distributions
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import Quadrature
 from utils import metaclass_insert
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -342,7 +340,7 @@ class AdaptiveSampler(Sampler):
           self._mappingList.append(key)
           dataMatrix[:,index] = data[key]
           index +=1
-      self._tree = scipy.spatial.cKDTree(copy.copy(dataMatrix),leafsize=18)
+      self._tree = spatial.cKDTree(copy.copy(dataMatrix),leafsize=18)
     elif action=='evaluate':
       print('FIXME: here rather than using self.gridCoord a conversion of data would be more coherent')
       distance, outId    = self._tree.query(self.gridCoord)
@@ -381,7 +379,7 @@ class AdaptiveSampler(Sampler):
     if self.tolleranceWeight!='probability':
       stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
     else:
-      stepParam = lambda x: [stepLenght, 0.0, 1.0]
+      stepParam = lambda _: [stepLenght, 0.0, 1.0]
     #moving forward building all the information set
     pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
     #building the grid point coordinates
@@ -544,7 +542,7 @@ class AdaptiveSampler(Sampler):
       tempDict = {}
       for varIndex, varName in enumerate(self.axisName):
         tempDict[varIndex] = self.surfPoint[:,varIndex]
-      distance, ids = self._cKDTreeInterface('confidence',tempDict)
+      distance, _ = self._cKDTreeInterface('confidence',tempDict)
       minIndex = np.argmax(distance)
       for varIndex, varName in enumerate(self.axisName):
         self.values[varName] = copy.copy(float(self.surfPoint[minIndex,varIndex]))
@@ -643,28 +641,6 @@ class AdaptiveSampler(Sampler):
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''generate representation of goal function'''
     pass
-#
-#
-#
-class StochasticCollocation(Sampler):
-  '''STOCHASTIC COLLOCATION Sampler '''
-  def __init__(self):
-    pass
-
-  def localInitialize(self):
-    pass
-    
-  def readMoreXML(self,xmlNode):
-    pass
-
-  def GenerateInput(self,model,myInput):
-    return
-
-  def generateQuadrature(self):
-    return
-
-  def initializeDistributions(self,availableDist):
-    return
 #
 #
 #
@@ -1039,7 +1015,7 @@ class DynamicEventTree(Sampler):
         self.branchCountOnLevel = 1
         n_branches = endInfo['n_branches'] - 1
       # Loop over the branches for which the inputs must be created
-      for i in range(n_branches):
+      for _ in range(n_branches):
         del self.inputInfo
         self.counter += 1
         self.branchCountOnLevel += 1
@@ -1314,7 +1290,6 @@ __base = 'Sampler'
 __interFaceDict = {}
 __interFaceDict['MonteCarlo'            ] = MonteCarlo
 __interFaceDict['DynamicEventTree'      ] = DynamicEventTree
-__interFaceDict['StochasticCollocation' ] = StochasticCollocation
 __interFaceDict['LHS'                   ] = LHS
 __interFaceDict['Grid'                  ] = Grid
 __interFaceDict['Adaptive'              ] = AdaptiveSampler

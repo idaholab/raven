@@ -12,7 +12,7 @@ if not 'xrange' in dir(__builtins__):
 import xml.etree.ElementTree as ET
 import os
 import copy
-from utils import *
+from utils import toBytes, toStrish
 
 class MOOSEparser:
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''

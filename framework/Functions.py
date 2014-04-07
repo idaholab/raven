@@ -107,7 +107,7 @@ class Function(BaseType):
     for key, myType in self.__varType.items():
       #exec('self.'+key+'=inputData.extractValue(myType,key)')
       ##### TEMPORARY FIXXXXXXXX - ALIAS NEEDED#######
-      print('FIXME: Alias are already in place why we have still the fixme???')
+      print('FIXME: Alias are already in place why we have still the fixme (once done see also if the loop should contain the myType???')
       foundperfectly = False
       for index in range(len(inputData.dataParameters['inParam'])):
         if key == inputData.dataParameters['inParam'][index]: foundperfectly = True
@@ -165,7 +165,7 @@ def knonwnTypes():
 
 def returnInstance(Type,debug=False):
   '''This function return an instance of the request model type'''
-  if Type in knonwnTypes():return __interFaceDict[Type]() 
+  if Type in knonwnTypes():return __interFaceDict[Type](debug) 
   else: raise NameError('not known '+__base+' type '+Type)
   
     

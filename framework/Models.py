@@ -17,7 +17,6 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import Datas
 from BaseType import BaseType
 import SupervisedLearning
 from Filters import returnFilterInterface

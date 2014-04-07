@@ -15,7 +15,6 @@ import subprocess
 import os
 import signal
 import logging, logging.handlers
-import threading
 
 class ExternalRunner:
   def __init__(self,command,workingDir,output=None):

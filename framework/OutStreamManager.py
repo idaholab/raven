@@ -15,10 +15,8 @@ import numpy as np
 from BaseType import BaseType
 import copy
 import ast
-from scipy.interpolate import *
-import importlib
-from math import pow  
-from math import sqrt  
+from scipy.interpolate import Rbf, griddata
+import importlib                #it is used in exec code so it might be detected as unused
 
 def removeNanEntries(X):
   return X[~np.isnan(X).any(1)]

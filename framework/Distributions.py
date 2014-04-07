@@ -8,12 +8,10 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys
-import scipy.stats.distributions  as dist
 import numpy as np
 from BaseType import BaseType
 import scipy.special as polys
 from scipy.misc import factorial
-import Quadrature
 if sys.version_info.major > 2:
   import distribution1Dpy3 as distribution1D
 else:
@@ -32,7 +30,6 @@ class Distribution(BaseType):
     self.upperBound       = 0.0  #Right bound
     self.lowerBound       = 0.0  #Left bound
     self.__adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
-    self.bestQuad         = None #the quadrature that best integrate the distribution
     self.dimensionality   = None #Dimensionality of the distribution (1D or ND)
     
   def readMoreXML(self,xmlNode):
@@ -53,7 +50,6 @@ class Distribution(BaseType):
     tempDict['upperBound'    ] = self.upperBound
     tempDict['lowerBound'    ] = self.lowerBound
     tempDict['adjustmentType'] = self.__adjustmentType
-    tempDict['bestQuad'      ] = self.bestQuad
     tempDict['dimensionality'] = self.dimensionality
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
@@ -134,7 +130,7 @@ class BoostDistribution(Distribution):
     if len(args) == 0:
       return self.ppf(random())
     else:
-      return [self.rvs() for x in range(args[0])]
+      return [self.rvs() for _ in range(args[0])]
 #==============================================================\
 #    Distributions convenient for stochastic collocation
 #==============================================================\
@@ -145,7 +141,6 @@ class Uniform(BoostDistribution):
     self.low = 0.0
     self.hi = 0.0
     self.type = 'Uniform'
-    self.bestQuad = Quadrature.Legendre
 
   def readMoreXML(self,xmlNode):
     BoostDistribution.readMoreXML(self,xmlNode)
@@ -228,7 +223,6 @@ class Normal(BoostDistribution):
     self.mean  = 0.0
     self.sigma = 0.0
     self.type = 'Normal'
-    self.bestQuad = Quadrature.StatHermite
 
   def readMoreXML(self,xmlNode):
     BoostDistribution.readMoreXML(self, xmlNode)
@@ -264,7 +258,7 @@ class Normal(BoostDistribution):
       def standardToActualWeight(x): #standard -> actual
         return x/(self.sigma**2/2.)
 
-      def probNorm(x): #normalizes if total prob. != 1
+      def probNorm(_): #normalizes if total prob. != 1
         return 1.0
 
       self.poly_norm = norm
@@ -293,7 +287,6 @@ class Gamma(BoostDistribution):
     self.alpha = 0.0
     self.beta = 1.0
     self.type = 'Gamma'
-    self.bestQuad = Quadrature.Laguerre
 
   def readMoreXML(self,xmlNode):
     BoostDistribution.readMoreXML(self,xmlNode)
@@ -334,7 +327,7 @@ class Gamma(BoostDistribution):
     def standardToActualWeight(x): #standard -> actual
       return x
 
-    def probNorm(x): #normalizes probability if total != 1
+    def probNorm(_): #normalizes probability if total != 1
       return 1.0
 
     self.poly_norm=norm
@@ -351,7 +344,7 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
-    self.bestQuad = Quadrature.Jacobi
+    print('FIXME: # TODO default to specific Beta distro?')
     # TODO default to specific Beta distro?
 
   def readMoreXML(self,xmlNode):
@@ -403,7 +396,6 @@ class Triangular(BoostDistribution):
     self.min  = 0.0
     self.max  = 0.0
     self.type = 'Triangular'
-    self.bestQuad = None
 
   def readMoreXML(self,xmlNode):
     BoostDistribution.readMoreXML(self, xmlNode)

@@ -9,11 +9,11 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-#External Modules
+#External Modules--------------------begin
 import xml.etree.ElementTree as ET
 import os
 import sys
-#External Modules
+#External Modules--------------------end
 
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 
@@ -21,6 +21,7 @@ frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 pmoduleDir = os.path.join(os.path.dirname(frameworkDir),"python_modules")
 print("pmoduleDir",pmoduleDir)
 sys.path.append(pmoduleDir)
+if not os.path.exists(pmoduleDir): raise IOError('The directory "python_modules" has not been found. It location is supposed to be ../python_modules')
 
 #Internal Modules
 from Simulation import Simulation

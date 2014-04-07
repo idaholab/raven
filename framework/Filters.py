@@ -10,7 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #import Datas
 import numpy as np
 import os
-from utils import *
+from utils import toString, toBytes
 
 '''
   ********************************
@@ -50,6 +50,7 @@ class PrintCSV:
       try:
         # not yet implemented 
         outType = output.type
+        print('FIXME: in filters the outType selection has not yet been implemented')
       except AttributeError:
         #  If file, split the strings and add the working directory if present
         for key in histories:
@@ -162,7 +163,7 @@ class PrintCSV:
     elif(self.inObj.type == "Datas"):
       pass
     else:
-      raise NameError ('Filter PrintCSV for input type ' + inObj.type + ' not yet implemented.')
+      raise NameError ('Filter PrintCSV for input type ' + self.inObj.type + ' not yet implemented.')
   
   def finalizeFilter(self,inObj,jobHandler,workingDir=None):
     '''
