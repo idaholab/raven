@@ -208,13 +208,10 @@ class CsvLoader:
     @ In, inParam = parameters to be picked up 
     @ In, outParam = parameters to be picked up    
     '''
-    print('def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,inputTs):')
-    print(outParam)
     if 'all' in outParam:
       self.all_out_param  = True
     else:
       self.all_out_param = False
-    
     if (time == 'end') or (not time):
       time_end = True
       time_float = -1.0
@@ -223,9 +220,7 @@ class CsvLoader:
       time_end = False
       time_float = float(time)
     if inputTs: ints = int(inputTs)
-    else: ints = 0
-    
-          
+    else: ints = 0    
     inDict  = {}
     outDict = {}    
     

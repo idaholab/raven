@@ -12,26 +12,17 @@ def initialize(self,runInfoDict,inputFiles):
   self.sigma = 10.0
   self.rho   = 28.0
   self.beta  = 8.0/3.0
-  
-    #self.fig=pyl.figure()
-    #self.ax = p3.Axes3D(self.fig)
-    #self.ax.set_xlabel('X')
-    #self.ax.set_ylabel('Y')
-    #self.ax.set_zlabel('Z')
-    #self.fig.add_axes(self.ax)
-  
   return
 
 
 def createNewInput(self,myInput,samplerType,**Kwargs):
-  self.SampledVars = Kwargs['SampledVars']
-  return None
+  return Kwargs['SampledVars']
 
 def readMoreXML(self,xmlNode):
   return None
 
 def run(self,Input,jobHandler):
-
+  print(Input)
   max_time = 0.03
   t_step = 0.01
   
@@ -42,13 +33,13 @@ def run(self,Input,jobHandler):
   self.z = np.zeros(numberTimeSteps)
   self.time = np.zeros(numberTimeSteps)
   
-  self.x0 = self.SampledVars['x0'] 
-  self.y0 = self.SampledVars['y0']  
-  self.z0 = self.SampledVars['z0'] 
+  self.x0 = Input[0]['x0']
+  self.y0 = Input[0]['y0']
+  self.z0 = Input[0]['z0'] 
   
-  self.x[0] = self.SampledVars['x0'] 
-  self.y[0] = self.SampledVars['y0']  
-  self.z[0] = self.SampledVars['z0'] 
+  self.x[0] = Input[0]['x0'] 
+  self.y[0] = Input[0]['y0']  
+  self.z[0] = Input[0]['z0'] 
   self.time[0]= 0
   
   for t in range (numberTimeSteps-1):

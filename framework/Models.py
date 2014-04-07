@@ -342,14 +342,17 @@ class ExternalModel(Dummy):
     self.modelVariableValues = {}
     self.modelVariableType   = {}
     self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
-    self.counter = 0
 
   def initialize(self,runInfo,inputs):
     if 'initialize' in dir(self.sim): self.sim.initialize(self,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)      
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    if 'createNewInput' in dir(self.sim): return self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
+    if 'createNewInput' in dir(self.sim): 
+      extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
+      if extCreateNewInput== None: raise Exception('MODEL EXTERNAL: ERROR -> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
+      self.counterInput += 1
+      return [(extCreateNewInput,self.counterInput)]
     else                                : return Dummy.createNewInput(self, myInput,samplerType,**Kwargs)   
 
   def readMoreXML(self,xmlNode):
@@ -360,7 +363,7 @@ class ExternalModel(Dummy):
         abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
         if '~' in abspath:abspath = os.path.expanduser(abspath)
         if os.path.exists(abspath): os.sys.path.append(abspath)
-        else: raise IOError('MODEL EXTERNAL: ERROR -> The path provided for the external model does not exist!!! Got ' + abspath)
+        else: raise IOError('MODEL EXTERNAL: ERROR -> The path provided for the external model does not exist!!! Got: ' + abspath)
     else: raise IOError('MODEL EXTERNAL: ERROR -> ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
     self.sim=__import__(self.ModuleToLoad)
@@ -371,44 +374,36 @@ class ExternalModel(Dummy):
         exec('self.'+son.text+' = self.modelVariableValues['+'son.text'+']')
         if 'type' in son.attrib.keys():
           if not (son.attrib['type'].lower() in self.__availableVariableTypes):
-            raise IOError('MODEL EXTERNAL: ERROR -> the "type" of variable ' + son.text + 'not')
+            raise IOError('MODEL EXTERNAL: ERROR -> the "type" of variable ' + son.text + 'not among available types')
           self.modelVariableType[son.text] = son.attrib['type']
         else: raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
     # check if there are other information that the external module wants to load
     if 'readMoreXML' in dir(self.sim): self.sim.readMoreXML(self,xmlNode)
 
   def run(self,Input,jobHandler):
+    self.outputDict['OutputPlaceHolder'] = numpy.atleast_1d(Input[0][1])
     if 'createNewInput' not in dir(self.sim):
       for key in Input[0][0].keys(): self.modelVariableValues[key] = Input[0][0][key]
       self.__uploadValues()
-    self.sim.run(self,Input,jobHandler)
+    self.sim.run(self,Input[0],jobHandler)
     self.__pointSolution()      
-    self.counter += 1
     
   def collectOutput(self,finisishedjob,output,newOutputLoop=True):
-    #####this need more attention... why it is done somehow here, should not be all in the interface (FIXME)
-    if 'collectOutput' in dir(self.sim):
-      self.sim.collectOutput(self,finisishedjob,output)
-
     def typeMatch(var,var_type_str):
       type_var = type(var)
       return type_var.__name__ == var_type_str or \
         type_var.__module__+"."+type_var.__name__ == var_type_str
-    if 'HDF5' in output.type:
-      for key in self.modelVariableValues: 
-        if not (typeMatch(self.modelVariableValues[key],self.modelVariableType[key])):
-          raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
-      output.addGroupDatas({'group':str(self.counter)},self.modelVariableValues)
+    # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
+    for key in self.modelVariableValues: 
+      if not (typeMatch(self.modelVariableValues[key],self.modelVariableType[key])): raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
+    self.outputDict = {'OutputPlaceHolder':self.outputDict['OutputPlaceHolder']}
+    if 'HDF5' in output.type: # if HDF5: we consider everything as an output, since we do not have a way by which is an output or input...
+      self.outputDict.update(self.modelVariableValues) 
+      self.inputDict = {}
     else:
-      if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
-      for inputName in output.getParaKeys('inputs'):
-        if not (typeMatch(self.modelVariableValues[inputName],self.modelVariableType[inputName])):
-          raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' is ' + str(type(self.modelVariableValues[inputName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[inputName] +')!!!')
-        output.updateInputValue(inputName,self.modelVariableValues[inputName])
-      for outName in output.getParaKeys('outputs'):
-        if not (typeMatch(self.modelVariableValues[outName],self.modelVariableType[outName])):
-          raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ outName + ' is ' + str(type(self.modelVariableValues[outName]))+' and mismatches with respect to the inputted one (' + self.modelVariableType[outName] +')!!!')
-        output.updateOutputValue(outName,self.modelVariableValues[outName])   
+      for inputName in output.getParaKeys('inputs'): self.inputDict[inputName] = self.modelVariableValues[inputName]
+      for outName in output.getParaKeys('outputs'):  self.outputDict[outName ] = self.modelVariableValues[outName]  
+    Dummy.collectOutput(self, finisishedjob, output, newOutputLoop)
     
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
