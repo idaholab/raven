@@ -397,7 +397,7 @@ class ExternalModel(Dummy):
     for key in self.modelVariableValues: 
       if not (typeMatch(self.modelVariableValues[key],self.modelVariableType[key])): raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
     self.outputDict = {'OutputPlaceHolder':self.outputDict['OutputPlaceHolder']}
-    if 'HDF5' in output.type: # if HDF5: we consider everything as an output, since we do not have a way by which is an output or input...
+    if 'HDF5' in output.type: # if HDF5: we consider everything as an output, since we do not have a way to descriminate an input from an output and vice-versa
       self.outputDict.update(self.modelVariableValues) 
       self.inputDict = {}
     else:

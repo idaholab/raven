@@ -282,7 +282,7 @@ class NodeTree(object):
     '''
     if path[:1] == "/":
       path = "." + path
-    return self._rootnode.iterfind(path, namespaces)
+    return self._rootnode.iterfind(path)
   
   def writeNodeTree(self,dumpFile):
     '''

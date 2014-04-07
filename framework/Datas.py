@@ -923,18 +923,17 @@ class TimePointSet(Data):
     if stepID!=None: raise Exception('DATAS     : ERROR -> seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varID!=None:
-        if self._dataParameters['hierarchical']: exec('aa ='+varTyp +'(self.getHierParam(inOutType,nodeid,varName,serialize=False)[nodeid])')    
-        else: exec('aa ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
-        print('FIXME: aa??? please use a more descriptive name')
-        return aa
+        if self._dataParameters['hierarchical']: exec('extractedValue ='+varTyp +'(self.getHierParam(inOutType,nodeid,varName,serialize=False)[nodeid])')    
+        else: exec('extractedValue ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
+        return extractedValue
       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
       else: raise Exception('DATAS     : ERROR -> trying to extract a scalar value from a time point set without an index')
     else: 
       if self._dataParameters['hierarchical']: 
         paramss = self.getHierParam(inOutType,nodeid,varName,serialize=True)
-        aa = np.zeros(len(paramss[nodeid]))
-        for index in range(len(paramss[nodeid])): aa[index] = paramss[nodeid][index]
-        return aa
+        extractedValue = np.zeros(len(paramss[nodeid]))
+        for index in range(len(paramss[nodeid])): extractedValue[index] = paramss[nodeid][index]
+        return extractedValue
       else: return self.getParam(inOutType,varName)
 
 class History(Data):
@@ -1252,13 +1251,13 @@ class Histories(Data):
       if not self._dataContainer: 
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if name in self._dataContainer['outputs'].keys():
-        self._dataContainer['outputs'].pop(name)
-      if name not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(name)
-      self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+      if namep in self._dataContainer['outputs'].keys():
+        self._dataContainer['outputs'].pop(namep)
+      if namep not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(namep)
+      self._dataContainer['outputs'][namep] = copy.deepcopy(np.atleast_1d(np.array(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:    
-      if type(name) == 'list':
+      if type(name) == list:
         # there are info regarding the history number
         if name[0] in self._dataContainer['outputs'].keys():
           gethistory = self._dataContainer['outputs'].pop(name[0])

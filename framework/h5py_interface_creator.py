@@ -206,7 +206,7 @@ class hdf5Database(object):
         else:       grp = self.h5_file_w.create_group(gname) 
       print('DATABASE HDF5 : Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
       # Create dataset in this newly added group
-      dataset = grp.create_dataset(gname+"_data", dtype="float", data=data)
+      grp.create_dataset(gname+"_data", dtype="float", data=data)
       # Add metadata
       grp.attrs["output_space_headers"   ] = headers
       grp.attrs["n_params"               ] = data[0,:].size
@@ -290,7 +290,7 @@ class hdf5Database(object):
         if type(out_values[index]) == np.ndarray:  dataout[0:out_values[index].size,index] =  copy.deepcopy(out_values[index][:])
         else: dataout[0,index] = copy.deepcopy(out_values[index])
       # create the data set
-      dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
+      groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
       if parent_group_name != "/":
         self.allGroupPaths.append(parent_group_name + "/" + gname)
         self.allGroupEnds[parent_group_name + "/" + gname] = True
@@ -363,7 +363,7 @@ class hdf5Database(object):
         dataout = np.zeros((data_out[0].size,len(data_out)))
         groups.attrs[b'n_ts'  ] = data_out[0].size
         for run in range(len(data_out)): dataout[:,int(run)] = copy.deepcopy(data_out[run][:])
-        dataset_out = groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
+        groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
         if parent_group_name != "/":
           self.allGroupPaths.append(parent_group_name + "/" + gname)
           self.allGroupEnds[parent_group_name + "/" + gname] = True
@@ -409,7 +409,7 @@ class hdf5Database(object):
       # Create the sub-group
       sgrp = grp.create_group(gname)
       # Create data set in this new group
-      dataset = sgrp.create_dataset(gname+"_data", dtype="float", data=data)
+      sgrp.create_dataset(gname+"_data", dtype="float", data=data)
       # Add the metadata
       sgrp.attrs["output_space_headers"   ] = headers
       sgrp.attrs["n_params"  ] = data[0,:].size
@@ -502,11 +502,11 @@ class hdf5Database(object):
         workingList.append(self.allGroupPaths[index].split('/')[len(self.allGroupPaths[index].split('/'))-1])
     return workingList
 
-  def retrieveHistory(self,name,filter=None):
+  def retrieveHistory(self,name,filterHist=None):
     '''
     Function to retrieve the history whose end group name is "name"
-    @ In,  name   : history name => It must correspond to a group name (string)
-    @ In,  filter : filter for history retrieving
+    @ In,  name       : history name => It must correspond to a group name (string)
+    @ In,  filterHist : filter for history retrieving
                     ('whole' = whole history, 
                      integer value = groups back from the group "name", 
                      or None = retrieve only the group "name". Defaul is None)
@@ -532,7 +532,7 @@ class hdf5Database(object):
         break
     if found:
       # Check the filter type
-      if not filter or filter == 0:
+      if not filterHist or filterHist == 0:
         # Grep only History from group "name"
         grp = self.h5_file_w.require_group(path)
         # Retrieve dataset
@@ -541,7 +541,7 @@ class hdf5Database(object):
         result = dataset[:,:]
         # Get attributes (metadata)
         attrs = grp.attrs
-      elif  filter == 'whole':
+      elif  filterHist == 'whole':
         # Retrieve the whole history from group "name" to the root 
         # Start constructing the merged numpy array
         where_list = []
@@ -621,10 +621,10 @@ class hdf5Database(object):
   
       else:
         # A number of groups' back have been inputted
-        # Follow the same strategy used above (filter = whole)
+        # Follow the same strategy used above (filterHist = whole)
         # but stop at back(th) group starting from group "name"
-        if is_number(filter):
-          back = int(filter) + 1
+        if is_number(filterHist):
+          back = int(filterHist) + 1
           if len(list_path) < back: raise Exception("Error. Number of branches back > number of actual branches in dataset for History ending with " + name)
           if (back == len(list_path)-1) and (self.parent_group_name != '/'): back = back - 1
           # start constructing the merged numpy array
@@ -693,7 +693,6 @@ class hdf5Database(object):
           attrs["input_file"]      = []
           attrs["source_file"]     = []
           if "branch_changed_param" in gb_attrs[0]:
-            par = gb_attrs[0]["branch_changed_param"]
             attrs["branch_changed_param"]    = []
             attrs["conditional_prb"] = []
           for param_key in ["branch_changed_param_value","initiator_distribution","Probability_threshold","end_timestep"]:

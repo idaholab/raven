@@ -210,11 +210,6 @@ class HDF5(DateBase):
       time_float = float(attributes['time'])
     inDict  = {}
     outDict = {} 
-    field_names = []
-    # Retrieve the field_names (aka headers if from CSV)
-    if(all_out_param): field_names = histVar[1]["output_space_headers"]
-    else:
-      field_names = attributes['outParam']
     ints = 0
     if 'inputTs' in attributes.keys(): 
       if attributes['inputTs']: ints = int(attributes['inputTs'])
@@ -326,10 +321,6 @@ class HDF5(DateBase):
       # Load the data into the numpy array
       attributes['history'] = hist_list[i]
       histVar = self.returnHistory(attributes)
-      if i == 0:
-        if(all_out_param): field_names = histVar[1]["output_space_headers"]
-        else:
-          field_names = attributes['outParam']
       for key in attributes["inParam"]:
         if 'input_space_headers' in histVar[1]:
           inInKey = keyIn(histVar[1]['input_space_headers'],key)
@@ -439,11 +430,6 @@ class HDF5(DateBase):
     # Call the function to retrieve a single history and 
     # load the data into the tuple 
     histVar = self.returnHistory(attributes)
-    
-    if(all_out_param): field_names = histVar[1]["output_space_headers"]
-    else:
-      # Retrieve only some parameters 
-      field_names = attributes["outParam"]
     # fill input param dictionary
     for key in attributes["inParam"]:
         if 'input_space_headers' in histVar[1]:
