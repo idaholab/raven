@@ -683,22 +683,22 @@ class NDInverseWeight(NDimensionalDistributions):
     return self._distribution.Pdf(x)
     
   def untruncatedCdfComplement(self, x):
-    raise NotYetImplemented('untruncatedCdfComplement not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raise NotYetImplemented('untruncatedHazard not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self):
-    raise NotYetImplemented('untruncatedMean not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMean not yet implemented for ' + self.type)
 
   def untruncatedMedian(self):
-    raise NotYetImplemented('untruncatedMedian not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self):
-    raise NotYetImplemented('untruncatedMode not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raise NotYetImplemented('rvs not yet implemented for ' + self.type)
+    raise NotImplementedError('rvs not yet implemented for ' + self.type)
 
 class NDScatteredMS(NDimensionalDistributions):
   def __init__(self):
@@ -736,22 +736,22 @@ class NDScatteredMS(NDimensionalDistributions):
     return self._distribution.Pdf(x)
     
   def untruncatedCdfComplement(self, x):
-    raise NotYetImplemented('untruncatedCdfComplement not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raise NotYetImplemented('untruncatedHazard not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self):
-    raise NotYetImplemented('untruncatedMean not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMean not yet implemented for ' + self.type)
 
   def untruncatedMedian(self):
-    raise NotYetImplemented('untruncatedMedian not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self):
-    raise NotYetImplemented('untruncatedMode not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raise NotYetImplemented('rvs not yet implemented for ' + self.type)
+    raise NotImplementedError('rvs not yet implemented for ' + self.type)
 
 class NDCartesianSpline(NDimensionalDistributions):
   def __init__(self):
@@ -779,22 +779,22 @@ class NDCartesianSpline(NDimensionalDistributions):
     return self._distribution.Pdf(x)
     
   def untruncatedCdfComplement(self, x):
-    raise NotYetImplemented('untruncatedCdfComplement not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedCdfComplement not yet implemented for ' + self.type)
 
   def untruncatedHazard(self, x):
-    raise NotYetImplemented('untruncatedHazard not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedHazard not yet implemented for ' + self.type)
 
   def untruncatedMean(self):
-    raise NotYetImplemented('untruncatedMean not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMean not yet implemented for ' + self.type)
 
   def untruncatedMedian(self):
-    raise NotYetImplemented('untruncatedMedian not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMedian not yet implemented for ' + self.type)
 
   def untruncatedMode(self):
-    raise NotYetImplemented('untruncatedMode not yet implemented for ' + self.type)
+    raise NotImplementedError('untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raise NotYetImplemented('rvs not yet implemented for ' + self.type)
+    raise NotImplementedError('rvs not yet implemented for ' + self.type)
 
 
 __base                        = 'Distribution'
