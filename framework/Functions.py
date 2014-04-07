@@ -31,7 +31,7 @@ class Function(BaseType):
     self.__inputFromWhat['dict']         = self.__inputFromDict
     self.__inputFromWhat['Data']         = self.__inputFromData    
     
-  def readMoreXML(self,xmlNode):
+  def readMoreXML(self,xmlNode,debug=False):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
       moduleName        = ''.join(xmlNode.attrib['file'].split('.')[:-1]) #remove the .py
@@ -163,9 +163,9 @@ __knownTypes                = __interFaceDict.keys()
 def knonwnTypes():
   return __knownTypes
 
-def returnInstance(Type,debug=False):
+def returnInstance(Type):
   '''This function return an instance of the request model type'''
-  if Type in knonwnTypes():return __interFaceDict[Type](debug) 
+  if Type in knonwnTypes():return __interFaceDict[Type]()
   else: raise NameError('not known '+__base+' type '+Type)
   
     
