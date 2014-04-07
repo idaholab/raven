@@ -77,8 +77,6 @@ def random():
   return stochasticEnv.random()
 
 def randomSeed(value):
-  print(value)
-  print(type(value))
   return stochasticEnv.seedRandom(value)
 
 def randomIntegers(low,high):
@@ -240,7 +238,6 @@ class Normal(BoostDistribution):
     tempDict['sigma'] = self.sigma
 
   def initializeDistribution(self):
-    print("initialize",self)
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       #self._distribution = dist.norm(loc=self.mean,scale=self.sigma)
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
@@ -267,8 +264,7 @@ class Normal(BoostDistribution):
       self.actual_weight = standardToActualWeight
       self.probability_norm = probNorm
     else:
-      #print("truncnorm")
-      #FIXME special case distribution for stoch collocation
+      print('FIXME: this should be removed.... :special case distribution for stoch collocation')
       if self.lowerBoundUsed == False: a = -sys.float_info[max]
       else:a = self.lowerBound
       #else:a = (self.lowerBound - self.mean) / self.sigma

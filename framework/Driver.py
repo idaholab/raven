@@ -28,7 +28,6 @@ from Simulation import Simulation
 #Internal Modules
 
 #-------------------------------------------------------------Test Driver
-debug = True
 def printStatement():
   print("""  
   NOTICE: This computer software was prepared by Battelle Energy
@@ -55,7 +54,9 @@ if __name__ == '__main__':
   printStatement()
 
   workingDir = os.getcwd()
-
+  if 'debug=True' in sys.argv: debug=True
+  else                       : debug=False
+  
   simulation = Simulation(frameworkDir,debug=debug)
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")

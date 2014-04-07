@@ -355,21 +355,27 @@ class Simulation(object):
 
   def XMLread(self,xmlNode,runInfoSkip = set()):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
+    if 'debug' in xmlNode.attrib.keys():
+      if xmlNode.attrib['debug']=='True'   : self.debug=True
+      elif xmlNode.attrib['debug']=='False': self.debug=False
+      else                                 : raise IOError('Not understandable keyword to set up the debug level: '+str(xmlNode.attrib['debug']))
     for child in xmlNode:
       if child.tag in list(self.whichDict.keys()):
-        print('reading Class '+str(child.tag))
+        if self.debug: print('reading Class Type'+str(child.tag))
         Class = child.tag
         if Class != 'RunInfo':
           for childChild in child:
-            if childChild.attrib['name'] != None:
+            if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
-              print('SIMULATION    : Reading type '+str(childChild.tag)+' with name '+name)
+              if self.debug: print('SIMULATION    : Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
               else: raise IOError('SIMULATION    : Redundant  naming in the input for class '+Class+' and name '+name)
               #now we can read the info for this object
-              self.whichDict[Class][name].readXML(childChild)
+              if 'debug' in childChild.attrib.keys(): localDebug = childChild.attrib['debug']
+              else                                  : localDebug = self.debug
+              self.whichDict[Class][name].readXML(childChild,localDebug)
               if self.debug: self.whichDict[Class][name].printMe()
             else: raise IOError('SIMULATION    : not found name attribute for one '+Class)
         else: self.__readRunInfo(child,runInfoSkip)

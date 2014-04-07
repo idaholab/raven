@@ -13,7 +13,7 @@ class BaseType(object):
     self.type    = ''      # specific type within this class
     self.debug   = False   #set up the debug status of the code
 
-  def readXML(self,xmlNode):
+  def readXML(self,xmlNode,debug=False):
     '''
       provide a basic reading capability from the xml input file
        for what is common to all types in the simulation than calls readMoreXML
@@ -21,15 +21,12 @@ class BaseType(object):
        Each type supported by the simulation should have:
        name (xml attribute), type (xml tag)
     '''
-    if 'name' in xmlNode.attrib:
+    if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
-      del(xmlNode.attrib['name'])
     else: raise IOError('not found name for a '+self.__class__.__name__)
     self.type = xmlNode.tag
-    # except? raise IOError('not found type for the '+self.__class__.__name__+' named '+self.name) #If we figure out how this happens, renable with more specific exception
-    if 'debug' in xmlNode.attrib:
-      self.debug = bool(xmlNode.attrib['debug'])
-      del(xmlNode.attrib['debug'])
+    if 'debug' in xmlNode.attrib: self.debug = bool(xmlNode.attrib['debug'])
+    else                        : self.debug = debug
     self.readMoreXML(xmlNode)
 
   def readMoreXML(self,xmlNode):
