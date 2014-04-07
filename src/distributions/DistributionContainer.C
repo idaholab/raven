@@ -118,7 +118,7 @@ DistributionContainer::getType(std::string DistAlias){
 
 void
 DistributionContainer::seedRandom(unsigned int seed){
-  std::cout << "seedRandom " << seed << std::endl;
+  //std::cout << "seedRandom " << seed << std::endl;
   //srand( seed );
   //_random.seed(seed);
   //MooseRandom::seed(seed);
