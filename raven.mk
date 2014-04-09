@@ -96,7 +96,7 @@ $(RAVEN_DIR)/control_modules/_distribution1D.so : $(RAVEN_DIR)/control_modules/d
                                                  $(RAVEN_DIR)/src/utilities/MDreader.C \
                                                  $(RAVEN_DIR)/src/distributions/distribution.C $(RAVEN_LIB)
 # Swig
-	swig -c++ -python -py3  -I$(RAVEN_DIR)/include/distributions/  -Iinclude/base/ -Iinclude/utilities/ \
+	swig -c++ -python $(SWIG_PY_FLAGS)  -I$(RAVEN_DIR)/include/distributions/  -Iinclude/base/ -Iinclude/utilities/ \
           $(RAVEN_MODULES)/distribution1D.i
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
@@ -121,11 +121,11 @@ $(RAVEN_DIR)/control_modules/_raventools.so : $(RAVEN_DIR)/control_modules/raven
                                              $(RAVEN_DIR)/src/tools/RavenToolsContainer.C \
                                              $(RAVEN_DIR)/src/utilities/Interpolation_Functions.C $(RAVEN_LIB)
 # Swig
-	swig -c++ -python -py3 -I$(RAVEN_DIR)/../moose/include/base/  \
+	swig -c++ -python $(SWIG_PY_FLAGS) -I$(RAVEN_DIR)/../moose/include/base/  \
           -I$(RAVEN_DIR)/../moose/include/utils/ -I$(RAVEN_DIR)/include/tools/ \
           -I$(RAVEN_DIR)/include/utilities/ -I$(RAVEN_DIR)/include/base/ \
           $(RAVEN_MODULES)/raventools.i
-#swig -c++ -python -py3 -I$(RAVEN_DIR)/include/tools/  -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/control_modules/raventools.i
+#swig -c++ -python $(SWIG_PY_FLAGS) -I$(RAVEN_DIR)/include/tools/  -I$(RAVEN_DIR)/include/utilities/ $(RAVEN_DIR)/control_modules/raventools.i
 # Compile
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile \
 	$(libmesh_CXX) $(libmeh_CPPFLAGS) $(PYTHON_INCLUDE) $(app_INCLUDES)  $(libmesh_INCLUDE) \
@@ -156,6 +156,7 @@ clean::
           $(RAVEN_DIR)/control_modules/raventools_wrap.cxx \
           $(RAVEN_DIR)/control_modules/distribution1D.py \
           $(RAVEN_DIR)/control_modules/libdistribution1D.* \
+          $(RAVEN_DIR)/control_modules/raventools.py \
           $(RAVEN_DIR)/control_modules/*.so* \
           $(RAVEN_DIR)/python_modules/*.so* \
           $(RAVEN_DIR)/python_modules/*_wrap.cxx \
