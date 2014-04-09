@@ -438,11 +438,11 @@ class OutStreamPlot(OutStreamManager):
         if 'which' not in self.options[key].keys() : self.options[key]['which'] = 'major'
         if 'axis' not in self.options[key].keys() : self.options[key]['axis'] = 'both'
         if self.dim == 2:  
-          if 'attributes' in self.options[key].keys(): self.plt.grid(ast.literal_eval(b =self.options[key]['b']),which = ast.literal_eval(self.options[key]['which']), axis=ast.literal_eval(self.options[key]['axis']),**self.options[key]['attributes'])
-          else:self.plt.grid(b=self.options[key]['b'],which = (self.options[key]['which']), axis=(self.options[key]['axis']))
+          if 'attributes' in self.options[key].keys(): self.plt.grid(b =self.options[key]['b'],which = self.options[key]['which'], axis=self.options[key]['axis'],**self.options[key]['attributes'])
+          else:self.plt.grid(b=self.options[key]['b'],which = self.options[key]['which'], axis=self.options[key]['axis'])
         elif self.dim == 3:
-          if 'attributes' in self.options[key].keys(): self.plt3D.grid(b=ast.literal_eval(self.options[key]['b']),**self.options[key]['attributes'])
-          else:self.plt3D.grid(b=ast.literal_eval(self.options[key]['b']))
+          if 'attributes' in self.options[key].keys(): self.plt3D.grid(b=self.options[key]['b'],**self.options[key]['attributes'])
+          else:self.plt3D.grid(b=self.options[key]['b'])
       else:
         print('STREAM MANAGER: Warning -> Try to perform not-predifined action ' + key +'. If it does not work check manual and/or relavite matplotlib method specification.')
         command_args = ''

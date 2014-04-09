@@ -201,17 +201,19 @@ class Dummy(Model):
     self.inputDict    = {}
     self.outputDict   = {}
     
-  def _inputToInternal(self,dataIN):
+  def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
     print('FIXME: wondering if a dictionary compatibility should be kept')
     if  type(dataIN)!=dict and dataIN.type not in self.admittedData: raise IOError('type '+dataIN.type+' is not compatible with the ROM '+self.name)
+    if full==True:  length = 0
+    if full==False: length = -1
     localInput = {}
     if type(dataIN)!=dict:
       for entries in dataIN.getParaKeys('inputs' ):
-        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(dataIN.getParam('input' ,entries)[-1:])
+        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(dataIN.getParam('input' ,entries)[length:])
         else:                      localInput[entries] = None
       for entries in dataIN.getParaKeys('outputs'):
-        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(dataIN.getParam('output',entries)[-1:])
+        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(dataIN.getParam('output',entries)[length:])
         else:                      localInput[entries] = None
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
@@ -304,7 +306,7 @@ class ROM(Dummy):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
+    self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
     self.SupervisedEngine.train(self.trainingSet)
     self.amITrained = True
     print('FIXME: add self.amITrained to currentParamters')

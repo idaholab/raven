@@ -521,10 +521,11 @@ class AdaptiveSampler(Sampler):
       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
       for pointID, coordinate in enumerate(listsurfPoint): self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
       if self.solutionExport!=None:
-        for varName in self.solutionExport.dataParameters['inParam']:
+        for varName in self.solutionExport.getParaKeys('inputs'):
           for varIndex in range(len(self.axisName)):
             if varName == self.axisName[varIndex]:
-              self.solutionExport.getInpParametersValues()[varName] = self.surfPoint[:,varIndex]
+              self.solutionExport.removeInputValue(varName)
+              self.solutionExport.updateInputValue(varName,self.surfPoint[:,varIndex])
     
     return ready
     
