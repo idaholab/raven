@@ -1,8 +1,8 @@
 from util import *
 from Tester import Tester
 from CSVDiffer import CSVDiffer
+import RavenUtils
 import os
-import subprocess
 
 class RavenFramework(Tester):
 
@@ -16,11 +16,8 @@ class RavenFramework(Tester):
     return params
   getValidParams = staticmethod(getValidParams)
 
-  def inPython3(self):
-    return os.environ.get("CHECK_PYTHON3","0") == "1"
-
   def getCommand(self, options):
-    if self.inPython3():
+    if RavenUtils.inPython3():
       return "python3 ../../framework/Driver.py "+self.specs["input"]  
     else:
       return "python ../../framework/Driver.py "+self.specs["input"]
@@ -38,15 +35,7 @@ class RavenFramework(Tester):
     self.specs['scale_refine'] = False
 
   def checkRunnable(self, option):
-    missing = []
-    to_try = ["numpy","h5py","scipy","sklearn","matplotlib"]
-    for i in to_try:
-      if self.inPython3():
-        result = subprocess.call(['python3','-c','import '+i])
-      else:
-        result = subprocess.call(['python','-c','import '+i])
-      if result != 0:
-        missing.append(i)
+    missing = RavenUtils.checkForMissingModules()
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')

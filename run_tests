@@ -16,23 +16,28 @@ if os.environ.has_key("MOOSE_DIR"):
 if os.environ.has_key("FRAMEWORK_DIR"):
   FRAMEWORK_DIR = os.environ['FRAMEWORK_DIR']
 
+# Import the TestHarness and Helper functions from the MOOSE toolkit
+sys.path.append(os.path.join(FRAMEWORK_DIR, 'scripts', 'common'))
+sys.path.append(os.path.join(FRAMEWORK_DIR, 'scripts', 'TestHarness'))
+
+
 #Try to import the raven libs dir into the PYTHONPATH
 
 try:
   if os.environ.get("CHECK_PYTHON3","0") == "1":
-    raven_libs_dir = subprocess.check_output("ls -d $HOME/raven_libs/pylibs3/*/python*/site-packages",shell=True)
+    raven_libs_dir = subprocess.check_output("ls -d $HOME/raven_libs/pylibs3/*/python*/site-packages",shell=True,stderr=subprocess.STDOUT)
   else:
-    raven_libs_dir = subprocess.check_output("ls -d $HOME/raven_libs/pylibs/*/python*/site-packages",shell=True)
+    raven_libs_dir = subprocess.check_output("ls -d $HOME/raven_libs/pylibs/*/python*/site-packages",shell=True,stderr=subprocess.STDOUT)
   raven_libs_dir = raven_libs_dir.decode().strip()
   os.environ["PYTHONPATH"] = raven_libs_dir +":"+os.environ.get("PYTHONPATH","")
   sys.path.append(raven_libs_dir)
   print "PYTHONPATH="+os.environ["PYTHONPATH"]
 except:
-  print "No raven_libs found"
-
-# Import the TestHarness and Helper functions from the MOOSE toolkit
-sys.path.append(os.path.join(FRAMEWORK_DIR, 'scripts', 'common'))
-sys.path.append(os.path.join(FRAMEWORK_DIR, 'scripts', 'TestHarness'))
+  sys.path.append(os.path.join("scripts","TestHarness","testers"))
+  import RavenUtils
+  missing = RavenUtils.checkForMissingModules()
+  if len(missing) > 0:
+    print "No raven_libs found and missing modules "+",".join(missing)
 
 import tools
 
