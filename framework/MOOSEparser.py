@@ -43,7 +43,7 @@ class MOOSEparser:
       elif len(line)!=0:
         if not line.startswith(b'#'):
           listline = line.split(b'=')
-          if b'#' not in listline[0]: current.attrib[listline[0].strip()]=listline[1]
+          if b'#' not in listline[0]: current.attrib[listline[0].strip()]=listline[1].strip()
           else: current.attrib[listline[0].strip()]=listline[1][:listline[1].index('#')].strip()
         else:
           current.tail.append(line)
@@ -89,6 +89,7 @@ class MOOSEparser:
         return (False,None)
 
   def __updateDict(self,dictionary,other):
+    """Add all the keys and values in other into dictionary"""
     for key in other:
       if key in dictionary:
         dictionary[key] = other[key]
@@ -99,24 +100,55 @@ class MOOSEparser:
         else:
           dictionary[key] = other[key]
 
+  def __matchDict(self,dictionary,other):
+    """ Returns true if all the keys and values in other
+    match all the keys and values in dictionary.
+    Note that it does not check that all the keys in dictionary
+    match all the keys and values in other.
+    """
+    for key in other:
+      if key in dictionary:
+        if dictionary[key] != other[key]:
+          print("Missmatch ",key,repr(dictionary[key]),repr(other[key]))
+          return False
+      else:
+        bin_key = toBytes(key)
+        if bin_key in dictionary:
+          if dictionary[bin_key] != other[key]:
+            print("Missmatch_b ",key,dictionary[bin_key],other[key])
+            return False
+        else:
+          print("No_key ",key,other[key])
+          return False
+    return True
+
   def __modifyOrAdd(self,returnElement,name,modiDictionary):
     """ If erase_block in modiDictionary, then remove name from returnElement
     else modify name in returnElement
     """
     assert(len(name) > 0)
     specials  = modiDictionary['special'] if 'special' in modiDictionary.keys() else set()
+    #If erase_block is true, then erase the entire block
     has_erase_block = 'erase_block' in specials
+    #If assert_match is true, then fail if any of the elements do not exist
+    has_assert_match = 'assert_match' in specials
     #If name[0] is not found and in erase_block, then done
     found,true_name = self.__findInXML(returnElement,name[0])
     if not found and has_erase_block:
       #Not found, and just wanted to erase it, so quit.
       return
+    if not found and has_assert_match:
+      #Not found, and just checking to see if there was a match
+      return
 
     #If len(name) == 1, then don't recurse anymore.  Either
     # erase block or modify the element.
     if len(name) == 1:
+      modiDictionary.pop('special',None)
       if has_erase_block:
         returnElement.remove(returnElement.find(true_name))
+      elif has_assert_match:
+        assert(self.__matchDict(returnElement.find(true_name).attrib,modiDictionary))
       elif found:
         self.__updateDict(returnElement.find(true_name).attrib,modiDictionary)
       else:
