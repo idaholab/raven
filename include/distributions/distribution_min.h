@@ -6,8 +6,8 @@
 class BasicDistribution;
 class BasicDistributionND;
 
-double getDistributionVariable(BasicDistribution & dist, std::string & variableName);
-void DistributionUpdateVariable(BasicDistribution & dist, std::string & variableName, double & newValue);
+double getDistributionVariable(BasicDistribution & dist, const std::string & variableName);
+void DistributionUpdateVariable(BasicDistribution & dist, const std::string & variableName, double & newValue);
 double DistributionPdf(BasicDistribution & dist,double & x);
 double DistributionCdf(BasicDistribution & dist,double & x);
 double DistributionInverseCdf(BasicDistribution & dist, double & x);

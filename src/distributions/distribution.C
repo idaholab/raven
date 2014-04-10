@@ -44,7 +44,7 @@ BasicDistribution::getVariableVector(std::string  variableName){
 }
 
 void
-BasicDistribution::updateVariable(std::string & variableName, double & newValue){
+BasicDistribution::updateVariable(const std::string & variableName, double & newValue){
    if(_dis_parameters.find(variableName) != _dis_parameters.end()){
      // we are sure the variableName is already present in the mapping =>
      // we can update it in the following way
@@ -79,11 +79,11 @@ BasicDistribution::hasParameter(std::string s)
   return _dis_parameters.find(s) != _dis_parameters.end();
 }
 
-double getDistributionVariable(BasicDistribution & dist, std::string & variableName){
+double getDistributionVariable(BasicDistribution & dist,const std::string & variableName){
   return dist.getVariable(variableName);
 }
 
-void DistributionUpdateVariable(BasicDistribution & dist, std::string & variableName, double & newValue){
+void DistributionUpdateVariable(BasicDistribution & dist,const std::string & variableName, double & newValue){
   dist.updateVariable(variableName, newValue);
 }
 

@@ -42,22 +42,22 @@ class DistributionContainer{
       * Function to get the enum of the distribution called DistAlias
       * @ DistAlias, alias of the distribution from which retrieving the parameter
       */
-     std::string getType (char * DistAlias);
-     std::string  getType (std::string DistAlias);
+     std::string getType (const char * DistAlias);
+     std::string  getType (const std::string DistAlias);
 
-     double getVariable(char * paramName,char * DistAlias);
-     double getVariable(std::string paramName,std::string DistAlias);
+     double getVariable(const char * paramName,const char * DistAlias);
+     double getVariable(const std::string paramName,const std::string DistAlias);
 
-     void updateVariable(char * paramName,double newValue,char * DistAlias);
-     void updateVariable(std::string paramName,double newValue,std::string DistAlias);
+     void updateVariable(const char * paramName,double newValue,const char * DistAlias);
+     void updateVariable(const std::string paramName,double newValue,const std::string DistAlias);
 
-     std::vector<std::string> getRavenDistributionVariableNames(std::string DistAlias);
+     std::vector<std::string> getRavenDistributionVariableNames(const std::string DistAlias);
      std::vector<std::string> getDistributionNames();
 
-     double Pdf(char * DistAlias, double x);
-     double Pdf(std::string DistAlias, double x);     // return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
-     double Pdf(char * DistAlias, std::vector<double> x);
-     double Pdf(std::string DistAlias, std::vector<double> x);     // return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
+     double Pdf(const char * DistAlias, double x);
+     double Pdf(const std::string DistAlias, double x);     // return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
+     double Pdf(const char * DistAlias, std::vector<double> x);
+     double Pdf(const std::string DistAlias, std::vector<double> x);     // return pdf value of the distribution _type as function of the position x within [_xMin , xMax]
 
      /*
       * Function to get the cdf value of the distribution called "DistAlias"
@@ -65,41 +65,41 @@ class DistributionContainer{
       * @ DistAlias, alias of the distribution from which retrieving the parameter
       * @ x, position
       */
-     double Cdf(char * DistAlias, double x);
-     double Cdf(std::string DistAlias, double x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
-     double Cdf(char * DistAlias, std::vector<double> x);
-     double Cdf(std::string DistAlias, std::vector<double> x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
+     double Cdf(const char * DistAlias, double x);
+     double Cdf(const std::string DistAlias, double x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
+     double Cdf(const char * DistAlias, std::vector<double> x);
+     double Cdf(const std::string DistAlias, std::vector<double> x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
 
      /*
       * Function to get a random number distributed accordingly to the distribution
       * given a random number [0,1]
       * @ DistAlias, alias of the distribution from which retrieving the parameter
       */
-     double randGen(std::string DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
+     double randGen(const std::string DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
      /*
       * Function to get a random number distributed accordingly to the distribution
       * given a random number [0,1]
       * @ DistAlias, alias of the distribution from which retrieving the parameter
       */
-     double randGen(char * DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
+     double randGen(const char * DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
      /* the inverseCdf functions are just another name for randGen */
-     double inverseCdf(std::string DistAlias, double RNG);
-     double inverseCdf(char * DistAlias, double RNG);
-     std::vector<double> inverseCdf(char * DistAlias, double min, double max);
-     std::vector<double> inverseCdf(std::string DistAlias, double min, double max);
+     double inverseCdf(const std::string DistAlias, double RNG);
+     double inverseCdf(const char * DistAlias, double RNG);
+     std::vector<double> inverseCdf(const char * DistAlias, double min, double max);
+     std::vector<double> inverseCdf(const std::string DistAlias, double min, double max);
 
      double random(); // return a random number
 
-     bool checkCdf(std::string DistAlias, double value);
-     bool checkCdf(char * DistAlias, double value);
-     bool checkCdf(std::string DistAlias, std::vector<double> value);
-     bool checkCdf(char * DistAlias, std::vector<double> value);
+     bool checkCdf(const std::string DistAlias, double value);
+     bool checkCdf(const char * DistAlias, double value);
+     bool checkCdf(const std::string DistAlias, std::vector<double> value);
+     bool checkCdf(const char * DistAlias, std::vector<double> value);
 
-     bool getTriggerStatus(std::string DistAlias);
+     bool getTriggerStatus(const std::string DistAlias);
 
-     bool getTriggerStatus(char * DistAlias);
+     bool getTriggerStatus(const char * DistAlias);
 
      // unfortunately there is no way (right now) to link a triggered distribution
      // to the variables that have been changed in consequence of the trigger

@@ -24,8 +24,8 @@ class BasicDistributionND
 public:
    BasicDistributionND();
    virtual ~BasicDistributionND();
-   double  getVariable(std::string & variableName);                   	///< getVariable from mapping
-   void updateVariable(std::string & variableName, double & newValue);
+   double  getVariable(const std::string & variableName);                   	///< getVariable from mapping
+   void updateVariable(const std::string & variableName, double & newValue);
    virtual double  Pdf(std::vector<double> x) = 0;                           ///< Pdf function at coordinate x
    virtual double  Cdf(std::vector<double> x) = 0;                     ///< Cdf function at coordinate x
    virtual std::vector<double> InverseCdf(double min, double max) = 0;
@@ -105,7 +105,7 @@ protected:
 double DistributionPdf(BasicDistributionND & dist,std::vector<double> & x);
 double DistributionCdf(BasicDistributionND & dist,std::vector<double> & x);
 std::string getDistributionType(BasicDistributionND & dist);
-double getDistributionVariable(BasicDistributionND & dist, std::string & variableName);
-void DistributionUpdateVariable(BasicDistributionND & dist, std::string & variableName, double & newValue);
+double getDistributionVariable(BasicDistributionND & dist,const std::string & variableName);
+void DistributionUpdateVariable(BasicDistributionND & dist,const std::string & variableName, double & newValue);
 
 #endif /* DISTRIBUTION_BASE_ND_H_ */

@@ -29,7 +29,7 @@ public:
    virtual ~BasicDistribution();
    double  getVariable(std::string variableName);                   	///< getVariable from mapping
    std::vector<double>  getVariableVector(std::string  variableName);
-   void updateVariable(std::string & variableName, double & newValue); 	///< update variable into the mapping
+   void updateVariable(const std::string & variableName, double & newValue); 	///< update variable into the mapping
 
    virtual double  Pdf(double x) = 0;                           		///< Pdf function at coordinate x
    virtual double  Cdf(double x) = 0;                               	///< Cdf function at coordinate x

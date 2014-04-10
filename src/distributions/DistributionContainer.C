@@ -83,12 +83,12 @@ DistributionContainer::addDistributionInContainerND(const std::string & type, co
 }
 
 std::string
-DistributionContainer::getType(char *  DistAlias){
+DistributionContainer::getType(const char *  DistAlias){
   return getType(std::string(DistAlias));
 }
 
 std::string
-DistributionContainer::getType(std::string DistAlias){
+DistributionContainer::getType(const std::string DistAlias){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end())
     {
@@ -134,7 +134,7 @@ DistributionContainer::random(){
 }
 
 bool
-DistributionContainer::checkCdf(std::string DistAlias, double value){
+DistributionContainer::checkCdf(const std::string DistAlias, double value){
   bool result;
   if (Cdf(std::string(DistAlias),value) >= getVariable("ProbabilityThreshold",DistAlias)){
     result=true;
@@ -149,7 +149,7 @@ DistributionContainer::checkCdf(std::string DistAlias, double value){
   return result;
 }
 
-bool DistributionContainer::checkCdf(std::string DistAlias, std::vector<double> value){
+bool DistributionContainer::checkCdf(const std::string DistAlias, std::vector<double> value){
   bool result;
   if (Cdf(std::string(DistAlias),value) >= getVariable("ProbabilityThreshold",DistAlias)){
     result=true;
@@ -165,7 +165,7 @@ bool DistributionContainer::checkCdf(std::string DistAlias, std::vector<double> 
 }
 
 bool
-DistributionContainer::getTriggerStatus(std::string DistAlias){
+DistributionContainer::getTriggerStatus(const std::string DistAlias){
   bool st;
   if(_dist_by_trigger_status.find(DistAlias) != _dist_by_trigger_status.end()){
     st = _dist_by_trigger_status.find(DistAlias) -> second;
@@ -176,25 +176,25 @@ DistributionContainer::getTriggerStatus(std::string DistAlias){
   return st;
 }
 bool
-DistributionContainer::getTriggerStatus(char * DistAlias){
+DistributionContainer::getTriggerStatus(const char * DistAlias){
   return getTriggerStatus(std::string(DistAlias));
 }
 // to be implemented
-bool DistributionContainer::checkCdf(char * DistAlias, double value){
+bool DistributionContainer::checkCdf(const char * DistAlias, double value){
   return checkCdf(std::string(DistAlias),value);
 }
-bool DistributionContainer::checkCdf(char * DistAlias, std::vector<double> value){
+bool DistributionContainer::checkCdf(const char * DistAlias, std::vector<double> value){
   return checkCdf(std::string(DistAlias),value);
 }
 // end to be implemented
 
 double
-DistributionContainer::getVariable(char * paramName,char *DistAlias){
+DistributionContainer::getVariable(const char * paramName,const char *DistAlias){
   return getVariable(std::string(paramName),std::string(DistAlias));
 }
 
 double
-DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
+DistributionContainer::getVariable(const std::string paramName,const std::string DistAlias){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end())
     {
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -210,12 +210,12 @@ DistributionContainer::getVariable(std::string paramName,std::string DistAlias){
 }
 
 void
-DistributionContainer::updateVariable(char * paramName,double newValue,char *DistAlias){
+DistributionContainer::updateVariable(const char * paramName,double newValue,const char *DistAlias){
   updateVariable(std::string(paramName),newValue,std::string(DistAlias));
 }
 
 void
-DistributionContainer::updateVariable(std::string paramName,double newValue,std::string DistAlias){
+DistributionContainer::updateVariable(const std::string paramName,double newValue,const std::string DistAlias){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end())
     {
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -224,7 +224,7 @@ DistributionContainer::updateVariable(std::string paramName,double newValue,std:
     else if (_dist_nd_by_name.find(DistAlias) != _dist_nd_by_name.end())
     {
        BasicDistributionND * dist = _dist_nd_by_name.find(DistAlias)->second;
-       return DistributionUpdateVariable(*dist,paramName,newValue);
+       DistributionUpdateVariable(*dist,paramName,newValue);
     }
     else
     {
@@ -248,7 +248,7 @@ DistributionContainer::getDistributionNames(){
 }
 
 std::vector<std::string>
-DistributionContainer::getRavenDistributionVariableNames(std::string DistAlias){
+DistributionContainer::getRavenDistributionVariableNames(const std::string DistAlias){
   if(_dist_by_name.find(DistAlias) != _dist_by_name.end())
   {
      BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -268,12 +268,12 @@ DistributionContainer::getRavenDistributionVariableNames(std::string DistAlias){
 }
 
 double
-DistributionContainer::Pdf(char * DistAlias, double x){
+DistributionContainer::Pdf(const char * DistAlias, double x){
    return Pdf(std::string(DistAlias),x);
 }
 
 double
-DistributionContainer::Pdf(std::string DistAlias, double x){
+DistributionContainer::Pdf(const std::string DistAlias, double x){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -284,13 +284,13 @@ DistributionContainer::Pdf(std::string DistAlias, double x){
 }
 
 double
-DistributionContainer::Pdf(char * DistAlias, std::vector<double> x)
+DistributionContainer::Pdf(const char * DistAlias, std::vector<double> x)
 {
    return Pdf(std::string(DistAlias),x);
 }
 
 double
-DistributionContainer::Pdf(std::string DistAlias, std::vector<double> x){
+DistributionContainer::Pdf(const std::string DistAlias, std::vector<double> x){
 
     if(_dist_nd_by_name.find(DistAlias) != _dist_nd_by_name.end()){
       BasicDistributionND * dist = _dist_nd_by_name.find(DistAlias)->second;
@@ -301,12 +301,12 @@ DistributionContainer::Pdf(std::string DistAlias, std::vector<double> x){
 }
 
 double
-DistributionContainer::Cdf(char * DistAlias, double x){
+DistributionContainer::Cdf(const char * DistAlias, double x){
    return Cdf(std::string(DistAlias),x);
 }
 
 double
-DistributionContainer::Cdf(std::string DistAlias, double x){
+DistributionContainer::Cdf(const std::string DistAlias, double x){
 
    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -317,12 +317,12 @@ DistributionContainer::Cdf(std::string DistAlias, double x){
 }
 
 double
-DistributionContainer::Cdf(char * DistAlias, std::vector<double> x){
+DistributionContainer::Cdf(const char * DistAlias, std::vector<double> x){
   return Cdf(std::string(DistAlias),x);
 }
 
 double
-DistributionContainer::Cdf(std::string DistAlias, std::vector<double> x){
+DistributionContainer::Cdf(const std::string DistAlias, std::vector<double> x){
 
    if(_dist_nd_by_name.find(DistAlias) != _dist_nd_by_name.end()){
        BasicDistributionND * dist = _dist_nd_by_name.find(DistAlias)->second;
@@ -336,12 +336,12 @@ DistributionContainer::Cdf(std::string DistAlias, std::vector<double> x){
 
 
 double
-DistributionContainer::randGen(char * DistAlias, double RNG){
+DistributionContainer::randGen(const char * DistAlias, double RNG){
   return randGen(std::string(DistAlias), RNG);
 }
 
 double
-DistributionContainer::randGen(std::string DistAlias, double RNG){
+DistributionContainer::randGen(const std::string DistAlias, double RNG){
 
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
         BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -354,22 +354,22 @@ DistributionContainer::randGen(std::string DistAlias, double RNG){
 }
 
 double 
-DistributionContainer::inverseCdf(std::string DistAlias, double RNG) {
+DistributionContainer::inverseCdf(const std::string DistAlias, double RNG) {
   return randGen(DistAlias,RNG);
 }
 
 double 
-DistributionContainer::inverseCdf(char * DistAlias, double RNG) {
+DistributionContainer::inverseCdf(const char * DistAlias, double RNG) {
   return randGen(DistAlias,RNG);
 }
 
 std::vector<double>
-DistributionContainer::inverseCdf(char * DistAlias, double min, double max){
+DistributionContainer::inverseCdf(const char * DistAlias, double min, double max){
    return inverseCdf(std::string(DistAlias),min,max);
 }
 
 std::vector<double>
-DistributionContainer::inverseCdf(std::string DistAlias, double min, double max){
+DistributionContainer::inverseCdf(const std::string DistAlias, double min, double max){
     throwError("inverseCdf not yet implemented for MultiDimensional Distributions");
     return std::vector<double>(2,-1.0);
 }

@@ -38,7 +38,7 @@ BasicDistributionND::~BasicDistributionND()
 }
 
 double
-BasicDistributionND::getVariable(std::string & variableName){
+BasicDistributionND::getVariable(const std::string & variableName){
    double res;
 
    if(_dis_parameters.find(variableName) != _dis_parameters.end())
@@ -53,7 +53,7 @@ BasicDistributionND::getVariable(std::string & variableName){
 }
 
 void
-BasicDistributionND::updateVariable(std::string & variableName, double & newValue){
+BasicDistributionND::updateVariable(const std::string & variableName, double & newValue){
    if(_dis_parameters.find(variableName) != _dis_parameters.end())
    {
      _dis_parameters[variableName] = newValue;
@@ -70,12 +70,12 @@ BasicDistributionND::getType(){
 }
 
 double
-getDistributionVariable(BasicDistributionND & dist, std::string & variableName){
+getDistributionVariable(BasicDistributionND & dist,const std::string & variableName){
   return dist.getVariable(variableName);
 }
 
 void
-DistributionUpdateVariable(BasicDistributionND & dist, std::string & variableName, double & newValue){
+DistributionUpdateVariable(BasicDistributionND & dist,const std::string & variableName, double & newValue){
   dist.updateVariable(variableName, newValue);
 }
 
