@@ -18,8 +18,8 @@ class RavenInterface:
     '''seek which is which of the input files and generate According the running command'''
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]            
-    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
+    outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
+    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' +
     ' Output/file_base='+ outputfile)
     return executeCommand,outputfile
 
@@ -79,7 +79,7 @@ class RavenInterface:
     modifDict[b'RNG_seed'] = str(RNG_seed)
     listDict.append(modifDict)
     return listDict
-  
+
   def dynamicEventTreeForRAVEN(self,**Kwargs):
     listDict = []
     # Check the initiator distributions and add the next threshold
@@ -113,8 +113,8 @@ class RavenInterface:
             end_ts_str = "0" + end_ts_str
         splitted = Kwargs['outfile'].split('~')
         output_parent = splitted[0] + '~' + toString(Kwargs['parent_id']) + '~' + splitted[1]
-        #restart_file_base = output_parent + "_restart_" + end_ts_str 
-        restart_file_base = output_parent + "_cp/" + end_ts_str      
+        #restart_file_base = output_parent + "_restart_" + end_ts_str
+        restart_file_base = output_parent + "_cp/" + end_ts_str
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base
         print('CODE INTERFACE: Restart file name base is "' + restart_file_base + '"')
@@ -128,7 +128,7 @@ class RavenInterface:
       modifDict['end_time'] = end_time
       listDict.append(modifDict)
       del modifDict
-      
+
     modifDict = {}
     modifDict['name'] = ['Output']
     modifDict['num_checkpoint_files'] = 1
@@ -138,33 +138,33 @@ class RavenInterface:
     # remember this "command" must be added before giving the info for refilling the block
     modifDict = {}
     modifDict['name'] = ['RestartInitialize']
-    modifDict['erase_block'] = True
+    modifDict['special'] = set(['erase_block'])
     listDict.append(modifDict)
-    del modifDict    
+    del modifDict
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
     if 'branch_changed_param' in Kwargs.keys():
-      if Kwargs['branch_changed_param'][0] not in ('None',b'None'): 
+      if Kwargs['branch_changed_param'][0] not in ('None',b'None'):
         for i in range(len(Kwargs['branch_changed_param'])):
           modifDict = {}
           modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
           modifDict['value'] = Kwargs['branch_changed_param_value'][i]
           listDict.append(modifDict)
           del modifDict
-    return listDict  
+    return listDict
 
   def __genBasePointSampler(self,**Kwargs):
-    """Figure out which distributions need to be handled by 
+    """Figure out which distributions need to be handled by
     the grid or LHS samplers by modifying distributions in the .i file.
     Let the regular moose point sampler take care of the rest.
-    Returns (distributions,listDict) where listDict is the 
+    Returns (distributions,listDict) where listDict is the
     start of the listDict that tells how to modify the input, and
     distributions is a dictionary with keys that are the 'variable name'
     and values of [computedValue,distribution name in .i file]
     Note that the key has "<distribution>" in front of the variable name.
     The actual variable can be gotten from the full key by:
     key[len('<distribution>'):]
-    TODO This should check that the distributions in the .i file (if 
+    TODO This should check that the distributions in the .i file (if
     they exist) are consistent with the ones in the .xml file.
     TODO For variables, it should add them to the .csv file.
     """
@@ -179,21 +179,21 @@ class RavenInterface:
     return distributions,listDict
 
   def gridForRAVEN(self,**Kwargs):
-    """Uses point sampler to generate variable points, and 
+    """Uses point sampler to generate variable points, and
     modifies distributions to be a zerowidth (constant) distribution
-    at the grid point.  
+    at the grid point.
     """
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
       distName = distributions[key][1]
-      listDict.append({'name':['Distributions',distName],'erase_block':True})
+      listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
       listDict.append({'name':['Distributions',distName],'value':distributions[key][0]})
       listDict.append({'name':['Distributions',distName],'type':'ConstantDistribution'})
     #print("listDict",listDict,"distributions",distributions)
     return listDict
-  
+
   def latinHyperCubeForRAVEN(self,**Kwargs):
-    """Uses point sampler to generate variable points, and truncates 
+    """Uses point sampler to generate variable points, and truncates
     distribution to be inside of the latin hyper cube upper and lower
     bounds.
     """
@@ -218,10 +218,10 @@ class MooseBasedAppInterface:
     #XXX What is the proper test to see if we should use Outputs or Output?
     print('FIXME: Fix this if statement when r7_moose gets consistent with the other moose-base-app for Output')
     if executable_tail.count('RAVEN') !=0 or executable_tail.count('r7_moose') !=0:
-      executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
-                        ' Output/file_base='+ outputfile)      
+      executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' +
+                        ' Output/file_base='+ outputfile)
     else:
-      executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] + 
+      executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                         ' Outputs/file_base='+ outputfile)
     return executeCommand,outputfile
 
@@ -243,12 +243,12 @@ class MooseBasedAppInterface:
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
-    modifDict.append(copy.deepcopy({'name':['Outputs'],'erase_block':True}))
+    modifDict.append(copy.deepcopy({'name':['Outputs'],'special':set(['erase_block'])}))
     modifDict.append(copy.deepcopy({'name':['Outputs'],'exodus':'true'}))
     modifDict.append(copy.deepcopy({'name':['Outputs'],'interval':'1'}))
     modifDict.append(copy.deepcopy({'name':['Outputs'],'output_initial':'true'}))
     modifDict.append(copy.deepcopy({'name':['Outputs'],'csv':'true'}))
-    modifDict.append(copy.deepcopy({'name':['Output'], 'erase_block':True}))
+    modifDict.append(copy.deepcopy({'name':['Output'], 'special':set(['erase_block'])}))
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
@@ -269,10 +269,10 @@ class MooseBasedAppInterface:
     for var in Kwargs['SampledVars']:
         if 'alias' in Kwargs.keys():
           # for understending the alias system, plase check module Models.py (class Code)
-          if var in Kwargs['alias'].keys(): 
+          if var in Kwargs['alias'].keys():
             key = Kwargs['alias'][var].split(':')
             varname = var
-        else: 
+        else:
           key = var.split(':')
           varname = key[0]
         modifDict = {}
@@ -287,13 +287,13 @@ class MooseBasedAppInterface:
           listDict.append({'name':['Postprocessors',varname],'type':'ScalarVariable'})
           listDict.append({'name':['Postprocessors',varname],'variable':varname})
     return listDict
-  
+
   def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
     raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
     listDict = []
     return listDict
 
-  
+
 
 class Relap5Interface:
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
@@ -304,7 +304,7 @@ class Relap5Interface:
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     #   executeCommand will consist of a simple RELAP script that runs relap for inputfile
     #   extracts data and stores in csv file format
-    executeCommand = (executable+' '+os.path.split(inputFiles[index])[1]+' ' + 
+    executeCommand = (executable+' '+os.path.split(inputFiles[index])[1]+' ' +
     outputfile)
     return executeCommand,outputfile
 
@@ -331,7 +331,7 @@ class Relap5Interface:
     newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
     parser.printInput(newInputFiles[index])
     return newInputFiles
-    
+
   def pointSamplerForRELAP5(self,**Kwargs):
     modifDict = {}
     for keys in Kwargs['SampledVars']:
@@ -340,21 +340,21 @@ class Relap5Interface:
       else: Kwargs['SampledVars'][keys]['position'] = 0
       modifDict[key[0]]=Kwargs['SampledVars'][keys]
     return modifDict
-    
+
   def DynamicEventTreeForRELAP5(self,**Kwargs):
     raise IOError('DynamicEventTreeForRELAP not yet implemented')
     listDict = []
     return listDict
 
 
-  
+
 class ExternalTest:
   def generateCommand(self,inputFiles,executable):
     return '', ''
 
   def findOutputFile(self,command):
     return ''
- 
+
 '''
  Interface Dictionary (factory) (private)
 '''
@@ -373,6 +373,4 @@ def returnCodeInterface(Type):
   '''this allow to the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module'''
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)  
- 
-
+  except KeyError: raise NameError('not known '+__base+' type '+Type)

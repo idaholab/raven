@@ -49,12 +49,12 @@ class MOOSEparser:
           current.tail.append(line)
 
   def printInput(self,outfile=None):
-    # 4 sub levels maximum 
+    # 4 sub levels maximum
     def printSubLevels(xmlnode,IOfile,indentMultiplier):
       IOfile.write(b'  '*indentMultiplier+b'[./'+toBytes(xmlnode.tag)+b']\n')
       for string in xmlnode.tail if xmlnode.tail else []:
         IOfile.write(b'    '*indentMultiplier+string+b'\n')
-      for key in xmlnode.attrib.keys(): 
+      for key in xmlnode.attrib.keys():
         IOfile.write(b'    '*indentMultiplier+toBytes(key)+b' = '+toBytes(toStrish(xmlnode.attrib[key]))+b'\n')
 
     if outfile==None: outfile =self.inputfile
@@ -63,7 +63,7 @@ class MOOSEparser:
       IOfile.write(b'['+toBytes(child.tag)+b']\n')
       if child.tail:
         for string in child.tail:IOfile.write(b'  '+string+b'\n')
-      for key in child.attrib.keys(): 
+      for key in child.attrib.keys():
         IOfile.write(b'  '+toBytes(key)+b' = '+toBytes(toStrish(child.attrib[key]))+b'\n')
       for childChild in child:
         printSubLevels(childChild,IOfile,1)
@@ -98,20 +98,21 @@ class MOOSEparser:
           dictionary[bin_key] = other[key]
         else:
           dictionary[key] = other[key]
-    
+
   def __modifyOrAdd(self,returnElement,name,modiDictionary):
     """ If erase_block in modiDictionary, then remove name from returnElement
     else modify name in returnElement
     """
     assert(len(name) > 0)
-    has_erase_block = 'erase_block' in modiDictionary.keys() 
+    specials  = modiDictionary['special'] if 'special' in modiDictionary.keys() else set()
+    has_erase_block = 'erase_block' in specials
     #If name[0] is not found and in erase_block, then done
     found,true_name = self.__findInXML(returnElement,name[0])
     if not found and has_erase_block:
       #Not found, and just wanted to erase it, so quit.
       return
 
-    #If len(name) == 1, then don't recurse anymore.  Either 
+    #If len(name) == 1, then don't recurse anymore.  Either
     # erase block or modify the element.
     if len(name) == 1:
       if has_erase_block:
@@ -125,7 +126,7 @@ class MOOSEparser:
         subElement = ET.SubElement(returnElement,name[0])
         #if len(name) > 1, then if not found (and since we already checked for erasing) then add it and recurse.
       else:
-        # if len(name) > 1 and found, then recurse on child    
+        # if len(name) > 1 and found, then recurse on child
         subElement = returnElement.find(true_name)
       self.__modifyOrAdd(subElement,name[1:],modiDictionary)
 
@@ -141,4 +142,3 @@ class MOOSEparser:
       del modiDictionaryList[i]['name']
       self.__modifyOrAdd(returnElement,name,modiDictionaryList[i])
     if save: return returnElement
-
