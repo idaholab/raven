@@ -4,7 +4,7 @@
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
     <Sequence>test_extract_for_rom_trainer,test_rom_trainer,rom_MC</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 <Distributions>
     <Uniform name='auxbackup'>
@@ -27,7 +27,7 @@
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='2' initial_seed='200286'>
+  <MonteCarlo     name='RAVENmc3'  limit='3' initial_seed='200286'>
     <variable name='DeltaTimeScramToAux'>
       <distribution type='Uniform'>auxbackup</distribution>
     </variable>
@@ -39,9 +39,8 @@
 <Steps> 
     <IODataBase name='test_extract_for_rom_trainer'>
         <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-        <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
         <Output  class='Datas'    type='TimePointSet'               >timepointset_from_database_for_rom_trainer</Output>
-        <Output  class='Datas'    type='TimePoint'                  >data_for_sampling_empty_at_begin</Output>
+        
     </IODataBase>  
     <RomTrainer name='test_rom_trainer'>
         <Input   class='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
@@ -72,7 +71,7 @@
    </TimePointSet>
    <TimePoint name='data_for_sampling_empty_at_begin' inputTs='3'>
         <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
-        <Output>CladTempTreshold</Output>
+        <Output>OutputPlaceHolder</Output>
    </TimePoint>
    <TimePointSet name='outputMontecarloRom' inputTs='3'>
         <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
