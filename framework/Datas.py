@@ -636,7 +636,7 @@ class TimePointSet(Data):
       eg = self._toLoadFromList[0].getEndingGroupNames()
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != len(eg):
-          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.inParametersValues[key].size))
+          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
       for key in self._dataContainer['outputs'].keys():
         if (self._dataContainer['outputs'][key].size) != len(eg):
           raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
@@ -651,7 +651,7 @@ class TimePointSet(Data):
       else:  
         for key in self._dataContainer['inputs'].keys():
           if (self._dataContainer['inputs'][key].size) != len(self._toLoadFromList):
-            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self._toLoadFromList)) + '.Actual size is ' + str(self.inParametersValues[key].size))
+            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self._toLoadFromList)) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
         for key in self._dataContainer['outputs'].keys():
           if (self._dataContainer['outputs'][key].size) != len(self._toLoadFromList):
             raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self._toLoadFromList)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))

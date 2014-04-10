@@ -17,6 +17,15 @@ import copy
 import ast
 from scipy.interpolate import Rbf, griddata
 import importlib                #it is used in exec code so it might be detected as unused
+import platform 
+import os
+# set a global variable for backend default setting
+if platform.system() == 'Windwos':
+  disAvail = True
+else:
+  if os.getenv('DISPLAY'): disAvail = True
+  else:                    disAvail = False
+
 
 def removeNanEntries(X):
   return X[~np.isnan(X).any(1)]
@@ -37,8 +46,6 @@ class OutStreamManager(BaseType):
     BaseType.__init__(self)
     # outstreaming options
     self.options = {}
-    # we are in interactive mode?
-    self.interactive = True
     #counter
     self.counter = 0
     #overwrite outstream?
@@ -55,10 +62,11 @@ class OutStreamManager(BaseType):
     @ In, xmlNode    : Xml element node
     @ Out, None
     '''
-    BaseType.readMoreXML(self,xmlNode)
-    if 'interactive' in xmlNode.attrib.keys():
-      if xmlNode.attrib['interactive'].lower() in ['t','true','on']: self.interactive = True
-      else: self.interactive = False
+    #BaseType.readMoreXML(self,xmlNode)
+    #if self.globalAttributes:
+    #  if 'online' in self.globalAttributes.keys():
+    #    if self.globalAttributes['online'].lower() in ['t','true','on']: self.online = True
+    #    else: self.online = False
     if 'overwrite' in xmlNode.attrib.keys():
       if xmlNode.attrib['overwrite'].lower() in ['t','true','on']: self.overwrite = True
       else: self.overwrite = False
@@ -72,8 +80,6 @@ class OutStreamManager(BaseType):
     '''
     tempDict[                     'Global Class Type                 '] = 'OutStreamManager'
     tempDict[                     'Specialized Class Type            '] = self.type
-    if self.interactive: tempDict['Interactive mode                  '] = 'True'
-    else:                tempDict['Interactive mode                  '] = 'False'
     if self.overwrite:   tempDict['Overwrite output everytime called '] = 'True'
     else:                tempDict['Overwrite output everytime called '] = 'False'
     for index in range(len((self.availableOutStreamType))) : tempDict['OutStream Available #'+str(index+1)+'   :'] = self.availableOutStreamType[index]
@@ -330,7 +336,7 @@ class OutStreamPlot(OutStreamManager):
       if self.dim == 2: self.plt.title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})
       if self.dim == 3: self.plt3D.set_title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})    
     for key in self.options.keys():
-      if   key in ['how','plotSettings','figure_properties']: pass
+      if   key in ['how','plotSettings','figureProperties']: pass
       elif key == 'range': 
         if self.dim == 2:
           if 'ymin' in self.options[key].keys(): self.plt.ylim(ymin = ast.literal_eval(self.options[key]['ymin']))
@@ -445,14 +451,17 @@ class OutStreamPlot(OutStreamManager):
           else:self.plt3D.grid(b=self.options[key]['b'])
       else:
         print('STREAM MANAGER: Warning -> Try to perform not-predifined action ' + key +'. If it does not work check manual and/or relavite matplotlib method specification.')
-        command_args = ''
+        command_args = ' '
+        import CustomCommandExecuter as execcommand
         for kk in self.options[key]:
           if kk != 'attributes' and kk != key:
-            if command_args != '(': prefix = ','
+            if command_args != ' ': prefix = ','
             else: prefix = '' 
             try: command_args = prefix + command_args + kk + '=' + str(ast.literal_eval(self.options[key][kk]))
             except:command_args = prefix + command_args + kk + '="' + str(self.options[key][kk])+'"'  
         try:
+          if self.dim == 2:  execcommand.execCommand('self.plt.' + key + '(' + command_args + ')')
+          elif self.dim == 3:execcommand.execCommand('self.plt.' + key + '(' + command_args + ')')   
           if self.dim == 2:  exec('self.plt.' + key + '(' + command_args + ')')
           elif self.dim == 3:exec('self.plt3D.' + key + '(' + command_args + ')')      
         except ValueError as ae: 
@@ -469,7 +478,12 @@ class OutStreamPlot(OutStreamManager):
     '''
     tempDict['Plot is '] = str(self.dim)+'D'
     for index in range(len(self.sourceName)): tempDict['Source Name '+str(index)+' :'] = self.sourceName[index]
-
+  
+  def endInstructions(self,instructionString):
+    if instructionString == 'interactive' and 'screen' in self.options['how']['how'].split(',') and disAvail:
+      self.plt.figure(self.name)
+      self.fig.ginput(n=-1, timeout=-1, show_clicks=False)  
+  
   def initialize(self,inDict):
     '''
     Function called to initialize the OutStream, linking it to the proper Data
@@ -565,23 +579,21 @@ class OutStreamPlot(OutStreamManager):
       else:
         if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0: print('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', type '+self.options['plotSettings']['plot'][pltindex]['type']+' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!!!') 
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type']) 
-    exec('self.mpl =  importlib.import_module("matplotlib")')
+    self.mpl = importlib.import_module("matplotlib")
+    #exec('self.mpl =  importlib.import_module("matplotlib")')
     print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
     if self.dim not in [2,3]: raise('STREAM MANAGER: ERROR -> This Plot interface is able to handle 2D-3D plot only')
-    if not self.interactive or 'screen' not in self.options['how']['how']:
-      self.interactive = False  # not needed interactive mode when no screen is requested
-      self.mpl.use('Agg')       # set default backend to png
-    exec('self.plt =  importlib.import_module("matplotlib.pyplot")')
-    if self.interactive:self.plt.ion()
-    if self.dim == 3:  exec('from mpl_toolkits.mplot3d import Axes3D as ' + 'Ax3D_' + self.name)
-  def addOutput(self):
+    self.plt = importlib.import_module("matplotlib.pyplot")
+    if not disAvail: self.mpl.use('Agg')
+    if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D 
+  def addOutput(self,blockFigure=False):
     '''
     Function to show and/or save a plot 
     @ In,  None
     @ Out, None (Plot on the screen or on file/s) 
     ''' 
     # reactivate the figure
-    if self.actPlot: self.plt.figure(self.name)
+    self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries
     if not self.__fillCoordinatesFromSource():
       print('STREAM MANAGER: Warning -> Nothing to Plot Yet... Returning!!!!')
@@ -610,7 +622,7 @@ class OutStreamPlot(OutStreamManager):
       else:
         if self.dim == 2  : self.plt.ylabel(self.options['plotSettings']['ylabel'])
         elif self.dim == 3: self.plt3D.set_ylabel(self.options['plotSettings']['ylabel'])          
-      if 'zlabel' not in self.options['plotSettings'].keys():
+      if 'zlabel' in self.options['plotSettings'].keys():
         if self.dim == 2  : print('STREAM MANAGER: Warning -> zlabel keyword does not make sense in 2-D Plots!')
         elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')
       elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['zlabel'])             
@@ -1003,23 +1015,24 @@ class OutStreamPlot(OutStreamManager):
       else:
         # Let's try to "write" the code for the plot on the fly
         print('STREAM MANAGER: Warning -> Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] +'. If it does not work check manual and/or relavite matplotlib method specification.')
-        command_args = ''
+        command_args = ' '
+        import CustomCommandExecuter as execcommand
         for kk in self.options['plotSettings']['plot'][pltindex]:
           if kk != 'attributes' and kk != self.outStreamTypes[pltindex]:
-            if command_args != '(': prefix = ','
+            if command_args != ' ': prefix = ','
             else: prefix = '' 
             try: command_args = prefix + command_args + kk + '=' + str(ast.literal_eval(self.options['plotSettings']['plot'][pltindex][kk]))
             except:command_args = prefix + command_args + kk + '="' + str(self.options['plotSettings']['plot'][pltindex][kk])+'"'  
         try:
-          if self.dim == 2:  exec('self.actPlot = self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
-          elif self.dim == 3:exec('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')      
+          if self.dim == 2:  execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
+          elif self.dim == 3:execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')     
         except ValueError as ae: 
           raise Exception('STREAM MANAGER: ERROR <'+ae+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')         
     # SHOW THE PICTURE
-    if 'screen' in self.options['how']['how'].split(','): 
-      if self.dim == 2 or 'pseudocolor' in self.outStreamTypes: self.fig.canvas.draw()
-      else: self.plt.draw()
-      if not self.interactive:self.plt.show()
+    self.plt.draw()
+    if 'screen' in self.options['how']['how'].split(',') and disAvail:
+      self.fig.show()
+      if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
     for i in range(len(self.options['how']['how'].split(','))):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
         if not self.overwrite: prefix = str(self.counter) + '-'
@@ -1057,7 +1070,7 @@ class OutStreamPrint(OutStreamManager):
     else             : dictOptions = {'filenameroot':self.name}
     for index in range(len(self.sourceName)): 
       if not self.sourceData[index].isItEmpty(): self.sourceData[index].printCSV(dictOptions)
-     
+    
 '''
  Interface Dictionary (factory) (private)
 '''

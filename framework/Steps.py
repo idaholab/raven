@@ -79,6 +79,10 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
       self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.localInputAndChecks(xmlNode)
     if None in self.parList: raise Exception ('A problem was found in  the definition of the step '+str(self.name))
+    self.pauseEndStep = False
+    if 'pauseAtEnd' in xmlNode.attrib.keys(): 
+      if xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t']: self.pauseEndStep = True
+      else: self.pauseEndStep = False
 
   @abc.abstractmethod
   def localInputAndChecks(self,xmlNode):
@@ -116,7 +120,16 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   def localTakeAstepRun(self,inDictionary):
     '''this is the API for the local run of a step for the children classes'''
     pass
-
+  
+  def endStepActions(self,inDictionary):
+    '''
+      This method is indended for performing actions at the end of a RAVEN step
+    '''
+    if self.pauseEndStep:
+      for i in range(len(inDictionary['Output'])):
+        if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
+          if inDictionary['Output'][i].type in ['OutStreamPlot']: inDictionary['Output'][i].endInstructions('interactive')
+  
   def takeAstep(self,inDictionary):
     '''this should work for everybody just split the step in an initialization and the run itself
     inDictionary[role]=instance or list of instance'''
@@ -124,6 +137,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     self._initializeStep(inDictionary)
     if self.debug: print('Initialization done starting the run....')
     self.localTakeAstepRun(inDictionary)
+    self.endStepActions(inDictionary)
 #
 #
 #

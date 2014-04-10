@@ -363,6 +363,8 @@ class Simulation(object):
       if child.tag in list(self.whichDict.keys()):
         if self.debug: print('reading Class Type'+str(child.tag))
         Class = child.tag
+        if len(child.attrib.keys()) == 0: globalAttributes = None
+        else:                             globalAttributes = child.attrib
         if Class != 'RunInfo':
           for childChild in child:
             if 'name' in childChild.attrib.keys():
@@ -375,7 +377,7 @@ class Simulation(object):
               #now we can read the info for this object
               if 'debug' in childChild.attrib.keys(): localDebug = childChild.attrib['debug']
               else                                  : localDebug = self.debug
-              self.whichDict[Class][name].readXML(childChild,localDebug)
+              self.whichDict[Class][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes)
               if self.debug: self.whichDict[Class][name].printMe()
             else: raise IOError('SIMULATION    : not found name attribute for one '+Class)
         else: self.__readRunInfo(child,runInfoSkip)

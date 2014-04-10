@@ -95,7 +95,7 @@
       <type>csv</type>
       <source>TimePointSets</source>
     </Print>
-  <Plot name='2DHistoryPlot' dim='2' interactive='False' overwrite='False'>
+  <Plot name='2DHistoryPlot' dim='2' overwrite='False'>
     <plotSettings>
        <plot>
         <type>line</type>
@@ -129,7 +129,7 @@
 
 
 <Steps>
-    <MultiRun name='FirstMRun'>
+    <MultiRun name='FirstMRun' pauseAtEnd='False'>
         <Input     class='Files'            type=''             >ideal_pump.i</Input>
         <Input     class='Files'            type=''             >ideal_pump_control.py</Input>
         <Model     class='Models'           type='Code'         >MyRAVEN</Model>

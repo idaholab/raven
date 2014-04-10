@@ -12,8 +12,9 @@ class BaseType(object):
     self.name    = ''      # name of this istance (alias)
     self.type    = ''      # specific type within this class
     self.debug   = False   #set up the debug status of the code
+    self.globalAttributes = None
 
-  def readXML(self,xmlNode,debug=False):
+  def readXML(self,xmlNode,debug=False,globalAttributes=None):
     '''
       provide a basic reading capability from the xml input file
        for what is common to all types in the simulation than calls readMoreXML
@@ -27,6 +28,7 @@ class BaseType(object):
     self.type = xmlNode.tag
     if 'debug' in xmlNode.attrib: self.debug = bool(xmlNode.attrib['debug'])
     else                        : self.debug = debug
+    if globalAttributes: self.globalAttributes = globalAttributes
     self.readMoreXML(xmlNode)
 
   def readMoreXML(self,xmlNode):
