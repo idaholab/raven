@@ -173,10 +173,25 @@ class RavenInterface:
     distributions = {}
     for key in distributionKeys:
       distributionName = Kwargs['distributionName'][key]
-      distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName]
+      distributionType = Kwargs['distributionType'][key]
+      distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName,
+                            distributionType]
     mooseApp = MooseBasedAppInterface()
     listDict = mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
     return distributions,listDict
+
+  __FrameworkToRavenCDistNames = {'Uniform':'UniformDistribution',
+                                  'Normal':'NormalDistribution',
+                                  'Gamma':'GammaDistribution',
+                                  'Beta':'BetaDistribution',
+                                  'Triangular':'TriangularDistribution',
+                                  'Poisson':'PoissonDistribution',
+                                  'Binomial':'BinomialDistribution',
+                                  'Bernoulli':'BernoulliDistribution',
+                                  'Logistic':'LogisticDistribution',
+                                  'Exponential':'ExponentialDistribution',
+                                  'LogNormal':'LogNormalDistribution',
+                                  'Weibull':'WeibullDistribution'  }
 
   def gridForRAVEN(self,**Kwargs):
     """Uses point sampler to generate variable points, and
@@ -185,11 +200,14 @@ class RavenInterface:
     """
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
-      distName = distributions[key][1]
+      distName, distType = distributions[key][1:3]
+      listDict.append({'name':['Distributions',distName],
+                       'special':set(['assert_match']),
+                       'type':self.__FrameworkToRavenCDistNames[distType]})
       listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
       listDict.append({'name':['Distributions',distName],'value':distributions[key][0]})
       listDict.append({'name':['Distributions',distName],'type':'ConstantDistribution'})
-    #print("listDict",listDict,"distributions",distributions)
+    #print("listDict",listDict,"distributions",distributions,"Kwargs",Kwargs)
     return listDict
 
   def latinHyperCubeForRAVEN(self,**Kwargs):
@@ -199,7 +217,10 @@ class RavenInterface:
     """
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
-      distName = distributions[key][1]
+      distName, distType = distributions[key][1:3]
+      listDict.append({'name':['Distributions',distName],
+                       'special':set(['assert_match']),
+                       'type':self.__FrameworkToRavenCDistNames[distType]})
       listDict.append({'name':['Distributions',distName],
                        'xMax':Kwargs['upper'][key]})
       listDict.append({'name':['Distributions',distName],

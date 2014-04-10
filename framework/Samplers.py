@@ -724,10 +724,13 @@ class Grid(Sampler):
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
       #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
+      #print(varName,self.toBeSampled[varName])
       self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
+      self.inputInfo['distributionType'][varName] = self.toBeSampled[varName][0]
       stride = stride // len(self.gridInfo[varName][2]) 
       #index is the index into the array self.gridInfo[varName][2]
       index, remainder = divmod(remainder, stride )
@@ -775,6 +778,7 @@ class LHS(Grid):
     j=0
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     for varName in self.axisName:
       upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
       lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
@@ -783,6 +787,7 @@ class LHS(Grid):
       coordinate = lower + (upper-lower)*intervalFraction
       #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
       self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
+      self.inputInfo['distributionType'][varName] = self.toBeSampled[varName][0]
       if self.gridInfo[varName][0] =='CDF':
         self.values[varName] = self.distDict[varName].ppf(coordinate)
         self.inputInfo['upper'][varName] = self.distDict[varName].ppf(max(upper,lower))
