@@ -14,6 +14,7 @@ import shutil
 import numpy
 from utils import metaclass_insert
 import abc
+import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -417,7 +418,7 @@ class ExternalModel(Dummy):
 #
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
-  import CodeInterfaces
+  CodeInterfaces = importlib.import_module("CodeInterfaces")
   @classmethod
   def specializeValidateDict(cls):
     print('think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable')
@@ -454,7 +455,7 @@ class Code(Model):
       self.executable = abspath
     else: print('not found executable '+self.executable)
 #    self.code = __import__(self.subType) #importing the proper code interface
-    self.code = CodeInterfaces.returnCodeInterface(self.subType)
+    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
     print('please finisih the importing of avaialbel codes and vlaid interface form the codeInterfaces')
     
   def addInitParams(self,tempDict):
