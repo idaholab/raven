@@ -1,4 +1,6 @@
 #!/bin/bash
+echo RAVEN_libs_script incoming environmental variables
+env
 BUILD_DIR=${BUILD_DIR:=$HOME/raven_libs/build}
 INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}
 DOWNLOAD_DIR=${DOWNLOAD_DIR:=$BUILD_DIR/../downloads}
