@@ -89,7 +89,7 @@ protected:
 class BasicMultiDimensionalCartesianSpline: public  virtual BasicDistributionND
 {
 public:
-  BasicMultiDimensionalCartesianSpline(std::string data_filename): _interpolator(data_filename){};
+  BasicMultiDimensionalCartesianSpline(std::string data_filename,std::vector<double> alpha, std::vector<double> beta): _interpolator(data_filename, alpha, beta){};
   BasicMultiDimensionalCartesianSpline(): _interpolator(){};
   virtual ~BasicMultiDimensionalCartesianSpline(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
