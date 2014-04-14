@@ -417,6 +417,7 @@ class ExternalModel(Dummy):
 #
 class Code(Model):
   '''this is the generic class that import an external code into the framework'''
+  import CodeInterfaces
   @classmethod
   def specializeValidateDict(cls):
     print('think about how to import the roles to allowed class for the codes. For the moment they are not specialized by executable')
@@ -436,7 +437,6 @@ class Code(Model):
   def readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
     !!!!generate also the code interface for the proper type of code!!!!'''
-    import CodeInterfaces
     Model.readMoreXML(self, xmlNode)
 
     for child in xmlNode:

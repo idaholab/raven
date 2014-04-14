@@ -57,7 +57,13 @@ def keyIn(dictionary,key):
     else:
       return None
 
+def importFromPath(filename):
+    import imp, os.path
+    (path, name) = os.path.split(filename)
+    (name, ext) = os.path.splitext(name)
 
+    (file, filename, data) = imp.find_module(name, [path])
+    return imp.load_module(name, file, filename, data)
 
 def metaclass_insert(metaclass,*base_classes):
   """This allows a metaclass to be inserted as a base class.
