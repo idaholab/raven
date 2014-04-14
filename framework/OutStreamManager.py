@@ -583,8 +583,8 @@ class OutStreamPlot(OutStreamManager):
     #exec('self.mpl =  importlib.import_module("matplotlib")')
     print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
     if self.dim not in [2,3]: raise('STREAM MANAGER: ERROR -> This Plot interface is able to handle 2D-3D plot only')
-    self.plt = importlib.import_module("matplotlib.pyplot")
     if not disAvail: self.mpl.use('Agg')
+    self.plt = importlib.import_module("matplotlib.pyplot")
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D 
   def addOutput(self,blockFigure=False):
     '''
