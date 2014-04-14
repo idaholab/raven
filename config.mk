@@ -14,7 +14,7 @@ ifneq ($(PYTHON_CONFIG_WHICH),)
 endif
 
 # look for numpy include directory
-NUMPY_INCLUDE = $(shell python $(RAVEN_DIR)/scripts/find_numpy_include.py)
+#NUMPY_INCLUDE = $(shell python $(RAVEN_DIR)/scripts/find_numpy_include.py)
 
 ifeq ($(PYTHON3_HELLO),HELLO)
         PYTHON_INCLUDE = $(shell $(RAVEN_DIR)/scripts/find_flags.py include) #-DPy_LIMITED_API 

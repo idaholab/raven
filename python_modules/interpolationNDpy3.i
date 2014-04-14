@@ -5,7 +5,6 @@
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 %}
 %include "std_vector.i"
-%include "../control_modules/numpy.i"
 %include "ND_Interpolation_Functions.h"
 
 namespace std {
