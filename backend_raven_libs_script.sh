@@ -106,7 +106,7 @@ else
     download_files numpy-1.7.0.tar.gz ba328985f20390b0f969a5be2a6e1141d5752cf9 http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
     tar -xvzf $DOWNLOAD_DIR/numpy-1.7.0.tar.gz
     cd numpy-1.7.0
-    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+    (unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
 
 update_python_path
