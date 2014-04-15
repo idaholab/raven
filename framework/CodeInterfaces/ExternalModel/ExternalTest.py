@@ -13,7 +13,9 @@ import copy
 class ExternalTest:
   def generateCommand(self,inputFiles,executable):
     return '', ''
-
   def findOutputFile(self,command):
     return ''
+  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+    return currentInputFiles
+
     
