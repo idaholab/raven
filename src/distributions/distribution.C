@@ -12,7 +12,7 @@ using namespace std;
 
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
-BasicDistribution::BasicDistribution(): _force_dist(0) {
+BasicDistribution::BasicDistribution() {
   //_dis_parameters["truncation"] = 1.0;
   //_dis_parameters.insert(std::pair<std::string,double>("truncation",1));
 }
@@ -23,7 +23,7 @@ double
 BasicDistribution::getVariable(std::string variableName){
    double res;
    if(_dis_parameters.find(variableName) != _dis_parameters.end()){
-	  res = _dis_parameters.find(variableName) ->second;
+          res = _dis_parameters.find(variableName) ->second;
    }
    else{
      throwError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
@@ -33,9 +33,9 @@ BasicDistribution::getVariable(std::string variableName){
 
 std::vector<double>
 BasicDistribution::getVariableVector(std::string  variableName){
-	std::vector<double> res;
+        std::vector<double> res;
    if(_dis_vectorParameters.find(variableName) != _dis_vectorParameters.end()){
-	 res = _dis_vectorParameters.find(variableName) ->second;
+         res = _dis_vectorParameters.find(variableName) ->second;
    }
    else{
      throwError("Parameter " << variableName << " was not found in distribution type " << _type <<".");
@@ -73,7 +73,7 @@ BasicDistribution::getVariableNames(){
   return paramtersNames;
 }
 
-bool 
+bool
 BasicDistribution::hasParameter(std::string s)
 {
   return _dis_parameters.find(s) != _dis_parameters.end();
@@ -96,7 +96,7 @@ double DistributionCdf(BasicDistribution & dist, double & x){
 }
 
 double windowProcessing(BasicDistribution & dist, double & RNG){
-	double value;
+        double value;
 
 //	if (dist.getVariableVector(std::string("PBwindow")).size()==1) // value Pb window
 //		value=dist.InverseCdf(RNG);
@@ -117,21 +117,21 @@ double windowProcessing(BasicDistribution & dist, double & RNG){
 //		value = dist.InverseCdf(RNG);
 
    if(dist.getVariable(std::string("PB_window_Low")) != 0.0 || dist.getVariable(std::string("PB_window_Up")) != 1.0){	// interval Pb window
-		double pbLOW = dist.getVariable(std::string("PB_window_Low"));
-		double pbUP  = dist.getVariable(std::string("PB_window_Up"));
-		double pb = pbLOW + (pbUP-pbLOW) * RNG;
-		value = dist.InverseCdf(pb);
-		//std::cerr << " pbLOW " << pbLOW << " pbUP " << pbUP << " pb " << pb << " value " << value << std::endl;
-	}else if(dist.getVariable(std::string("V_window_Low")) != -std::numeric_limits<double>::max() && dist.getVariable(std::string("V_window_Up")) != std::numeric_limits<double>::max( )){	// interval V window
-		double valLOW = dist.getVariable(std::string("V_window_Low"));
-		double valUP  = dist.getVariable(std::string("V_window_Up"));
-		value=valLOW+(valUP-valLOW)*RNG;
-		//std::cerr << " valLOW " << valLOW << " valUP " << valUP << " value " << value << std::endl;
-	}
-	else	// DEFAULT
-		value = dist.InverseCdf(RNG);
+                double pbLOW = dist.getVariable(std::string("PB_window_Low"));
+                double pbUP  = dist.getVariable(std::string("PB_window_Up"));
+                double pb = pbLOW + (pbUP-pbLOW) * RNG;
+                value = dist.InverseCdf(pb);
+                //std::cerr << " pbLOW " << pbLOW << " pbUP " << pbUP << " pb " << pb << " value " << value << std::endl;
+        }else if(dist.getVariable(std::string("V_window_Low")) != -std::numeric_limits<double>::max() && dist.getVariable(std::string("V_window_Up")) != std::numeric_limits<double>::max( )){	// interval V window
+                double valLOW = dist.getVariable(std::string("V_window_Low"));
+                double valUP  = dist.getVariable(std::string("V_window_Up"));
+                value=valLOW+(valUP-valLOW)*RNG;
+                //std::cerr << " valLOW " << valLOW << " valUP " << valUP << " value " << value << std::endl;
+        }
+        else	// DEFAULT
+                value = dist.InverseCdf(RNG);
 
-	return value;
+        return value;
 }
 
 double DistributionInverseCdf(BasicDistribution & dist, double & x){
@@ -162,6 +162,3 @@ getDistributionVariableNames(BasicDistribution & dist)
 {
   return dist.getVariableNames();
 }
-
-
-

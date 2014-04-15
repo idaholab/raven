@@ -43,11 +43,11 @@ distribution::distribution(const std::string & name, InputParameters parameters)
      if(parameters.isParamValid("xMin")) {
        _dis_parameters["xMin"] = getParam<double>("xMin");
      }
-     
+
      if(parameters.isParamValid("xMax")) {
        _dis_parameters["xMax"] = getParam<double>("xMax");
      }
-     
+
    }
    else
    {
@@ -62,7 +62,6 @@ distribution::distribution(const std::string & name, InputParameters parameters)
      //                                       fitting_type);
    }
       _seed = getParam<unsigned int>("seed");
-      _force_dist = getParam<unsigned int>("force_distribution");
       _dis_parameters["truncation"] = double(getParam<unsigned int>("truncation"));
 
       _dis_parameters["PB_window_Low"] = getParam<double>("PB_window_Low");
@@ -75,13 +74,13 @@ distribution::distribution(const std::string & name, InputParameters parameters)
 
       // Data checks
       if (getParam<double>("PB_window_Low") >= getParam<double>("PB_window_Up"))
-    	  throwError("Distribution 1D " << name << " - PB window values wrong: Low > Up ");
+          throwError("Distribution 1D " << name << " - PB window values wrong: Low > Up ");
 
       if (getParam<double>("V_window_Low") >= getParam<double>("V_window_Up"))
-    	  throwError("Distribution 1D " << name << " - V window values wrong: Low > Up ");
+          throwError("Distribution 1D " << name << " - V window values wrong: Low > Up ");
 
       if (getParam<double>("ProbabilityThreshold") > 1.0 || getParam<double>("ProbabilityThreshold") < 0.0)
-    	  throwError("Distribution 1D " << name << " - ProbabilityThreshold is not correct: it must be between 0.0 and 1.0 ");
+          throwError("Distribution 1D " << name << " - ProbabilityThreshold is not correct: it must be between 0.0 and 1.0 ");
 
       _checkStatus = false;
 }
@@ -98,7 +97,7 @@ template<>
 InputParameters validParams<UniformDistribution>(){
 
    InputParameters params = validParams<distribution>();
-    
+
    params.addRequiredParam<double>("xMin", "Distribution lower bound");
    params.addRequiredParam<double>("xMax", "Distribution upper bound");
 
@@ -131,7 +130,7 @@ InputParameters validParams<NormalDistribution>(){
 }
 
 NormalDistribution::NormalDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
+  distribution(name,parameters),
   BasicNormalDistribution(getParam<double>("mu"),getParam<double>("sigma")) {
 }
 
@@ -150,7 +149,7 @@ InputParameters validParams<LogNormalDistribution>(){
 
    params.addRequiredParam<double>("mu", "Mean");
    params.addRequiredParam<double>("sigma", "Standard deviation");
-    
+
    return params;
 }
 
@@ -174,7 +173,7 @@ InputParameters validParams<LogisticDistribution>(){
 
    params.addRequiredParam<double>("scale", "Scale");
    params.addRequiredParam<double>("location", "Location");
-    
+
    return params;
 }
 
@@ -247,9 +246,9 @@ InputParameters validParams<WeibullDistribution>(){
 }
 
 WeibullDistribution::WeibullDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
+  distribution(name,parameters),
   BasicWeibullDistribution(getParam<double>("k"),getParam<double>("lambda"))
-                                                         
+
 {
 }
 
@@ -273,9 +272,9 @@ InputParameters validParams<GammaDistribution>(){
 }
 
 GammaDistribution::GammaDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
+  distribution(name,parameters),
   BasicGammaDistribution(getParam<double>("k"),getParam<double>("theta"),getParam<double>("low"))
-                                                         
+
 {
 }
 
@@ -299,10 +298,10 @@ InputParameters validParams<BetaDistribution>(){
 }
 
 BetaDistribution::BetaDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
+  distribution(name,parameters),
   BasicBetaDistribution(getParam<double>("alpha"),getParam<double>("beta"),
                         getParam<double>("scale"))
-                                                         
+
 {
 }
 
@@ -324,9 +323,9 @@ InputParameters validParams<PoissonDistribution>(){
 }
 
 PoissonDistribution::PoissonDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
+  distribution(name,parameters),
   BasicPoissonDistribution(getParam<double>("mu"))
-                                                         
+
 {
 }
 
@@ -349,9 +348,9 @@ InputParameters validParams<BinomialDistribution>(){
 }
 
 BinomialDistribution::BinomialDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
+  distribution(name,parameters),
   BasicBinomialDistribution(getParam<double>("n"),getParam<double>("p"))
-                                                         
+
 {
 }
 
@@ -373,9 +372,9 @@ InputParameters validParams<BernoulliDistribution>(){
 }
 
 BernoulliDistribution::BernoulliDistribution(const std::string & name, InputParameters parameters):
-  distribution(name,parameters), 
+  distribution(name,parameters),
   BasicBernoulliDistribution(getParam<double>("p"))
-                                                         
+
 {
 }
 
@@ -426,7 +425,7 @@ ConstantDistribution::~ConstantDistribution()
 // class CustomDistribution;
 
 // CustomDistribution::CustomDistribution(const std::string & name, InputParameters parameters):
-//   distribution(name,parameters), 
+//   distribution(name,parameters),
 //   BasicCustomDistribution(getParam<double>("x_coordinates"),
 //                           getParam<double>("y_coordinates"),
 //                           getParam<MooseEnum>("fitting_type"),

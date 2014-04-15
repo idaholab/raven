@@ -24,7 +24,7 @@ class BasicDistributionND
 public:
    BasicDistributionND();
    virtual ~BasicDistributionND();
-   double  getVariable(const std::string & variableName);                   	///< getVariable from mapping
+   double  getVariable(const std::string & variableName);                       ///< getVariable from mapping
    void updateVariable(const std::string & variableName, double & newValue);
    virtual double  Pdf(std::vector<double> x) = 0;                           ///< Pdf function at coordinate x
    virtual double  Cdf(std::vector<double> x) = 0;                     ///< Cdf function at coordinate x

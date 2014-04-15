@@ -43,7 +43,7 @@ BasicDistributionND::getVariable(const std::string & variableName){
 
    if(_dis_parameters.find(variableName) != _dis_parameters.end())
    {
-	  res = _dis_parameters.find(variableName) ->second;
+          res = _dis_parameters.find(variableName) ->second;
    }
    else
    {
@@ -106,7 +106,7 @@ BasicMultivariateNormal::BasicMultivariateNormal(std::string data_filename, std:
   readMatrix(data_filename, rows, columns, _covMatrix);
 
   if(rows != columns)
-	  throwError("MultivariateNormal error: covariance matrix in " << data_filename << " is not a square matrix.");
+          throwError("MultivariateNormal error: covariance matrix in " << data_filename << " is not a square matrix.");
 }
 
 BasicMultivariateNormal::BasicMultivariateNormal(std::vector<std::vector<double> > covMatrix, std::vector<double> mu, std::vector<double> sigma){
@@ -120,46 +120,46 @@ BasicMultivariateNormal::BasicMultivariateNormal(std::vector<std::vector<double>
 }
 
 double BasicMultivariateNormal::Pdf(std::vector<double> x){
-	double value = 0;
+        double value = 0;
 
-	if(_mu.size() == x.size()){
-		int dimensions = _mu.size();
-		double expTerm=0;
-		std::vector<double> tempVector (dimensions);
-		for(int i=0; i<dimensions; i++){
-			tempVector[i]=0;
-			for(int j=0; j<dimensions; j++)
-				tempVector[i] += _inverseCovMatrix[i][j]*x[j];
-			expTerm += tempVector[i]*x[i];
-		}
-		value = 1/pow(2*M_PI,dimensions/2)*1/sqrt(_determinantCovMatrix)*exp(expTerm);
-	}else
-			throwError("MultivariateNormal PDF error: evaluation point dimensionality is not correct");
+        if(_mu.size() == x.size()){
+                int dimensions = _mu.size();
+                double expTerm=0;
+                std::vector<double> tempVector (dimensions);
+                for(int i=0; i<dimensions; i++){
+                        tempVector[i]=0;
+                        for(int j=0; j<dimensions; j++)
+                                tempVector[i] += _inverseCovMatrix[i][j]*x[j];
+                        expTerm += tempVector[i]*x[i];
+                }
+                value = 1/pow(2*M_PI,dimensions/2)*1/sqrt(_determinantCovMatrix)*exp(expTerm);
+        }else
+                        throwError("MultivariateNormal PDF error: evaluation point dimensionality is not correct");
 
-	return value;
+        return value;
 }
 
 double BasicMultivariateNormal::Cdf(std::vector<double> x){
-	double value;
+        double value;
 
-	if(_mu.size() == x.size()){
-		int dimensions = _mu.size();
-		boost::math::chi_squared chiDistribution(dimensions);
+        if(_mu.size() == x.size()){
+                int dimensions = _mu.size();
+                boost::math::chi_squared chiDistribution(dimensions);
 
-		double mahalanobis;
-		std::vector<double> tempVector (dimensions);
-		for(int i=0; i<dimensions; i++){
-			tempVector[i]=0;
-			for(int j=0; j<dimensions; j++)
-				tempVector[i] += _inverseCovMatrix[i][j]*x[j];
-			mahalanobis += tempVector[i]*x[i];
-		}
-		//value = chiDistribution.cdf(mahalanobis);
-		value=cdf(chiDistribution,mahalanobis);
-	}else
-		throwError("MultivariateNormal CDF error: evaluation point dimensionality is not correct");
+                double mahalanobis;
+                std::vector<double> tempVector (dimensions);
+                for(int i=0; i<dimensions; i++){
+                        tempVector[i]=0;
+                        for(int j=0; j<dimensions; j++)
+                                tempVector[i] += _inverseCovMatrix[i][j]*x[j];
+                        mahalanobis += tempVector[i]*x[i];
+                }
+                //value = chiDistribution.cdf(mahalanobis);
+                value=cdf(chiDistribution,mahalanobis);
+        }else
+                throwError("MultivariateNormal CDF error: evaluation point dimensionality is not correct");
 
-	return value;
+        return value;
 }
 
 BasicMultivariateNormal::~BasicMultivariateNormal(){
@@ -209,5 +209,3 @@ BasicMultivariateNormal::~BasicMultivariateNormal(){
 //		inverse_matrix.push_back(temp);
 //	}
 //}
-
-

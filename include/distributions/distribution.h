@@ -22,17 +22,17 @@ enum truncation {MULTIPLICATIVE=1, SUM=2};
 
 class distribution;
 
-class BasicDistribution 
+class BasicDistribution
 {
 public:
    BasicDistribution();
    virtual ~BasicDistribution();
-   double  getVariable(std::string variableName);                   	///< getVariable from mapping
+   double  getVariable(std::string variableName);                       ///< getVariable from mapping
    std::vector<double>  getVariableVector(std::string  variableName);
-   void updateVariable(const std::string & variableName, double & newValue); 	///< update variable into the mapping
+   void updateVariable(const std::string & variableName, double & newValue);    ///< update variable into the mapping
 
-   virtual double  Pdf(double x) = 0;                           		///< Pdf function at coordinate x
-   virtual double  Cdf(double x) = 0;                               	///< Cdf function at coordinate x
+   virtual double  Pdf(double x) = 0;                                           ///< Pdf function at coordinate x
+   virtual double  Cdf(double x) = 0;                                   ///< Cdf function at coordinate x
    virtual double  InverseCdf(double x) = 0;             ///< x
 
    virtual double untrPdf(double x) = 0;
@@ -44,8 +44,8 @@ public:
    virtual double untrMode() = 0;
    virtual double untrHazard(double x) = 0;
 
-   std::string & getType();                                       		///< Get distribution type
-   unsigned int getSeed();                                      		///< Get seed
+   std::string & getType();                                                     ///< Get distribution type
+   unsigned int getSeed();                                                      ///< Get seed
    std::vector<std::string> getVariableNames();
 
    //virtual double windowProcessing(distribution & dist, double & RNG);
@@ -57,11 +57,6 @@ protected:
    std::map <std::string,std::vector<double> > _dis_vectorParameters;
    //Interpolation_Functions _interpolation;         ///< Interpolation class
    unsigned int _seed;                             ///< seed
-   unsigned int _force_dist;                       ///< if 0 => dist works as it is supposed to do
-                                                   ///! force distribution to be evaluated at :
-                                                   ///! (1) => xMin
-                                                   ///! (2) => Mean
-                                                   ///! (3) => xMax
    std::vector<double> _PBwindow;
    std::vector<double> _Vwindow;
 

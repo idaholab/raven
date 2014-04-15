@@ -52,7 +52,7 @@ public:
 
 /*
  * Class Basic Truncated Distribution
- * This class implements a basic truncated distribution that can 
+ * This class implements a basic truncated distribution that can
  * be inherited from.
  */
 
@@ -102,32 +102,22 @@ BasicTruncatedDistribution::InverseCdf(double x){
   double xMin = _dis_parameters.find("xMin") ->second;
   double xMax = _dis_parameters.find("xMax") ->second;
   if(x == 0.0) {
-    //Using == in floats is generally a bad idea, but 
+    //Using == in floats is generally a bad idea, but
     // 0.0 can be represented exactly.
     //In this case, return the minimum value
     return xMin;
   }
   if(x == 1.0) {
-    //Using == in floats is generally a bad idea, but 
+    //Using == in floats is generally a bad idea, but
     // 1.0 can be represented exactly.
     //In this case, return the maximum value
     return xMax;
   }
-  if(_force_dist == 0){
-    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp=untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
-      value=untrInverseCdf(temp);
-    } else {
-      value=-1;
-    }
-  } else if(_force_dist == 1) {
-    value = xMin;
-  } else if(_force_dist == 2) {
-    value = -1.0;
-  } else if(_force_dist == 3) {
-    value = xMax;
+  if (_dis_parameters.find("truncation") ->second == 1){
+    double temp=untrCdf(xMin)+x*(untrCdf(xMax)-untrCdf(xMin));
+    value=untrInverseCdf(temp);
   } else {
-    throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
+    value=-1;
   }
   return value;
 }
@@ -169,7 +159,7 @@ double BasicTruncatedDistribution::untrHazard(double x) {
 
 /*
  * Class Basic Discrete Distribution
- * This class implements a basic discrete distribution that can 
+ * This class implements a basic discrete distribution that can
  * be inherited from.
  */
 
@@ -218,13 +208,13 @@ double BasicDiscreteDistribution::InverseCdf(double x) {
 }
 
 /*
- * Class DistributionBackendTemplate implements a template that 
+ * Class DistributionBackendTemplate implements a template that
  * can be used to create a DistributionBackend from a boost distribution
- */ 
+ */
 
-template <class T> 
+template <class T>
 class DistributionBackendTemplate : public DistributionBackend {
-public: 
+public:
   double pdf(double x) { return boost::math::pdf(*_backend, x); };
   double cdf(double x) { return boost::math::cdf(*_backend, x); };
   double cdfComplement(double x) { return boost::math::cdf(boost::math::complement(*_backend, x)); };
@@ -246,7 +236,7 @@ class UniformDistributionBackend : public DistributionBackendTemplate<boost::mat
 public:
   UniformDistributionBackend(double xMin, double xMax) {
     _backend = new boost::math::uniform(xMin,xMax);
-  } 
+  }
   ~UniformDistributionBackend() {
     delete _backend;
   }
@@ -258,9 +248,9 @@ BasicUniformDistribution::BasicUniformDistribution(double xMin, double xMax)
   _dis_parameters["xMin"] = xMin;
   _dis_parameters["xMax"] = xMax;
   _backend = new UniformDistributionBackend(xMin, xMax);
-    
+
   if (xMin>xMax)
-    throwError("ERROR: bounds for uniform distribution are incorrect");  
+    throwError("ERROR: bounds for uniform distribution are incorrect");
 }
 
 BasicUniformDistribution::~BasicUniformDistribution()
@@ -280,13 +270,13 @@ BasicUniformDistribution::Cdf(double x){
 
 double
 BasicUniformDistribution::InverseCdf(double x){
-  return untrInverseCdf(x); 
+  return untrInverseCdf(x);
 }
 
 class NormalDistributionBackend : public DistributionBackendTemplate<boost::math::normal> {
 public:
   NormalDistributionBackend(double mean, double sd) {
-    _backend = new boost::math::normal(mean, sd);    
+    _backend = new boost::math::normal(mean, sd);
   }
   ~NormalDistributionBackend() {
     delete _backend;
@@ -309,11 +299,11 @@ BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma) {
   if(not hasParameter("xMax")) {
     _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
   }
-  //std::cout << "mu " << mu << " sigma " << sigma 
-  //          << " truncation " << _dis_parameters["truncation"] 
-  //          << " xMin " << _dis_parameters["xMin"] 
+  //std::cout << "mu " << mu << " sigma " << sigma
+  //          << " truncation " << _dis_parameters["truncation"]
+  //          << " xMin " << _dis_parameters["xMin"]
   //          << " xMax " << _dis_parameters["xMax"] << std::endl;
-  _backend = new NormalDistributionBackend(mu, sigma);   
+  _backend = new NormalDistributionBackend(mu, sigma);
 }
 
 BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma, double xMin, double xMax) {
@@ -324,11 +314,11 @@ BasicNormalDistribution::BasicNormalDistribution(double mu, double sigma, double
   }
   _dis_parameters["xMin"] = xMin;
   _dis_parameters["xMax"] = xMax;
-  //std::cout << "mu " << mu << " sigma " << sigma 
-  //          << " truncation " << _dis_parameters["truncation"] 
-  //          << " xMin " << _dis_parameters["xMin"] 
+  //std::cout << "mu " << mu << " sigma " << sigma
+  //          << " truncation " << _dis_parameters["truncation"]
+  //          << " xMin " << _dis_parameters["xMin"]
   //          << " xMax " << _dis_parameters["xMax"] << std::endl;
-  _backend = new NormalDistributionBackend(mu, sigma);   
+  _backend = new NormalDistributionBackend(mu, sigma);
 
 }
 
@@ -340,9 +330,6 @@ BasicNormalDistribution::~BasicNormalDistribution(){
 
 double
 BasicNormalDistribution::InverseCdf(double x){
-  if(_force_dist == 2) {
-    return _dis_parameters.find("mu") ->second;
-  }
   return BasicTruncatedDistribution::InverseCdf(x);
 }
 
@@ -377,7 +364,7 @@ BasicLogNormalDistribution::BasicLogNormalDistribution(double mu, double sigma)
   }
 
   if (mu<0)
-    throwError("ERROR: incorrect value of mu for lognormaldistribution");  
+    throwError("ERROR: incorrect value of mu for lognormaldistribution");
 
   _backend = new LogNormalDistributionBackend(mu, sigma);
 
@@ -393,7 +380,7 @@ BasicLogNormalDistribution::untrCdf(double x){
   //std::cout << "LogNormalDistribution::untrCdf " << x << std::endl;
   if(x <= 0) {
     return 0.0;
-  } else { 
+  } else {
     return _backend->cdf(x);
   }
 }
@@ -401,9 +388,6 @@ BasicLogNormalDistribution::untrCdf(double x){
 
 double
 BasicLogNormalDistribution::InverseCdf(double x){
-  if(_force_dist == 2) {
-    return _dis_parameters.find("mu") ->second;
-  }
   return BasicTruncatedDistribution::InverseCdf(x);
 }
 
@@ -415,7 +399,7 @@ BasicLogNormalDistribution::InverseCdf(double x){
 class LogisticDistributionBackend : public DistributionBackendTemplate<boost::math::logistic_distribution<> > {
 public:
   LogisticDistributionBackend(double location, double scale) {
-    _backend = new boost::math::logistic_distribution<>(location, scale);    
+    _backend = new boost::math::logistic_distribution<>(location, scale);
   }
   ~LogisticDistributionBackend() {
     delete _backend;
@@ -478,10 +462,10 @@ BasicTriangularDistribution::BasicTriangularDistribution(double xPeak, double lo
   if(not hasParameter("xMax")) {
     _dis_parameters["xMax"] = upperBound;
   }
-     
-    
+
+
   if (upperBound < lowerBound)
-    throwError("ERROR: bounds for triangular distribution are incorrect");  
+    throwError("ERROR: bounds for triangular distribution are incorrect");
   if (upperBound < _dis_parameters.find("xMin") ->second)
     throwError("ERROR: bounds and LB/UB are inconsistent for triangular distribution");
   if (lowerBound > _dis_parameters.find("xMax") ->second)
@@ -525,9 +509,9 @@ BasicExponentialDistribution::BasicExponentialDistribution(double lambda)
     _dis_parameters["xMax"] = std::numeric_limits<double>::max( );
   }
 
-    
+
   if (lambda<0)
-    throwError("ERROR: incorrect value of lambda for exponential distribution"); 
+    throwError("ERROR: incorrect value of lambda for exponential distribution");
 
   _backend = new ExponentialDistributionBackend(lambda);
 }
@@ -607,7 +591,7 @@ BasicWeibullDistribution::untrCdf(double x){
 class GammaDistributionBackend : public DistributionBackendTemplate<boost::math::gamma_distribution<> > {
 public:
   GammaDistributionBackend(double shape, double scale) {
-    _backend = new boost::math::gamma_distribution<>(shape, scale);    
+    _backend = new boost::math::gamma_distribution<>(shape, scale);
   }
   ~GammaDistributionBackend() {
     delete _backend;
@@ -619,7 +603,7 @@ BasicGammaDistribution::BasicGammaDistribution(double k, double theta, double lo
 {
   _dis_parameters["k"] = k; //shape
   _dis_parameters["theta"] = theta; //scale
-  _dis_parameters["low"] = low; //low value shift. 0.0 would be a regular gamma 
+  _dis_parameters["low"] = low; //low value shift. 0.0 would be a regular gamma
   // distribution
 
   if(not hasParameter("truncation")) {
@@ -654,7 +638,7 @@ BasicGammaDistribution::untrCdf(double x){
     return _backend->cdf(x - low);
   } else  {
     return 0.0;
-  } 
+  }
 }
 
 
@@ -678,7 +662,7 @@ BasicGammaDistribution::untrInverseCdf(double x){
 class BetaDistributionBackend : public DistributionBackendTemplate<boost::math::beta_distribution<> > {
 public:
   BetaDistributionBackend(double alpha, double beta) {
-    _backend = new boost::math::beta_distribution<>(alpha, beta);    
+    _backend = new boost::math::beta_distribution<>(alpha, beta);
   }
   ~BetaDistributionBackend() {
     delete _backend;
@@ -789,7 +773,7 @@ BasicPoissonDistribution::untrCdf(double x){
     return _backend->cdf(x);
   } else {
     return 0.0;
-  } 
+  }
 }
 
 double
@@ -800,12 +784,12 @@ BasicPoissonDistribution::Pdf(double x){
    double value;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=0;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
+          if (x<xMin)
+                  value=0;
+          else if (x>xMax)
+                  value=0;
+          else
+                  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * untrPdf(x);
    else
       value=-1;
 
@@ -820,12 +804,12 @@ BasicPoissonDistribution::Cdf(double x){
    double value;
 
    if (_dis_parameters.find("truncation") ->second == 1)
-	  if (x<xMin)
-		  value=0;
-	  else if (x>xMax)
-		  value=1;
-	  else
-		  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
+          if (x<xMin)
+                  value=0;
+          else if (x>xMax)
+                  value=1;
+          else
+                  value = 1/(untrCdf(xMax) - untrCdf(xMin)) * (untrCdf(x) - untrCdf(xMin));
    else
       value=-1;
 
@@ -837,29 +821,15 @@ BasicPoissonDistribution::InverseCdf(double x){
    double value;
    double xMin = _dis_parameters.find("xMin") ->second;
    double xMax = _dis_parameters.find("xMax") ->second;
-   
+
    if(x == 1.0) {
      return xMax;
    }
-   if(_force_dist == 0){
    if (_dis_parameters.find("truncation") ->second == 1){
-      double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
-      value=untrInverseCdf(temp);
-   }
-   else
+     double temp = untrCdf(xMin) + x * (untrCdf(xMax)-untrCdf(xMin));
+     value=untrInverseCdf(temp);
+   } else {
       value=-1;
-   }
-   else if(_force_dist == 1){
-     value = xMin;
-   }
-   else if(_force_dist == 2){
-     value = -1.0;
-   }
-   else if(_force_dist == 3){
-     value = xMax;
-   }
-   else{
-     throwError("ERROR: not recognized force_dist flag (!= 0, 1 , 2, 3)");
    }
    return value;
 }
@@ -872,7 +842,7 @@ BasicPoissonDistribution::InverseCdf(double x){
 class BinomialDistributionBackend : public DistributionBackendTemplate<boost::math::binomial_distribution<> > {
 public:
   BinomialDistributionBackend(double n, double p) {
-    _backend = new boost::math::binomial_distribution<>(n, p);    
+    _backend = new boost::math::binomial_distribution<>(n, p);
   }
   ~BinomialDistributionBackend() {
     delete _backend;
@@ -902,7 +872,7 @@ BasicBinomialDistribution::untrCdf(double x){
     return _backend->cdf(x);
   } else {
     return 0.0;
-  } 
+  }
 }
 
 /*
@@ -913,7 +883,7 @@ BasicBinomialDistribution::untrCdf(double x){
 class BernoulliDistributionBackend : public DistributionBackendTemplate<boost::math::bernoulli_distribution<> > {
 public:
   BernoulliDistributionBackend(double p) {
-    _backend = new boost::math::bernoulli_distribution<>(p);    
+    _backend = new boost::math::bernoulli_distribution<>(p);
   }
   ~BernoulliDistributionBackend() {
     delete _backend;
@@ -960,7 +930,7 @@ double BasicConstantDistribution::untrPdf(double x){
 
 double BasicConstantDistribution::untrCdf(double x){
   if(x < _value) {
-    return 0.0;    
+    return 0.0;
   } else if(x > _value) {
     return 1.0;
   } else {
