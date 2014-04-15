@@ -136,7 +136,7 @@ else
     tar -xvzf $DOWNLOAD_DIR/Cython-0.18.tar.gz
     cd Cython-0.18
 #Python works badly with mpicc and mpicxx
-    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+    (unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 
 #h5py
 #depends on numpy, hdf5, cython
@@ -148,9 +148,9 @@ else
     then
 	$PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR
     else
-	(unset CC CXX; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
+	(unset CC CXX OPT; $PYTHON_CMD setup.py build --hdf5=$INSTALL_DIR)
     fi
-    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR --hdf5=$INSTALL_DIR )
+    (unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR --hdf5=$INSTALL_DIR )
 fi
 
 
@@ -202,7 +202,7 @@ else
     then
 	($PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
     else
-	(unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+	(unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
     fi
 fi
 
