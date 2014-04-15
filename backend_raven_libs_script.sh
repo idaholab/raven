@@ -124,7 +124,7 @@ else
     tar -xvjf $DOWNLOAD_DIR/hdf5-1.8.12.tar.bz2
     cd hdf5-1.8.12
     pwd; ls -l
-    (unset CC CXX FC PARALLEL; ./configure --prefix=$INSTALL_DIR)
+    (unset CC CXX FC PARALLEL OPT; ./configure --prefix=$INSTALL_DIR)
     make -j $JOBS
     make install
 
