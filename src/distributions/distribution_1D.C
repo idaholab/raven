@@ -959,7 +959,7 @@ double BasicConstantDistribution::untrMode(){
   return _value;
 }
 
-double BasicConstantDistribution::untrHazard(double x){
+double BasicConstantDistribution::untrHazard(double /*x*/){
   throwError("Not implemented");
   return _value;
 }

@@ -62,7 +62,7 @@ public:
   virtual ~BasicMultivariateNormal();
   double  Pdf(std::vector<double> x);
   double  Cdf(std::vector<double> x);
-  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>(2,-1.0);};
+  std::vector<double> InverseCdf(double /*min*/, double /*max*/) {return std::vector<double>(2,-1.0);};
 private:
   std::vector<double> _mu;
   std::vector<double> _sigma;
@@ -80,8 +80,8 @@ public:
   virtual ~BasicMultiDimensionalScatteredMS(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
-  double  InverseCdf(std::vector<double> x){return -1.0;};
-  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>(2,-1.0);};
+  double  InverseCdf(std::vector<double> /*x*/){return -1.0;};
+  std::vector<double> InverseCdf(double /*min*/, double /*max*/) {return std::vector<double>(2,-1.0);};
 protected:
   microSphere _interpolator;
 };
@@ -94,8 +94,8 @@ public:
   virtual ~BasicMultiDimensionalCartesianSpline(){};
   double  Pdf(std::vector<double> x) {return _interpolator.interpolateAt(x);};
   double  Cdf(std::vector<double> x){return _interpolator.interpolateAt(x);};
-  double  InverseCdf(std::vector<double> x){return -1.0;};
-  std::vector<double> InverseCdf(double min, double max) {return std::vector<double>(2,-1.0);};
+  double  InverseCdf(std::vector<double> /*x*/){return -1.0;};
+  std::vector<double> InverseCdf(double /*min*/, double /*max*/) {return std::vector<double>(2,-1.0);};
 protected:
   NDspline _interpolator;
 };

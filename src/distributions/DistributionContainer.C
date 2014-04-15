@@ -26,7 +26,7 @@ using namespace std;
 class DistributionContainer;
 
 class RandomClass {
-  boost::random::mt19937 rng; 
+  boost::random::mt19937 rng;
   const double range;
 public:
   RandomClass() : range(rng.max() - rng.min()) {};
@@ -51,7 +51,7 @@ DistributionContainer::~DistributionContainer()
 
 
 void
-DistributionContainer::addDistributionInContainer(const std::string & type, const std::string & name, BasicDistribution * dist){
+DistributionContainer::addDistributionInContainer(const std::string & /*type*/, const std::string & name, BasicDistribution * dist){
    // create the distribution type
   //distribution * dist = dynamic_cast<distribution *>(_factory.create(type, name, params));
    if (_dist_by_name.find(name) == _dist_by_name.end())
@@ -67,7 +67,7 @@ DistributionContainer::addDistributionInContainer(const std::string & type, cons
 }
 
 void
-DistributionContainer::addDistributionInContainerND(const std::string & type, const std::string & name, BasicDistributionND * dist){
+DistributionContainer::addDistributionInContainerND(const std::string & /*type*/, const std::string & name, BasicDistributionND * dist){
    // create the distribution type
   //distribution * dist = dynamic_cast<distribution *>(_factory.create(type, name, params));
    if (_dist_by_name.find(name) == _dist_by_name.end())
@@ -123,7 +123,7 @@ DistributionContainer::seedRandom(unsigned int seed){
   //_random.seed(seed);
   //MooseRandom::seed(seed);
   _random->seed(seed);
-  
+
 }
 double
 DistributionContainer::random(){
@@ -353,12 +353,12 @@ DistributionContainer::randGen(const std::string DistAlias, double RNG){
 
 }
 
-double 
+double
 DistributionContainer::inverseCdf(const std::string DistAlias, double RNG) {
   return randGen(DistAlias,RNG);
 }
 
-double 
+double
 DistributionContainer::inverseCdf(const char * DistAlias, double RNG) {
   return randGen(DistAlias,RNG);
 }
@@ -369,7 +369,7 @@ DistributionContainer::inverseCdf(const char * DistAlias, double min, double max
 }
 
 std::vector<double>
-DistributionContainer::inverseCdf(const std::string DistAlias, double min, double max){
+DistributionContainer::inverseCdf(const std::string /*DistAlias*/, double /*min*/, double /*max*/){
     throwError("inverseCdf not yet implemented for MultiDimensional Distributions");
     return std::vector<double>(2,-1.0);
 }
@@ -408,6 +408,3 @@ const char * string_p_to_str(const std::string * s) {
 void free_string_p(std::string * s) {
   delete s;
 }
-
-
-
