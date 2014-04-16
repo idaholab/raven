@@ -33,7 +33,7 @@ update_python_path ()
 download_files ()
 {
     ORIG_DIR=`pwd`
-    DL_FILENAME=$1 
+    DL_FILENAME=$1
     SHA_SUM=$2
     URL=$3
     cd $DOWNLOAD_DIR
@@ -42,7 +42,7 @@ download_files ()
     else
         NEW_SHA_SUM=no_file
     fi
-    if test $SHA_SUM = $NEW_SHA_SUM; then 
+    if test $SHA_SUM = $NEW_SHA_SUM; then
         echo $DL_FILENAME already downloaded
     else
         rm -f $DL_FILENAME
@@ -50,7 +50,7 @@ download_files ()
         if test $SHA_SUM != `$SHASUM_CMD $DL_FILENAME | cut -d " " -f 1`; then 
             echo Download of $URL failed
         else
-            echo Download of $URL succeeded 
+            echo Download of $URL succeeded
         fi
     fi
     cd $ORIG_DIR
@@ -79,32 +79,36 @@ fi
 update_python_path
 
 if $PYTHON_CMD -c 'import setuptools';
-then 
+then
     echo setuptools already built
 else
     #setuptools
     cd $BUILD_DIR
     download_files setuptools-2.1.tar.gz 3e4a325d807eb0104e98985e7bd9f1ef86fc2efa https://pypi.python.org/packages/source/s/setuptools/setuptools-2.1.tar.gz
-    tar -xvzf $DOWNLOAD_DIR/setuptools-2.1.tar.gz
+    echo Extracting setuptools
+    tar -xzf $DOWNLOAD_DIR/setuptools-2.1.tar.gz
     cd setuptools-2.1
     $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR
 fi
 
 if $PYTHON_CMD -c 'import numpy,sys;sys.exit(not numpy.version.version > "1.7")'
-then 
+then
     echo numpy module already built
 else
 #numpy
 #no dependencies
     cd $BUILD_DIR
     download_files blas.tgz a643b737c30a0a5b823e11e33c9d46a605122c61 http://www.netlib.org/blas/blas.tgz
-    tar -xvzf $DOWNLOAD_DIR/blas.tgz
+    echo Extracting blas
+    tar -xzf $DOWNLOAD_DIR/blas.tgz
     export BLAS_SRC=$BUILD_DIR/BLAS
     download_files lapack-3.4.2.tgz 93a6e4e6639aaf00571d53a580ddc415416e868b http://www.netlib.org/lapack/lapack-3.4.2.tgz
-    tar -xvzf $DOWNLOAD_DIR/lapack-3.4.2.tgz
+    echo Extracting lapack
+    tar -xzf $DOWNLOAD_DIR/lapack-3.4.2.tgz
     export LAPACK_SRC=$BUILD_DIR/lapack-3.4.2
     download_files numpy-1.7.0.tar.gz ba328985f20390b0f969a5be2a6e1141d5752cf9 http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
-    tar -xvzf $DOWNLOAD_DIR/numpy-1.7.0.tar.gz
+    echo Extracting numpy
+    tar -xzf $DOWNLOAD_DIR/numpy-1.7.0.tar.gz
     cd numpy-1.7.0
     (unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
@@ -121,7 +125,8 @@ else
     cd $BUILD_DIR
     rm -Rvf hdf5-1.8.12
     download_files hdf5-1.8.12.tar.bz2 8414ca0e6ff7d08e423955960d641ec5f309a55f http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.12.tar.bz2
-    tar -xvjf $DOWNLOAD_DIR/hdf5-1.8.12.tar.bz2
+    echo Extracting hdf5
+    tar -xjf $DOWNLOAD_DIR/hdf5-1.8.12.tar.bz2
     cd hdf5-1.8.12
     pwd; ls -l
     (unset CC CXX FC PARALLEL OPT; ./configure --prefix=$INSTALL_DIR)
@@ -133,7 +138,8 @@ else
 #no dependencies
     cd $BUILD_DIR
     download_files Cython-0.18.tar.gz 03e18d5551ece9b4e3a43d4d96ad9f98c5cf6c43 http://www.cython.org/release/Cython-0.18.tar.gz
-    tar -xvzf $DOWNLOAD_DIR/Cython-0.18.tar.gz
+    echo Extracting Cython
+    tar -xzf $DOWNLOAD_DIR/Cython-0.18.tar.gz
     cd Cython-0.18
 #Python works badly with mpicc and mpicxx
     (unset CC CXX OPT; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
@@ -142,7 +148,8 @@ else
 #depends on numpy, hdf5, cython
     cd $BUILD_DIR
     download_files h5py-2.2.1.tar.gz 4b511ed7aa28ac4c61188a121d42f17f3096c15a https://pypi.python.org/packages/source/h/h5py/h5py-2.2.1.tar.gz
-    tar -xvzf $DOWNLOAD_DIR/h5py-2.2.1.tar.gz
+    echo Extracting h5py
+    tar -xzf $DOWNLOAD_DIR/h5py-2.2.1.tar.gz
     cd h5py-2.2.1
     if test "$OS_NAME" = "Darwin 13"
     then
@@ -162,7 +169,8 @@ else
 #depends on numpy
     cd $BUILD_DIR
     download_files scipy-0.12.0.tar.gz 1ba2e2fc49ba321f62d6f78a5351336ed2509af3 http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
-    tar -xvzf $DOWNLOAD_DIR/scipy-0.12.0.tar.gz
+    echo Extracting scipy
+    tar -xzf $DOWNLOAD_DIR/scipy-0.12.0.tar.gz
     cd scipy-0.12.0
     patch -p1 << PATCH_SCIPY
 --- scipy-0.12.0/scipy/_build_utils/_fortran.py	2013-04-06 10:10:34.000000000 -0600
@@ -195,8 +203,9 @@ else
 #depends on numpy, scipy
     cd $BUILD_DIR
     #download_files scikit-learn-0.13.1.tar.gz f06a15abb107fecf7b58ef0a7057444e2d7f1369 https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
-    download_files scikit-learn-0.14.1.tar.gz 98128859b75e3c82c995cb7524e9dbd49c1a3d9f https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.14.1.tar.gz 
-    tar -xvzf $DOWNLOAD_DIR/scikit-learn-0.14.1.tar.gz
+    download_files scikit-learn-0.14.1.tar.gz 98128859b75e3c82c995cb7524e9dbd49c1a3d9f https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.14.1.tar.gz
+    echo Extracting scikit-learn
+    tar -xzf $DOWNLOAD_DIR/scikit-learn-0.14.1.tar.gz
     cd scikit-learn-0.14.1
     if test "$OS_NAME" = "Darwin 13"
     then
@@ -207,14 +216,15 @@ else
 fi
 
 if $PYTHON_CMD -c 'import matplotlib,sys; sys.exit(not matplotlib.__version__ > "1.3")'
-then 
+then
     echo matplotlib module already built
 else
 #freetype
 #no dependencies
     cd $BUILD_DIR
     download_files freetype-2.4.12.tar.bz2 382479336faefbc77e4b63c9ce4a96cf5d2c3585 http://downloads.sourceforge.net/project/freetype/freetype2/2.4.12/freetype-2.4.12.tar.bz2
-    tar -xvjf $DOWNLOAD_DIR/freetype-2.4.12.tar.bz2
+    echo Extracting freetype
+    tar -xjf $DOWNLOAD_DIR/freetype-2.4.12.tar.bz2
     cd freetype-2.4.12
     (unset CC CXX; ./configure --prefix=$INSTALL_DIR)
     make -j $JOBS
@@ -224,10 +234,11 @@ else
 #depends on numpy, freetype
     cd $BUILD_DIR
     download_files matplotlib-1.3.1.tar.gz 8578afc86424392591c0ee03f7613ffa9b6f68ee http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
-    tar -xvzf $DOWNLOAD_DIR/matplotlib-1.3.1.tar.gz
+    echo Extracting matplotlib
+    tar -xzf $DOWNLOAD_DIR/matplotlib-1.3.1.tar.gz
     cd matplotlib-1.3.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
-    
+
 fi
 
 update_python_path
@@ -238,7 +249,7 @@ update_python_path
 # then
 #     cd $BUILD_DIR
 #     download_files boost_1_55_0.tar.gz 61ed0e57d3c7c8985805bb0682de3f4c65f4b6e5  http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.gz
-#     tar -xvzf $DOWNLOAD_DIR/boost_1_55_0.tar.gz
+#     tar -xzf $DOWNLOAD_DIR/boost_1_55_0.tar.gz
 #     mkdir -p $INSTALL_DIR/include
 #     cp -Rp boost_1_55_0/boost $INSTALL_DIR/include
 # else
