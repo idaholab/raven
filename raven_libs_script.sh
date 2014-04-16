@@ -1,6 +1,6 @@
 #!/bin/bash
 cd `dirname $0`
-./backend_raven_libs_script.sh
+./backend_raven_libs_script.sh > /dev/null
 
 if test ""`which python3-config` != ""
 then
@@ -8,5 +8,5 @@ then
     then
 	unset PYTHONPATH
     fi
-    ./py3_raven_libs_script.sh
+    ./py3_raven_libs_script.sh > /dev/null
 fi
