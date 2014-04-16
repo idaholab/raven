@@ -43,7 +43,7 @@ uniformElement.append(createElement("hi",text="3.0"))
 #ET.dump(uniformElement)
 
 uniform = Distributions.Uniform()
-uniform.readMoreXML(uniformElement)
+uniform._readMoreXML(uniformElement)
 uniform.initializeDistribution()
 checkAnswer("uniform cdf(1.0)",uniform.cdf(1.0),0.0)
 checkAnswer("uniform cdf(2.0)",uniform.cdf(2.0),0.5)
@@ -62,7 +62,7 @@ normalElement.append(createElement("mean",text="1.0"))
 normalElement.append(createElement("sigma",text="2.0"))
 
 normal = Distributions.Normal()
-normal.readMoreXML(normalElement)
+normal._readMoreXML(normalElement)
 normal.initializeDistribution()
 
 checkAnswer("normal cdf(0.0)",normal.cdf(0.0),0.308537538726)
@@ -90,7 +90,7 @@ truncNormalElement.append(createElement("lowerBound",text="-1.0"))
 truncNormalElement.append(createElement("upperBound",text="3.0"))
 
 truncNormal = Distributions.Normal()
-truncNormal.readMoreXML(truncNormalElement)
+truncNormal._readMoreXML(truncNormalElement)
 truncNormal.initializeDistribution()
 
 checkAnswer("truncNormal cdf(0.0)",truncNormal.cdf(0.0),0.219546787406)
@@ -109,7 +109,7 @@ gammaElement.append(createElement("alpha",text="1.0"))
 gammaElement.append(createElement("beta",text="0.5"))
 
 gamma = Distributions.Gamma()
-gamma.readMoreXML(gammaElement)
+gamma._readMoreXML(gammaElement)
 gamma.initializeDistribution()
 
 checkAnswer("gamma cdf(0.0)",gamma.cdf(0.0),0.0)
@@ -131,7 +131,7 @@ betaElement.append(createElement("alpha",text="5.0"))
 betaElement.append(createElement("beta",text="2.0"))
 
 beta = Distributions.Beta()
-beta.readMoreXML(betaElement)
+beta._readMoreXML(betaElement)
 beta.initializeDistribution()
 
 checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
@@ -161,7 +161,7 @@ betaElement.append(createElement("alpha",text="5.0"))
 betaElement.append(createElement("beta",text="1.0"))
 
 beta = Distributions.Beta()
-beta.readMoreXML(betaElement)
+beta._readMoreXML(betaElement)
 beta.initializeDistribution()
 
 checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
@@ -182,7 +182,7 @@ triangularElement.append(createElement("apex",text="3.0"))
 triangularElement.append(createElement("max",text="4.0"))
 
 triangular = Distributions.Triangular()
-triangular.readMoreXML(triangularElement)
+triangular._readMoreXML(triangularElement)
 triangular.initializeDistribution()
 
 checkAnswer("triangular cdf(0.25)",triangular.cdf(0.25),0.00520833333333)
@@ -201,7 +201,7 @@ poissonElement = ET.Element("poisson")
 poissonElement.append(createElement("mu",text="4.0"))
 
 poisson = Distributions.Poisson()
-poisson.readMoreXML(poissonElement)
+poisson._readMoreXML(poissonElement)
 poisson.initializeDistribution()
 
 checkAnswer("poisson cdf(1.0)",poisson.cdf(1.0),0.0915781944437)
@@ -221,7 +221,7 @@ binomialElement.append(createElement("n",text="10"))
 binomialElement.append(createElement("p",text="0.25"))
 
 binomial = Distributions.Binomial()
-binomial.readMoreXML(binomialElement)
+binomial._readMoreXML(binomialElement)
 binomial.initializeDistribution()
 
 checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
@@ -238,7 +238,7 @@ bernoulliElement = ET.Element("bernoulli")
 bernoulliElement.append(createElement("p",text="0.4"))
 
 bernoulli = Distributions.Bernoulli()
-bernoulli.readMoreXML(bernoulliElement)
+bernoulli._readMoreXML(bernoulliElement)
 bernoulli.initializeDistribution()
 
 checkAnswer("bernoulli cdf(0)",bernoulli.cdf(0),0.6)
@@ -256,7 +256,7 @@ logisticElement.append(createElement("location",text="4.0"))
 logisticElement.append(createElement("scale",text="1.0"))
 
 logistic = Distributions.Logistic()
-logistic.readMoreXML(logisticElement)
+logistic._readMoreXML(logisticElement)
 logistic.initializeDistribution()
 
 checkAnswer("logistic cdf(0)",logistic.cdf(0.0),0.0179862099621)
@@ -273,7 +273,7 @@ exponentialElement = ET.Element("exponential")
 exponentialElement.append(createElement("lambda",text="5.0"))
 
 exponential = Distributions.Exponential()
-exponential.readMoreXML(exponentialElement)
+exponential._readMoreXML(exponentialElement)
 exponential.initializeDistribution()
 
 checkAnswer("exponential cdf(0.3)",exponential.cdf(0.3),0.7768698399)
@@ -291,7 +291,7 @@ logNormalElement.append(createElement("mean",text="3.0"))
 logNormalElement.append(createElement("sigma",text="2.0"))
 
 logNormal = Distributions.LogNormal()
-logNormal.readMoreXML(logNormalElement)
+logNormal._readMoreXML(logNormalElement)
 logNormal.initializeDistribution()
 
 checkAnswer("logNormal cdf(2.0)",logNormal.cdf(2.0),0.124367703363)
@@ -309,7 +309,7 @@ weibullElement.append(createElement("k", text="1.5"))
 weibullElement.append(createElement("lambda", text="1.0"))
 
 weibull = Distributions.Weibull()
-weibull.readMoreXML(weibullElement)
+weibull._readMoreXML(weibullElement)
 weibull.initializeDistribution()
 
 checkAnswer("weibull cdf(0.5)",weibull.cdf(0.5),0.29781149863)

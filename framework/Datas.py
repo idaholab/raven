@@ -42,7 +42,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.notAllowedInputs  = ['OutputPlaceHolder']#this is a list of keyword that are not allowed as inputs
     self.notAllowedOutputs = ['InputPlaceHolder' ]#this is a list of keyword that are not allowed as Outputs
                          
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''
     Function to read the xml input block.
     @ In, xmlNode, xml node

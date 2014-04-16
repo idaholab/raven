@@ -19,7 +19,6 @@ frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 
 #Add the module directory to the search path.
 pmoduleDir = os.path.join(os.path.dirname(frameworkDir),"python_modules")
-print("pmoduleDir",pmoduleDir)
 sys.path.append(pmoduleDir)
 if not os.path.exists(pmoduleDir): raise IOError('The directory "python_modules" has not been found. It location is supposed to be ../python_modules')
 
@@ -27,7 +26,7 @@ if not os.path.exists(pmoduleDir): raise IOError('The directory "python_modules"
 from Simulation import Simulation
 #Internal Modules
 
-#-------------------------------------------------------------Test Driver
+#------------------------------------------------------------- Driver
 def printStatement():
   print("""  
   NOTICE: This computer software was prepared by Battelle Energy

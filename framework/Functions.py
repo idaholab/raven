@@ -31,7 +31,7 @@ class Function(BaseType):
     self.__inputFromWhat['dict']         = self.__inputFromDict
     self.__inputFromWhat['Data']         = self.__inputFromData    
     
-  def readMoreXML(self,xmlNode,debug=False):
+  def _readMoreXML(self,xmlNode,debug=False):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
       moduleName        = ''.join(xmlNode.attrib['file'].split('.')[:-1]) #remove the .py

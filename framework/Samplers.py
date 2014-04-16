@@ -80,7 +80,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     self.inputInfo['SampledVars'  ] = self.values #this is the location where to get the values of the sampled variables
     self.inputInfo['SampledVarsPb'] = {}          #this is the location where to get the probability of the sampled variables
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the inputs got

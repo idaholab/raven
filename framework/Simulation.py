@@ -120,7 +120,6 @@ class PBSDSHSimulationMode(SimulationMode):
       if(self.__simulation.runInfoDict['NumThreads'] > 1):
         #Add the MOOSE --n-threads command afterwards
         self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
-
 #----------------------------------------------------------------------
 
 class MPISimulationMode(SimulationMode):
@@ -406,6 +405,16 @@ class Simulation(object):
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)
     if self.debug: self.printDicts()
+    for stepName, stepInstance in self.stepsDict.items():
+      self.checkStep(stepInstance,stepName)
+  
+  def checkStep(self,stepInstance,stepName):
+    '''This method checks the coherence of the simulation step by step'''
+    for [role,myClass,_,name] in stepInstance.parList:
+      if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
+        raise IOError ('For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
+      if name not in list(self.whichDict[myClass].keys()):
+        raise IOError ('In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
     
 
   def __readRunInfo(self,xmlNode,runInfoSkip):
@@ -499,9 +508,7 @@ class Simulation(object):
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
       stepInputDict['Output']          = []                         #set the Output to an empty list
       #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
-      for [key,b,c,d] in stepInstance.parList: 
-        if d not in list(self.whichDict[b].keys()):
-          raise IOError ('in step '+stepName+' for role '+key+' using the class type '+b+' and subtype '+c+' the instance with name '+d+' is not in the pool')
+      for [key,b,_,d] in stepInstance.parList: 
         if key == 'Input' or key == 'Output':                        #Only for input and output we allow more than one object passed to the step, so for those we build a list
           stepInputDict[key].append(self.whichDict[b][d])        
         else:
@@ -515,11 +522,8 @@ class Simulation(object):
       stepInstance.takeAstep(stepInputDict)
       #---------------here what is going on? Please add comments-----------------
       for output in stepInputDict['Output']:
+        print('FIXME:.....some more info on what is going on here would be appreciated')
         if "finalize" in dir(output):
           output.finalize()
-      
-      
-      
-#checks to be added: no same name within a data general class
-#cross check existence of needed data
+
 

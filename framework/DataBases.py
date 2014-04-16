@@ -33,7 +33,7 @@ class DateBase(BaseType):
     # Database directory. Default = working directory.
     self.databaseDir = ''
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''
     Function to read the portion of the xml input that belongs to this class
     and initialize some stuff based on the inputs got
@@ -89,14 +89,14 @@ class HDF5(DateBase):
     self.built    = False
     self.type     = "HDF5"
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
     '''
-    DateBase.readMoreXML(self, xmlNode)
+    DateBase._readMoreXML(self, xmlNode)
     # Check if database directory exist, otherwise create it
     if '~' in self.databaseDir: self.databaseDir = os.path.expanduser(self.databaseDir)
     if not os.path.exists(self.databaseDir): os.makedirs(self.databaseDir)

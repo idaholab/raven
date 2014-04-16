@@ -25,7 +25,7 @@ class PrintCSV:
   def __init__(self):
     self.paramters = []
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got

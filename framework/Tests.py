@@ -19,7 +19,7 @@ class Test(BaseType):
     self.toBeTested  = []
     self.tolerance = 0.0
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     #try: 
     self.toBeTested = xmlNode.text.split(',')
     #except? raise IOError('not found variable list to be tested in tester '+self.name)

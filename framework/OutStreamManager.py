@@ -55,14 +55,14 @@ class OutStreamManager(BaseType):
     # number of agregated outstreams
     self.numberAggregatedOS = 1
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the got inputs 
     @ In, xmlNode    : Xml element node
     @ Out, None
     '''
-    #BaseType.readMoreXML(self,xmlNode)
+    #BaseType._readMoreXML(self,xmlNode)
     #if self.globalAttributes:
     #  if 'online' in self.globalAttributes.keys():
     #    if self.globalAttributes['online'].lower() in ['t','true','on']: self.online = True

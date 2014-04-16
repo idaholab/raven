@@ -117,7 +117,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     self.subType  = ''
     self.runQueue = []
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
     except KeyError: 
       print("Failed in Node: ",xmlNode)
@@ -285,8 +285,8 @@ class ROM(Dummy):
     self.outputName   = ''
     self.amItrained   = False
   
-  def readMoreXML(self,xmlNode):
-    Dummy.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
       try: self.initializzationOptionDict[child.tag] = int(child.text)
       except ValueError:
@@ -358,8 +358,8 @@ class ExternalModel(Dummy):
       return [(extCreateNewInput,self.counterInput)]
     else                                : return Dummy.createNewInput(self, myInput,samplerType,**Kwargs)   
 
-  def readMoreXML(self,xmlNode):
-    Model.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys(): 
       self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
       if (os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0] != ''):
@@ -381,7 +381,7 @@ class ExternalModel(Dummy):
           self.modelVariableType[son.text] = son.attrib['type']
         else: raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
     # check if there are other information that the external module wants to load
-    if 'readMoreXML' in dir(self.sim): self.sim.readMoreXML(self,xmlNode)
+    if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
 
   def run(self,Input,jobHandler):
     self.outputDict['OutputPlaceHolder'] = numpy.atleast_1d(Input[0][1])
@@ -435,10 +435,10 @@ class Code(Model):
     self.alias              = {}   #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
                                    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
     !!!!generate also the code interface for the proper type of code!!!!'''
-    Model.readMoreXML(self, xmlNode)
+    Model._readMoreXML(self, xmlNode)
 
     for child in xmlNode:
       if child.tag=='executable': 
@@ -530,10 +530,10 @@ class Projector(Model):
   def __init__(self):
     Model.__init__(self)
 
-  def readMoreXML(self,xmlNode):
-    Model.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    Model._readMoreXML(self, xmlNode)
     self.code = returnFilterInterface(self.subType)
-    self.code.readMoreXML(xmlNode)
+    self.code._readMoreXML(xmlNode)
  
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
@@ -578,10 +578,10 @@ class Filter(Model):
     self.action = None   # action
     self.workingDir = ''
 
-  def readMoreXML(self,xmlNode):
-    Model.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    Model._readMoreXML(self, xmlNode)
     self.interface = returnFilterInterface(self.subType)
-    self.interface.readMoreXML(xmlNode)
+    self.interface._readMoreXML(xmlNode)
  
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)

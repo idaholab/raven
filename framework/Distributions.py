@@ -32,7 +32,7 @@ class Distribution(BaseType):
     self.__adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality   = None #Dimensionality of the distribution (1D or ND)
     
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
@@ -140,8 +140,8 @@ class Uniform(BoostDistribution):
     self.hi = 0.0
     self.type = 'Uniform'
 
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self,xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception('low value needed for uniform distribution')
@@ -222,8 +222,8 @@ class Normal(BoostDistribution):
     self.sigma = 0.0
     self.type = 'Normal'
 
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean' )
     if mean_find != None: self.mean  = float(mean_find.text)
     else: raise Exception('mean value needed for normal distribution')
@@ -284,8 +284,8 @@ class Gamma(BoostDistribution):
     self.beta = 1.0
     self.type = 'Gamma'
 
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self,xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception('low value needed for Gamma distribution')
@@ -343,8 +343,8 @@ class Beta(BoostDistribution):
     print('FIXME: # TODO default to specific Beta distro?')
     # TODO default to specific Beta distro?
 
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self,xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception('low value needed for Gamma distribution')
@@ -393,8 +393,8 @@ class Triangular(BoostDistribution):
     self.max  = 0.0
     self.type = 'Triangular'
 
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     apex_find = xmlNode.find('apex')
     if apex_find != None: self.apex = float(apex_find.text)
     else: raise Exception('apex value needed for normal distribution')
@@ -432,8 +432,8 @@ class Poisson(BoostDistribution):
     self.mu  = 0.0
     self.type = 'Poisson'
     
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     mu_find = xmlNode.find('mu')
     if mu_find != None: self.mu = float(mu_find.text)
     else: raise Exception('mu value needed for poisson distribution')
@@ -457,8 +457,8 @@ class Binomial(BoostDistribution):
     self.p  = 0.0
     self.type = 'Binomial'
     
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     n_find = xmlNode.find('n')
     if n_find != None: self.n = float(n_find.text)
     else: raise Exception('n value needed for Binomial distribution')
@@ -485,8 +485,8 @@ class Bernoulli(BoostDistribution):
     self.p  = 0.0
     self.type = 'Bernoulli'
     
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
     else: raise Exception('p value needed for Bernoulli distribution')
@@ -509,8 +509,8 @@ class Logistic(BoostDistribution):
     self.scale = 1.0
     self.type = 'Logistic'
     
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     location_find = xmlNode.find('location')
     if location_find != None: self.location = float(location_find.text)
     else: raise Exception('location value needed for Logistic distribution')
@@ -536,8 +536,8 @@ class Exponential(BoostDistribution):
     self.lambda_var = 1.0
     self.type = 'Exponential'
 
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception('lambda value needed for Exponential distribution')
@@ -564,8 +564,8 @@ class LogNormal(BoostDistribution):
     self.sigma = 1.0
     self.type = 'LogNormal'
 
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean')
     if mean_find != None: self.mean = float(mean_find.text)
     else: raise Exception('mean value needed for LogNormal distribution')
@@ -592,8 +592,8 @@ class Weibull(BoostDistribution):
     self.k = 1.0
     self.type = 'Weibull'
 
-  def readMoreXML(self,xmlNode):
-    BoostDistribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    BoostDistribution._readMoreXML(self, xmlNode)
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception('lambda (scale) value needed for Weibull distribution')
@@ -625,8 +625,8 @@ class NDimensionalDistributions(Distribution):
     self.function_type = None
     self.type = 'NDimensionalDistributions'
     self.dimensionality  = 'ND'
-  def readMoreXML(self,xmlNode):
-    Distribution.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    Distribution._readMoreXML(self, xmlNode)
     data_filename = xmlNode.find('data_filename')
     if data_filename != None: self.data_filename = data_filename.text
     else: raise Exception('<data_filename> parameter needed for MultiDimensional Distributions!!!!')
@@ -646,8 +646,8 @@ class NDInverseWeight(NDimensionalDistributions):
     self.p  = None
     self.type = 'NDInverseWeight'
     
-  def readMoreXML(self,xmlNode):
-    NDimensionalDistributions.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    NDimensionalDistributions._readMoreXML(self, xmlNode)
     self.p = xmlNode.find('p')
     if self.p != None: self.p = float(self.p)
     else: raise Exception('Minkowski distance parameter <p> not found in NDInverseWeight distribution')
@@ -695,8 +695,8 @@ class NDScatteredMS(NDimensionalDistributions):
     self.precision = None
     self.type = 'NDScatteredMS'
     
-  def readMoreXML(self,xmlNode):
-    NDimensionalDistributions.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    NDimensionalDistributions._readMoreXML(self, xmlNode)
     self.p = xmlNode.find('p')
     if self.p != None: self.p = float(self.p)
     else: raise Exception('Minkowski distance parameter <p> not found in NDScatteredMS distribution')
@@ -746,8 +746,8 @@ class NDCartesianSpline(NDimensionalDistributions):
     NDimensionalDistributions.__init__(self)
     self.type = 'NDCartesianSpline'
     
-  def readMoreXML(self,xmlNode):
-    NDimensionalDistributions.readMoreXML(self, xmlNode)
+  def _readMoreXML(self,xmlNode):
+    NDimensionalDistributions._readMoreXML(self, xmlNode)
     self.initializeDistribution()
     
   def addInitParams(self,tempDict):

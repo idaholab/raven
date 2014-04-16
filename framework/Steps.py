@@ -24,11 +24,19 @@ import Models
 
 #----------------------------------------------------------------------------------------------------
 class Step(metaclass_insert(abc.ABCMeta,BaseType)):
-  '''this class implement one step of the simulation pattern.
+  '''
+  This class implement one step of the simulation pattern.
+  Usage:
+  myInstance = Step()                                !Generate the instance
+  myInstance.XMLread(xml.etree.ElementTree.Element)  !This method generate all the objects living in the simulation
+  myInstance.initialize()                            !This method takes care of setting up the directory/file environment with proper checks
+  myInstance.run()                                   !This method run the simulation
+  
   Initialization happens when the method self is called
   A step could be used more times during the same simulation, if it make sense.
 
   --Instance--
+  myInstance =
   myInstance = Simulation(inputFile, frameworkDir,debug=False)
   myInstance.readXML(xml.etree.ElementTree.Element)
 
@@ -65,7 +73,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     #-None is equivalent to let the sampler to reinitialize
     self.initSeed   = None 
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''add the readings for who plays the step roles
     after this call everything will not change further in the life of the step object should have been set
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step

@@ -17,7 +17,7 @@ class BaseType(object):
   def readXML(self,xmlNode,debug=False,globalAttributes=None):
     '''
       provide a basic reading capability from the xml input file
-       for what is common to all types in the simulation than calls readMoreXML
+       for what is common to all types in the simulation than calls _readMoreXML
        that needs to be overloaded and used as API
        Each type supported by the simulation should have:
        name (xml attribute), type (xml tag)
@@ -29,9 +29,9 @@ class BaseType(object):
     if 'debug' in xmlNode.attrib: self.debug = bool(xmlNode.attrib['debug'])
     else                        : self.debug = debug
     if globalAttributes: self.globalAttributes = globalAttributes
-    self.readMoreXML(xmlNode)
+    self._readMoreXML(xmlNode)
 
-  def readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode):
     '''method to be overloaded to collect the additional input'''
     pass
 
