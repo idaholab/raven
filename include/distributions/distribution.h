@@ -22,14 +22,18 @@ enum truncation {MULTIPLICATIVE=1, SUM=2};
 
 class distribution;
 
+class DistributionContainer;
+
 class BasicDistribution
 {
 public:
    BasicDistribution();
    virtual ~BasicDistribution();
-   double  getVariable(std::string variableName);                       ///< getVariable from mapping
-   std::vector<double>  getVariableVector(std::string  variableName);
+   double  getVariable(const std::string variableName);                       ///< getVariable from mapping
+   std::vector<double>  getVariableVector(const std::string  variableName);
    void updateVariable(const std::string & variableName, double & newValue);    ///< update variable into the mapping
+
+  virtual double getRandom(double x);  //Same as inverseCdf, except it can be forced.
 
    virtual double  Pdf(double x) = 0;                                           ///< Pdf function at coordinate x
    virtual double  Cdf(double x) = 0;                                   ///< Cdf function at coordinate x
@@ -51,6 +55,15 @@ public:
    //virtual double windowProcessing(distribution & dist, double & RNG);
 
 protected:
+   enum force_random {NO_FORCING, FORCED_VALUE, FORCED_PROBABILITY};
+
+   virtual force_random forcingMethod();
+   virtual double forcedConstant();
+   virtual void setForcingMethod(force_random forcingMethod);
+   virtual void setForcedConstant(double forcedConstant);
+   force_random _forcingMethod;
+   double _forcedConstant;
+
    bool hasParameter(std::string);
    std::string _type;                              ///< Distribution type
    std::map <std::string,double> _dis_parameters;  ///< Distribution parameters

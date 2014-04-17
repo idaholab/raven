@@ -27,7 +27,9 @@ InputParameters validParams<distribution>(){
    params.addParam<unsigned int>("seed", _defaultSeed ,"RNG seed");
    params.addRequiredParam<std::string>("type","distribution type");
    params.addParam<unsigned int>("truncation", 1 , "Type of truncation"); // Truncation types: 1) pdf_prime(x) = pdf(x)*c   2) [to do] pdf_prime(x) = pdf(x)+c
-   params.addParam<unsigned int>("force_distribution", 0 ,"force distribution to be evaluated at: if (0) Don't force distribution, (1) xMin, (2) Mean, (3) xMax");
+   //params.addParam<unsigned int>("force_distribution", 0 ,"force distribution to be evaluated at: if (0) Don't force distribution, (1) xMin, (2) Mean, (3) xMax");
+   params.addParam<double>("force_probability","Force a specified probability to be used for getting random distribution numbers");
+   params.addParam<double>("force_value","Force a specified value to be used for getting random distribution numbers");
 
    params.registerBase("distribution");
    return params;
@@ -46,6 +48,16 @@ distribution::distribution(const std::string & name, InputParameters parameters)
 
      if(parameters.isParamValid("xMax")) {
        _dis_parameters["xMax"] = getParam<double>("xMax");
+     }
+
+     if(parameters.isParamValid("force_probability")){
+       setForcedConstant(getParam<double>("force_probability"));
+       setForcingMethod(FORCED_PROBABILITY);
+     }
+
+     if(parameters.isParamValid("force_value")){
+       setForcedConstant(getParam<double>("force_value"));
+       setForcingMethod(FORCED_VALUE);
      }
 
    }

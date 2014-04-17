@@ -13,6 +13,8 @@ using namespace std;
 #define throwError(msg) { std::cerr << "\n\n" << msg << "\n\n"; throw std::runtime_error("Error"); }
 
 BasicDistribution::BasicDistribution() {
+  _forcingMethod = NO_FORCING;
+  _forcedConstant = 0.0;
   //_dis_parameters["truncation"] = 1.0;
   //_dis_parameters.insert(std::pair<std::string,double>("truncation",1));
 }
@@ -71,6 +73,44 @@ BasicDistribution::getVariableNames(){
     paramtersNames.push_back(it->first);
   }
   return paramtersNames;
+}
+
+double
+BasicDistribution::getRandom(double x)
+{
+  if(forcingMethod() == NO_FORCING) {
+    return InverseCdf(x);
+  } else if(forcingMethod() == FORCED_VALUE) {
+    return forcedConstant();
+  } else if(forcingMethod() == FORCED_PROBABILITY) {
+    return InverseCdf(forcedConstant());
+  } else {
+    throwError("Invalid forcing method " << forcingMethod());
+  }
+}
+
+BasicDistribution::force_random
+BasicDistribution::forcingMethod()
+{
+  return _forcingMethod;
+}
+
+double
+BasicDistribution::forcedConstant()
+{
+  return _forcedConstant;
+}
+
+void
+BasicDistribution::setForcingMethod(force_random forcingMethod)
+{
+  _forcingMethod = forcingMethod;
+}
+
+void
+BasicDistribution::setForcedConstant(double forcedConstant)
+{
+  _forcedConstant = forcedConstant;
 }
 
 bool

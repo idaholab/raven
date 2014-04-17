@@ -204,12 +204,13 @@ class RAVENInterface:
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
       distName, distType = distributions[key][1:3]
+      distRavenType = self.__FrameworkToRavenCDistNames[distType]
       listDict.append({'name':['Distributions',distName],
                        'special':set(['assert_match']),
-                       'type':self.__FrameworkToRavenCDistNames[distType]})
-      listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
-      listDict.append({'name':['Distributions',distName],'value':distributions[key][0]})
-      listDict.append({'name':['Distributions',distName],'type':'ConstantDistribution'})
+                       'type':distRavenType})
+      #listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
+      listDict.append({'name':['Distributions',distName],'force_value':distributions[key][0]})
+      listDict.append({'name':['Distributions',distName],'type':distRavenType})
     #print("listDict",listDict,"distributions",distributions,"Kwargs",Kwargs)
     return listDict
 
