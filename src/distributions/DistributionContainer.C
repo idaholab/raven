@@ -354,6 +354,26 @@ DistributionContainer::randGen(const std::string DistAlias, double RNG){
 }
 
 double
+DistributionContainer::getDistributionRandom(const char * DistAlias)
+{
+  return getDistributionRandom(std::string(DistAlias));
+}
+
+double
+DistributionContainer::getDistributionRandom(const std::string DistAlias){
+
+    if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
+        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
+        //return dist->InverseCdf(RNG);
+        return DistributionInverseCdf(*dist,random());
+     }
+     throwError("getDistributionRandom: Distribution " + DistAlias + " was not found in distribution container.");
+     return -1.0;
+
+}
+
+
+double
 DistributionContainer::inverseCdf(const std::string DistAlias, double RNG) {
   return randGen(DistAlias,RNG);
 }

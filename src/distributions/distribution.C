@@ -83,19 +83,19 @@ double getDistributionVariable(BasicDistribution & dist,const std::string & vari
   return dist.getVariable(variableName);
 }
 
-void DistributionUpdateVariable(BasicDistribution & dist,const std::string & variableName, double & newValue){
+void DistributionUpdateVariable(BasicDistribution & dist,const std::string & variableName, double newValue){
   dist.updateVariable(variableName, newValue);
 }
 
-double DistributionPdf(BasicDistribution & dist, double & x){
+double DistributionPdf(BasicDistribution & dist, double x){
   return dist.Pdf(x);
 }
 
-double DistributionCdf(BasicDistribution & dist, double & x){
+double DistributionCdf(BasicDistribution & dist, double x){
   return dist.Cdf(x);
 }
 
-double windowProcessing(BasicDistribution & dist, double & RNG){
+double windowProcessing(BasicDistribution & dist, double RNG){
         double value;
 
 //	if (dist.getVariableVector(std::string("PBwindow")).size()==1) // value Pb window
@@ -134,7 +134,7 @@ double windowProcessing(BasicDistribution & dist, double & RNG){
         return value;
 }
 
-double DistributionInverseCdf(BasicDistribution & dist, double & x){
+double DistributionInverseCdf(BasicDistribution & dist, double x){
   //double standardRNG = dist.InverseCdf(x);
   double windowedRNG = windowProcessing(dist, x);
 
