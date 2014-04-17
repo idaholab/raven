@@ -87,8 +87,11 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
     if type(tdict) != dict: raise IOError('Super Visioned: ERROR -> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values()) 
     if self.target in names:
-      self.muAndSigma['Target'][self.target] = (np.average(values[names.index(self.target)]),np.std(values[names.index(self.target)]))
-      targetValues = (values[names.index(self.target)] -  self.muAndSigma['Target'][self.target][0])/self.muAndSigma['Target'][self.target] #zeta normalization
+#      self.muAndSigma['Target'][self.target]                                                  = (np.average(values[names.index(self.target)]), np.std(values[names.index(self.target)]) )
+#      if self.muAndSigma['Target'][self.target][1]==0: self.muAndSigma['Target'][self.target] = (self.muAndSigma['Target'][self.target][0],    np.max(np.absolute(values[names.index(self.target)])) )
+#      if self.muAndSigma['Target'][self.target][1]==0: self.muAndSigma['Target'][self.target] = (self.muAndSigma['Target'][self.target][0],    1.0)
+#      targetValues = (values[names.index(self.target)] -  self.muAndSigma['Target'][self.target][0])/self.muAndSigma['Target'][self.target][1] #zeta normalization
+      targetValues = values[names.index(self.target)]
     else                   : raise IOError('Super Visioned: ERROR -> The output sought '+self.target+' is not in the training set')    
     # check if the targetValues are consistent with the expected structure
     resp = self.checkArrayConsistency(targetValues)
@@ -102,6 +105,8 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
         if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError('Super Visioned: ERROR -> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self.muAndSigma['Features'][feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
+        if self.muAndSigma['Features'][feat][1]==0: self.muAndSigma['Features'][feat] = (self.muAndSigma['Features'][feat][0],np.max(np.absolute(values[names.index(feat)])))
+        if self.muAndSigma['Features'][feat][1]==0: self.muAndSigma['Features'][feat] = (self.muAndSigma['Features'][feat][0],1.0)
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigma['Features'][feat][0])/self.muAndSigma['Features'][feat][1]
     self.__trainLocal__(featureValues,targetValues)
 
@@ -150,7 +155,8 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigma['Features'][feat][0]))/self.muAndSigma['Features'][feat][1]
-    return self.__evaluateLocal__(featureValues)*self.muAndSigma['Target'][self.target][1] + self.muAndSigma['Target'][self.target][0]
+#    return self.__evaluateLocal__(featureValues)*self.muAndSigma['Target'][self.target][1] + self.muAndSigma['Target'][self.target][0]
+    return self.__evaluateLocal__(featureValues)
 
   @abc.abstractmethod
   def __evaluateLocal__(self,featureVals):

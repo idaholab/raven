@@ -429,6 +429,7 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
+    self.debug=True
     if self.debug: print('From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
@@ -469,7 +470,7 @@ class AdaptiveSampler(Sampler):
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
     tempDict ={}
     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
-    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                #get the prediction on the testing grid
+    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
     if self.debug: print('Prediction finished')      

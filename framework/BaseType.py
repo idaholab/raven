@@ -26,7 +26,10 @@ class BaseType(object):
       self.name = xmlNode.attrib['name']
     else: raise IOError('not found name for a '+self.__class__.__name__)
     self.type = xmlNode.tag
-    if 'debug' in xmlNode.attrib: self.debug = bool(xmlNode.attrib['debug'])
+    if 'debug' in xmlNode.attrib:
+      if   xmlNode.attrib['debug'] == 'True' : self.debug = True
+      elif xmlNode.attrib['debug'] == 'False': self.debug = False
+      else                                   : raise IOError('For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
     else                        : self.debug = debug
     if globalAttributes: self.globalAttributes = globalAttributes
     self._readMoreXML(xmlNode)

@@ -524,7 +524,7 @@ class OutStreamPlot(OutStreamManager):
       for pltindex in range(len(self.options['plotSettings']['plot'])):
         if 'interpPointsY' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpPointsY'] = '20'
         if 'interpPointsX' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = '20'
-        if 'interpolationType' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationType'] = 'Rbflinear'
+        if 'interpolationType' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationType'] = 'linear'
         elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: raise IOError('STREAM MANAGER: ERROR -> surface interpolation unknown. Available are :' + str(self.interpAvail))            
         if 'epsilon' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['smooth'] = '0.0'
