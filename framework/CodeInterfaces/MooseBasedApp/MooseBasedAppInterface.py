@@ -25,7 +25,9 @@ class MooseBasedAppInterface:
                         ' Output/file_base='+ outputfile)
     else:
       executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
-                        ' Outputs/file_base='+ outputfile)
+                        ' Outputs/file_base='+ outputfile + ' Outputs/exodus=true'+ 
+                        ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true')
+                  
     return executeCommand,outputfile
 
   def appendLoadFileExtension(self,fileRoot):
@@ -47,11 +49,11 @@ class MooseBasedAppInterface:
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     modifDict.append(copy.deepcopy({'name':['Outputs'],'special':set(['erase_block'])}))
-    modifDict.append(copy.deepcopy({'name':['Outputs'],'exodus':'true'}))
-    modifDict.append(copy.deepcopy({'name':['Outputs'],'interval':'1'}))
-    modifDict.append(copy.deepcopy({'name':['Outputs'],'output_initial':'true'}))
-    modifDict.append(copy.deepcopy({'name':['Outputs'],'csv':'true'}))
-    modifDict.append(copy.deepcopy({'name':['Output'], 'special':set(['erase_block'])}))
+#     modifDict.append(copy.deepcopy({'name':['Outputs'],'exodus':'true'}))
+#     modifDict.append(copy.deepcopy({'name':['Outputs'],'interval':'1'}))
+#     modifDict.append(copy.deepcopy({'name':['Outputs'],'output_initial':'true'}))
+#     modifDict.append(copy.deepcopy({'name':['Outputs'],'csv':'true'}))
+#     modifDict.append(copy.deepcopy({'name':['Outputs'], 'special':set(['erase_block'])}))
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
