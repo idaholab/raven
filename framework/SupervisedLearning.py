@@ -85,13 +85,8 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
       @ Out, None
     '''
     if type(tdict) != dict: raise IOError('Super Visioned: ERROR -> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
-    names, values  = list(tdict.keys()), list(tdict.values()) 
-    if self.target in names:
-#      self.muAndSigma['Target'][self.target]                                                  = (np.average(values[names.index(self.target)]), np.std(values[names.index(self.target)]) )
-#      if self.muAndSigma['Target'][self.target][1]==0: self.muAndSigma['Target'][self.target] = (self.muAndSigma['Target'][self.target][0],    np.max(np.absolute(values[names.index(self.target)])) )
-#      if self.muAndSigma['Target'][self.target][1]==0: self.muAndSigma['Target'][self.target] = (self.muAndSigma['Target'][self.target][0],    1.0)
-#      targetValues = (values[names.index(self.target)] -  self.muAndSigma['Target'][self.target][0])/self.muAndSigma['Target'][self.target][1] #zeta normalization
-      targetValues = values[names.index(self.target)]
+    names, values  = list(tdict.keys()), list(tdict.values())
+    if self.target in names: targetValues = values[names.index(self.target)]
     else                   : raise IOError('Super Visioned: ERROR -> The output sought '+self.target+' is not in the training set')    
     # check if the targetValues are consistent with the expected structure
     resp = self.checkArrayConsistency(targetValues)
@@ -155,7 +150,6 @@ class superVisioned(metaclass_insert(abc.ABCMeta)):
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigma['Features'][feat][0]))/self.muAndSigma['Features'][feat][1]
-#    return self.__evaluateLocal__(featureValues)*self.muAndSigma['Target'][self.target][1] + self.muAndSigma['Target'][self.target][0]
     return self.__evaluateLocal__(featureValues)
 
   @abc.abstractmethod

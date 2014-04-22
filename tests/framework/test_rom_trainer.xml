@@ -4,7 +4,7 @@
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>3</batchSize>
 </RunInfo>
 <Distributions>
     <Uniform name='auxbackup'>
@@ -22,7 +22,7 @@
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempTreshold</Target>
       <SVMtype>LinearSVC</SVMtype>
-      <C>1.0</C>
+      <C>10.0</C>
       <tol>0.0001</tol>
     </ROM>
     <ROM  name='ROM2' subType='NDinvDistWeigth'>
@@ -32,7 +32,7 @@
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='3' initial_seed='200286'>
+  <MonteCarlo     name='RAVENmc3'  limit='3'>
     <variable name='DeltaTimeScramToAux'>
       <distribution type='Uniform'>auxbackup</distribution>
     </variable>
@@ -49,8 +49,8 @@
         </variable>
     </MonteCarlo>
 </Samplers>
-<Steps> 
-    <MultiRun name='MC_for_rom_trainer'>
+<Steps debug='True'> 
+    <MultiRun name='MC_for_rom_trainer' debug='True'>
         <Input   class='Files'      type=''                >TMI.i</Input>
         <Input   class='Files'      type=''                >TMI_PRA_trans_MC_control.py</Input>
         <Input   class='Files'      type=''                >TMI_steady_restart/1863.rd-0</Input>
@@ -61,15 +61,12 @@
         <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmc3</Sampler>
         <Output  class='DataBases'  type='HDF5'            >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
     </MultiRun>  
-    <IODataBase name='test_extract_for_rom_trainer'>
-<!--        <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-        <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input> -->
-        <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-        <Output  class='Datas'    type='TimePointSet'               >timepointset_from_database_for_rom_trainer</Output>
-<!--        <Output  class='Datas'    type='TimePoint'                  >data_for_sampling_empty_at_begin</Output>
-        <Output  class='Datas'    type='TimePoint'                  >data_for_sampling_empty_at_begin_nd</Output> -->
+    <IODataBase name='test_extract_for_rom_trainer' debug='True'>
+        <Input   class='DataBases' type='HDF5'        >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+        <Output  class='Datas'     type='TimePointSet'>timepointset_from_database_for_rom_trainer</Output>
+        <Output  class='OutStreamManager' type='Print'>ciccio</Output>
     </IODataBase>  
-    <RomTrainer name='test_rom_trainer'>
+    <RomTrainer name='test_rom_trainer' debug='True'>
         <Input   class='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
         <Output  class='Models' type='ROM'         >ROM1</Output>
     </RomTrainer>
@@ -77,7 +74,7 @@
         <Input   class='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
         <Output  class='Models' type='ROM'         >ROM2</Output>
     </RomTrainer>
-    <MultiRun name='rom_MC'>
+    <MultiRun name='rom_MC' re-seeding='200286'>
         <Input   class='Datas'    type='TimePoint'   >data_for_sampling_empty_at_begin</Input>
         <Model   class='Models'   type='ROM'         >ROM1</Model>
         <Sampler class='Samplers' type='MonteCarlo'  >RAVENmc3</Sampler>
@@ -92,19 +89,24 @@
         <Output  class='OutStreamManager' type='Print'>outputMontecarloRomND_dump</Output>
     </MultiRun>
 </Steps>
+
 <OutStreamManager>
   <Print name='outputMontecarloRom_dump'>
     <type>csv</type>
     <source>outputMontecarloRom</source>
   </Print>
-    <Print name='outputMontecarloRomND_dump'>
-        <type>csv</type>
-        <source>outputMontecarloRomND</source>
-    </Print>
+  <Print name='outputMontecarloRomND_dump'>
+    <type>csv</type>
+    <source>outputMontecarloRomND</source>
+  </Print>
+  <Print name='ciccio'>
+    <type>csv</type>
+    <source>timepointset_from_database_for_rom_trainer</source>
+  </Print>
 </OutStreamManager>
     
 <DataBases>
-        <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
+  <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
 </DataBases>
 <Datas>
    <TimePointSet name='timepointset_from_database_for_rom_trainer' inputTs='3'>

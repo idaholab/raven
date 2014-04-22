@@ -60,7 +60,7 @@
     <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
 </Tests>
 <Steps>
-    <MultiRun name='FirstMRun' initial_seed='1'>
+    <MultiRun name='FirstMRun' re-seeding='1'>
         <Input   class='Files'     type=''>ideal_pump.i</Input>
         <Input   class='Files'     type=''>ideal_pump_control.py</Input>
         <Model   class='Models'    type='Code'      >MyRAVEN</Model>

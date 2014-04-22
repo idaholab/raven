@@ -52,7 +52,7 @@
 </Samplers>
 
 <Steps>
-    <MultiRun name='FirstMRun'  initial_seed='25061978'>
+    <MultiRun name='FirstMRun'  re-seeding='25061978'>
         <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>

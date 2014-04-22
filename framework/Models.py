@@ -116,6 +116,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.subType  = ''
     self.runQueue = []
+    self.FIXME = False
 
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
@@ -204,7 +205,7 @@ class Dummy(Model):
     
   def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
-    print('FIXME: wondering if a dictionary compatibility should be kept')
+    if self.FIXME: print('FIXME: wondering if a dictionary compatibility should be kept')
     if  type(dataIN)!=dict and dataIN.type not in self.admittedData: raise IOError('type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
     if full==False: length = -1
@@ -251,12 +252,12 @@ class Dummy(Model):
     if type(Input[0])!=tuple: self.inputDict = self._inputToInternal(Input) #this might happen when a single run is used and the input it does not come from self.createNewInput
     else:                     self.inputDict = Input[0][0]
     self.outputDict['OutputPlaceHolder'] = numpy.atleast_1d(Input[0][1])
-    print('FIXME: Just a friendly reminder that the jobhandler for the inside model still need to be put in place')
+    if self.FIXME:print('FIXME: Just a friendly reminder that the jobhandler for the inside model still need to be put in place')
     
   def collectOutput(self,finishedJob,output,newOutputLoop=True):
     #Here there is a problem since the input and output could be already changed by several call to self.createNewInput and self.run some input might have been skipped
     #The problem should be solve delegating ownership of the input/output to the job handler, for the moment we have the newOutputLoop 
-    print('FIXME: the newOutputLoop coherence in all steps (might be removed if a jobhandler is used for internal runs')
+    if self.FIXME:print('FIXME: the newOutputLoop coherence in all steps (might be removed if a jobhandler is used for internal runs')
     if newOutputLoop: self.counterOutput += 1
     if self.outputDict['OutputPlaceHolder']!=self.counterOutput: raise Exception('Synchronization has been lost between input generation and collection in the Dummy model')
     exportDict = {'input_space_params':copy.copy(self.inputDict),'output_space_params':copy.copy(self.outputDict)}
@@ -281,8 +282,6 @@ class ROM(Dummy):
   def __init__(self):
     Dummy.__init__(self)
     self.initializzationOptionDict = {}
-    self.inputNames   = []
-    self.outputName   = ''
     self.amItrained   = False
   
   def _readMoreXML(self,xmlNode):
@@ -310,7 +309,7 @@ class ROM(Dummy):
     self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
     self.SupervisedEngine.train(self.trainingSet)
     self.amITrained = True
-    print('FIXME: add self.amITrained to currentParamters')
+    if self.FIXME:print('FIXME: add self.amITrained to currentParamters')
   
   def confidence(self,request):
     '''

@@ -6,8 +6,7 @@ Step is called by simulation
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
+if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -28,131 +27,149 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   This class implement one step of the simulation pattern.
   Usage:
   myInstance = Step()                                !Generate the instance
-  myInstance.XMLread(xml.etree.ElementTree.Element)  !This method generate all the objects living in the simulation
-  myInstance.initialize()                            !This method takes care of setting up the directory/file environment with proper checks
-  myInstance.run()                                   !This method run the simulation
+  myInstance.XMLread(xml.etree.ElementTree.Element)  !This method read the xml and perform all the needed checks
+  myInstance.takeAstep()                             !This method perform the step
   
-  Initialization happens when the method self is called
-  A step could be used more times during the same simulation, if it make sense.
-
-  --Instance--
-  myInstance =
-  myInstance = Simulation(inputFile, frameworkDir,debug=False)
-  myInstance.readXML(xml.etree.ElementTree.Element)
-
-  --Usage--
-  myInstance.takeAstep(self,inDictionary) nothing more, this initialize the step and run it. Call is coming from Simulation
-
+  --Internal chain [in square brackets methods that can be/must be overwritten]
+  self.XMLread(xml)-->self._readMoreXML(xml)     -->[self._localInputAndChecks()]
+  self.takeAstep() -->self_initializeStep()      -->[self._localInitializeStep()]
+                   -->[self._localTakeAstepRun()]
+                   -->self._endStepActions()
   --Other external methods--
   myInstance.whoAreYou()                 -see BaseType class-
   myInstance.myInitializzationParams()   -see BaseType class-
   myInstance.myCurrentSetting()          -see BaseType class-
-
-  --Adding a new step subclass--  
-  <MyClass> should inherit at least from Step or from another step already presents
-
-  DO NOT OVERRIDE any of the class method that are not starting with self.local*
+  myInstance.printMe()                   -see BaseType class-
   
-  ADD your class to the dictionary __InterfaceDict at the end of the module
+  --Adding a new step subclass--  
+   **<MyClass> should inherit at least from Step or from another step already presents
+   **DO NOT OVERRIDE any of the class method that are not starting with self.local*
+   **ADD your class to the dictionary __InterfaceDict at the end of the module
 
-  The following method overriding is MANDATORY:
-  self.localInputAndChecks(xmlNode)     : used to specialize the xml reading
-  self.localAddInitParams(tempDict)     : used to add the local parameters and values to be printed
-  self.localInitializeStep(inDictionary): called after this call the step should be able the accept the call self.takeAstep(inDictionary):
-  self.localTakeAstepRun(inDictionary)  : this is where the step happens, after this call the output is ready
+  Overriding the following methods overriding unless you inherit from one of the already existing methods:
+  self._localInputAndChecks()             : used to specialize the xml reading and the checks
+  self._localAddInitParams(tempDict)      : used to add the local parameters and values to be printed
+  self._localInitializeStep(inDictionary) : called after this call the step should be able the accept the call self.takeAstep(inDictionary):
+  self._localTakeAstepRun(inDictionary)   : this is where the step happens, after this call the output is ready
   '''
-
+  
   def __init__(self):
+    self.FIXME = False
     BaseType.__init__(self)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.sleepTime  = 0.1  # Waiting time before checking if a run is finished
     #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
-    #The option are:
-    #-a number to be used as a new seed
-    #-the string continue the use the already present random environment
-    #-None is equivalent to let the sampler to reinitialize
-    self.initSeed   = None 
+    #  re-seeding = a number to be used as a new seed
+    #  re-seeding = 'continue' the use the already present random environment
+    #If there is no instruction (self.initSeed = None) the sampler will reinitialize
+    self.initSeed        = None
+    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd']
 
   def _readMoreXML(self,xmlNode):
-    '''add the readings for who plays the step roles
-    after this call everything will not change further in the life of the step object should have been set
+    '''
+    Handles the reading of all the XML describing the step
+    Since step are not reused there will not be changes in the parameter describing the step after this reading
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
     '''
+    printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
+    if self.FIXME: print('FIXME: move this tests to base class when it is ready for all the classes')
+    if not set(xmlNode.attrib.keys()).issubset(set(self._knownAttribute)):
+      raise IOError ('IN step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type,self.name,str(xmlNode.attrib.keys())))
     if 're-seeding' in xmlNode.attrib.keys():
       self.initSeed=xmlNode.attrib['re-seeding']
-      if self.initSeed.lower()   == "continue": self.initSeed = "continue"
-      else                                    : self.initSeed = int(self.initSeed)
-    if 'sleepTime' in xmlNode.attrib.keys(): self.sleepTime = float(xmlNode.attrib['sleepTime'])
-    for child in xmlNode:
-      self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
-    self.localInputAndChecks(xmlNode)
-    if None in self.parList: raise Exception ('A problem was found in  the definition of the step '+str(self.name))
+      if self.initSeed.lower()   == "continue": self.initSeed  = "continue"
+      else: 
+        try   : self.initSeed  = int(self.initSeed)
+        except: raise IOError (printString.format(self.type,self.name,self.initSeed,'re-seeding'))
+    if 'sleepTime' in xmlNode.attrib.keys():
+      try: self.sleepTime = float(xmlNode.attrib['sleepTime'])
+      except: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
+    for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys(): 
-      if xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t']: self.pauseEndStep = True
-      else: self.pauseEndStep = False
+      if   xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t']: self.pauseEndStep = True
+      elif xmlNode.attrib['pauseAtEnd'].lower() in ['no','false','f']: self.pauseEndStep = False
+      else: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
+    self._localInputAndChecks()
+    if None in self.parList: raise IOError ('A problem was found in  the definition of the step '+str(self.name))
 
   @abc.abstractmethod
-  def localInputAndChecks(self,xmlNode):
-    '''place here specialized reading, input consistency check and 
+  def _localInputAndChecks(self):
+    '''
+    Place here specialized reading, input consistency check and 
     initialization of what will not change during the whole life of the object
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
     '''
     pass
   
   def addInitParams(self,tempDict):
-    '''Export to tempDict the information that will stay constant during the existence of the instance of this class'''
+    '''Export to tempDict the information that will stay constant during the existence of the instance of this class. Overloaded from BaseType'''
     tempDict['Sleep time'  ] = str(self.sleepTime)
     tempDict['Initial seed'] = str(self.initSeed)
     for List in self.parList:
-      tempDict[List[0]] = ' Class: '+str(List[1])+' Type: '+str(List[2])+'  Global name: '+str(List[3])
-    self.localAddInitParams(tempDict)
+      tempDict[List[0]] = 'Class: '+str(List[1])+' Type: '+str(List[2])+'  Global name: '+str(List[3])
+    self._localAddInitParams(tempDict)
 
   @abc.abstractmethod
-  def localAddInitParams(self,tempDict):
-    '''place here a specialization of the exporting of what in the step is added to the initial parameters
-    the printing format of tempDict is key: tempDict[key]'''
+  def _localAddInitParams(self,tempDict):
+    '''
+    Place here a specialization of the exporting of what in the step is added to the initial parameters
+    the printing format of tempDict is key: tempDict[key]
+    '''
     pass
 
   def _initializeStep(self,inDictionary):
     '''the job handler is restarted and re-seeding action are performed'''
     inDictionary['jobHandler'].startingNewStep()
-    self.localInitializeStep(inDictionary)
+    if self.debug: print('jobHandler initialized')
+    self._localInitializeStep(inDictionary)
+
   
   @abc.abstractmethod
-  def localInitializeStep(self,inDictionary):
-    '''this is the API for the local initialization of the children classes'''
+  def _localInitializeStep(self,inDictionary):
+    '''
+    This is the API for the local initialization of the children classes of step
+    The inDictionary contains the for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
+    The role of _localInitializeStep is to call the initialize method instance if needed
+    Remember after each initialization to put:
+    if self.debug: print('for the role "+key+" the item of class '+inDictionary['key'].type+' and name '+inDictionary['key'].name+' has been initialized')
+    or in general after any action put a communication conditional to the debug flag
+    '''
     pass
 
   @abc.abstractmethod
-  def localTakeAstepRun(self,inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     '''this is the API for the local run of a step for the children classes'''
     pass
   
-  def endStepActions(self,inDictionary):
-    '''
-      This method is indended for performing actions at the end of a RAVEN step
-    '''
+  def _endStepActions(self,inDictionary):
+    '''This method is intended for performing actions at the end of a step'''
     if self.pauseEndStep:
       for i in range(len(inDictionary['Output'])):
         if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
           if inDictionary['Output'][i].type in ['OutStreamPlot']: inDictionary['Output'][i].endInstructions('interactive')
   
   def takeAstep(self,inDictionary):
-    '''this should work for everybody just split the step in an initialization and the run itself
-    inDictionary[role]=instance or list of instance'''
-    if self.debug: print('Initializing....')
+    '''
+    This should work for everybody just split the step in an initialization and the run itself
+    inDictionary[role]=instance or list of instance
+    '''
+    print('\n-----Beginning initialization')
     self._initializeStep(inDictionary)
-    if self.debug: print('Initialization done starting the run....')
-    self.localTakeAstepRun(inDictionary)
-    self.endStepActions(inDictionary)
+    if self.debug: print('-----Initialization done')
+    if self.debug: print('-----Beginning run')
+    self._localTakeAstepRun(inDictionary)
+    if self.debug: print('-----Run finished')
+    if self.debug: print('-----Closing the step')
+    self._endStepActions(inDictionary)
+    if self.debug: print('-----Step closed')
 #
 #
 #
 class SingleRun(Step):
   '''This is the step that will perform just one evaluation'''
-  def localInputAndChecks(self,xmlNode):
-    print('FIXME: the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below')
+  def _localInputAndChecks(self):
+    if self.FIXME:print('FIXME: the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below')
     found     = 0
     rolesItem = []
     for index, parameter in enumerate(self.parList):
@@ -172,18 +189,19 @@ class SingleRun(Step):
     if 'Input'  not in roles: raise IOError ('It is not possible a run without an Input!!!')
     if 'Output' not in roles: raise IOError ('It is not possible a run without an Output!!!')
     
-  def localInitializeStep(self,inDictionary):
+  def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
     #Model initialization
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
-    if self.debug: print('The model '+inDictionary['Model'].name+' has been initialized')
+    if self.debug: print('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
       if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:  inDictionary['Output'][i].initialize(inDictionary)
+        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+        if self.debug: print('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     
-  def localTakeAstepRun(self,inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
     jobHandler = inDictionary['jobHandler']
     model      = inDictionary['Model'     ]
@@ -213,7 +231,7 @@ class SingleRun(Step):
         model.collectOutput(None,output,newOutputLoop=newOutputLoop)
         newOutputLoop = False
 
-  def localAddInitParams(self,tempDict): pass
+  def _localAddInitParams(self,tempDict): pass
 #
 #
 #
@@ -221,17 +239,21 @@ class MultiRun(SingleRun):
   '''this class implement one step of the simulation pattern' where several runs are needed without being adaptive'''
   def __init__(self):
     SingleRun.__init__(self)
-    self._samplerInitDict = {}
+    self._samplerInitDict = {} #this is a dictionary that gets sent as key-worded list to the initialization of the sampler
+    self.counter          = 0  #just an handy counter of the runs already performed 
     
-  def localInputAndChecks(self,xmlNode):
-    SingleRun.localInputAndChecks(self,xmlNode)
+  def _localInputAndChecks(self):
+    SingleRun._localInputAndChecks(self)
     if 'Sampler' not in [item[0] for item in self.parList]: raise IOError ('It is not possible a multi-run without a sampler !!!')
 
   def _initializeSampler(self,inDictionary):
     inDictionary['Sampler'].initialize(**self._samplerInitDict)
+    if self.debug: print('for the role of sampler the item of class '+inDictionary['Sampler'].type+' and name '+inDictionary['Sampler'].name+' has been initialized')
+    if self.debug: print('Sampler initialization dictionary: '+str(self._samplerInitDict))
 
-  def localInitializeStep(self,inDictionary):
-    SingleRun.localInitializeStep(self,inDictionary)
+  def _localInitializeStep(self,inDictionary):
+    SingleRun._localInitializeStep(self,inDictionary)
+    self.conter = 0 
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
     self._outputCollectionLambda = []
@@ -241,51 +263,64 @@ class MultiRun(SingleRun):
     for outIndex, output in enumerate(inDictionary['Output']):
       if output.type in ['OutStreamPlot','OutStreamPrint']:
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+    if self.debug:print('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
-    for newInput in newInputs:
+    for inputIndex, newInput in enumerate(newInputs):
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
+      if self.debug: print('Submitted input '+str(inputIndex+1))
       if inDictionary["Model"].type != 'Code':
         time.sleep(self.sleepTime)
+        self.counter +=1
         newOutputLoop = True
         for myLambda, outIndex in self._outputCollectionLambda:
           myLambda([None,inDictionary['Output'][outIndex],newOutputLoop])
+          if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
           newOutputLoop = False
-    time.sleep(self.sleepTime)
 
-  def localTakeAstepRun(self,inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
     model      = inDictionary['Model'     ]
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
     sampler    = inDictionary['Sampler'   ]
+    if 'TargetEvaluation' in inDictionary.keys(): targetOutput = inDictionary['TargetEvaluation']
+    else                                        : targetOutput = None
     while True:
       if model.type == 'Code': 
         finishedJobs = jobHandler.getFinished()
         for finishedJob in finishedJobs:
+          self.counter +=1
           sampler.finalizeActualSampling(finishedJob,model,inputs)
           if finishedJob.getReturnCode() == 0: 
             newOutputLoop = True
             for myLambda, outIndex in self._outputCollectionLambda:
               myLambda([finishedJob,outputs[outIndex],newOutputLoop])
               newOutputLoop = False
+              if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
             for _ in xrange(jobHandler.howManyFreeSpots()):
-              if sampler.amIreadyToProvideAnInput():
+              if self.debug: print('Testing the sampler if it is ready to generate a new input')
+              if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
                 newInput =sampler.generateInput(model,inputs)
                 model.run(newInput,jobHandler)
+                if self.debug: print('New input generated')
           else: 
             print(' the job failed... call the handler for this situation... not yet implemented...')
             print("The JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")
         if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
         time.sleep(self.sleepTime)
       else:
-        finishedJob = 'empty'
-        if sampler.amIreadyToProvideAnInput():
+        finishedJob = None
+        if self.debug: print('Testing the sampler if it is ready to generate a new input')
+        if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
           newInput = sampler.generateInput(model,inputs)
           model.run(newInput,jobHandler)
+          self.counter +=1
           newOutputLoop = True
+          if self.debug: print('New input generated')
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,inDictionary['Output'][outIndex],newOutputLoop])
             newOutputLoop = False
+            if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
         else: break
         time.sleep(self.sleepTime)
 #
@@ -293,10 +328,10 @@ class MultiRun(SingleRun):
 #
 class Adaptive(MultiRun):
   '''this class implement one step of the simulation pattern' where several runs are needed in an adaptive scheme'''
-  def localInputAndChecks(self,xmlNode):
+  def _localInputAndChecks(self):
     '''we check coherence of Sampler, Functions and Solution Output'''
     #test sampler information:
-    print('FIXME: all these test should be done at the beginning in a static fashion being careful since not all goes to the model')
+    if self.FIXME: print('FIXME: all these test should be done at the beginning in a static fashion being careful since not all goes to the model')
     foundSampler     = False
     samplCounter     = 0
     foundTargEval    = False
@@ -338,52 +373,13 @@ class Adaptive(MultiRun):
     if functionCounter >1  : raise Exception('More than one function defined in the step '                                     +self.name)
     if ROMCounter      >1  : raise Exception('More than one ROM defined in the step '                                          +self.name)
     
-  def localInitializeStep(self,inDictionary):
+  def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
-    self._samplerInitDict['goalFunction']=inDictionary['Function']
+    self._samplerInitDict['goalFunction'] = inDictionary['Function']
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
     if 'ROM'            in inDictionary.keys(): self._samplerInitDict['ROM'           ]=inDictionary['ROM']
-    MultiRun.localInitializeStep(self,inDictionary)
+    MultiRun._localInitializeStep(self,inDictionary)
 
-  def localTakeAstepRun(self,inDictionary):
-    jobHandler   = inDictionary['jobHandler']
-    model        = inDictionary['Model'     ]
-    inputs       = inDictionary['Input'     ]
-    outputs      = inDictionary['Output'    ]
-    sampler      = inDictionary['Sampler'   ]
-    targetOutput = inDictionary['TargetEvaluation']
-    while True:
-      if model.type == 'Code': 
-        finishedJobs = jobHandler.getFinished()
-        #loop on the finished jobs
-        for finishedJob in finishedJobs:
-          sampler.finalizeActualSampling(finishedJob,model,inputs)
-          if finishedJob.getReturnCode() == 0:
-            # if the return code is == 1 => means the system code crashed... we do not want to make the statistics poor => we discard this run
-            newOutputLoop = True
-            for myLambda, outIndex in self._outputCollectionLambda:
-              myLambda([finishedJob,outputs[outIndex],newOutputLoop])
-              newOutputLoop = False
-            for _ in xrange(jobHandler.howManyFreeSpots()):
-              if sampler.amIreadyToProvideAnInput(targetOutput):
-                newInput = sampler.generateInput(model,inputs)
-                model.run(newInput,jobHandler)
-          else:
-            print('the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
-            print('a job failed... call the handler for this situation')
-        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
-        time.sleep(self.sleepTime)
-      else:
-        finishedJob = 'empty'
-        if sampler.amIreadyToProvideAnInput(targetOutput):
-          newInput = sampler.generateInput(model,inputs)
-          model.run(newInput,jobHandler)
-          newOutputLoop = True
-          for myLambda, outIndex in self._outputCollectionLambda:
-            myLambda([finishedJob,outputs[outIndex],newOutputLoop])
-            newOutputLoop = False
-        else: break
-        time.sleep(self.sleepTime)
 #
 #
 #
@@ -393,8 +389,7 @@ class IODataBase(Step):
     @Input, DataBase (for example, HDF5) or Datas
     @Output,Data(s) (for example, History) or DataBase
   '''
-  def localInitializeStep(self,inDictionary):
-    print('STEPS         : beginning of step named: ' + self.name)
+  def _localInitializeStep(self,inDictionary):
     # check if #inputs == #outputs
     if len(inDictionary['Input']) != len(inDictionary['Output']):
       # This condition is an error if the n Inputs > n Outputs. if the n Outputs > n Inputs, it is an error as well except in case the additional outputs are OutStreams => check for this
@@ -428,9 +423,12 @@ class IODataBase(Step):
           if inDictionary['Output'][i].name not in databases:
             databases.append(inDictionary['Output'][i].name)
             inDictionary['Output'][i].initialize(self.name)
-        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)   
+            if self.debug: print('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
+          inDictionary['Output'][i].initialize(inDictionary)   
+          if self.debug: print('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
       
-  def localTakeAstepRun(self,inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     incnt = -1
     for i in range(len(inDictionary['Output'])):
       try: 
@@ -447,10 +445,10 @@ class IODataBase(Step):
       if output.type in ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
       #except AttributeError as ae: print('STEPS         : ERROR -> ' + ae)
   
-  def localAddInitParams(self,tempDict):
+  def _localAddInitParams(self,tempDict):
     pass # no inputs
 
-  def localInputAndChecks(self,xmlNode):
+  def _localInputAndChecks(self):
     pass 
 #
 #
@@ -459,23 +457,21 @@ class RomTrainer(Step):
   '''This step type is used only to train a ROM
     @Input, DataBase (for example, HDF5)
   '''
-  def localInputAndChecks(self,xmlNode):
+  def _localInputAndChecks(self):
     if [item[0] for item in self.parList].count('Input')!=1: raise IOError('Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
     if [item[0] for item in self.parList].count('Output')<1: raise IOError('At least one Output is need in a training step. Step name: '+str(self.name))
     for item in self.parList:
       if item[0]=='Output' and item[2]!='ROM': raise IOError('Only ROM output class are allowed in a training step. Step name: '+str(self.name))
   
-  def localAddInitParams(self,tempDict):
+  def _localAddInitParams(self,tempDict):
     del tempDict['Initial seed'] #this entry in not meaningful for a training step
 
-  def localInitializeStep(self,inDictionary): pass
+  def _localInitializeStep(self,inDictionary): pass
         
-  def localTakeAstepRun(self,inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
     for ROM in inDictionary['Output']:
       ROM.train(inDictionary['Input'][0])
-
-
 #
 #
 #

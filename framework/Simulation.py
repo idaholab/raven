@@ -251,6 +251,7 @@ class Simulation(object):
   '''
   
   def __init__(self,frameworkDir,debug=False):
+    self.FIXME = False
     self.debug= debug
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
@@ -360,24 +361,28 @@ class Simulation(object):
       else                                 : raise IOError('Not understandable keyword to set up the debug level: '+str(xmlNode.attrib['debug']))
     for child in xmlNode:
       if child.tag in list(self.whichDict.keys()):
-        if self.debug: print('reading Class Type'+str(child.tag))
+        if self.debug: print('\n'+2*'-----------'+' Reading the block: {0:15}'.format(str(child.tag))+2*'-----------')
         Class = child.tag
         if len(child.attrib.keys()) == 0: globalAttributes = None
-        else:                             globalAttributes = child.attrib
+        else:
+          globalAttributes = child.attrib
+          if 'debug' in  globalAttributes.keys():
+            if   globalAttributes['debug'] == 'False': globalAttributes['debug'] = False
+            elif globalAttributes['debug'] == 'True' : globalAttributes['debug'] = True
+            else: raise IOError('For the global attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
         if Class != 'RunInfo':
           for childChild in child:
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
-              if self.debug: print('SIMULATION    : Reading type '+str(childChild.tag)+' with name '+name)
+              if self.debug: print('------Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
               else: raise IOError('SIMULATION    : Redundant  naming in the input for class '+Class+' and name '+name)
               #now we can read the info for this object
-              if 'debug' in childChild.attrib.keys(): localDebug = childChild.attrib['debug']
-              else                                  : localDebug = self.debug
+              if globalAttributes and 'debug' in globalAttributes.keys(): localDebug = globalAttributes['debug']
+              else                                                      : localDebug = self.debug
               self.whichDict[Class][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes)
-              if self.debug: self.whichDict[Class][name].printMe()
             else: raise IOError('SIMULATION    : not found name attribute for one '+Class)
         else: self.__readRunInfo(child,runInfoSkip)
       else: raise IOError('SIMULATION    : the '+child.tag+' is not among the known simulation components '+ET.tostring(child))    
@@ -502,8 +507,8 @@ class Simulation(object):
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
       stepInstance                     = self.stepsDict[stepName]   #retrieve the instance of the step
+      print('\n'+20*'-'+' Beginning step {0:50}'.format(stepName+' of type: '+stepInstance.type)+20*'-')
       self.runInfoDict['stepName']     = stepName                   #provide the name of the step to runInfoDict
-      if self.debug: print('SIMULATION    : starting a step of type: '+stepInstance.type+', with name: '+stepInstance.name+' '+''.join((['-']*40)))
       stepInputDict                    = {}                         #initialize the input dictionary for a step. Never use an old one!!!!! 
       stepInputDict['Input' ]          = []                         #set the Input to an empty list
       stepInputDict['Output']          = []                         #set the Output to an empty list
@@ -522,8 +527,9 @@ class Simulation(object):
       stepInstance.takeAstep(stepInputDict)
       #---------------here what is going on? Please add comments-----------------
       for output in stepInputDict['Output']:
-        print('FIXME:.....some more info on what is going on here would be appreciated')
+        if self.FIXME: print('FIXME: This is for the filter, it needs to go when the filtering strategy is done')
         if "finalize" in dir(output):
           output.finalize()
+      print(20*'-'+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+25*'-')
 
 

@@ -41,7 +41,7 @@
 
 
 <Steps>
-    <MultiRun name='myLHS' initial_seed ='1'>
+    <MultiRun name='myLHS'>
       <Input   class = 'Files'      type=''          >simple_diffusion.i</Input>
       <Model   class = 'Models'     type='Code'      >Ferret</Model>
       <Sampler class='Samplers' type='LHS'         >myLHS</Sampler>

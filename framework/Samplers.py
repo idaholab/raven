@@ -79,6 +79,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     self.initSeed     = None        # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
     self.inputInfo['SampledVars'  ] = self.values #this is the location where to get the values of the sampled variables
     self.inputInfo['SampledVarsPb'] = {}          #this is the location where to get the probability of the sampled variables
+    self.FIXME= False
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -163,8 +164,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in goalFunction:   in goal oriented sampling this is the function to be used
     '''
     self.counter = 0
-    if   externalSeeding==None: Distributions.randomSeed(self.initSeed)            #use the sampler initializzation seed
-    elif externalSeeding=='continue': pass                                          #in this case the random sequence wants to be preserved
+    if   externalSeeding==None: Distributions.randomSeed(self.initSeed)            #use the sampler initialization seed
+    elif externalSeeding=='continue': pass                                         #in this case the random sequence needs to be preserved
     else                            : Distributions.randomSeed(externalSeeding)    #the external seeding is used
     for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution() #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
@@ -190,7 +191,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     if(self.counter < self.limit): ready = True
     else                         : ready = False
-    ready = self.localStillReady(ready,lastOutput=inLastOutput)
+    if inLastOutput == None      : ready = self.localStillReady(ready)
+    else                         : ready = self.localStillReady(ready,lastOutput=inLastOutput)
     return ready
   
   def localStillReady(self,ready,lastOutput=None):
@@ -299,7 +301,7 @@ class AdaptiveSampler(Sampler):
     if convergenceNode==None:raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
     self.tolerance=float(convergenceNode.text)     
     if 'norm'          in convergenceNode.attrib.keys():
-      print('FIXME: we need to build/import the library of adaptive algorithms')
+      if self.FIXME: print('FIXME: we need to build/import the library of adaptive algorithms')
       self.normType = convergenceNode.attrib['norm']
       import NormLib
       if self.normType in NormLib.knonwnTypes()             : self.norm             = NormLib.returnInstance(self.normType)
@@ -342,7 +344,7 @@ class AdaptiveSampler(Sampler):
           index +=1
       self._tree = spatial.cKDTree(copy.copy(dataMatrix),leafsize=18)
     elif action=='evaluate':
-      print('FIXME: here rather than using self.gridCoord a conversion of data would be more coherent')
+      if self.FIXME:print('FIXME: here rather than using self.gridCoord a conversion of data would be more coherent')
       distance, outId    = self._tree.query(self.gridCoord)
       return [self.functionValue[self.goalFunction.name][myID] for myID in outId]
     elif action=='confidence':
@@ -407,7 +409,6 @@ class AdaptiveSampler(Sampler):
     self.axisStepSize = {}
     for varName in self.distDict.keys():
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
-      
     #printing
     if self.debug:
       print('self.gridShape '+str(self.gridShape))
@@ -429,7 +430,6 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
-    self.debug=True
     if self.debug: print('From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
@@ -459,9 +459,9 @@ class AdaptiveSampler(Sampler):
           print(','.join([str(self.functionValue[key][index]) for key in keyList]))
       #printing----------------------
       tempDict = {}
-      print('FIXME: please find a more elegant way to remove the output variables from the training set')
+      if self.FIXME:print('FIXME: please find a more elegant way to remove the output variables from the training set')
       for name in self.axisName: tempDict[name] = self.functionValue[name]
-      tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]    
+      tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
       self.ROM.train(tempDict) 
       print('Training done')
     if self.debug: print('Training finished')                                    #happy thinking :)
@@ -846,7 +846,7 @@ class DynamicEventTree(Sampler):
     # Corresponding inputs
     self.RunQueue['queue'      ] = []
 
-  def amIreadyToProvideAnInput(self):
+  def localStillReady(self,_):
     '''
     Function that inquires if there is at least an input the in the queue that needs to be run
     @ In, None

@@ -84,7 +84,6 @@
       <Input      class='Files'      type=''          >simple_flow_3eqn_control.py</Input>
       <Model      class='Models'     type='Code'      >MyRAVEN</Model>
       <Sampler    class='Samplers'   type='LHS'>myLHS</Sampler>
-      <!-- <DataBases  class='DataBases'  type=''          >testMPIDataBase</DataBases> -->
       <Output     class='DataBases'  type='HDF5'      >testLHSRavenDataBase</Output>
       <Output     class='Datas'      type='Histories' >stories</Output>
       <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
