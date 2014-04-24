@@ -630,8 +630,15 @@ class TimePointSet(Data):
     '''
       Here we perform the consistency check for the structured data TimePointSet
     '''
-    try:   sourceType = self._toLoadFromList[0].type
+    lenMustHave = 0
+    try:   sourceType = self._toLoadFromList[-1].type
     except AttributeError:sourceType = None
+    # here we assume that the outputs are all read....so we need to compute the total number of time point sets
+    for sourceLoad in self._toLoadFromList: 
+      if not isinstance(sourceLoad, basestring):
+        if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
+      else: lenMustHave += 1
+      
     if('HDF5' == sourceType):
       eg = self._toLoadFromList[0].getEndingGroupNames()
       for key in self._dataContainer['inputs'].keys():
@@ -650,11 +657,11 @@ class TimePointSet(Data):
             raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
       else:  
         for key in self._dataContainer['inputs'].keys():
-          if (self._dataContainer['inputs'][key].size) != len(self._toLoadFromList):
-            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self._toLoadFromList)) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+          if (self._dataContainer['inputs'][key].size) != lenMustHave:
+            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
         for key in self._dataContainer['outputs'].keys():
-          if (self._dataContainer['outputs'][key].size) != len(self._toLoadFromList):
-            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self._toLoadFromList)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+          if (self._dataContainer['outputs'][key].size) != lenMustHave:
+            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
   
 
   def updateSpecializedInputValue(self,name,value,options=None):
@@ -1144,7 +1151,7 @@ class Histories(Data):
       @ In,  None
       @ Out, None 
     '''
-    try: sourceType = self._toLoadFromList[0].type
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     
     if self._dataParameters['hierarchical']:
