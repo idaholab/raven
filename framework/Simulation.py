@@ -385,7 +385,9 @@ class Simulation(object):
               self.whichDict[Class][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes)
             else: raise IOError('SIMULATION    : not found name attribute for one '+Class)
         else: self.__readRunInfo(child,runInfoSkip)
-      else: raise IOError('SIMULATION    : the '+child.tag+' is not among the known simulation components '+ET.tostring(child))    
+      else: raise IOError('SIMULATION    : the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
+    if set(self.stepsDict.keys())!=set(self.stepSequenceList):
+      raise IOError('The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
     
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment'''
