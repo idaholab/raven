@@ -1,5 +1,5 @@
 import distribution1D
-distcont  = distribution1D.DistributionContainer.Instance()
+
 
 
 def initial_function(monitored, controlled, auxiliary):
@@ -19,8 +19,8 @@ def initial_function(monitored, controlled, auxiliary):
     controlled.outlet_TDV_T_bc = mult*controlled.outlet_TDV_T_bc
     controlled.outlet_TDV_void_fraction_bc = mult*controlled.outlet_TDV_void_fraction_bc
     auxiliary.dummy_for_branch = 0.0
-    random_n_1 = distcont.random()
-    auxiliary.dummy_for_branch = distcont.randGen('zeroToOne',random_n_1)
+    random_n_1 = stochasticEnv.random()
+    auxiliary.dummy_for_branch = distributions.zeroToOne.inverseCdf(random_n_1)
 
     return
 

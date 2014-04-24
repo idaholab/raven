@@ -1,6 +1,4 @@
 import distribution1D
-distcont  = distribution1D.DistributionContainer.Instance()
-
 
 def initial_function(monitored, controlled, auxiliary):
     print("monitored",monitored,"controlled",controlled,"auxiliary",auxiliary)
@@ -27,7 +25,7 @@ def control_function(monitored, controlled, auxiliary):
     mult = 1.01
     if auxiliary.dummy_for_branch < 1.0:
         auxiliary.dummy_for_branch = auxiliary.dummy_for_branch + 0.25 
-    print('THRESHOLDDDDDD ' + str(distcont.getVariable('ProbabilityThreshold','zeroToOne')))
+    print('THRESHOLDDDDDD ' + str(distributions.zeroToOne.getVariable('ProbabilityThreshold')))
     controlled.pipe1_Area = mult*controlled.pipe1_Area
     controlled.pipe1_Hw = mult*controlled.pipe1_Hw
     controlled.pipe1_f = mult*controlled.pipe1_f

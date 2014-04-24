@@ -2,38 +2,27 @@ import sys
 import math
 import distribution1D
 import raventools
-# initialize distribution container
-distcont  = distribution1D.DistributionContainer.Instance()
-toolcont  = raventools.RavenToolsContainer.Instance()
-# initialize decay heat curve
-#DecayHeatScalingFactor     = raventools.decayHeat(1,1,3600*24*30*8,0.74)
-# intialize pump Coast Down curves
-# PumpCoastDown acts on the Head of the Pumps
-#PumpCoastDown              = raventools.pumpCoastdown(26.5,8.9)
-# PumpCoastDownSec acts
-#PumpCoastDownSec           = raventools.pumpCoastdown(10.5,1)
-
 
 def restart_function(monitored, controlled, auxiliary):
     auxiliary.scram_start_time = 101.0
-    random_n_1 = distcont.random()
-    auxiliary.DG1recoveryTime = 100.0 + distcont.randGen('crew1DG1',random_n_1)
+    random_n_1 = stochasticEnv.random()
+    auxiliary.DG1recoveryTime = 100.0 + distributions.crew1DG1.inverseCdf(random_n_1)
     
     
-    random_n_2 = distcont.random()
-    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distcont.randGen('crew1DG2CoupledDG1',random_n_2)
+    random_n_2 = stochasticEnv.random()
+    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime * distributions.crew1DG2CoupledDG1.inverseCdf(random_n_2)
     
     
-    random_n_3 = distcont.random()
-    auxiliary.SecPGrecoveryTime = 400.0 + distcont.randGen('crewSecPG',random_n_3)
+    random_n_3 = stochasticEnv.random()
+    auxiliary.SecPGrecoveryTime = 400.0 + distributions.crewSecPG.inverseCdf(random_n_3)
     
     
-    random_n_4 = distcont.random()
-    auxiliary.CladTempTreshold = distcont.randGen('CladFailureDist',random_n_4)
+    random_n_4 = stochasticEnv.random()
+    auxiliary.CladTempTreshold = distributions.CladFailureDist.inverseCdf(random_n_4)
     
     
-    random_n_5 = distcont.random() # primary offsite power recovery
-    auxiliary.PrimPGrecoveryTime = distcont.randGen('PrimPGrecovery',random_n_5)
+    random_n_5 = stochasticEnv.random() # primary offsite power recovery
+    auxiliary.PrimPGrecoveryTime = distributions.PrimPGrecovery.inverseCdf(random_n_5)
     
     
     auxiliary.DeltaTimeScramToAux = min(auxiliary.DG1recoveryTime+auxiliary.DG2recoveryTime , auxiliary.SecPGrecoveryTime, auxiliary.PrimPGrecoveryTime)
@@ -78,7 +67,7 @@ def control_function(monitored, controlled, auxiliary):
         #primary pump B
         if auxiliary.a_Head_PumpB>1.e-4*8.9:
             if not auxiliary.AuxSystemUp: # not yet auxiliary system up
-                auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
+                auxiliary.a_Head_PumpB = tools.PumpCoastDown.compute(monitored.time-auxiliary.scram_start_time)
                 if auxiliary.a_Head_PumpB < (1.e-4*8.9):
                     auxiliary.a_Head_PumpB = 1.e-4*8.9
                 auxiliary.a_friction1_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
@@ -104,7 +93,7 @@ def control_function(monitored, controlled, auxiliary):
                         auxiliary.a_friction1_CL_B = 0.1
                         auxiliary.a_friction2_CL_B = 0.1 
                 else:
-                    auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
+                    auxiliary.a_Head_PumpB = tools.PumpCoastDown.compute(monitored.time-auxiliary.scram_start_time)
                     if auxiliary.a_Head_PumpB < (1.e-4*8.9):
                         auxiliary.a_Head_PumpB = 1.e-4*8.9
                     if auxiliary.a_friction1_SC_B > 0.1:
@@ -143,7 +132,7 @@ def control_function(monitored, controlled, auxiliary):
                         auxiliary.a_friction1_CL_B = 0.1
                         auxiliary.a_friction2_CL_B = 0.1
                 else:
-                    auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
+                    auxiliary.a_Head_PumpB = tools.PumpCoastDown.compute(monitored.time-auxiliary.scram_start_time)
                     auxiliary.a_friction1_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
                     auxiliary.a_friction2_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
                     auxiliary.a_friction1_CL_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
@@ -156,14 +145,14 @@ def control_function(monitored, controlled, auxiliary):
         auxiliary.a_friction2_CL_A = auxiliary.a_friction2_CL_B
         
         #core power following decay heat curve     
-        auxiliary.a_power_CH1 = auxiliary.init_Power_Fraction_CH1*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
-        auxiliary.a_power_CH2 = auxiliary.init_Power_Fraction_CH2*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
-        auxiliary.a_power_CH3 = auxiliary.init_Power_Fraction_CH3*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH1 = auxiliary.init_Power_Fraction_CH1*tools.DecayHeatScalingFactor.compute(monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH2 = auxiliary.init_Power_Fraction_CH2*tools.DecayHeatScalingFactor.compute(monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH3 = auxiliary.init_Power_Fraction_CH3*tools.DecayHeatScalingFactor.compute(monitored.time-auxiliary.scram_start_time)
     #secondary system replaced by auxiliary secondary system
     if not auxiliary.AuxSystemUp and auxiliary.ScramStatus: # not yet auxiliary system up
         print('not yet auxiliary system up')
-        auxiliary.a_MassFlowRateIn_SC_B = 2.542*toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time) 
-        auxiliary.a_MassFlowRateIn_SC_A = 2.542*toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time) 
+        auxiliary.a_MassFlowRateIn_SC_B = 2.542*tools.PumpCoastDownSec.compute(monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_MassFlowRateIn_SC_A = 2.542*tools.PumpCoastDownSec.compute(monitored.time-auxiliary.scram_start_time)
         if auxiliary.a_MassFlowRateIn_SC_A < (1.e-4*2.542):
             auxiliary.a_MassFlowRateIn_SC_A = 1.e-4*2.542
             auxiliary.a_MassFlowRateIn_SC_B = 1.e-4*2.542

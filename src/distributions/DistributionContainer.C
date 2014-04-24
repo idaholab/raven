@@ -136,7 +136,7 @@ DistributionContainer::random(){
 bool
 DistributionContainer::checkCdf(const std::string DistAlias, double value){
   bool result;
-  if (Cdf(std::string(DistAlias),value) >= getVariable("ProbabilityThreshold",DistAlias)){
+  if (Cdf(std::string(DistAlias),value) >= getVariable(DistAlias,"ProbabilityThreshold")){
     result=true;
     _dist_by_trigger_status[DistAlias] = true;
     _last_dist_triggered = DistAlias;
@@ -151,7 +151,7 @@ DistributionContainer::checkCdf(const std::string DistAlias, double value){
 
 bool DistributionContainer::checkCdf(const std::string DistAlias, std::vector<double> value){
   bool result;
-  if (Cdf(std::string(DistAlias),value) >= getVariable("ProbabilityThreshold",DistAlias)){
+  if (Cdf(std::string(DistAlias),value) >= getVariable(DistAlias,"ProbabilityThreshold")){
     result=true;
     _dist_by_trigger_status[DistAlias] = true;
     _last_dist_triggered = DistAlias;
@@ -189,12 +189,12 @@ bool DistributionContainer::checkCdf(const char * DistAlias, std::vector<double>
 // end to be implemented
 
 double
-DistributionContainer::getVariable(const char * paramName,const char *DistAlias){
-  return getVariable(std::string(paramName),std::string(DistAlias));
+DistributionContainer::getVariable(const char *DistAlias, const char * paramName){
+  return getVariable(std::string(DistAlias),std::string(paramName));
 }
 
 double
-DistributionContainer::getVariable(const std::string paramName,const std::string DistAlias){
+DistributionContainer::getVariable(const std::string DistAlias, const std::string paramName){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end())
     {
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -210,12 +210,12 @@ DistributionContainer::getVariable(const std::string paramName,const std::string
 }
 
 void
-DistributionContainer::updateVariable(const char * paramName,double newValue,const char *DistAlias){
-  updateVariable(std::string(paramName),newValue,std::string(DistAlias));
+DistributionContainer::updateVariable(const char *DistAlias,const char * paramName,double newValue){
+  updateVariable(std::string(DistAlias),std::string(paramName),newValue);
 }
 
 void
-DistributionContainer::updateVariable(const std::string paramName,double newValue,const std::string DistAlias){
+DistributionContainer::updateVariable(const std::string DistAlias,const std::string paramName,double newValue){
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end())
     {
        BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
@@ -336,19 +336,18 @@ DistributionContainer::Cdf(const std::string DistAlias, std::vector<double> x){
 
 
 double
-DistributionContainer::randGen(const char * DistAlias, double RNG){
-  return randGen(std::string(DistAlias), RNG);
+DistributionContainer::inverseCdf(const char * DistAlias, double RNG) {
+  return inverseCdf(std::string(DistAlias),RNG);
 }
 
 double
-DistributionContainer::randGen(const std::string DistAlias, double RNG){
-
+DistributionContainer::inverseCdf(const std::string DistAlias, double RNG) {
     if(_dist_by_name.find(DistAlias) != _dist_by_name.end()){
         BasicDistribution * dist = _dist_by_name.find(DistAlias)->second;
         //return dist->InverseCdf(RNG);
         return DistributionInverseCdf(*dist,RNG);
      }
-     throwError("randGen: Distribution " + DistAlias + " was not found in distribution container.");
+     throwError("inverseCdf: Distribution " + DistAlias + " was not found in distribution container.");
      return -1.0;
 
 }
@@ -370,17 +369,6 @@ DistributionContainer::getDistributionRandom(const std::string DistAlias){
      throwError("getDistributionRandom: Distribution " + DistAlias + " was not found in distribution container.");
      return -1.0;
 
-}
-
-
-double
-DistributionContainer::inverseCdf(const std::string DistAlias, double RNG) {
-  return randGen(DistAlias,RNG);
-}
-
-double
-DistributionContainer::inverseCdf(const char * DistAlias, double RNG) {
-  return randGen(DistAlias,RNG);
 }
 
 std::vector<double>

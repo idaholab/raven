@@ -3,8 +3,6 @@ import math
 import distribution1D
 import raventools
 # initialize distribution container
-distcont  = distribution1D.DistributionContainer.Instance()
-toolcont  = raventools.RavenToolsContainer.Instance()
 
 def restart_function(monitored, controlled, auxiliary):
     # here we store some critical parameters that we want in the output
@@ -19,16 +17,16 @@ def restart_function(monitored, controlled, auxiliary):
         auxiliary.SecPGrecoveryTime = monitored.time
     if auxiliary.PrimPGrecovery and auxiliary.PrimPGrecoveryTime == 0.0:
         auxiliary.PrimPGrecoveryTime = monitored.time
-    auxiliary.CladFailureDistThreshold = distcont.getVariable('ProbabilityThreshold','CladFailureDist')
-    auxiliary.CladTempBranched = distcont.randGen('CladFailureDist',auxiliary.CladFailureDistThreshold)
-    auxiliary.crew1DG1Threshold = distcont.getVariable('ProbabilityThreshold','crew1DG1')
-    auxiliary.DG1recoveryTime = distcont.randGen('crew1DG1',auxiliary.crew1DG1Threshold)
-    auxiliary.crew1DG2CoupledDG1Threshold = distcont.getVariable('ProbabilityThreshold','crew1DG2CoupledDG1')
-    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime*distcont.randGen('crew1DG2CoupledDG1',auxiliary.crew1DG2CoupledDG1Threshold)
-    auxiliary.crewSecPGThreshold = distcont.getVariable('ProbabilityThreshold','crewSecPG')
-    auxiliary.SecPGrecoveryTime = distcont.randGen('crewSecPG',auxiliary.crewSecPGThreshold)
-    auxiliary.PrimPGrecoveryThreshold = distcont.getVariable('ProbabilityThreshold','PrimPGrecovery')
-    auxiliary.PrimPGrecoveryTime= distcont.randGen('PrimPGrecovery',auxiliary.PrimPGrecoveryThreshold)
+    auxiliary.CladFailureDistThreshold = distributions.CladFailureDist.getVariable('ProbabilityThreshold')
+    auxiliary.CladTempBranched = distributions.CladFailureDist.inverseCdf(auxiliary.CladFailureDistThreshold)
+    auxiliary.crew1DG1Threshold = distributions.crew1DG1.getVariable('ProbabilityThreshold')
+    auxiliary.DG1recoveryTime = distributions.crew1DG1.inverseCdf(auxiliary.crew1DG1Threshold)
+    auxiliary.crew1DG2CoupledDG1Threshold = distributions.crew1DG2CoupledDG1.getVariable('ProbabilityThreshold')
+    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime*distributions.crew1DG2CoupledDG1.inverseCdf(auxiliary.crew1DG2CoupledDG1Threshold)
+    auxiliary.crewSecPGThreshold = distributions.crewSecPG.getVariable('ProbabilityThreshold')
+    auxiliary.SecPGrecoveryTime = distributions.crewSecPG.inverseCdf(auxiliary.crewSecPGThreshold)
+    auxiliary.PrimPGrecoveryThreshold = distributions.PrimPGrecovery.getVariable('ProbabilityThreshold')
+    auxiliary.PrimPGrecoveryTime= distributions.PrimPGrecovery.inverseCdf(auxiliary.PrimPGrecoveryThreshold)
     # here we check the variables one by one (for the aux) 
     if (auxiliary.crew1DG1 and auxiliary.crew1DG2CoupledDG1) and not auxiliary.AuxSystemUp:
         auxiliary.AuxSystemUp =  True
@@ -43,16 +41,16 @@ def restart_function(monitored, controlled, auxiliary):
 
 
 def initial_function(monitored, controlled, auxiliary):  
-    auxiliary.CladFailureDistThreshold = distcont.getVariable('ProbabilityThreshold','CladFailureDist')
-    auxiliary.CladTempBranched = distcont.randGen('CladFailureDist',auxiliary.CladFailureDistThreshold)
-    auxiliary.crew1DG1Threshold = distcont.getVariable('ProbabilityThreshold','crew1DG1')
-    auxiliary.DG1recoveryTime = distcont.randGen('crew1DG1',auxiliary.crew1DG1Threshold)
-    auxiliary.crew1DG2CoupledDG1Threshold = distcont.getVariable('ProbabilityThreshold','crew1DG2CoupledDG1')
-    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime*distcont.randGen('crew1DG2CoupledDG1',auxiliary.crew1DG2CoupledDG1Threshold)
-    auxiliary.crewSecPGThreshold = distcont.getVariable('ProbabilityThreshold','crewSecPG')
-    auxiliary.SecPGrecoveryTime = distcont.randGen('crewSecPG',auxiliary.crewSecPGThreshold)
-    auxiliary.PrimPGrecoveryThreshold = distcont.getVariable('ProbabilityThreshold','PrimPGrecovery')
-    auxiliary.PrimPGrecoveryTime= distcont.randGen('PrimPGrecovery',auxiliary.PrimPGrecoveryThreshold)
+    auxiliary.CladFailureDistThreshold = distributions.CladFailureDist.getVariable('ProbabilityThreshold')
+    auxiliary.CladTempBranched = distributions.CladFailureDist.inverseCdf(auxiliary.CladFailureDistThreshold)
+    auxiliary.crew1DG1Threshold = distributions.crew1DG1.getVariable('ProbabilityThreshold')
+    auxiliary.DG1recoveryTime = distributions.crew1DG1.inverseCdf(auxiliary.crew1DG1Threshold)
+    auxiliary.crew1DG2CoupledDG1Threshold = distributions.crew1DG2CoupledDG1.getVariable('ProbabilityThreshold')
+    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime*distributions.crew1DG2CoupledDG1.inverseCdf(auxiliary.crew1DG2CoupledDG1Threshold)
+    auxiliary.crewSecPGThreshold = distributions.crewSecPG.getVariable('ProbabilityThreshold')
+    auxiliary.SecPGrecoveryTime = distributions.crewSecPG.inverseCdf(auxiliary.crewSecPGThreshold)
+    auxiliary.PrimPGrecoveryThreshold = distributions.PrimPGrecovery.getVariable('ProbabilityThreshold')
+    auxiliary.PrimPGrecoveryTime= distributions.PrimPGrecovery.inverseCdf(auxiliary.PrimPGrecoveryThreshold)
     return
 
 def control_function(monitored, controlled, auxiliary):
@@ -68,16 +66,16 @@ def control_function(monitored, controlled, auxiliary):
         auxiliary.SecPGrecoveryTime = monitored.time
     if auxiliary.PrimPGrecovery and auxiliary.PrimPGrecoveryTime == 0.0:
         auxiliary.PrimPGrecoveryTime = monitored.time
-    auxiliary.CladFailureDistThreshold = distcont.getVariable('ProbabilityThreshold','CladFailureDist')
-    auxiliary.CladTempBranched = distcont.randGen('CladFailureDist',auxiliary.CladFailureDistThreshold)
-    auxiliary.crew1DG1Threshold = distcont.getVariable('ProbabilityThreshold','crew1DG1')
-    auxiliary.DG1recoveryTime = distcont.randGen('crew1DG1',auxiliary.crew1DG1Threshold)
-    auxiliary.crew1DG2CoupledDG1Threshold = distcont.getVariable('ProbabilityThreshold','crew1DG2CoupledDG1')
-    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime*distcont.randGen('crew1DG2CoupledDG1',auxiliary.crew1DG2CoupledDG1Threshold)
-    auxiliary.crewSecPGThreshold = distcont.getVariable('ProbabilityThreshold','crewSecPG')
-    auxiliary.SecPGrecoveryTime = distcont.randGen('crewSecPG',auxiliary.crewSecPGThreshold)
-    auxiliary.PrimPGrecoveryThreshold = distcont.getVariable('ProbabilityThreshold','PrimPGrecovery')
-    auxiliary.PrimPGrecoveryTime= distcont.randGen('PrimPGrecovery',auxiliary.PrimPGrecoveryThreshold)
+    auxiliary.CladFailureDistThreshold = distributions.CladFailureDist.getVariable('ProbabilityThreshold')
+    auxiliary.CladTempBranched = distributions.CladFailureDist.inverseCdf(auxiliary.CladFailureDistThreshold)
+    auxiliary.crew1DG1Threshold = distributions.crew1DG1.getVariable('ProbabilityThreshold')
+    auxiliary.DG1recoveryTime = distributions.crew1DG1.inverseCdf(auxiliary.crew1DG1Threshold)
+    auxiliary.crew1DG2CoupledDG1Threshold = distributions.crew1DG2CoupledDG1.getVariable('ProbabilityThreshold')
+    auxiliary.DG2recoveryTime = auxiliary.DG1recoveryTime*distributions.crew1DG2CoupledDG1.inverseCdf(auxiliary.crew1DG2CoupledDG1Threshold)
+    auxiliary.crewSecPGThreshold = distributions.crewSecPG.getVariable('ProbabilityThreshold')
+    auxiliary.SecPGrecoveryTime = distributions.crewSecPG.inverseCdf(auxiliary.crewSecPGThreshold)
+    auxiliary.PrimPGrecoveryThreshold = distributions.PrimPGrecovery.getVariable('ProbabilityThreshold')
+    auxiliary.PrimPGrecoveryTime= distributions.PrimPGrecovery.inverseCdf(auxiliary.PrimPGrecoveryThreshold)
     # here we check the variables one by one (for the aux) 
     if (auxiliary.crew1DG1 and auxiliary.crew1DG2CoupledDG1) and not auxiliary.AuxSystemUp:
         auxiliary.AuxSystemUp =  True
@@ -123,7 +121,7 @@ def control_function(monitored, controlled, auxiliary):
         #primary pump B
         if auxiliary.a_Head_PumpB>1.e-4*8.9:
             if not auxiliary.AuxSystemUp: # not yet auxiliary system up
-                auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
+                auxiliary.a_Head_PumpB = tools.PumpCoastDown.compute(monitored.time-auxiliary.scram_start_time)
                 if auxiliary.a_Head_PumpB < (1.e-4*8.9):
                     auxiliary.a_Head_PumpB = 1.e-4*8.9
                 auxiliary.a_friction1_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
@@ -149,7 +147,7 @@ def control_function(monitored, controlled, auxiliary):
                         auxiliary.a_friction1_CL_B = 0.1
                         auxiliary.a_friction2_CL_B = 0.1 
                 else:
-                    auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
+                    auxiliary.a_Head_PumpB = tools.PumpCoastDown.compute(monitored.time-auxiliary.scram_start_time)
                     if auxiliary.a_Head_PumpB < (1.e-4*8.9):
                         auxiliary.a_Head_PumpB = 1.e-4*8.9
                     if auxiliary.a_friction1_SC_B > 0.1:
@@ -188,7 +186,7 @@ def control_function(monitored, controlled, auxiliary):
                         auxiliary.a_friction1_CL_B = 0.1
                         auxiliary.a_friction2_CL_B = 0.1
                 else:
-                    auxiliary.a_Head_PumpB = toolcont.compute('PumpCoastDown',monitored.time-auxiliary.scram_start_time) 
+                    auxiliary.a_Head_PumpB = tools.PumpCoastDown.compute(monitored.time-auxiliary.scram_start_time)
                     auxiliary.a_friction1_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
                     auxiliary.a_friction2_SC_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
                     auxiliary.a_friction1_CL_B = auxiliary.frict_m*auxiliary.a_Head_PumpB + auxiliary.frict_q
@@ -201,14 +199,14 @@ def control_function(monitored, controlled, auxiliary):
         auxiliary.a_friction2_CL_A = auxiliary.a_friction2_CL_B
         
         #core power following decay heat curve     
-        auxiliary.a_power_CH1 = auxiliary.init_Power_Fraction_CH1*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
-        auxiliary.a_power_CH2 = auxiliary.init_Power_Fraction_CH2*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
-        auxiliary.a_power_CH3 = auxiliary.init_Power_Fraction_CH3*toolcont.compute('DecayHeatScalingFactor',monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH1 = auxiliary.init_Power_Fraction_CH1*tools.DecayHeatScalingFactor.compute(monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH2 = auxiliary.init_Power_Fraction_CH2*tools.DecayHeatScalingFactor.compute(monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_power_CH3 = auxiliary.init_Power_Fraction_CH3*tools.DecayHeatScalingFactor.compute(monitored.time-auxiliary.scram_start_time)
     #secondary system replaced by auxiliary secondary system
     if not auxiliary.AuxSystemUp and auxiliary.ScramStatus: # not yet auxiliary system up
         print('not yet auxiliary system up')
-        auxiliary.a_MassFlowRateIn_SC_B = 2.542*toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time) 
-        auxiliary.a_MassFlowRateIn_SC_A = 2.542*toolcont.compute('PumpCoastDownSec',monitored.time-auxiliary.scram_start_time) 
+        auxiliary.a_MassFlowRateIn_SC_B = 2.542*tools.PumpCoastDownSec.compute(monitored.time-auxiliary.scram_start_time)
+        auxiliary.a_MassFlowRateIn_SC_A = 2.542*tools.PumpCoastDownSec.compute(monitored.time-auxiliary.scram_start_time)
         if auxiliary.a_MassFlowRateIn_SC_A < (1.e-4*2.542):
             auxiliary.a_MassFlowRateIn_SC_A = 1.e-4*2.542
             auxiliary.a_MassFlowRateIn_SC_B = 1.e-4*2.542
@@ -240,25 +238,25 @@ def control_function(monitored, controlled, auxiliary):
     return 
 
 def dynamic_event_tree(monitored, controlled, auxiliary):    
-    if distcont.checkCdf('CladFailureDist', monitored.avg_temp_clad_CH1) and (not auxiliary.CladDamaged):
+    if distributions.CladFailureDist.checkCdf(monitored.avg_temp_clad_CH1) and (not auxiliary.CladDamaged):
         auxiliary.CladDamaged = True
         return
-    if distcont.checkCdf('CladFailureDist', monitored.avg_temp_clad_CH2) and (not auxiliary.CladDamaged):
+    if distributions.CladFailureDist.checkCdf(monitored.avg_temp_clad_CH2) and (not auxiliary.CladDamaged):
         auxiliary.CladDamaged = True
         return
-    if distcont.checkCdf('CladFailureDist', monitored.avg_temp_clad_CH3) and (not auxiliary.CladDamaged):
+    if distributions.CladFailureDist.checkCdf(monitored.avg_temp_clad_CH3) and (not auxiliary.CladDamaged):
         auxiliary.CladDamaged = True
         return
-    if distcont.checkCdf('crew1DG1', monitored.time - auxiliary.scram_start_time - 100.0) and (not auxiliary.CladDamaged) and (not auxiliary.crew1DG1):
+    if distributions.crew1DG1.checkCdf(monitored.time - auxiliary.scram_start_time - 100.0) and (not auxiliary.CladDamaged) and (not auxiliary.crew1DG1):
         auxiliary.crew1DG1 = True
         return
-    if auxiliary.crew1DG1 and distcont.checkCdf('crew1DG2CoupledDG1', auxiliary.DG1_time_ratio) and (not auxiliary.CladDamaged) and (not auxiliary.crew1DG2CoupledDG1) and (not auxiliary.AuxSystemUp):   
+    if auxiliary.crew1DG1 and distributions.crew1DG2CoupledDG1.checkCdf(auxiliary.DG1_time_ratio) and (not auxiliary.CladDamaged) and (not auxiliary.crew1DG2CoupledDG1) and (not auxiliary.AuxSystemUp):
         auxiliary.crew1DG2CoupledDG1 = True
         return
-    if distcont.checkCdf('crewSecPG', monitored.time - auxiliary.scram_start_time - 400.0) and (not auxiliary.CladDamaged) and (not auxiliary.crewSecPG) and (not auxiliary.AuxSystemUp):   
+    if distributions.crewSecPG.checkCdf(monitored.time - auxiliary.scram_start_time - 400.0) and (not auxiliary.CladDamaged) and (not auxiliary.crewSecPG) and (not auxiliary.AuxSystemUp):
         auxiliary.crewSecPG = True
         return        
-    if distcont.checkCdf('PrimPGrecovery', monitored.time - auxiliary.scram_start_time) and (not auxiliary.CladDamaged) and (not auxiliary.PrimPGrecovery) and (not auxiliary.AuxSystemUp):   
+    if distributions.PrimPGrecovery.checkCdf(monitored.time - auxiliary.scram_start_time) and (not auxiliary.CladDamaged) and (not auxiliary.PrimPGrecovery) and (not auxiliary.AuxSystemUp):
         auxiliary.PrimPGrecovery = True
         return     
     return

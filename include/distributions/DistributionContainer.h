@@ -45,11 +45,11 @@ class DistributionContainer{
      std::string getType (const char * DistAlias);
      std::string  getType (const std::string DistAlias);
 
-     double getVariable(const char * paramName,const char * DistAlias);
-     double getVariable(const std::string paramName,const std::string DistAlias);
+     double getVariable(const char * DistAlias,const char * paramName);
+     double getVariable(const std::string DistAlias,const std::string paramName);
 
-     void updateVariable(const char * paramName,double newValue,const char * DistAlias);
-     void updateVariable(const std::string paramName,double newValue,const std::string DistAlias);
+     void updateVariable(const char * DistAlias,const char * paramName,double newValue);
+     void updateVariable(const std::string DistAlias,const std::string paramName,double newValue);
 
      std::vector<std::string> getRavenDistributionVariableNames(const std::string DistAlias);
      std::vector<std::string> getDistributionNames();
@@ -70,19 +70,6 @@ class DistributionContainer{
      double Cdf(const char * DistAlias, std::vector<double> x);
      double Cdf(const std::string DistAlias, std::vector<double> x);     // return cdf value of the distribution _type as function of the position x within [_xMin , xMax]
 
-     /*
-      * Function to get a random number distributed accordingly to the distribution
-      * given a random number [0,1]
-      * @ DistAlias, alias of the distribution from which retrieving the parameter
-      */
-     double randGen(const std::string DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
-
-     /*
-      * Function to get a random number distributed accordingly to the distribution
-      * given a random number [0,1]
-      * @ DistAlias, alias of the distribution from which retrieving the parameter
-      */
-     double randGen(const char * DistAlias, double RNG);   // return a random number distributed accordingly to the distribution given a random number [0,1]
 
      /*
       * Function to get a random number distributed according to the distribution with a random number calculated.
@@ -96,9 +83,20 @@ class DistributionContainer{
       */
      double getDistributionRandom(const std::string DistAlias);
 
-     /* the inverseCdf functions are just another name for randGen */
+     /*
+      * Function to get a random number distributed accordingly to the distribution
+      * given a random number [0,1]
+      * @ DistAlias, alias of the distribution from which retrieving the parameter
+      */
      double inverseCdf(const std::string DistAlias, double RNG);
+
+     /*
+      * Function to get a random number distributed accordingly to the distribution
+      * given a random number [0,1]
+      * @ DistAlias, alias of the distribution from which retrieving the parameter
+      */
      double inverseCdf(const char * DistAlias, double RNG);
+
      std::vector<double> inverseCdf(const char * DistAlias, double min, double max);
      std::vector<double> inverseCdf(const std::string DistAlias, double min, double max);
 
