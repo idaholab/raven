@@ -353,7 +353,7 @@ class Adaptive(MultiRun):
         foundTargEval   = True
         targEvalCounter+=1
         if role[1]!='Datas'                               : raise Exception('The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
-        if not(['Output']+role[1:] in self.parList[:])    : raise Exception('The data chosen for the evaluation of the adaptive strategy is not in the output list for step'+self.name)
+        if not(['Output']+role[1:] in self.parList[:])    : raise Exception('The data chosen for the evaluation of the adaptive strategy is not in the output list for step '+self.name)
       elif role[0] == 'SolutionExport'  :
         solExportCounter  +=1
         if role[1]!='Datas'                               : raise Exception('The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)

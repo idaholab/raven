@@ -11,6 +11,7 @@ if not 'xrange' in dir(__builtins__):
   xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
+#External Modules------------------------------------------------------------------------------------
 import numpy as np
 from BaseType import BaseType
 import copy
@@ -19,6 +20,12 @@ from scipy.interpolate import Rbf, griddata
 import importlib                #it is used in exec code so it might be detected as unused
 import platform 
 import os
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+import Datas
+#Internal Modules End--------------------------------------------------------------------------------
+
 # set a global variable for backend default setting
 if platform.system() == 'Windwos':
   disAvail = True
@@ -104,21 +111,21 @@ class OutStreamManager(BaseType):
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
       for output in inDict['Output']:
-        if output.name.strip() == self.sourceName[agrosindex]:
+        if output.name.strip()==self.sourceName[agrosindex] and output.type in Datas.knonwnTypes():
           self.sourceData.append(output)
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
           if not isinstance(inp, basestring):
-            if inp.name.strip() == self.sourceName[agrosindex]:
+            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knonwnTypes():
               self.sourceData.append(inp)
               foundData = True  
       if not foundData and 'TargetEvaluation' in inDict.keys():
-        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex]:
+        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in Datas.knonwnTypes():
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True 
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex]:
+        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knonwnTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True 
       if not foundData: raise IOError('STREAM MANAGER: ERROR -> the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
