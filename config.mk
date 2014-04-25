@@ -52,7 +52,7 @@ else
 endif
 endif
 
-RAVEN_LIB_INCLUDE_DIR := $(RAVEN_DIR)/contrib/include
+RAVEN_LIB_INCLUDE_DIR := $(HERD_TRUNK_DIR)/crow/contrib/include
 
 ifeq  ($(UNAME),Darwin)
 raven_shared_ext := dylib
