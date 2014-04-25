@@ -35,7 +35,8 @@ class Function(BaseType):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
       moduleName        = ''.join(xmlNode.attrib['file'].split('.')[:-1]) #remove the .py
-      exec('import '+ moduleName)
+      try   : exec('import '+ moduleName)
+      except: raise IOError('Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)
       if isinstance(locals()[moduleName], types.ModuleType): importedModule = locals()[moduleName]
       else: raise IOError('It was not possible to import the module for the external function: '+self.name)
       #here the methods in the imported file are brought inside the class

@@ -11,6 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import xml.etree.ElementTree as ET
 import os,subprocess
 import math
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -253,6 +254,7 @@ class Simulation(object):
   def __init__(self,frameworkDir,debug=False):
     self.FIXME = False
     self.debug= debug
+    sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
     self.runInfoDict['DefaultInputFile'  ] = 'test.xml'   #Default input file to use
@@ -359,6 +361,9 @@ class Simulation(object):
       if xmlNode.attrib['debug']=='True'   : self.debug=True
       elif xmlNode.attrib['debug']=='False': self.debug=False
       else                                 : raise IOError('Not understandable keyword to set up the debug level: '+str(xmlNode.attrib['debug']))
+    try:    runInfoNode = xmlNode.find('RunInfo')
+    except: raise IOError('The run info node is mandatory')
+    self.__readRunInfo(runInfoNode,runInfoSkip)
     for child in xmlNode:
       if child.tag in list(self.whichDict.keys()):
         if self.debug: print('\n'+2*'-----------'+' Reading the block: {0:15}'.format(str(child.tag))+2*'-----------')
@@ -384,7 +389,6 @@ class Simulation(object):
               else                                                      : localDebug = self.debug
               self.whichDict[Class][name].readXML(childChild, debug=localDebug, globalAttributes=globalAttributes)
             else: raise IOError('SIMULATION    : not found name attribute for one '+Class)
-        else: self.__readRunInfo(child,runInfoSkip)
       else: raise IOError('SIMULATION    : the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       raise IOError('The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
@@ -395,6 +399,8 @@ class Simulation(object):
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
     #move the full simulation environment in the working directory
     os.chdir(self.runInfoDict['WorkingDir'])
+    #add also the new working dir to the path
+    sys.path.append(os.getcwd())
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
     self.runInfoDict['numProcByRun'] = self.runInfoDict['NumMPI']*self.runInfoDict['NumThreads']
     oldTotalNumCoresUsed = self.runInfoDict['totalNumCoresUsed']
