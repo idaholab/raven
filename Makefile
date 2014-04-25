@@ -31,12 +31,23 @@ APPLICATION_NAME   := r7_moose
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 include            $(FRAMEWORK_DIR)/app.mk
 
+#APPLICATION_DIR    := $(HERD_TRUNK_DIR)/crow
+#APPLICATION_NAME   := crow
+#DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+
+APPLICATION_DIR    := $(HERD_TRUNK_DIR)/crow
+APPLICATION_NAME   := CROW
+
+include 	   $(HERD_TRUNK_DIR)/crow/config.mk
+include            $(HERD_TRUNK_DIR)/crow/crow.mk
+include            $(HERD_TRUNK_DIR)/crow/crow_python_modules.mk
+
 APPLICATION_DIR    := $(HERD_TRUNK_DIR)/raven
 APPLICATION_NAME   := RAVEN
 
 include $(HERD_TRUNK_DIR)/raven/config.mk
 include $(HERD_TRUNK_DIR)/raven/raven.mk
-include $(HERD_TRUNK_DIR)/raven/raven_python_modules.mk
+#include $(HERD_TRUNK_DIR)/raven/raven_python_modules.mk
 
 ###############################################################################
 # Additional special case targets should be added here

@@ -16,9 +16,10 @@ import sys
 #External Modules--------------------end
 
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+ravenDir = os.path.dirname(frameworkDir)
 
 #Add the module directory to the search path.
-pmoduleDir = os.path.join(os.path.dirname(frameworkDir),"python_modules")
+pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","python_modules")
 sys.path.append(pmoduleDir)
 if not os.path.exists(pmoduleDir): raise IOError('The directory "python_modules" has not been found. It location is supposed to be ../python_modules')
 
@@ -28,7 +29,7 @@ from Simulation import Simulation
 
 #------------------------------------------------------------- Driver
 def printStatement():
-  print("""  
+  print("""
   NOTICE: This computer software was prepared by Battelle Energy
   Alliance, LLC, hereinafter the Contractor, under Contract
   No. DE-AC07-05ID14517 with the United States (U.S.)  Department of
@@ -55,7 +56,7 @@ if __name__ == '__main__':
   workingDir = os.getcwd()
   if 'debug=True' in sys.argv: debug=True
   else                       : debug=False
-  
+
   simulation = Simulation(frameworkDir,debug=debug)
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
@@ -76,12 +77,12 @@ if __name__ == '__main__':
   else:
     inputFiles = sys.argv[1:]
   for i in range(len(inputFiles)):
-    if not os.path.isabs(inputFiles[i]): 
+    if not os.path.isabs(inputFiles[i]):
       inputFiles[i] = os.path.join(workingDir,inputFiles[i])
 
   simulation.setInputFiles(inputFiles)
   #Parse the input
-  #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
+  #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out
   for inputFile in inputFiles:
     tree = ET.parse(inputFile)
     #except?  raise IOError('not possible to parse (xml based) the input file '+inputFile)
@@ -89,11 +90,11 @@ if __name__ == '__main__':
     root = tree.getroot()
     if root.tag != 'Simulation': raise IOError ('The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation
-  
-    #Call the function to read and construct each single module of the simulation 
+
+    #Call the function to read and construct each single module of the simulation
     simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]))
-  # Initialize the simulation 
+  # Initialize the simulation
   simulation.initialize()
-  # Run the simulation 
+  # Run the simulation
   simulation.run()
-  
+

@@ -32,12 +32,12 @@ class RavenExodiff(Exodiff):
 
     has_swig2 = "Version 2.0" in output_swig
 
-    module_dir = os.path.join(os.getcwd(),"control_modules")
+    module_dir = os.path.join(os.path.dirname(os.getcwd()),"crow","control_modules")
     has_distributions = os.path.exists(os.path.join(module_dir,"_distribution1D.so"))
-    
+
     def __init__(self, name, params):
         Exodiff.__init__(self, name, params)
-        
+
     def getValidParams():
         params = Exodiff.getValidParams()
         params.addParam('requires_python3', False, "Requires python3 for test")

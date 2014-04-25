@@ -7,8 +7,8 @@ import xml.etree.ElementTree as ET
 import sys, os
 
 #Add the module directory to the search path.
-ravenDir = os.path.dirname(os.path.dirname(sys.argv[0]))
-pmoduleDir = os.path.join(ravenDir,"python_modules")
+ravenDir = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
+pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","python_modules")
 print("pmoduleDir",pmoduleDir)
 sys.path.append(pmoduleDir)
 
@@ -25,7 +25,7 @@ results = {"pass":0,"fail":0}
 
 def floatNotEqual(a,b):
   return abs(a - b) > 1e-10
-  
+
 
 def checkAnswer(comment,value,expected):
   if floatNotEqual(value, expected):
@@ -81,7 +81,7 @@ checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
 
 print(normal.rvs(5),normal.rvs())
 
-#Test Truncated Normal 
+#Test Truncated Normal
 
 truncNormalElement = ET.Element("truncnorm")
 truncNormalElement.append(createElement("mean",text="1.0"))
@@ -267,7 +267,7 @@ checkAnswer("logistic ppf(0.25)",logistic.ppf(0.25),2.90138771133)
 checkAnswer("logistic ppf(0.50)",logistic.ppf(0.50),4.0)
 checkAnswer("logistic ppf(0.75)",logistic.ppf(0.75),5.09861228867)
 
-#Test Exponential 
+#Test Exponential
 
 exponentialElement = ET.Element("exponential")
 exponentialElement.append(createElement("lambda",text="5.0"))
