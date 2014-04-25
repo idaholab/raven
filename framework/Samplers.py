@@ -265,10 +265,11 @@ class AdaptiveSampler(Sampler):
     Sampler.__init__(self)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.adaptAlgo        = None             #this is a pointer to the adaptive algorithm
-    self.adaptAlgoType    = ''               #this is the type of adaptive algorithm
-    self.normType         = ''               #this is the norm type used
-    self.norm             = None             #this is the pointer to the norm function
+#    self.adaptAlgoType    = ''               #this is the type of adaptive algorithm
+#    self.normType         = ''               #this is the norm type used
+#    self.norm             = None             #this is the pointer to the norm function
     self.tolerance        = None             #this is norm of the error threshold
+    self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
     self.tolleranceWeight = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
     self.persistence      = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
     self.repetition       = 0                #the actual number of time the error was below the requested threshold
@@ -280,7 +281,7 @@ class AdaptiveSampler(Sampler):
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
     self.gridShape        = None             #tuple describing the shape of the grid matrix
     self.gridCoorShape    = None             #tuple describing the shape of the grid containing also the coordinate 
-    self.functionValue    = {}               #This a dictionary that contains np vectors for each variable and the goal function
+    self.functionValue    = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
     self.gridCoord        = None             #this is the matrix that contains for each entry of the grid the coordinate
     self.nVar             = 0                #this is the number of the variable sampled
@@ -288,37 +289,43 @@ class AdaptiveSampler(Sampler):
     self.sign             = -1
     
   def localInputAndChecks(self,xmlNode):
-    #setting up the adaptive algorithm
-    if 'adaptiveAlgorithm' in xmlNode.attrib.keys():
-      print('FIXME: we need to build/import the library of adaptive algorithms')
-      self.adaptAlgoType = xmlNode.attrib['adaptiveAlgorithm']
-      import AdaptiveAlgoLib
-      if self.adaptAlgoType in AdaptiveAlgoLib.knonwnTypes(): self.adaptAlgo = AdaptiveAlgoLib.returnInstance(self.adaptAlgoType)
-      else                                                  : raise Exception('the '+self.adaptAlgoType+'is not a known type of adaptive search algorithm')
-    else: raise Exception('the attribute adaptiveAlgorithm was missed in the definition of the adaptive sampler '+self.name)
-    #setting up the Convergence characteristic
     convergenceNode = xmlNode.find('Convergence')
     if convergenceNode==None:raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
-    self.tolerance=float(convergenceNode.text)     
-    if 'norm'          in convergenceNode.attrib.keys():
-      if self.FIXME: print('FIXME: we need to build/import the library of adaptive algorithms')
-      self.normType = convergenceNode.attrib['norm']
-      import NormLib
-      if self.normType in NormLib.knonwnTypes()             : self.norm             = NormLib.returnInstance(self.normType)
-      else: raise Exception('the '+self.normType+'is not a known type of norm')
-    if 'limit'          in convergenceNode.attrib.keys()    : self.limit            = int (convergenceNode.attrib['limit'      ])
-    if 'persistence'    in convergenceNode.attrib.keys()    : self.persistence      = int (convergenceNode.attrib['persistence'])
-    if 'weight'         in convergenceNode.attrib.keys()    : self.tolleranceWeight = str (convergenceNode.attrib['weight'     ])
-    if 'forceIteration' in convergenceNode.attrib.keys()    :
+    try   : self.tolerance=float(convergenceNode.text)
+    except: raise IOError ('Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
+    attribList = list(convergenceNode.attrib.keys())
+    if 'limit'          in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('limit'))
+      try   : self.limit = int (convergenceNode.attrib['limit'])
+      except: raise IOError ('Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
+    if 'persistence'    in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('persistence'))
+      try   : self.persistence = int (convergenceNode.attrib['persistence'])
+      except: raise IOError ('Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
+    if 'weight'         in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('weight'))
+      try   : self.weight = str(convergenceNode.attrib['weight'])
+      except: raise IOError ('Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
+    if 'subGridTol'    in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('subGridTol'))
+      try   : self.subGridTol = float (convergenceNode.attrib['subGridTol'])
+      except: raise IOError ('Failed to convert the subGridTol '+convergenceNode.attrib['subGridTol']+' to a meaningful float for the convergence')
+    if 'forceIteration' in convergenceNode.attrib.keys():
+      attribList.pop(attribList.index('forceIteration'))
       if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
-      else: raise Exception('in reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration'])) 
-      
+      else: raise Exception('Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration'])) 
+    if self.subGridTol == None: self.subGridTol = self.tolerance
+    if self.subGridTol> self.tolerance: raise IOError('The sub grid tolerance '+str(self.subGridTol)+' have to be smaller than the tolerance: '+str(self.tolerance))
+    
+    if len(attribList)>0: raise IOError('There are unknown keywords in the convergence specifications: '+str(attribList))
+
   def localAddInitParams(self,tempDict):
-    tempDict['The adaptive algorithm type is '                ] = self.adaptAlgoType
-    tempDict['The norm type is '                              ] = self.normType
+#    tempDict['The adaptive algorithm type is '                ] = self.adaptAlgoType
+#    tempDict['The norm type is '                              ] = self.normType
     tempDict['Force the sampler to reach the iteration limit '] = str(self.forceIteration)
     tempDict['The norm tolerance is '                         ] = str(self.tolerance)
+    tempDict['The sub grid size is  '                         ] = str(self.subGridTol)
     tempDict['The type of weighting for the error is '        ] = str(self.tolleranceWeight)
     tempDict['The number of no error repetition requested is '] = str(self.repetition)
          
@@ -354,6 +361,10 @@ class AdaptiveSampler(Sampler):
   def localInitialize(self,goalFunction=None,solutionExport=None,ROM=None):
     self.goalFunction   = goalFunction
     self.solutionExport = solutionExport
+    self.surfPoint        = None             #coordinate of the points considered on the limit surface
+    self.testMatrix       = None             #This is the n-dimensional matrix representing the testing grid
+    self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
+    self.functionValue    = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     #build a lambda function to masquerade the ROM <-> cKDTree presence
     if ROM==None:
       class ROM(object):
@@ -372,10 +383,10 @@ class AdaptiveSampler(Sampler):
       for varName in self.distDict.keys():
         if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
           raise Exception('It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
-    #setup the grid. The grid is build such as each element has a volume equal to the tolerance
+    #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
-    self.nVar        = len(self.distDict.keys())              #Total number of variables 
-    stepLenght        = self.tolerance**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance 
+    self.nVar        = len(self.distDict.keys())               #Total number of variables 
+    stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance 
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
     if self.tolleranceWeight!='probability':
@@ -475,7 +486,7 @@ class AdaptiveSampler(Sampler):
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
     if self.debug: print('Prediction finished')      
     testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))#compute the error
-    if (testError > 0): ready, self.repetition = True, 0                        #we still have error
+    if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                        #we still have error
     else              : self.repetition +=1                                     #we are increasing persistence
     if self.persistence<self.repetition : ready = False                         #we are done
     print('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
