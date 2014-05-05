@@ -19,10 +19,8 @@ import TreeStructure as TS
 import xml.etree.ElementTree as ET
 
 # Custom exceptions
-class NotConsistentData(Exception):
-    pass
-class ConstructError(Exception):
-    pass
+class NotConsistentData(Exception): pass
+class ConstructError(Exception)   : pass
 
 class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   def __init__(self,inParamValues = None, outParamValues = None):
