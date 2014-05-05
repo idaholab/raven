@@ -226,8 +226,8 @@ class RAVENInterface:
                        'special':set(['assert_match']),
                        'type':self.__FrameworkToRavenCDistNames[distType]})
       listDict.append({'name':['Distributions',distName],
-                       'xMax':Kwargs['upper'][key]})
+                       'V_window_Up':Kwargs['upper'][key]})
       listDict.append({'name':['Distributions',distName],
-                       'xMin':Kwargs['lower'][key]})
+                       'V_window_Low':Kwargs['lower'][key]})
     #print("listDict",listDict,"distributions",distributions)
     return listDict
