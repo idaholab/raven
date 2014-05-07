@@ -14,7 +14,9 @@ except ImportError:
 import subprocess
 import os
 import signal
-import logging, logging.handlers
+import copy
+#import logging, logging.handlers
+import threading 
 
 class ExternalRunner:
   def __init__(self,command,workingDir,output=None):
@@ -33,41 +35,41 @@ class ExternalRunner:
     
     self.__workingDir = workingDir
 
-  def createLogger(self,name):
-    '''
-    Function to create a logging object
-    @ In, name: name of the logging object
-    @ Out, logging object 
-    '''
-    return logging.getLogger(name)
-    
-  def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
-    '''
-    Function to create a logging object
-    @ In, logger_name     : name of the logging object
-    @ In, filename        : log file name (with path)
-    @ In, max_size        : maximum file size (bytes)
-    @ In, max_number_files: maximum number of files to be created
-    @ Out, None 
-    '''
-    hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
-    logging.getLogger(logger_name).addHandler(hadler)
-    logging.getLogger(logger_name).setLevel(logging.INFO)
-    return 
-
-  def outStreamReader(self, out_stream):
-    '''
-    Function that logs every line received from the out stream
-    @ In, out_stream: output stream
-    @ In, logger    : the instance of the logger object
-    @ Out, logger   : the logger itself 
-    '''
-    while True:
-      line = out_stream.readline()
-      if len(line) == 0 or not line:
-        break
-      self.logger.info('%s', line)
-      #self.logger.debug('%s', line.srip())
+#   def createLogger(self,name):
+#     '''
+#     Function to create a logging object
+#     @ In, name: name of the logging object
+#     @ Out, logging object 
+#     '''
+#     return logging.getLogger(name)
+#     
+#   def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
+#     '''
+#     Function to create a logging object
+#     @ In, logger_name     : name of the logging object
+#     @ In, filename        : log file name (with path)
+#     @ In, max_size        : maximum file size (bytes)
+#     @ In, max_number_files: maximum number of files to be created
+#     @ Out, None 
+#     '''
+#     hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
+#     logging.getLogger(logger_name).addHandler(hadler)
+#     logging.getLogger(logger_name).setLevel(logging.INFO)
+#     return 
+# 
+#   def outStreamReader(self, out_stream):
+#     '''
+#     Function that logs every line received from the out stream
+#     @ In, out_stream: output stream
+#     @ In, logger    : the instance of the logger object
+#     @ Out, logger   : the logger itself 
+#     '''
+#     while True:
+#       line = out_stream.readline()
+#       if len(line) == 0 or not line:
+#         break
+#       self.logger.info('%s', line)
+#       #self.logger.debug('%s', line.srip())
 
   def isDone(self):
     self.__process.poll()
@@ -75,6 +77,9 @@ class ExternalRunner:
 
   def getReturnCode(self):
     return self.__process.returncode
+
+  def returnEvaluation(self):
+    return None
   
   def start(self):
     oldDir = os.getcwd()
@@ -102,6 +107,52 @@ class ExternalRunner:
   def getOutputFilename(self):
     return os.path.join(self.__workingDir,self.output)
 
+
+class InternalRunner:
+  #import multiprocessing as multip
+  def __init__(self,Input,functionToRun,identifier=None):
+    # we keep the command here, in order to have the hook for running exec code into internal models
+    self.command = "internal"
+    if    identifier!=None: 
+      if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
+      else                : self.identifier =  str(identifier)
+    else: self.identifier = 'generalOut'
+    if type(Input) != tuple: raise IOError("JOB HANDLER   : ERROR -> The input for InternalRunner needs to be a tuple!!!!")
+    #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
+    self.subque = queue.Queue()
+    self.functionToRun = functionToRun
+    self.__thread = threading.Thread(target = lambda q, arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input) 
+    self.__thread.daemon = True 
+    self.__runReturn     = None
+    self.__hasBeenAdded  = False
+    self.__input         = Input[0]
+  
+  def isDone(self):
+    return not self.__thread.is_alive()
+
+  def getReturnCode(self):
+    return 0
+  
+  def returnEvaluation(self):
+    if self.isDone(): 
+      if not self.__hasBeenAdded:
+        self.__runReturn = copy.deepcopy(self.subque.get(timeout=1))   
+        self.__hasBeenAdded = True
+      return (self.__input,self.__runReturn)
+    else: return -1 #control return code   
+  
+  def start(self):
+    self.__thread.start()
+  
+  def kill(self): 
+    print("JOB HANDLER   : Terminating ",self.__thread.ident(), " Identifier " + self.identifier)
+    os.kill(self.__thread.ident(),signal.SIGTERM)    
+
+#   def getWorkingDir(self):
+#     return self.__workingDir
+# 
+#   def getOutputFilename(self):
+#     return os.path.join(self.__workingDir,self.output)
 
 class JobHandler:
   def __init__(self):
@@ -140,6 +191,10 @@ class JobHandler:
     command += self.runInfoDict['postcommand']
     self.__queue.put(ExternalRunner(command,workingDir,outputFile))
     self.__numSubmitted += 1
+    
+  def addInternal(self,Input,functionToRun,identifier):
+    self.__queue.put(InternalRunner(Input,functionToRun,identifier))
+    self.__numSubmitted += 1
 
   def isFinished(self):
     if not self.__queue.empty():
@@ -177,7 +232,7 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            print("JOB HANDLER   : Process Failed",running,running.command," returncode",returncode)
+            print("JOB HANDLER   : Process Failed ",running,running.command," returncode",returncode)
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
             outputFilename = running.getOutputFilename()
@@ -190,19 +245,20 @@ class JobHandler:
       return finished
     for i in range(len(self.__running)):
       if self.__running[i] == None and not self.__queue.empty(): 
-        item = self.__queue.get()          
-        command = item.command
-        command = command.replace("%INDEX%",str(i))
-        command = command.replace("%INDEX1%",str(i+1))
-        command = command.replace("%CURRENT_ID%",str(self.__nextId))
-        command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
-        command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
-        command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
-        command = command.replace("%WORKING_DIR%",item.getWorkingDir())
-        command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
-        command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
-        command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
-        item.command = command
+        item = self.__queue.get() 
+        if "External" in item.__class__.__name__ :         
+          command = item.command
+          command = command.replace("%INDEX%",str(i))
+          command = command.replace("%INDEX1%",str(i+1))
+          command = command.replace("%CURRENT_ID%",str(self.__nextId))
+          command = command.replace("%CURRENT_ID1%",str(self.__nextId+1))
+          command = command.replace("%SCRIPT_DIR%",self.runInfoDict['ScriptDir'])
+          command = command.replace("%FRAMEWORK_DIR%",self.runInfoDict['FrameworkDir'])
+          command = command.replace("%WORKING_DIR%",item.getWorkingDir())
+          command = command.replace("%BASE_WORKING_DIR%",self.runInfoDict['WorkingDir'])
+          command = command.replace("%METHOD%",os.environ.get("METHOD","opt"))
+          command = command.replace("%NUM_CPUS%",str(self.runInfoDict['NumThreads']))
+          item.command = command
         self.__running[i] = item
         self.__running[i].start()
         self.__nextId += 1
@@ -217,15 +273,10 @@ class JobHandler:
 
   def startingNewStep(self):
     self.__numSubmitted = 0
-
-  def addInternal(self):
-    return
   
   def terminateAll(self):
     #clear out the queue
-    while not self.__queue.empty():
-      self.__queue.get()
-    for i in range(len(self.__running)):
-      self.__running[i].kill()
+    while not self.__queue.empty(): self.__queue.get()
+    for i in range(len(self.__running)): self.__running[i].kill()
 
 

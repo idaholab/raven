@@ -1239,7 +1239,8 @@ class Histories(Data):
                                                                              otherwise a new history is created and the new value is inserted in it 
       @ Out, None 
     '''
-    if not isinstance(value,np.ndarray): raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
+    if not isinstance(value,np.ndarray): 
+        raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
       if type(name) == list: 

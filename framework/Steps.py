@@ -208,29 +208,21 @@ class SingleRun(Step):
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
     model.run(inputs,jobHandler)
-    if model.type == 'Code': 
-      while True:
-        finishedJobs = jobHandler.getFinished()
-        for finishedJob in finishedJobs:
-          if finishedJob.getReturnCode() == 0:
-            # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
-            newOutputLoop = True #used to check if, for a given input, all outputs has been harvested
-            for output in outputs:
-              if output.type not in ['OutStreamPlot','OutStreamPrint']: model.collectOutput(finishedJob,output,newOutputLoop=newOutputLoop)
+    while True:
+      finishedJobs = jobHandler.getFinished()
+      for finishedJob in finishedJobs:
+        if finishedJob.getReturnCode() == 0:
+          # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
+          for output in outputs:
+            if type(output).__name__ not in ['str','bytes','unicode']:
+              if output.type not in ['OutStreamPlot','OutStreamPrint']: model.collectOutput(finishedJob,output)
               elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
-              newOutputLoop = False
-          else: 
-            print('the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
-            print('a job failed... call the handler for this situation')
-            
-        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
-        time.sleep(self.sleepTime)
-    else:
-      newOutputLoop = True #used to check if, for a given input, all outputs has been harvested
-      for output in outputs:
-        model.collectOutput(None,output,newOutputLoop=newOutputLoop)
-        newOutputLoop = False
-
+            else: model.collectOutput(finishedJob,output)
+        else: 
+          print('the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
+          print('a job failed... call the handler for this situation')   
+      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
+      time.sleep(self.sleepTime)
   def _localAddInitParams(self,tempDict): pass
 #
 #
@@ -258,24 +250,14 @@ class MultiRun(SingleRun):
     self._initializeSampler(inDictionary)
     self._outputCollectionLambda = []
     for outIndex, output in enumerate(inDictionary['Output']):
-      if output.type not in ['OutStreamPlot','OutStreamPrint']:
-        self._outputCollectionLambda.append((lambda x: inDictionary['Model'].collectOutput(x[0],x[1],newOutputLoop=x[2]), outIndex))
+      if output.type not in ['OutStreamPlot','OutStreamPrint']: self._outputCollectionLambda.append((lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex))
     for outIndex, output in enumerate(inDictionary['Output']):
-      if output.type in ['OutStreamPlot','OutStreamPrint']:
-        self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+      if output.type in ['OutStreamPlot','OutStreamPrint']: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     if self.debug:print('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for inputIndex, newInput in enumerate(newInputs):
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       if self.debug: print('Submitted input '+str(inputIndex+1))
-      if inDictionary["Model"].type != 'Code':
-        time.sleep(self.sleepTime)
-        self.counter +=1
-        newOutputLoop = True
-        for myLambda, outIndex in self._outputCollectionLambda:
-          myLambda([None,inDictionary['Output'][outIndex],newOutputLoop])
-          if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
-          newOutputLoop = False
 
   def _localTakeAstepRun(self,inDictionary):
     jobHandler = inDictionary['jobHandler']
@@ -286,43 +268,25 @@ class MultiRun(SingleRun):
     if 'TargetEvaluation' in inDictionary.keys(): targetOutput = inDictionary['TargetEvaluation']
     else                                        : targetOutput = None
     while True:
-      if model.type == 'Code': 
-        finishedJobs = jobHandler.getFinished()
-        for finishedJob in finishedJobs:
-          self.counter +=1
-          sampler.finalizeActualSampling(finishedJob,model,inputs)
-          if finishedJob.getReturnCode() == 0: 
-            newOutputLoop = True
-            for myLambda, outIndex in self._outputCollectionLambda:
-              myLambda([finishedJob,outputs[outIndex],newOutputLoop])
-              newOutputLoop = False
-              if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
-            for _ in xrange(jobHandler.howManyFreeSpots()):
-              if self.debug: print('Testing the sampler if it is ready to generate a new input')
-              if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
-                newInput =sampler.generateInput(model,inputs)
-                model.run(newInput,jobHandler)
-                if self.debug: print('New input generated')
-          else: 
-            print(' the job failed... call the handler for this situation... not yet implemented...')
-            print("The JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")
-        if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
-        time.sleep(self.sleepTime)
-      else:
-        finishedJob = None
-        if self.debug: print('Testing the sampler if it is ready to generate a new input')
-        if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
-          newInput = sampler.generateInput(model,inputs)
-          model.run(newInput,jobHandler)
-          self.counter +=1
-          newOutputLoop = True
-          if self.debug: print('New input generated')
+      finishedJobs = jobHandler.getFinished()
+      for finishedJob in finishedJobs:
+        self.counter +=1
+        sampler.finalizeActualSampling(finishedJob,model,inputs)
+        if finishedJob.getReturnCode() == 0: 
           for myLambda, outIndex in self._outputCollectionLambda:
-            myLambda([finishedJob,inDictionary['Output'][outIndex],newOutputLoop])
-            newOutputLoop = False
+            myLambda([finishedJob,outputs[outIndex]])
             if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
-        else: break
-        time.sleep(self.sleepTime)
+          for _ in xrange(jobHandler.howManyFreeSpots()):
+            if self.debug: print('Testing the sampler if it is ready to generate a new input')
+            if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
+              newInput =sampler.generateInput(model,inputs)
+              model.run(newInput,jobHandler)
+              if self.debug: print('New input generated')
+        else: 
+          print(' the job failed... call the handler for this situation... not yet implemented...')
+          print("The JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")
+      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
+      time.sleep(self.sleepTime)
 #
 #
 #
@@ -379,7 +343,6 @@ class Adaptive(MultiRun):
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
     if 'ROM'            in inDictionary.keys(): self._samplerInitDict['ROM'           ]=inDictionary['ROM']
     MultiRun._localInitializeStep(self,inDictionary)
-
 #
 #
 #

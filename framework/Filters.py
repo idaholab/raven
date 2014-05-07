@@ -165,16 +165,14 @@ class PrintCSV:
     else:
       raise NameError ('Filter PrintCSV for input type ' + self.inObj.type + ' not yet implemented.')
   
-  def finalizeFilter(self,inObj,jobHandler,workingDir=None):
+  def finalizeFilter(self,inObj,workingDir=None):
     '''
      Function to finalize the filter => execute the filtering 
      @ In, inObj      : Input object (for example HDF5 object)
-     @ In, outObj     : Output object (in this case is the csv file name) => string 
      @ In, workingDir : Working directory (where to store the csvs)
      @ Out, None      : Print of the CSV file
     '''
     self.inObj = inObj
-    self.jobHandler = jobHandler
     self.workingDir = workingDir
     return
 

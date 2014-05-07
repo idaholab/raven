@@ -21,7 +21,7 @@ def createNewInput(self,myInput,samplerType,**Kwargs):
 def readMoreXML(self,xmlNode):
   return None
 
-def run(self,Input,jobHandler):
+def run(self,Input):
   print(Input)
   max_time = 0.03
   t_step = 0.01
@@ -33,13 +33,13 @@ def run(self,Input,jobHandler):
   self.z = np.zeros(numberTimeSteps)
   self.time = np.zeros(numberTimeSteps)
   
-  self.x0 = Input[0]['x0']
-  self.y0 = Input[0]['y0']
-  self.z0 = Input[0]['z0'] 
+  self.x0 = Input['x0']
+  self.y0 = Input['y0']
+  self.z0 = Input['z0'] 
   
-  self.x[0] = Input[0]['x0'] 
-  self.y[0] = Input[0]['y0']  
-  self.z[0] = Input[0]['z0'] 
+  self.x[0] = Input['x0'] 
+  self.y[0] = Input['y0']  
+  self.z[0] = Input['z0'] 
   self.time[0]= 0
   
   for t in range (numberTimeSteps-1):

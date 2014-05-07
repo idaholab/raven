@@ -163,11 +163,10 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     pass
   
-  def collectOutput(self,collectFrom,storeTo,newOutputLoop=True):
+  def collectOutput(self,collectFrom,storeTo):
     '''
     This call collect the output of the run
     @in collectFrom: where the output is located, the form and the type is model dependent but should be compatible with the storeTo.addOutput method.
-    @in newOutputLoop : flags if a new set of output start given a new input
     '''
     #if a addOutput is present in nameSpace of storeTo it is used
     if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
@@ -185,7 +184,6 @@ class Dummy(Model):
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
     self.counterInput = 0   #the number of input already generated
-    self.counterOutput= 0   #the number of output already generated
     self.inputDict    = {}  #the input to be run
     self.outputDict   = {}  #the output to be exported
     
@@ -199,10 +197,15 @@ class Dummy(Model):
     
   def initialize(self,runInfo,inputs):
     self.counterInput = 0
-    self.counterOutput= 0
     self.inputDict    = {}
     self.outputDict   = {}
-    
+
+  def _manipulateInput(self,dataIn):
+    if len(dataIn)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
+    if type(dataIn[0])!=tuple: inRun = self._inputToInternal(dataIn) #this might happen when a single run is used and the input it does not come from self.createNewInput
+    else:                      inRun = dataIn[0][0]    
+    return inRun
+
   def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
     if self.FIXME: print('FIXME: wondering if a dictionary compatibility should be kept')
@@ -248,24 +251,19 @@ class Dummy(Model):
     The first is the input the second the output. The output is just the counter
     '''
     #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
-    if len(Input)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
-    if type(Input[0])!=tuple: self.inputDict = self._inputToInternal(Input) #this might happen when a single run is used and the input it does not come from self.createNewInput
-    else:                     self.inputDict = Input[0][0]
-    self.outputDict['OutputPlaceHolder'] = numpy.atleast_1d(Input[0][1])
-    if self.FIXME:print('FIXME: Just a friendly reminder that the jobhandler for the inside model still need to be put in place')
+    inRun = self._manipulateInput(Input)
+    lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':numpy.atleast_1d(Input[0][1])}
+    jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[0][1]))
     
-  def collectOutput(self,finishedJob,output,newOutputLoop=True):
-    #Here there is a problem since the input and output could be already changed by several call to self.createNewInput and self.run some input might have been skipped
-    #The problem should be solve delegating ownership of the input/output to the job handler, for the moment we have the newOutputLoop 
-    if self.FIXME:print('FIXME: the newOutputLoop coherence in all steps (might be removed if a jobhandler is used for internal runs')
-    if newOutputLoop: self.counterOutput += 1
-    if self.outputDict['OutputPlaceHolder']!=self.counterOutput: raise Exception('Synchronization has been lost between input generation and collection in the Dummy model')
-    exportDict = {'input_space_params':copy.copy(self.inputDict),'output_space_params':copy.copy(self.outputDict)}
-    if self.type!='Dummy'   : del(exportDict['output_space_params']['OutputPlaceHolder'])
-    if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(self.counterOutput)},exportDict,False)
+  def collectOutput(self,finishedJob,output):
+    if finishedJob.returnEvaluation() == -1: raise Exception("MODEL DUMMY: ERROR -> No available Output to collect (Run probabably is not finished yet)")
+    exportDict = {'input_space_params':copy.copy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.copy(finishedJob.returnEvaluation()[1])}
+    if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
-      for key in exportDict['input_space_params' ] : output.updateInputValue (key,exportDict['input_space_params' ][key])
-      for key in exportDict['output_space_params'] : output.updateOutputValue(key,exportDict['output_space_params'][key])
+      for key in exportDict['input_space_params' ] : 
+        if key in output.getParaKeys('inputs'): output.updateInputValue (key,exportDict['input_space_params' ][key])
+      for key in exportDict['output_space_params'] : 
+        if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['output_space_params'][key])
 #
 #
 #
@@ -327,8 +325,9 @@ class ROM(Dummy):
 
   def run(self,Input,jobHandler):
     '''This call run a ROM as a model'''
-    Dummy.run(self, Input, jobHandler)
-    self.outputDict[self.SupervisedEngine.target] = self.evaluate(self.inputDict)
+    inRun = self._manipulateInput(Input)
+    lambdaReturnOut = lambda inRun: {self.SupervisedEngine.target:self.evaluate(inRun)}
+    jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[0][1]))
 #
 #
 #  
@@ -381,31 +380,30 @@ class ExternalModel(Dummy):
         else: raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
+  #def __externalRun(self, Input,jobHandlerExt):  
+  def __externalRun(self, Input): 
+#  def __externalRun(self, Input,jobHandlerExt):
+    if 'createNewInput' not in dir(self.sim):
+      for key in Input.keys(): self.modelVariableValues[key] = Input[key]
+      self.__uploadValues() 
+    self.sim.run(self,Input)
+    self.__pointSolution()
+    return copy.deepcopy(self.modelVariableValues) 
 
   def run(self,Input,jobHandler):
-    self.outputDict['OutputPlaceHolder'] = numpy.atleast_1d(Input[0][1])
-    if 'createNewInput' not in dir(self.sim):
-      for key in Input[0][0].keys(): self.modelVariableValues[key] = Input[0][0][key]
-      self.__uploadValues()
-    self.sim.run(self,Input[0],jobHandler)
-    self.__pointSolution()      
+    inRun = self._manipulateInput(Input)
+    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[0][1]))  
     
-  def collectOutput(self,finisishedjob,output,newOutputLoop=True):
+  def collectOutput(self,finishedJob,output):
+    if finishedJob.returnEvaluation() == -1: raise Exception("MODEL EXTERNAL: ERROR -> No available Output to collect (Run probabably is not finished yet)")
     def typeMatch(var,var_type_str):
       type_var = type(var)
       return type_var.__name__ == var_type_str or \
         type_var.__module__+"."+type_var.__name__ == var_type_str
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    for key in self.modelVariableValues: 
-      if not (typeMatch(self.modelVariableValues[key],self.modelVariableType[key])): raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(self.modelVariableValues[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
-    self.outputDict = {'OutputPlaceHolder':self.outputDict['OutputPlaceHolder']}
-    if 'HDF5' in output.type: # if HDF5: we consider everything as an output, since we do not have a way to descriminate an input from an output and vice-versa
-      self.outputDict.update(self.modelVariableValues) 
-      self.inputDict = {}
-    else:
-      for inputName in output.getParaKeys('inputs'): self.inputDict[inputName] = self.modelVariableValues[inputName]
-      for outName in output.getParaKeys('outputs'):  self.outputDict[outName ] = self.modelVariableValues[outName]  
-    Dummy.collectOutput(self, finisishedjob, output, newOutputLoop)
+    for key in finishedJob.returnEvaluation()[1]: 
+      if not (typeMatch(finishedJob.returnEvaluation()[1][key],self.modelVariableType[key])): raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(finishedJob.returnEvaluation()[1][key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!') 
+    Dummy.collectOutput(self, finishedJob, output)
     
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
@@ -509,7 +507,7 @@ class Code(Model):
     else: index = 1
     if self.debug: print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
-  def collectOutput(self,finisishedjob,output,newOutputLoop=True):
+  def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
@@ -593,12 +591,12 @@ class Filter(Model):
     try: os.mkdir(self.workingDir)
     except: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
-
-  def run(self,inObj,outObj):
+  def run(self,inObj,jobHandler):
     '''run calls the interface finalizer'''
     for i in range(len(inObj)):
-      self.interface.finalizeFilter(inObj[i],outObj,self.workingDir)
-  def collectOutput(self,finishedjob,output,newOutputLoop=True):
+      lumbdaToRun = lambda x: self.interface.finalizeFilter(x[0],x[1])
+      jobHandler.submitDict['Internal'](((inObj[i],self.workingDir),),lumbdaToRun,str(i))  
+  def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''just for compatibility'''
