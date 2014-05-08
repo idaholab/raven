@@ -29,9 +29,10 @@ __moduleImportedList = []
 __base                          = 'Code'
 __interFaceDict                 = {}
 for moduleIndex in range(len(__moduleInterfaceList)):
-  __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex]))
-  for key,modClass in inspect.getmembers(__moduleImportedList[moduleIndex], inspect.isclass): 
-    if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass 
+  if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
+    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex]))
+    for key,modClass in inspect.getmembers(__moduleImportedList[moduleIndex], inspect.isclass): 
+      if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass 
 __knownTypes      = list(__interFaceDict.keys())
 
 def knonwnTypes():
