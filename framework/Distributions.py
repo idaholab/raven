@@ -264,7 +264,7 @@ class Normal(BoostDistribution):
       self.actual_weight = standardToActualWeight
       self.probability_norm = probNorm
     else:
-      print('FIXME: this should be removed.... :special case distribution for stoch collocation')
+      print('FIXME: this should be removed.... :special case distribution for stochastic colocation')
       if self.lowerBoundUsed == False: a = -sys.float_info[max]
       else:a = self.lowerBound
       #else:a = (self.lowerBound - self.mean) / self.sigma

@@ -445,8 +445,8 @@ class OutStreamPlot(OutStreamManager):
         if   self.dim == 3: print('STREAM MANAGER: Warning -> axes_box not available in 3-D plots!!')
         elif self.dim == 2: self.plt.box(self.options[key][key])
       elif key == 'grid':
-        if 'b' not in self.options[key].keys()  : self.options[key]['b'] = 'on'
-        if self.options[key]['b'].lower() in ['on','t','true']: self.options[key]['b'] = 'off'
+        if 'b' not in self.options[key].keys()  : self.options[key]['b'] = 'off'
+        if self.options[key]['b'].lower() in ['on','t','true']: self.options[key]['b'] = 'on'
         elif self.options[key]['b'].lower() in ['off','f','false']: self.options[key]['b'] = 'off'
         if 'which' not in self.options[key].keys() : self.options[key]['which'] = 'major'
         if 'axis' not in self.options[key].keys() : self.options[key]['axis'] = 'both'
@@ -633,8 +633,8 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 3: self.plt3D.set_ylabel(self.options['plotSettings']['ylabel'])          
       if 'zlabel' in self.options['plotSettings'].keys():
         if self.dim == 2  : print('STREAM MANAGER: Warning -> zlabel keyword does not make sense in 2-D Plots!')
-        elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')
-      elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['zlabel'])             
+        elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['zlabel'])    
+      elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')           
       # Let's start plotting
       #################
       #  SCATTER PLOT #

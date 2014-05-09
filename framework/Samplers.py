@@ -250,7 +250,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     For example, for a Dynamic Event Tree case, this function can be used to retrieve
     the information from the just finished run of a branch in order to retrieve, for example,
     the distribution name that caused the trigger, etc.
-    It is a essentially a place-holder for most of the sampler to remain compatible with the Steps structure
+    It is a essentially a place-holder for most of the sampler to remain compatible with the StepsCR structure
     @in jobObject: an instance of a JobHandler
     @in model    : an instance of a model
     @in myInput  : the generating input    
@@ -270,7 +270,7 @@ class AdaptiveSampler(Sampler):
 #    self.norm             = None             #this is the pointer to the norm function
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
-    self.tolleranceWeight = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
+    self.toleranceWeight  = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
     self.persistence      = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
     self.repetition       = 0                #the actual number of time the error was below the requested threshold
     self.forceIteration   = False            #this flag control if at least a self.limit number of iteration should be done
@@ -304,7 +304,7 @@ class AdaptiveSampler(Sampler):
       except: raise IOError ('Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
     if 'weight'         in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('weight'))
-      try   : self.weight = str(convergenceNode.attrib['weight'])
+      try   : self.toleranceWeight = str(convergenceNode.attrib['weight'])
       except: raise IOError ('Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
     if 'subGridTol'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('subGridTol'))
@@ -326,7 +326,7 @@ class AdaptiveSampler(Sampler):
     tempDict['Force the sampler to reach the iteration limit '] = str(self.forceIteration)
     tempDict['The norm tolerance is '                         ] = str(self.tolerance)
     tempDict['The sub grid size is  '                         ] = str(self.subGridTol)
-    tempDict['The type of weighting for the error is '        ] = str(self.tolleranceWeight)
+    tempDict['The type of weighting for the error is '        ] = str(self.toleranceWeight)
     tempDict['The number of no error repetition requested is '] = str(self.repetition)
          
   def localAddCurrentSetting(self,tempDict):
@@ -339,23 +339,22 @@ class AdaptiveSampler(Sampler):
   
   def _cKDTreeInterface(self,action,data):
     m = len(list(data.keys()))
-    n = len(data[list(data.keys())[0]])
-    dataMatrix = np.zeros((n,m-1))
+    n = len( data[  list(data.keys())[0]   ]  )
+    dataMatrix = np.zeros((n,m))
     if action=='train':
-      self._mappingList = []
-      index = 0
-      for key in data.keys():
-        if key != self.goalFunction.name:
-          self._mappingList.append(key)
-          dataMatrix[:,index] = data[key]
-          index +=1
+      self._KDTreeMappingList = []
+      for myIndex, key in enumerate(list(data.keys())):
+        self._KDTreeMappingList.append(key)
+        dataMatrix[:,myIndex] = data[key]
       self._tree = spatial.cKDTree(copy.copy(dataMatrix),leafsize=18)
-    elif action=='evaluate':
-      if self.FIXME:print('FIXME: here rather than using self.gridCoord a conversion of data would be more coherent')
-      distance, outId    = self._tree.query(self.gridCoord)
-      return [self.functionValue[self.goalFunction.name][myID] for myID in outId]
+#    elif action=='evaluate':
+#      if self.FIXME:print('FIXME: here rather than using self.gridCoord a conversion of data would be more coherent')
+#      distance, outId    = self._tree.query(self.gridCoord)
+#      return [self.functionValue[self.goalFunction.name][myID] for myID in outId]
     elif action=='confidence':
-      distance, outId    = self._tree.query(self.surfPoint)
+      for myIndex, key in enumerate(self._KDTreeMappingList):
+        dataMatrix[:,myIndex] = data[key]
+      distance, outId    = self._tree.query(dataMatrix)
       return distance, outId
    
   def localInitialize(self,goalFunction=None,solutionExport=None,ROM=None):
@@ -365,6 +364,7 @@ class AdaptiveSampler(Sampler):
     self.testMatrix       = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
     self.functionValue    = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
+    print(self.toleranceWeight)
     #build a lambda function to masquerade the ROM <-> cKDTree presence
     if ROM==None:
       class ROM(object):
@@ -379,17 +379,19 @@ class AdaptiveSampler(Sampler):
       self.ROM = ROM(self._cKDTreeInterface)
     else: self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
-    if self.tolleranceWeight!='probability':
+    if self.toleranceWeight=='none':
       for varName in self.distDict.keys():
         if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
           raise Exception('It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
+    elif self.toleranceWeight=='probability': pass
+    else: raise IOError('Unknown weight string descriptor: '+self.toleranceWeight)
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
     self.nVar        = len(self.distDict.keys())               #Total number of variables 
     stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance 
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    if self.tolleranceWeight!='probability':
+    if self.toleranceWeight!='probability':
       stepParam = lambda x: [stepLenght*(self.distDict[x].upperBound-self.distDict[x].lowerBound), self.distDict[x].lowerBound, self.distDict[x].upperBound]
     else:
       stepParam = lambda _: [stepLenght, 0.0, 1.0]
@@ -400,8 +402,8 @@ class AdaptiveSampler(Sampler):
       self.axisName.append(varName)     
       [myStepLenght, start, end]  = stepParam(varName)
       start                      += 0.5*myStepLenght
-      if self.tolleranceWeight=='probability': self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
-      else                                   : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
+      if self.toleranceWeight=='probability': self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
+      elif self.toleranceWeight=='none'     : self.gridVectors[varName] = np.arange(start,end,myStepLenght)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
@@ -431,7 +433,7 @@ class AdaptiveSampler(Sampler):
       while not myIterator.finished:
         print ('Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
-    print('Initializzation done')
+    print('Initialization done')
 
   def localStillReady(self,ready,lastOutput=None):
     '''
@@ -457,9 +459,16 @@ class AdaptiveSampler(Sampler):
       if self.goalFunction.name in self.functionValue.keys():
         self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
       else: self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
+      atLeastOne = False
       for myIndex in range(indexLast+1,indexEnd+1):
+        atLeastOne = True
+        print(myIndex)
+        print('*******************')
         for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
         self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
+      if atLeastOne==False:
+        print('waiting')
+        return False
       #printing----------------------
       if self.debug: print('Mapping of the goal function evaluation done')
       if self.debug:
@@ -537,7 +546,7 @@ class AdaptiveSampler(Sampler):
           for varIndex in range(len(self.axisName)):
             if varName == self.axisName[varIndex]:
               self.solutionExport.removeInputValue(varName)
-              self.solutionExport.updateInputValue(varName,self.surfPoint[:,varIndex])
+              self.solutionExport.updateInputValue(varName,copy.copy(self.surfPoint[:,varIndex]))
     
     return ready
     
@@ -548,18 +557,35 @@ class AdaptiveSampler(Sampler):
      check the points where the derivative probability is the lowest'''  
     if self.debug: print('generating input')
     if self.surfPoint!=None and len(self.surfPoint)>0:
+      offSet = self.counter-len(self.functionValue[list(self.functionValue.keys())[0]])-1
       tempDict = {}
       for name in self.axisName: tempDict[name] = self.functionValue[name]
-      tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]    
+#       if self.debug:
+#         print('Sampled Points')
+#         print('{0:17} {1:17} {2:17}'.format(self.axisName[0],self.axisName[1],self.axisName[2]))
+#         
+#         for i in range(len(tempDict[list(tempDict.keys())[0]])):
+#           print('{0:17} {1:17} {2:17} {3:6}'.format(tempDict[self.axisName[0]][i],tempDict[self.axisName[1]][i],tempDict[self.axisName[2]][i],i))
       self._cKDTreeInterface('train',tempDict)
       tempDict = {}
       for varIndex, varName in enumerate(self.axisName):
-        tempDict[varIndex] = self.surfPoint[:,varIndex]
-      distance, _ = self._cKDTreeInterface('confidence',tempDict)
-      minIndex = np.argmax(distance)
-      for varIndex, varName in enumerate(self.axisName):
-        self.values[varName] = copy.copy(float(self.surfPoint[minIndex,varIndex]))
-     
+        tempDict[varName] = self.surfPoint[:,varIndex]
+      distance, myIndex = self._cKDTreeInterface('confidence',tempDict)
+#      for loopIndex, distanFromClosest in enumerate(distance):
+#        print('{0:15} {1:15}'.format(distanFromClosest,myIndex[loopIndex]))
+      indexArray = np.argsort(distance)[::-1]
+      sampled = np.column_stack(tuple([self.functionValue[name] for name in self.axisName]))
+      for maxDistIndex in indexArray[offSet+1:]:
+        coordToBeSampled = self.surfPoint[maxDistIndex,:]
+#        print('coordinate to be sampled '+str(coordToBeSampled))
+        notFound = True
+        for alreadySampled in sampled:
+          test = np.in1d(alreadySampled,coordToBeSampled)
+          if test.all(): notFound = False
+        if notFound:
+          for varIndex, varName in enumerate(self.axisName):
+            self.values[varName] = copy.copy(float(coordToBeSampled[varIndex]))
+        if notFound: break
       
 #This is the normal derivation to be used later on
 #      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
@@ -642,7 +668,7 @@ class AdaptiveSampler(Sampler):
     else:
       #here we are still generating the batch
       for key in self.distDict.keys():
-        if self.tolleranceWeight=='probability':
+        if self.toleranceWeight=='probability':
           self.values[key]= self.distDict[key].ppf(float(Distributions.random()))
         else:
           self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
@@ -651,6 +677,8 @@ class AdaptiveSampler(Sampler):
       print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.debug=False
     self.sign = -1*self.sign
+
+  
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''generate representation of goal function'''
     pass
@@ -690,7 +718,6 @@ class Grid(Sampler):
         varName = "<distribution>"+child.attrib['name']
       else:
         varName = child.attrib['name']
-
       for childChild in child:
         if childChild.tag =='grid':
           self.axisName.append(varName)
@@ -699,6 +726,7 @@ class Grid(Sampler):
             tempList = [float(i) for i in childChild.text.split()]
             tempList.sort()
             self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
+            if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError ('The type of grid is neither value nor CDF')
             self.limit = len(tempList)*self.limit
           elif constrType == 'equal':
             self.limit = self.limit*(int(childChild.attrib['steps'])+1)
@@ -721,16 +749,26 @@ class Grid(Sampler):
       tempDict['coordinate '+var+' has value'] = value
 
   def localInitialize(self):
-    '''This is used to check if the points and bounds are compatible with the distribution provided'''
+    '''
+    This is used to check if the points and bounds are compatible with the distribution provided.
+    It could not have been done earlier since the distribution might not have been initialized first
+    '''
     for varName in self.gridInfo.keys():
       if self.gridInfo[varName][0]=='value':
+        valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
+        valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
         if self.distDict[varName].upperBoundUsed:
-          if max(self.gridInfo[varName][2])>self.distDict[varName].upperBound:
-            raise Exception('the variable '+varName+'can not be sampled at '+str(max(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution')
+          if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps>self.distDict[varName].upperBound:
+            raise Exception('the variable '+varName+'can not be sampled at '+str(valueMax)+' since outside the upper bound of the chosen distribution')
+          if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps<=self.distDict[varName].upperBound:
+            valueMax = valueMax-2.0*np.finfo(valueMax).eps
         if self.distDict[varName].lowerBoundUsed:
-          if min(self.gridInfo[varName][2])<self.distDict[varName].lowerBound:
-            raise Exception('the variable '+varName+'can not be sampled at '+str(min(self.gridInfo[varName][2]))+' since outside the upper bound of the chosen distribution')
-        
+          if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMin).eps<self.distDict[varName].lowerBound:
+            raise Exception('the variable '+varName+'can not be sampled at '+str(valueMin)+' since outside the lower bound of the chosen distribution')
+          if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMax).eps>=self.distDict[varName].lowerBound:
+            valueMin = valueMin-2.0*np.finfo(valueMin).eps
+        self.gridInfo[varName][2][indexMax], self.gridInfo[varName][2][indexMin] = valueMax, valueMin
+
   def localGenerateInput(self,model,myInput):
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate

@@ -451,9 +451,8 @@ class Code(Model):
     if os.path.exists(abspath):
       self.executable = abspath
     else: print('not found executable '+self.executable)
-#    self.code = __import__(self.subType) #importing the proper code interface
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
-    print('please finisih the importing of avaialbel codes and vlaid interface form the codeInterfaces')
+    print('please finish the importing of available codes and valid interface form the codeInterfaces')
     
   def addInitParams(self,tempDict):
     '''extension of addInitParams for the Code(model)'''

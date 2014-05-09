@@ -245,14 +245,16 @@ class MultiRun(SingleRun):
 
   def _localInitializeStep(self,inDictionary):
     SingleRun._localInitializeStep(self,inDictionary)
-    self.conter = 0 
+    self.conter                              = 0 
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
-    self._outputCollectionLambda = []
+    #generate lambda function list to collect the output without checking the type
+    self._outputCollectionLambda            = []
     for outIndex, output in enumerate(inDictionary['Output']):
       if output.type not in ['OutStreamPlot','OutStreamPrint']: self._outputCollectionLambda.append((lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex))
-    for outIndex, output in enumerate(inDictionary['Output']):
-      if output.type in ['OutStreamPlot','OutStreamPrint']: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+      else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+    if 'SolutionExport' in inDictionary.keys():
+      self._outputCollectionLambda[inDictionary['Output'].index(inDictionary['SolutionExport'])] = (lambda x: None),inDictionary['Output'].index(inDictionary['SolutionExport'])
     if self.debug:print('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for inputIndex, newInput in enumerate(newInputs):
