@@ -117,7 +117,6 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     self.subType  = ''
     self.runQueue = []
     self.FIXME = False
-    self.infoForOut         = {}   #it contains the information needed for outputting,metadata,etc
 
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
@@ -152,7 +151,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
     @return the new input in a list form
     '''
-    self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
+    return [(copy.deepcopy(Kwargs))]
   
   @abc.abstractmethod
   def run(self,Input,jobHandler):
@@ -236,7 +235,6 @@ class Dummy(Model):
       raise IOError ('When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = numpy.atleast_1d(Kwargs['SampledVars'][key])
     if None in inputDict.values(): raise IOError ('While preparing the input for the model '+self.type+' with name'+self.name+' found an None input variable '+ str(inputDict.items()))
-    self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
     return [(inputDict)],copy.deepcopy(Kwargs) 
@@ -348,7 +346,6 @@ class ExternalModel(Dummy):
     Dummy.initialize(self, runInfo, inputs)      
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     if 'createNewInput' in dir(self.sim): 
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: raise Exception('MODEL EXTERNAL: ERROR -> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
@@ -380,9 +377,7 @@ class ExternalModel(Dummy):
         else: raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
-  #def __externalRun(self, Input,jobHandlerExt):  
   def __externalRun(self, Input): 
-#  def __externalRun(self, Input,jobHandlerExt):
     if 'createNewInput' not in dir(self.sim):
       for key in Input.keys(): self.modelVariableValues[key] = Input[key]
       self.__uploadValues() 
@@ -494,7 +489,6 @@ class Code(Model):
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),copy.deepcopy(Kwargs))
  
   def run(self,inputFiles,jobHandler):
@@ -512,7 +506,7 @@ class Code(Model):
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
     if metadata:
-      for key in metadata: attributes[key] = self.infoForOut[finisishedjob.identifier][key]
+      for key in metadata: attributes[key] = metadata[key]
     try:                   output.addGroup(attributes,attributes)
     except AttributeError: 
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
