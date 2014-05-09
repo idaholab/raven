@@ -184,7 +184,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   def amIreadyToProvideAnInput(self,inLastOutput=None):
     '''
     This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
-    This method act as a semaphore for generating a new input.
+    This method act as a "traffic light" for generating a new input.
     Reason for not being ready could be for example: exceeding number of samples, waiting for other simulation for providing more information etc. etc.
     @in lastOutput is used for adaptive methodologies when the the last output is used to decide if convergence is achived
     @return Boolean

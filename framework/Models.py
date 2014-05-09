@@ -117,6 +117,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     self.subType  = ''
     self.runQueue = []
     self.FIXME = False
+    self.infoForOut         = {}   #it contains the information needed for outputting,metadata,etc
 
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
@@ -151,7 +152,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
     @return the new input in a list form
     '''
-    pass
+    self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
   
   @abc.abstractmethod
   def run(self,Input,jobHandler):
@@ -184,8 +185,6 @@ class Dummy(Model):
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
     self.counterInput = 0   #the number of input already generated
-    self.inputDict    = {}  #the input to be run
-    self.outputDict   = {}  #the output to be exported
     
   @classmethod
   def specializeValidateDict(cls):
@@ -197,17 +196,15 @@ class Dummy(Model):
     
   def initialize(self,runInfo,inputs):
     self.counterInput = 0
-    self.inputDict    = {}
-    self.outputDict   = {}
 
   def _manipulateInput(self,dataIn):
     if len(dataIn)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
-    if type(dataIn[0])!=tuple: inRun = self._inputToInternal(dataIn) #this might happen when a single run is used and the input it does not come from self.createNewInput
+    if type(dataIn[0])!=tuple: inRun = self._inputToInternal(dataIn[0]) #this might happen when a single run is used and the input it does not come from self.createNewInput
     else:                      inRun = dataIn[0][0]    
     return inRun
 
   def _inputToInternal(self,dataIN,full=False):
-    '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
+    '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''  
     if self.FIXME: print('FIXME: wondering if a dictionary compatibility should be kept')
     if  type(dataIN)!=dict and dataIN.type not in self.admittedData: raise IOError('type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
@@ -233,15 +230,16 @@ class Dummy(Model):
     '''
     if len(myInput)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
     inputDict = self._inputToInternal(myInput[0])
+    self.counterInput +=1 
     #test if all sampled variables are in the inputs category of the data
     if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
       raise IOError ('When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = numpy.atleast_1d(Kwargs['SampledVars'][key])
     if None in inputDict.values(): raise IOError ('While preparing the input for the model '+self.type+' with name'+self.name+' found an None input variable '+ str(inputDict.items()))
-    self.counterInput +=1 
+    self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
-    return [(inputDict,self.counterInput)]
+    return [(inputDict)],copy.deepcopy(Kwargs) 
   
   def run(self,Input,jobHandler):
     '''
@@ -251,19 +249,20 @@ class Dummy(Model):
     The first is the input the second the output. The output is just the counter
     '''
     #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
-    inRun = self._manipulateInput(Input)
-    lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':numpy.atleast_1d(Input[0][1])}
-    jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[0][1]))
+    inRun = self._manipulateInput(Input[0])
+    lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':numpy.atleast_1d(numpy.float(Input[1]['prefix']))}
+    jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
     
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception("MODEL DUMMY: ERROR -> No available Output to collect (Run probabably is not finished yet)")
-    exportDict = {'input_space_params':copy.copy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.copy(finishedJob.returnEvaluation()[1])}
+    exportDict = {'input_space_params':copy.copy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.copy(finishedJob.returnEvaluation()[1]),'metadata':copy.copy(finishedJob.returnMetadata())}
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] : 
         if key in output.getParaKeys('inputs'): output.updateInputValue (key,exportDict['input_space_params' ][key])
       for key in exportDict['output_space_params'] : 
         if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['output_space_params'][key])
+      for key in exportDict['metadata'] : output.updateMetadata(key,exportDict['metadata'][key])
 #
 #
 #
@@ -325,9 +324,9 @@ class ROM(Dummy):
 
   def run(self,Input,jobHandler):
     '''This call run a ROM as a model'''
-    inRun = self._manipulateInput(Input)
+    inRun = self._manipulateInput(Input[0])
     lambdaReturnOut = lambda inRun: {self.SupervisedEngine.target:self.evaluate(inRun)}
-    jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[0][1]))
+    jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
 #
 #
 #  
@@ -349,11 +348,12 @@ class ExternalModel(Dummy):
     Dummy.initialize(self, runInfo, inputs)      
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
+    self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
     if 'createNewInput' in dir(self.sim): 
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: raise Exception('MODEL EXTERNAL: ERROR -> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       self.counterInput += 1
-      return [(extCreateNewInput,self.counterInput)]
+      return [(extCreateNewInput)],copy.deepcopy(Kwargs)
     else                                : return Dummy.createNewInput(self, myInput,samplerType,**Kwargs)   
 
   def _readMoreXML(self,xmlNode):
@@ -391,8 +391,9 @@ class ExternalModel(Dummy):
     return copy.deepcopy(self.modelVariableValues) 
 
   def run(self,Input,jobHandler):
-    inRun = self._manipulateInput(Input)
-    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[0][1]))  
+    print (Input)
+    inRun = self._manipulateInput(Input[0])
+    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1])  
     
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception("MODEL EXTERNAL: ERROR -> No available Output to collect (Run probabably is not finished yet)")
@@ -428,7 +429,6 @@ class Code(Model):
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
-    self.infoForOut         = {}   #it contains the information needed for outputting 
     self.alias              = {}   #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
                                    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
 
@@ -495,13 +495,13 @@ class Code(Model):
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     self.infoForOut[Kwargs['prefix']] = copy.deepcopy(Kwargs)
-    return self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs)
+    return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),copy.deepcopy(Kwargs))
  
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
-    self.currentInputFiles = inputFiles
+    self.currentInputFiles = inputFiles[0]
     executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
-    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'])
+    jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
     if self.currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     if self.debug: print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
@@ -510,10 +510,14 @@ class Code(Model):
     '''collect the output file in the output object'''
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
-    if finisishedjob.identifier in self.infoForOut.keys():
-      for key in self.infoForOut[finisishedjob.identifier].keys(): attributes[key] = self.infoForOut[finisishedjob.identifier][key]
+    metadata = finisishedjob.returnMetadata()
+    if metadata:
+      for key in metadata: attributes[key] = self.infoForOut[finisishedjob.identifier][key]
     try:                   output.addGroup(attributes,attributes)
-    except AttributeError: output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
+    except AttributeError: 
+      output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
+      if metadata: 
+        for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
 #
 #
 #

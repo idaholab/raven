@@ -19,22 +19,21 @@ import copy
 import threading 
 
 class ExternalRunner:
-  def __init__(self,command,workingDir,output=None):
+  def __init__(self,command,workingDir,output=None,metadata=None):
     ''' Initialize command variable'''
     self.command    = command
 
     if    output!=None: 
-      self.output = output
+      self.output   = output
       self.identifier =  str(output).split("~")[1]
     else: 
-      self.output = os.path.join(workingDir,'generalOut')
-      self.identifier = 'generalOut'
+      self.output   = os.path.join(workingDir,'generalOut')
+      self.identifier = 'generalOut'  
+    self.__workingDir = workingDir
+    self.__metadata   = metadata
     # Initialize logger
     #self.logger     = self.createLogger(self.identifier)
     #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
-    
-    self.__workingDir = workingDir
-
 #   def createLogger(self,name):
 #     '''
 #     Function to create a logging object
@@ -75,11 +74,11 @@ class ExternalRunner:
     self.__process.poll()
     return self.__process.returncode != None
 
-  def getReturnCode(self):
-    return self.__process.returncode
+  def getReturnCode(self): return self.__process.returncode
 
-  def returnEvaluation(self):
-    return None
+  def returnEvaluation(self): return None
+  
+  def returnMetadata(self): return self.__metadata
   
   def start(self):
     oldDir = os.getcwd()
@@ -88,29 +87,27 @@ class ExternalRunner:
     localenv['PYTHONPATH'] = ''
     outFile = open(self.output,'w')
     self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
+    os.chdir(oldDir)
     #self.__process = subprocess.Popen(self.command,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,cwd=self.__workingDir,env=localenv)
     #self.thread = threading.Thread(target=self.outStreamReader, args=(self.__process.stdout,)) 
     #self.thread.daemon = True
     #self.thread.start()
-
-    os.chdir(oldDir)
   
   def kill(self):
     #In python 2.6 this could be self.process.terminate()
-           
     print("JOB HANDLER   : Terminating ",self.__process.pid,self.command)
     os.kill(self.__process.pid,signal.SIGTERM)    
 
-  def getWorkingDir(self):
-    return self.__workingDir
+  def getWorkingDir(self): return self.__workingDir
 
-  def getOutputFilename(self):
-    return os.path.join(self.__workingDir,self.output)
-
-
+  def getOutputFilename(self): return os.path.join(self.__workingDir,self.output)
+#
+#
+#
+#
 class InternalRunner:
   #import multiprocessing as multip
-  def __init__(self,Input,functionToRun,identifier=None):
+  def __init__(self,Input,functionToRun,identifier=None,metadata=None):
     # we keep the command here, in order to have the hook for running exec code into internal models
     self.command = "internal"
     if    identifier!=None: 
@@ -119,19 +116,20 @@ class InternalRunner:
     else: self.identifier = 'generalOut'
     if type(Input) != tuple: raise IOError("JOB HANDLER   : ERROR -> The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
-    self.subque = queue.Queue()
-    self.functionToRun = functionToRun
-    self.__thread = threading.Thread(target = lambda q, arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input) 
+    self.subque          = queue.Queue()
+    self.functionToRun   = functionToRun
+    self.__thread        = threading.Thread(target = lambda q, arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input) 
     self.__thread.daemon = True 
     self.__runReturn     = None
     self.__hasBeenAdded  = False
     self.__input         = Input[0]
-  
+    self.__metadata      = metadata
+    self.retcode         = 0
+
   def isDone(self):
     return not self.__thread.is_alive()
 
-  def getReturnCode(self):
-    return 0
+  def getReturnCode(self): return self.retcode
   
   def returnEvaluation(self):
     if self.isDone(): 
@@ -141,18 +139,17 @@ class InternalRunner:
       return (self.__input,self.__runReturn)
     else: return -1 #control return code   
   
-  def start(self):
-    self.__thread.start()
+  def returnMetadata(self): return self.__metadata
+  
+  def start(self): 
+    try: self.__thread.start()
+    except Exception as ae:
+      print("JOB HANDLER   : ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
+      self.retcode = -1
   
   def kill(self): 
     print("JOB HANDLER   : Terminating ",self.__thread.ident(), " Identifier " + self.identifier)
     os.kill(self.__thread.ident(),signal.SIGTERM)    
-
-#   def getWorkingDir(self):
-#     return self.__workingDir
-# 
-#   def getOutputFilename(self):
-#     return os.path.join(self.__workingDir,self.output)
 
 class JobHandler:
   def __init__(self):
@@ -180,7 +177,7 @@ class JobHandler:
     #initialize PBS
     self.__running = [None]*self.runInfoDict['batchSize']
 
-  def addExternal(self,executeCommand,outputFile,workingDir):
+  def addExternal(self,executeCommand,outputFile,workingDir,metadata=None):
     #probably something more for the PBS
     command = self.runInfoDict['precommand']
     if self.mpiCommand !='':
@@ -189,11 +186,11 @@ class JobHandler:
       command +=self.threadingCommand+' '
     command += executeCommand
     command += self.runInfoDict['postcommand']
-    self.__queue.put(ExternalRunner(command,workingDir,outputFile))
+    self.__queue.put(ExternalRunner(command,workingDir,outputFile,metadata))
     self.__numSubmitted += 1
     
-  def addInternal(self,Input,functionToRun,identifier):
-    self.__queue.put(InternalRunner(Input,functionToRun,identifier))
+  def addInternal(self,Input,functionToRun,identifier,metadata=None):
+    self.__queue.put(InternalRunner(Input,functionToRun,identifier,metadata))
     self.__numSubmitted += 1
 
   def isFinished(self):
@@ -220,7 +217,6 @@ class JobHandler:
         else:
           cnt_free_spots += 1
     return cnt_free_spots
-    
 
   def getFinished(self, removeFinished=True):
     #print("getFinished "+str(self.__running)+" "+str(self.__queue.qsize()))
@@ -262,7 +258,6 @@ class JobHandler:
         self.__running[i] = item
         self.__running[i].start()
         self.__nextId += 1
-
     return finished
 
   def getFinishedNoPop(self):

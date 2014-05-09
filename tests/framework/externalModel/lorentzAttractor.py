@@ -18,11 +18,7 @@ def initialize(self,runInfoDict,inputFiles):
 def createNewInput(self,myInput,samplerType,**Kwargs):
   return Kwargs['SampledVars']
 
-def readMoreXML(self,xmlNode):
-  return None
-
 def run(self,Input):
-  print(Input)
   max_time = 0.03
   t_step = 0.01
   

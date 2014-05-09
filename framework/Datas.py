@@ -31,15 +31,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataParameters['hierarchical'] = False                      # the structure of this data is hierarchical?
     self._toLoadFromList                 = []                         # loading source    
     self._dataContainer                  = {'inputs':{},'outputs':{}} # Dict that contains the actual data. self._dataContainer['inputs'] contains the input space, self._dataContainer['output'] the output space          
+    self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
+    self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one         
     if inParamValues: 
-      if type(inParamValues) != 'dict': raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
+      if type(inParamValues) != dict: raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
       self._dataContainer['inputs'] = inParamValues
     if outParamValues: 
-      if type(outParamValues) != 'dict': raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
+      if type(outParamValues) != dict: raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
       self._dataContainer['outputs'] = outParamValues
-    self.notAllowedInputs  = ['OutputPlaceHolder']#this is a list of keyword that are not allowed as inputs
-    self.notAllowedOutputs = ['InputPlaceHolder' ]#this is a list of keyword that are not allowed as Outputs
-                         
+    self.notAllowedInputs  = []#this is a list of keyword that are not allowed as inputs
+    self.notAllowedOutputs = []#this is a list of keyword that are not allowed as Outputs
+    self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8]                      
   def _readMoreXML(self,xmlNode):
     '''
     Function to read the xml input block.
@@ -118,21 +120,38 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   
   def updateInputValue(self,name,value,options=None):
     '''
-    Function to update a value from the dictionary inParametersValues
+    Function to update a value from the input dictionary 
     @ In, name, parameter name
     @ In, value, the new value
     @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
     '''
-    self.updateSpecializedInputValue(name,value,options)
+    self._updateSpecializedInputValue(name,value,options)
 
   def updateOutputValue(self,name,value,options=None):
     '''
-    Function to update a value from the dictionary outParametersValues
+    Function to update a value from the output dictionary 
     @ In, name, parameter name
     @ In, value, the new value
     @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
     '''
-    self.updateSpecializedOutputValue(name,value,options)
+    self._updateSpecializedOutputValue(name,value,options)
+
+  def updateMetadata(self,name,value,options=None):
+    '''
+    Function to update a value from the dictionary metadata
+    @ In, name, parameter name
+    @ In, value, the new value
+    @ In, parent_id, optional, parent identifier in case Hierarchical fashion has been requested
+    '''    
+    self._updateSpecializedMetadata(name,value,options)
+  
+  def getMetadata(self,keyword,nodeid=None,serialize=False):
+    if self._dataParameters['hierarchical']: 
+      if type(keyword) == int: return list(self.getHierParam('metadata',nodeid,None,serialize).values())[keyword-1]
+      else: return self.getHierParam('metadata',nodeid,keyword,serialize)
+    else:   
+      if keyword in self._dataContainer['metadata'].keys(): return self._dataContainer ['metadata'][keyword]
+      else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in metadata dictionary. Available keys are "+str(self._dataContainer['metadata'].keys())+".Function: Data.getMetadata")    
 
   @abc.abstractmethod
   def addSpecializedReadingSettings(self):
@@ -162,19 +181,15 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     variables_to_print = []
     lvar = var.lower()
-    if type(list(self._dataContainer[inOrOut+'s'].values())[0]) == dict: 
-      varKeys = list(self._dataContainer[inOrOut+'s'].values())[0].keys()
-    else:
-      varKeys = self._dataContainer[inOrOut+'s'].keys()
+    if type(list(self._dataContainer[inOrOut+'s'].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOut+'s'].values())[0].keys()
+    else: varKeys = self._dataContainer[inOrOut+'s'].keys()
     if lvar == inOrOut: 
       for invar in varKeys: variables_to_print.append(inOrOut+'|'+str(invar))  
     elif '|' in var and lvar.startswith(inOrOut+'|'):
       varName = var.split('|')[1]
-      if varName not in varKeys: 
-        raise Exception("DATAS     : ERROR -> variable " + varName + " is not present among the "+inOrOut+"s of Data " + self.name)
+      if varName not in varKeys: raise Exception("DATAS     : ERROR -> variable " + varName + " is not present among the "+inOrOut+"s of Data " + self.name)
       else: variables_to_print.append(inOrOut+'|'+str(varName))
-    else:
-      raise Exception("DATAS    : ERROR -> unexpected variable "+ var)
+    else: raise Exception("DATAS    : ERROR -> unexpected variable "+ var)
     return variables_to_print
 
   def printCSV(self,options=None):
@@ -216,13 +231,20 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputNode = ET.SubElement(root,'input')
     inputNode.text = ','.join(inpKeys)
     outputNode = ET.SubElement(root,'output')
-    outputNode.text = ','.join(outKeys)
+    outputNode.text = ','.join(outKeys) 
     filenameNode = ET.SubElement(root,'input_filename')
     filenameNode.text = filenameLocal + ".csv"
+    if len(self._dataContainer['metadata'].keys()) > 0:
+      #write metadata as well_known_implementations
+      metadataNode = ET.SubElement(root,'metadata')
+      submetadataNodes = []
+      for key,value in self._dataContainer['metadata'].items():
+        if key not in self.metaExclXml:
+          submetadataNodes.append(ET.SubElement(metadataNode,key))
+          submetadataNodes[-1].text = utils.toString(str(value)).replace("[","").replace("]","").replace("{","").replace("}","")
     myXMLFile.write(utils.toString(ET.tostring(root)))
     myXMLFile.write("\n")
     myXMLFile.close()
-
 
   def addOutput(self,toLoadFrom,options=None):
     ''' 
@@ -380,35 +402,43 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         for node in self.TSData.iterEnding():
           nodesDict[node.name] = []
           for se in list(self.TSData.iterWholeBackTrace(node)):
-            if typeVar in 'inout'   and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
-            if typeVar in 'inputs'  and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs' ])
-            if typeVar in 'outputs' and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs'])
-            if typeVar in 'inputs'  and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs' ][keyword])
-            if typeVar in 'outputs' and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs'][keyword])    
+            if typeVar in 'inout'    and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
+            if typeVar in 'inputs'   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
+            if typeVar in 'outputs'  and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
+            if typeVar in 'metadata' and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
+            if typeVar in 'inputs'   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
+            if typeVar in 'outputs'  and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
+            if typeVar in 'metadata' and     keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])    
       else:
         for node in self.TSData.iter():
-          if typeVar in 'inout'   and not keyword: nodesDict[node.name] = node.get('dataContainer')
-          if typeVar in 'inputs'  and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs' ]
-          if typeVar in 'outputs' and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs'] 
-          if typeVar in 'inputs'  and     keyword: nodesDict[node.name] = node.get('dataContainer')['inputs' ][keyword] 
-          if typeVar in 'outputs' and     keyword: nodesDict[node.name] = node.get('dataContainer')['outputs'][keyword]
+          if typeVar in 'inout'    and not keyword: nodesDict[node.name] = node.get('dataContainer')
+          if typeVar in 'inputs'   and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ]
+          if typeVar in 'outputs'  and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ] 
+          if typeVar in 'metadata' and not keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'] 
+          if typeVar in 'inputs'   and     keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ][keyword] 
+          if typeVar in 'outputs'  and     keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ][keyword]
+          if typeVar in 'metadata' and     keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'][keyword]
     else:
       # we want a particular node
       if serialize:
         # we want a particular node and serialize it
         nodesDict[nodeid] = []
         for se in list(self.TSData.iterWholeBackTrace(self.TSData.iter(nodeid)[0])):
-          if typeVar in 'inout'   and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
-          if typeVar in 'inputs'  and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs' ])
-          if typeVar in 'outputs' and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs'])
-          if typeVar in 'inputs'  and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs' ][keyword])
-          if typeVar in 'outputs' and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs'][keyword])    
+          if typeVar in 'inout'    and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
+          if typeVar in 'inputs'   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
+          if typeVar in 'outputs'  and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
+          if typeVar in 'metadata' and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
+          if typeVar in 'inputs'   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
+          if typeVar in 'outputs'  and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword]) 
+          if typeVar in 'metadata' and     keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword]) 
       else:
-        if typeVar in 'inout'   and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')
-        if typeVar in 'inputs'  and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['inputs' ]
-        if typeVar in 'outputs' and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['outputs'] 
-        if typeVar in 'inputs'  and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['inputs' ][keyword] 
-        if typeVar in 'outputs' and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['outputs'][keyword]
+        if typeVar in 'inout'    and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')
+        if typeVar in 'inputs'   and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ]
+        if typeVar in 'outputs'  and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['outputs' ] 
+        if typeVar in 'metadata' and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['metadata'] 
+        if typeVar in 'inputs'   and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ][keyword] 
+        if typeVar in 'outputs'  and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['outputs' ][keyword]
+        if typeVar in 'metadata' and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['metadata'][keyword]
     return nodesDict
     
   def retrieveNodeInTreeMode(self,nodeName,parentName=None):
@@ -419,8 +449,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, parentName, string, optional, is the parent name... It's possible that multiple nodes have the same name. 
                                           With the parentName, it's possible to perform a double check
     '''
-    if not self.TSData:
-      # there is no tree yet
+    if not self.TSData: # there is no tree yet
       self.TSData = TS.NodeTree(TS.Node(nodeName))
       return self.TSData.getrootnode()
     else:
@@ -434,7 +463,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
               if node.getParentName() == parentName: return node
             raise("DATAS     : ERROR -> the node " + nodeName + "has been found but no one has a parent named "+ parentName)                 
           else: return(foundNodes[0])
-
+ 
   def addNodeInTreeMode(self,tsnode,options):
     '''
       This Method is used to add a node into the tree when the hierarchical mode is requested
@@ -477,7 +506,7 @@ class TimePoint(Data):
       if (self._dataContainer['outputs'][key].size) != 1:
         raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
 
-  def updateSpecializedInputValue(self,name,value,options=None):
+  def _updateSpecializedInputValue(self,name,value,options=None):
     ''' 
       This function performs the updating of the values (input space) into this Data
       @ In,  name, string, parameter name (ex. cladTemperature) 
@@ -489,7 +518,16 @@ class TimePoint(Data):
     if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
     self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def updateSpecializedOutputValue(self,name,value,options=None):
+  def _updateSpecializedMetadata(self,name,value,options=None):
+    ''' 
+      This function performs the updating of the values (metadata) into this Data
+      @ In,  name, string, parameter name (ex. probability) 
+      @ In,  value, whatever type, newer value
+      @ Out, None 
+    '''
+    self._dataContainer['metadata'][name] = copy.deepcopy(value)
+
+  def _updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
       This function performs the updating of the values (output space) into this Data
       @ In,  name, string, parameter name (ex. cladTemperature) 
@@ -500,54 +538,6 @@ class TimePoint(Data):
       self._dataContainer['outputs'].pop(name)
     if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
     self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
-
-  def oldSpecializedPrintCSV(self,filenameLocal,options):
-    ''' 
-      This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
-      @ In,  options, dictionary, dictionary of printing options
-      @ Out, None (a csv is gonna be printed)
-    '''    
-    inpKeys   = []
-    inpValues = []
-    outKeys   = []
-    outValues = []
-    #Print input values
-    if 'variables' in options.keys():
-      for var in options['variables']:
-        if var.split('|')[0] == 'input': 
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'output': 
-          outKeys.append(var.split('|')[1])
-          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-    else:
-      inpKeys   = self._dataContainer['inputs'].keys()
-      inpValues = self._dataContainer['inputs'].values()
-      outKeys   = self._dataContainer['outputs'].keys()
-      outValues = self._dataContainer['outputs'].values()
-    
-    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
-    else: return
-    
-    for item in inpKeys:
-      myFile.write(b',' + utils.toBytes(item))
-    if len(inpKeys) > 0: myFile.write(b'\n')
-    
-    for item in inpValues:
-      myFile.write(b',' + utils.toBytes(str(item[0])))
-    if len(inpValues) > 0: myFile.write(b'\n')
-    
-    #Print time + output values
-    for item in outKeys:
-      myFile.write(b',' + utils.toBytes(item))
-    if len(outKeys) > 0: myFile.write(b'\n')
-    
-    for item in outValues:
-      myFile.write(b',' + utils.toBytes(str(item[0])))
-    if len(outValues) > 0: myFile.write(b'\n')
-    
-    myFile.close()
 
   def specializedPrintCSV(self,filenameLocal,options):
     ''' 
@@ -561,6 +551,7 @@ class TimePoint(Data):
     #CSV file will have a header with the input names and output
     #names, and one line of data with the input and output numeric
     #values.
+    
     inpKeys   = []
     inpValues = []
     outKeys   = []
@@ -574,27 +565,36 @@ class TimePoint(Data):
         if var.split('|')[0] == 'output': 
           outKeys.append(var.split('|')[1])
           outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
+        if var.split('|')[0] == 'metadata':
+          if var.split('|')[1] in self.metaExclXml:
+            if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype: 
+              raise NotConsistentData('DATAS     : ERROR -> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+            inpKeys.append(var.split('|')[1])
+            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
+          else: print('DATAS     : Warning -> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = self._dataContainer['outputs'].values()
-    
+      if len(self._dataContainer['metadata'].keys()) > 0:
+        #write metadata as well_known_implementations
+        for key,value in self._dataContainer['metadata'].items():
+          if key in self.metaExclXml: 
+            if type(value) not in self.metatype: 
+              raise NotConsistentData('DATAS     : ERROR -> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+            inpKeys.append(key)
+            inpValues.append(np.atleast_1d(np.float(value)))
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
     else: return
 
     #Print header
-    myFile.write(b','.join([utils.toBytes(item) for item in 
-                            itertools.chain(inpKeys,outKeys)]))
+    myFile.write(b','.join([utils.toBytes(item) for item in itertools.chain(inpKeys,outKeys)]))
     myFile.write(b'\n')
-    
     #Print values
-    myFile.write(b','.join([utils.toBytes(str(item[0])) for item in 
-                            itertools.chain(inpValues,outValues)]))
+    myFile.write(b','.join([utils.toBytes(str(item[0])) for item in  itertools.chain(inpValues,outValues)]))
     myFile.write(b'\n')
-    
     myFile.close()
-
     self._createXMLFile(filenameLocal,"timepoint",inpKeys,outKeys)
     
   
@@ -662,7 +662,7 @@ class TimePointSet(Data):
             raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
   
 
-  def updateSpecializedInputValue(self,name,value,options=None):
+  def _updateSpecializedInputValue(self,name,value,options=None):
     ''' 
       This function performs the updating of the values (input space) into this Data
       @ In,  name, string, parameter name (ex. cladTemperature) 
@@ -690,7 +690,29 @@ class TimePointSet(Data):
         if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
         self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def updateSpecializedOutputValue(self,name,value,options=None):
+  def _updateSpecializedMetadata(self,name,value,options=None):
+    ''' 
+      This function performs the updating of the values (metadata) into this Data
+      @ In,  name, string, parameter name (ex. probability) 
+      @ In,  value, whatever type, newer value
+      @ Out, None 
+      NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
+    '''
+    if options and self._dataParameters['hierarchical']:
+      # we retrieve the node in which the specialized "TimePoint" has been stored
+      if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
+      else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
+      self._dataContainer = tsnode.get('dataContainer')
+      if not self._dataContainer: 
+        tsnode.add('dataContainer',{'metadata':{}})
+        self._dataContainer = tsnode.get('dataContainer')
+      else:
+        if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
+      self._dataContainer['metadata'][name] = copy.deepcopy(value)
+      self.addNodeInTreeMode(tsnode,options)
+    else: self._dataContainer['metadata'][name] = copy.deepcopy(value)
+
+  def _updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
       This function performs the updating of the values (output space) into this Data
       @ In,  name, string, parameter name (ex. cladTemperature) 
@@ -718,107 +740,6 @@ class TimePointSet(Data):
       else:
         if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
         self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
-
-  def oldSpecializedPrintCSV(self,filenameLocal,options): 
-    ''' 
-      This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
-      @ In,  options, dictionary, dictionary of printing options
-      @ Out, None (a csv is gonna be printed)
-    '''    
-    inpKeys   = []
-    inpValues = []
-    outKeys   = []
-    outValues = []
-    #Print input values
-    if self._dataParameters['hierarchical']:
-      # retrieve a serialized of datas from the tree
-      O_o = self.getHierParam('inout','*',serialize=True)
-      for key in O_o.keys():
-        inpKeys.append([])
-        inpValues.append([])
-        outKeys.append([])
-        outValues.append([])
-        if 'variables' in options.keys():
-          for var in options['variables']:
-            if var.split('|')[0] == 'input': 
-              inpKeys[-1].append(var.split('|')[1])
-              axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var.split('|')[1]][0]
-              inpValues[-1].append(axa)
-            if var.split('|')[0] == 'output': 
-              outKeys[-1].append(var.split('|')[1])
-              axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var.split('|')[1]][0]
-              outValues[-1].append(axa)
-        else:
-          inpKeys[-1] = O_o[key][0]['inputs'].keys()
-          for var in inpKeys[-1]:
-            axa = np.zeros(len(O_o[key]))
-            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var][0]
-            inpValues[-1].append(copy.deepcopy(axa))
-          outKeys[-1] = O_o[key][0]['outputs'].keys()
-          for var in outKeys[-1]:
-            axa = np.zeros(len(O_o[key]))
-            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var][0]
-            outValues[-1].append(copy.deepcopy(axa))         
-
-      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
-      else: return 
-      for index in range(len(O_o.keys())):
-        myFile.write(b'Ending branch,'+O_o.keys()[index]+'\n')
-        myFile.write(b'branch #')
-        for i in range(len(inpKeys[index])):
-            myFile.write(b',' + utils.toBytes(inpKeys[index][i]))
-        for i in range(len(outKeys[index])):
-            myFile.write(b',' + utils.toBytes(outKeys[index][i]))
-        myFile.write(b'\n')
-        for j in range(outValues[index][0].size):
-          myFile.write(utils.toBytes(str(j+1)))
-          for i in range(len(inpKeys[index])):
-            myFile.write(b',' + utils.toBytes(str(inpValues[index][i][j])))
-          for i in range(len(outKeys[index])):
-            myFile.write(b',' + utils.toBytes(str(outValues[index][i][j])))
-          myFile.write(b'\n')    
-      myFile.close()                       
-    else:
-      if 'variables' in options.keys():
-        for var in options['variables']:
-          if var.split('|')[0] == 'input': 
-            inpKeys.append(var.split('|')[1])
-            inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-          if var.split('|')[0] == 'output': 
-            outKeys.append(var.split('|')[1])
-            outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-      else:
-        inpKeys   = list(self._dataContainer['inputs'].keys())
-        inpValues = list(self._dataContainer['inputs'].values())
-        outKeys   = list(self._dataContainer['outputs'].keys())
-        outValues = list(self._dataContainer['outputs'].values())
-      
-      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
-      else: return
-      
-      myString = ''
-      for i in range(len(inpKeys)):
-        myString += b',' + utils.toBytes(str(inpKeys[i]))
-      myFile.write(myString[1:])
-      for i in range(len(outKeys)):
-          myFile.write(b',' + utils.toBytes(outKeys[i]))
-      myFile.write(b'\n')
-      
-      for j in range(outValues[0].size):
-        myString = ''
-        for i in range(len(inpKeys)):
-          myString += b',' + utils.toBytes(str(inpValues[i][j]))
-        myFile.write(myString[1:])
-        myString = ''
-        for i in range(len(outKeys)):
-          myString += b',' + utils.toBytes(str(outValues[i][j]))
-        myFile.write(myString)
-        myFile.write(b'\n')
-        
-      myFile.close()
 
   def specializedPrintCSV(self,filenameLocal,options): 
     ''' 
@@ -852,6 +773,14 @@ class TimePointSet(Data):
               axa = np.zeros(len(O_o[key]))
               for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var.split('|')[1]][0]
               outValues[-1].append(axa)
+            if var.split('|')[0] == 'metadata': 
+              if var.split('|')[1] in self.metaExclXml: 
+                if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype: 
+                  raise NotConsistentData('DATAS     : ERROR -> metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+                inpKeys[-1].append(var.split('|')[1])
+                axa = np.zeros(len(O_o[key]))
+                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
+                inpValues[-1].append(copy.deepcopy(axa))  
         else:
           inpKeys[-1] = O_o[key][0]['inputs'].keys()
           for var in inpKeys[-1]:
@@ -862,8 +791,17 @@ class TimePointSet(Data):
           for var in outKeys[-1]:
             axa = np.zeros(len(O_o[key]))
             for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var][0]
-            outValues[-1].append(copy.deepcopy(axa))         
-
+            outValues[-1].append(copy.deepcopy(axa))     
+          if len(O_o[key][0]['metadata'].keys()) > 0:
+            #write metadata as well_known_implementations
+            for metaname,value in O_o[key][0]['metadata'].items():
+              if metaname in self.metaExclXml: 
+                if type(value) not in self.metatype: 
+                  raise NotConsistentData('DATAS     : ERROR -> metadata '+metaname+' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+                inpKeys[-1].append(metaname)
+                axa = np.zeros(len(O_o[key]))
+                for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][metaname]))[0]
+                inpValues[-1].append(copy.deepcopy(axa))  
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
       else: return 
       O_o_keys = list(O_o.keys())
@@ -890,7 +828,6 @@ class TimePointSet(Data):
       #The CSV file will have a header with the input names and output
       #names, and multiple lines of data with the input and output
       #numeric values, one line for each input.
-
       if 'variables' in options.keys():
         for var in options['variables']:
           if var.split('|')[0] == 'input': 
@@ -899,28 +836,42 @@ class TimePointSet(Data):
           if var.split('|')[0] == 'output': 
             outKeys.append(var.split('|')[1])
             outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
+          if var.split('|')[0] == 'metadata': 
+            inpKeys.append(var.split('|')[1])
+            inpValues.append(self._dataContainer['metadata'][var.split('|')[1]])
+          if var.split('|')[0] == 'metadata':
+            if var.split('|')[1] in self.metaExclXml:
+              if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype: 
+                raise NotConsistentData('DATAS     : ERROR -> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              inpKeys.append(var.split('|')[1])
+              if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
+              else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
+            else: print('DATAS     : Warning -> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
         outKeys   = self._dataContainer['outputs'].keys()
         outValues = self._dataContainer['outputs'].values()
-      
+        if len(self._dataContainer['metadata'].keys()) > 0:
+          #write metadata as well_known_implementations
+          for key,value in self._dataContainer['metadata'].items():
+            if key in self.metaExclXml: 
+              if type(value) not in self.metatype: 
+                raise NotConsistentData('DATAS     : ERROR -> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              inpKeys.append(key)
+              if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(value)))
+              else: inpValues.append(np.atleast_1d(value))
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
       else: return
       
       #Print header
-      myFile.write(b','.join([utils.toBytes(str(item)) for item in
-                              itertools.chain(inpKeys,outKeys)]))
+      myFile.write(b','.join([utils.toBytes(str(item)) for item in itertools.chain(inpKeys,outKeys)]))
       myFile.write(b'\n')
-      
       #Print values
       for j in range(len(next(iter(outValues)))):
-        myFile.write(b','.join([utils.toBytes(str(item[j])) for item in
-                                itertools.chain(inpValues,outValues)]))
+        myFile.write(b','.join([utils.toBytes(str(item[j])) for item in itertools.chain(inpValues,outValues)]))
         myFile.write(b'\n')
-        
       myFile.close()
-
       self._createXMLFile(filenameLocal,"timepointset",inpKeys,outKeys)
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
@@ -970,7 +921,7 @@ class History(Data):
       if (self._dataContainer['outputs'][key].ndim) != 1:
         raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
 
-  def updateSpecializedInputValue(self,name,value,options=None):
+  def _updateSpecializedInputValue(self,name,value,options=None):
     ''' 
       This function performs the updating of the values (input space) into this Data
       @ In,  name, string, parameter name (ex. cladTemperature) 
@@ -982,7 +933,17 @@ class History(Data):
     if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
     self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def updateSpecializedOutputValue(self,name,value,options=None):
+  def _updateSpecializedMetadata(self,name,value,options=None):
+    ''' 
+      This function performs the updating of the values (metadata) into this Data
+      @ In,  name, string, parameter name (ex. probability) 
+      @ In,  value, whatever type, newer value
+      @ Out, None 
+      NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
+    '''
+    self._dataContainer['metadata'][name] = copy.deepcopy(value)
+      
+  def _updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
       This function performs the updating of the values (output space) into this Data
       @ In,  name, string, parameter name (ex. cladTemperature) 
@@ -993,55 +954,6 @@ class History(Data):
       self._dataContainer['outputs'].pop(name)
     if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
     self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
-
-  def oldSpecializedPrintCSV(self,filenameLocal,options):
-    ''' 
-      This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
-      @ In,  options, dictionary, dictionary of printing options
-      @ Out, None (a csv is gonna be printed)
-    '''    
-    inpKeys   = []
-    inpValues = []
-    outKeys   = []
-    outValues = []
-    #Print input values
-    if 'variables' in options.keys():
-      for var in options['variables']:
-        if var.split('|')[0] == 'input': 
-          inpKeys.append(var.split('|')[1])
-          inpValues.append(self._dataContainer['inputs'][var.split('|')[1]])
-        if var.split('|')[0] == 'output': 
-          outKeys.append(var.split('|')[1])
-          outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
-    else:
-      inpKeys   = self._dataContainer['inputs'].keys()
-      inpValues = self._dataContainer['inputs'].values()
-      outKeys   = self._dataContainer['outputs'].keys()
-      outValues = self._dataContainer['outputs'].values()
-    
-    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
-    else: return
-
-    for i in range(len(inpKeys)):
-      myFile.write(b',' + utils.toBytes(inpKeys[i]))
-    if len(inpKeys) > 0: myFile.write(b'\n')
-    
-    for i in range(len(inpKeys)):
-      myFile.write(b',' + utils.toBytes(str(inpValues[i][0])))
-    if len(inpKeys) > 0: myFile.write(b'\n')
-    
-    #Print time + output values
-    for i in range(len(outKeys)):
-      myFile.write(b',' + utils.toBytes(outKeys[i]))
-    if len(outKeys) > 0: 
-      myFile.write(b'\n')
-      for j in range(outValues[0].size):
-        for i in range(len(outKeys)):
-          myFile.write(b',' + utils.toBytes(str(outValues[i][j])))
-        myFile.write(b'\n')
-    
-    myFile.close()
 
   def specializedPrintCSV(self,filenameLocal,options):
     ''' 
@@ -1056,7 +968,6 @@ class History(Data):
     #for the filename.  The second CSV file is named the same as the
     #filename, and has the output names for a header, a column for
     #time, and the rest of the file is data for different times.
-
     inpKeys   = []
     inpValues = []
     outKeys   = []
@@ -1070,11 +981,26 @@ class History(Data):
         if var.split('|')[0] == 'output':
           outKeys.append(var.split('|')[1])
           outValues.append(self._dataContainer['outputs'][var.split('|')[1]])
+        if var.split('|')[0] == 'metadata':
+          if var.split('|')[1] in self.metaExclXml:
+            if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype: 
+              raise NotConsistentData('DATAS     : ERROR -> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+            inpKeys.append(var.split('|')[1])
+            inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
+          else: print('DATAS     : Warning -> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = self._dataContainer['outputs'].values()
+      if len(self._dataContainer['metadata'].keys()) > 0:
+        #write metadata as well_known_implementations
+        for key,value in self._dataContainer['metadata'].items():
+          if key in self.metaExclXml: 
+            if type(value) not in self.metatype: 
+              raise NotConsistentData('DATAS     : ERROR -> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+            inpKeys.append(key)
+            inpValues.append(np.atleast_1d(np.float(value)))
     
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
     else: return
@@ -1176,7 +1102,7 @@ class Histories(Data):
           if (self._dataContainer['outputs'][key][key2].ndim) != 1:
             raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key][key2].ndim))
 
-  def updateSpecializedInputValue(self,name,value,options=None):
+  def _updateSpecializedInputValue(self,name,value,options=None):
     ''' 
       This function performs the updating of the values (input space) into this Data
       @ In,  name, either 1) list (size = 2), name[0] == history number(ex. 1 or 2 etc) - name[1], parameter name (ex. cladTemperature) 
@@ -1186,9 +1112,9 @@ class Histories(Data):
       @ Out, None 
     '''
     if (not isinstance(value,(float,int,bool,np.ndarray))):
-      raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array (dim 1) or a single value for method "updateSpecializedInputValue". Got type ' + str(type(value)))
+      raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array (dim 1) or a single value for method "_updateSpecializedInputValue". Got type ' + str(type(value)))
     if isinstance(value,np.ndarray): 
-      if value.size != 1: raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array of dim 1 or a single value for method "updateSpecializedInputValue". Size is ' + str(value.size))
+      if value.size != 1: raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array of dim 1 or a single value for method "_updateSpecializedInputValue". Size is ' + str(value.size))
 
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "History" has been stored
@@ -1231,7 +1157,29 @@ class Histories(Data):
             self._dataContainer['inputs'][hisn] = {}
           self._dataContainer['inputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def updateSpecializedOutputValue(self,name,value,options=None):
+  def _updateSpecializedMetadata(self,name,value,options=None):
+    ''' 
+      This function performs the updating of the values (metadata) into this Data
+      @ In,  name, string, parameter name (ex. probability) 
+      @ In,  value, whatever type, newer value
+      @ Out, None 
+      NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
+    '''
+    if options and self._dataParameters['hierarchical']:
+      # we retrieve the node in which the specialized "TimePoint" has been stored
+      if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
+      else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
+      self._dataContainer = tsnode.get('dataContainer')
+      if not self._dataContainer: 
+        tsnode.add('dataContainer',{'metadata':{}})
+        self._dataContainer = tsnode.get('dataContainer')
+      else:
+        if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
+      self._dataContainer['metadata'][name] = copy.deepcopy(value)
+      self.addNodeInTreeMode(tsnode,options)
+    else: self._dataContainer['metadata'][name] = copy.deepcopy(value)
+     
+  def _updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
       This function performs the updating of the values (output space) into this Data
       @ In,  name, either 1) list (size = 2), name[0] == history number(ex. 1 or 2 etc) - name[1], parameter name (ex. cladTemperature) 
@@ -1240,7 +1188,7 @@ class Histories(Data):
       @ Out, None 
     '''
     if not isinstance(value,np.ndarray): 
-        raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
+        raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "_updateSpecializedOutputValue". Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
       if type(name) == list: 
@@ -1283,132 +1231,6 @@ class Histories(Data):
             self._dataContainer['outputs'][hisn] = {}
           self._dataContainer['outputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
       
-  def oldSpecializedPrintCSV(self,filenameLocal,options):
-    ''' 
-      This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
-      @ In,  options, dictionary, dictionary of printing options
-      @ Out, None (a csv is gonna be printed)
-    '''    
-    
-    if self._dataParameters['hierarchical']:
-      outKeys   = []
-      inpKeys   = []
-      inpValues = []
-      outValues = []
-      # retrieve a serialized of datas from the tree
-      O_o = self.getHierParam('inout','*',serialize=True)
-      for key in O_o.keys():
-        inpKeys.append([])
-        inpValues.append([])
-        outKeys.append([])
-        outValues.append([])
-        if 'variables' in options.keys():
-          for var in options['variables']:
-            if var.split('|')[0] == 'input': 
-              inpKeys[-1].append(var.split('|')[1])
-              axa = np.zeros(len(O_o[key]))
-              for index in range(len(O_o[key])): 
-                axa[index] = O_o[key][index]['inputs'][var.split('|')[1]][0]
-              inpValues[-1].append(axa)
-            if var.split('|')[0] == 'output': 
-              outKeys[-1].append(var.split('|')[1])
-              axa = O_o[key][0]['outputs'][var.split('|')[1]]
-              for index in range(len(O_o[key])-1): axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var.split('|')[1]]))
-              outValues[-1].append(axa)
-        else: 
-          inpKeys[-1] = O_o[key][0]['inputs'].keys()
-          outKeys[-1] = O_o[key][0]['outputs'].keys()
-          for var in O_o[key][0]['inputs'].keys():
-            axa = np.zeros(len(O_o[key]))
-            for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var][0]
-            inpValues[-1].append(copy.deepcopy(axa))
-          for var in O_o[key][0]['outputs'].keys():
-            axa = O_o[key][0]['outputs'][var]
-            for index in range(len(O_o[key])-1): 
-              axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var]))
-            outValues[-1].append(copy.deepcopy(axa))
-            
-        if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '_' + key + '.csv', 'wb')
-        else: return 
-        myFile.write(b'Ending branch,'+key+'\n')
-        myFile.write(b'branch #')
-        for i in range(len(inpKeys[-1])):
-          myFile.write(b',' + utils.toBytes(inpKeys[-1][i]))
-        myFile.write(b'\n')
-        # write the input paramters' values for each branch
-        for i in range(inpValues[-1][0].size):
-          myFile.write(utils.toBytes(str(i+1)))
-          for index in range(len(inpValues[-1])):
-            myFile.write(b',' + utils.toBytes(str(inpValues[-1][index][i])))
-          myFile.write(b'\n')
-        # write out keys
-        myFile.write(b'\n')
-        myFile.write(b'TimeStep #')
-        for i in range(len(outKeys[-1])):
-          myFile.write(b',' + utils.toBytes(outKeys[-1][i]))
-        myFile.write(b'\n')
-        for i in range(outValues[-1][0].size):
-          myFile.write(utils.toBytes(str(i+1)))
-          for index in range(len(outValues[-1])):
-            myFile.write(b',' + utils.toBytes(str(outValues[-1][index][i])))
-          myFile.write(b'\n')
-        myFile.close() 
-    else:
-      inpValues = list(self._dataContainer['inputs'].values())
-      outKeys   = self._dataContainer['outputs'].keys()
-      outValues = list(self._dataContainer['outputs'].values())
-      
-      for n in range(len(outKeys)):
-        inpKeys_h   = []
-        inpValues_h = []
-        outKeys_h   = []
-        outValues_h = []
-        if 'variables' in options.keys():
-          for var in options['variables']:
-            if var.split('|')[0] == 'input': 
-              inpKeys_h.append(var.split('|')[1])
-              inpValues_h.append(inpValues[n][var.split('|')[1]])
-            if var.split('|')[0] == 'output': 
-              outKeys_h.append(var.split('|')[1])
-              outValues_h.append(outValues[n][var.split('|')[1]])
-        else:
-          inpKeys_h   = list(inpValues[n].keys())
-          inpValues_h = list(inpValues[n].values())
-          outKeys_h   = list(outValues[n].keys())
-          outValues_h = list(outValues[n].values())
-      
-        if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myFile = open(filenameLocal + '_'+ str(n) + '.csv', 'wb')
-        else: return
-        
-        for i in range(len(inpKeys_h)):
-          if i == 0 : prefix = b''
-          else:       prefix = b','
-          myFile.write(prefix + utils.toBytes(inpKeys_h[i]))
-        if len(inpKeys_h) > 0: myFile.write(b'\n')
-        
-        for i in range(len(inpKeys_h)):
-          if i == 0 : prefix = b''
-          else:       prefix = b','
-          myFile.write(prefix + utils.toBytes(str(inpValues_h[i][0])))
-        if len(inpKeys_h) > 0: myFile.write(b'\n')
-        
-        #Print time + output values
-        for i in range(len(outKeys_h)):
-          if i == 0 : prefix = b''
-          else:       prefix = b','
-          myFile.write(utils.toBytes(outKeys_h[i]) + b',')
-        if len(outKeys_h) > 0:
-          myFile.write(b'\n')
-          for j in range(outValues_h[0].size):
-            for i in range(len(outKeys_h)):
-              if i == 0 : prefix = b''
-              else:       prefix = b','
-              myFile.write(prefix+ utils.toBytes(str(outValues_h[i][j])))
-            myFile.write(b'\n')    
-        
-        myFile.close()
-
   def specializedPrintCSV(self,filenameLocal,options):
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
@@ -1482,21 +1304,17 @@ class Histories(Data):
         myFile.close() 
     else:
       #if not hierarchical
-
       #For histories, create an XML file, and multiple CSV
       #files.  The first CSV file has a header with the input names,
       #and a column for the filenames.  There is one CSV file for each
       #data line in the first CSV and they are named with the
       #filename.  They have the output names for a header, a column
       #for time, and the rest of the file is data for different times.
-
       inpValues = list(self._dataContainer['inputs'].values())
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = list(self._dataContainer['outputs'].values())
-
       #Create Input file
       myFile = open(filenameLocal + '.csv','wb')      
-      
       for n in range(len(outKeys)):
         inpKeys_h   = []
         inpValues_h = []
@@ -1519,18 +1337,15 @@ class Histories(Data):
         dataFilename = filenameLocal + '_'+ str(n) + '.csv'
         if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'wb')
         else: return #XXX should this just skip this iteration?
-
         #Write header for main file
         if n == 0:
           myFile.write(b','.join([utils.toBytes(item) for item in 
                                   itertools.chain(inpKeys_h,["filename"])]))
           myFile.write(b'\n')
           self._createXMLFile(filenameLocal,"histories",inpKeys_h,outKeys_h)
-        
         myFile.write(b','.join([utils.toBytes(str(item[0])) for item in 
                                 itertools.chain(inpValues_h,[[dataFilename]])]))
         myFile.write(b'\n')
-
         #Data file
         #Print time + output values
         myDataFile.write(b','.join([utils.toBytes(item) for item in outKeys_h]))
@@ -1540,7 +1355,6 @@ class Histories(Data):
             myDataFile.write(b','.join([utils.toBytes(str(item[j])) for item in
                                     outValues_h]))
             myDataFile.write(b'\n')
-
         myDataFile.close()
       myFile.close()
       

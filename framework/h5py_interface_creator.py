@@ -281,7 +281,7 @@ class hdf5Database(object):
       for value in out_values:
         if type(value) == np.ndarray:
           if maxsize < value.size : actualone = value.size
-        elif type(value) in [int,float,bool]: actualone = 1
+        elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]: actualone = 1
         else: raise IOError('DATABASE HDF5 : The type of the dictionary paramaters must be within float,bool,int,numpy.ndarray')
         if maxsize < actualone: maxsize = actualone
       groups.attrs[b'n_ts'  ] = maxsize
