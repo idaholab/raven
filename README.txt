@@ -55,22 +55,29 @@ work_in_progress - Extra code or examples that might be useful in the future.
 
 COPYING:
 
-NOTICE: This computer software was prepared by Battelle Energy
-Alliance, LLC, hereinafter the Contractor, under Contract
-No. DE-AC07-05ID14517 with the United States (U.S.) Department of
-Energy (DOE).  All rights in the computer software are reserved by DOE
-on behalf of the United States Government and, if applicable, the
-Contractor as provided in the Contract. You are authorized to use this
-computer software for Governmental purposes but it is not to be
-released or distributed to the public.  NEITHER THE UNITED STATES
-GOVERNMENT, NOR DOE, NOR THE CONTRACTOR MAKE ANY WARRANTY, EXPRESSED
-OR IMPLIED, OR ASSUMES ANY LIABILITY OR RESPONSIBILITY FOR THE USE,
+NOTICE: This computer software, “Risk Analysis Virtual ENvironment
+(RAVEN)”, was prepared by Battelle Energy Alliance, LLC, hereinafter
+the Contractor, under Contract No. DE-AC07-05ID14517 with the United
+States (U.S.) Department of Energy (DOE).  For ten years from April 2,
+2014, the Government is granted for itself and others acting on its
+behalf a nonexclusive, paid-up, irrevocable worldwide license in this
+data to reproduce, prepare derivative works, and perform publicly and
+display publicly, by or on behalf of the Government. There is
+provision for the possible extension of the term of this license.
+Subsequent to that period or any extension granted, the Government is
+granted for itself and others acting on its behalf a nonexclusive,
+paid-up, irrevocable worldwide license in this data to reproduce,
+prepare derivative works, distribute copies to the public, perform
+publicly and display publicly, and to permit others to do so.  The
+specific term of the license can be identified by inquiry made to
+Contractor or DOE.  NEITHER THE UNITED STATES NOR THE UNITED STATES
+DEPARTMENT OF ENERGY, NOR CONTRACTOR MAKES ANY WARRANTY, EXPRESS OR
+IMPLIED, OR ASSUMES ANY LIABILITY OR RESPONSIBILITY FOR THE USE,
 ACCURACY, COMPLETENESS, OR USEFULNESS OR ANY INFORMATION, APPARATUS,
 PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS THAT ITS USE WOULD NOT
-INFRINGE PRIVATELY OWNED RIGHTS.  This notice, including this
-sentence, must appear on any copies of this computer software.
+INFRINGE PRIVATELY OWNED RIGHTS.
 
-EXPORT RESTRICTIONS. The provider of this computer software and its
+EXPORT RESTRICTIONS: The provider of this computer software and its
 employees and its agents are subject to U.S. export control laws that
 prohibit or restrict (i) transactions with certain parties, and (ii)
 the type and level of technologies and services that may be exported.
