@@ -278,12 +278,12 @@ class MultiRun(SingleRun):
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
             if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
-          for _ in xrange(jobHandler.howManyFreeSpots()):
-            if self.debug: print('Testing the sampler if it is ready to generate a new input')
-            if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
-              newInput =sampler.generateInput(model,inputs)
-              model.run(newInput,jobHandler)
-              if self.debug: print('New input generated')
+#      for _ in xrange(jobHandler.howManyFreeSpots()):
+          if self.debug: print('Testing the sampler if it is ready to generate a new input')
+          if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
+            newInput =sampler.generateInput(model,inputs)
+            model.run(newInput,jobHandler)
+            if self.debug: print('New input generated')
         else: 
           print(' the job failed... call the handler for this situation... not yet implemented...')
           print("The JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")

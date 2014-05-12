@@ -149,8 +149,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
 
   def generateDistributions(self,availableDist):
     '''
-    here the needed distribution are made available to the step as also the initializzation 
-    of the seeding (the siding could be overriden by the step by calling the initiaize method
+    here the needed distribution are made available to the step as also the initialization 
+    of the seeding (the siding could be overriden by the step by calling the initialize method
     @in availableDist: {'distribution name':instance}
     '''
     if self.initSeed != None:
@@ -286,7 +286,7 @@ class AdaptiveSampler(Sampler):
     self.gridCoord        = None             #this is the matrix that contains for each entry of the grid the coordinate
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
-    self.sign             = -1
+    self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
     
   def localInputAndChecks(self,xmlNode):
     convergenceNode = xmlNode.find('Convergence')
@@ -364,7 +364,6 @@ class AdaptiveSampler(Sampler):
     self.testMatrix       = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
     self.functionValue    = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
-    print(self.toleranceWeight)
     #build a lambda function to masquerade the ROM <-> cKDTree presence
     if ROM==None:
       class ROM(object):
@@ -433,6 +432,7 @@ class AdaptiveSampler(Sampler):
       while not myIterator.finished:
         print ('Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
+    self.hangingPoints    = np.ndarray((0, self.nVar))
     print('Initialization done')
 
   def localStillReady(self,ready,lastOutput=None):
@@ -452,23 +452,19 @@ class AdaptiveSampler(Sampler):
       print('Initiate training')
       self.functionValue.update(lastOutput.getParametersValues('input'))
       self.functionValue.update(lastOutput.getParametersValues('output'))
+      #recovery the index of the last function evaluation performed
       if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
       else:                                                   indexLast = -1
+      #index of last set of point tested and ready to perform the function evaluation
       indexEnd  = len(self.functionValue[self.axisName[0]])-1
       tempDict  = {}
       if self.goalFunction.name in self.functionValue.keys():
         self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
       else: self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
-      atLeastOne = False
       for myIndex in range(indexLast+1,indexEnd+1):
-        atLeastOne = True
-        print(myIndex)
-        print('*******************')
         for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
+        self.hangingPoints= self.hangingPoints[~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)][:]
         self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
-      if atLeastOne==False:
-        print('waiting')
-        return False
       #printing----------------------
       if self.debug: print('Mapping of the goal function evaluation done')
       if self.debug:
@@ -497,7 +493,9 @@ class AdaptiveSampler(Sampler):
     testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))#compute the error
     if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                        #we still have error
     else              : self.repetition +=1                                     #we are increasing persistence
-    if self.persistence<self.repetition : ready = False                         #we are done
+    if self.persistence<self.repetition :
+      ready = False                         #we are done
+      self.debug = True
     print('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
@@ -555,37 +553,38 @@ class AdaptiveSampler(Sampler):
     # create values dictionary
     '''compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
      check the points where the derivative probability is the lowest'''  
+
     if self.debug: print('generating input')
     if self.surfPoint!=None and len(self.surfPoint)>0:
-      offSet = self.counter-len(self.functionValue[list(self.functionValue.keys())[0]])-1
       tempDict = {}
-      for name in self.axisName: tempDict[name] = self.functionValue[name]
-#       if self.debug:
-#         print('Sampled Points')
-#         print('{0:17} {1:17} {2:17}'.format(self.axisName[0],self.axisName[1],self.axisName[2]))
-#         
-#         for i in range(len(tempDict[list(tempDict.keys())[0]])):
-#           print('{0:17} {1:17} {2:17} {3:6}'.format(tempDict[self.axisName[0]][i],tempDict[self.axisName[1]][i],tempDict[self.axisName[2]][i],i))
+      for varIndex, name in enumerate(self.axisName): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex]) 
       self._cKDTreeInterface('train',tempDict)
       tempDict = {}
       for varIndex, varName in enumerate(self.axisName):
         tempDict[varName] = self.surfPoint[:,varIndex]
-      distance, myIndex = self._cKDTreeInterface('confidence',tempDict)
-#      for loopIndex, distanFromClosest in enumerate(distance):
-#        print('{0:15} {1:15}'.format(distanFromClosest,myIndex[loopIndex]))
-      indexArray = np.argsort(distance)[::-1]
-      sampled = np.column_stack(tuple([self.functionValue[name] for name in self.axisName]))
-      for maxDistIndex in indexArray[offSet+1:]:
-        coordToBeSampled = self.surfPoint[maxDistIndex,:]
-#        print('coordinate to be sampled '+str(coordToBeSampled))
-        notFound = True
-        for alreadySampled in sampled:
-          test = np.in1d(alreadySampled,coordToBeSampled)
-          if test.all(): notFound = False
-        if notFound:
-          for varIndex, varName in enumerate(self.axisName):
-            self.values[varName] = copy.copy(float(coordToBeSampled[varIndex]))
-        if notFound: break
+      distance, _ = self._cKDTreeInterface('confidence',tempDict)
+      print(np.argmax(distance))
+      for varIndex, varName in enumerate(self.axisName): self.values[varName] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
+      
+#      indexArray = np.argsort(distance)[::-1]
+#      for maxDistIndex in indexArray:
+#        coordToBeSampled = self.surfPoint[maxDistIndex,:]
+#        if not ((self.hangingPoints==coordToBeSampled).all(axis=1)==True).any():
+#          for varIndex, varName in enumerate(self.axisName): self.values[varName] = copy.copy(float(coordToBeSampled[varIndex]))
+#          break        
+    else:
+      #here we are still generating the batch
+      for key in self.distDict.keys():
+        if self.toleranceWeight=='probability':
+          self.values[key]= self.distDict[key].ppf(float(Distributions.random()))
+        else:
+          self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+    #print(self.hangingPoints)
+    #print(copy.copy(np.array([self.values[axis] for axis in self.axisName])))
+    #print(self.hangingPoints.shape)
+    self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
+    #print(self.hangingPoints)
+    if self.debug: print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
       
 #This is the normal derivation to be used later on
 #      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
@@ -665,18 +664,6 @@ class AdaptiveSampler(Sampler):
 #      gradVect = gradVect+centralCoor
 #      for varIndex, varName in enumerate(self.axisName):
 #        self.values[varName] = copy.copy(float(gradVect[varIndex]))
-    else:
-      #here we are still generating the batch
-      for key in self.distDict.keys():
-        if self.toleranceWeight=='probability':
-          self.values[key]= self.distDict[key].ppf(float(Distributions.random()))
-        else:
-          self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
-    #self.debug=True
-    if self.debug:
-      print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
-    self.debug=False
-    self.sign = -1*self.sign
 
   
   def localFinalizeActualSampling(self,jobObject,model,myInput):

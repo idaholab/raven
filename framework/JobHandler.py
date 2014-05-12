@@ -188,10 +188,12 @@ class JobHandler:
     command += self.runInfoDict['postcommand']
     self.__queue.put(ExternalRunner(command,workingDir,outputFile,metadata))
     self.__numSubmitted += 1
+    if self.howManyFreeSpots()>0: self.addRuns()
     
   def addInternal(self,Input,functionToRun,identifier,metadata=None):
     self.__queue.put(InternalRunner(Input,functionToRun,identifier,metadata))
     self.__numSubmitted += 1
+    if self.howManyFreeSpots()>0: self.addRuns()
 
   def isFinished(self):
     if not self.__queue.empty():
@@ -237,8 +239,10 @@ class JobHandler:
             else:
               print("No output ",outputFilename)
           self.__running[i] = None
-    if self.__queue.empty():
-      return finished
+    if not self.__queue.empty(): self.addRuns()
+    return finished
+
+  def addRuns(self):
     for i in range(len(self.__running)):
       if self.__running[i] == None and not self.__queue.empty(): 
         item = self.__queue.get() 
@@ -258,7 +262,6 @@ class JobHandler:
         self.__running[i] = item
         self.__running[i].start()
         self.__nextId += 1
-    return finished
 
   def getFinishedNoPop(self):
     return self.getFinished(False)
