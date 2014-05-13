@@ -14,6 +14,16 @@ mkdir -p $DOWNLOAD_DIR
 # probably be removed at some point when running on fission is not required.
 DOWNLOADER='curl -C - -L --insecure -O '
 
+if test "$OS_NAME" = "Darwin 13"
+then
+    #Work around for bug in OSX.  
+    # The flags Apple used to compile python can't compile with Xcode 5.
+    # See Xcode 5.1 release notes and
+    # http://stackoverflow.com/questions/22703393
+    # http://stackoverflow.com/questions/22313407
+    export ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future
+fi
+
 ORIGPYTHONPATH="$PYTHONPATH"
 if which shasum;
 then
@@ -123,8 +133,8 @@ else
 #hdf5
 #no dependencies
     cd $BUILD_DIR
-    rm -Rvf hdf5-1.8.12
-    download_files hdf5-1.8.12.tar.bz2 8414ca0e6ff7d08e423955960d641ec5f309a55f http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.12.tar.bz2
+    download_files hdf5-1.8.12.tar.bz2 8414ca0e6ff7d08e423955960d641ec5f309a55f http://www.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
+    #download_files hdf5-1.8.13.tar.bz2 712955025f03db808f000d8f4976b8df0c0d37b5 http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.13.tar.bz2 
     echo Extracting hdf5
     tar -xjf $DOWNLOAD_DIR/hdf5-1.8.12.tar.bz2
     cd hdf5-1.8.12
