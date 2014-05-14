@@ -38,16 +38,15 @@ class RavenExodiff(Exodiff):
     def __init__(self, name, params):
         Exodiff.__init__(self, name, params)
 
-    def getValidParams():
-        params = Exodiff.getValidParams()
+    @staticmethod
+    def validParams():
+        params = Exodiff.validParams()
         params.addParam('requires_python3', False, "Requires python3 for test")
         params.addParam('requires_swig2', False, "Requires swig2 for test")
         params.addParam('requires_python2', False, "Requires python2 for test")
         params.addParam('requires_python_config', False, "Requires python-config for test")
         params.addParam('requires_distributions_module', False, "Requires distributions module to be built")
         return params
-    getValidParams = staticmethod(getValidParams)
-
         
     def checkRunnable(self, options):
         if self.specs['requires_python3'] and not RavenExodiff.has_python3:

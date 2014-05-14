@@ -13,8 +13,9 @@ class RavenPython(Tester):
   has_swig2 = "Version 2.0" in output_swig
 
 
-  def getValidParams():
-    params = Tester.getValidParams()
+  @staticmethod
+  def validParams():
+    params = Tester.validParams()
     params.addRequiredParam('input',"The python file to use for this test.")
     if os.environ.get("CHECK_PYTHON3","0") == "1":
       params.addParam('python_command','python3','The command to use to run python')
@@ -23,7 +24,6 @@ class RavenPython(Tester):
     params.addParam('requires_swig2', False, "Requires swig2 for test")
 
     return params
-  getValidParams = staticmethod(getValidParams)
 
   def getCommand(self, options):
     return self.specs["python_command"]+" "+self.specs["input"]
