@@ -18,10 +18,10 @@ class RavenFramework(Tester):
 
   def getCommand(self, options):
     if RavenUtils.inPython3():
-      return "python3 ../../framework/Driver.py "+self.specs["input"]  
+      return "python3 ../../framework/Driver.py "+self.specs["input"]
     else:
       return "python ../../framework/Driver.py "+self.specs["input"]
-    
+
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
@@ -40,17 +40,18 @@ class RavenFramework(Tester):
       return (False,'skipped (Missing executable: "'+self.required_executable+'")')
     return (True, '')
 
-  def processResults(self, moose_dir,retcode, options, output):
-    check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
+  def prepare(self):
+    self.check_files = [os.path.join(self.specs['test_dir'],filename)  for filename in self.specs['output'].split(" ")]
     for filename in self.check_files+self.csv_files:# + [os.path.join(self.specs['test_dir'],filename)  for filename in self.csv_files]:
       if os.path.exists(filename):
-        os.remove(filename)    
+        os.remove(filename)
 
+  def processResults(self, moose_dir,retcode, options, output):
     missing = []
-    for filename in check_files:
+    for filename in self.check_files:
       if not os.path.exists(filename):
         missing.append(filename)
-    
+
     if len(missing) > 0:
       return ('CWD '+os.getcwd()+' METHOD '+os.environ.get("METHOD","?")+' Expected files not created '+" ".join(missing),output)
     if len(self.specs["rel_err"]) > 0:
