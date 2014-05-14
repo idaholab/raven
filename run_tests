@@ -8,18 +8,13 @@ os.chdir(os.path.abspath(os.path.dirname(sys.argv[0])))
 app_name = 'RAVEN'
 
 MOOSE_DIR = os.path.abspath(os.path.join('..', 'moose'))
-FRAMEWORK_DIR = os.path.abspath(os.path.join('..', 'moose', 'framework'))
 #### See if MOOSE_DIR is already in the environment instead
 if os.environ.has_key("MOOSE_DIR"):
   MOOSE_DIR = os.environ['MOOSE_DIR']
-  FRAMEWORK_DIR = os.path.join(MOOSE_DIR, 'framework')
-if os.environ.has_key("FRAMEWORK_DIR"):
-  FRAMEWORK_DIR = os.environ['FRAMEWORK_DIR']
 
-# Import the TestHarness and Helper functions from the MOOSE toolkit
-sys.path.append(os.path.join(FRAMEWORK_DIR, 'scripts', 'common'))
-sys.path.append(os.path.join(FRAMEWORK_DIR, 'scripts', 'TestHarness'))
-
+sys.path.append(os.path.join(MOOSE_DIR, 'python'))
+import path_tool
+path_tool.activate_module('TestHarness')
 
 #Try to import the raven libs dir into the PYTHONPATH
 
@@ -39,8 +34,7 @@ except:
   if len(missing) > 0:
     print "No raven_libs found and missing modules "+",".join(missing)
 
-import tools
+from TestHarness import TestHarness
 
-# create an instance of the test harness passing in the main arg vector
-# and the name of the application
-tools.runTests(sys.argv, app_name, FRAMEWORK_DIR)
+# Run the tests!
+TestHarness.buildAndRun(sys.argv, app_name, MOOSE_DIR)
