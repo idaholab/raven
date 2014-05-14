@@ -41,6 +41,10 @@ class RAVENInterface:
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
+    #### josh, example call, if node not found it returns None
+    distributionNode = parser.findNodeInXML("Distributions")
+    
+    
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
