@@ -14,6 +14,7 @@ import os
 import copy
 import abc
 import numpy as np
+import json
 from operator import mul
 from functools import reduce
 from scipy import spatial
@@ -32,15 +33,15 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   This is the base class for samplers
   Samplers own the sampling strategy (Type) and they generate the
   input values using the associate distribution. They do not have distributions inside!!!!
-  
+
   --Instance--
   myInstance = Sampler()
   myInstance.XMLread(xml.etree.ElementTree.Element)  This method generates all the information that will be permanent for the object during the simulation
-  
+
   --usage--
   myInstance = Sampler()
   myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
-  myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and 
+  myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
                                                      initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
   myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
   myInstance.amIreadyToProvideAnInput                Requested from <Step> used to verify that the sampler is available to generate a new input
@@ -51,14 +52,14 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   myInstance.myInitializzationParams()              -see BaseType class-
   myInstance.myCurrentSetting()                     -see BaseType class-
 
-  --Adding a new Sampler subclass--  
+  --Adding a new Sampler subclass--
   <MyClass> should inherit at least from Sampler or from another step already presents
 
   DO NOT OVERRIDE any of the class method that are not starting with self.local*
-  
+
   ADD your class to the dictionary __InterfaceDict at the end of the module
 
-  The following method overriding is MANDATORY:  
+  The following method overriding is MANDATORY:
   self.localGenerateInput(model,oldInput)  : this is where the step happens, after this call the output is ready
 
   the following methods could be overrode:
@@ -71,18 +72,18 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   '''
 
   def __init__(self):
-    BaseType.__init__(self) 
+    BaseType.__init__(self)
     self.counter                       = 0           # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.limit                         = sys.maxsize # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
     self.toBeSampled                   = {}          # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
     self.distDict                      = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}          # for each variable the current value {'var name':value}
-    self.inputInfo                     = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below 
+    self.inputInfo                     = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
     self.initSeed                      = None        # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
     self.inputInfo['SampledVars'     ] = self.values # this is the location where to get the values of the sampled variables
     self.inputInfo['SampledVarsPb'   ] = {}          # this is the location where to get the probability of the sampled variables
-    self.inputInfo['PointProbability'] = None        # this is the location where the point wise probability is stored (probability associated to a sampled point)   
-    self.inputInfo['distNodes']        = {}          # for checking if in the input (system code) a dist is already present, we need to store the xml node (not very elegant, but effective) 
+    self.inputInfo['PointProbability'] = None        # this is the location where the point wise probability is stored (probability associated to a sampled point)
+    self.inputInfo['crowDist']        = {}          # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
     self.FIXME= False
 
   def _readMoreXML(self,xmlNode):
@@ -102,7 +103,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
         IOError ('reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     for child in xmlNode:
       for childChild in child:
-        if childChild.tag =='distribution': 
+        if childChild.tag =='distribution':
           if child.tag == 'Distribution':
             #Add <distribution> to name so we know it is not the direct variable
             self.toBeSampled["<distribution>"+child.attrib['name']] = [childChild.attrib['type'],childChild.text]
@@ -113,7 +114,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   def localInputAndChecks(self,xmlNode):
     '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
     pass
-  
+
   def addInitParams(self,tempDict):
     '''
     This function is called from the base class to print some of the information inside the class.
@@ -126,7 +127,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     tempDict['limit' ]        = self.limit
     tempDict['initial seed' ] = self.initSeed
     self.localAddInitParams(tempDict)
-    
+
   def localAddInitParams(self,tempDict):
     '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
 
@@ -137,7 +138,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     The information is passed back in the dictionary
     Function adds the current settings in a temporary dictionary
     @ In, tempDict
-    @ Out, tempDict 
+    @ Out, tempDict
     '''
     tempDict['counter' ]      = self.counter
     tempDict['initial seed' ] = self.initSeed
@@ -153,16 +154,16 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
 
   def generateDistributions(self,availableDist):
     '''
-    here the needed distribution are made available to the step as also the initialization 
+    here the needed distribution are made available to the step as also the initialization
     of the seeding (the siding could be overriden by the step by calling the initialize method
     @in availableDist: {'distribution name':instance}
     '''
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
-    for key in self.toBeSampled.keys(): 
+    for key in self.toBeSampled.keys():
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]
-      #self.inputInfo['distNodes'][key] = self.distDict[key].distributionNode
-    
+      self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
+
   def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None,ROM=None):
     '''
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
@@ -179,14 +180,14 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
       if   goalFunction==None: raise Exception('not consistent call to the smapler.initialize since the SolutionExport is provided but not the goalFunction')
       else                   : self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction,ROM=ROM)
     else                     : self.localInitialize()
-    
+
   def localInitialize(self):
     '''
     use this function to add initialization features to the derived class
     it is call at the beginning of each step
     '''
     pass
-    
+
   def amIreadyToProvideAnInput(self,inLastOutput=None):
     '''
     This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
@@ -200,19 +201,19 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     if inLastOutput == None      : ready = self.localStillReady(ready)
     else                         : ready = self.localStillReady(ready,lastOutput=inLastOutput)
     return ready
-  
+
   def localStillReady(self,ready,lastOutput=None):
     '''Use this function to change the ready status'''
     return ready
-    
+
   def generateInput(self,model,oldInput):
     '''
     This method have to be overwrote to provide the specialization for the specific sampler
-    The model instance in might be needed since, especially for external codes, 
+    The model instance in might be needed since, especially for external codes,
     only the code interface possesses the dictionary for reading the variable definition syntax
     @in model   : it is the instance of a model
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-    @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model 
+    @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model
     '''
     self.counter +=1                              #since we are creating the input for the next run we increase the counter
     self.inputInfo['prefix'] = str(self.counter)
@@ -248,7 +249,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   def finalizeActualSampling(self,jobObject,model,myInput):
     '''just an API'''
     self.localFinalizeActualSampling(jobObject,model,myInput)
-  
+
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''
     Overwrite only if you need something special at the end of each run....
@@ -259,7 +260,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     It is a essentially a place-holder for most of the sampler to remain compatible with the StepsCR structure
     @in jobObject: an instance of a JobHandler
     @in model    : an instance of a model
-    @in myInput  : the generating input    
+    @in myInput  : the generating input
     '''
     pass
 #
@@ -286,14 +287,14 @@ class AdaptiveSampler(Sampler):
     self.testMatrix       = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix    = None             #This is the test matrix to use to store the old evaluation of the function
     self.gridShape        = None             #tuple describing the shape of the grid matrix
-    self.gridCoorShape    = None             #tuple describing the shape of the grid containing also the coordinate 
+    self.gridCoorShape    = None             #tuple describing the shape of the grid containing also the coordinate
     self.functionValue    = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.solutionExport   = None             #This is the data used to export the solution (it could also not be present)
     self.gridCoord        = None             #this is the matrix that contains for each entry of the grid the coordinate
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
-    
+
   def localInputAndChecks(self,xmlNode):
     convergenceNode = xmlNode.find('Convergence')
     if convergenceNode==None:raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
@@ -320,10 +321,10 @@ class AdaptiveSampler(Sampler):
       attribList.pop(attribList.index('forceIteration'))
       if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
-      else: raise Exception('Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration'])) 
+      else: raise Exception('Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     if self.subGridTol == None: self.subGridTol = self.tolerance
     if self.subGridTol> self.tolerance: raise IOError('The sub grid tolerance '+str(self.subGridTol)+' have to be smaller than the tolerance: '+str(self.tolerance))
-    
+
     if len(attribList)>0: raise IOError('There are unknown keywords in the convergence specifications: '+str(attribList))
 
   def localAddInitParams(self,tempDict):
@@ -334,7 +335,7 @@ class AdaptiveSampler(Sampler):
     tempDict['The sub grid size is  '                         ] = str(self.subGridTol)
     tempDict['The type of weighting for the error is '        ] = str(self.toleranceWeight)
     tempDict['The number of no error repetition requested is '] = str(self.repetition)
-         
+
   def localAddCurrentSetting(self,tempDict):
     if self.solutionExport!=None:
       tempDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
@@ -342,7 +343,7 @@ class AdaptiveSampler(Sampler):
       tempDict['The function used is '] = self.goalFunction.name
     for varName in self.distDict.keys():
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
-  
+
   def _cKDTreeInterface(self,action,data):
     m = len(list(data.keys()))
     n = len( data[  list(data.keys())[0]   ]  )
@@ -362,7 +363,7 @@ class AdaptiveSampler(Sampler):
         dataMatrix[:,myIndex] = data[key]
       distance, outId    = self._tree.query(dataMatrix)
       return distance, outId
-   
+
   def localInitialize(self,goalFunction=None,solutionExport=None,ROM=None):
     self.goalFunction   = goalFunction
     self.solutionExport = solutionExport
@@ -392,8 +393,8 @@ class AdaptiveSampler(Sampler):
     else: raise IOError('Unknown weight string descriptor: '+self.toleranceWeight)
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
-    self.nVar        = len(self.distDict.keys())               #Total number of variables 
-    stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance 
+    self.nVar        = len(self.distDict.keys())               #Total number of variables
+    stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
     if self.toleranceWeight!='probability':
@@ -404,7 +405,7 @@ class AdaptiveSampler(Sampler):
     pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
     #building the grid point coordinates
     for varId, varName in enumerate(self.distDict.keys()):
-      self.axisName.append(varName)     
+      self.axisName.append(varName)
       [myStepLenght, start, end]  = stepParam(varName)
       start                      += 0.5*myStepLenght
       if self.toleranceWeight=='probability': self.gridVectors[varName] = np.asarray([self.distDict[varName].ppf(pbCoord) for pbCoord in  np.arange(start,end,myStepLenght)])
@@ -422,7 +423,7 @@ class AdaptiveSampler(Sampler):
       coordinateID  = myIterator.multi_index[-1]
       axisName      = self.axisName[coordinateID]
       valuePosition = myIterator.multi_index[coordinateID]
-      self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition] 
+      self.gridCoord[myIterator.multi_index] = self.gridVectors[axisName][valuePosition]
       myIterator.iternext()
     self.axisStepSize = {}
     for varName in self.distDict.keys():
@@ -484,7 +485,7 @@ class AdaptiveSampler(Sampler):
       if self.FIXME:print('FIXME: please find a more elegant way to remove the output variables from the training set')
       for name in self.axisName: tempDict[name] = self.functionValue[name]
       tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
-      self.ROM.train(tempDict) 
+      self.ROM.train(tempDict)
       print('Training done')
     if self.debug: print('Training finished')                                    #happy thinking :)
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
@@ -495,7 +496,7 @@ class AdaptiveSampler(Sampler):
     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
-    if self.debug: print('Prediction finished')      
+    if self.debug: print('Prediction finished')
     testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))#compute the error
     if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                        #we still have error
     else              : self.repetition +=1                                     #we are increasing persistence
@@ -540,7 +541,7 @@ class AdaptiveSampler(Sampler):
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
         print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
-    
+
     #if the number of point on the limit surface is > than zero than save it
     if len(listsurfPoint)>0:
       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
@@ -551,19 +552,19 @@ class AdaptiveSampler(Sampler):
             if varName == self.axisName[varIndex]:
               self.solutionExport.removeInputValue(varName)
               self.solutionExport.updateInputValue(varName,copy.copy(self.surfPoint[:,varIndex]))
-    
+
     return ready
-    
+
   def localGenerateInput(self,model,oldInput):
     #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
     # create values dictionary
     '''compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
-     check the points where the derivative probability is the lowest'''  
+     check the points where the derivative probability is the lowest'''
 
     if self.debug: print('generating input')
     if self.surfPoint!=None and len(self.surfPoint)>0:
       tempDict = {}
-      for varIndex, name in enumerate(self.axisName): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex]) 
+      for varIndex, name in enumerate(self.axisName): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
       self._cKDTreeInterface('train',tempDict)
       tempDict = {}
       for varIndex, varName in enumerate(self.axisName):
@@ -571,13 +572,13 @@ class AdaptiveSampler(Sampler):
       distance, _ = self._cKDTreeInterface('confidence',tempDict)
       print(np.argmax(distance))
       for varIndex, varName in enumerate(self.axisName): self.values[varName] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
-      
+
 #      indexArray = np.argsort(distance)[::-1]
 #      for maxDistIndex in indexArray:
 #        coordToBeSampled = self.surfPoint[maxDistIndex,:]
 #        if not ((self.hangingPoints==coordToBeSampled).all(axis=1)==True).any():
 #          for varIndex, varName in enumerate(self.axisName): self.values[varName] = copy.copy(float(coordToBeSampled[varIndex]))
-#          break        
+#          break
     else:
       #here we are still generating the batch
       for key in self.distDict.keys():
@@ -591,7 +592,7 @@ class AdaptiveSampler(Sampler):
     self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
     #print(self.hangingPoints)
     if self.debug: print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
-      
+
 #This is the normal derivation to be used later on
 #      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
 #      for pointIndex, point in enumerate(self.surfPoint):
@@ -625,7 +626,7 @@ class AdaptiveSampler(Sampler):
 #          d1Down     = (centraPb-pbPoint[pointIndex,varIndex][0])/(centralCoor[varIndex]-pbMapPointCoord[pointIndex,varIndex,varIndex])
 #          d1Up       = (pbPoint[pointIndex,varIndex+self.nVar][0]-centraPb)/(pbMapPointCoord[pointIndex,varIndex+self.nVar,varIndex]-centralCoor[varIndex])
 #          if np.abs(d1Up)>np.abs(d1Down): d1Avg = d1Up
-#          else                          : d1Avg = d1Down          
+#          else                          : d1Avg = d1Down
 #          gradVect[pointIndex,varIndex] = d1Avg
 #          sum +=d1Avg
 #          modGrad[pointIndex] += d1Avg**2
@@ -635,7 +636,7 @@ class AdaptiveSampler(Sampler):
 #      print(self.axisName)
 #      for pointIndex, point in enumerate(self.surfPoint):
 #        myStr  = ''
-#        myStr  += '['       
+#        myStr  += '['
 #        for varIndex in range(self.nVar):
 #          myStr += '{:+6.4f}'.format(pbMapPointCoord[pointIndex,2*self.nVar,varIndex])
 #        myStr += '] '+'{:+6.4f}'.format(pbPoint[pointIndex,2*self.nVar,0])+'   '
@@ -651,7 +652,7 @@ class AdaptiveSampler(Sampler):
 #        myStr += '    Module '+'{:+6.4f}'.format(modGrad[pointIndex])
 #        print(myStr)
 #      print('probability acquired')
-#                                 
+#
 #      minIndex = np.argmin(np.abs(modGrad))
 #      print('index on the limit surface of the smallest gradient '+ str(minIndex)+'corresponding gradient module '+str(modGrad[minIndex])+' and probability '+str(pbPoint[minIndex,2*self.nVar][0]))
 #      pdDist = self.sign*(pbPoint[minIndex,2*self.nVar][0]-0.5-10*self.tolerance)/modGrad[minIndex]
@@ -671,7 +672,7 @@ class AdaptiveSampler(Sampler):
 #      for varIndex, varName in enumerate(self.axisName):
 #        self.values[varName] = copy.copy(float(gradVect[varIndex]))
 
-  
+
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''generate representation of goal function'''
     pass
@@ -680,17 +681,17 @@ class AdaptiveSampler(Sampler):
 #
 class MonteCarlo(Sampler):
   '''MONTE CARLO Sampler'''
-  
+
   def localInputAndChecks(self,xmlNode):
     if 'limit' not in  xmlNode.attrib.keys(): raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
-    for key in self.distDict: 
+    for key in self.distDict:
       self.values[key] = self.distDict[key].rvs()
-      self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])  
-    if len(self.inputInfo['SampledVarsPb'].keys()) > 0: 
+      self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
+    if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight' ] = 1.0/float(self.limit) #MC weight is 1/N
 #
@@ -701,10 +702,10 @@ class Grid(Sampler):
   Samples the model on a given (by input) set of points
   '''
   def __init__(self):
-    Sampler.__init__(self) 
+    Sampler.__init__(self)
     self.gridCoordinate       = [] #the grid point to be used for each distribution (changes at each step)
     self.axisName             = [] #the name of each axis (variable)
-    self.gridInfo             = {} # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal    
+    self.gridInfo             = {} # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
 
   def localInputAndChecks(self,xmlNode):
@@ -731,7 +732,7 @@ class Grid(Sampler):
             if   'lowerBound' in childChild.attrib.keys():
               self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
             elif 'upperBound' in childChild.attrib.keys():
-              self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])    
+              self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
             else: raise IOError('no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
           else: raise IOError('not specified the grid construction type')
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError('inconsistency between number of variables and grid specification')
@@ -741,7 +742,7 @@ class Grid(Sampler):
     for variable in self.gridInfo.items():
       tempList = [str(i) for i in variable[1][2]]
       tempDict[variable[0]+' is sampled using the grid'] = variable[1][0]+' with spacing '+variable[1][1]+', points: '+' '.join(tempList)
-            
+
   def localAddCurrentSetting(self,tempDict):
     for var, value in zip(self.axisName, self.gridCoordinate):
       tempDict['coordinate '+var+' has value'] = value
@@ -779,7 +780,7 @@ class Grid(Sampler):
       #print(varName,self.toBeSampled[varName])
       self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
       self.inputInfo['distributionType'][varName] = self.toBeSampled[varName][0]
-      stride = stride // len(self.gridInfo[varName][2]) 
+      stride = stride // len(self.gridInfo[varName][2])
       #index is the index into the array self.gridInfo[varName][2]
       index, remainder = divmod(remainder, stride )
       self.gridCoordinate[i] = index
@@ -787,7 +788,7 @@ class Grid(Sampler):
         self.values[varName] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
       elif self.gridInfo[varName][0]=='value':
         self.values[varName] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName]) 
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName])
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = 1.0/float(self.limit)
 #
@@ -798,7 +799,7 @@ class LHS(Grid):
   Latin hyper Cube based sampler. Currently no special filling method are implemented
   '''
   def __init__(self):
-    Grid.__init__(self) 
+    Grid.__init__(self)
     self.sampledCoordinate    = [] # a list of list for i=0,..,limit a list of the coordinate to be used this is needed for the LHS
 
   def localInputAndChecks(self,xmlNode):
@@ -848,7 +849,7 @@ class LHS(Grid):
         self.values[varName] = coordinate
         self.inputInfo['upper'][varName] = max(upper,lower)
         self.inputInfo['lower'][varName] = min(upper,lower)
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName]) 
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName])
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
 #
 #
@@ -860,18 +861,18 @@ class DynamicEventTree(Sampler):
   def __init__(self):
     Sampler.__init__(self)
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
-    self.workingDir = ""       
+    self.workingDir = ""
     # (optional) if not present, the sampler will not change the relative keyword in the input file
-    self.maxSimulTime            = None  
+    self.maxSimulTime            = None
     # print the xml tree representation of the dynamic event tree calculation
     # see variable 'self.TreeInfo'
-    self.print_end_xml           = False 
-    # Dictionary of the probability bins for each distribution that have been 
+    self.print_end_xml           = False
+    # Dictionary of the probability bins for each distribution that have been
     #  inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
     self.branchProbabilities     = {}
-    # Dictionary of the Values' bins for each distribution that have been 
+    # Dictionary of the Values' bins for each distribution that have been
     #  inputted by the user ('distName':[Pb_Threshold_1, Pb_Threshold_2, ..., Pb_Threshold_n])
-    # these are the invCDFs of the PBs inputted in branchProbabilities (if ProbabilityThresholds have been inputted) 
+    # these are the invCDFs of the PBs inputted in branchProbabilities (if ProbabilityThresholds have been inputted)
     self.branchValues     = {}
     # List of Dictionaries of the last probability bin level (position in the array) reached for each distribution ('distName':IntegerValue)
     # This container is a working dictionary. The branchedLevels are stored in the xml tree "self.TreeInfo" since they must track
@@ -879,7 +880,7 @@ class DynamicEventTree(Sampler):
     self.branchedLevel           = []
     # Counter for the branch needs to be run after a calculation branched (it is a working variable)
     self.branchCountOnLevel      = 0
-    # Dictionary tha contains the actual branching info 
+    # Dictionary tha contains the actual branching info
     # (i.e. distribution that triggered, values of the variables that need to be changed, etc)
     self.actualBranchInfo        = {}
     # Parent Branch end time (It's a working variable used to set up the new branches need to be run.
@@ -903,23 +904,23 @@ class DynamicEventTree(Sampler):
     '''
     Function that inquires if there is at least an input the in the queue that needs to be run
     @ In, None
-    @ Out, boolean 
+    @ Out, boolean
     '''
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0): return True
-    else: 
+    else:
       if self.print_end_xml: self.TreeInfo.writeNodeTree(self.workingDir+"/"+self.name + "_output_summary.xml")
       return False
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     '''
-    General function (available to all samplers) that finalize the sampling calculation just ended 
+    General function (available to all samplers) that finalize the sampling calculation just ended
     In this case (DET), The function reads the information from the ended calculation, updates the
     working variables, and creates the new inputs for the next branches
     @ In, jobObject: JobHandler Instance of the job (run) just finished
     @ In, model    : Model Instance... It may be a Code Instance, a ROM, etc.
     @ In, myInput  : List of the original input files
-    @ Out, None 
-    '''  
+    @ Out, None
+    '''
     self.workingDir = model.workingDir
     # Read the branch info from the parent calculation (just ended calculation)
     # This function stores the information in the dictionary 'self.actualBranchInfo'
@@ -930,20 +931,20 @@ class DynamicEventTree(Sampler):
     endInfo['branch_changed_params'] = self.actualBranchInfo[endInfo['branch_dist']]
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
     if(jobObject.identifier == self.TreeInfo.getrootnode().name): endInfo['parent_node'] = self.TreeInfo.getrootnode()
-    else: endInfo['parent_node'] = list(self.TreeInfo.getrootnode().iter(jobObject.identifier))[0] 
-    # get the branchedLevel dictionary 
+    else: endInfo['parent_node'] = list(self.TreeInfo.getrootnode().iter(jobObject.identifier))[0]
+    # get the branchedLevel dictionary
     branchedLevel = endInfo['parent_node'].get('branchedLevel')
-    if not branchedLevel: raise Exception('SAMPLER DET   : ERROR -> branchedLevel of node '+jobObject.identifier+'not found!!!!')  
+    if not branchedLevel: raise Exception('SAMPLER DET   : ERROR -> branchedLevel of node '+jobObject.identifier+'not found!!!!')
     # Loop of the parameters that have been changed after a trigger gets activated
     for key in endInfo['branch_changed_params']:
       endInfo['n_branches'] = 1 + int(len(endInfo['branch_changed_params'][key]['actual_value']))
       if(len(endInfo['branch_changed_params'][key]['actual_value']) > 1):
         #  Multi-Branch mode => the resulting branches from this parent calculation (just ended)
         # will be more then 2
-        # unchanged_pb = probability (not conditional probability yet) that the event does not occur  
+        # unchanged_pb = probability (not conditional probability yet) that the event does not occur
         unchanged_pb = 0.0
         try:
-          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' ''' 
+          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' '''
           for pb in xrange(len(endInfo['branch_changed_params'][key]['associated_pb'])): unchanged_pb = unchanged_pb + endInfo['branch_changed_params'][key]['associated_pb'][pb]
         except KeyError: pass
         if(unchanged_pb <= 1): endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0-unchanged_pb
@@ -953,7 +954,7 @@ class DynamicEventTree(Sampler):
         else: pb = self.branchProbabilities[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]
         endInfo['branch_changed_params'][key]['unchanged_pb'] = 1.0 - pb
         endInfo['branch_changed_params'][key]['associated_pb'] = [pb]
-  
+
     self.branchCountOnLevel = 0
     # set runEnded and running to true and false respectively
     endInfo['parent_node'].add('runEnded',True)
@@ -961,15 +962,15 @@ class DynamicEventTree(Sampler):
     endInfo['parent_node'].add('end_time',self.actual_end_time)
     # The branchedLevel counter is updated
     if branchedLevel[endInfo['branch_dist']] < len(self.branchProbabilities[endInfo['branch_dist']]): branchedLevel[endInfo['branch_dist']] += 1
-    # Append the parent branchedLevel (updated for the new branch/es) in the list tha contains them 
+    # Append the parent branchedLevel (updated for the new branch/es) in the list tha contains them
     # (it is needed in order to avoid overlapping among info coming from different parent calculations)
     # When this info is used, they are popped out
-    self.branchedLevel.append(branchedLevel) 
-    # Append the parent end info in the list tha contains them 
+    self.branchedLevel.append(branchedLevel)
+    # Append the parent end info in the list tha contains them
     # (it is needed in order to avoid overlapping among info coming from different parent calculations)
     # When this info is used, they are popped out
     self.endInfo.append(endInfo)
-    # Compute conditional probability 
+    # Compute conditional probability
     self.computeConditionalProbability()
     # Create the inputs and put them in the runQueue dictionary
     self.__createRunningQueue(model,myInput)
@@ -982,22 +983,22 @@ class DynamicEventTree(Sampler):
     @ In, index: position in the self.endInfo list (optional). Default = 0
     '''
     if not index: index = len(self.endInfo)-1
-    # parent_cond_pb = associated conditional probability of the Parent branch 
-    #parent_cond_pb = 0.0  
+    # parent_cond_pb = associated conditional probability of the Parent branch
+    #parent_cond_pb = 0.0
     try:
       parent_cond_pb = self.endInfo[index]['parent_node'].get('conditional_pb')
       if not parent_cond_pb: parent_cond_pb = 1.0
     except KeyError: parent_cond_pb = 1.0
-    # for all the branches the conditional pb is computed 
+    # for all the branches the conditional pb is computed
     # unchanged_cond_pb = Conditional Probability of the branches in which the event has not occurred
-    # changed_cond_pb   = Conditional Probability of the branches in which the event has occurred  
+    # changed_cond_pb   = Conditional Probability of the branches in which the event has occurred
     for key in self.endInfo[index]['branch_changed_params']:
       #try:
       self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'] = []
       self.endInfo[index]['branch_changed_params'][key]['unchanged_cond_pb'] = parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['unchanged_pb'])
       for pb in range(len(self.endInfo[index]['branch_changed_params'][key]['associated_pb'])): self.endInfo[index]['branch_changed_params'][key]['changed_cond_pb'].append(parent_cond_pb*float(self.endInfo[index]['branch_changed_params'][key]['associated_pb'][pb]))
       #except? pass
-    return  
+    return
 
   def __readBranchInfo(self,out_base=None):
     '''
@@ -1008,8 +1009,8 @@ class DynamicEventTree(Sampler):
                     to try reading.
     @ Out, boolean: true if the info are present (a set of new branches need to be run), false if the actual parent calculation reached an end point
     '''
-    
-    # Remove all the elements from the info container 
+
+    # Remove all the elements from the info container
     del self.actualBranchInfo
     self.actualBranchInfo = {}
     # Construct the file name adding the out_base root if present
@@ -1025,8 +1026,8 @@ class DynamicEventTree(Sampler):
     branch_info_tree = ET.parse(filename)
     print('SAMPLER DET   : Done parsing '+filename)
     #except? raise IOError ('not able to parse ' + filename)
-    root = branch_info_tree.getroot()  
-    # Check if end_time and end_ts (time step)  are present... In case store them in the relative working vars 
+    root = branch_info_tree.getroot()
+    # Check if end_time and end_ts (time step)  are present... In case store them in the relative working vars
     #try: #Branch info written out by program, so should always exist.
     self.actual_end_time = float(root.attrib['end_time'])
     self.actual_end_ts   = int(root.attrib['end_ts'])
@@ -1041,14 +1042,14 @@ class DynamicEventTree(Sampler):
           if 'probability' in child.attrib:
             as_pb = child.attrib['probability'].strip().split()
             self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'] = []
-            #self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb)) 
+            #self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb))
             for index in range(len(as_pb)): self.actualBranchInfo[dist_name][child.text.strip()]['associated_pb'].append(float(as_pb[index]))
-      # we exit the loop here, because only one trigger at the time can be handled  right now 
+      # we exit the loop here, because only one trigger at the time can be handled  right now
       break
     # remove the file
     os.remove(filename)
     branch_present = True
-    return branch_present 
+    return branch_present
 
   def __createRunningQueue(self,model,myInput):
     '''
@@ -1057,7 +1058,7 @@ class DynamicEventTree(Sampler):
     @ In, myInput: List of the original inputs
     @ Out, None
     '''
-    # Check if the number of calculation that have been run is greater than 1. If so, the simulation is already in the tree 
+    # Check if the number of calculation that have been run is greater than 1. If so, the simulation is already in the tree
     if self.counter >= 1:
       # The first DET calculation branch has already been run'
       # Start the manipulation:
@@ -1066,11 +1067,11 @@ class DynamicEventTree(Sampler):
       endInfo = self.endInfo.pop(0)
       # n_branches = number of branches need to be run
       n_branches = endInfo['n_branches']
-      # Check if the distribution that just triggered hitted the last probability threshold . 
-      # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in 
+      # Check if the distribution that just triggered hitted the last probability threshold .
+      # In case we create a number of branches = endInfo['n_branches'] - 1 => the branch in
       # which the event did not occur is not going to be tracked
       if branchedLevelG[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']]):
-        print('SAMPLER DET   : Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist']) 
+        print('SAMPLER DET   : Branch ' + endInfo['parent_node'].get('name') + ' hit last Threshold for distribution ' + endInfo['branch_dist'])
         print('SAMPLER DET   : Branch ' + endInfo['parent_node'].get('name') + ' is dead end.')
         self.branchCountOnLevel = 1
         n_branches = endInfo['n_branches'] - 1
@@ -1082,7 +1083,7 @@ class DynamicEventTree(Sampler):
         branchedLevel = copy.deepcopy(branchedLevelG)
         # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
         rname = copy.deepcopy(endInfo['parent_node'].get('name') + '-' + str(self.branchCountOnLevel))
-        # create a subgroup that will be appended to the parent element in the xml tree structure 
+        # create a subgroup that will be appended to the parent element in the xml tree structure
         subGroup = ETS.Node(rname)
         subGroup.add('parent', endInfo['parent_node'].get('name'))
         subGroup.add('name', rname)
@@ -1090,14 +1091,14 @@ class DynamicEventTree(Sampler):
         # cond_pb_c  = conditional probability event/s occur/s
         cond_pb_un = 0.0
         cond_pb_c  = 0.0
-        # Loop over  branch_changed_params (events) and start storing information, 
+        # Loop over  branch_changed_params (events) and start storing information,
         # such as conditional pb, variable values, into the xml tree object
         for key in endInfo['branch_changed_params'].keys():
           subGroup.add('branch_changed_param',key)
           if self.branchCountOnLevel != 1:
             subGroup.add('branch_changed_param_value',copy.deepcopy(endInfo['branch_changed_params'][key]['actual_value'][self.branchCountOnLevel-2]))
             subGroup.add('branch_changed_param_pb',copy.deepcopy(endInfo['branch_changed_params'][key]['associated_pb'][self.branchCountOnLevel-2]))
-            #try: 
+            #try:
             cond_pb_c = cond_pb_c + copy.deepcopy(endInfo['branch_changed_params'][key]['changed_cond_pb'][self.branchCountOnLevel-2])
             #except? pass
           else:
@@ -1108,15 +1109,15 @@ class DynamicEventTree(Sampler):
             #except? pass
         # add conditional probability
         if self.branchCountOnLevel != 1: subGroup.add('conditional_pb',copy.deepcopy(cond_pb_c))
-        else: subGroup.add('conditional_pb',copy.deepcopy(cond_pb_un)) 
-        # add initiator distribution info, start time, etc. 
+        else: subGroup.add('conditional_pb',copy.deepcopy(cond_pb_un))
+        # add initiator distribution info, start time, etc.
         subGroup.add('initiator_distribution',copy.deepcopy(endInfo['branch_dist']))
         subGroup.add('start_time', copy.deepcopy(endInfo['parent_node'].get('end_time')))
         # initialize the end_time to be equal to the start one... It will modified at the end of this branch
         subGroup.add('end_time', copy.deepcopy(endInfo['parent_node'].get('end_time')))
         # add the branchedLevel dictionary to the subgroup
         if self.branchCountOnLevel != 1: branchedLevel[endInfo['branch_dist']] = branchedLevel[endInfo['branch_dist']] - 1
-        
+
         subGroup.add('branchedLevel', copy.deepcopy(branchedLevel))
         # branch calculation info... running, queue, etc are set here
         subGroup.add('runEnded',False)
@@ -1125,7 +1126,7 @@ class DynamicEventTree(Sampler):
 #        subGroup.set('restartFileRoot',endInfo['restartRoot'])
         # Append the new branch (subgroup) info to the parent_node in the xml tree object
         endInfo['parent_node'].appendBranch(subGroup)
-        
+
         # Fill the values dictionary that will be passed into the model in order to create an input
         # In this dictionary the info for changing the original input is stored
         self.inputInfo = {'prefix':copy.deepcopy(rname),'end_ts':copy.deepcopy(endInfo['end_ts']),
@@ -1135,23 +1136,23 @@ class DynamicEventTree(Sampler):
                   'start_time':copy.deepcopy(endInfo['parent_node'].get('end_time')),
                   'parent_id':subGroup.get('parent')}
 
-        # Check if the distribution that just triggered hitted the last probability threshold . 
+        # Check if the distribution that just triggered hitted the last probability threshold .
         #  In this case there is not a probability threshold that needs to be added in the input
-        #  for this particular distribution 
+        #  for this particular distribution
         if not (branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']])):
           self.inputInfo['initiator_distribution'] = copy.deepcopy([endInfo['branch_dist']])
           self.inputInfo['PbThreshold'           ] = copy.deepcopy([self.branchProbabilities[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]])
           self.inputInfo['ValueThreshold'        ] = copy.deepcopy([self.branchValues[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]])
-          
+
         #  For the other distributions, we put the unbranched thresholds
-        #  Before adding these thresholds, check if the keyword 'initiator_distribution' is present... 
+        #  Before adding these thresholds, check if the keyword 'initiator_distribution' is present...
         #  (In the case the previous if statement is true, this keyword is not present yet
-        #  Add it otherwise 
+        #  Add it otherwise
         if not ('initiator_distribution' in self.inputInfo.keys()):
           self.inputInfo['initiator_distribution'] = []
           self.inputInfo['PbThreshold'           ] = []
           self.inputInfo['ValueThreshold'        ] = []
-          
+
         # Add the unbranched thresholds
         for key in self.branchProbabilities.keys():
           if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])): self.inputInfo['initiator_distribution'].append(copy.deepcopy(key.encode()))
@@ -1165,7 +1166,7 @@ class DynamicEventTree(Sampler):
           self.inputInfo['SampledVars'][varname]   = copy.deepcopy(self.branchValues[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
           self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
         # Call the model function "createNewInput" with the "values" dictionary just filled.
-        # Add the new input path into the RunQueue system  
+        # Add the new input path into the RunQueue system
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**self.inputInfo)))
         self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
         del branchedLevel
@@ -1173,9 +1174,9 @@ class DynamicEventTree(Sampler):
     else:
       # We construct the input for the first DET branch calculation'
       # Increase the counter
-      # The root name of the xml element tree is the starting name for all the branches 
+      # The root name of the xml element tree is the starting name for all the branches
       # (this root name = the user defined sampler name)
-      rname = self.TreeInfo.getrootnode().name 
+      rname = self.TreeInfo.getrootnode().name
       # Get the initial branchedLevel dictionary (=> the list gets empty)
       branchedLevelG = copy.deepcopy(self.branchedLevel.pop(0))
       branchedLevel = copy.deepcopy(branchedLevelG)
@@ -1196,10 +1197,10 @@ class DynamicEventTree(Sampler):
       for varname in self.toBeSampled.keys():
         self.inputInfo['SampledVars'  ][varname] = copy.deepcopy(self.branchValues[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
         self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
-  
+
       if(self.maxSimulTime): self.inputInfo['end_time'] = self.maxSimulTime
       # Call the model function "createNewInput" with the "values" dictionary just filled.
-      # Add the new input path into the RunQueue system  
+      # Add the new input path into the RunQueue system
       newInputs = model.createNewInput(myInput,self.type,**self.inputInfo)
       self.RunQueue['queue'].append(copy.deepcopy(newInputs))
       self.RunQueue['identifiers'].append(copy.deepcopy(self.inputInfo['prefix']))
@@ -1207,13 +1208,13 @@ class DynamicEventTree(Sampler):
       del branchedLevel
       self.counter += 1
     del branchedLevelG
-    return  
-  
+    return
+
   def __getQueueElement(self):
     '''
     Function to get an input from the internal queue system
-    @ In, None  
-    @ Out, jobInput: First input in the queue 
+    @ In, None
+    @ Out, jobInput: First input in the queue
     '''
     if len(self.RunQueue['queue']) == 0:
       # There are no more runs must be run
@@ -1233,7 +1234,7 @@ class DynamicEventTree(Sampler):
       # Update the run information flags
       if (root.name == jobId):
         root.add('runEnded',str(False))
-        root.add('running',str(True)) 
+        root.add('running',str(True))
         root.add('queue',str(False))
       else:
         subElm = list(root.iter(jobId))[0]
@@ -1249,17 +1250,17 @@ class DynamicEventTree(Sampler):
     @in model   : it is the instance of a model
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
     @return     : [] containing the new inputs -in reality it is the model that returns this, the Sampler generates the values to be placed in the model input
-    ''' 
+    '''
     return self.localGenerateInput(model, oldInput)
 
   def localGenerateInput(self,model,myInput):
     if self.counter <= 1:
-      # If first branch input, create the queue 
+      # If first branch input, create the queue
       self.__createRunningQueue(model, myInput)
     # retrieve the input from the queue
     newerinput = self.__getQueueElement()
     if not newerinput:
-      # If no inputs are present in the queue => a branch is finished 
+      # If no inputs are present in the queue => a branch is finished
       print("SAMPLER DET   : A Branch ended!!!!")
     return newerinput
 
@@ -1271,7 +1272,7 @@ class DynamicEventTree(Sampler):
     # retrieve max simulation time, if input
     try:    self.maxSimulTime = xmlNode.attrib['maxSimulationTime']
     except (KeyError,NameError): self.maxSimulTime = None
-    
+
     # Read branching settings
     #children = xmlNode.find("BranchingSettings")
     # this branching levels may be either probability thresholds or value thresholds
@@ -1281,7 +1282,7 @@ class DynamicEventTree(Sampler):
       for childChild in child:
         if childChild.tag =='distribution':
           branchedLevel[childChild.text] = 0
-          if 'ProbabilityThresholds' in childChild.attrib: 
+          if 'ProbabilityThresholds' in childChild.attrib:
             self.branchProbabilities[childChild.text] = [float(x) for x in childChild.attrib['ProbabilityThresholds'].split()]
             self.branchProbabilities[childChild.text].sort(key=float)
             if max(self.branchProbabilities[childChild.text]) > 1:
@@ -1301,38 +1302,38 @@ class DynamicEventTree(Sampler):
                 error_found = True
             # the associated CDF of the branchValues are computed in the initialize method (called right before the Sampler gets used)
           else: raise IOError('The DynamicEventTree sampler needs that all distributions have either Probability Thresholds or Value Thresholds!!!!')
-    if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )     
+    if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
-  
+
   def localAddInitParams(self,tempDict):
-    
+
     for key in self.branchProbabilities.keys():
       tempDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
     for key in self.branchValues.keys():
       tempDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
-      
+
   def localAddCurrentSetting(self,tempDict):
     tempDict['actual threshold levels are '] = self.branchedLevel[0]
-  
+
   def localInitialize(self):
     elm = ETS.Node(self.name + '_1')
-  
+
     elm.add('name', self.name + '_1')
     elm.add('start_time', str(0.0))
-    # Initialize the end_time to be equal to the start one... 
+    # Initialize the end_time to be equal to the start one...
     # It will modified at the end of each branch
     elm.add('end_time', str(0.0))
     elm.add('runEnded',str(False))
     elm.add('running',str(True))
-    elm.add('queue',str(False))   
+    elm.add('queue',str(False))
     # The dictionary branchedLevel is stored in the xml tree too. That's because
     # the advancement of the thresholds must follow the tree structure
     elm.add('branchedLevel', self.branchedLevel[0])
     # Here it is stored all the info regarding the DET => we create the info for all the
     # branchings and we store them
-    self.TreeInfo = ETS.NodeTree(elm) 
-    
+    self.TreeInfo = ETS.NodeTree(elm)
+
     if (len(self.branchProbabilities.keys()) != 0):
       #compute the associated invCDF values
       for key in self.branchProbabilities.keys():
@@ -1372,4 +1373,3 @@ def optionalInputs(Type):
 
 def mandatoryInputs(Type):
   pass
-

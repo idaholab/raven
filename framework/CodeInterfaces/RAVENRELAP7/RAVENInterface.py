@@ -10,8 +10,11 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import utils
+import xml.etree.ElementTree as ET
+import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from utils import toString
+import Distributions
 
 class RAVENInterface:
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
@@ -40,11 +43,9 @@ class RAVENInterface:
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
+    Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
-    #### josh, example call, if node not found it returns None
-    distributionNode = parser.findNodeInXML("Distributions")
-    
-    
+
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
@@ -176,29 +177,23 @@ class RAVENInterface:
     #print("Kwargs",Kwargs,"SampledVars",Kwargs["SampledVars"])
     distributionKeys = [key for key in Kwargs["SampledVars"] if key.startswith("<distribution>")]
     distributions = {}
+    #distributionNodeRoot = Kwargs["distributionNode"]
+    #print(ET.tostring(distributionNodeRoot))
     for key in distributionKeys:
       distributionName = Kwargs['distributionName'][key]
       distributionType = Kwargs['distributionType'][key]
+      crowDistribution = json.loads(Kwargs['crowDist'][key])
       distributions[key] = [Kwargs["SampledVars"].pop(key),distributionName,
-                            distributionType]
+                            distributionType,crowDistribution]
+      #distributionNode = distributionNodeRoot.find(distributionName)
+      #distributionInstance = Distributions.returnInstance(distributionType)
+      #distributionInstance._readMoreXML(distributionNode)
+      #print(key,distributions[key],distributionNode,crowDistribution)
     mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'))
 
     mooseApp = mooseInterface.MooseBasedAppInterface()
     listDict = mooseApp.pointSamplerForMooseBasedApp(**Kwargs)
     return distributions,listDict
-
-  __FrameworkToRavenCDistNames = {'Uniform':'UniformDistribution',
-                                  'Normal':'NormalDistribution',
-                                  'Gamma':'GammaDistribution',
-                                  'Beta':'BetaDistribution',
-                                  'Triangular':'TriangularDistribution',
-                                  'Poisson':'PoissonDistribution',
-                                  'Binomial':'BinomialDistribution',
-                                  'Bernoulli':'BernoulliDistribution',
-                                  'Logistic':'LogisticDistribution',
-                                  'Exponential':'ExponentialDistribution',
-                                  'LogNormal':'LogNormalDistribution',
-                                  'Weibull':'WeibullDistribution'  }
 
   def gridForRAVEN(self,**Kwargs):
     """Uses point sampler to generate variable points, and
@@ -207,14 +202,14 @@ class RAVENInterface:
     """
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
-      distName, distType = distributions[key][1:3]
-      distRavenType = self.__FrameworkToRavenCDistNames[distType]
-      listDict.append({'name':['Distributions',distName],
-                       'special':set(['assert_match']),
-                       'type':distRavenType})
+      distName, distType, crowDist = distributions[key][1:4]
+      crowDist['name'] = ['Distributions',distName]
+      assertDict = crowDist.copy()
+      assertDict['special'] = set(['assert_match'])
+      listDict.append(assertDict)
       #listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
       listDict.append({'name':['Distributions',distName],'force_value':distributions[key][0]})
-      listDict.append({'name':['Distributions',distName],'type':distRavenType})
+      listDict.append(crowDist)
     #print("listDict",listDict,"distributions",distributions,"Kwargs",Kwargs)
     return listDict
 
@@ -225,13 +220,15 @@ class RAVENInterface:
     """
     distributions,listDict = self.__genBasePointSampler(**Kwargs)
     for key in distributions.keys():
-      distName, distType = distributions[key][1:3]
-      listDict.append({'name':['Distributions',distName],
-                       'special':set(['assert_match']),
-                       'type':self.__FrameworkToRavenCDistNames[distType]})
+      distName, distType, crowDist = distributions[key][1:4]
+      crowDist['name'] = ['Distributions',distName]
+      assertDict = crowDist.copy()
+      assertDict['special'] = set(['assert_match'])
+      listDict.append(assertDict)
       listDict.append({'name':['Distributions',distName],
                        'V_window_Up':Kwargs['upper'][key]})
       listDict.append({'name':['Distributions',distName],
                        'V_window_Low':Kwargs['lower'][key]})
+      listDict.append(crowDist)
     #print("listDict",listDict,"distributions",distributions)
     return listDict

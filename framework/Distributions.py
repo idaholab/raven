@@ -18,8 +18,22 @@ else:                          import distribution1Dpy2 as distribution1D
 
 stochasticEnv = distribution1D.DistributionContainer.Instance()
 
+_FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
+                              'Normal':'NormalDistribution',
+                              'Gamma':'GammaDistribution',
+                              'Beta':'BetaDistribution',
+                              'Triangular':'TriangularDistribution',
+                              'Poisson':'PoissonDistribution',
+                              'Binomial':'BinomialDistribution',
+                              'Bernoulli':'BernoulliDistribution',
+                              'Logistic':'LogisticDistribution',
+                              'Exponential':'ExponentialDistribution',
+                              'LogNormal':'LogNormalDistribution',
+                              'Weibull':'WeibullDistribution'  }
+
+
 class Distribution(BaseType):
-  ''' 
+  '''
   a general class containing the distributions
   '''
   def __init__(self):
@@ -30,9 +44,7 @@ class Distribution(BaseType):
     self.lowerBound       = 0.0  #Left bound
     self.__adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality   = None #Dimensionality of the distribution (1D or ND)
-    self.distributionNode = None
   def _readMoreXML(self,xmlNode):
-    self.distributionNode = copy.deepcopy(xmlNode)
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
@@ -41,6 +53,17 @@ class Distribution(BaseType):
       self.lowerBoundUsed = True
     if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
     else: self.__adjustment = 'scaling'
+
+  def getCrowDistDict(self):
+    """Returns a dictionary of the keys and values that would be
+    used to create the distribution for a Crow input file."""
+    retDict = {}
+    retDict['type'] = _FrameworkToCrowDistNames[self.type]
+    if self.lowerBoundUsed:
+      retDict['xMin'] = self.lowerBound
+    if self.lowerBoundUsed:
+      retDict['xMax'] = self.lowerBound
+    return retDict
 
   def addInitParams(self,tempDict):
     tempDict['upperBoundUsed'] = self.upperBoundUsed
@@ -85,7 +108,7 @@ def randomIntegers(low,high):
     print("Random int out of range")
     raw_int = max(low,min(raw_int,high))
   return raw_int
-  
+
 def randomPermutation(l):
   new_list = []
   old_list = l[:]
@@ -97,7 +120,7 @@ class BoostDistribution(Distribution):
   def __init__(self):
     Distribution.__init__(self)
     self.dimensionality  = '1D'
-  
+
   def cdf(self,x):
     return self._distribution.Cdf(x)
 
@@ -106,7 +129,7 @@ class BoostDistribution(Distribution):
 
   def pdf(self,x):
     return self._distribution.Pdf(x)
-    
+
   def untruncatedCdfComplement(self, x):
     return self._distribution.untrCdfComplement(x)
 
@@ -150,13 +173,13 @@ class Uniform(BoostDistribution):
     else: raise Exception('hi or high value needed for uniform distribution')
 #    self.initializeDistribution() this call is done by the sampler each time a new step start
     self.range=self.hi-self.low
-    # check if lower or upper bounds are set, otherwise default 
-    if not self.upperBoundUsed: 
+    # check if lower or upper bounds are set, otherwise default
+    if not self.upperBoundUsed:
       self.upperBoundUsed = True
       self.upperBound     = self.hi
-    if not self.lowerBoundUsed: 
+    if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
-      self.lowerBound     = self.low 
+      self.lowerBound     = self.low
     #assign associated polynomial types
     self.polynomial = polys.legendre
     #define functions locally, then point to them
@@ -198,7 +221,7 @@ class Uniform(BoostDistribution):
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
 
   # def cdf(self,x):
-  #   value = super(Uniform,self).cdf(x) 
+  #   value = super(Uniform,self).cdf(x)
   #   print("Uniform CDF",x,value)
   #   return value
 
@@ -273,7 +296,7 @@ class Normal(BoostDistribution):
                                                                   self.sigma,
                                                                   a,b)
       #self._distribution = dist.truncnorm(a,b,loc=self.mean,scale=self.sigma)
-    
+
 class Gamma(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
@@ -293,10 +316,10 @@ class Gamma(BoostDistribution):
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
     else: self.beta=1.0
-    # check if lower bound are set, otherwise default 
-    if not self.lowerBoundUsed: 
+    # check if lower bound are set, otherwise default
+    if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
-      self.lowerBound     = self.low 
+      self.lowerBound     = self.low
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -357,13 +380,13 @@ class Beta(BoostDistribution):
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
     else: raise Exception('beta value needed for Gamma distribution')
-    # check if lower or upper bounds are set, otherwise default 
-    if not self.upperBoundUsed: 
+    # check if lower or upper bounds are set, otherwise default
+    if not self.upperBoundUsed:
       self.upperBoundUsed = True
       self.upperBound     = self.hi
-    if not self.lowerBoundUsed: 
+    if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
-      self.lowerBound     = self.low 
+      self.lowerBound     = self.low
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -402,11 +425,11 @@ class Triangular(BoostDistribution):
     max_find = xmlNode.find('max')
     if max_find != None: self.max = float(max_find.text)
     else: raise Exception('max value needed for normal distribution')
-    # check if lower or upper bounds are set, otherwise default 
-    if not self.upperBoundUsed: 
+    # check if lower or upper bounds are set, otherwise default
+    if not self.upperBoundUsed:
       self.upperBoundUsed = True
       self.upperBound     = self.max
-    if not self.lowerBoundUsed: 
+    if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.min
     self.initializeDistribution()
@@ -422,39 +445,39 @@ class Triangular(BoostDistribution):
       self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
       raise IOError ('Truncated triangular not yet implemented')
-    
-    
+
+
 class Poisson(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.mu  = 0.0
     self.type = 'Poisson'
-    
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     mu_find = xmlNode.find('mu')
     if mu_find != None: self.mu = float(mu_find.text)
     else: raise Exception('mu value needed for poisson distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['mu'  ] = self.mu
-    
+
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicPoissonDistribution(self.mu)
     else:
-      raise IOError ('Truncated poisson not yet implemented')    
-    
-    
+      raise IOError ('Truncated poisson not yet implemented')
+
+
 class Binomial(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.n  = 0.0
     self.p  = 0.0
     self.type = 'Binomial'
-    
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     n_find = xmlNode.find('n')
@@ -464,36 +487,36 @@ class Binomial(BoostDistribution):
     if p_find != None: self.p = float(p_find.text)
     else: raise Exception('p value needed for Binomial distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['n'  ] = self.n
     tempDict['p'  ] = self.p
-    
+
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       #self._distribution = dist.binom(n=self.n,p=self.p)
       self._distribution = distribution1D.BasicBinomialDistribution(self.n,self.p)
     else:
-      raise IOError ('Truncated Binomial not yet implemented')   
+      raise IOError ('Truncated Binomial not yet implemented')
 
 class Bernoulli(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.p  = 0.0
     self.type = 'Bernoulli'
-    
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
     else: raise Exception('p value needed for Bernoulli distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['p'  ] = self.p
-    
+
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
@@ -506,7 +529,7 @@ class Logistic(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
-    
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     location_find = xmlNode.find('location')
@@ -516,12 +539,12 @@ class Logistic(BoostDistribution):
     if scale_find != None: self.scale = float(scale_find.text)
     else: raise Exception('scale value needed for Logistic distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['location'] = self.location
     tempDict['scale'   ] = self.scale
-    
+
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale)
@@ -539,22 +562,22 @@ class Exponential(BoostDistribution):
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception('lambda value needed for Exponential distribution')
-    # check if lower bound is set, otherwise default 
-    if not self.lowerBoundUsed: 
+    # check if lower bound is set, otherwise default
+    if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = 0.0
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
-    
+
   def initializeDistribution(self):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.lowerBound == 0.0):
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var)
     else:
       raise IOError ('Truncated Exponential not yet implemented')
-    
+
 class LogNormal(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
@@ -571,18 +594,18 @@ class LogNormal(BoostDistribution):
     if sigma_find != None: self.sigma = float(sigma_find.text)
     else: raise Exception('sigma value needed for LogNormal distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['mean' ] = self.mean
     tempDict['sigma'] = self.sigma
-    
+
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma)
     else:
       raise IOError ('Truncated LogNormal not yet implemented')
-    
+
 class Weibull(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
@@ -598,18 +621,18 @@ class Weibull(BoostDistribution):
     k_find = xmlNode.find('k')
     if k_find != None: self.k = float(k_find.text)
     else: raise Exception('k (shape) value needed for Weibull distribution')
-    # check if lower  bound is set, otherwise default 
-    if not self.lowerBoundUsed: 
+    # check if lower  bound is set, otherwise default
+    if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       # lower bound = 0 since no location parameter available
       self.lowerBound     = 0.0
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
     tempDict['k'     ] = self.k
-    
+
   def initializeDistribution(self):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or self.lowerBound == 0.0:
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
@@ -637,24 +660,24 @@ class NDimensionalDistributions(Distribution):
     Distribution.addInitParams(self, tempDict)
     tempDict['function_type'] = self.function_type
     tempDict['data_filename'] = self.data_filename
-    
+
 class NDInverseWeight(NDimensionalDistributions):
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.p  = None
     self.type = 'NDInverseWeight'
-    
+
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
     self.p = xmlNode.find('p')
     if self.p != None: self.p = float(self.p)
     else: raise Exception('Minkowski distance parameter <p> not found in NDInverseWeight distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     NDimensionalDistributions.addInitParams(self, tempDict)
     tempDict['p'] = self.p
-    
+
   def initializeDistribution(self):
     NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.p)
@@ -667,7 +690,7 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def pdf(self,x):
     return self._distribution.Pdf(x)
-    
+
   def untruncatedCdfComplement(self, x):
     raise NotImplementedError('untruncatedCdfComplement not yet implemented for ' + self.type)
 
@@ -692,7 +715,7 @@ class NDScatteredMS(NDimensionalDistributions):
     self.p  = None
     self.precision = None
     self.type = 'NDScatteredMS'
-    
+
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
     self.p = xmlNode.find('p')
@@ -702,12 +725,12 @@ class NDScatteredMS(NDimensionalDistributions):
     if self.precision != None: self.precision = float(self.precision)
     else: raise Exception('precision parameter <precision> not found in NDScatteredMS distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     NDimensionalDistributions.addInitParams(self, tempDict)
     tempDict['p'] = self.p
     tempDict['precision'] = self.precision
-    
+
   def initializeDistribution(self):
     NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalScatteredMS(self.p,self.precision)
@@ -720,7 +743,7 @@ class NDScatteredMS(NDimensionalDistributions):
 
   def pdf(self,x):
     return self._distribution.Pdf(x)
-    
+
   def untruncatedCdfComplement(self, x):
     raise NotImplementedError('untruncatedCdfComplement not yet implemented for ' + self.type)
 
@@ -743,14 +766,14 @@ class NDCartesianSpline(NDimensionalDistributions):
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.type = 'NDCartesianSpline'
-    
+
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     NDimensionalDistributions.addInitParams(self, tempDict)
-    
+
   def initializeDistribution(self):
     NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline()
@@ -763,7 +786,7 @@ class NDCartesianSpline(NDimensionalDistributions):
 
   def pdf(self,x):
     return self._distribution.Pdf(x)
-    
+
   def untruncatedCdfComplement(self, x):
     raise NotImplementedError('untruncatedCdfComplement not yet implemented for ' + self.type)
 
@@ -807,5 +830,4 @@ def knonwnTypes():
 
 def returnInstance(Type):
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)  
-
+  except KeyError: raise NameError('not known '+__base+' type '+Type)
