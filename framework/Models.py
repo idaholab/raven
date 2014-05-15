@@ -549,7 +549,7 @@ class Projector(Model):
 #
 #
 #
-class Filter(Model):
+class PostProcessor(Model):
   '''Filter is an Action System. All the models here, take an input and perform an action'''
   @classmethod
   def specializeValidateDict(cls):
@@ -601,7 +601,6 @@ class Filter(Model):
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.externalFunction         = externalFunction
-
     self.interface.initialize(runInfo, inputs, externalFunction)
     
   def run(self,Input,jobHandler):
@@ -628,7 +627,7 @@ __interFaceDict['ROM'           ] = ROM
 __interFaceDict['ExternalModel' ] = ExternalModel
 __interFaceDict['Code'          ] = Code
 __interFaceDict['Projector'     ] = Projector
-__interFaceDict['PostProcessor' ] = Filter
+__interFaceDict['PostProcessor' ] = PostProcessor
 #__interFaceDict                   = (__interFaceDict.items()+CodeInterfaces.__interFaceDict.items()) #try to use this and remove the code interface
 __knownTypes                      = list(__interFaceDict.keys())
 
