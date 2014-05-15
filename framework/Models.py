@@ -20,7 +20,7 @@ import importlib
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
 import SupervisedLearning
-from Filters import returnFilterInterface
+import PostProcessors #import returnFilterInterface
 import Samplers
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -526,7 +526,7 @@ class Projector(Model):
 
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
-    self.code = returnFilterInterface(self.subType)
+    self.code = PostProcessors.returnInstance(self.subType)
     self.code._readMoreXML(xmlNode)
  
   def addInitParams(self,tempDict):
@@ -545,7 +545,7 @@ class Projector(Model):
 
   def run(self,inObj,outObj):
     '''run calls the interface finalizer'''
-    self.interface.finalizeFilter(inObj,outObj,self.workingDir)
+    self.interface.run(inObj,outObj,self.workingDir)
 #
 #
 #
@@ -560,11 +560,25 @@ class Filter(Model):
     cls.validateDict['Input'  ][1]['type'        ] = ['HDF5']
     cls.validateDict['Input'  ][1]['required'    ] = False
     cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][2]['class'       ] = 'Datas'
+    cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+    cls.validateDict['Input'  ][2]['required'    ] = False
+    cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][3]['class'       ] = 'Files'
-    cls.validateDict['Output' ][3]['type'        ] = ['']
-    cls.validateDict['Output' ][3]['required'    ] = False
-    cls.validateDict['Output' ][3]['multiplicity'] = 'n'
+    cls.validateDict['Output' ][0]['class'       ] = 'Files'
+    cls.validateDict['Output' ][0]['type'        ] = ['']
+    cls.validateDict['Output' ][0]['required'    ] = False
+    cls.validateDict['Output' ][0]['multiplicity'] = 'n'
+    cls.validateDict['Output' ][1]['class'       ] = 'Datas'
+    cls.validateDict['Output' ][1]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
+    cls.validateDict['Output' ][1]['required'    ] = False
+    cls.validateDict['Output' ][1]['multiplicity'] = 'n'
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][2]['class'       ] = 'DataBases'
+    cls.validateDict['Output' ][2]['type'        ] = ['HDF5']
+    cls.validateDict['Output' ][2]['required'    ] = False
+    cls.validateDict['Output' ][2]['multiplicity'] = 'n'
 
   def __init__(self):
     Model.__init__(self)
@@ -574,30 +588,35 @@ class Filter(Model):
 
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
-    self.interface = returnFilterInterface(self.subType)
+    self.interface = PostProcessors.returnInstance(self.subType)
+    
     self.interface._readMoreXML(xmlNode)
  
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
-
-  def initialize(self,runInfoDict,inputFiles):
+  
+  
+  def initialize(self,runInfo,inputs,externalFunction=None):
     '''initialize some of the current setting for the runs and generate the working 
        directory with the starting input files'''
-    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
-    runInfoDict['TempWorkingDir'] = self.workingDir
-    try: os.mkdir(self.workingDir)
-    except: print('MODEL FILTER  : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-    return
-  def run(self,inObj,jobHandler):
+    self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
+    self.externalFunction         = externalFunction
+
+    self.interface.initialize(runInfo, inputs, externalFunction)
+    
+  def run(self,Input,jobHandler):
     '''run calls the interface finalizer'''
-    for i in range(len(inObj)):
-      lumbdaToRun = lambda x: self.interface.finalizeFilter(x[0],x[1])
-      jobHandler.submitDict['Internal'](((inObj[i],self.workingDir),),lumbdaToRun,str(i))  
+    for i in range(len(Input)):
+      lumbdaToRun = lambda x: self.interface.run(x)
+      jobHandler.submitDict['Internal'](((Input[i]),),lumbdaToRun,str(i)) 
+ 
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)
+    
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''just for compatibility'''
-    pass
+    return self.interface.createNewInput(self,myInput,**Kwargs)
+     
 
 '''
  Factory......
@@ -609,7 +628,7 @@ __interFaceDict['ROM'           ] = ROM
 __interFaceDict['ExternalModel' ] = ExternalModel
 __interFaceDict['Code'          ] = Code
 __interFaceDict['Projector'     ] = Projector
-__interFaceDict['Filter'        ] = Filter
+__interFaceDict['PostProcessor' ] = Filter
 #__interFaceDict                   = (__interFaceDict.items()+CodeInterfaces.__interFaceDict.items()) #try to use this and remove the code interface
 __knownTypes                      = list(__interFaceDict.keys())
 

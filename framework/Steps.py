@@ -178,7 +178,8 @@ class SingleRun(Step):
         modelIndex = index
       else: rolesItem.append(parameter[0])
     #test the presence of one and only one model
-    if found > 1: raise IOError ('Only one model is allowed for the step named '+str(self.name))
+    if found > 1: raise IOError ('STEPS         : ERROR -> Only one model is allowed for the step named '+str(self.name))
+    elif found == 0: raise IOError ('STEPS         : ERROR -> No model has been found for the step named '+str(self.name))
     roles      = set(rolesItem)
     toBeTested = {}
     for role in roles: toBeTested[role]=[]
@@ -186,8 +187,8 @@ class SingleRun(Step):
       if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
     #use the models static testing of roles compatibility
     for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
-    if 'Input'  not in roles: raise IOError ('It is not possible a run without an Input!!!')
-    if 'Output' not in roles: raise IOError ('It is not possible a run without an Output!!!')
+    if 'Input'  not in roles: raise IOError ('STEPS         : ERROR -> It is not possible a run without an Input!!!')
+    if 'Output' not in roles: raise IOError ('STEPS         : ERROR -> It is not possible a run without an Output!!!')
     
   def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
@@ -314,30 +315,30 @@ class Adaptive(MultiRun):
       if   role[0] == 'Sampler':
         foundSampler    =True
         samplCounter   +=1
-        if not(role[1]=='Samplers' and role[2]=='Adaptive'): raise Exception('The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
+        if not(role[1]=='Samplers' and role[2]=='Adaptive'): raise Exception('STEPS         : ERROR -> The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
       elif role[0] == 'TargetEvaluation':
         foundTargEval   = True
         targEvalCounter+=1
-        if role[1]!='Datas'                               : raise Exception('The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
-        if not(['Output']+role[1:] in self.parList[:])    : raise Exception('The data chosen for the evaluation of the adaptive strategy is not in the output list for step '+self.name)
+        if role[1]!='Datas'                               : raise Exception('STEPS         : ERROR -> The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
+        if not(['Output']+role[1:] in self.parList[:])    : raise Exception('STEPS         : ERROR -> The data chosen for the evaluation of the adaptive strategy is not in the output list for step '+self.name)
       elif role[0] == 'SolutionExport'  :
         solExportCounter  +=1
-        if role[1]!='Datas'                               : raise Exception('The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
+        if role[1]!='Datas'                               : raise Exception('STEPS         : ERROR -> The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
       elif role[0] == 'Function'       :
         functionCounter+=1
         foundFunction   = True
-        if role[1]!='Functions'                           : raise Exception('A class function is required as function in an adaptive step, in the step '+self.name)
+        if role[1]!='Functions'                           : raise Exception('STEPS         : ERROR -> A class function is required as function in an adaptive step, in the step '+self.name)
       elif role[0] == 'ROM':
         ROMCounter+=1
         if not(role[1]=='Models' and role[2]=='ROM')       : raise Exception('The ROM could be only class=Models and type=ROM. It does not seems so in the step '+self.name)
-    if foundSampler ==False: raise Exception('It is not possible to run an adaptive step without a sampler in step '           +self.name)
-    if foundTargEval==False: raise Exception('It is not possible to run an adaptive step without a target output in step '     +self.name)
-    if foundFunction==False: raise Exception('It is not possible to run an adaptive step without a proper function, in step '  +self.name)
-    if samplCounter    >1  : raise Exception('More than one sampler found in step '                                            +self.name)
-    if targEvalCounter >1  : raise Exception('More than one target defined for the adaptive sampler found in step '            +self.name)
-    if solExportCounter>1  : raise Exception('More than one output to export the solution of the goal function, found in step '+self.name)
-    if functionCounter >1  : raise Exception('More than one function defined in the step '                                     +self.name)
-    if ROMCounter      >1  : raise Exception('More than one ROM defined in the step '                                          +self.name)
+    if foundSampler ==False: raise Exception('STEPS         : ERROR -> It is not possible to run an adaptive step without a sampler in step '           +self.name)
+    if foundTargEval==False: raise Exception('STEPS         : ERROR -> It is not possible to run an adaptive step without a target output in step '     +self.name)
+    if foundFunction==False: raise Exception('STEPS         : ERROR -> It is not possible to run an adaptive step without a proper function, in step '  +self.name)
+    if samplCounter    >1  : raise Exception('STEPS         : ERROR -> More than one sampler found in step '                                            +self.name)
+    if targEvalCounter >1  : raise Exception('STEPS         : ERROR -> More than one target defined for the adaptive sampler found in step '            +self.name)
+    if solExportCounter>1  : raise Exception('STEPS         : ERROR -> More than one output to export the solution of the goal function, found in step '+self.name)
+    if functionCounter >1  : raise Exception('STEPS         : ERROR -> More than one function defined in the step '                                     +self.name)
+    if ROMCounter      >1  : raise Exception('STEPS         : ERROR -> More than one ROM defined in the step '                                          +self.name)
     
   def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
@@ -440,12 +441,73 @@ class RomTrainer(Step):
 #
 #
 #
+class PostProcess(SingleRun):
+  '''this class implements a PostProcessing (PP) strategy. The driver of this PP action is the model that MUST be of type FILTER'''
+  def __init__(self):
+    SingleRun.__init__(self)
+    self.foundFunction   = False
+    self.functionCounter = 0
+
+  def _localInputAndChecks(self):
+    SingleRun._localInputAndChecks(self)
+    for role in self.parList:
+      if role[0] == 'Function':
+        self.functionCounter+=1
+        self.foundFunction   = True
+        if role[1]!='Functions': raise IOError('STEPS         : ERROR -> The optional function must be of class "Functions", in step ' + self.name)
+      elif role[0] == 'Model' and role[1] == 'Models':
+        if role[2] != 'Filter' : raise IOError('STEPS         : ERROR -> The required model in "PostProcess" step must be of type Filter, in step ' + self.name)   
+
+  def _localInitializeStep(self,inDictionary):
+    SingleRun._localInitializeStep(self,inDictionary)
+    
+    #generate lambda function list to collect the output without checking the type
+    self._outputCollectionLambda            = []
+    for outIndex, output in enumerate(inDictionary['Output']):
+      if output.type not in ['OutStreamPlot','OutStreamPrint']: self._outputCollectionLambda.append((lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex))
+      else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+
+  def _localTakeAstepRun(self,inDictionary):
+    jobHandler = inDictionary['jobHandler']
+    model      = inDictionary['Model'     ]
+    inputs     = inDictionary['Input'     ]
+    outputs    = inDictionary['Output'    ]
+    sampler    = inDictionary['Sampler'   ]
+    if 'TargetEvaluation' in inDictionary.keys(): targetOutput = inDictionary['TargetEvaluation']
+    else                                        : targetOutput = None
+    while True:
+      finishedJobs = jobHandler.getFinished()
+      for finishedJob in finishedJobs:
+        self.counter +=1
+        sampler.finalizeActualSampling(finishedJob,model,inputs)
+        if finishedJob.getReturnCode() == 0: 
+          for myLambda, outIndex in self._outputCollectionLambda:
+            myLambda([finishedJob,outputs[outIndex]])
+            if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
+#      for _ in xrange(jobHandler.howManyFreeSpots()):
+          if self.debug: print('Testing the sampler if it is ready to generate a new input')
+          if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
+            newInput =sampler.generateInput(model,inputs)
+            model.run(newInput,jobHandler)
+            if self.debug: print('New input generated')
+        else: 
+          print(' the job failed... call the handler for this situation... not yet implemented...')
+          print("The JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")
+      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
+      time.sleep(self.sleepTime)
+
+
+
+#
+#
+#
 __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
 __interFaceDict['Adaptive'         ] = Adaptive
 __interFaceDict['IODataBase'       ] = IODataBase 
 __interFaceDict['RomTrainer'       ] = RomTrainer
+__interFaceDict['PostProcess'      ] = PostProcess
 __base                               = 'Step'
 
 def returnInstance(Type):

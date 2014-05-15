@@ -693,7 +693,7 @@ class MonteCarlo(Sampler):
       self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-      self.inputInfo['ProbabilityWeight' ] = 1.0/float(self.limit) #MC weight is 1/N
+      self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
 #
 #
 #
@@ -789,8 +789,8 @@ class Grid(Sampler):
       elif self.gridInfo[varName][0]=='value':
         self.values[varName] = self.gridInfo[varName][2][self.gridCoordinate[i]]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName])
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = 1.0/float(self.limit)
+    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
 #
 #
 #
@@ -851,6 +851,7 @@ class LHS(Grid):
         self.inputInfo['lower'][varName] = min(upper,lower)
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName])
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight' ] = 1.0 
 #
 #
 #
@@ -1165,6 +1166,10 @@ class DynamicEventTree(Sampler):
         for varname in self.toBeSampled.keys():
           self.inputInfo['SampledVars'][varname]   = copy.deepcopy(self.branchValues[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
           self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
+              
+        self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
+        self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+        
         # Call the model function "createNewInput" with the "values" dictionary just filled.
         # Add the new input path into the RunQueue system
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**self.inputInfo)))
@@ -1197,7 +1202,8 @@ class DynamicEventTree(Sampler):
       for varname in self.toBeSampled.keys():
         self.inputInfo['SampledVars'  ][varname] = copy.deepcopy(self.branchValues[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
         self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
-
+      self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       if(self.maxSimulTime): self.inputInfo['end_time'] = self.maxSimulTime
       # Call the model function "createNewInput" with the "values" dictionary just filled.
       # Add the new input path into the RunQueue system

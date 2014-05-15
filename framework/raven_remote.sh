@@ -27,4 +27,3 @@ cd $WORKING_DIR
 
 shift 2
 $@ > $OUTPUT 2>&1
-
