@@ -161,7 +161,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
       Distributions.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys(): 
       self.distDict[key] = availableDist[self.toBeSampled[key][1]]
-      self.inputInfo['distNodes'][key] = self.distDict[key].distributionNode
+      #self.inputInfo['distNodes'][key] = self.distDict[key].distributionNode
     
   def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None,ROM=None):
     '''
