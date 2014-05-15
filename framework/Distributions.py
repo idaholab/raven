@@ -161,6 +161,12 @@ class Uniform(BoostDistribution):
     self.hi = 0.0
     self.type = 'Uniform'
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['xMin'] = self.low
+    retDict['xMax'] = self.hi
+    return retDict
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
@@ -243,6 +249,13 @@ class Normal(BoostDistribution):
     self.sigma = 0.0
     self.type = 'Normal'
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['mu'] = self.mean
+    retDict['sigma'] = self.sigma
+    return retDict
+
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean' )
@@ -305,6 +318,13 @@ class Gamma(BoostDistribution):
     self.beta = 1.0
     self.type = 'Gamma'
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['k'] = self.alpha
+    retDict['theta'] = 1.0/self.beta
+    retDict['low'] = self.low
+    return retDict
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
@@ -364,6 +384,14 @@ class Beta(BoostDistribution):
     print('FIXME: # TODO default to specific Beta distro?')
     # TODO default to specific Beta distro?
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['alpha'] = self.alpha
+    retDict['beta'] = self.beta
+    retDict['scale'] = self.hi-self.low
+    return retDict
+
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
@@ -414,6 +442,13 @@ class Triangular(BoostDistribution):
     self.max  = 0.0
     self.type = 'Triangular'
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['xPeak'] = self.apex
+    retDict['lowerBound'] = self.min
+    retDict['upperBound'] = self.max
+    return retDict
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     apex_find = xmlNode.find('apex')
@@ -453,6 +488,11 @@ class Poisson(BoostDistribution):
     self.mu  = 0.0
     self.type = 'Poisson'
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['mu'] = self.mu
+    return retDict
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     mu_find = xmlNode.find('mu')
@@ -477,6 +517,12 @@ class Binomial(BoostDistribution):
     self.n  = 0.0
     self.p  = 0.0
     self.type = 'Binomial'
+
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['n'] = self.n
+    retDict['p'] = self.p
+    return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -506,6 +552,11 @@ class Bernoulli(BoostDistribution):
     self.p  = 0.0
     self.type = 'Bernoulli'
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['p'] = self.p
+    return retDict
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
@@ -529,6 +580,12 @@ class Logistic(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
+
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['scale'] = self.scale
+    retDict['location'] = self.location
+    return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -556,6 +613,11 @@ class Exponential(BoostDistribution):
     BoostDistribution.__init__(self)
     self.lambda_var = 1.0
     self.type = 'Exponential'
+
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['lambda'] = self.lambda_var
+    return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -585,6 +647,12 @@ class LogNormal(BoostDistribution):
     self.sigma = 1.0
     self.type = 'LogNormal'
 
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['mu'] = self.mean
+    retDict['sigma'] = self.sigma
+    return retDict
+
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean')
@@ -612,6 +680,12 @@ class Weibull(BoostDistribution):
     self.lambda_var = 1.0
     self.k = 1.0
     self.type = 'Weibull'
+
+  def getCrowDistDict(self):
+    retDict = Distribution.getCrowDistDict(self)
+    retDict['lambda'] = self.lambda_var
+    retDict['k'] = self.k
+    return retDict
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)

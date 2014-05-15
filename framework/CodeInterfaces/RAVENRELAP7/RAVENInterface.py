@@ -204,10 +204,15 @@ class RAVENInterface:
     for key in distributions.keys():
       distName, distType, crowDist = distributions[key][1:4]
       crowDist['name'] = ['Distributions',distName]
-      assertDict = crowDist.copy()
-      assertDict['special'] = set(['assert_match'])
-      listDict.append(assertDict)
-      #listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
+      #The following code would check more, but requires floating compare
+      # that currently doesn't work properly
+      #assertDict = crowDist.copy()
+      #assertDict['special'] = set(['assert_match'])
+      #listDict.append(assertDict)
+      listDict.append({'name':['Distributions',distName],
+                       'special':set(['assert_match']),
+                       'type':crowDist['type']})
+      listDict.append({'name':['Distributions',distName],'special':set(['erase_block'])})
       listDict.append({'name':['Distributions',distName],'force_value':distributions[key][0]})
       listDict.append(crowDist)
     #print("listDict",listDict,"distributions",distributions,"Kwargs",Kwargs)
@@ -222,9 +227,16 @@ class RAVENInterface:
     for key in distributions.keys():
       distName, distType, crowDist = distributions[key][1:4]
       crowDist['name'] = ['Distributions',distName]
-      assertDict = crowDist.copy()
-      assertDict['special'] = set(['assert_match'])
-      listDict.append(assertDict)
+      #The following code would check more, but requires floating compare
+      # that currently doesn't work properly
+      #assertDict = crowDist.copy()
+      #assertDict['special'] = set(['assert_match'])
+      #listDict.append(assertDict)
+      listDict.append({'name':['Distributions',distName],
+                       'special':set(['assert_match']),
+                       'type':crowDist['type']})
+      listDict.append({'name':['Distributions',distName],
+                       'special':set(['erase_block'])})
       listDict.append({'name':['Distributions',distName],
                        'V_window_Up':Kwargs['upper'][key]})
       listDict.append({'name':['Distributions',distName],

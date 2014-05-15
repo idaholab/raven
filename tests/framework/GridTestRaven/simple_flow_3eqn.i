@@ -132,11 +132,7 @@
 [Monitored]
 []
 [Distributions]
-  [./ANormalDistribution]
-    mu = -4
-    type = NormalDistribution
-    sigma = 2
-  [../]
+  #Distribution ANormalDistribution deliberately ommitted to test adding.
   [./AnotherDistribution]
     mu = 2.0
     type = NormalDistribution
