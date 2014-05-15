@@ -8,14 +8,13 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import sys
+import copy
 import numpy as np
 from BaseType import BaseType
 import scipy.special as polys
 from scipy.misc import factorial
-if sys.version_info.major > 2:
-  import distribution1Dpy3 as distribution1D
-else:
-  import distribution1Dpy2 as distribution1D
+if sys.version_info.major > 2: import distribution1Dpy3 as distribution1D
+else:                          import distribution1Dpy2 as distribution1D
 
 stochasticEnv = distribution1D.DistributionContainer.Instance()
 
@@ -31,18 +30,17 @@ class Distribution(BaseType):
     self.lowerBound       = 0.0  #Left bound
     self.__adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality   = None #Dimensionality of the distribution (1D or ND)
-    
+    self.distributionNode = None
   def _readMoreXML(self,xmlNode):
+    self.distributionNode = copy.deepcopy(xmlNode)
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
     if xmlNode.find('lowerBound')!=None:
       self.lowerBound = float(xmlNode.find('lowerBound').text)
       self.lowerBoundUsed = True
-    if xmlNode.find('adjustment') !=None:
-      self.__adjustment = xmlNode.find('adjustment').text
-    else:
-      self.__adjustment = 'scaling'
+    if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
+    else: self.__adjustment = 'scaling'
 
   def addInitParams(self,tempDict):
     tempDict['upperBoundUsed'] = self.upperBoundUsed

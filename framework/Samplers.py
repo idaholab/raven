@@ -14,6 +14,8 @@ import os
 import copy
 import abc
 import numpy as np
+from operator import mul
+from functools import reduce
 from scipy import spatial
 import xml.etree.ElementTree as ET
 import TreeStructure as ETS
@@ -70,15 +72,17 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
 
   def __init__(self):
     BaseType.__init__(self) 
-    self.counter      = 0           # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
-    self.limit        = sys.maxsize # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
-    self.toBeSampled  = {}          # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
-    self.distDict     = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
-    self.values       = {}          # for each variable the current value {'var name':value}
-    self.inputInfo    = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below 
-    self.initSeed     = None        # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
-    self.inputInfo['SampledVars'  ] = self.values #this is the location where to get the values of the sampled variables
-    self.inputInfo['SampledVarsPb'] = {}          #this is the location where to get the probability of the sampled variables
+    self.counter                       = 0           # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.limit                         = sys.maxsize # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
+    self.toBeSampled                   = {}          # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
+    self.distDict                      = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
+    self.values                        = {}          # for each variable the current value {'var name':value}
+    self.inputInfo                     = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below 
+    self.initSeed                      = None        # if not provided the seed is randomly generated at the istanciation of the sampler, the step can override the seed by sending in another seed
+    self.inputInfo['SampledVars'     ] = self.values # this is the location where to get the values of the sampled variables
+    self.inputInfo['SampledVarsPb'   ] = {}          # this is the location where to get the probability of the sampled variables
+    self.inputInfo['PointProbability'] = None        # this is the location where the point wise probability is stored (probability associated to a sampled point)   
+    self.inputInfo['distNodes']        = {}          # for checking if in the input (system code) a dist is already present, we need to store the xml node (not very elegant, but effective) 
     self.FIXME= False
 
   def _readMoreXML(self,xmlNode):
@@ -155,7 +159,9 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
-    for key in self.toBeSampled.keys(): self.distDict[key] = availableDist[self.toBeSampled[key][1]]
+    for key in self.toBeSampled.keys(): 
+      self.distDict[key] = availableDist[self.toBeSampled[key][1]]
+      self.inputInfo['distNodes'][key] = self.distDict[key].distributionNode
     
   def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None,ROM=None):
     '''
@@ -681,7 +687,12 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
-    for key in self.distDict: self.values[key]=self.distDict[key].rvs()
+    for key in self.distDict: 
+      self.values[key] = self.distDict[key].rvs()
+      self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])  
+    if len(self.inputInfo['SampledVarsPb'].keys()) > 0: 
+      self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['ProbabilityWeight' ] = 1.0/float(self.limit) #MC weight is 1/N
 #
 #
 #
@@ -776,6 +787,9 @@ class Grid(Sampler):
         self.values[varName] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
       elif self.gridInfo[varName][0]=='value':
         self.values[varName] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName]) 
+    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight' ] = 1.0/float(self.limit)
 #
 #
 #
@@ -829,10 +843,13 @@ class LHS(Grid):
         self.values[varName] = self.distDict[varName].ppf(coordinate)
         self.inputInfo['upper'][varName] = self.distDict[varName].ppf(max(upper,lower))
         self.inputInfo['lower'][varName] = self.distDict[varName].ppf(min(upper,lower))
+        self.inputInfo['SampledVarsPb'][varName] = coordinate
       elif self.gridInfo[varName][0]=='value':
         self.values[varName] = coordinate
         self.inputInfo['upper'][varName] = max(upper,lower)
         self.inputInfo['lower'][varName] = min(upper,lower)
+        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName]) 
+    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
 #
 #
 #
