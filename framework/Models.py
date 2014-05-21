@@ -589,7 +589,6 @@ class PostProcessor(Model):
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
     self.interface = PostProcessors.returnInstance(self.subType)
-    
     self.interface._readMoreXML(xmlNode)
  
   def addInitParams(self,tempDict):
@@ -614,7 +613,7 @@ class PostProcessor(Model):
     
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''just for compatibility'''
-    return self.interface.createNewInput(self,myInput,**Kwargs)
+    return self.interface.inputToInternal(self,myInput)
      
 
 '''

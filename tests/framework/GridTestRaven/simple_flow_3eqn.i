@@ -130,6 +130,12 @@
   [../]
 []
 [Monitored]
+ [./PipeTemperature]
+   component_name = pipe
+   path = TEMPERATURE
+   data_type = double
+   operator = ElementAverageValue
+ [../]
 []
 [Distributions]
   #Distribution ANormalDistribution deliberately ommitted to test adding.

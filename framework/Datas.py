@@ -153,6 +153,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       if keyword in self._dataContainer['metadata'].keys(): return self._dataContainer ['metadata'][keyword]
       else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in metadata dictionary. Available keys are "+str(self._dataContainer['metadata'].keys())+".Function: Data.getMetadata")    
 
+  def getAllMetadata(self,nodeid=None,serialize=False):
+    if self._dataParameters['hierarchical']: return self.getHierParam('metadata',nodeid,None,serialize)
+    else                                   : return self._dataContainer['metadata']
+
+
   @abc.abstractmethod
   def addSpecializedReadingSettings(self):
     '''
@@ -275,11 +280,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     for hist in tupleVar[0].keys():
       if type(tupleVar[0][hist]) == dict:
         for key in tupleVar[0][hist].keys(): self.updateInputValue(key, tupleVar[0][hist][key], options)
-      else:  self.updateInputValue(hist, tupleVar[0][hist], options) 
+      else:  
+        if self.type in ['TimePoint','TimePointSet']: 
+          for index in range(tupleVar[0][hist].size): self.updateInputValue(hist, tupleVar[0][hist][index], options) 
+        else: self.updateInputValue(hist, tupleVar[0][hist], options) 
     for hist in tupleVar[1].keys():
       if type(tupleVar[1][hist]) == dict:
         for key in tupleVar[1][hist].keys(): self.updateOutputValue(key, tupleVar[1][hist][key], options)
-      else: self.updateOutputValue(hist, tupleVar[1][hist], options)         
+      else: 
+        if self.type in ['TimePoint','TimePointSet']:
+          for index in range(tupleVar[1][hist].size): self.updateOutputValue(hist, tupleVar[1][hist][index], options) 
+        else: self.updateOutputValue(hist, tupleVar[1][hist], options)         
     self.checkConsistency()
     return
 
@@ -680,15 +691,15 @@ class TimePointSet(Data):
       if name in self._dataContainer['inputs'].keys():
         self._dataContainer['inputs'].pop(name)
       if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-      self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+      self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['inputs'].keys():
         popped = self._dataContainer['inputs'].pop(name)
-        self._dataContainer['inputs'][name] = copy.deepcopy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.array(value)))))
+        self._dataContainer['inputs'][name] = copy.deepcopy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-        self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+        self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     ''' 
@@ -708,9 +719,12 @@ class TimePointSet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      self._dataContainer['metadata'][name] = copy.deepcopy(value)
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
       self.addNodeInTreeMode(tsnode,options)
-    else: self._dataContainer['metadata'][name] = copy.deepcopy(value)
+    else: 
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     ''' 
@@ -731,15 +745,15 @@ class TimePointSet(Data):
       if name in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(name)
       if name not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(name)
-      self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+      self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['outputs'].keys():
         popped = self._dataContainer['outputs'].pop(name)
-        self._dataContainer['outputs'][name] = copy.deepcopy(np.concatenate((np.array(popped), np.atleast_1d(np.array(value)))))
+        self._dataContainer['outputs'][name] = copy.deepcopy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-        self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+        self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
 
   def specializedPrintCSV(self,filenameLocal,options): 
     ''' 
@@ -1175,9 +1189,13 @@ class Histories(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      self._dataContainer['metadata'][name] = copy.deepcopy(value)
+      if self._dataContainer['metadata'].keys().count(name) > 0: self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                                     : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
       self.addNodeInTreeMode(tsnode,options)
-    else: self._dataContainer['metadata'][name] = copy.deepcopy(value)
+    else: 
+      if self._dataContainer['metadata'].keys().count(name) > 0: 
+        self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))   
      
   def _updateSpecializedOutputValue(self,name,value,options=None):
     ''' 

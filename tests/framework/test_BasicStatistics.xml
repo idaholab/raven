@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>basicStatistics</WorkingDir>
+    <Files>basicStatisticsExternalModelTest.py</Files>
+    <Sequence>FirstMRun,PP1,PP2,PP3</Sequence>
+    <batchSize>1</batchSize>
+</RunInfo>
+
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='basicStatistics/basicStatisticsExternalModelTest'>
+       <variable type='numpy.ndarray'>x</variable>
+       <variable type='numpy.ndarray'>y</variable>
+       <variable type='numpy.ndarray'>z</variable>
+       <variable type='numpy.ndarray'>time</variable>
+       <variable type='float'>x0</variable>
+       <variable type='float'>x01</variable>
+       <variable type='float'>x02</variable>
+       <variable type='float'>y0</variable>
+       <variable type='float'>y02</variable>
+       <variable type='float'>y01</variable>
+       <variable type='float'>z0</variable>
+       <variable type='float'>z02</variable>
+       <variable type='float'>z01</variable>
+    </ExternalModel>
+    <PostProcessor name="autoCorrelationTest" subType='BasicStatistics'>
+        <!-- => you can here specify what type of figure of merit you need to compute
+           <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what> 
+         -->
+        <what>all</what>
+        <parameters>x01,x02</parameters>
+    </PostProcessor>
+    <PostProcessor name="NotCorrellatedTest" subType='BasicStatistics'>
+        <what>all</what>
+        <parameters>y01,y02</parameters>
+    </PostProcessor>
+    <PostProcessor name="InverseCorrelatedTest" subType='BasicStatistics'>
+        <what>all</what>
+        <parameters>z01,z02</parameters>
+    </PostProcessor>
+</Models>
+
+<Distributions>
+    <Normal name='x0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='y0_distrib'>
+        <mean>100</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='z0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo name='MC_external'  limit='4' >
+      <variable name='x0' >
+        <distribution type='Normal' >x0_distrib</distribution>
+      </variable>
+      <variable name='y0' >
+        <distribution type='Normal' >y0_distrib</distribution>
+      </variable>
+      <variable name='z0' >
+        <distribution type='Normal' >z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+</Samplers>
+
+<Steps>
+    <MultiRun name='FirstMRun'  re-seeding='25061978'>
+        <Input   class='Files'     type=''               >basicStatisticsExternalModelTest.py</Input>
+        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
+        <Output  class='Datas'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
+        <Output  class='OutStreamManager' type='Print'   >TimePointSetPostProcTest_dump</Output>
+    </MultiRun >
+    <PostProcess name='PP1'>
+        <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Model   class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
+        <Output  class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
+    </PostProcess>
+    <PostProcess name='PP2'>
+        <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Model   class='Models'           type='PostProcessor'   >NotCorrellatedTest</Model>
+        <Output  class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
+    </PostProcess>
+    <PostProcess name='PP3'>
+        <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <Model   class='Models'           type='PostProcessor'   >InverseCorrelatedTest</Model>
+        <Output  class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
+    </PostProcess>
+</Steps>
+
+<OutStreamManager>
+  <Print name='TimePointSetPostProcTest_dump'>
+    <type>csv</type>
+    <source>TimePointSetPostProcTest</source>
+  </Print>
+</OutStreamManager>
+    
+    
+<Datas>
+    <TimePointSet name='TimePointSetPostProcTest'>
+        <Input>x0,y0,z0</Input>
+        <Output>time,x02,y02,z02,x01,y01,z01,x,y,z</Output>
+    </TimePointSet>
+</Datas>
+
+
+</Simulation>
+
+
+

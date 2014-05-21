@@ -851,7 +851,7 @@ class LHS(Grid):
         self.inputInfo['lower'][varName] = min(upper,lower)
         self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName])
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = 1.0 
+    self.inputInfo['ProbabilityWeight' ] = self.inputInfo['PointProbability']
 #
 #
 #

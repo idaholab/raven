@@ -232,7 +232,6 @@ class hdf5Database(object):
       self.allGroupPaths.append("/" + gname)
       self.allGroupEnds["/" + gname] = True
 
-
   def addGroupDatas(self,gname,attributes,source,upGroup=False):
     '''
     Function to add a data (class Datas) or Dictionary into the DataBase

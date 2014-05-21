@@ -166,6 +166,16 @@
   rel_err = 0.001
  [../]
 
+
+ [./testBasicStatistics]
+  type = 'RavenFramework'
+  input = 'test_BasicStatistics.xml'
+  output = 'basicStatistics/TimePointSetPostProcTest_dump.csv'
+  csv = 'basicStatistics/TimePointSetPostProcTest_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
  [./test_bison_mc_simple_&_alias_system]
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'

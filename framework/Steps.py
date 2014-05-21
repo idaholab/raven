@@ -456,48 +456,22 @@ class PostProcess(SingleRun):
         self.foundFunction   = True
         if role[1]!='Functions': raise IOError('STEPS         : ERROR -> The optional function must be of class "Functions", in step ' + self.name)
       elif role[0] == 'Model' and role[1] == 'Models':
-        if role[2] != 'Filter' : raise IOError('STEPS         : ERROR -> The required model in "PostProcess" step must be of type Filter, in step ' + self.name)   
+        if role[2] != 'PostProcessor' : raise IOError('STEPS         : ERROR -> The required model in "PostProcess" step must be of type PostProcessor, in step ' + self.name)   
 
   def _localInitializeStep(self,inDictionary):
-    SingleRun._localInitializeStep(self,inDictionary)
-    
-    #generate lambda function list to collect the output without checking the type
-    self._outputCollectionLambda            = []
-    for outIndex, output in enumerate(inDictionary['Output']):
-      if output.type not in ['OutStreamPlot','OutStreamPrint']: self._outputCollectionLambda.append((lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex))
-      else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
+    functionExt = None
+    if self.foundFunction: functionExt = inDictionary['Function']
+    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],functionExt)
+    if self.debug: print('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
+    #HDF5 initialization
+    for i in range(len(inDictionary['Output'])):
+      if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
+        if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
+        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+        if self.debug: print('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
 
-  def _localTakeAstepRun(self,inDictionary):
-    jobHandler = inDictionary['jobHandler']
-    model      = inDictionary['Model'     ]
-    inputs     = inDictionary['Input'     ]
-    outputs    = inDictionary['Output'    ]
-    sampler    = inDictionary['Sampler'   ]
-    if 'TargetEvaluation' in inDictionary.keys(): targetOutput = inDictionary['TargetEvaluation']
-    else                                        : targetOutput = None
-    while True:
-      finishedJobs = jobHandler.getFinished()
-      for finishedJob in finishedJobs:
-        self.counter +=1
-        sampler.finalizeActualSampling(finishedJob,model,inputs)
-        if finishedJob.getReturnCode() == 0: 
-          for myLambda, outIndex in self._outputCollectionLambda:
-            myLambda([finishedJob,outputs[outIndex]])
-            if self.debug: print('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
-#      for _ in xrange(jobHandler.howManyFreeSpots()):
-          if self.debug: print('Testing the sampler if it is ready to generate a new input')
-          if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
-            newInput =sampler.generateInput(model,inputs)
-            model.run(newInput,jobHandler)
-            if self.debug: print('New input generated')
-        else: 
-          print(' the job failed... call the handler for this situation... not yet implemented...')
-          print("The JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")
-      if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
-      time.sleep(self.sleepTime)
-
-
-
+  def _localTakeAstepRun(self,inDictionary): 
+    SingleRun._localTakeAstepRun(self, inDictionary)
 #
 #
 #
