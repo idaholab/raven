@@ -784,15 +784,15 @@ class Grid(Sampler):
       varName = self.axisName[i]
       # check if the varName is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+      stride = stride // len(self.gridInfo[varName][2])
+      #index is the index into the array self.gridInfo[varName][2]
+      index, remainder = divmod(remainder, stride )
+      self.gridCoordinate[i] = index
       for kkey in varName.strip().split(','):
         #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
         #print(varName,self.toBeSampled[varName])
         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName][1]
         self.inputInfo['distributionType'][kkey] = self.toBeSampled[varName][0]
-        stride = stride // len(self.gridInfo[varName][2])
-        #index is the index into the array self.gridInfo[varName][2]
-        index, remainder = divmod(remainder, stride )
-        self.gridCoordinate[i] = index
         if self.gridInfo[varName][0]=='CDF':
           self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
         elif self.gridInfo[varName][0]=='value':
