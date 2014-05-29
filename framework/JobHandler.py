@@ -238,6 +238,10 @@ class JobHandler:
               print(open(outputFilename,"r").read())
             else:
               print("No output ",outputFilename)
+          else:
+            if self.runInfoDict['delSucLogFiles']:
+              print('JOB HANDLER   : Run "' +running.identifier+'" ended smoothly, removing log file!')
+              if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
           self.__running[i] = None
     if not self.__queue.empty(): self.addRuns()
     return finished
