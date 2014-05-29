@@ -629,7 +629,7 @@ class Exponential(BoostDistribution):
       self.lowerBoundUsed = True
       self.lowerBound     = 0.0
     self.initializeDistribution()
-
+   
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var

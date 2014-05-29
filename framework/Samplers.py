@@ -689,8 +689,14 @@ class MonteCarlo(Sampler):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
     for key in self.distDict:
-      self.values[key] = self.distDict[key].rvs()
-      self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
+      # check if the key is a comma separated list of strings
+      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+      rvsnum = self.distDict[key].rvs()
+      for kkey in key.strip().split(','):
+        self.values[kkey] = copy.deepcopy(rvsnum)    
+        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].cdf(self.values[kkey])
+      #self.values[key] = self.distDict[key].rvs()
+      #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
@@ -739,7 +745,7 @@ class Grid(Sampler):
     self.gridCoordinate = [None]*len(self.axisName)
 
   def localAddInitParams(self,tempDict):
-    for variable in self.gridInfo.items():
+    for variable in self.gridInfo.items():   
       tempList = [str(i) for i in variable[1][2]]
       tempDict[variable[0]+' is sampled using the grid'] = variable[1][0]+' with spacing '+variable[1][1]+', points: '+' '.join(tempList)
 
@@ -776,19 +782,22 @@ class Grid(Sampler):
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
-      #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
-      #print(varName,self.toBeSampled[varName])
-      self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
-      self.inputInfo['distributionType'][varName] = self.toBeSampled[varName][0]
-      stride = stride // len(self.gridInfo[varName][2])
-      #index is the index into the array self.gridInfo[varName][2]
-      index, remainder = divmod(remainder, stride )
-      self.gridCoordinate[i] = index
-      if self.gridInfo[varName][0]=='CDF':
-        self.values[varName] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
-      elif self.gridInfo[varName][0]=='value':
-        self.values[varName] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName])
+      # check if the varName is a comma separated list of strings
+      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+      for kkey in varName.strip().split(','):
+        #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
+        #print(varName,self.toBeSampled[varName])
+        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName][1]
+        self.inputInfo['distributionType'][kkey] = self.toBeSampled[varName][0]
+        stride = stride // len(self.gridInfo[varName][2])
+        #index is the index into the array self.gridInfo[varName][2]
+        index, remainder = divmod(remainder, stride )
+        self.gridCoordinate[i] = index
+        if self.gridInfo[varName][0]=='CDF':
+          self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+        elif self.gridInfo[varName][0]=='value':
+          self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].cdf(self.values[kkey])   
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
 #
@@ -837,19 +846,26 @@ class LHS(Grid):
       j +=1
       intervalFraction = Distributions.random()
       coordinate = lower + (upper-lower)*intervalFraction
-      #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
-      self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
-      self.inputInfo['distributionType'][varName] = self.toBeSampled[varName][0]
+      #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName] 
+      # check if the varName is a comma separated list of strings
+      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
       if self.gridInfo[varName][0] =='CDF':
-        self.values[varName] = self.distDict[varName].ppf(coordinate)
-        self.inputInfo['upper'][varName] = self.distDict[varName].ppf(max(upper,lower))
-        self.inputInfo['lower'][varName] = self.distDict[varName].ppf(min(upper,lower))
-        self.inputInfo['SampledVarsPb'][varName] = coordinate
-      elif self.gridInfo[varName][0]=='value':
-        self.values[varName] = coordinate
-        self.inputInfo['upper'][varName] = max(upper,lower)
-        self.inputInfo['lower'][varName] = min(upper,lower)
-        self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].cdf(self.values[varName])
+        ppfvalue = self.distDict[varName].ppf(coordinate)
+        ppflower = self.distDict[varName].ppf(min(upper,lower))
+        ppfupper = self.distDict[varName].ppf(max(upper,lower))
+      for kkey in varName.strip().split(','):      
+        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName][1]
+        self.inputInfo['distributionType'][kkey] = self.toBeSampled[varName][0]
+        if self.gridInfo[varName][0] =='CDF':
+          self.values[kkey] = copy.deepcopy(ppfvalue)
+          self.inputInfo['upper'][kkey] = copy.deepcopy(ppfupper)
+          self.inputInfo['lower'][kkey] = copy.deepcopy(ppflower)
+          self.inputInfo['SampledVarsPb'][varName] = coordinate
+        elif self.gridInfo[varName][0]=='value':
+          self.values[varName] = coordinate
+          self.inputInfo['upper'][kkey] = max(upper,lower)
+          self.inputInfo['lower'][kkey] = min(upper,lower)
+          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].cdf(self.values[kkey])
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = self.inputInfo['PointProbability']
 #

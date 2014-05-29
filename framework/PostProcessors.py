@@ -214,7 +214,7 @@ class BasicStatistics(BasePostProcessor):
     inputDict = {'targets':{},'metadata':{}}
     try: inType = currentInput.type
     except: 
-      if type(currentInput) in [str,bytes]: inType = "file"
+      if type(currentInput) in [str,bytes,unicode]: inType = "file"
       else: raise IOError('POSTPROC: Error -> BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
     if inType == 'file':
       if currentInput.endswith('csv'): pass
@@ -223,19 +223,12 @@ class BasicStatistics(BasePostProcessor):
       for targetP in self.parameters['targets']: 
         if   targetP in currentInput.getParaKeys('input' ): inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
         elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
-      #for targetP in self.parameters['features']: 
-      #  if   targetP in currentInput.getParaKeys('inputs' ): inputDict['features'][targetP] = currentInput.getParam('inputs' ,targetP)
-      #  elif targetP in currentInput.getParaKeys('outputs'): inputDict['features'][targetP] = currentInput.getParam('outputs',targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()        
     # to be added  
     return inputDict
   
   def initialize(self, runInfo, inputs, externalFunction = None):
     BasePostProcessor.initialize(self, runInfo, inputs, externalFunction)
-    #self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
-    #runInfo['TempWorkingDir']     = self.workingDir
-    #try:                            os.mkdir(self.workingDir)
-    #except:                         print('POSTPROC: Warning -> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
   
   def _localReadMoreXML(self,xmlNode):
     '''
@@ -252,12 +245,8 @@ class BasicStatistics(BasePostProcessor):
           for whatc in self.what.split(','):
             if whatc not in self.acceptedCalcParam: raise IOError('POSTPROC: Error -> BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
           self.what = self.what.split(',')
-      if child.tag =="parameters":
-        self.parameters['targets'] = child.text.split(',')
-        #for chchild in child:
-        #  if   chchild.tag.lower() == 'features': self.parameters[chchild.tag.lower()] = chchild.text.split(',')
-        #  elif chchild.tag.lower() == 'targets' : self.parameters[chchild.tag.lower()] = chchild.text.split(',')
-        #  else: raise IOError('POSTPROC: Error -> Unknown parameter named ' + chchild.tag.lower() + '. Available features and targets!')
+      if child.tag =="parameters": self.parameters['targets'] = child.text.split(',')
+
         
         
   def collectOutput(self,finishedjob,output):
