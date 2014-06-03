@@ -72,11 +72,15 @@ all:: RAVEN
 
 RAVEN_MODULES = $(HERD_TRUNK_DIR)/crow/control_modules
 
+PYTHON_COMPILE_LINE=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) $(app_INCLUDES) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
+
 $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/executioners/PythonControl.C
 	@echo "Override PythonControl Compile"
-	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet \
-          $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) $(app_INCLUDES) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
+	$(PYTHON_COMPILE_LINE)
 
+$(APPLICATION_DIR)/src/executioners/PythonMagic.$(obj-suffix): $(APPLICATION_DIR)/src/executioners/PythonMagic.C
+	@echo "Override PythonMagic Compile"
+	$(PYTHON_COMPILE_LINE)
 
 RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(PYTHON_MODULES)
 
