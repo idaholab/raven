@@ -12,7 +12,7 @@ import numpy as np
 import scipy as sci
 import scipy.stats as stat
 import os
-from utils import toString, toBytes, metaclass_insert
+from utils import toString, toBytes, metaclass_insert, first
 import copy
 #Internal Modules------------------------------------------------------------------------------------
 import abc
@@ -294,33 +294,33 @@ class BasicStatistics(BasePostProcessor):
         #variance
         outputDict[what] ={}
         for targetP in self.parameters['targets'  ]: outputDict[what][targetP]  = np.median(Input['targets'][targetP]  )
-      if what == 'pearson':   
-        #pearson matrix 
-        feat = np.zeros((len(Input['targets'].keys()),Input['targets'].values()[0].size))
+      if what == 'pearson':
+        #pearson matrix
+        feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
         cnt = 0
-        for targetP in self.parameters['targets'  ]: 
-          feat[cnt,:] = Input['targets'][targetP][:] 
-          cnt += 1  
+        for targetP in self.parameters['targets'  ]:
+          feat[cnt,:] = Input['targets'][targetP][:]
+          cnt += 1
         outputDict[what] = np.corrcoef(feat)
-      if what == 'covariance':   
-        #cov matrix 
-        feat = np.zeros((len(Input['targets'].keys()),Input['targets'].values()[0].size))
+      if what == 'covariance':
+        #cov matrix
+        feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
         cnt = 0
-        for targetP in self.parameters['targets'  ]: 
-          feat[cnt,:] = Input['targets'][targetP][:] 
-          cnt += 1  
+        for targetP in self.parameters['targets'  ]:
+          feat[cnt,:] = Input['targets'][targetP][:]
+          cnt += 1
         outputDict[what] = np.cov(feat)
       if what == 'percentile':
-        outputDict[what+'_5%']  ={} 
-        outputDict[what+'_95%'] ={} 
-        for targetP in self.parameters['targets'  ]: 
+        outputDict[what+'_5%']  ={}
+        outputDict[what+'_95%'] ={}
+        for targetP in self.parameters['targets'  ]:
           outputDict[what+'_5%'][targetP]  = np.percentile(Input['targets'][targetP],5)
           outputDict[what+'_95%'][targetP]  = np.percentile(Input['targets'][targetP],95)
       if what == 'skewness':
         outputDict[what] = {}
-        for targetP in self.parameters['targets'  ]: 
+        for targetP in self.parameters['targets'  ]:
           outputDict[what][targetP] = stat.skew(Input['targets'][targetP])
-          outputDict[what][targetP] = stat.skew(Input['targets'][targetP])  
+          outputDict[what][targetP] = stat.skew(Input['targets'][targetP])
     # print on screen
     print('POSTPROC: BasicStatistics pp outputs')
     for targetP in self.parameters['targets']:

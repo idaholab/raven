@@ -57,6 +57,12 @@ def keyIn(dictionary,key):
     else:
       return None
 
+def first(c):
+  """Returns the first element of collections,
+  for a list this is equivalent to c[0], but this also
+  work for things that are views"""
+  return next(iter(c))
+
 def importFromPath(filename):
     import imp, os.path
     (path, name) = os.path.split(filename)

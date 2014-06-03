@@ -1189,11 +1189,11 @@ class Histories(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if self._dataContainer['metadata'].keys().count(name) > 0: self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
       else                                                     : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
       self.addNodeInTreeMode(tsnode,options)
     else: 
-      if self._dataContainer['metadata'].keys().count(name) > 0: 
+      if name in self._dataContainer['metadata'].keys():
         self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
       else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))   
      
