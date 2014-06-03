@@ -70,9 +70,7 @@ sa:: $(RAVEN_analyzer)
 ifeq ($(APPLICATION_NAME),RAVEN)
 all:: RAVEN
 
-RAVEN_MODULES = $(HERD_TRUNK_DIR)/crow/control_modules
-
-PYTHON_COMPILE_LINE=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) $(app_INCLUDES) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
+PYTHON_COMPILE_LINE=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) $(app_INCLUDES) $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
 
 $(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/executioners/PythonControl.C
 	@echo "Override PythonControl Compile"
@@ -88,6 +86,15 @@ $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_obj
 	@echo "Linking "$@"..."
 	@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link --quiet \
           $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(RAVEN_app_objects) $(RAVEN_LIB) $(r7_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS) $(PYTHON_LIB) $(app_LIBS) $(CROW_LIB)
+
+RAVEN_MODULES = $(HERD_TRUNK_DIR)/crow/control_modules
+
+RAVEN_MODULE_COMPILE_LINE=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS)  $(app_INCLUDES) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
+
+$(APPLICATION_DIR)/src/executioners/RavenExecutioner.$(obj-suffix): $(APPLICATION_DIR)/src/executioners/RavenExecutioner.C
+	@echo "Override RavenExecutioner Compile"
+	$(RAVEN_MODULE_COMPILE_LINE)
+
 
 endif
 
