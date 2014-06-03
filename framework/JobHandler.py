@@ -242,6 +242,11 @@ class JobHandler:
             if self.runInfoDict['delSucLogFiles']:
               print('JOB HANDLER   : Run "' +running.identifier+'" ended smoothly, removing log file!')
               if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
+            if len(self.runInfoDict['deleteOutExtension']) >= 1:
+              for fileExt in self.runInfoDict['deleteOutExtension']:
+                if not fileExt.startswith("."): fileExt = "." + fileExt
+                filelist = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
+                for f in filelist: os.remove(f)                           
           self.__running[i] = None
     if not self.__queue.empty(): self.addRuns()
     return finished

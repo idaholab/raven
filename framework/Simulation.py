@@ -276,7 +276,8 @@ class Simulation(object):
     self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
     self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.
-    self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relavite log file (if True)
+    self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relative log file (if True)
+    self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
     self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbsdsh and mpi
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
 
@@ -453,6 +454,7 @@ class Simulation(object):
       elif element.tag == 'MaxLogFileSize'    : self.runInfoDict['MaxLogFileSize'    ] = int(element.text)
       elif element.tag == 'precommand'        : self.runInfoDict['precommand'        ] = element.text
       elif element.tag == 'postcommand'       : self.runInfoDict['postcommand'       ] = element.text
+      elif element.tag == 'deleteOutExtension': self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
       elif element.tag == 'delSucLogFiles'    : 
         if element.text.lower() in ['t','true']: self.runInfoDict['delSucLogFiles'    ] = True
         else                                   : self.runInfoDict['delSucLogFiles'    ] = False
