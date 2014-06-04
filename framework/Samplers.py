@@ -551,7 +551,7 @@ class AdaptiveSampler(Sampler):
           for varIndex in range(len(self.axisName)):
             if varName == self.axisName[varIndex]:
               self.solutionExport.removeInputValue(varName)
-              self.solutionExport.updateInputValue(varName,copy.copy(self.surfPoint[:,varIndex]))
+              for value in self.surfPoint[:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
 
     return ready
 
@@ -570,7 +570,7 @@ class AdaptiveSampler(Sampler):
       for varIndex, varName in enumerate(self.axisName):
         tempDict[varName] = self.surfPoint[:,varIndex]
       distance, _ = self._cKDTreeInterface('confidence',tempDict)
-      print(np.argmax(distance))
+#      print(np.argmax(distance))
       for varIndex, varName in enumerate(self.axisName): self.values[varName] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
 
 #      indexArray = np.argsort(distance)[::-1]
