@@ -11,7 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import sys
 import os
-import copy
+import copy 
 import abc
 import numpy as np
 import json
@@ -693,7 +693,7 @@ class MonteCarlo(Sampler):
       rvsnum = self.distDict[key].rvs()
       for kkey in key.strip().split(','):
         self.values[kkey] = copy.deepcopy(rvsnum)    
-        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].cdf(self.values[kkey])
+        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
       #self.values[key] = self.distDict[key].rvs()
       #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
@@ -796,7 +796,7 @@ class Grid(Sampler):
           self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
         elif self.gridInfo[varName][0]=='value':
           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].cdf(self.values[kkey])   
+        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])   
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
 #
@@ -864,7 +864,7 @@ class LHS(Grid):
           self.values[varName] = coordinate
           self.inputInfo['upper'][kkey] = max(upper,lower)
           self.inputInfo['lower'][kkey] = min(upper,lower)
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].cdf(self.values[kkey])
+          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = self.inputInfo['PointProbability']
 #

@@ -11,6 +11,7 @@ import types
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
+import utils
 #import Datas
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -35,10 +36,8 @@ class Function(BaseType):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
       moduleName        = ''.join(xmlNode.attrib['file'].split('.')[:-1]) #remove the .py
-      try   : exec('import '+ moduleName)
-      except: raise IOError('Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)
-      if isinstance(locals()[moduleName], types.ModuleType): importedModule = locals()[moduleName]
-      else: raise IOError('It was not possible to import the module for the external function: '+self.name)
+      importedModule = utils.importFromPath(moduleName)
+      if not importedModule: raise IOError('Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)
       #here the methods in the imported file are brought inside the class
       for method in importedModule.__dict__.keys():
         if method == '__residuumSign':

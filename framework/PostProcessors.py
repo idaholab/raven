@@ -206,6 +206,7 @@ class BasicStatistics(BasePostProcessor):
     self.parameters        = {}
     self.acceptedCalcParam = ['covariance','pearson','expectedValue','sigma','variance','kurtois','median','percentile','skewness']
     self.what              = self.acceptedCalcParam 
+    self.name              = None
   
   def inputToInternal(self,currentInput): 
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
@@ -229,6 +230,7 @@ class BasicStatistics(BasePostProcessor):
   
   def initialize(self, runInfo, inputs, externalFunction = None):
     BasePostProcessor.initialize(self, runInfo, inputs, externalFunction)
+    self.__workingDir = runInfo['WorkingDir']
   
   def _localReadMoreXML(self,xmlNode):
     '''
@@ -237,6 +239,7 @@ class BasicStatistics(BasePostProcessor):
       @ In, xmlNode    : Xml element node
       @ Out, None
     '''
+    if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
     for child in xmlNode:
       if child.tag =="what": 
         self.what = child.text
@@ -251,7 +254,35 @@ class BasicStatistics(BasePostProcessor):
         
   def collectOutput(self,finishedjob,output):
     #output
-    pass
+    if finishedjob.returnEvaluation() == -1: raise Exception("POSTPROC: ERROR -> No available Output to collect (Run probabably is not finished yet)")
+    outputDict = finishedjob.returnEvaluation()[1]
+    with open(self.__workingDir+self.name+'_out.txt', 'wb') as basicStatdump:
+      basicStatdump.write('POSTPROC: BasicStatistics '+str(self.name)+'pp outputs\n')
+      for targetP in self.parameters['targets']:
+        basicStatdump.write('        *************'+'*'*len(targetP)+'***\n')
+        basicStatdump.write('        * Variable * '+ targetP +'  *\n')
+        basicStatdump.write('        *************'+'*'*len(targetP)+'***\n')
+        for what in outputDict.keys():
+          if what not in ['covariance','pearson']:
+            basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
+            basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *\n')  
+            basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n') 
+      maxLenght = max(len(max(self.parameters['targets'], key=len))+5,16)
+      if 'covariance' in outputDict.keys():    
+        basicStatdump.write(' '*maxLenght+'*****************************\n')
+        basicStatdump.write(' '*maxLenght+'*         Covariance        *\n')
+        basicStatdump.write(' '*maxLenght+'*****************************\n')
+
+        basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
+        for index in range(len(self.parameters['targets'])):
+          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]])+'\n')  
+      if 'pearson' in outputDict.keys():
+        basicStatdump.write(' '*maxLenght+'*****************************\n')
+        basicStatdump.write(' '*maxLenght+'*          Pearson          *\n')
+        basicStatdump.write(' '*maxLenght+'*****************************\n')
+        basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
+        for index in range(len(self.parameters['targets'])):
+          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]])+'\n')          
   
   def run(self, InputIn): # inObj,workingDir=None):
     '''
@@ -322,7 +353,7 @@ class BasicStatistics(BasePostProcessor):
           outputDict[what][targetP] = stat.skew(Input['targets'][targetP])
           outputDict[what][targetP] = stat.skew(Input['targets'][targetP])
     # print on screen
-    print('POSTPROC: BasicStatistics pp outputs')
+    print('POSTPROC: BasicStatistics '+str(self.name)+'pp outputs')
     for targetP in self.parameters['targets']:
       print('        *************'+'*'*len(targetP)+'***')
       print('        * Variable * ' + targetP +'  *')
