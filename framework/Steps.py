@@ -252,10 +252,16 @@ class MultiRun(SingleRun):
     #generate lambda function list to collect the output without checking the type
     self._outputCollectionLambda            = []
     for outIndex, output in enumerate(inDictionary['Output']):
-      if output.type not in ['OutStreamPlot','OutStreamPrint']: self._outputCollectionLambda.append((lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex))
+      if output.type not in ['OutStreamPlot','OutStreamPrint']:
+        if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
+          self._outputCollectionLambda.append((lambda x:None, outIndex))
+        else:
+          self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
       else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
-    if 'SolutionExport' in inDictionary.keys():
-      self._outputCollectionLambda[inDictionary['Output'].index(inDictionary['SolutionExport'])] = (lambda x: None),inDictionary['Output'].index(inDictionary['SolutionExport'])
+#    print(inDictionary['Output'])
+#    print(inDictionary['SolutionExport'])
+#    if 'SolutionExport' in inDictionary.keys():
+#      self._outputCollectionLambda[inDictionary['Output'].index( inDictionary['SolutionExport'] )] = (lambda x: None),inDictionary['Output'].index(inDictionary['SolutionExport'])
     if self.debug:print('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
     for inputIndex, newInput in enumerate(newInputs):
