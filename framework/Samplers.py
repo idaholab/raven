@@ -455,7 +455,7 @@ class AdaptiveSampler(Sampler):
       self.functionValue.update(lastOutput.getParametersValues('output'))
       #recovery the index of the last function evaluation performed
       if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
-      else:                                                   indexLast = -1
+      else                                                  : indexLast = -1
       #index of last set of point tested and ready to perform the function evaluation
       indexEnd  = len(self.functionValue[self.axisName[0]])-1
       tempDict  = {}
@@ -466,6 +466,8 @@ class AdaptiveSampler(Sampler):
         for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
         self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
         self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
+        if self.goalFunction.name in lastOutput.getParaKeys('inputs'): lastOutput.self.updateInputValue (self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
+        if self.goalFunction.name in lastOutput.getParaKeys('output'): lastOutput.self.updateOutputValue(self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
       #printing----------------------
       if self.debug: print('Mapping of the goal function evaluation done')
       if self.debug:
