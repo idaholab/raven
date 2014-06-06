@@ -3,7 +3,9 @@ Created on July 11, 2013
 
 @author: nieljw
 '''
+import xml.etree.ElementTree as ET
 import os
+import copy
 import fileinput
 import re
 class RELAPparser:
@@ -20,14 +22,18 @@ class RELAPparser:
     for i in self.lines:
       IOfile.write('%s' %(i))
 
-  def modifyOrAdd(self,modiDictionaryList,save=True):
+  def modifyOrAdd(self,DictionaryList,save=True):
     '''ModiDictionaryList is a list of dictionaries of the required addition or modification
     the method looks in self.lines for a card number matching the card in modiDictionaryList
     and modifies the word from modiDictionaryList at needed'''
     temp=[]
+    modiDictionaryList = {}
+    for i in DictionaryList: 
+      if 'cards' in i.keys(): 
+        modiDictionaryList.update(i['cards'])
     temp.append('*RAVEN INPUT VALUES\n')
     for j in modiDictionaryList:
-      temp.append('*'+j+'    '+modiDictionaryList[j]['position']+'   '+str(modiDictionaryList[j]['value'])+'\n')
+      temp.append('*'+j+'    '+str(modiDictionaryList[j]['position'])+'   '+str(modiDictionaryList[j]['value'])+'\n')
     temp.append('*RAVEN INPUT VALUES\n')
     for line in fileinput.input(self.inputfile, mode='r'):
       temp1=line
@@ -49,12 +55,12 @@ class RELAPparser:
     return newline
 
       
-if __name__=='__main__':
-  myfile=RELAPparser('restart.i')
-  dictlist={}
-  dictlist['531']={'position':6,'value':1.0E6}
-  dictlist['525']={'position':6,'value':1.0E6}
-  myfile.modifyOrAdd(dictlist,True)
-  myfile.printInput('restart.n')
+#  if __name__=='__main__':
+#  file=RELAPparser('restart.i')
+#  dictlist={}
+#  dictlist['531']={'position':6,'value':1.0E6}
+#  dictlist['525']={'position':6,'value':1.0E6}
+#  file.modifyOrAdd(dictlist,True)
+#  file.printInput('restart.n')
 
 
