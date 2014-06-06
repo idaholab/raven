@@ -10,13 +10,13 @@
 [EoS]
   [./eos]
     type = NonIsothermalEquationOfState
-    p_0 = 1.e5 # Pa
-    rho_0 = 1.e3 # kg/m^3
-    a2 = 1.e7 # m^2/s^2
-    beta = -.46e-3 # Comment: This number should be positive for water. alpha = 1/V dV/dT = -1/rho d_rho/dT
-    cv = 4.18e3 # J/kg-K, could be a global parameter?
-    e_0 = 1.254e6 # J/kg
-    T_0 = 300 # K
+    p_0 = 1.e5      # Pa
+    rho_0 = 1.e3    # kg/m^3
+    a2 = 1.e7       # m^2/s^2
+    beta = -.46e-3  # K^{-1}  #Comment: This number should be positive for water. alpha = 1/V dV/dT = -1/rho d_rho/dT
+    cv = 4.18e3     # J/kg-K, could be a global parameter?
+    e_0 = 1.254e6   # J/kg
+    T_0 = 300       # K
   [../]
 []
 [Components]
@@ -38,8 +38,8 @@
   [./inlet]
     type = Inlet
     input = 'pipe(in)'
-    p_bc = 1e5
-    T_bc = 300.0
+    p = 1e5
+    T = 300.0
     eos = eos
   [../]
   [./outlet]
