@@ -70,6 +70,16 @@ sa:: $(RAVEN_analyzer)
 ifeq ($(APPLICATION_NAME),RAVEN)
 all:: RAVEN
 
+PYTHON_COMPILE_LINE=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS) $(PYTHON_INCLUDE) $(app_INCLUDES) $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
+
+$(RAVEN_DIR)/src/executioners/PythonControl.$(obj-suffix): $(RAVEN_DIR)/src/executioners/PythonControl.C
+	@echo "Override PythonControl Compile"
+	$(PYTHON_COMPILE_LINE)
+
+$(APPLICATION_DIR)/src/executioners/PythonMagic.$(obj-suffix): $(APPLICATION_DIR)/src/executioners/PythonMagic.C
+	@echo "Override PythonMagic Compile"
+	$(PYTHON_COMPILE_LINE)
+
 RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(PYTHON_MODULES)
 
 $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects) $(CROW_LIB)
