@@ -37,6 +37,7 @@ class RAVENInterface:
     self._samplersDictionary                          = {}
     self._samplersDictionary['MonteCarlo'           ] = self.monteCarloForRAVEN
     self._samplersDictionary['Grid'                 ] = self.gridForRAVEN
+    self._samplersDictionary['Adaptive'             ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
     self._samplersDictionary['LHS'                  ] = self.latinHyperCubeForRAVEN
     self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForRAVEN
     self._samplersDictionary['StochasticCollocation'] = self.stochasticCollocationForRAVEN
