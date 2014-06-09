@@ -560,7 +560,9 @@ class AdaptiveSampler(Sampler):
     # create values dictionary
     '''compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
      check the points where the derivative probability is the lowest'''
-
+    
+    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used     
     if self.debug: print('generating input')
     varSet=False
     if self.surfPoint!=None and len(self.surfPoint)>0:
@@ -574,12 +576,14 @@ class AdaptiveSampler(Sampler):
       for varIndex, varName in enumerate(self.axisName):
         tempDict[varName]     = self.surfPoint[:,varIndex]
         distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
+        self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
+        self.inputInfo['distributionType'][varName] = self.toBeSampled[varName][0]
       distLast = np.sqrt(distLast)
       distance, _ = self._cKDTreeInterface('confidence',tempDict)
       distance = np.multiply(distance,distLast,self.invPointPersistence)
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate(self.axisName): self.values[varName] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
-        varSet=True
+        varSet=True  
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
