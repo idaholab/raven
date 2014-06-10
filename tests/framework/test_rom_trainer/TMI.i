@@ -78,7 +78,8 @@
     Ts_init = 564.15
     orientation = '0 0 1'
     rho_hs = '1.0412e2 1.0 6.6e1'
-    aw = 276.5737513
+    #aw = 276.5737513
+    Phf = 321.341084980423
     n_elems = 8
     k_hs = '3.65 1.084498 16.48672'
     material_hs = 'fuel-mat gap-mat clad-mat'
@@ -103,7 +104,8 @@
     Ts_init = 564.15
     orientation = '0 0 1'
     rho_hs = '1.0412e2 1. 6.6e1'
-    aw = 276.5737513
+    #aw = 276.5737513
+    Phf = 428.454929876871
     n_elems = 8
     k_hs = '3.65  1.084498  16.48672'
     material_hs = 'fuel-mat gap-mat clad-mat'
@@ -128,7 +130,8 @@
     Ts_init = 564.15
     orientation = '0 0 1'
     rho_hs = '1.0412e2  1.0  6.6e1'
-    aw = 276.5737513
+    #aw = 276.5737513
+    Phf = 514.145916018189
     n_elems = 8
     k_hs = '3.65  1.084498  16.48672'
     material_hs = 'fuel-mat gap-mat clad-mat'
@@ -300,7 +303,6 @@
   [../]
   [./HX-A]
     orientation = '0 0 -1'
-    aw = 539.02
     n_elems = 10
     A_secondary = 5 # 5
     material_wall = wall-mat
@@ -308,7 +310,10 @@
     Dh = 0.01
     Twall_init = 564.15
     Hw = 1.e4
-    aw_secondary = 539.02 # 539.02
+    # aw = 539.02
+    # aw_secondary = 539.02
+    Phf = 2695.100000000000
+    Phf_secondary = 2695.100000000000
     eos_secondary = eos
     type = HeatExchanger
     A = 5.0
@@ -482,7 +487,6 @@
   [../]
   [./HX-B]
     orientation = '0 0 -1'
-    aw = 539.02
     n_elems = 10
     A_secondary = 5 # 5.
     material_wall = wall-mat
@@ -490,7 +494,12 @@
     Dh = 0.01
     Twall_init = 564.15
     Hw = 1.e4
-    aw_secondary = 539.02 # 539.02
+
+    # aw = 539.02
+    # aw_secondary = 539.02
+    Phf = 2695.100000000000
+    Phf_secondary = 2695.100000000000
+
     eos_secondary = eos
     type = HeatExchanger
     A = 5.
