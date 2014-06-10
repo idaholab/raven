@@ -196,7 +196,7 @@
   [../]
   [./inlet_TDV_void_fraction_bc]
     component_name = 'inlet_TDV'
-    property_name = 'void_fraction_bc'
+    property_name = 'volume_fraction_vapor_bc'
     data_type = double
   [../]
   [./outlet_TDV_p_bc]
@@ -211,7 +211,7 @@
   [../]
   [./outlet_TDV_void_fraction_bc]
     component_name = 'outlet_TDV'
-    property_name = 'void_fraction_bc'
+    property_name = 'volume_fraction_vapor_bc'
     data_type = double
   [../]
 []
