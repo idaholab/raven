@@ -25,7 +25,7 @@
         <lowerBound>0</lowerBound>
         <upperBound>2</upperBound>
         <adjustement>up</adjustement>
-    </Normal>    
+    </Normal>
     <Normal name='Gauss2'>
         <mean>1</mean>
         <sigma>0.4</sigma>
@@ -100,7 +100,7 @@
        <plot>
         <type>line</type>
         <x>stories|Output|time</x>
-        <y>stories|Output|pipe1_Hw</y> 
+        <y>stories|Output|pipe1_Hw</y>
         <kwargs>
          <color>green</color>
          <label>pipe1-Hw</label>
@@ -109,10 +109,10 @@
        <plot>
         <type>line</type>
         <x>stories|Output|time</x>
-        <y>stories|Output|pipe1_aw</y> 
+        <y>stories|Output|pipe1_Hw</y>
         <kwargs>
          <color>blue</color>
-         <label>pipe1-aw</label>
+         <label>pipe1-Hw</label>
         </kwargs>
       </plot>
       <xlabel>time [s]</xlabel>
@@ -154,27 +154,24 @@
     </MultiRun >
 </Steps>
 <DataBases>
-    <HDF5 name="testOutputDataBase" type="MC"/> 
+    <HDF5 name="testOutputDataBase" type="MC"/>
 </DataBases>
 <Datas>
     <Histories name='stories'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw,time</Output>
+        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </Histories>
    <TimePointSet name='TimePointSets'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw,time</Output>
+        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </TimePointSet>
    <TimePoint name='TimePointt'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw,time</Output>
+        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </TimePoint>
    <History name='Historyy'>
         <Input>pipe1_Area,pipe1_Dh</Input>
-        <Output>pipe1_Hw,pipe1_aw,time</Output>
+        <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
    </History>
 </Datas>
 </Simulation>
-
-
-

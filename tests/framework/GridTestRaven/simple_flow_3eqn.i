@@ -116,12 +116,6 @@
     property_name = Tw
     data_type = double
   [../]
-  [./pipe_aw]
-    print_csv = true
-    component_name = pipe
-    property_name = aw
-    data_type = double
-  [../]
   [./pipe_f]
     print_csv = true
     component_name = pipe

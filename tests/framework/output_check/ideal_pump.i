@@ -171,12 +171,12 @@
     property_name = Hw
     data_type = double
   [../]
-  [./pipe1_aw]
-    print_csv = true
-    component_name = pipe1
-    property_name = aw
-    data_type = double
-  [../]
+  #[./pipe1_aw]
+  #  print_csv = true
+  #  component_name = pipe1
+  #  property_name = aw
+  #  data_type = double
+  #[../]
   [./pipe1_f]
     component_name = pipe1
     property_name = f
@@ -197,11 +197,11 @@
     property_name = Hw
     data_type = double
   [../]
-  [./pipe2_aw]
-    component_name = pipe2
-    property_name = aw
-    data_type = double
-  [../]
+  #[./pipe2_aw]
+  #  component_name = pipe2
+  #  property_name = aw
+  #  data_type = double
+  #[../]
   [./pipe2_f]
     component_name = pipe2
     property_name = f
@@ -225,7 +225,7 @@
   [../]
   [./inlet_TDV_void_fraction_bc]
     component_name = 'inlet_TDV'
-    property_name = 'void_fraction_bc'
+    property_name = 'volume_fraction_vapor_bc'
     data_type = double
   [../]
   [./outlet_TDV_p_bc]
@@ -240,7 +240,7 @@
   [../]
   [./outlet_TDV_void_fraction_bc]
     component_name = 'outlet_TDV'
-    property_name = 'void_fraction_bc'
+    property_name = 'volume_fraction_vapor_bc'
     data_type = double
   [../]
 []
