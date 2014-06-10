@@ -298,7 +298,17 @@ class BasicStatistics(BasePostProcessor):
     else: pbweights = Input['metadata']['ProbabilityWeight']  
     outputDict['expectedValue'] = {}
     globPb = np.sum(Input['metadata']['ProbabilityWeight'])
-    for targetP in self.parameters['targets']: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb             
+   
+    for targetP in self.parameters['targets']:             
+      if Input['metadata'].keys().count('SampledVarsPb'):
+        if Input['metadata']['SampledVarsPb'][0].keys().count(targetP) > 0:
+          pbpdfw = np.zeros(Input['metadata']['SampledVarsPb'].size)
+          for dd in range(pbpdfw.size): pbpdfw[dd] = Input['metadata']['SampledVarsPb'][dd][targetP]
+          outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbpdfw,Input['targets'][targetP]))/np.sum(pbpdfw)
+          
+        else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb   
+      else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb  
+        
     for what in self.what:
       if what == 'sigma':
         #sigma

@@ -582,7 +582,9 @@ class AdaptiveSampler(Sampler):
       distance, _ = self._cKDTreeInterface('confidence',tempDict)
       distance = np.multiply(distance,distLast,self.invPointPersistence)
       if np.max(distance)>0.0:
-        for varIndex, varName in enumerate(self.axisName): self.values[varName] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
+        for varIndex, varName in enumerate(self.axisName): 
+          self.values[varName] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
+          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
         varSet=True  
     if not varSet:
       #here we are still generating the batch
@@ -591,7 +593,11 @@ class AdaptiveSampler(Sampler):
           self.values[key] = self.distDict[key].ppf(float(Distributions.random()))
         else:
           self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
-
+        self.inputInfo['distributionName'][key] = self.toBeSampled[key][1]
+        self.inputInfo['distributionType'][key] = self.toBeSampled[key][0]
+        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])   
+    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
     self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
     #print(self.hangingPoints)
     if self.debug: print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
