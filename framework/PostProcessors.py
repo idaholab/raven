@@ -204,7 +204,7 @@ class BasicStatistics(BasePostProcessor):
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.parameters        = {}
-    self.acceptedCalcParam = ['covariance','pearson','expectedValue','sigma','variance','kurtois','median','percentile','skewness']
+    self.acceptedCalcParam = ['covariance','pearson','expectedValue','sigma','variance','kurtois','median','percentile']
     self.what              = self.acceptedCalcParam 
     self.name              = None
   

@@ -350,7 +350,15 @@ class Gamma(BoostDistribution):
 
   def initializeDistribution(self):
     #self._distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
-    self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
+    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
+      self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
+    else:
+      if self.lowerBoundUsed == False: a = 0.0
+      else:a = self.lowerBound
+      if self.upperBoundUsed == False: b = sys.float_info[max]
+      else:b = self.upperBound
+      self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)   
+         
     self.polynomial = polys.genlaguerre
     def norm(n):
       return np.sqrt(factorial(n)/polys.gamma(n+self.alpha+1.0))
@@ -426,7 +434,14 @@ class Beta(BoostDistribution):
 
   def initializeDistribution(self):
     #self._distribution = dist.beta(self.alpha,self.beta,scale=self.hi-self.low)
-    self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low)
+    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low)
+    else:
+      if self.lowerBoundUsed == False: a = 0.0
+      else:a = self.lowerBound
+      if self.upperBoundUsed == False: b = sys.float_info[max]
+      else:b = self.upperBound
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b)
 
 #==========================================================\
 #    other distributions
@@ -606,7 +621,11 @@ class Logistic(BoostDistribution):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale)
     else:
-      raise IOError ('Truncated Logistic not yet implemented')
+      if self.lowerBoundUsed == False: a = -sys.float_info[max]
+      else:a = self.lowerBound
+      if self.upperBoundUsed == False: b = sys.float_info[max]
+      else:b = self.upperBound
+      self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)     
 
 class Exponential(BoostDistribution):
   def __init__(self):
@@ -638,7 +657,11 @@ class Exponential(BoostDistribution):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.lowerBound == 0.0):
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var)
     else:
-      raise IOError ('Truncated Exponential not yet implemented')
+      if self.lowerBoundUsed == False: a = 0.0
+      else:a = self.lowerBound
+      if self.upperBoundUsed == False: b = sys.float_info[max]
+      else:b = self.upperBound
+      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b)
 
 class LogNormal(BoostDistribution):
   def __init__(self):
@@ -672,7 +695,11 @@ class LogNormal(BoostDistribution):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma)
     else:
-      raise IOError ('Truncated LogNormal not yet implemented')
+      if self.lowerBoundUsed == False: a = -sys.float_info[max]
+      else:a = self.lowerBound
+      if self.upperBoundUsed == False: b = sys.float_info[max]
+      else:b = self.upperBound
+      self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,a,b)
 
 class Weibull(BoostDistribution):
   def __init__(self):
@@ -711,7 +738,11 @@ class Weibull(BoostDistribution):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or self.lowerBound == 0.0:
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
     else:
-      raise IOError ('Truncated Weibull not yet implemented')
+      if self.lowerBoundUsed == False: a = 0.0
+      else:a = self.lowerBound
+      if self.upperBoundUsed == False: b = sys.float_info[max]
+      else:b = self.upperBound
+      self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
 
 class NDimensionalDistributions(Distribution):
   def __init__(self):
