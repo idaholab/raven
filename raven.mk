@@ -1,4 +1,5 @@
 
+RAVEN_DIR := $(ROOT_DIR)/raven
 
 RAVEN_INC_DIRS := $(shell find $(RAVEN_DIR)/include -type d -not -path "*/.svn*")
 RAVEN_INCLUDE  := $(foreach i, $(RAVEN_INC_DIRS), -I$(i))

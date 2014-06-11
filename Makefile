@@ -48,9 +48,7 @@ include            $(HERD_TRUNK_DIR)/crow/crow_python_modules.mk
 APPLICATION_DIR    := $(HERD_TRUNK_DIR)/raven
 APPLICATION_NAME   := RAVEN
 
-include $(HERD_TRUNK_DIR)/raven/config.mk
 include $(HERD_TRUNK_DIR)/raven/raven.mk
-#include $(HERD_TRUNK_DIR)/raven/raven_python_modules.mk
 
 ###############################################################################
 # Additional special case targets should be added here
