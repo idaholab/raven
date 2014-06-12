@@ -299,10 +299,10 @@ class Normal(BoostDistribution):
       self.probability_norm = probNorm
     else:
       print('FIXME: this should be removed.... :special case distribution for stochastic colocation')
-      if self.lowerBoundUsed == False: a = -sys.float_info[max]
+      if self.lowerBoundUsed == False: a = -sys.float_info.max
       else:a = self.lowerBound
       #else:a = (self.lowerBound - self.mean) / self.sigma
-      if self.upperBoundUsed == False: b = sys.float_info[max]
+      if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       #else:b = (self.upperBound - self.mean) / self.sigma
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
@@ -355,7 +355,7 @@ class Gamma(BoostDistribution):
     else:
       if self.lowerBoundUsed == False: a = 0.0
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info[max]
+      if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)   
          
@@ -439,7 +439,7 @@ class Beta(BoostDistribution):
     else:
       if self.lowerBoundUsed == False: a = 0.0
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info[max]
+      if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b)
 
@@ -621,9 +621,9 @@ class Logistic(BoostDistribution):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale)
     else:
-      if self.lowerBoundUsed == False: a = -sys.float_info[max]
+      if self.lowerBoundUsed == False: a = -sys.float_info.max
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info[max]
+      if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)     
 
@@ -659,7 +659,7 @@ class Exponential(BoostDistribution):
     else:
       if self.lowerBoundUsed == False: a = 0.0
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info[max]
+      if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b)
 
@@ -695,9 +695,9 @@ class LogNormal(BoostDistribution):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma)
     else:
-      if self.lowerBoundUsed == False: a = -sys.float_info[max]
+      if self.lowerBoundUsed == False: a = -sys.float_info.max
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info[max]
+      if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,a,b)
 
@@ -740,7 +740,7 @@ class Weibull(BoostDistribution):
     else:
       if self.lowerBoundUsed == False: a = 0.0
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info[max]
+      if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
 
