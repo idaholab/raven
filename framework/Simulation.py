@@ -398,7 +398,8 @@ class Simulation(object):
     
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment'''
-    #check/generate the existence of the working directory 
+    #check/generate the existence of the working directory
+    print(self.runInfoDict['WorkingDir']) 
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
     #move the full simulation environment in the working directory
     os.chdir(self.runInfoDict['WorkingDir'])
@@ -430,6 +431,7 @@ class Simulation(object):
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         raise IOError ('For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if name not in list(self.whichDict[myClass].keys()):
+        print(self.whichDict[myClass])
         raise IOError ('In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
     
 

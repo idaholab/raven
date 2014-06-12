@@ -457,14 +457,15 @@ class AdaptiveSampler(Sampler):
       if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
       else                                                  : indexLast = -1
       #index of last set of point tested and ready to perform the function evaluation
-      indexEnd  = len(self.functionValue[self.axisName[0]])-1
+      
+      indexEnd  = len(self.functionValue[self.axisName[0].replace('<distribution>','')])-1
       tempDict  = {}
       if self.goalFunction.name in self.functionValue.keys():
         self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
       else: self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
       for myIndex in range(indexLast+1,indexEnd+1):
-        for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-        self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
+        for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]        
+        self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)     ][:]
         self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
         if self.goalFunction.name in lastOutput.getParaKeys('inputs'): lastOutput.self.updateInputValue (self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
         if self.goalFunction.name in lastOutput.getParaKeys('output'): lastOutput.self.updateOutputValue(self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
@@ -479,8 +480,9 @@ class AdaptiveSampler(Sampler):
       #printing----------------------
       tempDict = {}
       if self.FIXME:print('FIXME: please find a more elegant way to remove the output variables from the training set')
-      for name in self.axisName: tempDict[name] = self.functionValue[name]
+      for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = self.functionValue[name]
       tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
+      print(tempDict)
       self.ROM.train(tempDict)
       print('Training done')
     if self.debug: print('Training finished')                                    #happy thinking :)
@@ -488,7 +490,7 @@ class AdaptiveSampler(Sampler):
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
     tempDict ={}
-    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
+    for  varId, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[varName] = self.gridCoord[:,varId]
     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
@@ -506,7 +508,7 @@ class AdaptiveSampler(Sampler):
       print('Limit surface candidate points')
       for coordinate in np.rollaxis(toBeTested,0):
         myStr = ''
-        for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
+        for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
         print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
     #check which one of the preselected points is really on the limit surface
@@ -533,7 +535,7 @@ class AdaptiveSampler(Sampler):
       print('Limit surface points')
       for coordinate in listsurfPoint:
         myStr = ''
-        for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
+        for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
         print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
 
@@ -549,7 +551,7 @@ class AdaptiveSampler(Sampler):
       if self.solutionExport!=None:
         for varName in self.solutionExport.getParaKeys('inputs'):
           for varIndex in range(len(self.axisName)):
-            if varName == self.axisName[varIndex]:
+            if varName == [key.replace('<distribution>','') for key in self.axisName][varIndex]:
               self.solutionExport.removeInputValue(varName)
               for value in self.surfPoint[:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
 
@@ -568,12 +570,14 @@ class AdaptiveSampler(Sampler):
     if self.surfPoint!=None and len(self.surfPoint)>0:
       tempDict = {}
       #the hanging point are added to the list of the already explored points so not to pick the same when in //
-      lastPoint = [self.functionValue[name][-1] for name in self.axisName]
-      for varIndex, name in enumerate(self.axisName): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
+      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
+      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
       self._cKDTreeInterface('train',tempDict)
       tempDict = {}
       distLast = np.zeros(self.surfPoint.shape[0])
-      for varIndex, varName in enumerate(self.axisName):
+      print("***********************************self.axisName*************************")
+      print([key.replace('<distribution>','') for key in self.axisName])
+      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
         tempDict[varName]     = self.surfPoint[:,varIndex]
         distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
         self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
@@ -582,7 +586,7 @@ class AdaptiveSampler(Sampler):
       distance, _ = self._cKDTreeInterface('confidence',tempDict)
       distance = np.multiply(distance,distLast,self.invPointPersistence)
       if np.max(distance)>0.0:
-        for varIndex, varName in enumerate(self.axisName): 
+        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]): 
           self.values[varName] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
           self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
         varSet=True  
@@ -607,7 +611,7 @@ class AdaptiveSampler(Sampler):
 #      for pointIndex, point in enumerate(self.surfPoint):
 #        temp = copy.copy(point)
 #        pbMapPointCoord[pointIndex,2*self.nVar,:] = temp
-#        for varIndex, varName in enumerate(self.axisName):
+#        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
 #          temp[varIndex] -= np.max(self.axisStepSize[varName])
 #          pbMapPointCoord[pointIndex,varIndex,:] = temp
 #          temp[varIndex] += 2.*np.max(self.axisStepSize[varName])
@@ -617,7 +621,7 @@ class AdaptiveSampler(Sampler):
 #      #getting the coordinate ready to be evaluated by the ROM
 #      pbMapPointCoord.shape = (len(self.surfPoint)*(self.nVar*2+1),self.nVar)
 #      tempDict = {}
-#      for varIndex, varName in enumerate(self.axisName):
+#      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
 #        tempDict[varName] = pbMapPointCoord.T[varIndex,:]
 #      print('ready to request pb')
 #      #acquiring Pb evaluation
@@ -642,7 +646,7 @@ class AdaptiveSampler(Sampler):
 #        modGrad[pointIndex] = np.sqrt(modGrad[pointIndex])*np.abs(sum)/sum
 #        #concavityPb[pointIndex] = concavityPb[pointIndex]/float(self.nVar)
 #      print('concavity computed')
-#      print(self.axisName)
+#      print([key.replace('<distribution>','') for key in self.axisName])
 #      for pointIndex, point in enumerate(self.surfPoint):
 #        myStr  = ''
 #        myStr  += '['
@@ -666,7 +670,7 @@ class AdaptiveSampler(Sampler):
 #      print('index on the limit surface of the smallest gradient '+ str(minIndex)+'corresponding gradient module '+str(modGrad[minIndex])+' and probability '+str(pbPoint[minIndex,2*self.nVar][0]))
 #      pdDist = self.sign*(pbPoint[minIndex,2*self.nVar][0]-0.5-10*self.tolerance)/modGrad[minIndex]
 #      print('extrapolation length' +str(pdDist))
-#      for varIndex, varName in enumerate(self.axisName):
+#      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
 #        self.values[varName] = copy.copy(float(pbMapPointCoord[minIndex,2*self.nVar,varIndex]+pdDist*gradVect[minIndex,varIndex]))
 #      gradVect = np.ndarray(self.nVar)
 #      centraPb = pbPoint[minIndex,2*self.nVar]
@@ -678,7 +682,7 @@ class AdaptiveSampler(Sampler):
 #        gradVect[varIndex] = d1Avg
 #      gradVect = gradVect*pdDist
 #      gradVect = gradVect+centralCoor
-#      for varIndex, varName in enumerate(self.axisName):
+#      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
 #        self.values[varName] = copy.copy(float(gradVect[varIndex]))
 
 

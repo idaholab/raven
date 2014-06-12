@@ -180,6 +180,9 @@ class RAVENInterface:
     distributions = {}
     #distributionNodeRoot = Kwargs["distributionNode"]
     #print(ET.tostring(distributionNodeRoot))
+    print(distributionKeys)
+    print('====================================')
+    print(Kwargs)
     for key in distributionKeys:
       distributionName = Kwargs['distributionName'][key]
       distributionType = Kwargs['distributionType'][key]
