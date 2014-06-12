@@ -11,6 +11,7 @@
 MOOSE_DIR          ?= $(shell dirname `pwd`)/moose
 HERD_TRUNK_DIR     ?= $(shell dirname `pwd`)
 FRAMEWORK_DIR      ?= $(MOOSE_DIR)/framework
+RELAP-7_DIR        ?= $(HERD_TRUNK_DIR)/relap-7
 ###############################################################################
 
 CURR_DIR    := $(shell pwd)
@@ -28,8 +29,8 @@ include           $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 
 # dep apps
-APPLICATION_DIR    := $(HERD_TRUNK_DIR)/r7_moose
-APPLICATION_NAME   := r7_moose
+APPLICATION_DIR    := $(RELAP-7_DIR)
+APPLICATION_NAME   := relap-7
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 include            $(FRAMEWORK_DIR)/app.mk
 include            $(APPLICATION_DIR)/control_logic.mk
