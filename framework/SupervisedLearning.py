@@ -304,7 +304,7 @@ class NDinvDistWeigth(NDinterpolatorRom):
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
     if not 'p' in self.initializzationOptionDict.keys(): raise IOError ('NDinvDistWeigth: the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
-    self.interpolator = interpolationND.inverseDistanceWeigthing(float(self.initializzationOptionDict['p']))
+    self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initializzationOptionDict['p']))
     self.type         = 'NDinvDistWeigth'
   def reset(self):
     '''
