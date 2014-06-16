@@ -35,31 +35,37 @@ class Function(BaseType):
   def _readMoreXML(self,xmlNode,debug=False):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
-      moduleName        = ''.join(xmlNode.attrib['file'].split('.')[:-1]) #remove the .py
+      if self.functionFile.endswith('.py') : moduleName = ''.join(self.functionFile.split('.')[:-1]) #remove the .py
+      else: moduleName = self.functionFile
       importedModule = utils.importFromPath(moduleName)
       if not importedModule: raise IOError('Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)
       #here the methods in the imported file are brought inside the class
       for method in importedModule.__dict__.keys():
-        if method == '__residuumSign':
-          self.__residuumSign                                =  importedModule.__dict__['__residuumSign']
-          self.__actionDictionary['residuumSign' ]           = self.__residuumSign
-          self.__actionImplemented['residuumSign']           = True
-        else:self.__actionImplemented['residuumSign']        = False
-        if method == '__supportBoundingTest':
-          self.__supportBoundingTest                         =  importedModule.__dict__['__supportBoundingTest']
-          self.__actionDictionary['supportBoundingTest' ]    = self.__supportBoundingTest
-          self.__actionImplemented['supportBoundingTest']    = True
-        else:self.__actionImplemented['supportBoundingTest'] = False
-        if method == '__residuum':
-          self.__residuum                                    =  importedModule.__dict__['__residuum']
-          self.__actionDictionary['residuum' ]               = self.__residuum
-          self.__actionImplemented['residuum']               = True
-        else:self.__actionImplemented['residuum']            = False
-        if method == '__gradient':
-          self.__gradient                                    =  importedModule.__dict__['__gradient']
-          self.__actionDictionary['gradient']                = self.__gradient
-          self.__actionImplemented['gradient']               = True
-        else:self.__actionImplemented['gradient']            = False
+        if method in ['residualSign','supportBoundingTest','residual','gradient']:
+          if method == '__residuumSign':
+            self.__residuumSign                                =  importedModule.__dict__['__residuumSign']
+            self.__actionDictionary['residuumSign' ]           = self.__residuumSign
+            self.__actionImplemented['residuumSign']           = True
+          else:self.__actionImplemented['residuumSign']        = False
+          if method == '__supportBoundingTest':
+            self.__supportBoundingTest                         =  importedModule.__dict__['__supportBoundingTest']
+            self.__actionDictionary['supportBoundingTest' ]    = self.__supportBoundingTest
+            self.__actionImplemented['supportBoundingTest']    = True
+          else:self.__actionImplemented['supportBoundingTest'] = False
+          if method == '__residuum':
+            self.__residuum                                    =  importedModule.__dict__['__residuum']
+            self.__actionDictionary['residuum' ]               = self.__residuum
+            self.__actionImplemented['residuum']               = True
+          else:self.__actionImplemented['residuum']            = False
+          if method == '__gradient':
+            self.__gradient                                    =  importedModule.__dict__['__gradient']
+            self.__actionDictionary['gradient']                = self.__gradient
+            self.__actionImplemented['gradient']               = True
+          else:self.__actionImplemented['gradient']            = False
+        else:
+          #custom
+          self.__actionDictionary[method]                    = importedModule.__dict__[method]
+          self.__actionImplemented[method]                   = True 
     else: raise IOError('No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
     for child in xmlNode:
       if child.tag=='variable':
@@ -80,7 +86,8 @@ class Function(BaseType):
     tempDict['The sign of the residuum is provided'] = self.__actionImplemented['residuumSign']
     tempDict['The gradient is provided'            ] = self.__actionImplemented['gradient']
     tempDict['The support bonding is provided'     ] = self.__actionImplemented['supportBoundingTest']
-
+    for key,value in enumerate(self.__actionImplemented):
+      if key not in ['residualSign','supportBoundingTest','residual','gradient']: tempDict['Custom Function'] = value
   def addCurrentSetting(self,tempDict):
     '''
     This function is called from the base class to print some of the information inside the class.

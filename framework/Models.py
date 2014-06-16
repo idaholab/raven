@@ -579,7 +579,11 @@ class PostProcessor(Model):
     cls.validateDict['Output' ][2]['type'        ] = ['HDF5']
     cls.validateDict['Output' ][2]['required'    ] = False
     cls.validateDict['Output' ][2]['multiplicity'] = 'n'
-
+    cls.validateDict['Function'] = [cls.testDict.copy()]
+    cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
+    cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
+    cls.validateDict['Function'  ][0]['required'    ] = False
+    cls.validateDict['Function'  ][0]['multiplicity'] = '1'    
   def __init__(self):
     Model.__init__(self)
     self.input  = {}     # input source

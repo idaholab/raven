@@ -25,10 +25,13 @@ import abc
 '''
 
 class BasePostProcessor:
-  def __init__(self): self.type =''
+  def __init__(self): 
+    self.type =''     # pp type
+    self.name = None  # pp name
   def initialize(self, runInfo, inputs, externalFunction) : self.externalFunction = externalFunction
   def _readMoreXML(self,xmlNode): 
     self.type = xmlNode.tag
+    self.name = xmlNode.attrib['name']                                                                                                  
     self._localReadMoreXML(xmlNode) 
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
   def run(self, Input): pass
@@ -203,11 +206,12 @@ class BasicStatistics(BasePostProcessor):
   '''
   def __init__(self):
     BasePostProcessor.__init__(self)
-    self.parameters        = {}
-    self.acceptedCalcParam = ['covariance','pearson','expectedValue','sigma','variance','kurtois','median','percentile']
-    self.what              = self.acceptedCalcParam 
-    self.name              = None
-  
+    self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
+    self.acceptedCalcParam = ['covariance','pearson','expectedValue','sigma','variance','skewness','kurtois','median','percentile']  # accepted calculation parameters
+    self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
+    self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it 
+    #self.goalFunction.evaluate('residuumSign',tempDict)
+    
   def inputToInternal(self,currentInput): 
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInput) == dict:
@@ -248,9 +252,8 @@ class BasicStatistics(BasePostProcessor):
           for whatc in self.what.split(','):
             if whatc not in self.acceptedCalcParam: raise IOError('POSTPROC: Error -> BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
           self.what = self.what.split(',')
-      if child.tag =="parameters": self.parameters['targets'] = child.text.split(',')
-
-        
+      if child.tag =="parameters"   : self.parameters['targets'] = child.text.split(',')
+      if child.tag =="methodsToRun" : self.methodsToRun          = child.text.split(',') 
         
   def collectOutput(self,finishedjob,output):
     #output
@@ -263,7 +266,7 @@ class BasicStatistics(BasePostProcessor):
         basicStatdump.write('        * Variable * '+ targetP +'  *\n')
         basicStatdump.write('        *************'+'*'*len(targetP)+'***\n')
         for what in outputDict.keys():
-          if what not in ['covariance','pearson']:
+          if what not in ['covariance','pearson'] + self.methodsToRun:
             basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
             basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *\n')  
             basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n') 
@@ -283,6 +286,15 @@ class BasicStatistics(BasePostProcessor):
         basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
         for index in range(len(self.parameters['targets'])):
           basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]])+'\n')          
+ 
+      if self.externalFunction:
+        basicStatdump.write(' '*maxLenght+'+++++++++++++++++++++++++++++\n')
+        basicStatdump.write(' '*maxLenght+'+ OUTCOME FROM EXT FUNCTION +\n')  
+        basicStatdump.write(' '*maxLenght+'+++++++++++++++++++++++++++++\n')
+        for what in self.methodsToRun:
+          basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
+          basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *\n')  
+          basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')  
   
   def run(self, InputIn): # inObj,workingDir=None):
     '''
@@ -304,8 +316,7 @@ class BasicStatistics(BasePostProcessor):
         if Input['metadata']['SampledVarsPb'][0].keys().count(targetP) > 0:
           pbpdfw = np.zeros(Input['metadata']['SampledVarsPb'].size)
           for dd in range(pbpdfw.size): pbpdfw[dd] = Input['metadata']['SampledVarsPb'][dd][targetP]
-          outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbpdfw,Input['targets'][targetP]))/np.sum(pbpdfw)
-          
+          outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbpdfw,Input['targets'][targetP]))/np.sum(pbpdfw)       
         else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb   
       else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb  
         
@@ -331,8 +342,15 @@ class BasicStatistics(BasePostProcessor):
           if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
           else                                      : N = Input['targets'][targetP].size 
           outputDict[what][targetP] = -3.0 + (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**4)*(N-1)**-1)/(np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1)**2
+      if what == 'skewness':
+        #skewness
+        outputDict[what] = {}
+        for targetP in self.parameters['targets']:
+          if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
+          else                                      : N = Input['targets'][targetP].size 
+          outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**3)*(N-1)**-1)/(np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1)**1.5
       if what == 'median':
-        #variance
+        #median
         outputDict[what] ={}
         for targetP in self.parameters['targets'  ]: outputDict[what][targetP]  = np.median(Input['targets'][targetP]  )
       if what == 'pearson':
@@ -362,6 +380,10 @@ class BasicStatistics(BasePostProcessor):
         for targetP in self.parameters['targets'  ]:
           outputDict[what][targetP] = stat.skew(Input['targets'][targetP])
           outputDict[what][targetP] = stat.skew(Input['targets'][targetP])
+    
+    if self.externalFunction:
+      # there is an external function 
+      for what in self.methodsToRun: outputDict[what] = self.externalFunction.evaluate(what,Input['targets'])   
     # print on screen
     print('POSTPROC: BasicStatistics '+str(self.name)+'pp outputs')
     for targetP in self.parameters['targets']:
@@ -369,7 +391,7 @@ class BasicStatistics(BasePostProcessor):
       print('        * Variable * ' + targetP +'  *')
       print('        *************'+'*'*len(targetP)+'***')
       for what in outputDict.keys():
-        if what not in ['covariance','pearson']:
+        if what not in ['covariance','pearson'] + self.methodsToRun:
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
           print('              ','* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *')  
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***') 
@@ -389,6 +411,14 @@ class BasicStatistics(BasePostProcessor):
       print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']]))
       for index in range(len(self.parameters['targets'])):
         print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))        
+    if self.externalFunction:
+      print(' '*maxLenght,'+++++++++++++++++++++++++++++')
+      print(' '*maxLenght,'+ OUTCOME FROM EXT FUNCTION +')  
+      print(' '*maxLenght,'+++++++++++++++++++++++++++++')
+      for what in self.methodsToRun:
+        print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
+        print('              ','* '+what+' * ' + '%.8E' % outputDict[what]+'  *')  
+        print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')         
     return outputDict
   
 '''

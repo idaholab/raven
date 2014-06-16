@@ -36,26 +36,31 @@ class Function(BaseType):
       exec('import '+ moduleName)
       #here the methods in the imported file are brought inside the class
       for method in moduleName.__dict__.keys():
-        if method == 'residualSign':
-          self.__residualSign                                =  moduleName.__dict__['residualSign']
-          self.__actionDictionary['residualSign']            = self.__residualSign
-          self.__actionImplemented['residualSign']           = True
-        else:self.__actionImplemented['residualSign']        = False
-        if method == 'supportBoundingTest':
-          self.__supportBoundingTest                         =  moduleName.__dict__['supportBoundingTest']
-          self.__actionDictionary['supportBoundingTest']     = self.__supportBoundingTest
-          self.__actionImplemented['supportBoundingTest']    = True
-        else:self.__actionImplemented['supportBoundingTest'] = False
-        if method == 'residual':
-          self.__residual                                    =  moduleName.__dict__['residual']
-          self.__actionDictionary['residual']                = self.__residual
-          self.__actionImplemented['residual']               = True
-        else:self.__actionImplemented['residual']            = False
-        if method == 'gradient':
-          self.__gradient                                    =  moduleName.__dict__['gradient']
-          self.__actionDictionary['gradient']                = self.__gradient
-          self.__actionImplemented['gradient']               = True
-        else:self.__actionImplemented['gradient']            = False
+        if method in ['residualSign','supportBoundingTest','residual','gradient']:
+          if method == 'residualSign':
+            self.__residualSign                                =  moduleName.__dict__['residualSign']
+            self.__actionDictionary['residualSign']            = self.__residualSign
+            self.__actionImplemented['residualSign']           = True
+          else:self.__actionImplemented['residualSign']        = False
+          if method == 'supportBoundingTest':
+            self.__supportBoundingTest                         =  moduleName.__dict__['supportBoundingTest']
+            self.__actionDictionary['supportBoundingTest']     = self.__supportBoundingTest
+            self.__actionImplemented['supportBoundingTest']    = True
+          else:self.__actionImplemented['supportBoundingTest'] = False
+          if method == 'residual':
+            self.__residual                                    =  moduleName.__dict__['residual']
+            self.__actionDictionary['residual']                = self.__residual
+            self.__actionImplemented['residual']               = True
+          else:self.__actionImplemented['residual']            = False
+          if method == 'gradient':
+            self.__gradient                                    =  moduleName.__dict__['gradient']
+            self.__actionDictionary['gradient']                = self.__gradient
+            self.__actionImplemented['gradient']               = True
+          else:self.__actionImplemented['gradient']            = False
+        else:
+          #custom
+          self.__actionDictionary[method]                    = moduleName.__dict__[method]
+          self.__actionImplemented[method]                   = True          
     else: raise IOError('No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
     for child in xmlNode:
       if child.tag=='variable':
@@ -76,6 +81,8 @@ class Function(BaseType):
     tempDict['The sign of the residuum is provided'] = self.__actionImplemented['residualSign']
     tempDict['The gradient is provided'            ] = self.__actionImplemented['gradient']
     tempDict['The support bonding is provided'     ] = self.__actionImplemented['supportBoundingTest']
+    for key,value in enumerate(self.__actionImplemented):
+      if key not in ['residualSign','supportBoundingTest','residual','gradient']: tempDict['Custom Function'] = value
     for key in self.inVarValues.keys():
       tempDict['Variable:type'                     ] = key+':'+self.varType[key]
 

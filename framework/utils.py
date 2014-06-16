@@ -64,6 +64,7 @@ def first(c):
   return next(iter(c))
 
 def importFromPath(filename):
+    print('importing module '+ filename)
     import imp, os.path
     try:
       (path, name) = os.path.split(filename)
