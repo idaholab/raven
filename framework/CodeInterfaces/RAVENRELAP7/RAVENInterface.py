@@ -23,8 +23,9 @@ class RAVENInterface:
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' +
-    ' Output/file_base='+ outputfile)
+    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
+                        ' Outputs/file_base='+ outputfile + ' Outputs/exodus=true'+ 
+                        ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true')
     return executeCommand,outputfile
 
   def appendLoadFileExtension(self,fileRoot):
