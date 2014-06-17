@@ -25,7 +25,7 @@ class RAVENInterface:
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                         ' Outputs/file_base='+ outputfile + ' Outputs/exodus=true'+ 
-                        ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true')
+                        ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true'+' Outputs/num_checkpoint_files=1')
     return executeCommand,outputfile
 
   def appendLoadFileExtension(self,fileRoot):
@@ -137,11 +137,6 @@ class RAVENInterface:
       listDict.append(modifDict)
       del modifDict
 
-    modifDict = {}
-    modifDict['name'] = ['Output']
-    modifDict['num_checkpoint_files'] = 1
-    listDict.append(modifDict)
-    del modifDict
     # in this way we erase the whole block in order to neglect eventual older info
     # remember this "command" must be added before giving the info for refilling the block
     modifDict = {}

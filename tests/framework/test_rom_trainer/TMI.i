@@ -666,16 +666,16 @@
   [../]
 []
 
-[Output]
+#[Output]
   # xda = true
   # num_restart_files = 1
-  output_initial = true
-  output_displaced = true
-  file_base = TMI_test_PRA_transient_less_w_out
-  exodus = true
-  postprocessor_csv = true
-  max_pps_rows_screen = 25
-[]
+#  output_initial = true
+#  output_displaced = true
+#  file_base = TMI_test_PRA_transient_less_w_out
+#  exodus = true
+#  postprocessor_csv = true
+#  max_pps_rows_screen = 25
+#[]
 
 [Controlled]
   # control logic file name

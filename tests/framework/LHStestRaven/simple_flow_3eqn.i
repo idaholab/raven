@@ -84,12 +84,12 @@
     order = FIRST
   [../]
 []
-[Output]
-  output_initial = true
-  output_displaced = true
-  perf_log = true
-  postprocessor_csv = true
-[]
+#[Output]
+#  output_initial = true
+#  output_displaced = true
+#  perf_log = true
+#  postprocessor_csv = true
+#[]
 [Controlled]
   control_logic_input = 'simple_flow_3eqn_control'
   [./pipe_Area]

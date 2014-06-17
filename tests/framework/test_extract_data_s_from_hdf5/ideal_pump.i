@@ -137,13 +137,13 @@
     order = FIRST
   [../]
 []
-[Output]
+#[Output]
   # Turn on performance logging
-  exodus = true
-  output_initial = true
-  output_displaced = true
-  perf_log = true
-[]
+#  exodus = true
+#  output_initial = true
+#  output_displaced = true
+#  perf_log = true
+#[]
 [Controlled]
   control_logic_input = 'ideal_pump_control'
   [./pipe1_Area]
