@@ -580,15 +580,15 @@ class AdaptiveSampler(Sampler):
       for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
         tempDict[varName]     = self.surfPoint[:,varIndex]
         distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
-        self.inputInfo['distributionName'][varName] = self.toBeSampled[varName][1]
-        self.inputInfo['distributionType'][varName] = self.toBeSampled[varName][0]
+        self.inputInfo['distributionName'][varName] = self.toBeSampled[self.axisName[varIndex]][1]
+        self.inputInfo['distributionType'][varName] = self.toBeSampled[self.axisName[varIndex]][0]
       distLast = np.sqrt(distLast)
       distance, _ = self._cKDTreeInterface('confidence',tempDict)
       distance = np.multiply(distance,distLast,self.invPointPersistence)
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]): 
-          self.values[varName] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
-          self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+          self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
+          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True  
     if not varSet:
       #here we are still generating the batch
