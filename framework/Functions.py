@@ -41,24 +41,26 @@ class Function(BaseType):
       if not importedModule: raise IOError('Failed to import the module '+moduleName+' supposed to contain the function: '+self.name)
       #here the methods in the imported file are brought inside the class
       for method in importedModule.__dict__.keys():
-        if method in ['residualSign','supportBoundingTest','residual','gradient']:
-          if method == '__residuumSign':
-            self.__residuumSign                                =  importedModule.__dict__['__residuumSign']
+        if method in ['__residuumSign__','__residuumSign','residuumSign',
+                      '__supportBoundingTest__','__supportBoundingTest','supportBoundingTest',
+                      '__residuum__','__residuum','residuum','__gradient__','__gradient','gradient']:
+          if method in ['__residuumSign__','__residuumSign','residuumSign']:
+            self.__residuumSign                                =  importedModule.__dict__[method]
             self.__actionDictionary['residuumSign' ]           = self.__residuumSign
             self.__actionImplemented['residuumSign']           = True
           else:self.__actionImplemented['residuumSign']        = False
-          if method == '__supportBoundingTest':
-            self.__supportBoundingTest                         =  importedModule.__dict__['__supportBoundingTest']
+          if method in ['__supportBoundingTest__','__supportBoundingTest','supportBoundingTest']:
+            self.__supportBoundingTest                         =  importedModule.__dict__[method]
             self.__actionDictionary['supportBoundingTest' ]    = self.__supportBoundingTest
             self.__actionImplemented['supportBoundingTest']    = True
           else:self.__actionImplemented['supportBoundingTest'] = False
-          if method == '__residuum':
-            self.__residuum                                    =  importedModule.__dict__['__residuum']
+          if method in ['__residuum__','__residuum','residuum']:
+            self.__residuum                                    =  importedModule.__dict__[method]
             self.__actionDictionary['residuum' ]               = self.__residuum
             self.__actionImplemented['residuum']               = True
           else:self.__actionImplemented['residuum']            = False
-          if method == '__gradient':
-            self.__gradient                                    =  importedModule.__dict__['__gradient']
+          if method in ['__gradient__','__gradient','gradient']:
+            self.__gradient                                    =  importedModule.__dict__[method]
             self.__actionDictionary['gradient']                = self.__gradient
             self.__actionImplemented['gradient']               = True
           else:self.__actionImplemented['gradient']            = False
