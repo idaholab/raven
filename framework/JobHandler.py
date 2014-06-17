@@ -193,7 +193,8 @@ class JobHandler:
   def addInternal(self,Input,functionToRun,identifier,metadata=None):
     self.__queue.put(InternalRunner(Input,functionToRun,identifier,metadata))
     self.__numSubmitted += 1
-    if self.howManyFreeSpots()>0: self.addRuns()
+    if self.howManyFreeSpots()>0: 
+      self.addRuns()
 
   def isFinished(self):
     if not self.__queue.empty():

@@ -579,6 +579,11 @@ class PostProcessor(Model):
     cls.validateDict['Output' ][2]['type'        ] = ['HDF5']
     cls.validateDict['Output' ][2]['required'    ] = False
     cls.validateDict['Output' ][2]['multiplicity'] = 'n'
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][3]['class'       ] = 'OutStreamManager'
+    cls.validateDict['Output' ][3]['type'        ] = ['Plot','Print']
+    cls.validateDict['Output' ][3]['required'    ] = False
+    cls.validateDict['Output' ][3]['multiplicity'] = 'n'
     cls.validateDict['Function'] = [cls.testDict.copy()]
     cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
     cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
@@ -608,9 +613,13 @@ class PostProcessor(Model):
     
   def run(self,Input,jobHandler):
     '''run calls the interface finalizer'''
-    for i in range(len(Input)):
+    if len(Input) > 0 :
+      for i in range(len(Input)):
+        lumbdaToRun = lambda x: self.interface.run(x)
+        jobHandler.submitDict['Internal'](((Input[i]),),lumbdaToRun,str(i)) 
+    else:
       lumbdaToRun = lambda x: self.interface.run(x)
-      jobHandler.submitDict['Internal'](((Input[i]),),lumbdaToRun,str(i)) 
+      jobHandler.submitDict['Internal'](((None),),lumbdaToRun,str(0))   
  
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)

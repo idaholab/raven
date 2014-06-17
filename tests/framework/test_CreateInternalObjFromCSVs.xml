@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Files>.</Files>
+    <Sequence>LoadCsvIntoInternalObjectTestData,LoadCsvIntoInternalObjectTestHDF5</Sequence>
+    <batchSize>1</batchSize>
+</RunInfo>
+
+<Models>
+    <PostProcessor name="LoadCsvIntoInternalObjectTest" subType='LoadCsvIntoInternalObject'>
+        <directory>GridTestRaven/FirstMRun</directory>
+    </PostProcessor>
+</Models>
+
+<Steps>
+    <PostProcess name='LoadCsvIntoInternalObjectTestData'>
+        <Model    class='Models'           type='PostProcessor'   >LoadCsvIntoInternalObjectTest</Model>
+        <Output   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
+        <Output   class='OutStreamManager' type='Print'           >TimePointSetPostProcTest_DUMP</Output>
+    </PostProcess>
+    <PostProcess name='LoadCsvIntoInternalObjectTestHDF5'>
+        <Model    class='Models'           type='PostProcessor'   >LoadCsvIntoInternalObjectTest</Model>
+        <Output   class='DataBases'        type='HDF5'            >HDF5PostProcTest</Output>
+    </PostProcess>
+</Steps>
+<OutStreamManager>
+    <Print name='TimePointSetPostProcTest_DUMP'>
+        <type>csv</type>
+        <source>TimePointSetPostProcTest</source>
+    </Print>
+</OutStreamManager>
+<Datas>
+    <TimePointSet name='TimePointSetPostProcTest'>
+        <Input>Dummy1</Input>
+        <Output>time,pipe_Dh,pipe_Tw</Output>
+    </TimePointSet>
+</Datas>
+<DataBases>
+    <HDF5 name="HDF5PostProcTest" />
+</DataBases>
+
+</Simulation>

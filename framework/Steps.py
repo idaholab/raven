@@ -208,7 +208,7 @@ class SingleRun(Step):
     model      = inDictionary['Model'     ]
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
-    model.run(inputs,jobHandler)
+    model.run(inputs,jobHandler) 
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -455,7 +455,25 @@ class PostProcess(SingleRun):
     self.functionCounter = 0
 
   def _localInputAndChecks(self):
-    SingleRun._localInputAndChecks(self)
+    found     = 0
+    rolesItem = []
+    for index, parameter in enumerate(self.parList):
+      if parameter[0]=='Model':
+        found +=1
+        modelIndex = index
+      else: rolesItem.append(parameter[0])
+    #test the presence of one and only one model
+    if found > 1: raise IOError ('STEPS         : ERROR -> Only one model is allowed for the step named '+str(self.name))
+    elif found == 0: raise IOError ('STEPS         : ERROR -> No model has been found for the step named '+str(self.name))
+    roles      = set(rolesItem)
+    toBeTested = {}
+    for role in roles: toBeTested[role]=[]
+    for  myInput in self.parList:
+      if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
+    #use the models static testing of roles compatibility
+    for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
+    if 'Output' not in roles: raise IOError ('STEPS         : ERROR -> It is not possible a run without an Output!!!')
+    #SingleRun._localInputAndChecks(self)
     for role in self.parList:
       if role[0] == 'Function':
         self.functionCounter+=1

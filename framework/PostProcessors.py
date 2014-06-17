@@ -12,6 +12,9 @@ import numpy as np
 import scipy as sci
 import scipy.stats as stat
 import os
+from glob import glob
+import imp
+import inspect
 from utils import toString, toBytes, metaclass_insert, first
 import copy
 #Internal Modules------------------------------------------------------------------------------------
@@ -243,7 +246,6 @@ class BasicStatistics(BasePostProcessor):
       @ In, xmlNode    : Xml element node
       @ Out, None
     '''
-    if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
     for child in xmlNode:
       if child.tag =="what": 
         self.what = child.text
@@ -420,15 +422,67 @@ class BasicStatistics(BasePostProcessor):
         print('              ','* '+what+' * ' + '%.8E' % outputDict[what]+'  *')  
         print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')         
     return outputDict
+#
+#
+#
+#
+class LoadCsvIntoInternalObject(BasePostProcessor):
+  '''
+    LoadCsvIntoInternalObject pp class. It is in charge of loading CSV files into one of the internal object (Data(s) or HDF5)
+  '''
+  def __init__(self):
+    BasePostProcessor.__init__(self)
+    self.sourceDirectory = None
+    self.listOfCsvFiles = []
+
+  def initialize(self, runInfo, inputs, externalFunction = None):
+    BasePostProcessor.initialize(self, runInfo, inputs, externalFunction)
+    self.__workingDir = runInfo['WorkingDir']
+    if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
+    if not os.path.isabs(self.sourceDirectory)   : self.sourceDirectory = os.path.normpath(os.path.join(self.__workingDir,self.sourceDirectory))
+    if not os.path.exists(self.sourceDirectory)  : raise IOError("POSTPROC: ERROR -> The directory indicated for PostProcessor "+ self.name + "does not exist. Path: "+self.sourceDirectory)
+    for _dir,_,_ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir,"*.csv")))   
+    if len(self.listOfCsvFiles) == 0             : raise IOError("POSTPROC: ERROR -> The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
+    
+  def inputToInternal(self,currentInput): return self.listOfCsvFiles
+     
+  def _localReadMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode    : Xml element node
+      @ Out, None
+    '''
+    for child in xmlNode:
+      if child.tag =="directory": self.sourceDirectory = child.text
+    if not self.sourceDirectory: raise IOError("POSTPROC: ERROR -> The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
+
+  def collectOutput(self,finishedjob,output):
+    #output
+    '''collect the output file in the output object'''
+    for index,csvFile in enumerate(self.listOfCsvFiles):
+      print(csvFile)
+      attributes={"prefix":str(index),"input_file":self.name,"type":"csv","name":os.path.join(self.sourceDirectory,csvFile)}
+      metadata = finishedjob.returnMetadata()
+      if metadata:
+        for key in metadata: attributes[key] = metadata[key]
+      try:                   output.addGroup(attributes,attributes)
+      except AttributeError: 
+        output.addOutput(os.path.join(self.sourceDirectory,csvFile),attributes)
+        if metadata: 
+          for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
   
+  def run(self, InputIn):  return self.listOfCsvFiles
+
 '''
  Interface Dictionary (factory) (private)
 '''
-__base                             = 'Filter'
-__interFaceDict                    = {}
-__interFaceDict['PrintCSV'       ] = PrintCSV
-__interFaceDict['BasicStatistics'] = BasicStatistics
-__knownTypes                       = __interFaceDict.keys()
+__base                                       = 'PostProcessor'
+__interFaceDict                              = {}
+__interFaceDict['PrintCSV'                 ] = PrintCSV
+__interFaceDict['BasicStatistics'          ] = BasicStatistics
+__interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
+__knownTypes                                 = __interFaceDict.keys()
 
 def knonwnTypes():
   return __knownTypes

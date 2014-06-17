@@ -178,6 +178,16 @@
   rel_err = 0.001
  [../]
 
+ [./testCreateInternalObjFromCSVs]
+  type = 'RavenFramework'
+  input = 'test_CreateInternalObjFromCSVs.xml'
+  output = 'TimePointSetPostProcTest_DUMP.csv'
+  csv = 'TimePointSetPostProcTest_DUMP.csv'
+  max_time = 500
+  rel_err = 0.001
+  prereq = testGridRaven
+ [../]
+
  [./test_bison_mc_simple_&_alias_system]
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'

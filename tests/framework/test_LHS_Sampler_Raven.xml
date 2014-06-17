@@ -72,10 +72,6 @@
       </Distribution>
     </LHS>
   </Samplers>
-  <Tests>
-    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
-    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
-  </Tests>
   <Steps>
     <MultiRun name='FirstMRun'>
       <Input      class='Files'      type=''          >simple_flow_3eqn.i</Input>
