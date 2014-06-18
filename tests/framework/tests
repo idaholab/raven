@@ -13,7 +13,7 @@
   output = 'output_check/6-2DHistoryPlot_line-line.png output_check/6-2DHistoryPlot_line-line.eps output_check/6-2DHistoryPlot_line-line.pdf output_check/fullprint_history.csv output_check/fullprint_timepointset.csv output_check/fullprint_timepoint.csv output_check/testprint_selective_history.csv output_check/testprint_selective_timepoint.csv'
   csv = 'output_check/fullprint_histories_2.csv output_check/testprint_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_timepointset.csv'
 #  skip = 'Cannot run headless'
-  skip = 'Problem with output system filenames'
+  #skip = 'Problem with output system filenames'
  [../]
 
  [./test_branch]
@@ -22,7 +22,7 @@
   #skip = 'waiting for new output system fix'
   output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf'
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
-  skip = 'Problem with output system filenames'
+  #skip = 'Problem with output system filenames'
  [../]
 
  [./test_branch_heavy]
