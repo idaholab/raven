@@ -33,7 +33,6 @@ APPLICATION_DIR    := $(RELAP7_DIR)
 APPLICATION_NAME   := relap-7
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 include            $(FRAMEWORK_DIR)/app.mk
-include            $(APPLICATION_DIR)/control_logic.mk
 
 #APPLICATION_DIR    := $(HERD_TRUNK_DIR)/crow
 #APPLICATION_NAME   := crow
