@@ -208,6 +208,13 @@ class HDF5(DateBase):
       # convert the time in float
       time_end = False
       time_float = float(attributes['time'])
+      
+    if 'operator' in attributes.keys(): 
+      operator = True 
+      time_end = True
+      time_float = -1.0      
+    else: operator = False
+    
     inDict  = {}
     outDict = {} 
     ints = 0
@@ -242,19 +249,34 @@ class HDF5(DateBase):
     # Fill output param dictionary
     if time_end:
       # time end case => TimePoint is the final status 
-      last_row = histVar[0][:,0].size - 1
       if all_out_param:
         # Retrieve all the parameters 
-        for key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]))
+        if operator: 
+          if   attributes['operator'].lower() == 'max'    : outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]["output_space_headers"].index(key)])))   
+          elif attributes['operator'].lower() == 'min'    : outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]["output_space_headers"].index(key)])))  
+          elif attributes['operator'].lower() == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]["output_space_headers"].index(key)])))
+          else: raise IOError('DATABASE      : ******ERROR -> Operator '+ attributes['operator'] + ' unknown for TimePoint construction. Available are min,max,average!!')
+        else:
+          for key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]["output_space_headers"].index(key)]))
       else:
         # Retrieve only some parameters 
         for key in attributes['outParam']:
           if key in histVar[1]["output_space_headers"] or \
              toBytes(key) in histVar[1]["output_space_headers"]: 
-            if key in histVar[1]["output_space_headers"]:
-              outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]))
+            if operator: 
+              if   attributes['operator'].lower() == 'max'    : 
+                if key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]["output_space_headers"].index(key)])))
+                else: outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]["output_space_headers"].index(toBytes(key))])))                   
+              elif attributes['operator'].lower() == 'min'    : 
+                if key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]["output_space_headers"].index(key)])))
+                else: outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]["output_space_headers"].index(toBytes(key))])))                   
+              elif attributes['operator'].lower() == 'average': 
+                if key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]["output_space_headers"].index(key)])))
+                else: outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]["output_space_headers"].index(toBytes(key))])))                  
+              else: raise IOError('DATABASE      : ******ERROR -> Operator '+ attributes['operator'] + ' unknown for TimePoint construction. Available are min,max,average!!')
             else:
-              outDict[key] = np.atleast_1d(np.array(histVar[0][last_row,histVar[1]["output_space_headers"].index(toBytes(key))]))
+              if key in histVar[1]["output_space_headers"]: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]["output_space_headers"].index(key)]))
+              else: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]["output_space_headers"].index(toBytes(key))]))
           else: raise RuntimeError("ERROR: the parameter " + key + " has not been found")
     else:
       # Arbitrary point in time case... If the requested time point does not match any of the stored ones and 
@@ -307,7 +329,14 @@ class HDF5(DateBase):
       # convert the time in float
       time_end = False
       time_float = float(attributes['time'])
-
+    
+    if 'operator' in attributes.keys(): 
+      operator = True 
+      time_end = True
+      time_float = -1.0      
+    else: operator = False
+    
+    
     ints = 0
     if 'inputTs' in attributes.keys(): 
       if attributes['inputTs']: ints = int(attributes['inputTs'])
@@ -346,22 +375,37 @@ class HDF5(DateBase):
       
       # time end case => TimePointSet is at the final status 
       if time_end:
-        last_row = histVar[0][:,0].size - 1
         if all_out_param:
           # Retrieve all the parameters 
           for key in histVar[1]["output_space_headers"]:
             if i == 0: outDict[key] = np.zeros(len(hist_list))
-            outDict[key][i] = histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]
+            if operator: 
+              if   attributes['operator'].lower() == 'max'    : outDict[key][i] = max(histVar[0][:,histVar[1]["output_space_headers"].index(key)])
+              elif attributes['operator'].lower() == 'min'    : outDict[key][i] = min(histVar[0][:,histVar[1]["output_space_headers"].index(key)])
+              elif attributes['operator'].lower() == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]["output_space_headers"].index(key)])
+              else: raise IOError('DATABASE      : ******ERROR -> Operator '+ attributes['operator'] + ' unknown for TimePointSet construction. Available are min,max,average!!')
+            else:
+              outDict[key][i] = histVar[0][-1,histVar[1]["output_space_headers"].index(key)]
         else:
           # Retrieve only some parameters
           for key in attributes['outParam']:
             if key in histVar[1]["output_space_headers"] or \
                toBytes(key) in histVar[1]["output_space_headers"]:
               if i == 0: outDict[key] = np.zeros(len(hist_list))
-              if key in histVar[1]["output_space_headers"]:
-                outDict[key][i] = histVar[0][last_row,histVar[1]["output_space_headers"].index(key)]
+              if operator: 
+                if   attributes['operator'].lower() == 'max'    : 
+                  if key in histVar[1]["output_space_headers"]: outDict[key][i] = max(histVar[0][:,histVar[1]["output_space_headers"].index(key)])
+                  else: outDict[key][i] = max(histVar[0][:,histVar[1]["output_space_headers"].index(toBytes(key))])                
+                elif attributes['operator'].lower() == 'min'    : 
+                  if key in histVar[1]["output_space_headers"]: outDict[key][i] = min(histVar[0][:,histVar[1]["output_space_headers"].index(key)])
+                  else: outDict[key][i] = min(histVar[0][:,histVar[1]["output_space_headers"].index(toBytes(key))])                    
+                elif attributes['operator'].lower() == 'average': 
+                  if key in histVar[1]["output_space_headers"]: outDict[key][i] = np.average(histVar[0][:,histVar[1]["output_space_headers"].index(key)])
+                  else: outDict[key][i] = np.average(histVar[0][:,histVar[1]["output_space_headers"].index(toBytes(key))])                    
+                else: raise IOError('DATABASE      : ******ERROR -> Operator '+ attributes['operator'] + ' unknown for TimePointSet construction. Available are min,max,average!!')              
               else:
-                outDict[key][i] = histVar[0][last_row,histVar[1]["output_space_headers"].index(toBytes(key))]
+                if key in histVar[1]["output_space_headers"]: outDict[key][i] = histVar[0][-1,histVar[1]["output_space_headers"].index(key)]
+                else: outDict[key][i] = histVar[0][-1,histVar[1]["output_space_headers"].index(toBytes(key))]
             else: raise RuntimeError("ERROR: the parameter " + str(key) + " has not been found")
       else:
         # Arbitrary point in time case... If the requested time point Set does not match any of the stored ones and 

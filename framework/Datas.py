@@ -62,27 +62,31 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     # retrieve history name if present
     try:   self._dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
     except KeyError:self._dataParameters['history'] = None
-    try:
+    
+    if 'time' in xmlNode.attrib.keys():
       # check if time information are present... in case, store it
-      time = xmlNode.attrib['time']
-      if time == 'end' or time == 'all': self._dataParameters['time'] = time 
-      else:
-        try:   self._dataParameters['time'] = float(time)
-        except ValueError: self._dataParameters['time'] = float(time.split(','))
-    except KeyError:self._dataParameters['time'] = None
+      if not (self._dataParameters['time'] == 'end' or self._dataParameters['time'] == 'all'): 
+        try:   self._dataParameters['time'] = float(self._dataParameters['time'])
+        except ValueError: self._dataParameters['time'] = float(self._dataParameters['time'].split(','))
+    else:self._dataParameters['time'] = None
+
+    if 'operator' in xmlNode.attrib.keys():
+      # check if time information are present... in case, store it
+      self._dataParameters['operator'] = xmlNode.attrib['operator'].lower()
+      if self._dataParameters['operator'] not in ['min','max','average']: raise IOError("DATAS     : ERROR -> Only operation available are "+str(['min','max','average'])+" .Data named "+ self.name + "of type " + self.type  ) 
+       
     # check if inputTs is provided => the time step that the inputs refer to
     try: self._dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
     except KeyError:self._dataParameters['inputTs'] = None
     # check if this data needs to be in hierarchical fashion 
-    try:
+    if 'hierarchical' in xmlNode.attrib.keys():
       if xmlNode.attrib['hierarchical'].lower() in ['true','t','1']: self._dataParameters['hierarchical'] = True
       else: self._dataParameters['hierarchical'] = False
       if self._dataParameters['hierarchical'] and not self.acceptHierarchical(): 
         print("DATAS     : WARNING -> hierarchical fashion is not available (No Sense) for Data named "+ self.name + "of type " + self.type + "!!!")
         self._dataParameters['hierarchical'] = False
-      else: 
-        self.TSData = None
-    except KeyError:self._dataParameters['hierarchical'] = False 
+      else: self.TSData = None
+    else: self._dataParameters['hierarchical'] = False 
     
   def addInitParams(self,tempDict):
     '''

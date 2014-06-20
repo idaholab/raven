@@ -173,10 +173,10 @@ class OutStreamPlot(OutStreamManager):
       @ In, what => x,y,z or colorMap
       @ In, where, tuple => pos 0 = plotIndex, pos 1 = variable Index 
     '''
-    if   what == 'x'        : var = self.xCoordinates [where[0]][where[1]]
-    elif what == 'y'        : var = self.yCoordinates [where[0]][where[1]]
-    elif what == 'z'        : var = self.zCoordinates [where[0]][where[1]]
-    elif what == 'colorMap': var = self.colorMapCoordinates[where[0]][where[1]]
+    if   what == 'x'                : var = self.xCoordinates [where[0]][where[1]]
+    elif what == 'y'                : var = self.yCoordinates [where[0]][where[1]]
+    elif what == 'z'                : var = self.zCoordinates [where[0]][where[1]]
+    elif what == 'colorMap'         : var = self.colorMapCoordinates[where[0]][where[1]]
     # the variable can contain brackets (when the symbol "|" is present in the variable name), 
     # for example DataName|Input|(RavenAuxiliary|variableName|initial_value)
     # or it can look like DataName|Input|variableName
@@ -336,9 +336,13 @@ class OutStreamPlot(OutStreamManager):
       Function to execute the actions must be performed on the Plot(for example, set the x,y,z axis ranges, etc)
       @ In, None
     '''
-    if 'labelFormat' not in self.options.keys(): 
-      if self.dim == 2: self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
-      if self.dim == 3: self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
+    if 'labelFormat' not in self.options.keys():  
+      self.plt.gca().yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter()) 
+      self.plt.gca().xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())    
+      if self.dim == 2:  self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
+      if self.dim == 3:   
+        self.plt.figure().gca(projection='3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())  
+        self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
     if 'title'        not in self.options.keys():
       if self.dim == 2: self.plt.title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})
       if self.dim == 3: self.plt3D.set_title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})    
@@ -378,12 +382,12 @@ class OutStreamPlot(OutStreamManager):
           else: self.plt3D.set_title(self.options[key]['text'])  
       elif key== 'scale':
         if self.dim == 2:
-          if 'xscale' in self.options[key].keys(): self.plt.xscale(self.options[key]['xscale'])
-          if 'yscale' in self.options[key].keys(): self.plt.yscale(self.options[key]['yscale'])
+          if 'xscale' in self.options[key].keys(): self.plt.xscale(self.options[key]['xscale'],nonposy='clip')
+          if 'yscale' in self.options[key].keys(): self.plt.yscale(self.options[key]['yscale'],nonposy='clip')
         elif self.dim == 3:
-          if 'xscale' in self.options[key].keys(): self.plt3D.set_xscale(self.options[key]['xscale'])
-          if 'yscale' in self.options[key].keys(): self.plt3D.set_yscale(self.options[key]['yscale'])        
-          if 'zscale' in self.options[key].keys(): self.plt3D.set_zscale(self.options[key]['zscale'])     
+          if 'xscale' in self.options[key].keys(): self.plt3D.set_xscale(self.options[key]['xscale'],nonposy='clip')
+          if 'yscale' in self.options[key].keys(): self.plt3D.set_yscale(self.options[key]['yscale'],nonposy='clip')        
+          if 'zscale' in self.options[key].keys(): self.plt3D.set_zscale(self.options[key]['zscale'],nonposy='clip')     
       elif key == 'addText':
         if 'position' not in self.options[key].keys(): self.options[key]['position'] = str((min(self.xValues) + max(self.xValues))*0.5) + ',' + str((min(self.yValues) + max(self.yValues))*0.5)
         if 'withdash' not in self.options[key].keys(): self.options[key]['withdash'] = 'False' 
@@ -467,10 +471,10 @@ class OutStreamPlot(OutStreamManager):
             try: command_args = prefix + command_args + kk + '=' + str(ast.literal_eval(self.options[key][kk]))
             except:command_args = prefix + command_args + kk + '="' + str(self.options[key][kk])+'"'  
         try:
-          if self.dim == 2:  execcommand.execCommand('self.plt.' + key + '(' + command_args + ')')
-          elif self.dim == 3:execcommand.execCommand('self.plt.' + key + '(' + command_args + ')')   
-          if self.dim == 2:  exec('self.plt.' + key + '(' + command_args + ')')
-          elif self.dim == 3:exec('self.plt3D.' + key + '(' + command_args + ')')      
+          if self.dim == 2:  execcommand.execCommand('self.plt.' + key + '(' + command_args + ')',self)
+          elif self.dim == 3:execcommand.execCommand('self.plt.' + key + '(' + command_args + ')',self)   
+          #if self.dim == 2:  exec('self.plt.' + key + '(' + command_args + ')')
+          #elif self.dim == 3:exec('self.plt3D.' + key + '(' + command_args + ')')      
         except ValueError as ae: 
           raise Exception('STREAM MANAGER: ERROR <'+ae+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')         
 
@@ -743,7 +747,7 @@ class OutStreamPlot(OutStreamManager):
       # HISTOGRAM PLOT #
       ##################                      
       elif self.outStreamTypes[pltindex] == 'histogram':
-        if 'bins' in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['bins'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['bins'])
+        if 'bins' in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['bins'] = self.options['plotSettings']['plot'][pltindex]['bins']
         else: self.options['plotSettings']['plot'][pltindex]['bins'] = '10'
         if 'normed' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['normed'] = 'False'
         else: self.options['plotSettings']['plot'][pltindex]['normed'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['normed'])
@@ -757,11 +761,11 @@ class OutStreamPlot(OutStreamManager):
         if 'rwidth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rwidth'] = 'None'
         else: self.options['plotSettings']['plot'][pltindex]['rwidth'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rwidth'])
         if 'log' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['log'] = 'None'
-        else: self.options['plotSettings']['plot'][pltindex]['log'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['log'])      
+        else: self.options['plotSettings']['plot'][pltindex]['log'] = self.options['plotSettings']['plot'][pltindex]['log']     
         if 'color' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['color'] = 'b'
-        else: self.options['plotSettings']['plot'][pltindex]['color'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['color'])   
+        else: self.options['plotSettings']['plot'][pltindex]['color'] = self.options['plotSettings']['plot'][pltindex]['color']
         if 'stacked' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['stacked'] = 'None'
-        else: self.options['plotSettings']['plot'][pltindex]['stacked'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['stacked'])                 
+        else: self.options['plotSettings']['plot'][pltindex]['stacked'] = self.options['plotSettings']['plot'][pltindex]['stacked']                 
         for key in self.xValues[pltindex].keys():
           for x_index in range(len(self.xValues[pltindex][key])):
             try: colorss = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['color'])

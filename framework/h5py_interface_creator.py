@@ -100,6 +100,7 @@ class hdf5Database(object):
     '''
     if isinstance(obj,h5.Group):
       self.allGroupPaths.append(name)
+      print('DATABASE HDF5 : Accessing group named ' +name)
       if "EndGroup" in obj.attrs:
         self.allGroupEnds[name]  = obj.attrs["EndGroup"]
       else: 
@@ -116,6 +117,7 @@ class hdf5Database(object):
     @ In, source     : data source (for example, csv file)
     @ Out, None
     '''
+    
     if source['type'] == 'Datas':
       self.addGroupDatas(gname,attributes,source)
       return

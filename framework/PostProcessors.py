@@ -309,9 +309,12 @@ class BasicStatistics(BasePostProcessor):
     if 'ProbabilityWeight' not in Input['metadata'].keys():
       print('POSTPROC: Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights = 1.0
-    else: pbweights = Input['metadata']['ProbabilityWeight']
+      globPb = 1.0*len(Input['targets'][self.parameters['targets'][0]])
+    else: 
+      pbweights = Input['metadata']['ProbabilityWeight']  
+      globPb = np.sum(Input['metadata']['ProbabilityWeight'])
+      
     outputDict['expectedValue'] = {}
-    globPb = np.sum(Input['metadata']['ProbabilityWeight'])
 
     for targetP in self.parameters['targets']:
       if Input['metadata'].keys().count('SampledVarsPb'):
@@ -444,7 +447,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     for _dir,_,_ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir,"*.csv")))
     if len(self.listOfCsvFiles) == 0             : raise IOError("POSTPROC: ERROR -> The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
     self.listOfCsvFiles.sort()
-
+    
   def inputToInternal(self,currentInput): return self.listOfCsvFiles
 
   def _localReadMoreXML(self,xmlNode):
