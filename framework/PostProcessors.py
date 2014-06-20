@@ -28,36 +28,36 @@ import abc
 '''
 
 class BasePostProcessor:
-  def __init__(self): 
+  def __init__(self):
     self.type =''     # pp type
     self.name = None  # pp name
   def initialize(self, runInfo, inputs, externalFunction) : self.externalFunction = externalFunction
-  def _readMoreXML(self,xmlNode): 
+  def _readMoreXML(self,xmlNode):
     self.type = xmlNode.tag
-    self.name = xmlNode.attrib['name']                                                                                                  
-    self._localReadMoreXML(xmlNode) 
+    self.name = xmlNode.attrib['name']
+    self._localReadMoreXML(xmlNode)
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
   def run(self, Input): pass
-  
+
 class PrintCSV(BasePostProcessor):
   '''
-    PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources 
+    PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
   '''
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.paramters  = ['all']
     self.inObj      = None
     self.workingDir = None
-  
+
   def inputToInternal(self,currentInput): return [(currentInput)]
-  
+
   def initialize(self, runInfo, inputs, externalFunction):
     BasePostProcessor.initialize(self, runInfo, inputs, externalFunction)
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     runInfo['TempWorkingDir']     = self.workingDir
     try:                            os.mkdir(self.workingDir)
     except:                         print('POST-PROCESSOR: Warning -> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-  
+
   def _localReadMoreXML(self,xmlNode):
     '''
       Function to read the portion of the xml input that belongs to this specialized class
@@ -70,9 +70,9 @@ class PrintCSV(BasePostProcessor):
         param = child.text
         if(param.lower() != 'all'): self.paramters = param.strip().split(',')
         else: self.paramters[param]
-  
+
   def collectOutput(self,finishedjob,output):
-    # Check the input type 
+    # Check the input type
     if(self.inObj.type == "HDF5"):
       #  Input source is a database (HDF5)
       #  Retrieve the ending groups' names
@@ -87,7 +87,7 @@ class PrintCSV(BasePostProcessor):
         #  Retrieve the metadata (posion 1 of the history tuple)
         attributes = histories[key][1]
         #  Construct the header in csv format (first row of the file)
-        headers = b",".join([histories[key][1]['output_space_headers'][i] for i in 
+        headers = b",".join([histories[key][1]['output_space_headers'][i] for i in
                              range(len(attributes['output_space_headers']))])
         #  Construct history name
         hist = key
@@ -104,22 +104,22 @@ class PrintCSV(BasePostProcessor):
         if self.workingDir:
           addfile = os.path.join(self.workingDir,addfile)
           csvfilen = os.path.join(self.workingDir,csvfilen)
-        
+
         #  Open the files and save the data
         with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
           #  Add history to the csv file
           np.savetxt(csvfile, histories[key][0], delimiter=",",header=toString(headers))
           csvfile.write(b' \n')
-          #  process the attributes in a different csv file (different kind of informations) 
+          #  process the attributes in a different csv file (different kind of informations)
           #  Add metadata to additional info csv file
           addcsvfile.write(b'# History Metadata, \n')
           addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+b'\n')
           addcsvfile.write(b'#number of parameters,\n')
           addcsvfile.write(toBytes(str(attributes['n_params']))+b',\n')
-          addcsvfile.write(b'#parameters,\n') 
-          addcsvfile.write(headers+b'\n') 
-          addcsvfile.write(b'#parent_id,\n') 
-          addcsvfile.write(toBytes(attributes['parent_id'])+b'\n') 
+          addcsvfile.write(b'#parameters,\n')
+          addcsvfile.write(headers+b'\n')
+          addcsvfile.write(b'#parent_id,\n')
+          addcsvfile.write(toBytes(attributes['parent_id'])+b'\n')
           addcsvfile.write(b'#start time,\n')
           addcsvfile.write(toBytes(str(attributes['start_time']))+b'\n')
           addcsvfile.write(b'#end time,\n')
@@ -134,13 +134,13 @@ class PrintCSV(BasePostProcessor):
             for i in range(len(init_dist)):
               string_work_2 = ''
               for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','          
+              string_work = string_work + string_work_2 + ','
             addcsvfile.write(b'#initiator distributions,\n')
             addcsvfile.write(toBytes(string_work)+b'\n')
           if 'end_timestep' in attributes:
             string_work = ''
             end_ts = attributes['end_timestep']
-            for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','          
+            for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','
             addcsvfile.write('#end time step,\n')
             addcsvfile.write(str(string_work)+'\n')
           if 'branch_changed_param' in attributes:
@@ -151,7 +151,7 @@ class PrintCSV(BasePostProcessor):
               for j in branch_changed_param[i]:
                 if not j: string_work_2 = string_work_2 + 'None' + ' '
                 else: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','          
+              string_work = string_work + string_work_2 + ','
             addcsvfile.write(b'#changed parameters,\n')
             addcsvfile.write(toBytes(str(string_work))+b'\n')
           if 'branch_changed_param_value' in attributes:
@@ -162,7 +162,7 @@ class PrintCSV(BasePostProcessor):
               for j in branch_changed_param_value[i]:
                 if not j: string_work_2 = string_work_2 + 'None' + ' '
                 else: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','                          
+              string_work = string_work + string_work_2 + ','
             addcsvfile.write(b'#changed parameters values,\n')
             addcsvfile.write(toBytes(str(string_work))+b'\n')
           if 'conditional_prb' in attributes:
@@ -173,7 +173,7 @@ class PrintCSV(BasePostProcessor):
               for j in cond_pbs[i]:
                 if not j: string_work_2 = string_work_2 + 'None' + ' '
                 else: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','                
+              string_work = string_work + string_work_2 + ','
             addcsvfile.write(b'#conditional probability,\n')
             addcsvfile.write(toBytes(str(string_work))+b'\n')
           if 'PbThreshold' in attributes:
@@ -188,21 +188,21 @@ class PrintCSV(BasePostProcessor):
             addcsvfile.write(b'#Probability threshold,\n')
             addcsvfile.write(toBytes(str(string_work))+b'\n')
           addcsvfile.write(b' \n')
-            
+
     elif(self.inObj.type == "Datas"):
       pass
     else:
       raise NameError ('PostProcessor PrintCSV for input type ' + self.inObj.type + ' not yet implemented.')
-  
+
   def run(self, Input): # inObj,workingDir=None):
     '''
-     Function to finalize the filter => execute the filtering 
+     Function to finalize the filter => execute the filtering
      @ Out, None      : Print of the CSV file
     '''
     self.inObj = Input
 
 
-  
+
 class BasicStatistics(BasePostProcessor):
   '''
     BasicStatistics filter class. It computes all the most popular statistics
@@ -212,33 +212,33 @@ class BasicStatistics(BasePostProcessor):
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.acceptedCalcParam = ['covariance','pearson','expectedValue','sigma','variance','skewness','kurtois','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
-    self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it 
+    self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     #self.goalFunction.evaluate('residuumSign',tempDict)
-    
-  def inputToInternal(self,currentInput): 
+
+  def inputToInternal(self,currentInput):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{},'metadata':{}}
     try: inType = currentInput.type
-    except: 
+    except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
       else: raise IOError('POSTPROC: Error -> BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
     if inType == 'file':
       if currentInput.endswith('csv'): pass
     if inType == 'HDF5': pass # to be implemented
-    if inType in ['TimePointSet']: 
-      for targetP in self.parameters['targets']: 
+    if inType in ['TimePointSet']:
+      for targetP in self.parameters['targets']:
         if   targetP in currentInput.getParaKeys('input' ): inputDict['targets'][targetP] = currentInput.getParam('input' ,targetP)
         elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
-      inputDict['metadata'] = currentInput.getAllMetadata()        
-    # to be added  
+      inputDict['metadata'] = currentInput.getAllMetadata()
+    # to be added
     return inputDict
-  
+
   def initialize(self, runInfo, inputs, externalFunction = None):
     BasePostProcessor.initialize(self, runInfo, inputs, externalFunction)
     self.__workingDir = runInfo['WorkingDir']
-  
+
   def _localReadMoreXML(self,xmlNode):
     '''
       Function to read the portion of the xml input that belongs to this specialized class
@@ -247,7 +247,7 @@ class BasicStatistics(BasePostProcessor):
       @ Out, None
     '''
     for child in xmlNode:
-      if child.tag =="what": 
+      if child.tag =="what":
         self.what = child.text
         if self.what == 'all': self.what = self.acceptedCalcParam
         else:
@@ -255,8 +255,8 @@ class BasicStatistics(BasePostProcessor):
             if whatc not in self.acceptedCalcParam: raise IOError('POSTPROC: Error -> BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
           self.what = self.what.split(',')
       if child.tag =="parameters"   : self.parameters['targets'] = child.text.split(',')
-      if child.tag =="methodsToRun" : self.methodsToRun          = child.text.split(',') 
-        
+      if child.tag =="methodsToRun" : self.methodsToRun          = child.text.split(',')
+
   def collectOutput(self,finishedjob,output):
     #output
     if finishedjob.returnEvaluation() == -1: raise Exception("POSTPROC: ERROR -> No available Output to collect (Run probabably is not finished yet)")
@@ -270,86 +270,86 @@ class BasicStatistics(BasePostProcessor):
         for what in outputDict.keys():
           if what not in ['covariance','pearson'] + self.methodsToRun:
             basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
-            basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *\n')  
-            basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n') 
+            basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *\n')
+            basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
       maxLenght = max(len(max(self.parameters['targets'], key=len))+5,16)
-      if 'covariance' in outputDict.keys():    
+      if 'covariance' in outputDict.keys():
         basicStatdump.write(' '*maxLenght+'*****************************\n')
         basicStatdump.write(' '*maxLenght+'*         Covariance        *\n')
         basicStatdump.write(' '*maxLenght+'*****************************\n')
 
         basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
         for index in range(len(self.parameters['targets'])):
-          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]])+'\n')  
+          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]])+'\n')
       if 'pearson' in outputDict.keys():
         basicStatdump.write(' '*maxLenght+'*****************************\n')
         basicStatdump.write(' '*maxLenght+'*          Pearson          *\n')
         basicStatdump.write(' '*maxLenght+'*****************************\n')
         basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
         for index in range(len(self.parameters['targets'])):
-          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]])+'\n')          
- 
+          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]])+'\n')
+
       if self.externalFunction:
         basicStatdump.write(' '*maxLenght+'+++++++++++++++++++++++++++++\n')
-        basicStatdump.write(' '*maxLenght+'+ OUTCOME FROM EXT FUNCTION +\n')  
+        basicStatdump.write(' '*maxLenght+'+ OUTCOME FROM EXT FUNCTION +\n')
         basicStatdump.write(' '*maxLenght+'+++++++++++++++++++++++++++++\n')
         for what in self.methodsToRun:
           basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
-          basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *\n')  
-          basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')  
-  
+          basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *\n')
+          basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
+
   def run(self, InputIn): # inObj,workingDir=None):
     '''
-     Function to finalize the filter => execute the filtering 
-     @ In , dictionary       : dictionary of data to process 
+     Function to finalize the filter => execute the filtering
+     @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
     '''
     Input  = self.inputToInternal(InputIn)
-    outputDict = {}   
-    if 'ProbabilityWeight' not in Input['metadata'].keys(): 
+    outputDict = {}
+    if 'ProbabilityWeight' not in Input['metadata'].keys():
       print('POSTPROC: Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights = 1.0
-    else: pbweights = Input['metadata']['ProbabilityWeight']  
+    else: pbweights = Input['metadata']['ProbabilityWeight']
     outputDict['expectedValue'] = {}
     globPb = np.sum(Input['metadata']['ProbabilityWeight'])
-   
-    for targetP in self.parameters['targets']:             
+
+    for targetP in self.parameters['targets']:
       if Input['metadata'].keys().count('SampledVarsPb'):
         if Input['metadata']['SampledVarsPb'][0].keys().count(targetP) > 0:
           pbpdfw = np.zeros(Input['metadata']['SampledVarsPb'].size)
           for dd in range(pbpdfw.size): pbpdfw[dd] = Input['metadata']['SampledVarsPb'][dd][targetP]
-          outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbpdfw,Input['targets'][targetP]))/np.sum(pbpdfw)       
-        else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb   
-      else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb  
-        
+          outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbpdfw,Input['targets'][targetP]))/np.sum(pbpdfw)
+        else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb
+      else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb
+
     for what in self.what:
       if what == 'sigma':
         #sigma
         outputDict[what] = {}
         for targetP in self.parameters['targets']:
           if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-          else                                      : N = Input['targets'][targetP].size 
+          else                                      : N = Input['targets'][targetP].size
           outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1)**0.5
       if what == 'variance':
         #variance
         outputDict[what] = {}
         for targetP in self.parameters['targets']:
           if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-          else                                      : N = Input['targets'][targetP].size 
+          else                                      : N = Input['targets'][targetP].size
           outputDict[what][targetP] = np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1
       if what == 'kurtois':
         #kurtois
         outputDict[what] = {}
         for targetP in self.parameters['targets']:
           if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-          else                                      : N = Input['targets'][targetP].size 
+          else                                      : N = Input['targets'][targetP].size
           outputDict[what][targetP] = -3.0 + (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**4)*(N-1)**-1)/(np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1)**2
       if what == 'skewness':
         #skewness
         outputDict[what] = {}
         for targetP in self.parameters['targets']:
           if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-          else                                      : N = Input['targets'][targetP].size 
+          else                                      : N = Input['targets'][targetP].size
           outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**3)*(N-1)**-1)/(np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1)**1.5
       if what == 'median':
         #median
@@ -382,10 +382,10 @@ class BasicStatistics(BasePostProcessor):
         for targetP in self.parameters['targets'  ]:
           outputDict[what][targetP] = stat.skew(Input['targets'][targetP])
           outputDict[what][targetP] = stat.skew(Input['targets'][targetP])
-    
+
     if self.externalFunction:
-      # there is an external function 
-      for what in self.methodsToRun: outputDict[what] = self.externalFunction.evaluate(what,Input['targets'])   
+      # there is an external function
+      for what in self.methodsToRun: outputDict[what] = self.externalFunction.evaluate(what,Input['targets'])
     # print on screen
     print('POSTPROC: BasicStatistics '+str(self.name)+'pp outputs')
     for targetP in self.parameters['targets']:
@@ -395,32 +395,32 @@ class BasicStatistics(BasePostProcessor):
       for what in outputDict.keys():
         if what not in ['covariance','pearson'] + self.methodsToRun:
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-          print('              ','* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *')  
-          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***') 
+          print('              ','* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *')
+          print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
     maxLenght = max(len(max(self.parameters['targets'], key=len))+5,16)
-    if 'covariance' in outputDict.keys():    
+    if 'covariance' in outputDict.keys():
       print(' '*maxLenght,'*****************************')
       print(' '*maxLenght,'*         Covariance        *')
       print(' '*maxLenght,'*****************************')
 
       print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']]))
       for index in range(len(self.parameters['targets'])):
-        print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]]))  
+        print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]]))
     if 'pearson' in outputDict.keys():
       print(' '*maxLenght,'*****************************')
       print(' '*maxLenght,'*          Pearson          *')
       print(' '*maxLenght,'*****************************')
       print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']]))
       for index in range(len(self.parameters['targets'])):
-        print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))        
+        print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))
     if self.externalFunction:
       print(' '*maxLenght,'+++++++++++++++++++++++++++++')
-      print(' '*maxLenght,'+ OUTCOME FROM EXT FUNCTION +')  
+      print(' '*maxLenght,'+ OUTCOME FROM EXT FUNCTION +')
       print(' '*maxLenght,'+++++++++++++++++++++++++++++')
       for what in self.methodsToRun:
         print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-        print('              ','* '+what+' * ' + '%.8E' % outputDict[what]+'  *')  
-        print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')         
+        print('              ','* '+what+' * ' + '%.8E' % outputDict[what]+'  *')
+        print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
     return outputDict
 #
 #
@@ -441,11 +441,12 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
     if not os.path.isabs(self.sourceDirectory)   : self.sourceDirectory = os.path.normpath(os.path.join(self.__workingDir,self.sourceDirectory))
     if not os.path.exists(self.sourceDirectory)  : raise IOError("POSTPROC: ERROR -> The directory indicated for PostProcessor "+ self.name + "does not exist. Path: "+self.sourceDirectory)
-    for _dir,_,_ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir,"*.csv")))   
+    for _dir,_,_ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir,"*.csv")))
     if len(self.listOfCsvFiles) == 0             : raise IOError("POSTPROC: ERROR -> The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
-    
+    self.listOfCsvFiles.sort()
+
   def inputToInternal(self,currentInput): return self.listOfCsvFiles
-     
+
   def _localReadMoreXML(self,xmlNode):
     '''
       Function to read the portion of the xml input that belongs to this specialized class
@@ -467,11 +468,11 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
       if metadata:
         for key in metadata: attributes[key] = metadata[key]
       try:                   output.addGroup(attributes,attributes)
-      except AttributeError: 
+      except AttributeError:
         output.addOutput(os.path.join(self.sourceDirectory,csvFile),attributes)
-        if metadata: 
+        if metadata:
           for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
-  
+
   def run(self, InputIn):  return self.listOfCsvFiles
 
 '''
@@ -492,9 +493,6 @@ def returnInstance(Type):
     function used to generate a Filter class
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
-  '''  
+  '''
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)  
-
-
-  
+  except KeyError: raise NameError('not known '+__base+' type '+Type)
