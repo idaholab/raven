@@ -61,8 +61,8 @@ class Distribution(BaseType):
     retDict['type'] = _FrameworkToCrowDistNames[self.type]
     if self.lowerBoundUsed:
       retDict['xMin'] = self.lowerBound
-    if self.lowerBoundUsed:
-      retDict['xMax'] = self.lowerBound
+    if self.upperBoundUsed:
+      retDict['xMax'] = self.upperBound
     return retDict
 
   def addInitParams(self,tempDict):
