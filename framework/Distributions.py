@@ -654,7 +654,7 @@ class Exponential(BoostDistribution):
     tempDict['lambda'] = self.lambda_var
 
   def initializeDistribution(self):
-    if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or (self.lowerBound == 0.0):
+    if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var)
     else:
       if self.lowerBoundUsed == False: a = 0.0
