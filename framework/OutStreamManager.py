@@ -336,12 +336,14 @@ class OutStreamPlot(OutStreamManager):
       Function to execute the actions must be performed on the Plot(for example, set the x,y,z axis ranges, etc)
       @ In, None
     '''
-    if 'labelFormat' not in self.options.keys():  
-      self.plt.gca().yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter()) 
-      self.plt.gca().xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())    
-      if self.dim == 2:  self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
-      if self.dim == 3:   
-        self.plt.figure().gca(projection='3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())  
+    if 'labelFormat' not in self.options.keys():
+      if self.dim == 2:
+        self.plt.gca().yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        self.plt.gca().xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
+      if self.dim == 3:
+        #XXX should the 3d version support setting the major formatter?
+        #self.plt.figure().gca(projection='3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
         self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
     if 'title'        not in self.options.keys():
       if self.dim == 2: self.plt.title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})
