@@ -1124,8 +1124,8 @@ class OutStreamPlot(OutStreamManager):
         except ValueError as ae:
           raise Exception('STREAM MANAGER: ERROR <'+ae+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
     # SHOW THE PICTURE
-    self.plt.draw()
-    #self.plt3D.draw(self.fig.canvas.renderer)
+    if self.dim == 2: self.plt.draw()
+    if self.dim == 3: self.plt3D.draw(self.fig.canvas.renderer)
     if 'screen' in self.options['how']['how'].split(',') and disAvail:
       self.fig.show()
       if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
