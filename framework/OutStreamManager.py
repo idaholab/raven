@@ -341,11 +341,11 @@ class OutStreamPlot(OutStreamManager):
         self.plt.gca().yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
         self.plt.gca().xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
         self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
-      if self.dim == 3:
-        self.plt.figure().gca(projection='3d').yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
-        self.plt.figure().gca(projection='3d').xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
-        self.plt.figure().gca(projection='3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
-        self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
+        #if self.dim == 3:
+        #self.plt.figure().gca(projection='3d').yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        #self.plt.figure().gca(projection='3d').xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        #self.plt.figure().gca(projection='3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        #self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
     if 'title'        not in self.options.keys():
       if self.dim == 2: self.plt.title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})
       if self.dim == 3: self.plt3D.set_title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})
@@ -609,7 +609,7 @@ class OutStreamPlot(OutStreamManager):
     @ Out, None (Plot on the screen or on file/s)
     '''
     # reactivate the figure
-    self.plt.figure(self.name)
+    self.fig = self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries
     if not self.__fillCoordinatesFromSource():
       print('STREAM MANAGER: Warning -> Nothing to Plot Yet... Returning!!!!')
@@ -1133,8 +1133,8 @@ class OutStreamPlot(OutStreamManager):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
         if not self.overwrite: prefix = str(self.counter) + '-'
         else: prefix = ''
-        #self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
-        self.fig.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
+        self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
+        #self.fig.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
 
 class OutStreamPrint(OutStreamManager):
   def __init__(self):
