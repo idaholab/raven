@@ -317,6 +317,28 @@ checkAnswer("exponential ppf(0.7768698399)",exponential.ppf(0.7768698399),0.3)
 checkAnswer("exponential ppf(0.2)",exponential.ppf(0.2),0.0446287102628)
 checkAnswer("exponential ppf(0.5)",exponential.ppf(0.5),0.138629436112)
 
+#Test truncated exponential
+
+truncExponentialElement = ET.Element("truncexponential")
+truncExponentialElement.append(createElement("lambda",text="5.0"))
+truncExponentialElement.append(createElement("lowerBound",text="0.0"))
+truncExponentialElement.append(createElement("upperBound",text="10.0"))
+
+truncExponential = Distributions.Exponential()
+truncExponential._readMoreXML(truncExponentialElement)
+truncExponential.initializeDistribution()
+
+checkCrowDist("truncExponential",truncExponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'xMax': 10.0, 'lambda': 5.0})
+
+checkAnswer("truncExponential cdf(0.1)",truncExponential.cdf(0.1),0.393469340287)
+checkAnswer("truncExponential cdf(5.0)",truncExponential.cdf(5.0),0.999999999986)
+checkAnswer("truncExponential cdf(9.9)",truncExponential.cdf(9.9),1.0)
+
+
+checkAnswer("truncExponential ppf(0.1)",truncExponential.ppf(0.1),0.0210721031316)
+checkAnswer("truncExponential ppf(0.5)",truncExponential.ppf(0.5),0.138629436112)
+checkAnswer("truncExponential ppf(0.9)",truncExponential.ppf(0.9),0.460517018599)
+
 #Test log normal
 
 logNormalElement = ET.Element("logNormal")
