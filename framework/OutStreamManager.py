@@ -342,8 +342,9 @@ class OutStreamPlot(OutStreamManager):
         self.plt.gca().xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
         self.plt.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
       if self.dim == 3:
-        #XXX should the 3d version support setting the major formatter?
-        #self.plt.figure().gca(projection='3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        self.plt.figure().gca(projection='3d').yaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        self.plt.figure().gca(projection='3d').xaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
+        self.plt.figure().gca(projection='3d').zaxis.set_major_formatter(self.mpl.ticker.ScalarFormatter())
         self.plt3D.ticklabel_format(**{'style':'sci','scilimits':(0,0),'useOffset':False,'axis':'both'})
     if 'title'        not in self.options.keys():
       if self.dim == 2: self.plt.title(self.name,fontdict={'verticalalignment':'baseline','horizontalalignment':'center'})
@@ -660,7 +661,7 @@ class OutStreamPlot(OutStreamManager):
                   else: self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']))
                   m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(self.colorMapValues[pltindex][key])
-                  actcm = self.plt.colorbar(m)
+                  actcm = self.fig.colorbar(m)
                   actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                 else:
                   if 'attributes' in self.options['plotSettings']['plot'][pltindex].keys(): self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=(self.options['plotSettings']['plot'][pltindex]['c']),marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex]['attributes'])
@@ -672,7 +673,7 @@ class OutStreamPlot(OutStreamManager):
                     else: self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),rasterized= True,c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']))
                     m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                     m.set_array(self.colorMapValues[pltindex][key])
-                    actcm = self.plt.colorbar(m)
+                    actcm = self.fig.colorbar(m)
                     actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                   else:
                     if 'attributes' in self.options['plotSettings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=(self.options['plotSettings']['plot'][pltindex]['c']),marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex]['attributes'])
@@ -710,7 +711,7 @@ class OutStreamPlot(OutStreamManager):
                   self.actPlot = self.plt.scatter(xi,yi,c=self.colorMapValues[pltindex][key],marker='_')
                   m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(self.colorMapValues[pltindex][key])
-                  actcm = self.plt.colorbar(m)
+                  actcm = self.fig.colorbar(m)
                   actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                 else:
                   if 'attributes' in self.options['plotSettings']['plot'][pltindex].keys(): self.actPlot = self.plt.plot(xi,yi,**self.options['plotSettings']['plot'][pltindex]['attributes'])
@@ -725,7 +726,7 @@ class OutStreamPlot(OutStreamManager):
                     self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],c=self.colorMapValues[pltindex][key],marker='_')
                     m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                     m.set_array(self.colorMapValues[pltindex][key])
-                    actcm = self.plt.colorbar(m)
+                    actcm = self.fig.colorbar(m)
                     actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                   else:
                     try:
@@ -752,16 +753,16 @@ class OutStreamPlot(OutStreamManager):
         if 'bins' in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['bins'] = self.options['plotSettings']['plot'][pltindex]['bins']
         else: self.options['plotSettings']['plot'][pltindex]['bins'] = '10'
         if 'normed' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['normed'] = 'False'
-        else: self.options['plotSettings']['plot'][pltindex]['normed'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['normed'])
+        else: self.options['plotSettings']['plot'][pltindex]['normed'] = self.options['plotSettings']['plot'][pltindex]['normed']
         if 'weights' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['weights'] = 'None'
-        else: self.options['plotSettings']['plot'][pltindex]['weights'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['weights'])
+        else: self.options['plotSettings']['plot'][pltindex]['weights'] = self.options['plotSettings']['plot'][pltindex]['weights']
         if 'cumulative' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['cumulative'] = 'False'
-        else: self.options['plotSettings']['plot'][pltindex]['cumulative'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cumulative'])
+        else: self.options['plotSettings']['plot'][pltindex]['cumulative'] = self.options['plotSettings']['plot'][pltindex]['cumulative']
         if 'histtype' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['histtype'] = 'bar'
         if 'align' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['align'] = 'mid'
         if 'orientation' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['orientation'] = 'vertical'
         if 'rwidth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rwidth'] = 'None'
-        else: self.options['plotSettings']['plot'][pltindex]['rwidth'] = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rwidth'])
+        else: self.options['plotSettings']['plot'][pltindex]['rwidth'] = self.options['plotSettings']['plot'][pltindex]['rwidth']
         if 'log' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['log'] = 'None'
         else: self.options['plotSettings']['plot'][pltindex]['log'] = self.options['plotSettings']['plot'][pltindex]['log']
         if 'color' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['color'] = 'b'
@@ -882,7 +883,7 @@ class OutStreamPlot(OutStreamManager):
                   else: self.actPlot  = self.plt.pcolormesh(xig,yig,Ci)
                   m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(Ci)
-                  actcm = self.plt.colorbar(m)
+                  actcm = self.fig.colorbar(m)
                   actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
         elif self.dim == 3:
           print('STREAM MANAGER: pseudocolor Plot is considered a 2D plot, not a 3D!')
@@ -940,7 +941,7 @@ class OutStreamPlot(OutStreamManager):
                     else: self.actPlot = self.plt3D.plot_surface(xig,yig,zi,rstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),facecolors=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])(Ci),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']))
                     m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                     m.set_array(Ci)
-                    actcm = self.plt.colorbar(m)
+                    actcm = self.fig.colorbar(m)
                     actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                   else:
                     if 'attributes' in self.options['plotSettings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot_surface(xig,yig,zi, rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex]['attributes'])
@@ -1018,7 +1019,7 @@ class OutStreamPlot(OutStreamManager):
                     else: self.actPlot = self.plt3D.plot_wireframe(xig,yig,zi,rstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), color=Ci, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']))
                     m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                     m.set_array(Ci)
-                    actcm = self.plt.colorbar(m)
+                    actcm = self.fig.colorbar(m)
                     actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                   else:
                     if 'attributes' in self.options['plotSettings']['plot'][pltindex].keys(): self.actPlot = self.plt3D.plot_wireframe(xig,yig,zi, rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex]['attributes'])
@@ -1118,12 +1119,13 @@ class OutStreamPlot(OutStreamManager):
             try: command_args = prefix + command_args + kk + '=' + str(ast.literal_eval(self.options['plotSettings']['plot'][pltindex][kk]))
             except:command_args = prefix + command_args + kk + '="' + str(self.options['plotSettings']['plot'][pltindex][kk])+'"'
         try:
-          if self.dim == 2:  execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
-          elif self.dim == 3:execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
+          if self.dim == 2:  execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
+          elif self.dim == 3:execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
         except ValueError as ae:
           raise Exception('STREAM MANAGER: ERROR <'+ae+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
     # SHOW THE PICTURE
     self.plt.draw()
+    #self.plt3D.draw(self.fig.canvas.renderer)
     if 'screen' in self.options['how']['how'].split(',') and disAvail:
       self.fig.show()
       if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
@@ -1131,7 +1133,8 @@ class OutStreamPlot(OutStreamManager):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
         if not self.overwrite: prefix = str(self.counter) + '-'
         else: prefix = ''
-        self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
+        #self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
+        self.fig.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
 
 class OutStreamPrint(OutStreamManager):
   def __init__(self):
