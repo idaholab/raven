@@ -34,6 +34,14 @@ def checkAnswer(comment,value,expected):
   else:
     results["pass"] += 1
 
+def checkCrowDist(comment,dist,expected_crow_dist):
+  crow_dist = dist.getCrowDistDict()
+  if crow_dist != expected_crow_dist:
+    print(comment,crow_dist,expected_crow_dist)
+    results["fail"] += 1
+  else:
+    results["pass"] += 1
+
 #Test Uniform
 
 uniformElement = ET.Element("uniform")
@@ -45,6 +53,9 @@ uniformElement.append(createElement("hi",text="3.0"))
 uniform = Distributions.Uniform()
 uniform._readMoreXML(uniformElement)
 uniform.initializeDistribution()
+
+checkCrowDist("uniform",uniform,{'xMin': 1.0, 'type': 'UniformDistribution', 'xMax': 3.0})
+
 checkAnswer("uniform cdf(1.0)",uniform.cdf(1.0),0.0)
 checkAnswer("uniform cdf(2.0)",uniform.cdf(2.0),0.5)
 checkAnswer("uniform cdf(3.0)",uniform.cdf(3.0),1.0)
@@ -64,6 +75,8 @@ normalElement.append(createElement("sigma",text="2.0"))
 normal = Distributions.Normal()
 normal._readMoreXML(normalElement)
 normal.initializeDistribution()
+
+checkCrowDist("normal",normal,{'mu': 1.0, 'sigma': 2.0, 'type': 'NormalDistribution'})
 
 checkAnswer("normal cdf(0.0)",normal.cdf(0.0),0.308537538726)
 checkAnswer("normal cdf(1.0)",normal.cdf(1.0),0.5)
@@ -93,6 +106,8 @@ truncNormal = Distributions.Normal()
 truncNormal._readMoreXML(truncNormalElement)
 truncNormal.initializeDistribution()
 
+checkCrowDist("truncNormal",truncNormal,{'xMin': -1.0, 'mu': 1.0, 'type': 'NormalDistribution', 'sigma': 2.0, 'xMax': 3.0})
+
 checkAnswer("truncNormal cdf(0.0)",truncNormal.cdf(0.0),0.219546787406)
 checkAnswer("truncNormal cdf(1.0)",truncNormal.cdf(1.0),0.5)
 checkAnswer("truncNormal cdf(2.0)",truncNormal.cdf(2.0),0.780453212594)
@@ -111,6 +126,8 @@ gammaElement.append(createElement("beta",text="0.5"))
 gamma = Distributions.Gamma()
 gamma._readMoreXML(gammaElement)
 gamma.initializeDistribution()
+
+checkCrowDist("gamma",gamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
 
 checkAnswer("gamma cdf(0.0)",gamma.cdf(0.0),0.0)
 checkAnswer("gamma cdf(1.0)",gamma.cdf(1.0),0.393469340287)
@@ -133,6 +150,8 @@ betaElement.append(createElement("beta",text="2.0"))
 beta = Distributions.Beta()
 beta._readMoreXML(betaElement)
 beta.initializeDistribution()
+
+checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
 checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
 checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
@@ -164,6 +183,8 @@ beta = Distributions.Beta()
 beta._readMoreXML(betaElement)
 beta.initializeDistribution()
 
+checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+
 checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
 checkAnswer("scaled beta cdf(0.5)",beta.cdf(0.5),3.0517578125e-05)
 checkAnswer("scaled beta cdf(0.9)",beta.cdf(0.9),0.000576650390625)
@@ -185,6 +206,8 @@ triangular = Distributions.Triangular()
 triangular._readMoreXML(triangularElement)
 triangular.initializeDistribution()
 
+checkCrowDist("triangular",triangular,{'lowerBound': 0.0, 'type': 'TriangularDistribution', 'upperBound': 4.0, 'xMax': 4.0, 'xMin': 0.0, 'xPeak': 3.0})
+
 checkAnswer("triangular cdf(0.25)",triangular.cdf(0.25),0.00520833333333)
 checkAnswer("triangular cdf(3.0)",triangular.cdf(3.0),0.75)
 checkAnswer("triangular cdf(3.5)",triangular.cdf(3.5),0.9375)
@@ -203,6 +226,8 @@ poissonElement.append(createElement("mu",text="4.0"))
 poisson = Distributions.Poisson()
 poisson._readMoreXML(poissonElement)
 poisson.initializeDistribution()
+
+checkCrowDist("poisson",poisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
 
 checkAnswer("poisson cdf(1.0)",poisson.cdf(1.0),0.0915781944437)
 checkAnswer("poisson cdf(5.0)",poisson.cdf(5.0),0.7851303870304052)
@@ -224,6 +249,8 @@ binomial = Distributions.Binomial()
 binomial._readMoreXML(binomialElement)
 binomial.initializeDistribution()
 
+checkCrowDist("binomial",binomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
+
 checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
 checkAnswer("binomial cdf(2)",binomial.cdf(2),0.525592803955)
 checkAnswer("binomial cdf(5)",binomial.cdf(5),0.980272293091)
@@ -240,6 +267,8 @@ bernoulliElement.append(createElement("p",text="0.4"))
 bernoulli = Distributions.Bernoulli()
 bernoulli._readMoreXML(bernoulliElement)
 bernoulli.initializeDistribution()
+
+checkCrowDist("bernoulli",bernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
 
 checkAnswer("bernoulli cdf(0)",bernoulli.cdf(0),0.6)
 checkAnswer("bernoulli cdf(1)",bernoulli.cdf(1),1.0)
@@ -259,6 +288,8 @@ logistic = Distributions.Logistic()
 logistic._readMoreXML(logisticElement)
 logistic.initializeDistribution()
 
+checkCrowDist("logistic",logistic,{'scale': 1.0, 'type': 'LogisticDistribution', 'location': 4.0})
+
 checkAnswer("logistic cdf(0)",logistic.cdf(0.0),0.0179862099621)
 checkAnswer("logistic cdf(4)",logistic.cdf(4.0),0.5)
 checkAnswer("logistic cdf(8)",logistic.cdf(8.0),0.982013790038)
@@ -275,6 +306,8 @@ exponentialElement.append(createElement("lambda",text="5.0"))
 exponential = Distributions.Exponential()
 exponential._readMoreXML(exponentialElement)
 exponential.initializeDistribution()
+
+checkCrowDist("exponential",exponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'lambda': 5.0})
 
 checkAnswer("exponential cdf(0.3)",exponential.cdf(0.3),0.7768698399)
 checkAnswer("exponential cdf(1.0)",exponential.cdf(1.0),0.993262053001)
@@ -294,6 +327,8 @@ logNormal = Distributions.LogNormal()
 logNormal._readMoreXML(logNormalElement)
 logNormal.initializeDistribution()
 
+checkCrowDist("logNormal",logNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution'})
+
 checkAnswer("logNormal cdf(2.0)",logNormal.cdf(2.0),0.124367703363)
 checkAnswer("logNormal cdf(1.0)",logNormal.cdf(1.0),0.0668072012689)
 checkAnswer("logNormal cdf(3.0)",logNormal.cdf(3.0),0.170879904093)
@@ -311,6 +346,8 @@ weibullElement.append(createElement("lambda", text="1.0"))
 weibull = Distributions.Weibull()
 weibull._readMoreXML(weibullElement)
 weibull.initializeDistribution()
+
+checkCrowDist("weibull",weibull,{'xMin': 0.0, 'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0})
 
 checkAnswer("weibull cdf(0.5)",weibull.cdf(0.5),0.29781149863)
 checkAnswer("weibull cdf(0.2)",weibull.cdf(0.2),0.0855593563928)
