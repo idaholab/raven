@@ -297,12 +297,18 @@ class Normal(BoostDistribution):
       self.std_point = actualToStandardPoint
       self.actual_weight = standardToActualWeight
       self.probability_norm = probNorm
+      self.lowerBound = -sys.float_info.max
+      self.upperBound =  sys.float_info.max
     else:
       print('FIXME: this should be removed.... :special case distribution for stochastic colocation')
-      if self.lowerBoundUsed == False: a = -sys.float_info.max
+      if self.lowerBoundUsed == False: 
+        a = -sys.float_info.max
+        self.lowerBound = a
       else:a = self.lowerBound
       #else:a = (self.lowerBound - self.mean) / self.sigma
-      if self.upperBoundUsed == False: b = sys.float_info.max
+      if self.upperBoundUsed == False: 
+        b = sys.float_info.max
+        self.upperBound = b
       else:b = self.upperBound
       #else:b = (self.upperBound - self.mean) / self.sigma
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
@@ -352,10 +358,16 @@ class Gamma(BoostDistribution):
     #self._distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
+      self.lowerBoundUsed = 0.0
+      self.upperBound     = sys.float_info.max
     else:
-      if self.lowerBoundUsed == False: a = 0.0
+      if self.lowerBoundUsed == False: 
+        a = 0.0
+        self.lowerBound = a
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info.max
+      if self.upperBoundUsed == False: 
+        b = sys.float_info.max
+        self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)   
          
@@ -404,18 +416,18 @@ class Beta(BoostDistribution):
     BoostDistribution._readMoreXML(self,xmlNode)
     low_find = xmlNode.find('low')
     if low_find != None: self.low = float(low_find.text)
-    else: raise Exception('low value needed for Gamma distribution')
+    else: raise Exception('low value needed for Beta distribution')
     hi_find = xmlNode.find('hi')
     high_find = xmlNode.find('high')
     if hi_find != None: self.hi = float(hi_find.text)
     elif high_find != None: self.hi = float(high_find.text)
-    else: raise Exception('hi or high value needed for Gamma distribution')
+    else: raise Exception('hi or high value needed for Beta distribution')
     alpha_find = xmlNode.find('alpha')
     if alpha_find != None: self.alpha = float(alpha_find.text)
-    else: raise Exception('alpha value needed for Gamma distribution')
+    else: raise Exception('alpha value needed for Beta distribution')
     beta_find = xmlNode.find('beta')
     if beta_find != None: self.beta = float(beta_find.text)
-    else: raise Exception('beta value needed for Gamma distribution')
+    else: raise Exception('beta value needed for Beta distribution')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -522,6 +534,8 @@ class Poisson(BoostDistribution):
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicPoissonDistribution(self.mu)
+      self.lowerBound = 0.0
+      self.upperBound = sys.float_info.max
     else:
       raise IOError ('Truncated poisson not yet implemented')
 
@@ -656,10 +670,16 @@ class Exponential(BoostDistribution):
   def initializeDistribution(self):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var)
+      self.lowerBound = 0.0
+      self.upperBound = sys.float_info.max
     else:
-      if self.lowerBoundUsed == False: a = 0.0
+      if self.lowerBoundUsed == False: 
+        a = 0.0
+        self.lowerBound = a
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info.max
+      if self.upperBoundUsed == False: 
+        b = sys.float_info.max
+        self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b)
 
@@ -694,10 +714,16 @@ class LogNormal(BoostDistribution):
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma)
+      self.lowerBound = -sys.float_info.max
+      self.upperBound =  sys.float_info.max
     else:
-      if self.lowerBoundUsed == False: a = -sys.float_info.max
+      if self.lowerBoundUsed == False: 
+        a = -sys.float_info.max
+        self.lowerBound = a
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info.max
+      if self.upperBoundUsed == False: 
+        b = sys.float_info.max
+        self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,a,b)
 
@@ -738,9 +764,13 @@ class Weibull(BoostDistribution):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or self.lowerBound == 0.0:
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
     else:
-      if self.lowerBoundUsed == False: a = 0.0
+      if self.lowerBoundUsed == False: 
+        a = 0.0
+        self.lowerBound = a
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info.max
+      if self.upperBoundUsed == False: 
+        b = sys.float_info.max
+        self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
 

@@ -87,8 +87,8 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys(): 
-      if   xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t']: self.pauseEndStep = True
-      elif xmlNode.attrib['pauseAtEnd'].lower() in ['no','false','f']: self.pauseEndStep = False
+      if   xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t','y']: self.pauseEndStep = True
+      elif xmlNode.attrib['pauseAtEnd'].lower() in ['no','false','f','n']: self.pauseEndStep = False
       else: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
     self._localInputAndChecks()
     if None in self.parList: raise IOError ('A problem was found in  the definition of the step '+str(self.name))
@@ -193,7 +193,7 @@ class SingleRun(Step):
   def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
     #Model initialization
-    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
+    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
     if self.debug: print('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
@@ -453,6 +453,8 @@ class PostProcess(SingleRun):
     SingleRun.__init__(self)
     self.foundFunction   = False
     self.functionCounter = 0
+    self.ROMCounter      = 0
+    self.foundROM        = False
 
   def _localInputAndChecks(self):
     found     = 0
@@ -481,11 +483,18 @@ class PostProcess(SingleRun):
         if role[1]!='Functions': raise IOError('STEPS         : ERROR -> The optional function must be of class "Functions", in step ' + self.name)
       elif role[0] == 'Model' and role[1] == 'Models':
         if role[2] != 'PostProcessor' : raise IOError('STEPS         : ERROR -> The required model in "PostProcess" step must be of type PostProcessor, in step ' + self.name)   
+      elif role[0] == 'ROM' and role[1] == 'Models':
+        self.ROMCounter+=1
+        self.foundROM   = True
+        if role[2] != 'ROM' : raise IOError('STEPS         : ERROR -> The optional ROM in "PostProcess" step must be of type ROM, in step ' + self.name)   
 
   def _localInitializeStep(self,inDictionary):
     functionExt = None
+    ROMExt      = None
     if self.foundFunction: functionExt = inDictionary['Function']
-    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],functionExt)
+    if self.foundROM: ROMExt = inDictionary['ROM']
+    initDict = {'externalFunction':functionExt,'ROM':ROMExt}
+    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],initDict)
     if self.debug: print('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
@@ -493,7 +502,7 @@ class PostProcess(SingleRun):
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
         if self.debug: print('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
-
+    
   def _localTakeAstepRun(self,inDictionary): 
     SingleRun._localTakeAstepRun(self, inDictionary)
 #

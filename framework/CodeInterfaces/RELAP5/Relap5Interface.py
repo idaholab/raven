@@ -34,8 +34,9 @@ class Relap5Interface:
     self._samplersDictionary['MonteCarlo'           ] = self.pointSamplerForRELAP5
     self._samplersDictionary['Grid'                 ] = self.pointSamplerForRELAP5
     self._samplersDictionary['LHS'                  ] = self.pointSamplerForRELAP5
+    self._samplersDictionary['Adaptive'             ] = self.pointSamplerForRELAP5
     self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForRELAP5
-    self._samplersDictionary['BnBDynamicEventTree']      = self.DynamicEventTreeForRELAP5
+    self._samplersDictionary['BnBDynamicEventTree'  ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1

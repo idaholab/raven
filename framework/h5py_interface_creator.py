@@ -90,6 +90,7 @@ class hdf5Database(object):
     self.allGroupEnds  = {}
     if not self.fileOpen: self.h5_file_w = self.openDataBaseW(self.filenameAndPath,'a')
     self.h5_file_w.visititems(self.__isGroup)
+    print('DATABASE HDF5 : TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
     '''

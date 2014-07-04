@@ -355,15 +355,21 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, keyword, keyword 
     @ Out, Reference to the parameter
     '''
-    if typeVar.lower() not in ["input","output"]: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
+    if self.type == 'Histories': acceptedType = [str,unicode,bytes,int]
+    else                       : acceptedType = [str,unicode,bytes]
+    if type(typeVar) not in [str,unicode,bytes] : raise Exception("DATAS     : ERROR -> type of parameter typeVar needs to be a string. Function: Data.getParam")
+    if type(keyword) not in acceptedType        : raise Exception("DATAS     : ERROR -> type of parameter keyword needs to be "+str(acceptedType)+" . Function: Data.getParam")
+    if nodeid:
+      if type(nodeid) not in [str,unicode,bytes]  : raise Exception("DATAS     : ERROR -> type of parameter nodeid needs to be a string. Function: Data.getParam")
+    if typeVar.lower() not in ["input","inputs","output","outputs"]: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
     if self._dataParameters['hierarchical']: 
       if type(keyword) == int: return list(self.getHierParam(typeVar.lower(),nodeid,None,serialize).values())[keyword-1]
       else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
     else:
-      if typeVar.lower() in "input":
+      if typeVar.lower() in ["input","inputs"]:
         if keyword in self._dataContainer['inputs'].keys(): return self._dataContainer['inputs'][keyword]
         else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in inpParametersValues dictionary. Available keys are "+str(self._dataContainer['inputs'].keys())+".Function: Data.getParam")    
-      elif typeVar.lower() in "output":
+      elif typeVar.lower() in ["output","outputs"]:
         if keyword in self._dataContainer['outputs'].keys(): return self._dataContainer['outputs'][keyword]    
         else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in outParametersValues dictionary. Available keys are "+str(self._dataContainer['outputs'].keys())+".Function: Data.getParam")
     
@@ -417,22 +423,22 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         for node in self.TSData.iterEnding():
           nodesDict[node.name] = []
           for se in list(self.TSData.iterWholeBackTrace(node)):
-            if typeVar in 'inout'    and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
-            if typeVar in 'inputs'   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
-            if typeVar in 'outputs'  and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
-            if typeVar in 'metadata' and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-            if typeVar in 'inputs'   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-            if typeVar in 'outputs'  and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
-            if typeVar in 'metadata' and     keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])    
+            if typeVar in 'inout'              and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
+            if typeVar in ['inputs',"input"]   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
+            if typeVar in ["output","outputs"] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
+            if typeVar in 'metadata'           and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
+            if typeVar in ['inputs',"input"]   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
+            if typeVar in ["output","outputs"] and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
+            if typeVar in 'metadata'           and     keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])    
       else:
         for node in self.TSData.iter():
-          if typeVar in 'inout'    and not keyword: nodesDict[node.name] = node.get('dataContainer')
-          if typeVar in 'inputs'   and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ]
-          if typeVar in 'outputs'  and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ] 
-          if typeVar in 'metadata' and not keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'] 
-          if typeVar in 'inputs'   and     keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ][keyword] 
-          if typeVar in 'outputs'  and     keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ][keyword]
-          if typeVar in 'metadata' and     keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'][keyword]
+          if typeVar in 'inout'              and not keyword: nodesDict[node.name] = node.get('dataContainer')
+          if typeVar in ['inputs',"input"]   and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ]
+          if typeVar in ["output","outputs"] and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ] 
+          if typeVar in 'metadata'           and not keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'] 
+          if typeVar in ['inputs',"input"]   and     keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ][keyword] 
+          if typeVar in ["output","outputs"] and     keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ][keyword]
+          if typeVar in 'metadata'           and     keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'][keyword]
     else:
       # we want a particular node
       if serialize:
@@ -440,20 +446,20 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         nodesDict[nodeid] = []
         for se in list(self.TSData.iterWholeBackTrace(self.TSData.iter(nodeid)[0])):
           if typeVar in 'inout'    and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
-          if typeVar in 'inputs'   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
-          if typeVar in 'outputs'  and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
+          if typeVar in ['inputs',"input"]   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
+          if typeVar in ["output","outputs"]  and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
           if typeVar in 'metadata' and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-          if typeVar in 'inputs'   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-          if typeVar in 'outputs'  and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword]) 
+          if typeVar in ['inputs',"input"]   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
+          if typeVar in ["output","outputs"]  and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword]) 
           if typeVar in 'metadata' and     keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword]) 
       else:
-        if typeVar in 'inout'    and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')
-        if typeVar in 'inputs'   and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ]
-        if typeVar in 'outputs'  and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['outputs' ] 
-        if typeVar in 'metadata' and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['metadata'] 
-        if typeVar in 'inputs'   and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ][keyword] 
-        if typeVar in 'outputs'  and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['outputs' ][keyword]
-        if typeVar in 'metadata' and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['metadata'][keyword]
+        if typeVar in 'inout'              and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')
+        if typeVar in ['inputs',"input"]   and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ]
+        if typeVar in ["output","outputs"] and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['outputs' ] 
+        if typeVar in 'metadata'           and not keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['metadata'] 
+        if typeVar in ['inputs',"input"]   and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ][keyword] 
+        if typeVar in ["output","outputs"] and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['outputs' ][keyword]
+        if typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = self.TSData.iter(nodeid)[0].get('dataContainer')['metadata'][keyword]
     return nodesDict
     
   def retrieveNodeInTreeMode(self,nodeName,parentName=None):

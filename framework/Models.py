@@ -134,7 +134,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   def localAddInitParams(self,tempDict):
     '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
 
-  def initialize(self,runInfo,inputs):
+  def initialize(self,runInfo,inputs,initDict=None):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
     after this call the next one will be run
     @in runInfo is the run info from the jobHandler
@@ -193,7 +193,7 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
     
-  def initialize(self,runInfo,inputs):
+  def initialize(self,runInfo,inputs,initDict=None):
     self.counterInput = 0
 
   def _manipulateInput(self,dataIn):
@@ -341,7 +341,7 @@ class ExternalModel(Dummy):
     self.modelVariableType   = {}
     self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
 
-  def initialize(self,runInfo,inputs):
+  def initialize(self,runInfo,inputs,initDict=None):
     if 'initialize' in dir(self.sim): self.sim.initialize(self,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)      
   
@@ -463,7 +463,7 @@ class Code(Model):
     originalDict['current input file'       ] = self.currentInputFiles
     originalDict['original input file'      ] = self.oriInputFiles
 
-  def initialize(self,runInfoDict,inputFiles):
+  def initialize(self,runInfoDict,inputFiles,initDict=None):
     '''initialize some of the current setting for the runs and generate the working 
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
@@ -532,7 +532,7 @@ class Projector(Model):
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
 
-  def initialize(self,runInfoDict,myInput):
+  def initialize(self,runInfoDict,myInput,initDict=None):
     if myInput.type == 'ROM':
       pass
     #initialize some of the current setting for the runs and generate the working 
@@ -588,7 +588,13 @@ class PostProcessor(Model):
     cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
     cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
     cls.validateDict['Function'  ][0]['required'    ] = False
-    cls.validateDict['Function'  ][0]['multiplicity'] = '1'    
+    cls.validateDict['Function'  ][0]['multiplicity'] = '1' 
+    cls.validateDict['ROM'] = [cls.testDict.copy()]
+    cls.validateDict['ROM'       ][0]['class'       ] = 'Models'
+    cls.validateDict['ROM'       ][0]['type'        ] = ['ROM']
+    cls.validateDict['ROM'       ][0]['required'    ] = False
+    cls.validateDict['ROM'       ][0]['multiplicity'] = '1'
+      
   def __init__(self):
     Model.__init__(self)
     self.input  = {}     # input source
@@ -604,12 +610,11 @@ class PostProcessor(Model):
     Model.addInitParams(self, tempDict)
   
   
-  def initialize(self,runInfo,inputs,externalFunction=None):
+  def initialize(self,runInfo,inputs, initDict=None):
     '''initialize some of the current setting for the runs and generate the working 
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
-    self.externalFunction         = externalFunction
-    self.interface.initialize(runInfo, inputs, externalFunction)
+    self.interface.initialize(runInfo, inputs, initDict)
     
   def run(self,Input,jobHandler):
     '''run calls the interface finalizer'''

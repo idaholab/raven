@@ -575,8 +575,6 @@ class AdaptiveSampler(Sampler):
       self._cKDTreeInterface('train',tempDict)
       tempDict = {}
       distLast = np.zeros(self.surfPoint.shape[0])
-      print("***********************************self.axisName*************************")
-      print([key.replace('<distribution>','') for key in self.axisName])
       for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
         tempDict[varName]     = self.surfPoint[:,varIndex]
         distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
@@ -601,10 +599,13 @@ class AdaptiveSampler(Sampler):
         self.inputInfo['distributionType'][key] = self.toBeSampled[key][0]
         self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])   
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
+    self.inputInfo['ProbabilityWeight'] = 1.0
     self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
     #print(self.hangingPoints)
     if self.debug: print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
+    self.inputInfo['SamplerType'] = 'Adaptive'
+    self.inputInfo['subGridTol' ] = self.subGridTol
 
 #This is the normal derivation to be used later on
 #      pbMapPointCoord = np.zeros((len(self.surfPoint),self.nVar*2+1,self.nVar))
@@ -712,7 +713,8 @@ class MonteCarlo(Sampler):
       #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-      self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
+      #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
+    self.inputInfo['SamplerType'] = 'MC'
 #
 #
 #
@@ -777,12 +779,12 @@ class Grid(Sampler):
         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
         if self.distDict[varName].upperBoundUsed:
           if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps>self.distDict[varName].upperBound:
-            raise Exception('the variable '+varName+'can not be sampled at '+str(valueMax)+' since outside the upper bound of the chosen distribution')
+            raise Exception('the variable '+varName+'can not be sampled at '+str(valueMax)+' since outside the upper bound of the chosen distribution,Distripution Upper Bound = '+ str(self.distDict[varName].upperBound))
           if valueMax>self.distDict[varName].upperBound and valueMax-2.0*np.finfo(valueMax).eps<=self.distDict[varName].upperBound:
             valueMax = valueMax-2.0*np.finfo(valueMax).eps
         if self.distDict[varName].lowerBoundUsed:
           if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMin).eps<self.distDict[varName].lowerBound:
-            raise Exception('the variable '+varName+'can not be sampled at '+str(valueMin)+' since outside the lower bound of the chosen distribution')
+            raise Exception('the variable '+varName+'can not be sampled at '+str(valueMin)+' since outside the lower bound of the chosen distribution,Distripution Lower Bound = '+str(self.distDict[varName].lowerBound))
           if valueMin<self.distDict[varName].lowerBound and valueMin+2.0*np.finfo(valueMax).eps>=self.distDict[varName].lowerBound:
             valueMin = valueMin-2.0*np.finfo(valueMin).eps
         self.gridInfo[varName][2][indexMax], self.gridInfo[varName][2][indexMin] = valueMax, valueMin
@@ -793,6 +795,7 @@ class Grid(Sampler):
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    weight = 1.0
     for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
       # check if the varName is a comma separated list of strings
@@ -802,17 +805,25 @@ class Grid(Sampler):
       index, remainder = divmod(remainder, stride )
       self.gridCoordinate[i] = index
       for kkey in varName.strip().split(','):
-        #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName]
-        #print(varName,self.toBeSampled[varName])
         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName][1]
         self.inputInfo['distributionType'][kkey] = self.toBeSampled[varName][0]
         if self.gridInfo[varName][0]=='CDF':
           self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
         elif self.gridInfo[varName][0]=='value':
           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])   
+          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey]) 
+      if self.gridInfo[varName][0]=='CDF':
+        if index != 0 and index < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0) 
+        if index == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.distDict[varName].lowerBound))/2.0) 
+        if index == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.distDict[varName].upperBound))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)           
+      else:  
+        if i != 0 and i < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0) 
+        if i == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0) 
+        if i == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)           
+        
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+    self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
+    self.inputInfo['SamplerType'] = 'Grid'
 #
 #
 #
@@ -853,13 +864,13 @@ class LHS(Grid):
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    weight = 1.0
     for varName in self.axisName:
       upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
       lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
       j +=1
       intervalFraction = Distributions.random()
       coordinate = lower + (upper-lower)*intervalFraction
-      #self.inputInfo['distributionInfo'][varName] = self.gridInfo[varName] 
       # check if the varName is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
       if self.gridInfo[varName][0] =='CDF':
@@ -874,13 +885,17 @@ class LHS(Grid):
           self.inputInfo['upper'][kkey] = copy.deepcopy(ppfupper)
           self.inputInfo['lower'][kkey] = copy.deepcopy(ppflower)
           self.inputInfo['SampledVarsPb'][varName] = coordinate
+          weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower) 
         elif self.gridInfo[varName][0]=='value':
           self.values[varName] = coordinate
           self.inputInfo['upper'][kkey] = max(upper,lower)
           self.inputInfo['lower'][kkey] = min(upper,lower)
           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+      if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower) 
+      else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)      
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = self.inputInfo['PointProbability']
+    self.inputInfo['ProbabilityWeight' ] = copy.deepcopy(weight)
+    self.inputInfo['SamplerType'] = 'Stratified'
 #
 #
 #
