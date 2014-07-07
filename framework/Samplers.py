@@ -108,7 +108,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
             #Add <distribution> to name so we know it is not the direct variable
             self.toBeSampled["<distribution>"+child.attrib['name']] = [childChild.attrib['type'],childChild.text]
           elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
-          else: raise IOError('SAMPLER       : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
+          else: raise IOError('SAMPLER ADAPT : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
     self.localInputAndChecks(xmlNode)
 
   def localInputAndChecks(self,xmlNode):
@@ -170,16 +170,17 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrain)
     @in goalFunction:   in goal oriented sampling this is the function to be used
     '''
-    self.counter = 0
-    if   externalSeeding==None: Distributions.randomSeed(self.initSeed)            #use the sampler initialization seed
-    elif externalSeeding=='continue': pass                                         #in this case the random sequence needs to be preserved
-    else                            : Distributions.randomSeed(externalSeeding)    #the external seeding is used
-    for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution() #now we can initialize the distributions
+    self.counter = 0                                 
+    
+    if   not externalSeeding          : Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
+    elif externalSeeding=='continue'  : pass                                          #in this case the random sequence needs to be preserved
+    else                              : Distributions.randomSeed(externalSeeding)     #the external seeding is used
+    for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport!=None:
-      if   goalFunction==None: raise Exception('not consistent call to the smapler.initialize since the SolutionExport is provided but not the goalFunction')
-      else                   : self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction,ROM=ROM)
-    else                     : self.localInitialize()
+    if solutionExport : 
+      if not goalFunction : raise IOError('SAMPLER       : ERROR -> Not Consistent Input... gaalFunction not provided but requested a sulotion export!!!')
+      self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction,ROM=ROM)
+    else              : self.localInitialize()
 
   def localInitialize(self):
     '''
@@ -293,35 +294,35 @@ class AdaptiveSampler(Sampler):
 
   def localInputAndChecks(self,xmlNode):
     convergenceNode = xmlNode.find('Convergence')
-    if convergenceNode==None:raise Exception('the node Convergence was missed in the definition of the adaptive sampler '+self.name)
+    if convergenceNode==None:raise Exception('SAMPLER ADAPT : ERROR -> the node Convergence was missed in the definition of the adaptive sampler '+self.name)
     try   : self.tolerance=float(convergenceNode.text)
-    except: raise IOError ('Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
+    except: raise IOError ('SAMPLER ADAPT : ERROR -> Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
     attribList = list(convergenceNode.attrib.keys())
     if 'limit'          in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('limit'))
       try   : self.limit = int (convergenceNode.attrib['limit'])
-      except: raise IOError ('Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
+      except: raise IOError ('SAMPLER ADAPT : ERROR -> Failed to convert the limit value '+convergenceNode.attrib['limit']+' to a meaningful number for the convergence')
     if 'persistence'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('persistence'))
       try   : self.persistence = int (convergenceNode.attrib['persistence'])
-      except: raise IOError ('Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
+      except: raise IOError ('SAMPLER ADAPT : ERROR -> Failed to convert the persistence value '+convergenceNode.attrib['persistence']+' to a meaningful number for the convergence')
     if 'weight'         in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('weight'))
       try   : self.toleranceWeight = str(convergenceNode.attrib['weight'])
-      except: raise IOError ('Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
+      except: raise IOError ('SAMPLER ADAPT : ERROR -> Failed to convert the weight type '+convergenceNode.attrib['weight']+' to a meaningful string for the convergence')
     if 'subGridTol'    in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('subGridTol'))
       try   : self.subGridTol = float (convergenceNode.attrib['subGridTol'])
-      except: raise IOError ('Failed to convert the subGridTol '+convergenceNode.attrib['subGridTol']+' to a meaningful float for the convergence')
+      except: raise IOError ('SAMPLER ADAPT : ERROR -> Failed to convert the subGridTol '+convergenceNode.attrib['subGridTol']+' to a meaningful float for the convergence')
     if 'forceIteration' in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('forceIteration'))
       if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
-      else: raise Exception('Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
+      else: raise Exception('SAMPLER ADAPT : ERROR -> Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     if self.subGridTol == None: self.subGridTol = self.tolerance
-    if self.subGridTol> self.tolerance: raise IOError('The sub grid tolerance '+str(self.subGridTol)+' have to be smaller than the tolerance: '+str(self.tolerance))
+    if self.subGridTol> self.tolerance: raise IOError('SAMPLER ADAPT : ERROR -> The sub grid tolerance '+str(self.subGridTol)+' have to be smaller than the tolerance: '+str(self.tolerance))
 
-    if len(attribList)>0: raise IOError('There are unknown keywords in the convergence specifications: '+str(attribList))
+    if len(attribList)>0: raise IOError('SAMPLER ADAPT : ERROR -> There are unknown keywords in the convergence specifications: '+str(attribList))
 
   def localAddInitParams(self,tempDict):
     tempDict['Force the sampler to reach the iteration limit '] = str(self.forceIteration)
@@ -348,14 +349,14 @@ class AdaptiveSampler(Sampler):
         self._KDTreeMappingList.append(key)
         dataMatrix[:,myIndex] = data[key]
       self._tree = spatial.cKDTree(copy.copy(dataMatrix),leafsize=2)
-      if self.FIXME:print('FIXME: here rather than using self.gridCoord a conversion of data would be more coherent')
+      if self.FIXME:print('SAMPLER ADAPT : FIXME -> here rather than using self.gridCoord a conversion of data would be more coherent')
     elif action=='confidence':
       for myIndex, key in enumerate(self._KDTreeMappingList):
         dataMatrix[:,myIndex] = data[key]
       distance, outId    = self._tree.query(dataMatrix)
       return distance, outId
 
-  def localInitialize(self,goalFunction=None,solutionExport=None,ROM=None):
+  def localInitialize(self,goalFunction,solutionExport=None,ROM=None):
     self.memoryStep        = 5               # number of step for which the memory is kept 
     self.goalFunction      = goalFunction
     self.solutionExport    = solutionExport
@@ -365,6 +366,7 @@ class AdaptiveSampler(Sampler):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     #build a lambda function to masquerade the ROM <-> cKDTree presence
+    if not goalFunction: raise IOError('SAMPLER ADAPT : ERROR -> Gaol Function not provided!!')
     if ROM==None:
       class ROM(object):
         def __init__(self,cKDTreeInterface):
@@ -381,9 +383,9 @@ class AdaptiveSampler(Sampler):
     if self.toleranceWeight=='none':
       for varName in self.distDict.keys():
         if not(self.distDict[varName].upperBoundUsed and self.distDict[varName].lowerBoundUsed):
-          raise Exception('It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
+          raise Exception('SAMPLER ADAPT : ERROR -> It is impossible to converge on an unbounded domain (variable '+varName+' with distribution '+self.distDict[varName].name+') as requested to the sampler '+self.name)
     elif self.toleranceWeight=='probability': pass
-    else: raise IOError('Unknown weight string descriptor: '+self.toleranceWeight)
+    else: raise IOError('SAMPLER ADAPT : ERROR -> Unknown weight string descriptor: '+self.toleranceWeight)
     #setup the grid. The grid is build such as each element has a volume equal to the sub grid tolerance
     #the grid is build in such a way that an unit change in each node within the grid correspond to a change equal to the tolerance
     self.nVar        = len(self.distDict.keys())               #Total number of variables
@@ -424,17 +426,17 @@ class AdaptiveSampler(Sampler):
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
     #printing
     if self.debug:
-      print('self.gridShape '+str(self.gridShape))
-      print('self.testGridLenght '+str(self.testGridLenght))
-      print('self.gridCoorShape '+str(self.gridCoorShape))
+      print('SAMPLER ADAPT : PRINT -> self.gridShape '+str(self.gridShape))
+      print('SAMPLER ADAPT : PRINT -> self.testGridLenght '+str(self.testGridLenght))
+      print('SAMPLER ADAPT : PRINT -> self.gridCoorShape '+str(self.gridCoorShape))
       for key in self.gridVectors.keys():
-        print('the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
+        print('SAMPLER ADAPT : PRINT -> the variable '+key+' has coordinate: '+str(self.gridVectors[key]))
       myIterator          = np.nditer(self.testMatrix,flags=['multi_index'])
       while not myIterator.finished:
-        print ('Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
+        print ('SAMPLER ADAPT : PRINT -> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
     self.hangingPoints    = np.ndarray((0, self.nVar))
-    print('Initialization done')
+    print('SAMPLER ADAPT : Initialization done')
 
   def localStillReady(self,ready,lastOutput=None):
     '''
@@ -444,13 +446,13 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
-    if self.debug: print('From method localStillReady...')
+    if self.debug: print('SAMPLER ADAPT : PRINT -> From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
     if lastOutput == None and self.ROM.amItrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue
     if lastOutput !=None:
-      print('Initiate training')
+      print('SAMPLER ADAPT : Initiate training')
       self.functionValue.update(lastOutput.getParametersValues('input'))
       self.functionValue.update(lastOutput.getParametersValues('output'))
       #recovery the index of the last function evaluation performed
@@ -470,22 +472,21 @@ class AdaptiveSampler(Sampler):
         if self.goalFunction.name in lastOutput.getParaKeys('inputs'): lastOutput.self.updateInputValue (self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
         if self.goalFunction.name in lastOutput.getParaKeys('output'): lastOutput.self.updateOutputValue(self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
       #printing----------------------
-      if self.debug: print('Mapping of the goal function evaluation done')
+      if self.debug: print('SAMPLER ADAPT : PRINT -> Mapping of the goal function evaluation done')
       if self.debug:
-        print('already evaluated points and function value')
+        print('SAMPLER ADAPT : PRINT -> already evaluated points and function value')
         keyList = list(self.functionValue.keys())
         print(','.join(keyList))
         for index in range(indexEnd+1):
           print(','.join([str(self.functionValue[key][index]) for key in keyList]))
       #printing----------------------
       tempDict = {}
-      if self.FIXME:print('FIXME: please find a more elegant way to remove the output variables from the training set')
+      if self.FIXME:print('SAMPLER ADAPT : FIXME -> please find a more elegant way to remove the output variables from the training set')
       for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = self.functionValue[name]
       tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
-      print(tempDict)
       self.ROM.train(tempDict)
-      print('Training done')
-    if self.debug: print('Training finished')                                    #happy thinking :)
+      print('SAMPLER ADAPT : PRINT -> Training done')
+    if self.debug: print('SAMPLER ADAPT : PRINT -> Training finished')                                    #happy thinking :)
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
@@ -495,17 +496,17 @@ class AdaptiveSampler(Sampler):
     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
     self.persistenceMatrix   += self.testMatrix
-    if self.debug: print('Prediction finished')
+    if self.debug: print('SAMPLER ADAPT : PRINT -> Prediction finished')
     testError                 = np.sum(np.abs(np.subtract(self.testMatrix,self.oldTestMatrix)))#compute the error
     if (testError > self.tolerance/self.subGridTol): ready, self.repetition = True, 0                        #we still have error
     else              : self.repetition +=1                                     #we are increasing persistence
     if self.persistence<self.repetition: ready =  False                         #we are done
-    print('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
+    print('SAMPLER ADAPT : counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
     #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
     #printing----------------------
     if self.debug:
-      print('Limit surface candidate points')
+      print('SAMPLER ADAPT : PRINT -> Limit surface candidate points')
       for coordinate in np.rollaxis(toBeTested,0):
         myStr = ''
         for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
@@ -532,7 +533,7 @@ class AdaptiveSampler(Sampler):
             myIdList[iVar]+=1
     #printing----------------------
     if self.debug:
-      print('Limit surface points')
+      print('SAMPLER ADAPT : PRINT -> Limit surface points')
       for coordinate in listsurfPoint:
         myStr = ''
         for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
@@ -603,7 +604,7 @@ class AdaptiveSampler(Sampler):
     self.inputInfo['ProbabilityWeight'] = 1.0
     self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
     #print(self.hangingPoints)
-    if self.debug: print('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
+    if self.debug: print('SAMPLER ADAPT : PRINT -> At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
     self.inputInfo['SamplerType'] = 'Adaptive'
     self.inputInfo['subGridTol' ] = self.subGridTol
 
@@ -752,8 +753,10 @@ class Grid(Sampler):
             self.limit = self.limit*(int(childChild.attrib['steps'])+1)
             if   'lowerBound' in childChild.attrib.keys():
               self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+              self.gridInfo[varName][2].sort()
             elif 'upperBound' in childChild.attrib.keys():
               self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+              self.gridInfo[varName][2].sort()
             else: raise IOError('no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
           else: raise IOError('not specified the grid construction type')
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError('inconsistency between number of variables and grid specification')
@@ -814,18 +817,13 @@ class Grid(Sampler):
           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
       if self.gridInfo[varName][0]=='CDF':
-        if index != 0 and index < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0) 
-        if index == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.distDict[varName].lowerBound))/2.0) 
-        if index == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.distDict[varName].upperBound))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)           
+        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0) 
+        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0) 
+        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)           
       else:  
-        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: 
-          print(self.gridCoordinate[i])
-          weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0) 
-        if self.gridCoordinate[i] == 0: 
-          weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0) 
-        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: 
-          weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)           
-        
+        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0) 
+        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0) 
+        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)            
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'
