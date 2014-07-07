@@ -1,3 +1,98 @@
-\section{XXX  \\ \vspace{2 mm} {\small Author: xxx x. xxx}}
+\section{Models  \\ \vspace{2 mm} {\small Author: xxx x. xxx}}
+
+The xml section "models" contains the information regarding the code employed in the analysis (e.g., RAVEN/RELAP-7, RELAP-5 or an external model).
+The available models are:
+\begin{description}
+\item [Dummy:] it is a dummy model that just return the effect of the sampler. The values reported as input in the output are the output of the sampler and the output is the counter of the performed sampling
+\item [ROM:] ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
+\item [ExternalModel:] this model allows to interface with an external python module
+\item [Code:] generic class that imports an external code into the framework
+\item [Projector:] generic data manipulator
+\item [PostProcessor:] an Action System. All the models here, take an input and perform an action
+\end{description}
+
+\subsection{Dummy}
+\label{sec:models_dummy}
+
+Description
+
+Summary
+
+Example
+
+\subsection{Code}
+\label{sec:models_code}
+
+Description
+
+Summary
+
+Example
+
+\subsection{External Model}
+\label{sec:models_externalModel}
+
+Description
+
+Summary
+
+Example
+As an example we use the external model shown in lorentzAttractor.py which, given the 3-dimensional initial coordinates (x0, y0, z0), calculate the trajectory of a Lorentz attractor in the time interval $[0.0,0.03]$ seconds.
+We want to perform sampling of the 3-dimensional initial conditions of the attractor using classical Monte-Carlo sampling.
+The user is required to specify:
+\begin{itemize}
+\item the initialize function: def initialize(self,runInfoDict,inputFiles)
+\item the function which create a new input: def createNewInput(self,myInput,samplerType,**Kwargs)
+\item the function which perform the actual calculation: def run(self,Input)
+\end{itemize}
+
+\begin{python}
+def initialize(self,runInfoDict,inputFiles):
+  self.SampledVars = None
+  self.sigma = 10.0
+  self.rho   = 28.0
+  self.beta  = 8.0/3.0
+  return
+
+def createNewInput(self,myInput,samplerType,**Kwargs):
+  return Kwargs['SampledVars']
+
+def run(self,Input):
+   ...
+\end{python}
 
 
+\begin{lstlisting}[style=XML]
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
+       <variable type='float'>sigma</variable>
+       <variable type='float'>rho</variable>
+       <variable type='float'>beta</variable>
+       <variable type='numpy.ndarray'>x</variable>
+       <variable type='numpy.ndarray'>y</variable>
+       <variable type='numpy.ndarray'>z</variable>
+       <variable type='numpy.ndarray'>time</variable>
+       <variable type='float'>x0</variable>
+       <variable type='float'>y0</variable>
+       <variable type='float'>z0</variable>
+    </ExternalModel>
+</Models> 
+\end{lstlisting}
+
+\subsection{Projector}
+\label{sec:models_projector}
+
+Description
+
+Summary
+
+Example
+
+\subsection{PostProcessor}
+\label{sec:models_postProcessor}
+
+Description
+
+Summary
+
+Example
