@@ -498,7 +498,7 @@ class Code(Model):
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
     if self.currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
-    if self.debug: print('MODEL CODE    : job "'+ inputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
+    if self.debug: print('MODEL CODE    : job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
