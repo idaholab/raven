@@ -241,9 +241,9 @@ class BasicStatistics(BasePostProcessor):
         elif targetP in currentInput.getParaKeys('output'): inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
       inputDict['metadata'] = currentInput.getAllMetadata()
 #     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
-      if inputDict['metadata'].keys().count('SamplerType') > 0:
-        if inputDict['metadata']['SamplerType'] == 'Adaptive':
-          pass
+      if inputDict['metadata'].keys().count('SamplerType') > 0: pass
+        #if inputDict['metadata']['SamplerType'] == 'Adaptive':
+        #pass
         
     return inputDict
 
