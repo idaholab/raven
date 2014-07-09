@@ -2,7 +2,7 @@
  [./simple_framework]
   type = 'RavenFramework'
   input = 'test_simple.xml'
-  output = 'revirD_tset/FirstMRun/out~1~ideal_pump.e revirD_tset/FirstMRun/out~2~ideal_pump.e revirD_tset/FirstMRun/out~3~ideal_pump.e revirD_tset/FirstMRun/out~4~ideal_pump.e revirD_tset/FirstMRun/out~5~ideal_pump.e revirD_tset/FirstMRun/out~6~ideal_pump.e'
+  output = 'revirD_tset/FirstMRun/out~1~ideal_pump revirD_tset/FirstMRun/out~6~ideal_pump'
   csv = 'revirD_tset/FirstMRun/out~6~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
  [../]
@@ -20,7 +20,7 @@
   type = 'RavenFramework'
   input = 'test_branch.xml'
   #skip = 'waiting for new output system fix'
-  output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump.e branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf'
+  output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf'
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
   #skip = 'Problem with output system filenames'
  [../]
@@ -29,7 +29,7 @@
   type = 'RavenFramework'
   input = 'test_sbo_heavy_det.xml'
   skip = 'waiting for new output system fix'
-  output = 'SBO_DET/DET/out~DET_1-2-2~TMI.e SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
+  output = 'SBO_DET/DET/out~DET_1-2-2~TMI SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
   csv = 'SBO_DET/stories_from_database_dump_1.csv'
   max_time = 100000
   heavy=True
@@ -41,7 +41,7 @@
   heavy= True
   max_time = 100000
   input = 'test_mpi.xml'
-  output = 'mpi_driver_test/FirstMRun/out~1~simple_flow_3eqn.e'
+  output = 'mpi_driver_test/FirstMRun/out~1~simple_flow_3eqn'
   csv = 'mpi_driver_test/FirstMRun/out~6~simple_flow_3eqn.csv'
  [../]
 
@@ -50,7 +50,7 @@
   heavy= True
   max_time = 100000
   input = 'test_mpi_bison.xml'
-  output = 'mpi_bison_test/myLHS/out~1~case_1.e'
+  output = 'mpi_bison_test/myLHS/out~1~case_1'
   csv = 'mpi_bison_test/myLHS/out~1~case_1.csv'
  [../]
 
@@ -68,7 +68,7 @@
   type = 'RavenFramework'
   input = 'test_rom_trainer.xml'
   #skip = 'working in progress'
-  output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI.e test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
+  output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
   csv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
@@ -146,7 +146,7 @@
  [./testLHSRaven]
    type = 'RavenFramework'
    input = 'test_LHS_Sampler_Raven.xml'
-   output = 'LHStestRaven/FirstMRun/out~1~simple_flow_3eqn.e'
+   output = 'LHStestRaven/FirstMRun/out~1~simple_flow_3eqn'
    csv = 'LHStestRaven/outGrid_dump.csv'
    method = 'devel opt'
  [../]
@@ -154,7 +154,7 @@
  [./testGridRaven]
    type = 'RavenFramework'
    input = 'test_Grid_Sampler_Raven.xml'
-   output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn.e'
+   output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn'
    csv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
  [../]
@@ -191,7 +191,7 @@
  [./test_bison_mc_simple_&_alias_system]
   type = 'RavenFramework'
   input = 'test_bison_mc_simple.xml'
-  output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.e'
+  output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
   csv = 'MCTestBison/CustomSampler/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~1~gap_perfect_transfer_test.csv'
   required_executable = '../../../bison/bison-%METHOD%'
  [../]
@@ -199,7 +199,7 @@
  [./test_custom_mode]
   type = 'RavenFramework'
   input = 'test_custom_mode.xml'
-  output = 'mode_test/FirstMRun/out~1~ideal_pump.e mode_test/FirstMRun/out~2~ideal_pump.e'
+  output = 'mode_test/FirstMRun/out~1~ideal_pump mode_test/FirstMRun/out~2~ideal_pump'
   csv = 'mode_test/FirstMRun/out~2~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
  [../]

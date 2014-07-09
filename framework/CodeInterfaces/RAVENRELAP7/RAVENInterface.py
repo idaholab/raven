@@ -24,7 +24,7 @@ class RAVENInterface:
     else: index = 1
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
-                      ' Outputs/file_base='+ outputfile + ' Outputs/exodus=true'+
+                      ' Outputs/file_base='+ outputfile +
                       ' Outputs/interval=1'+ ' Outputs/output_initial=true' +
                       ' Outputs/csv=true'+' Outputs/num_checkpoint_files=1'+
                       ' Outputs/checkpoint=true'+
