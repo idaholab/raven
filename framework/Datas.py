@@ -276,7 +276,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if(sourceType == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
       if options:
-        if options['parent_id'] and self._dataParameters['hierarchical']: 
+        parent_id = None
+        if 'metadata' in options.keys(): 
+          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']  
+        else:
+          if 'parent_id' in options.keys(): parent_id = options['parent_id']
+        if parent_id and self._dataParameters['hierarchical']: 
           print('DATAS         : WARNING -> Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
     else: tupleVar = ld().csvLoadData([toLoadFrom],self._dataParameters) 
@@ -294,7 +299,32 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: 
         if self.type in ['TimePoint','TimePointSet']:
           for index in range(tupleVar[1][hist].size): self.updateOutputValue(hist, tupleVar[1][hist][index], options) 
-        else: self.updateOutputValue(hist, tupleVar[1][hist], options)         
+        else: self.updateOutputValue(hist, tupleVar[1][hist], options) 
+    if len(tupleVar) > 2:
+      #metadata
+      for hist in tupleVar[2].keys():
+        if type(tupleVar[2][hist]) == list:
+          for element in tupleVar[2][hist]:
+            if type(element) == dict:
+              for key,value in element.items():
+                self.updateMetadata(key, value, options)    
+        elif type(tupleVar[2][hist]) == dict:
+          for key,value in tupleVar[2][hist].items():
+            for elem in value:
+              if type(elem) == dict:
+                for ke ,val  in elem.items():
+                  self.updateMetadata(ke, val, options)    
+              else: raise IOError('DATAS     : ERROR -> unknown type for metadata adding process. Relevant type = '+ str(elem))             
+           
+        else: raise IOError('DATAS     : ERROR -> unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))         
+        #if type(tupleVar[2][hist]) == dict:
+        #  for key in tupleVar[1][hist].keys(): 
+        #    self.updateMetadata(key, tupleVar[2][hist][key], options)
+        #else: 
+        #  if self.type in ['TimePoint','TimePointSet']:
+        #    for index in range(tupleVar[2][hist].size): 
+        #      self.updateMetadata(hist, tupleVar[2][hist][index], options) 
+        #  else: self.updateMetadata(hist, tupleVar[2][hist], options)        
     self.checkConsistency()
     return
 
@@ -493,8 +523,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, options, dict, parent_id must be present if newer node
     '''      
     if not tsnode.getParentName():
-      if 'parent_id' not in options.keys(): raise ConstructError('DATAS     : ERROR -> the parent_id must be provided if a new node needs to be appended')
-      self.retrieveNodeInTreeMode(options['parent_id']).appendBranch(tsnode)
+      parent_id = None
+      if 'metadata' in options.keys(): 
+        if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']  
+      else:
+        if 'parent_id' in options.keys(): parent_id = options['parent_id']
+      if not parent_id: raise ConstructError('DATAS     : ERROR -> the parent_id must be provided if a new node needs to be appended')
+      self.retrieveNodeInTreeMode(parent_id).appendBranch(tsnode)
 
 class TimePoint(Data):
   def acceptHierarchical(self):
@@ -692,8 +727,15 @@ class TimePointSet(Data):
     '''
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "TimePoint" has been stored
-      if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
-      else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
+      parent_id = None
+      if 'metadata' in options.keys(): 
+        prefix    = options['metadata']['prefix']
+        if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+      else: 
+        prefix    = options['prefix']
+        if 'parent_id' in options.keys(): parent_id = options['parent_id']
+      if parent_id: tsnode = self.retrieveNodeInTreeMode(prefix,parent_id) 
+      else:                             tsnode = self.retrieveNodeInTreeMode(prefix)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer: 
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
@@ -721,8 +763,15 @@ class TimePointSet(Data):
     '''
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "TimePoint" has been stored
-      if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
-      else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
+      parent_id = None
+      if 'metadata' in options.keys(): 
+        prefix    = options['metadata']['prefix']
+        if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+      else: 
+        prefix    = options['prefix']
+        if 'parent_id' in options.keys(): parent_id = options['parent_id']
+      if parent_id: tsnode = self.retrieveNodeInTreeMode(prefix,parent_id) 
+
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer: 
         tsnode.add('dataContainer',{'metadata':{}})
@@ -745,8 +794,17 @@ class TimePointSet(Data):
     '''
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "TimePoint" has been stored
-      if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
-      else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
+      parent_id = None
+      if 'metadata' in options.keys(): 
+        prefix    = options['metadata']['prefix']
+        if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+      else: 
+        prefix    = options['prefix']
+        if 'parent_id' in options.keys(): parent_id = options['parent_id']
+      if parent_id: tsnode = self.retrieveNodeInTreeMode(prefix,parent_id) 
+      
+      #if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
+      #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
       # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer: 
@@ -1142,14 +1200,26 @@ class Histories(Data):
 
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "History" has been stored
+      parent_id = None
       if type(name) == list: 
         namep = name[1]
         if type(name[0]) == str: nodeid = name[0]
-        else: nodeid = options['prefix']
+        else: 
+          if 'metadata' in options.keys(): 
+            nodeid = options['metadata']['prefix']
+            if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+          else: 
+            nodeid = options['prefix']
+            if 'parent_id' in options.keys(): parent_id = options['parent_id']
       else:    
-        nodeid = options['prefix']              
+        if 'metadata' in options.keys(): 
+          nodeid = options['metadata']['prefix']
+          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+        else: 
+          nodeid = options['prefix']  
+          if 'parent_id' in options.keys(): parent_id = options['parent_id']           
         namep = name
-      if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(nodeid, options['parent_id']) 
+      if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id) 
       else:                             tsnode = self.retrieveNodeInTreeMode(nodeid)
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer: 
@@ -1191,8 +1261,28 @@ class Histories(Data):
     '''
     if options and self._dataParameters['hierarchical']:
       # we retrieve the node in which the specialized "TimePoint" has been stored
-      if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
-      else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
+      parent_id = None
+      if type(name) == list: 
+        namep = name[1]
+        if type(name[0]) == str: nodeid = name[0]
+        else: 
+          if 'metadata' in options.keys(): 
+            nodeid = options['metadata']['prefix']
+            if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+          else: 
+            nodeid = options['prefix']
+            if 'parent_id' in options.keys(): parent_id = options['parent_id']
+      else:    
+        if 'metadata' in options.keys(): 
+          nodeid = options['metadata']['prefix']
+          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+        else: 
+          nodeid = options['prefix']  
+          if 'parent_id' in options.keys(): parent_id = options['parent_id']           
+        namep = name
+      if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id)   
+      #if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(options['prefix'], options['parent_id']) 
+      #else:                             tsnode = self.retrieveNodeInTreeMode(options['prefix'])
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer: 
         tsnode.add('dataContainer',{'metadata':{}})
@@ -1219,15 +1309,27 @@ class Histories(Data):
         raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "_updateSpecializedOutputValue". Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
+      parent_id = None
       if type(name) == list: 
         namep = name[1]
         if type(name[0]) == str: nodeid = name[0]
-        else: nodeid = options['prefix']
-      else:                  
+        else: 
+          if 'metadata' in options.keys(): 
+            nodeid = options['metadata']['prefix']
+            if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+          else: 
+            nodeid = options['prefix']
+            if 'parent_id' in options.keys(): parent_id = options['parent_id']
+      else:    
+        if 'metadata' in options.keys(): 
+          nodeid = options['metadata']['prefix']
+          if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']
+        else: 
+          nodeid = options['prefix']  
+          if 'parent_id' in options.keys(): parent_id = options['parent_id']           
         namep = name
-        nodeid = options['prefix']
-      if 'parent_id' in options.keys(): tsnode = self.retrieveNodeInTreeMode(nodeid, options['parent_id']) 
-      else:                             tsnode = self.retrieveNodeInTreeMode(nodeid)
+      if parent_id: tsnode = self.retrieveNodeInTreeMode(nodeid, parent_id)    
+
       # we store the pointer to the container in the self._dataContainer because checkConsistency acts on this
       self._dataContainer = tsnode.get('dataContainer')
       if not self._dataContainer: 

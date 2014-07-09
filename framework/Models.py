@@ -254,6 +254,7 @@ class Dummy(Model):
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception("MODEL DUMMY: ERROR -> No available Output to collect (Run probabably is not finished yet)")
     exportDict = {'input_space_params':copy.copy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.copy(finishedJob.returnEvaluation()[1]),'metadata':copy.copy(finishedJob.returnMetadata())}
+    
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] : 
@@ -506,7 +507,8 @@ class Code(Model):
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
     if metadata:
-      for key in metadata: attributes[key] = metadata[key]
+      #for key in metadata: attributes[key] = metadata[key]
+      attributes['metadata'] = metadata
     try:                   output.addGroup(attributes,attributes)
     except AttributeError: 
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)

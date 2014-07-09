@@ -1,3 +1,5 @@
+import numpy as np
+
 def toString(s):
   if type(s) == type(""):
     return s
@@ -39,6 +41,17 @@ def convertDictToListOfLists(inputDict):
     print('UTILS         : WARNING -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
     returnList = None
   return returnList
+
+
+def convertNumpyToLists(inputDict):
+  returnDict = inputDict
+  if type(inputDict) == dict:
+    for key, value in inputDict.items():
+      if   type(value) == np.ndarray: returnDict[key] = value.tolist() 
+      elif type(value) == dict      : returnDict[key] = (convertNumpyToLists(value))
+      else                          : returnDict[key] = value 
+  return returnDict
+
 
 def keyIn(dictionary,key):
   """Returns the key or toBytes key if in,

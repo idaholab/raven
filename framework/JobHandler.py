@@ -240,10 +240,10 @@ class JobHandler:
             else:
               print("No output ",outputFilename)
           else:
-            if self.runInfoDict['delSucLogFiles']:
+            if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
               print('JOB HANDLER   : Run "' +running.identifier+'" ended smoothly, removing log file!')
               if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
-            if len(self.runInfoDict['deleteOutExtension']) >= 1:
+            if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
               for fileExt in self.runInfoDict['deleteOutExtension']:
                 if not fileExt.startswith("."): fileExt = "." + fileExt
                 filelist = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]

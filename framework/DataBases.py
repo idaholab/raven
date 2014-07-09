@@ -144,7 +144,9 @@ class HDF5(DateBase):
     @ In, loadFrom   : source of the data (for example, a csv file)
     @ Out, None 
     ''' 
-    attributes["group"] = attributes['prefix']
+    if 'metadata' in attributes.keys(): attributes["group"] = attributes['metadata']['prefix']
+    elif 'prefix' in attributes.keys(): attributes["group"] = attributes['prefix'] 
+    else                              : raise IOError('DATABASE      : ERROR -> addGroup function needs a prefix (ID) for adding a new group to a database!')
     self.database.addGroup(attributes["group"],attributes,loadFrom,upGroup)
     self.built = True
     
@@ -216,7 +218,11 @@ class HDF5(DateBase):
     else: operator = False
     
     inDict  = {}
-    outDict = {} 
+    outDict = {}
+    metaDict= {} 
+    if 'metadata' in histVar[1].keys(): metaDict[0] = histVar[1]['metadata']  
+    else                              : metaDict[0] = None
+    
     ints = 0
     if 'inputTs' in attributes.keys(): 
       if attributes['inputTs']: ints = int(attributes['inputTs'])
@@ -308,7 +314,7 @@ class HDF5(DateBase):
                          
               else: raise Exception("ERROR: the parameter " + key + " has not been found")
     # return tuple of dictionaries
-    return (copy.deepcopy(inDict),copy.deepcopy(outDict))
+    return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
 
   def __retrieveDataTimePointSet(self,attributes):
     '''
@@ -342,14 +348,17 @@ class HDF5(DateBase):
       if attributes['inputTs']: ints = int(attributes['inputTs'])
     else:                               ints = 0   
           
-    inDict  = {}
-    outDict = {}    
+    inDict   = {}
+    outDict  = {} 
+    metaDict = {}  
     hist_list = attributes['histories']
     # Retrieve all the associated histories and process them
     for i in range(len(hist_list)): 
       # Load the data into the numpy array
       attributes['history'] = hist_list[i]
       histVar = self.returnHistory(attributes)
+      if 'metadata' in histVar[1].keys(): metaDict[i] = histVar[1]['metadata']  
+      else                              : metaDict[i] = None
       for key in attributes["inParam"]:
         if 'input_space_headers' in histVar[1]:
           inInKey = keyIn(histVar[1]['input_space_headers'],key)
@@ -443,7 +452,7 @@ class HDF5(DateBase):
                 else: raise RuntimeError("ERROR: the parameter " + key + " has not been found")      
       del histVar
     # return tuple of timepointSet
-    return (copy.deepcopy(inDict),copy.deepcopy(outDict))
+    return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
 
   def __retrieveDataHistory(self,attributes):
     '''
@@ -470,10 +479,13 @@ class HDF5(DateBase):
     else:                               ints = 0   
                     
     inDict  = {}
-    outDict = {}  
+    outDict = {} 
+    metaDict= {} 
     # Call the function to retrieve a single history and 
     # load the data into the tuple 
     histVar = self.returnHistory(attributes)
+    if 'metadata' in histVar[1].keys(): metaDict[0] = histVar[1]['metadata']  
+    else                              : metaDict[0] = None
     # fill input param dictionary
     for key in attributes["inParam"]:
         if 'input_space_headers' in histVar[1]:
@@ -520,7 +532,7 @@ class HDF5(DateBase):
             outDict[key] = histVar[0][:,histVar[1]["output_space_headers"].index(key)]        
           else: raise Exception("ERROR: the parameter " + key + " has not been found")
     # Return tuple of dictionaries containing the histories
-    return (copy.deepcopy(inDict),copy.deepcopy(outDict))
+    return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
 
   def retrieveData(self,attributes):
     '''
@@ -536,6 +548,7 @@ class HDF5(DateBase):
     elif attributes["type"] == "Histories":
       listhist_in  = {}
       listhist_out = {}
+      listhist_meta= {}
       endGroupNames = self.getEndingGroupNames()
       for index in range(len(endGroupNames)):
         attributes['history'] = endGroupNames[index]
@@ -543,8 +556,9 @@ class HDF5(DateBase):
         # dictionary of dictionary key = i => ith history ParameterValues dictionary
         listhist_in[index]  = tupleVar[0]
         listhist_out[index] = tupleVar[1]
+        listhist_meta[index]= tupleVar[2]
         del tupleVar
-      data = (listhist_in,listhist_out)
+      data = (listhist_in,listhist_out,listhist_meta)
     else: raise RuntimeError("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData")
     # return data
     gc.collect()

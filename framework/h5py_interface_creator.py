@@ -12,8 +12,9 @@ import h5py  as h5
 import numpy as np
 import os
 import copy
+import json
 
-from utils import toBytesIterative, toBytes, toString, convertDictToListOfLists
+from utils import toBytesIterative, toBytes, toString, convertDictToListOfLists, convertNumpyToLists
 
 '''
   *************************
@@ -121,9 +122,15 @@ class hdf5Database(object):
     
     if source['type'] == 'Datas':
       self.addGroupDatas(gname,attributes,source)
+      self.h5_file_w.flush()
       return
-    
-    if 'parent_id' in attributes.keys():
+    parent_id = None 
+    if 'metadata' in attributes.keys():
+      if 'parent_id' in attributes['metadata'].keys(): parent_id = attributes['metadata']['parent_id']
+      if 'parent_id' in attributes.keys(): parent_id = attributes['parent_id']
+    else: 
+      if 'parent_id' in attributes.keys(): parent_id = attributes['parent_id']
+    if parent_id:
       #If Hierarchical structure, firstly add the root group 
       if not self.firstRootGroup:
         self.__addGroupRootLevel(gname,attributes,source,upGroup)
@@ -221,9 +228,14 @@ class hdf5Database(object):
       grp.attrs["source_type"            ] = source['type']
       if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
       for attr in attributes.keys(): 
-        if type(attributes[attr]) == dict: converted = convertDictToListOfLists(toBytesIterative(attributes[attr]))
-        else                             : converted = toBytesIterative(attributes[attr]) 
-        if converted: grp.attrs[toBytes(attr)]=converted
+        #if type(attributes[attr]) == dict: converted = convertDictToListOfLists(toBytesIterative(attributes[attr]))
+        #else                             : converted = toBytesIterative(attributes[attr])
+        objectToConvert = convertNumpyToLists(attributes[attr])
+        #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
+        #else:                                      objectToConvert = attributes[attr] 
+        converted = json.dumps(objectToConvert)
+        if converted and attr != 'name': grp.attrs[toBytes(attr)]=converted
+        #decoded = json.loads(grp.attrs[toBytes(attr)])
       if "input_file" in attributes.keys(): grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
     else: pass
     # Add the group name into the list "self.allGroupPaths" and 
@@ -293,6 +305,16 @@ class hdf5Database(object):
         else: dataout[0,index] = copy.deepcopy(out_values[index])
       # create the data set
       groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
+      # add metadata if present
+      for attr in attributes.keys(): 
+        #print(type(attributes[attr]))
+        #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
+        #else:                                      objectToConvert = attributes[attr] 
+        objectToConvert = convertNumpyToLists(attributes[attr])
+        
+        converted = json.dumps(objectToConvert)
+        if converted and attr != 'name': groups.attrs[toBytes(attr)]=converted
+
       if parent_group_name != "/":
         self.allGroupPaths.append(parent_group_name + "/" + gname)
         self.allGroupEnds[parent_group_name + "/" + gname] = True
@@ -341,7 +363,15 @@ class hdf5Database(object):
             #collect the outputs
             dataout = np.zeros((1,len(data_out)))
             for param in range(len(data_out)): dataout[0,param] = copy.deepcopy(data_out[param][run])
-            groups[run].create_dataset(gname +"_data", dtype="float", data=dataout)          
+            groups[run].create_dataset(gname +"_data", dtype="float", data=dataout) 
+          # add metadata if present
+          for attr in attributes.keys(): 
+            #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
+            #else:                                      objectToConvert = attributes[attr]
+            objectToConvert = convertNumpyToLists(attributes[attr]) 
+            converted = json.dumps(objectToConvert)
+            if converted and attr != 'name': groups.attrs[toBytes(attr)]=converted   
+      
           if parent_group_name != "/":
             self.allGroupPaths.append(parent_group_name + "/" + gname + '|' +str(run))
             self.allGroupEnds[parent_group_name + "/" + gname + '|' +str(run)] = True
@@ -366,6 +396,14 @@ class hdf5Database(object):
         groups.attrs[b'n_ts'  ] = data_out[0].size
         for run in range(len(data_out)): dataout[:,int(run)] = copy.deepcopy(data_out[run][:])
         groups.create_dataset(gname + "_data", dtype="float", data=dataout)     
+        # add metadata if present
+        for attr in attributes.keys(): 
+          objectToConvert = convertNumpyToLists(attributes[attr])
+          #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
+          #else:                                      objectToConvert = attributes[attr]
+          converted = json.dumps(objectToConvert)
+          if converted and attr != 'name': groups.attrs[toBytes(attr)]=converted
+   
         if parent_group_name != "/":
           self.allGroupPaths.append(parent_group_name + "/" + gname)
           self.allGroupEnds[parent_group_name + "/" + gname] = True
@@ -393,10 +431,15 @@ class hdf5Database(object):
       # Check if the parent attribute is not null
       # In this case append a subgroup to the parent group
       # Otherwise => it's the main group
-      if "parent_id" in attributes:
-        parent_name = attributes["parent_id"]
+      parent_id = None
+      if 'metadata' in attributes.keys():
+        if 'parent_id' in attributes['metadata'].keys(): parent_id = attributes['metadata']['parent_id']
+        if 'parent_id' in attributes.keys(): parent_id = attributes['parent_id'] 
       else:
-        raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
+        if 'parent_id' in attributes.keys(): parent_id = attributes['parent_id']
+        
+      if parent_id: parent_name = parent_id
+      else: raise IOError ("NOT FOUND attribute <parent_id> into <attributes> dictionary")
       # Find parent group path
       if parent_name != '/':
         parent_group_name = self.__returnParentGroupPath(parent_name)
@@ -420,12 +463,19 @@ class hdf5Database(object):
       sgrp.attrs["end_time"  ] = data[data[:,0].size-1,0]
       sgrp.attrs["n_ts"      ] = data[:,0].size
       sgrp.attrs["EndGroup"  ] = True
-      grp.attrs["source_type"] = source['type']
-      if source['type'] == 'csv': grp.attrs["source_file"] = source['name']
+      sgrp.attrs["source_type"] = source['type']
+      if source['type'] == 'csv': sgrp.attrs["source_file"] = source['name']
+      # add metadata if present
       for attr in attributes.keys(): 
-        if type(attributes[attr]) == dict: converted = convertDictToListOfLists(toBytesIterative(attributes[attr]))
-        else                             : converted = toBytesIterative(attributes[attr]) 
-        if converted: grp.attrs[toBytes(attr)]=converted
+        objectToConvert = convertNumpyToLists(attributes[attr])
+        #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
+        #else:                                      objectToConvert = attributes[attr]
+        converted = json.dumps(objectToConvert)
+        if converted and attr != 'name': sgrp.attrs[toBytes(attr)]=converted   
+#       for attr in attributes.keys(): 
+#         if type(attributes[attr]) == dict: converted = convertDictToListOfLists(toBytesIterative(attributes[attr]))
+#         else                             : converted = toBytesIterative(attributes[attr]) 
+#         if converted: grp.attrs[toBytes(attr)]=converted
       if "input_file" in attributes: grp.attrs[toString("input_file")] = toString(" ".join(attributes["input_file"])) if type(attributes["input_file"]) == type([]) else toString(attributes["input_file"])
     else: pass
     # The sub-group is the new ending group
@@ -543,6 +593,9 @@ class hdf5Database(object):
         result = dataset[:,:]
         # Get attributes (metadata)
         attrs = grp.attrs
+        for attr in attrs.keys():
+          try   : attrs[attr] = json.loads(attrs[attr]) 
+          except: attrs[attr] = attrs[attr]
       elif  filterHist == 'whole':
         # Retrieve the whole history from group "name" to the root 
         # Start constructing the merged numpy array
@@ -592,15 +645,15 @@ class hdf5Database(object):
           result[ts:ts+arr[:,0].size,:] = arr
           ts = ts + arr[:,0].size
           # must be checked if overlapping of time (branching for example)
-        try:    attrs["output_space_headers"]         = gb_attrs[0]["output_space_headers"].tolist()
-        except: attrs["output_space_headers"]         = gb_attrs[0]["output_space_headers"]
-        try:    attrs["input_space_headers"]         = gb_attrs[0]["input_space_headers"].tolist()
+        try:    attrs["output_space_headers"]   = gb_attrs[0]["output_space_headers"].tolist()
+        except: attrs["output_space_headers"]   = gb_attrs[0]["output_space_headers"]
+        try:    attrs["input_space_headers"]    = gb_attrs[0]["input_space_headers"].tolist()
         except: 
-          try:    attrs["input_space_headers"]         = gb_attrs[0]["input_space_headers"]
+          try:    attrs["input_space_headers"]  = gb_attrs[0]["input_space_headers"]
           except: pass
-        try:    attrs["input_space_values"]         = gb_attrs[0]["input_space_values"].tolist()
+        try:    attrs["input_space_values"]     = gb_attrs[0]["input_space_values"].tolist()
         except: 
-          try:    attrs["input_space_values"]         = gb_attrs[0]["input_space_values"]
+          try:    attrs["input_space_values"]   = gb_attrs[0]["input_space_values"]
           except: pass
         attrs["n_params"]        = gb_attrs[0]["n_params"]       
         attrs["parent_id"]       = where_list[0]
@@ -610,15 +663,23 @@ class hdf5Database(object):
         attrs["source_type"]     = gb_attrs[0]["source_type"]
         attrs["input_file"]      = []
         attrs["source_file"]     = []
-        for param_key in ["branch_changed_param","conditional_prb",
-                          "branch_changed_param_value",
-                          "initiator_distribution","PbThreshold",
-                          "end_timestep"]:
-          if param_key in gb_attrs[0]:
-            attrs[param_key] = []
+        
+        #for param_key in ["branch_changed_param","conditional_prb",
+        #                  "branch_changed_param_value",
+        #                  "initiator_distribution","PbThreshold",
+        #                  "end_timestep"]:
+        #  if param_key in gb_attrs[0]:
+        #    attrs[param_key] = []
         for key in gb_res.keys():
-          for param_key in ["input_file","branch_changed_param", "conditional_prb","branch_changed_param_value", "initiator_distribution","PbThreshold", "end_timestep"]:
-            if param_key in gb_attrs[key]: attrs[param_key].append(gb_attrs[key][param_key])
+          for attr in gb_attrs[key].keys():
+            if attr not in ["output_space_headers","input_space_headers","input_space_values","n_params","parent_id","start_time","end_time","n_ts","source_type"]:
+              if attr not in attrs.keys(): attrs[attr] = []
+              try   : attrs[attr].append(json.loads(gb_attrs[key][attr]))
+              except: 
+                if type(attrs[attr]) == list: attrs[attr].append(gb_attrs[key][attr])
+#           for param_key in ["input_file","branch_changed_param", "conditional_prb","branch_changed_param_value", "initiator_distribution","PbThreshold", "end_timestep"]:
+#             if param_key in gb_attrs[key]: 
+#               attrs[param_key].append(gb_attrs[key][param_key])
           if attrs["source_type"] == 'csv' and 'source_file' in gb_attrs[key].keys(): attrs["source_file"].append(gb_attrs[key]["source_file"])
   
       else:
@@ -676,15 +737,15 @@ class hdf5Database(object):
             result[ts:ts+arr[:,0].size,:] = arr[:,:]
             ts = ts + arr[:,0].size
             # must be checked if overlapping of time (branching for example)
-          try:    attrs["output_space_headers"]         = gb_attrs[0]["output_space_headers"].tolist()
-          except: attrs["output_space_headers"]         = gb_attrs[0]["output_space_headers"]
-          try:    attrs["input_space_headers"]         = gb_attrs[0]["input_space_headers"].tolist()
+          try:    attrs["output_space_headers"]   = gb_attrs[0]["output_space_headers"].tolist()
+          except: attrs["output_space_headers"]   = gb_attrs[0]["output_space_headers"]
+          try:    attrs["input_space_headers"]    = gb_attrs[0]["input_space_headers"].tolist()
           except: 
-            try:    attrs["input_space_headers"]         = gb_attrs[0]["input_space_headers"]
+            try:    attrs["input_space_headers"]  = gb_attrs[0]["input_space_headers"]
             except: pass
-          try:    attrs["input_space_values"]         = gb_attrs[0]["input_space_values"].tolist()
+          try:    attrs["input_space_values"]     = gb_attrs[0]["input_space_values"].tolist()
           except: 
-            try:    attrs["input_space_values"]         = gb_attrs[0]["input_space_values"]
+            try:    attrs["input_space_values"]   = gb_attrs[0]["input_space_values"]
             except: pass
           attrs["n_params"]        = gb_attrs[0]["n_params"]       
           attrs["parent"]          = where_list[0]
@@ -694,20 +755,27 @@ class hdf5Database(object):
           attrs["source_type"]     = gb_attrs[0]["source_type"]
           attrs["input_file"]      = []
           attrs["source_file"]     = []
-          if "branch_changed_param" in gb_attrs[0]:
-            attrs["branch_changed_param"]    = []
-            attrs["conditional_prb"] = []
-          for param_key in ["branch_changed_param_value","initiator_distribution","Probability_threshold","end_timestep"]:
-            if param_key in gb_attrs[0]:
-              attrs[param_key] = []
-          for key in gb_res:
-            for param_key in ["input_file","branch_changed_param",
-                              "conditional_prb","branch_changed_param_value",
-                              "initiator_distribution","PbThreshold",
-                              "end_timestep"]:
-              if param_key in gb_attrs[key]:
-                attrs[param_key].append(gb_attrs[key][param_key])
-            if attrs["source_type"] == 'csv': attrs["source_file"].append(gb_attrs[key]["source_file"])
+#           if "branch_changed_param" in gb_attrs[0]:
+#             attrs["branch_changed_param"]    = []
+#             attrs["conditional_prb"] = []
+#           for param_key in ["branch_changed_param_value","initiator_distribution","Probability_threshold","end_timestep"]:
+#             if param_key in gb_attrs[0]:
+#               attrs[param_key] = []
+#           for key in gb_res:
+#             for param_key in ["input_file","branch_changed_param",
+#                               "conditional_prb","branch_changed_param_value",
+#                               "initiator_distribution","PbThreshold",
+#                               "end_timestep"]:
+#               if param_key in gb_attrs[key]:
+#                 attrs[param_key].append(gb_attrs[key][param_key])
+          for key in gb_res.keys():
+            for attr in gb_attrs[key].keys():
+              if attr not in ["output_space_headers","input_space_headers","input_space_values","n_params","parent_id","start_time","end_time","n_ts","source_type"]:
+                if attr not in attrs.keys(): attrs[attr] = []
+                try   : attrs[attr].append(json.loads(gb_attrs[key][attr]))
+                except: 
+                  if type(attrs[attr]) == list: attrs[attr].append(gb_attrs[key][attr])              
+              if attrs["source_type"] == 'csv': attrs["source_file"].append(gb_attrs[key]["source_file"])
                   
         else: raise IOError("Error. Filter not recognized in hdf5Database.retrieveHistory function. Filter = " + str(filter)) 
     else: raise IOError("History named " + name + " not found in database")
