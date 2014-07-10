@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk/raven/tests/framework/limitSurface</WorkingDir>
+    <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
     <Sequence>FirstMRun,ComputeLimitSurface</Sequence>
     <batchSize>8</batchSize>
 </RunInfo>
 
 <Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='/Users/alfoa/projects/trunk/raven/tests/framework/limitSurface/limitSurfaceTestExternalModel'>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='limitSurface/limitSurfaceTestExternalModel'>
        <variable type='float'>z</variable>
     </ExternalModel>
     <PostProcessor name="computeLimitSurface" subType='LimitSurface'>
@@ -29,7 +29,7 @@
 </Models>
 
 <Functions>
-    <External name='goalFunctionForLimitSurface' file='/Users/alfoa/projects/trunk/raven/tests/framework/limitSurface/goalFunctionTest'>
+    <External name='goalFunctionForLimitSurface' file='limitSurface/goalFunctionTest'>
         <variable type='numpy.float64'>z</variable>
     </External>
 </Functions>
