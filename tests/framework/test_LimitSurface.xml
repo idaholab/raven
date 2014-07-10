@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>/Users/alfoa/projects/trunk/raven/tests/framework/limitSurface</WorkingDir>
+    <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
+    <Sequence>FirstMRun,ComputeLimitSurface</Sequence>
+    <batchSize>8</batchSize>
+</RunInfo>
+
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='/Users/alfoa/projects/trunk/raven/tests/framework/limitSurface/limitSurfaceTestExternalModel'>
+       <variable type='float'>z</variable>
+    </ExternalModel>
+    <PostProcessor name="computeLimitSurface" subType='LimitSurface'>
+        <what>all</what>
+        <parameters>x0,y0</parameters>
+        <parameters>x0,y0</parameters>
+    </PostProcessor>
+    <ROM name='Acc' subType='SVMscikitLearn'>
+        <Features>x0,y0</Features>
+        <Target>goalFunctionForLimitSurface</Target>
+        <SVMtype>LinearSVC</SVMtype>
+        <!-- <kernel>rbf</kernel> -->
+     <!--   <gamma>0.5</gamma> -->
+     <verbose>1</verbose>
+        <tol>0.0001</tol>
+        <C>10</C>
+    </ROM>
+</Models>
+
+<Functions>
+    <External name='goalFunctionForLimitSurface' file='/Users/alfoa/projects/trunk/raven/tests/framework/limitSurface/goalFunctionTest'>
+        <variable type='numpy.float64'>z</variable>
+    </External>
+</Functions>
+
+<Distributions>
+    <Normal name='x0_distrib'>
+        <mean>4</mean>
+        <sigma>2</sigma>
+    </Normal>
+    <Normal name='y0_distrib'>
+        <mean>5</mean>
+        <sigma>2</sigma>
+    </Normal>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo name='MC_external'  limit='100' >
+      <variable name='x0' >
+        <distribution type='Normal' >x0_distrib</distribution>
+      </variable>
+      <variable name='y0' >
+        <distribution type='Normal' >y0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+</Samplers>
+
+<Steps>
+    <MultiRun name='FirstMRun'  re-seeding='200286'>
+        <Input   class='Files'     type=''               >limitSurfaceTestExternalModel.py</Input>
+        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
+        <Output  class='Datas'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
+        <Output  class='OutStreamManager' type='Print'   >TimePointSetPostProcTest_dump</Output>
+    </MultiRun >
+    <PostProcess name='ComputeLimitSurface'>
+        <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
+        <!-- <ROM      class='Models'           type='ROM'             >Acc</ROM> You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+        <Model    class='Models'           type='PostProcessor'   >computeLimitSurface</Model>
+        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+        <Output   class='Datas'            type='TimePointSet'    >LimitSurface</Output>
+        <Output   class='OutStreamManager' type='Print'           >LimitSurface_dump</Output>
+    </PostProcess>
+</Steps>
+
+<OutStreamManager>
+  <Print name='TimePointSetPostProcTest_dump'>
+    <type>csv</type>
+    <source>TimePointSetPostProcTest</source>
+  </Print>
+  <Print name='LimitSurface_dump'>
+      <type>csv</type>
+      <source>LimitSurface</source>
+  </Print>
+</OutStreamManager>
+
+<Datas>
+    <TimePointSet name='TimePointSetPostProcTest'>
+        <Input>x0,y0</Input>
+        <Output>z</Output>
+    </TimePointSet>
+    <TimePointSet name='LimitSurface'>
+        <Input>x0,y0</Input>
+        <Output>OutputPlaceOrder</Output>
+    </TimePointSet>
+</Datas>
+
+</Simulation>
+
+
+

@@ -178,6 +178,15 @@
   rel_err = 0.001
  [../]
 
+ [./testLimitSurfacePostProcessor]
+  type = 'RavenFramework'
+  input = 'test_LimitSurface.xml'
+  output = 'limitSurface/LimitSurface_dump.csv'
+  csv = 'limitSurface/LimitSurface_dump.csv'
+  max_time = 300
+  rel_err = 0.0001
+ [../]
+
  [./testCreateInternalObjFromCSVs]
   type = 'RavenFramework'
   input = 'test_CreateInternalObjFromCSVs.xml'
