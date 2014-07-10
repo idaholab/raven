@@ -370,7 +370,7 @@ class hdf5Database(object):
             #else:                                      objectToConvert = attributes[attr]
             objectToConvert = convertNumpyToLists(attributes[attr]) 
             converted = json.dumps(objectToConvert)
-            if converted and attr != 'name': groups.attrs[toBytes(attr)]=converted   
+            if converted and attr != 'name': groups[run].attrs[toBytes(attr)]=converted
       
           if parent_group_name != "/":
             self.allGroupPaths.append(parent_group_name + "/" + gname + '|' +str(run))
