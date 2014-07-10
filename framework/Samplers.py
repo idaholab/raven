@@ -554,8 +554,8 @@ class AdaptiveSampler(Sampler):
           for varIndex in range(len(self.axisName)):
             if varName == [key.replace('<distribution>','') for key in self.axisName][varIndex]:
               self.solutionExport.removeInputValue(varName)
-              for value in self.surfPoint[:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
-        self.solutionExport.updateOutputValue("OutputPlaceHolder",self.counter)
+              for value in self.surfPoint[:,varIndex]:
+                self.solutionExport.updateInputValue(varName,copy.copy(value))
 
     return ready
 

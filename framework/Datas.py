@@ -950,7 +950,7 @@ class TimePointSet(Data):
       myFile.write(b','.join([utils.toBytes(str(item)) for item in itertools.chain(inpKeys,outKeys)]))
       myFile.write(b'\n')
       #Print values
-      for j in range(len(next(iter(outValues)))):
+      for j in range(len(next(iter(itertools.chain(inpValues,outValues))))):
         myFile.write(b','.join([utils.toBytes(str(item[j])) for item in itertools.chain(inpValues,outValues)]))
         myFile.write(b'\n')
       myFile.close()
