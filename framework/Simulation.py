@@ -427,14 +427,20 @@ class Simulation(object):
   
   def checkStep(self,stepInstance,stepName):
     '''This method checks the coherence of the simulation step by step'''
-    for [role,myClass,_,name] in stepInstance.parList:
+    for [role,myClass,objectType,name] in stepInstance.parList:
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         raise IOError ('For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if name not in list(self.whichDict[myClass].keys()):
         print(self.whichDict[myClass])
         raise IOError ('In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
-    
-
+      if myClass!= 'Files':  # check if object type is consistent
+        objtype = self.whichDict[myClass][name].type
+        if objectType != objtype.replace("OutStream",""):
+          objtype = self.whichDict[myClass][name].type
+          raise IOError ('In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')     
+          
+          
+          
   def __readRunInfo(self,xmlNode,runInfoSkip):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
