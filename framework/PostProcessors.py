@@ -533,9 +533,7 @@ class LimitSurface(BasePostProcessor):
 
   def __init__(self):
     BasePostProcessor.__init__(self)
-    self.parameters        = {}                                       #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
-    self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
+    self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function

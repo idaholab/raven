@@ -363,59 +363,44 @@ class IODataBase(Step):
   '''
   def _localInitializeStep(self,inDictionary):
     # check if #inputs == #outputs
-    if len(inDictionary['Input']) != len(inDictionary['Output']):
-      # This condition is an error if the n Inputs > n Outputs. if the n Outputs > n Inputs, it is an error as well except in case the additional outputs are OutStreams => check for this
-      if len(inDictionary['Input']) < len(inDictionary['Output']):
-        noutputs = len(inDictionary['Output'])
-        for i in xrange(len(inDictionary['Output'])): 
-          if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: noutputs -= 1
-        if len(inDictionary['Input']) != noutputs: raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
-      else: raise IOError('STEPS         : ERROR -> In Step named ' + self.name + ', the number of Inputs != number of Outputs')
+    # collect the outputs without outstreams
+    outputs         = []
+    databases       = []
     self.actionType = []
-    incnt = -1
-    for i in range(len(inDictionary['Output'])):
-      try: 
-        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: 
-          incnt -= 1
-          continue
-        else: incnt += 1
-      except AttributeError as ae: pass
-      if (inDictionary['Input'][incnt].type != 'HDF5'):
-        if (not (inDictionary['Input'][incnt].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][incnt].type)
+    for out in inDictionary['Output']:
+      if out.type not in ['OutStreamPlot','OutStreamPrint']: outputs.append(out) 
+    if len(inDictionary['Input']) != len(outputs): raise IOError('STEPS         : ERROR: In Step named ' + self.name + ', the number of Inputs != number of Outputs')
+    for i in range(len(outputs)):
+      if (inDictionary['Input'][i].type != 'HDF5'):
+        if (not (inDictionary['Input'][i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
         else:
-          if(inDictionary['Output'][i].type != 'HDF5'): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
+          if(outputs[i].type != 'HDF5'): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
           else: self.actionType.append('DATAS-HDF5')
       else:
-        if (not (inDictionary['Output'][i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
+        if (not (outputs[i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
         else: self.actionType.append('HDF5-DATAS')
-    databases = []
-    for i in range(len(inDictionary['Output'])):
-      if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
+    for i in range(len(outputs)):
+      if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
         if 'HDF5' in inDictionary['Output'][i].type:
-          if inDictionary['Output'][i].name not in databases:
-            databases.append(inDictionary['Output'][i].name)
-            inDictionary['Output'][i].initialize(self.name)
-            if self.debug: print('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
-        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
-          inDictionary['Output'][i].initialize(inDictionary)   
-          if self.debug: print('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+          if outputs[i].name not in databases:
+            databases.append(outputs[i].name)
+            outputs[i].initialize(self.name)
+            if self.debug: print('STEPS         : PRINT -> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
+    for output in inDictionary['Output']: 
+      if output.type in ['OutStreamPrint','OutStreamPlot']:
+        output.initialize(inDictionary)        
+        if self.debug: print('STEPS         : PRINT -> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
       
   def _localTakeAstepRun(self,inDictionary):
-    incnt = -1
-    for i in range(len(inDictionary['Output'])):
-      try: 
-        if inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: 
-          incnt -= 1
-          continue
-        else: incnt += 1
-      except AttributeError as ae: pass
+    outputs = []
+    for out in inDictionary['Output']:
+      if out.type not in ['OutStreamPlot','OutStreamPrint']: outputs.append(out) 
+    for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-DATAS':
-        inDictionary['Output'][i].addOutput(inDictionary['Input'][incnt])
-      else: inDictionary['Output'][i].addGroupDatas({'group':inDictionary['Input'][incnt].name},inDictionary['Input'][incnt])
-    for output in inDictionary['Output']:
-      #try: 
-      if output.type in ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
-      #except AttributeError as ae: print('STEPS         : ERROR -> ' + ae)
+        outputs[i].addOutput(inDictionary['Input'][i])
+      else: outputs[i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
+    for output in inDictionary['Output']: 
+      if output.type in ['OutStreamPrint','OutStreamPlot']:output.addOutput() 
   
   def _localAddInitParams(self,tempDict):
     pass # no inputs
