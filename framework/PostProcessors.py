@@ -583,7 +583,7 @@ class LimitSurface(BasePostProcessor):
   
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = runInfo['WorkingDir']
+    self.__workingDir = copy.deepcopy(runInfo['WorkingDir'])
     indexes = [-1,-1]
     for index,inp in enumerate(self.inputs):
       if type(inp) in [str,bytes,unicode]: raise IOError('POSTPROC: Error -> LimitSurface PostProcessor only accepts Data(s) as inputs!') 
@@ -698,7 +698,7 @@ class LimitSurface(BasePostProcessor):
     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
     
     for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]        
+      for key, value in self.functionValue.items(): tempDict[key] = copy.deepcopy(value[myIndex])       
       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception("POSTPROC: ERROR -> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!")

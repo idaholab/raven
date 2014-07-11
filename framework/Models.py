@@ -253,7 +253,7 @@ class Dummy(Model):
     
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception("MODEL DUMMY: ERROR -> No available Output to collect (Run probabably is not finished yet)")
-    exportDict = {'input_space_params':copy.copy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.copy(finishedJob.returnEvaluation()[1]),'metadata':copy.copy(finishedJob.returnMetadata())}
+    exportDict = {'input_space_params':copy.deepcopy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.deepcopy(finishedJob.returnEvaluation()[1]),'metadata':copy.deepcopy(finishedJob.returnMetadata())}
     
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
@@ -383,6 +383,7 @@ class ExternalModel(Dummy):
       for key in Input.keys(): self.modelVariableValues[key] = Input[key]
       self.__uploadValues() 
     self.sim.run(self,Input)
+    
     self.__pointSolution()
     return copy.deepcopy(self.modelVariableValues) 
 

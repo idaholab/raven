@@ -367,12 +367,15 @@ class hdf5Database(object):
             groups[run].create_dataset(gname +"_data", dtype="float", data=dataout) 
           # add metadata if present
           for attr in attributes.keys(): 
-            #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
-            #else:                                      objectToConvert = attributes[attr]
             objectToConvert = convertNumpyToLists(attributes[attr]) 
             converted = json.dumps(objectToConvert)
-            if converted and attr != 'name': groups[run].attrs[toBytes(attr)]=converted
-      
+            if converted and attr != 'name': groups[run].attrs[toBytes(attr)]=converted   
+          for attr in metadata.keys(): 
+            if len(metadata[attr]) == nruns: objectToConvert = convertNumpyToLists(metadata[attr][run])
+            else                           : objectToConvert = convertNumpyToLists(metadata[attr])
+            converted = json.dumps(objectToConvert)
+            if converted and attr != 'name': groups[run].attrs[toBytes(attr)]=converted 
+                  
           if parent_group_name != "/":
             self.allGroupPaths.append(parent_group_name + "/" + gname + '|' +str(run))
             self.allGroupEnds[parent_group_name + "/" + gname + '|' +str(run)] = True

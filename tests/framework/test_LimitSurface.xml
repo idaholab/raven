@@ -11,7 +11,7 @@
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='limitSurface/limitSurfaceTestExternalModel'>
        <variable type='float'>z</variable>
     </ExternalModel>
-    <PostProcessor name="computeLimitSurface" subType='LimitSurface'>
+    <PostProcessor name="computeLimitSurface" subType='LimitSurface' debug='True'>
         <what>all</what>
         <parameters>x0,y0</parameters>
         <parameters>x0,y0</parameters>
@@ -46,7 +46,7 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='100' >
+    <MonteCarlo name='MC_external'  limit='150' >
       <variable name='x0' >
         <distribution type='Normal' >x0_distrib</distribution>
       </variable>
@@ -64,9 +64,9 @@
         <Output  class='Datas'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
         <Output  class='OutStreamManager' type='Print'   >TimePointSetPostProcTest_dump</Output>
     </MultiRun >
-    <PostProcess name='ComputeLimitSurface'>
+    <PostProcess name='ComputeLimitSurface' >
         <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
-        <!-- <ROM      class='Models'           type='ROM'             >Acc</ROM> You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+         <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
         <Model    class='Models'           type='PostProcessor'   >computeLimitSurface</Model>
         <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
         <Output   class='Datas'            type='TimePointSet'    >LimitSurface</Output>
