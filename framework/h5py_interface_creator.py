@@ -329,6 +329,7 @@ class hdf5Database(object):
       # for a "histories" type we create a number of groups = number of histories (compatibility with loading structure)
       data_in  = list(source['name'].getInpParametersValues().values())
       data_out = list(source['name'].getOutParametersValues().values())
+      metadata = source['name'].getAllMetadata()
       if source['name'].type in ['Histories','TimePointSet']:
         groups = []
         if 'Histories' in source['name'].type: nruns = len(data_in)
@@ -399,11 +400,13 @@ class hdf5Database(object):
         # add metadata if present
         for attr in attributes.keys(): 
           objectToConvert = convertNumpyToLists(attributes[attr])
-          #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
-          #else:                                      objectToConvert = attributes[attr]
           converted = json.dumps(objectToConvert)
           if converted and attr != 'name': groups.attrs[toBytes(attr)]=converted
-   
+        for attr in metadata.keys(): 
+          objectToConvert = convertNumpyToLists(metadata[attr])
+          converted = json.dumps(objectToConvert)
+          if converted and attr != 'name': groups.attrs[toBytes(attr)]=converted
+             
         if parent_group_name != "/":
           self.allGroupPaths.append(parent_group_name + "/" + gname)
           self.allGroupEnds[parent_group_name + "/" + gname] = True

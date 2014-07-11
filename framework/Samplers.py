@@ -219,7 +219,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     self.counter +=1                              #since we are creating the input for the next run we increase the counter
     self.inputInfo['prefix'] = str(self.counter)
     self.localGenerateInput(model,oldInput)
-    return model.createNewInput(oldInput,self.type,**self.inputInfo)
+    return copy.deepcopy(model.createNewInput(oldInput,self.type,**self.inputInfo))
 
   @abc.abstractmethod
   def localGenerateInput(self,model,oldInput):
@@ -242,8 +242,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @return newInputs: [[]] list of the list of input sets'''
     newInputs = []
     while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
-      if projector==None: newInputs.append(self.generateInput(model,myInput))
-      else              : newInputs.append(self.generateInput(model,myInput,projector))
+      if projector==None: newInputs.append(copy.deepcopy(self.generateInput(model,myInput)))
+      else              : newInputs.append(copy.deepcopy(self.generateInput(model,myInput,projector)))
     return newInputs
 
 
@@ -587,20 +587,20 @@ class AdaptiveSampler(Sampler):
       distance = np.multiply(distance,distLast,self.invPointPersistence)
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]): 
-          self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
+          self.values[self.axisName[varIndex]] = copy.deepcopy(float(self.surfPoint[np.argmax(distance),varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True  
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
         if self.toleranceWeight=='probability':
-          self.values[key] = self.distDict[key].ppf(float(Distributions.random()))
+          self.values[key] = copy.deepcopy(self.distDict[key].ppf(float(Distributions.random())))
         else:
-          self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
+          self.values[key]= copy.deepcopy(self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random()))
         self.inputInfo['distributionName'][key] = self.toBeSampled[key][1]
         self.inputInfo['distributionType'][key] = self.toBeSampled[key][0]
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])   
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['SampledVarsPb'][key] = copy.deepcopy(self.distDict[key].pdf(self.values[key]))
+    self.inputInfo['PointProbability' ] = copy.deepcopy(reduce(mul, self.inputInfo['SampledVarsPb'].values()))
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight'] = 1.0
     self.hangingPoints = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
@@ -710,11 +710,11 @@ class MonteCarlo(Sampler):
       rvsnum = self.distDict[key].rvs()
       for kkey in key.strip().split(','):
         self.values[kkey] = copy.deepcopy(rvsnum)    
-        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
+        self.inputInfo['SampledVarsPb'][kkey] = copy.deepcopy(self.distDict[key].pdf(self.values[kkey]))
       #self.values[key] = self.distDict[key].rvs()
       #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
-      self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['PointProbability'  ] = copy.deepcopy(reduce(mul, self.inputInfo['SampledVarsPb'].values()))
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
     self.inputInfo['SamplerType'] = 'MC'
 #
@@ -812,11 +812,11 @@ class Grid(Sampler):
         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName][1]
         self.inputInfo['distributionType'][kkey] = self.toBeSampled[varName][0]
         if self.gridInfo[varName][0]=='CDF':
-          self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+          self.values[kkey] = copy.deepcopy(self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]]))
+          self.inputInfo['SampledVarsPb'][kkey] = copy.deepcopy(self.distDict[varName].pdf(self.values[kkey]))
         elif self.gridInfo[varName][0]=='value':
-          self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+          self.values[kkey] = copy.deepcopy(self.gridInfo[varName][2][self.gridCoordinate[i]])
+          self.inputInfo['SampledVarsPb'][kkey] = copy.deepcopy(self.distDict[varName].pdf(self.values[kkey]))
       if self.gridInfo[varName][0]=='CDF':
         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0) 
         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0) 
@@ -825,7 +825,7 @@ class Grid(Sampler):
         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0) 
         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0) 
         if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)            
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['PointProbability' ] = copy.deepcopy(reduce(mul, self.inputInfo['SampledVarsPb'].values()))
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'
 #
@@ -888,24 +888,50 @@ class LHS(Grid):
           self.values[kkey] = copy.deepcopy(ppfvalue)
           self.inputInfo['upper'][kkey] = copy.deepcopy(ppfupper)
           self.inputInfo['lower'][kkey] = copy.deepcopy(ppflower)
-          self.inputInfo['SampledVarsPb'][varName] = coordinate
+          self.inputInfo['SampledVarsPb'][varName] = copy.deepcopy(coordinate)
           weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower) 
         elif self.gridInfo[varName][0]=='value':
-          self.values[varName] = coordinate
+          self.values[varName] = copy.deepcopy(coordinate)
           self.inputInfo['upper'][kkey] = max(upper,lower)
           self.inputInfo['lower'][kkey] = min(upper,lower)
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+          self.inputInfo['SampledVarsPb'][kkey] = copy.deepcopy(self.distDict[varName].pdf(self.values[kkey]))
       if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower) 
       else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)      
-    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['PointProbability'] = copy.deepcopy(reduce(mul, self.inputInfo['SampledVarsPb'].values()))
     self.inputInfo['ProbabilityWeight' ] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Stratified'
 #
 #
 #
+class MCDET(Sampler):
+  '''MONTE CARLO Sampler'''
+
+  def localInputAndChecks(self,xmlNode):
+    if 'limit' not in  xmlNode.attrib.keys(): raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+
+  def localGenerateInput(self,model,myInput):
+    '''set up self.inputInfo before being sent to the model'''
+    # create values dictionary
+    for key in self.distDict:
+      # check if the key is a comma separated list of strings
+      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+      rvsnum = self.distDict[key].rvs()
+      for kkey in key.strip().split(','):
+        self.values[kkey] = copy.deepcopy(rvsnum)    
+        self.inputInfo['SampledVarsPb'][kkey] = copy.deepcopy(self.distDict[key].pdf(self.values[kkey]))
+      #self.values[key] = self.distDict[key].rvs()
+      #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
+    if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
+      self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+      #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
+    self.inputInfo['SamplerType'] = 'MCDET'
+
+#
+#
+#
 class DynamicEventTree(Sampler):
   '''
-  DYNAMIC EVEN TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET      ) :D
+  DYNAMIC EVENT TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET      ) :D
   '''
   def __init__(self):
     Sampler.__init__(self)
@@ -1305,7 +1331,7 @@ class DynamicEventTree(Sampler):
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
     @return     : [] containing the new inputs -in reality it is the model that returns this, the Sampler generates the values to be placed in the model input
     '''
-    return self.localGenerateInput(model, oldInput)
+    return copy.deepcopy(self.localGenerateInput(model, oldInput))
 
   def localGenerateInput(self,model,myInput):
     if self.counter <= 1:
@@ -1316,7 +1342,7 @@ class DynamicEventTree(Sampler):
     if not newerinput:
       # If no inputs are present in the queue => a branch is finished
       print("SAMPLER DET   : A Branch ended!!!!")
-    return newerinput
+    return copy.deepcopy(newerinput)
 
   def localInputAndChecks(self,xmlNode):
 

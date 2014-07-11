@@ -387,8 +387,7 @@ class ExternalModel(Dummy):
     return copy.deepcopy(self.modelVariableValues) 
 
   def run(self,Input,jobHandler):
-    print (Input)
-    inRun = self._manipulateInput(Input[0])
+    inRun = copy.deepcopy(self._manipulateInput(Input[0]))
     jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1])  
     
   def collectOutput(self,finishedJob,output):

@@ -158,11 +158,12 @@ class HDF5(DateBase):
     @ In, loadFrom   : source of the data (must be a data(s) or a dictionary)
     @ Out, None 
     ''' 
+    source = {}
     if type(loadFrom) != dict:
       if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: raise IOError('DATABASE      : ERROR addGroupDatas function needs to have a Data(s) as input source')
-      attributes['type'] = 'Datas'
-    attributes['name'] = loadFrom
-    self.database.addGroupDatas(attributes["group"],attributes,attributes,upGroup)
+      source['type'] = 'Datas'
+    source['name'] = loadFrom
+    self.database.addGroupDatas(attributes["group"],attributes,source,upGroup)
     self.built = True
   
   def initialize(self,gname,attributes=None,upGroup=False):
