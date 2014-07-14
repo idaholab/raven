@@ -359,6 +359,26 @@ checkAnswer("logNormal ppf(0.1243677033)",logNormal.ppf(0.124367703363),2.0)
 checkAnswer("logNormal ppf(0.1)",logNormal.ppf(0.1),1.54789643258)
 checkAnswer("logNormal ppf(0.5)",logNormal.ppf(0.5),20.0855369232)
 
+#Test log normal with low mean
+
+logNormalLowMeanElement = ET.Element("logNormal")
+logNormalLowMeanElement.append(createElement("mean",text="0.00002"))
+logNormalLowMeanElement.append(createElement("sigma",text="0.2"))
+
+logNormalLowMean = Distributions.LogNormal()
+logNormalLowMean._readMoreXML(logNormalLowMeanElement)
+logNormalLowMean.initializeDistribution()
+
+checkCrowDist("logNormalLowMean",logNormalLowMean,{'mu': 2e-5, 'sigma': 0.2, 'type': 'LogNormalDistribution'})
+
+checkAnswer("logNormalLowMean cdf(2.0)",logNormalLowMean.cdf(2.0),0.999735510447)
+checkAnswer("logNormalLowMean cdf(1.0)",logNormalLowMean.cdf(1.0),0.499960105772)
+checkAnswer("logNormalLowMean cdf(3.0)",logNormalLowMean.cdf(3.0),0.999999980238)
+
+checkAnswer("logNormalLowMean ppf(0.499960105772)",logNormalLowMean.ppf(0.499960105772),1.0)
+checkAnswer("logNormalLowMean ppf(0.1)",logNormalLowMean.ppf(0.1),0.77391725785)
+checkAnswer("logNormalLowMean ppf(0.5)",logNormalLowMean.ppf(0.5),1.0000200002)
+
 #Test Weibull
 
 weibullElement = ET.Element("weibull")
