@@ -18,10 +18,10 @@
 </Distributions>
 <Models>
     <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
-    <ROM  name='ROM1' subType='SVMscikitLearn'>
+    <ROM  name='ROM1' subType='SciKitLearn'>
       <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
       <Target>CladTempTreshold</Target>
-      <SVMtype>LinearSVC</SVMtype>
+      <SKLtype>svm|LinearSVC</SKLtype>
       <C>10.0</C>
       <tol>0.0001</tol>
     </ROM>

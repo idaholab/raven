@@ -16,10 +16,10 @@
         <parameters>x0,y0</parameters>
         <parameters>x0,y0</parameters>
     </PostProcessor>
-    <ROM name='Acc' subType='SVMscikitLearn'>
+    <ROM name='Acc' subType='SciKitLearn'>
         <Features>x0,y0</Features>
         <Target>goalFunctionForLimitSurface</Target>
-        <SVMtype>LinearSVC</SVMtype>
+        <SKLtype>svm|LinearSVC</SKLtype>
         <!-- <kernel>rbf</kernel> -->
      <!--   <gamma>0.5</gamma> -->
      <verbose>1</verbose>

@@ -20,12 +20,14 @@ from functools import reduce
 from scipy import spatial
 import xml.etree.ElementTree as ET
 import TreeStructure as ETS
-from BaseType import BaseType
-import Distributions
+from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import metaclass_insert
+from BaseType import BaseType
+import Distributions
+import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
@@ -367,18 +369,10 @@ class AdaptiveSampler(Sampler):
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     #build a lambda function to masquerade the ROM <-> cKDTree presence
     if not goalFunction: raise IOError('SAMPLER ADAPT : ERROR -> Gaol Function not provided!!')
-    if ROM==None:
-      class ROM(object):
-        def __init__(self,cKDTreeInterface):
-          self.amItrained = False
-          self._cKDTreeInterface = cKDTreeInterface
-        def train(self,trainSet):
-          self._cKDTreeInterface('train',trainSet)
-          self.amItrained = True
-        def evaluate(self,coordinateVect): return self._cKDTreeInterface('evaluate',coordinateVect)
-        def confidence(self,coordinateVect): return self._cKDTreeInterface('confidence',coordinateVect)[0]
-      self.ROM = ROM(self._cKDTreeInterface)
-    else: self.ROM = ROM
+    #set up the ROM for the acceleration
+    if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
+    else        : self.ROM = ROM
+    print(self.ROM)
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.toleranceWeight=='none':
       for varName in self.distDict.keys():
@@ -449,7 +443,7 @@ class AdaptiveSampler(Sampler):
     if self.debug: print('SAMPLER ADAPT : PRINT -> From method localStillReady...')
     #test on what to do
     if ready      == False : return ready #if we exceeded the limit just return that we are done
-    if lastOutput == None and self.ROM.amItrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
+    if lastOutput == None and self.ROM.amITrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue
     if lastOutput !=None:
       print('SAMPLER ADAPT : Initiate training')
@@ -459,7 +453,6 @@ class AdaptiveSampler(Sampler):
       if self.goalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.goalFunction.name])-1
       else                                                  : indexLast = -1
       #index of last set of point tested and ready to perform the function evaluation
-      
       indexEnd  = len(self.functionValue[self.axisName[0].replace('<distribution>','')])-1
       tempDict  = {}
       if self.goalFunction.name in self.functionValue.keys():
@@ -485,7 +478,6 @@ class AdaptiveSampler(Sampler):
       for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = self.functionValue[name]
       tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
       self.ROM.train(tempDict)
-      print('SAMPLER ADAPT : PRINT -> Training done')
     if self.debug: print('SAMPLER ADAPT : PRINT -> Training finished')                                    #happy thinking :)
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
@@ -570,26 +562,32 @@ class AdaptiveSampler(Sampler):
     if self.debug: print('generating input')
     varSet=False
     if self.surfPoint!=None and len(self.surfPoint)>0:
+      sampledMatrix = np.zeros((len(self.functionValue[self.axisName[0]])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      print(sampledMatrix.shape)
+      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
+      distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       tempDict = {}
       #the hanging point are added to the list of the already explored points so not to pick the same when in //
-      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
-      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
-      self._cKDTreeInterface('train',tempDict)
+#      lastPoint = [self.functionValue[name][-1] for name in [key.replace('<distribution>','') for key in self.axisName]]
+#      for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): tempDict[name] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
+
       tempDict = {}
-      distLast = np.zeros(self.surfPoint.shape[0])
+      #distLast = np.zeros(self.surfPoint.shape[0])
       for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
         tempDict[varName]     = self.surfPoint[:,varIndex]
-        distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
+        #distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
         self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]][1]
         self.inputInfo['distributionType'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]][0]
-      distLast = np.sqrt(distLast)
-      distance, _ = self._cKDTreeInterface('confidence',tempDict)
-      distance = np.multiply(distance,distLast,self.invPointPersistence)
+      #distLast = np.sqrt(distLast)
+      distance, _ = distanceTree.query(self.surfPoint)
+      #distance = np.multiply(distance,distLast,self.invPointPersistence)
+      distance = np.multiply(distance,self.invPointPersistence)
       if np.max(distance)>0.0:
         for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]): 
           self.values[self.axisName[varIndex]] = copy.deepcopy(float(self.surfPoint[np.argmax(distance),varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-        varSet=True  
+        varSet=True
+      else: print('np.max(distance)=0.0') 
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():

@@ -278,7 +278,7 @@ class ROM(Dummy):
   def __init__(self):
     Dummy.__init__(self)
     self.initializzationOptionDict = {}
-    self.amItrained   = False
+    self.amITrained   = False
   
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -288,8 +288,8 @@ class ROM(Dummy):
         try: self.initializzationOptionDict[child.tag] = float(child.text)
         except ValueError: self.initializzationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
-    self.ROM =  SupervisedLearning.returnInstance(self.subType)
-    self.SupervisedEngine = self.ROM(**self.initializzationOptionDict)
+    print(self.initializzationOptionDict)
+    self.SupervisedEngine = SupervisedLearning.returnInstance(self.subType,**self.initializzationOptionDict)
     
   def addInitParams(self,originalDict):
     '''the ROM setting parameters are added'''
@@ -304,7 +304,7 @@ class ROM(Dummy):
             are supposed to have weight one.'''
     self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
     self.SupervisedEngine.train(self.trainingSet)
-    self.amITrained = True
+    self.amITrained = self.SupervisedEngine.amITrained
     if self.FIXME:print('FIXME: add self.amITrained to currentParamters')
   
   def confidence(self,request):
