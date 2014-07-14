@@ -293,7 +293,7 @@ class ROM(Dummy):
     
   def addInitParams(self,originalDict):
     '''the ROM setting parameters are added'''
-    ROMdict = self.SupervisedEngine.returnInitialParamters()
+    ROMdict = self.SupervisedEngine.returnInitialParameters()
     for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
   
   def train(self,trainingSet):
