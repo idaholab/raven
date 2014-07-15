@@ -144,6 +144,19 @@ qsub command.  Example:
 
 <mode>mpi<runQSUB/></mode>
 
+-- Custom Mode --
+
+If the existing modes don't work, a custom mode can be created.
+
+There is an example in test_custom_mode.xml, and the mode line is:
+
+<CustomMode file="./mode_test/new_mode.py" class="NewMode">a_new_mode</CustomMode>
+
+The python file should override the functions in SimulationMode in
+Simulation.py.  Generally modifySimulation will be overridden to
+change the precommand or postcommand parts which will be added before
+and after the executable command.
+
 -- Defaults file --
 
 The Driver will look for a file ~/.raven/default_runinfo.xml and will
