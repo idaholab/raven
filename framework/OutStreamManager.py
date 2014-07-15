@@ -549,6 +549,7 @@ class OutStreamPlot(OutStreamManager):
     '''
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
+    if self.dim not in [2,3]: raise IOError('STREAM MANAGER: ERROR -> Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block

@@ -124,7 +124,6 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     if self.debug: print('jobHandler initialized')
     self._localInitializeStep(inDictionary)
 
-  
   @abc.abstractmethod
   def _localInitializeStep(self,inDictionary):
     '''

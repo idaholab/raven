@@ -146,15 +146,13 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
 
   def returnInitialParameters(self):
     '''override this method to return the fix set of parameters of the ROM'''
-    iniParDict = self.initOptionDict.update({'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
-                                             'Target':self.target,'returnType':self.__class__.returnType})
-    iniParDict = iniParDict.update(self.__returnInitialParametersLocal__())
+    iniParDict = dict(self.initOptionDict.items() + {'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
+                                             'Target':self.target,'returnType':self.__class__.returnType}.items() + self.__returnInitialParametersLocal__().items())
     return iniParDict
 
   def returnCurrentSetting(self):
     '''return the set of parameters of the ROM that can change during simulation'''
-    returnDict = {'Trained':self.amITrained}.update(self.__CurrentSettingDictLocal__())
-    return returnDict
+    return dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
