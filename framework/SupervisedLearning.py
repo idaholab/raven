@@ -38,7 +38,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
   Essentially it contains a train, and evaluate methods
   '''
   returnType      = '' #this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
-  qualityEstType  = '' #this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
+  qualityEstType  = [] #this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
   ROMtype         = '' #the broad class of the interpolator
 
   @staticmethod 
@@ -53,7 +53,8 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     return (True,'')
   
   def __init__(self,**kwargs):
-    self.initOptionDict = kwargs
+    if kwargs != None: self.initOptionDict = kwargs
+    else             : self.initOptionDict = {}
     if 'Features' not in self.initOptionDict.keys(): raise IOError('Super Visioned: ERROR -> Feature names not provided')
     if 'Target'   not in self.initOptionDict.keys(): raise IOError('Super Visioned: ERROR ->Target name not provided')
     self.features = self.initOptionDict['Features'].split(',')
@@ -146,7 +147,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
   def returnInitialParameters(self):
     '''override this method to return the fix set of parameters of the ROM'''
     iniParDict = self.initOptionDict.update({'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
-                                             'Target':self.target,'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType})
+                                             'Target':self.target,'returnType':self.__class__.returnType})
     iniParDict = iniParDict.update(self.__returnInitialParametersLocal__())
     return iniParDict
 
@@ -352,9 +353,10 @@ class SciKitLearn(superVisedLearning):
   for key1, myDict in availImpl.items():
     qualityEstTypeDict[key1] = {}
     for key2 in myDict:
-      probabilityMethod = getattr(myDict[key2][0], "predict_proba", None)
-      if  callable(probabilityMethod): qualityEstTypeDict[key1][key2] = 'probability'
-      else                           : qualityEstTypeDict[key1][key2] = False
+      qualityEstTypeDict[key1][key2] = []
+      if  callable(getattr(myDict[key2][0], "predict_proba", None))  : qualityEstTypeDict[key1][key2] += ['probability']
+      elif  callable(getattr(myDict[key2][0], "score"        , None)): qualityEstTypeDict[key1][key2] += ['score']      
+      else                                                           : qualityEstTypeDict[key1][key2] = False
   
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
@@ -392,7 +394,7 @@ class SciKitLearn(superVisedLearning):
 
   def __confidenceLocal__(self,edict):
     print(self.__class__.qualityEstType)
-    if  self.__class__.qualityEstType=='probability': return self.ROM.predict_proba(edict)
+    if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
     else            : raise IOError('the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
 
   def __evaluateLocal__(self,featureVals):
