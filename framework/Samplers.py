@@ -75,9 +75,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
 
   def __init__(self):
     BaseType.__init__(self)
+    self.distAttribAvail               = None        # attributes available for distribution nodes
     self.counter                       = 0           # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.limit                         = sys.maxsize # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
-    self.toBeSampled                   = {}          # Sampling mapping dictionary {'Variable Name':['type of distribution to be used', 'name of the distribution']}
+    self.toBeSampled                   = {}          # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
     self.distDict                      = {}          # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
     self.values                        = {}          # for each variable the current value {'var name':value}
     self.inputInfo                     = {}          # depending on the sampler several different type of keywarded information could be present only one is mandatory, see below
@@ -108,9 +109,16 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
         if childChild.tag =='distribution':
           if child.tag == 'Distribution':
             #Add <distribution> to name so we know it is not the direct variable
-            self.toBeSampled["<distribution>"+child.attrib['name']] = [childChild.attrib['type'],childChild.text]
-          elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = [childChild.attrib['type'],childChild.text]
-          else: raise IOError('SAMPLER ADAPT : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
+            self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
+          elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = childChild.text
+          else: raise IOError('SAMPLER       : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!') 
+        if self.distAttribAvail and childChild.tag =='distribution':
+          attrfound = []
+          for key in childChild.attrib.keys(): 
+            if key not in self.distAttribAvail: attrfound.append(key)
+          if len(attrfound) > 0: raise IOError('SAMPLER       : ERROR -> Unknown attributes for distribution node '+childChild.text+'. Available are '+ str(self.distAttribAvail) + '. Got '+str(attrfound).replace('[', '').replace(']',''))
+        elif childChild.tag =='distribution':
+          if len(list(childChild.attrib.keys())) > 0: raise IOError('SAMPLER       : ERROR -> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
     self.localInputAndChecks(xmlNode)
 
   def localInputAndChecks(self,xmlNode):
@@ -125,7 +133,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @ In/Out tempDict: {'attribute name':value}
     '''
     for variable in self.toBeSampled.items():
-      tempDict[variable[0]+' is sampled using the distribution'] = variable[1][0]+' - '+variable[1][1]
+      tempDict[variable[0]+' is sampled using the distribution'] = variable[1] 
     tempDict['limit' ]        = self.limit
     tempDict['initial seed' ] = self.initSeed
     self.localAddInitParams(tempDict)
@@ -163,7 +171,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys():
-      self.distDict[key] = availableDist[self.toBeSampled[key][1]]
+      self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
 
   def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None,ROM=None):
@@ -323,8 +331,8 @@ class AdaptiveSampler(Sampler):
       else: raise Exception('SAMPLER ADAPT : ERROR -> Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     if self.subGridTol == None: self.subGridTol = self.tolerance
     if self.subGridTol> self.tolerance: raise IOError('SAMPLER ADAPT : ERROR -> The sub grid tolerance '+str(self.subGridTol)+' have to be smaller than the tolerance: '+str(self.tolerance))
-
     if len(attribList)>0: raise IOError('SAMPLER ADAPT : ERROR -> There are unknown keywords in the convergence specifications: '+str(attribList))
+
 
   def localAddInitParams(self,tempDict):
     tempDict['Force the sampler to reach the iteration limit '] = str(self.forceIteration)
@@ -576,8 +584,8 @@ class AdaptiveSampler(Sampler):
       for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
         tempDict[varName]     = self.surfPoint[:,varIndex]
         #distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
-        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]][1]
-        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]][0]
+        self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
+        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.toBeSampled[self.axisName[varIndex]]].type
       #distLast = np.sqrt(distLast)
       distance, _ = distanceTree.query(self.surfPoint)
       #distance = np.multiply(distance,distLast,self.invPointPersistence)
@@ -595,8 +603,8 @@ class AdaptiveSampler(Sampler):
           self.values[key] = copy.deepcopy(self.distDict[key].ppf(float(Distributions.random())))
         else:
           self.values[key]= copy.deepcopy(self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random()))
-        self.inputInfo['distributionName'][key] = self.toBeSampled[key][1]
-        self.inputInfo['distributionType'][key] = self.toBeSampled[key][0]
+        self.inputInfo['distributionName'][key] = self.toBeSampled[key]
+        self.inputInfo['distributionType'][key] = self.distDict[self.toBeSampled[key]].type 
         self.inputInfo['SampledVarsPb'][key] = copy.deepcopy(self.distDict[key].pdf(self.values[key]))
     self.inputInfo['PointProbability' ] = copy.deepcopy(reduce(mul, self.inputInfo['SampledVarsPb'].values()))
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
@@ -807,8 +815,8 @@ class Grid(Sampler):
       index, remainder = divmod(remainder, stride )
       self.gridCoordinate[i] = index
       for kkey in varName.strip().split(','):
-        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName][1]
-        self.inputInfo['distributionType'][kkey] = self.toBeSampled[varName][0]
+        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type  
         if self.gridInfo[varName][0]=='CDF':
           self.values[kkey] = copy.deepcopy(self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]]))
           self.inputInfo['SampledVarsPb'][kkey] = copy.deepcopy(self.distDict[varName].pdf(self.values[kkey]))
@@ -880,8 +888,8 @@ class LHS(Grid):
         ppflower = self.distDict[varName].ppf(min(upper,lower))
         ppfupper = self.distDict[varName].ppf(max(upper,lower))
       for kkey in varName.strip().split(','):      
-        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName][1]
-        self.inputInfo['distributionType'][kkey] = self.toBeSampled[varName][0]
+        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type   
         if self.gridInfo[varName][0] =='CDF':
           self.values[kkey] = copy.deepcopy(ppfvalue)
           self.inputInfo['upper'][kkey] = copy.deepcopy(ppfupper)
@@ -933,6 +941,7 @@ class DynamicEventTree(Sampler):
   '''
   def __init__(self):
     Sampler.__init__(self)
+    self.distAttribAvail = ['ValueThresholds','ProbabilityThresholds']
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
     self.workingDir = ""
     # (optional) if not present, the sampler will not change the relative keyword in the input file
@@ -1236,8 +1245,8 @@ class DynamicEventTree(Sampler):
         self.inputInfo['SampledVars']   = {}
         self.inputInfo['SampledVarsPb'] = {}
         for varname in self.toBeSampled.keys():
-          self.inputInfo['SampledVars'][varname]   = copy.deepcopy(self.branchValues[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
-          self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
+          self.inputInfo['SampledVars'][varname]   = copy.deepcopy(self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
+          self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
               
         self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
         self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
@@ -1272,8 +1281,8 @@ class DynamicEventTree(Sampler):
       for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(copy.deepcopy(self.branchProbabilities[key][branchedLevel[key]]))
       for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(copy.deepcopy(self.branchValues[key][branchedLevel[key]]))
       for varname in self.toBeSampled.keys():
-        self.inputInfo['SampledVars'  ][varname] = copy.deepcopy(self.branchValues[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
-        self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname][1]][branchedLevel[self.toBeSampled[varname][1]]])
+        self.inputInfo['SampledVars'  ][varname] = copy.deepcopy(self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
+        self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       if(self.maxSimulTime): self.inputInfo['end_time'] = self.maxSimulTime
@@ -1360,7 +1369,7 @@ class DynamicEventTree(Sampler):
       for childChild in child:
         if childChild.tag =='distribution':
           branchedLevel[childChild.text] = 0
-          if 'ProbabilityThresholds' in childChild.attrib:
+          if 'ProbabilityThresholds' in childChild.attrib.keys():
             self.branchProbabilities[childChild.text] = [float(x) for x in childChild.attrib['ProbabilityThresholds'].split()]
             self.branchProbabilities[childChild.text].sort(key=float)
             if max(self.branchProbabilities[childChild.text]) > 1:
@@ -1383,7 +1392,7 @@ class DynamicEventTree(Sampler):
     if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
-
+                                                
   def localAddInitParams(self,tempDict):
 
     for key in self.branchProbabilities.keys():

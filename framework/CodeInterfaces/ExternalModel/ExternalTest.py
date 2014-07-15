@@ -17,5 +17,7 @@ class ExternalTest:
     return ''
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     return currentInputFiles
+  def appendLoadFileExtension(self,fileRoot):
+    return fileRoot
 
     
