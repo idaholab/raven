@@ -39,19 +39,19 @@
 <Samplers>
   <MonteCarlo name='Bison1' limit='3'>
       <variable name='tc_heat1' >
-          <distribution type='Uniform'>FlatHeat1</distribution>
+          <distribution>FlatHeat1</distribution>
       </variable>
       <variable name='tc_heat2' >
-          <distribution type='Uniform'>FlatHeat2</distribution>
+          <distribution>FlatHeat2</distribution>
       </variable>
   </MonteCarlo>
   <!-- Sampler noalias -->
   <MonteCarlo name='Bison_sampler_noalias' limit='3' initial_seed='22'>
         <variable name='Materials|heat1|thermal_conductivity' >
-            <distribution type='Uniform'>FlatHeat1</distribution>
+            <distribution>FlatHeat1</distribution>
         </variable>
         <variable name='Materials|heat2|thermal_conductivity' >
-            <distribution type='Uniform'>FlatHeat2</distribution>
+            <distribution>FlatHeat2</distribution>
         </variable>
   </MonteCarlo>
 </Samplers>

@@ -21,27 +21,27 @@
 <Samplers>
   <MonteCarlo name='MC1' limit='3' >
     <variable name='simple_var'>
-      <distribution type='Uniform'>simple</distribution>
+      <distribution >simple</distribution>
     </variable>
   </MonteCarlo>
   <MonteCarlo name='MC2' limit='3' >
     <variable name='simple_var'>
-      <distribution type='Uniform'>simple</distribution>
+      <distribution >simple</distribution>
     </variable>
   </MonteCarlo>
   <MonteCarlo name='MC3' limit='3' >
     <variable name='simple_var'>
-      <distribution type='Uniform'>simple</distribution>
+      <distribution  >simple</distribution>
     </variable>
   </MonteCarlo>
   <MonteCarlo name='MC4' limit='3' >
     <variable name='simple_var'>
-      <distribution type='Uniform'>simple</distribution>
+      <distribution >simple</distribution>
     </variable>
   </MonteCarlo>
   <MonteCarlo name='MC5' limit='3' >
     <variable name='simple_var'>
-      <distribution type='Uniform'>simple</distribution>
+      <distribution  >simple</distribution>
     </variable>
   </MonteCarlo>
 </Samplers>

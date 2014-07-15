@@ -36,15 +36,15 @@
   <Samplers>
     <Grid name='myGrid' initial_seed='1'>
       <variable name='Components|pipe|Tw'>
-        <distribution type='Normal'>Gauss1</distribution>
+        <distribution >Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='300' steps='1'>3</grid>
       </variable>
       <variable name='Components|inlet|T_bc'>
-        <distribution type='Normal'>Gauss2</distribution>
+        <distribution >Gauss2</distribution>
         <grid type='CDF' construction='equal' upperBound='0.2' steps='1'>0.01</grid>
       </variable>
       <Distribution name='Dummy1'>
-        <distribution type='Normal'>ANormalDistribution</distribution>
+        <distribution >ANormalDistribution</distribution>
         <grid type='CDF' construction='equal' upperBound='0.9' steps='2'>0.01</grid>
       </Distribution>
     </Grid>

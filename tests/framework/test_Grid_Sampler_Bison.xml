@@ -36,15 +36,15 @@
 <Samplers>
     <Grid name='myGrid'>
       <variable name='Materials|heat1|thermal_conductivity' >
-        <distribution type='Normal'>Gauss1</distribution>
+        <distribution>Gauss1</distribution>
         <grid         type='value' construction='custom' >0.6 0.7 0.8</grid>
       </variable>
       <variable name='Materials|heat1|specific_heat' >
-        <distribution type='Normal' >Gauss2</distribution>
+        <distribution >Gauss2</distribution>
         <grid         type='CDF'    construction='custom'>0.5 1.0 0.0</grid>
       </variable>
       <variable name='Materials|heat2|thermal_conductivity'>
-        <distribution type='Triangular' >DistTri1</distribution>
+        <distribution  >DistTri1</distribution>
         <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
       </variable>
     </Grid>

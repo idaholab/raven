@@ -28,7 +28,7 @@
  [./test_branch_heavy]
   type = 'RavenFramework'
   input = 'test_sbo_heavy_det.xml'
-  skip = 'waiting for new output system fix'
+  #skip = 'waiting for new output system fix'
   output = 'SBO_DET/DET/out~DET_1-2-2~TMI SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
   csv = 'SBO_DET/stories_from_database_dump_1.csv'
   max_time = 100000

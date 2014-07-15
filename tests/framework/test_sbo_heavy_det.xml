@@ -48,19 +48,19 @@
 <Samplers>
     <DynamicEventTree name='DET' print_end_xml='yes' maxSimulationTime='2500.0'>
       <variable name='crew1DG1' >
-        <distribution type='Normal' ProbabilityThresholds='0.8 0.9'>crew1DG1</distribution>
+        <distribution   ProbabilityThresholds='0.8 0.9'>crew1DG1</distribution>
       </variable> 
       <variable name='crew1DG2CoupledDG1' >
-        <distribution type='Normal' ProbabilityThresholds='0.8 0.9'>crew1DG2CoupledDG1</distribution>
+        <distribution   ProbabilityThresholds='0.8 0.9'>crew1DG2CoupledDG1</distribution>
       </variable> 
        <variable name='crewSecPG' >
-        <distribution type='Normal' ProbabilityThresholds='0.8 0.9'>crewSecPG</distribution>
+        <distribution   ProbabilityThresholds='0.8 0.9'>crewSecPG</distribution>
       </variable> 
       <variable name='PrimPGrecovery' >
-        <distribution type='Normal' ProbabilityThresholds='0.9'>PrimPGrecovery</distribution>
+        <distribution   ProbabilityThresholds='0.9'>PrimPGrecovery</distribution>
       </variable>     
       <variable name='CladFailureDist' >
-        <distribution type='Triangular' ProbabilityThresholds='0.05 0.1 0.15'>CladFailureDist</distribution>
+        <distribution   ProbabilityThresholds='0.05 0.1 0.15'>CladFailureDist</distribution>
       </variable>
     </DynamicEventTree>     
 </Samplers>

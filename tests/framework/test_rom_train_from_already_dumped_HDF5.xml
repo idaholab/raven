@@ -29,10 +29,10 @@
 <Samplers>
   <MonteCarlo     name='RAVENmc3'  limit='3' initial_seed='200286'>
     <variable name='DeltaTimeScramToAux'>
-      <distribution type='Uniform'>auxbackup</distribution>
+      <distribution  >auxbackup</distribution>
     </variable>
     <variable name='DG1recoveryTime'>
-      <distribution type='Uniform'>DG1backup</distribution>
+      <distribution  >DG1backup</distribution>
     </variable>
   </MonteCarlo>
 </Samplers>

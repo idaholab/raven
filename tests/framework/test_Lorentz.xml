@@ -40,13 +40,13 @@
 <Samplers>
     <MonteCarlo name='MC_external'  limit='3' >
       <variable name='x0' >
-        <distribution type='Normal' >x0_distrib</distribution>
+        <distribution  >x0_distrib</distribution>
       </variable>
       <variable name='y0' >
-        <distribution type='Normal' >y0_distrib</distribution>
+        <distribution  >y0_distrib</distribution>
       </variable>
       <variable name='z0' >
-        <distribution type='Normal' >z0_distrib</distribution>
+        <distribution  >z0_distrib</distribution>
       </variable>
     </MonteCarlo>
 </Samplers>

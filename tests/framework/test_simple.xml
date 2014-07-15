@@ -52,10 +52,7 @@
 <Samplers>
     <MonteCarlo     name='RAVENmc6'  limit='6' />
 </Samplers>
-<Tests>
-    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
-    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
-</Tests>
+
 <Steps>
     <MultiRun name='FirstMRun' re-seeding='1'>
         <Input   class='Files'     type=''>ideal_pump.i</Input>
