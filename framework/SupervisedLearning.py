@@ -399,7 +399,9 @@ class SciKitLearn(superVisedLearning):
     return self.ROM.predict(featureVals)
 
   def __resetLocal__(self):
-    self.ROM = self.__class__.availIplem[self.initOptionDict['SVMtype']](**self.initOptionDict)
+    print(**self.initOptionDict)
+    self.ROM = self.ROM.__class__(**self.initOptionDict)
+    print(type(self.ROM))
 
   def __returnInitialParametersLocal__(self):
     return self.ROM.get_params()

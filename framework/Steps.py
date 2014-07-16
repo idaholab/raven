@@ -349,7 +349,9 @@ class Adaptive(MultiRun):
     '''this is the initialization for a generic step performing runs '''
     self._samplerInitDict['goalFunction'] = inDictionary['Function']
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
-    if 'ROM'            in inDictionary.keys(): self._samplerInitDict['ROM'           ]=inDictionary['ROM']
+    if 'ROM'            in inDictionary.keys():
+      self._samplerInitDict['ROM'           ]=inDictionary['ROM']
+#      self._samplerInitDict['ROM'].initialize(None,None)
     MultiRun._localInitializeStep(self,inDictionary)
 #
 #

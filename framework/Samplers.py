@@ -375,12 +375,12 @@ class AdaptiveSampler(Sampler):
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
+    self.surfPoint         = None
     #build a lambda function to masquerade the ROM <-> cKDTree presence
     if not goalFunction: raise IOError('SAMPLER ADAPT : ERROR -> Gaol Function not provided!!')
     #set up the ROM for the acceleration
     if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
     else        : self.ROM = ROM
-    print(self.ROM)
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.toleranceWeight=='none':
       for varName in self.distDict.keys():
@@ -570,7 +570,6 @@ class AdaptiveSampler(Sampler):
     varSet=False
     if self.surfPoint!=None and len(self.surfPoint)>0:
       sampledMatrix = np.zeros((len(self.functionValue[self.axisName[0]])+len(self.hangingPoints[:,0]),len(self.axisName)))
-      print(sampledMatrix.shape)
       for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       tempDict = {}
@@ -584,7 +583,7 @@ class AdaptiveSampler(Sampler):
         tempDict[varName]     = self.surfPoint[:,varIndex]
         #distLast[:] += np.square(tempDict[varName]-lastPoint[varIndex])
         self.inputInfo['distributionName'][self.axisName[varIndex]] = self.toBeSampled[self.axisName[varIndex]]
-        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.toBeSampled[self.axisName[varIndex]]].type
+        self.inputInfo['distributionType'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].type
       #distLast = np.sqrt(distLast)
       distance, _ = distanceTree.query(self.surfPoint)
       #distance = np.multiply(distance,distLast,self.invPointPersistence)

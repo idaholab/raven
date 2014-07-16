@@ -10,10 +10,10 @@ def initialize(self,runInfoDict,inputFiles):
   self.z               = 0
   return
 
-def createNewInput(self,myInput,samplerType,**Kwargs):
-  return Kwargs['SampledVars']
+#def createNewInput(self,myInput,samplerType,**Kwargs):
+#  return Kwargs['SampledVars']
 
 def run(self,Input):
-  self.z = Input['x0']+Input['y0']
-
+  #self.z = Input['x0']+Input['y0']
+  self.z = self.x0 + self.y0
 

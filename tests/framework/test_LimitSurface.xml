@@ -4,12 +4,14 @@
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
     <Sequence>FirstMRun,ComputeLimitSurface</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='limitSurface/limitSurfaceTestExternalModel'>
-       <variable type='float'>z</variable>
+       <variable type='numpy.ndarray'>z</variable>
+       <variable type='numpy.ndarray'>x0</variable>
+       <variable type='numpy.ndarray'>y0</variable>
     </ExternalModel>
     <PostProcessor name="computeLimitSurface" subType='LimitSurface' debug='True'>
         <what>all</what>
@@ -58,7 +60,7 @@
 
 <Steps>
     <MultiRun name='FirstMRun'  re-seeding='200286'>
-        <Input   class='Files'     type=''               >limitSurfaceTestExternalModel.py</Input>
+        <Input   class='Datas'     type='TimePointSet'   >Dummy</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
         <Output  class='Datas'     type='TimePointSet'   >TimePointSetPostProcTest</Output>
@@ -94,6 +96,10 @@
     <TimePointSet name='LimitSurface'>
         <Input>x0,y0</Input>
         <Output>OutputPlaceOrder</Output>
+    </TimePointSet>
+    <TimePointSet name='Dummy'>
+        <Input>x0,y0</Input>
+        <Output>OutputPlaceHolder</Output>
     </TimePointSet>
 </Datas>
 

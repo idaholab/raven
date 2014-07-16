@@ -183,7 +183,6 @@ class Dummy(Model):
     Model.__init__(self)
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
-    self.counterInput = 0   #the number of input already generated
     
   @classmethod
   def specializeValidateDict(cls):
@@ -192,9 +191,6 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
-    
-  def initialize(self,runInfo,inputs,initDict=None):
-    self.counterInput = 0
 
   def _manipulateInput(self,dataIn):
     if len(dataIn)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
@@ -229,12 +225,11 @@ class Dummy(Model):
     '''
     if len(myInput)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
     inputDict = self._inputToInternal(myInput[0])
-    self.counterInput +=1 
     #test if all sampled variables are in the inputs category of the data
     if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
       raise IOError ('When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = numpy.atleast_1d(Kwargs['SampledVars'][key])
-    if None in inputDict.values(): raise IOError ('While preparing the input for the model '+self.type+' with name'+self.name+' found an None input variable '+ str(inputDict.items()))
+    if None in inputDict.values(): raise IOError ('While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
     return [(inputDict)],copy.deepcopy(Kwargs) 
@@ -290,7 +285,11 @@ class ROM(Dummy):
     #the ROM is instanced and initialized
     print(self.initializzationOptionDict)
     self.SupervisedEngine = SupervisedLearning.returnInstance(self.subType,**self.initializzationOptionDict)
-    
+
+  def reset(self):
+    self.SupervisedEngine.reset()
+    self.amITrained   = False
+
   def addInitParams(self,originalDict):
     '''the ROM setting parameters are added'''
     ROMdict = self.SupervisedEngine.returnInitialParameters()
@@ -350,7 +349,6 @@ class ExternalModel(Dummy):
     if 'createNewInput' in dir(self.sim): 
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: raise Exception('MODEL EXTERNAL: ERROR -> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      self.counterInput += 1
       return [(extCreateNewInput)],copy.deepcopy(Kwargs)
     else                                : return Dummy.createNewInput(self, myInput,samplerType,**Kwargs)   
 
@@ -378,12 +376,12 @@ class ExternalModel(Dummy):
         else: raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
+
   def __externalRun(self, Input): 
     if 'createNewInput' not in dir(self.sim):
       for key in Input.keys(): self.modelVariableValues[key] = Input[key]
       self.__uploadValues() 
     self.sim.run(self,Input)
-    
     self.__pointSolution()
     return copy.deepcopy(self.modelVariableValues) 
 
@@ -398,6 +396,8 @@ class ExternalModel(Dummy):
       return type_var.__name__ == var_type_str or \
         type_var.__module__+"."+type_var.__name__ == var_type_str
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
+    print(finishedJob.returnEvaluation()[1])
+    print(self.modelVariableType)
     for key in finishedJob.returnEvaluation()[1]: 
       if not (typeMatch(finishedJob.returnEvaluation()[1][key],self.modelVariableType[key])): raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(finishedJob.returnEvaluation()[1][key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!') 
     Dummy.collectOutput(self, finishedJob, output)
