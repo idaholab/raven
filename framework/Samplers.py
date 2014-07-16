@@ -11,7 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import sys
 import os
-import copy 
+import copy
 import abc
 import numpy as np
 import json
@@ -100,10 +100,6 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
     except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
-    if 'limit' in xmlNode.attrib.keys():
-      try: self.limit = int(xmlNode.attrib['limit'])
-      except:
-        IOError ('reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     for child in xmlNode:
       for childChild in child:
         if childChild.tag =='distribution':
@@ -111,10 +107,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
             #Add <distribution> to name so we know it is not the direct variable
             self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
           elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = childChild.text
-          else: raise IOError('SAMPLER       : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!') 
+          else: raise IOError('SAMPLER       : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
         if self.distAttribAvail and childChild.tag =='distribution':
           attrfound = []
-          for key in childChild.attrib.keys(): 
+          for key in childChild.attrib.keys():
             if key not in self.distAttribAvail: attrfound.append(key)
           if len(attrfound) > 0: raise IOError('SAMPLER       : ERROR -> Unknown attributes for distribution node '+childChild.text+'. Available are '+ str(self.distAttribAvail) + '. Got '+str(attrfound).replace('[', '').replace(']',''))
         elif childChild.tag =='distribution':
@@ -133,7 +129,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @ In/Out tempDict: {'attribute name':value}
     '''
     for variable in self.toBeSampled.items():
-      tempDict[variable[0]+' is sampled using the distribution'] = variable[1] 
+      tempDict[variable[0]+' is sampled using the distribution'] = variable[1]
     tempDict['limit' ]        = self.limit
     tempDict['initial seed' ] = self.initSeed
     self.localAddInitParams(tempDict)
@@ -180,14 +176,14 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrain)
     @in goalFunction:   in goal oriented sampling this is the function to be used
     '''
-    self.counter = 0                                 
-    
+    self.counter = 0
+
     if   not externalSeeding          : Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
     elif externalSeeding=='continue'  : pass                                          #in this case the random sequence needs to be preserved
     else                              : Distributions.randomSeed(externalSeeding)     #the external seeding is used
     for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport : 
+    if solutionExport :
       if not goalFunction : raise IOError('SAMPLER       : ERROR -> Not Consistent Input... gaalFunction not provided but requested a sulotion export!!!')
       self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction,ROM=ROM)
     else              : self.localInitialize()
@@ -303,6 +299,10 @@ class AdaptiveSampler(Sampler):
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
 
   def localInputAndChecks(self,xmlNode):
+    if 'limit' in xmlNode.attrib.keys():
+      try: self.limit = int(xmlNode.attrib['limit'])
+      except ValueError:
+        raise IOError ('reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     convergenceNode = xmlNode.find('Convergence')
     if convergenceNode==None:raise Exception('SAMPLER ADAPT : ERROR -> the node Convergence was missed in the definition of the adaptive sampler '+self.name)
     try   : self.tolerance=float(convergenceNode.text)
@@ -367,7 +367,7 @@ class AdaptiveSampler(Sampler):
       return distance, outId
 
   def localInitialize(self,goalFunction,solutionExport=None,ROM=None):
-    self.memoryStep        = 5               # number of step for which the memory is kept 
+    self.memoryStep        = 5               # number of step for which the memory is kept
     self.goalFunction      = goalFunction
     self.solutionExport    = solutionExport
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
@@ -467,7 +467,7 @@ class AdaptiveSampler(Sampler):
         self.functionValue[self.goalFunction.name] = np.append( self.functionValue[self.goalFunction.name], np.zeros(indexEnd-indexLast))
       else: self.functionValue[self.goalFunction.name] = np.zeros(indexEnd+1)
       for myIndex in range(indexLast+1,indexEnd+1):
-        for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]        
+        for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
         self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in [key.replace('<distribution>','') for key in self.axisName]])).all(axis=1)     ][:]
         self.functionValue[self.goalFunction.name][myIndex] =  self.goalFunction.evaluate('residuumSign',tempDict)
         if self.goalFunction.name in lastOutput.getParaKeys('inputs'): lastOutput.self.updateInputValue (self.goalFunction.name,self.functionValue[self.goalFunction.name][myIndex])
@@ -563,9 +563,9 @@ class AdaptiveSampler(Sampler):
     # create values dictionary
     '''compute the direction normal to the surface, compute the derivative normal to the surface of the probability,
      check the points where the derivative probability is the lowest'''
-    
+
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used     
+    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     if self.debug: print('generating input')
     varSet=False
     if self.surfPoint!=None and len(self.surfPoint)>0:
@@ -590,11 +590,11 @@ class AdaptiveSampler(Sampler):
       #distance = np.multiply(distance,distLast,self.invPointPersistence)
       distance = np.multiply(distance,self.invPointPersistence)
       if np.max(distance)>0.0:
-        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]): 
+        for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
           self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[np.argmax(distance),varIndex]))
           self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
         varSet=True
-      else: print('np.max(distance)=0.0') 
+      else: print('np.max(distance)=0.0')
     if not varSet:
       #here we are still generating the batch
       for key in self.distDict.keys():
@@ -603,8 +603,8 @@ class AdaptiveSampler(Sampler):
         else:
           self.values[key]= self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(Distributions.random())
         self.inputInfo['distributionName'][key] = self.toBeSampled[key]
-        self.inputInfo['distributionType'][key] = self.distDict[key].type 
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])   
+        self.inputInfo['distributionType'][key] = self.distDict[key].type
+        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(self.values[key])
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight'] = 1.0
@@ -704,17 +704,23 @@ class MonteCarlo(Sampler):
   '''MONTE CARLO Sampler'''
 
   def localInputAndChecks(self,xmlNode):
-    if 'limit' not in  xmlNode.attrib.keys(): raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+    if 'limit' in xmlNode.attrib.keys():
+      try: self.limit = int(xmlNode.attrib['limit'])
+      except ValueError:
+        IOError ('reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+    else:
+      raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
+
     # create values dictionary
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
       rvsnum = self.distDict[key].rvs()
       for kkey in key.strip().split(','):
-        self.values[kkey] = copy.deepcopy(rvsnum)    
+        self.values[kkey] = copy.deepcopy(rvsnum)
         self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
       #self.values[key] = self.distDict[key].rvs()
       #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
@@ -738,6 +744,8 @@ class Grid(Sampler):
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
+    if 'limit' in xmlNode.attrib.keys():
+      raise IOError('limit is not used in Grid sampler')
     self.limit = 1
     for child in xmlNode:
       if child.tag == "Distribution":
@@ -769,7 +777,7 @@ class Grid(Sampler):
     self.gridCoordinate = [None]*len(self.axisName)
 
   def localAddInitParams(self,tempDict):
-    for variable in self.gridInfo.items():   
+    for variable in self.gridInfo.items():
       tempList = [str(i) for i in variable[1][2]]
       tempDict[variable[0]+' is sampled using the grid'] = variable[1][0]+' with spacing '+variable[1][1]+', points: '+' '.join(tempList)
 
@@ -815,7 +823,7 @@ class Grid(Sampler):
       self.gridCoordinate[i] = index
       for kkey in varName.strip().split(','):
         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type  
+        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
         if self.gridInfo[varName][0]=='CDF':
           self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
@@ -823,13 +831,13 @@ class Grid(Sampler):
           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
       if self.gridInfo[varName][0]=='CDF':
-        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0) 
-        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0) 
-        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)           
-      else:  
-        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0) 
-        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0) 
-        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)            
+        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
+        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+      else:
+        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0)
+        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'
@@ -886,22 +894,22 @@ class LHS(Grid):
         ppfvalue = self.distDict[varName].ppf(coordinate)
         ppflower = self.distDict[varName].ppf(min(upper,lower))
         ppfupper = self.distDict[varName].ppf(max(upper,lower))
-      for kkey in varName.strip().split(','):      
+      for kkey in varName.strip().split(','):
         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type   
+        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
         if self.gridInfo[varName][0] =='CDF':
           self.values[kkey] = copy.deepcopy(ppfvalue)
           self.inputInfo['upper'][kkey] = copy.deepcopy(ppfupper)
           self.inputInfo['lower'][kkey] = copy.deepcopy(ppflower)
           self.inputInfo['SampledVarsPb'][varName] = coordinate
-          weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower) 
+          weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
         elif self.gridInfo[varName][0]=='value':
           self.values[varName] = coordinate
           self.inputInfo['upper'][kkey] = max(upper,lower)
           self.inputInfo['lower'][kkey] = min(upper,lower)
           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-      if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower) 
-      else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)      
+      if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
+      else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Stratified'
@@ -1220,10 +1228,10 @@ class DynamicEventTree(Sampler):
         for varname in self.toBeSampled.keys():
           self.inputInfo['SampledVars'][varname]   = copy.deepcopy(self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
           self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
-              
+
         self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
         self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
-        
+
         # Call the model function "createNewInput" with the "values" dictionary just filled.
         # Add the new input path into the RunQueue system
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**self.inputInfo)))
@@ -1325,6 +1333,10 @@ class DynamicEventTree(Sampler):
     return newerinput
 
   def localInputAndChecks(self,xmlNode):
+    if 'limit' in xmlNode.attrib.keys():
+      try: self.limit = int(xmlNode.attrib['limit'])
+      except ValueError:
+        IOError ('reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
 
     try:    self.print_end_xml = (xmlNode.attrib['print_end_xml'].lower() in ['true','t','yes','si','y'])
     except KeyError: self.print_end_xml = False
@@ -1365,7 +1377,7 @@ class DynamicEventTree(Sampler):
     if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
-                                                
+
   def localAddInitParams(self,tempDict):
 
     for key in self.branchProbabilities.keys():
