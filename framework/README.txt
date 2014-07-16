@@ -67,7 +67,7 @@ module load python/2.7
 
 export PYTHONPATH=$HOME/raven_libs/pylibs/lib/python2.7/site-packages
 
-python Driver.py ../inputs/test_simple5.xml
+python Driver.py ../inputs/mpi_driver_test/test_pbs.xml
 
 will work.  The framework will create and submit an qsub command.
 
