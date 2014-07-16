@@ -118,12 +118,14 @@ class InternalRunner:
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
     self.subque          = queue.Queue()
     self.functionToRun   = functionToRun
-    self.__thread        = threading.Thread(target = lambda q, arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input) 
+    if len(Input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
+    else              : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
     self.__thread.daemon = True 
     self.__runReturn     = None
     self.__hasBeenAdded  = False
-    self.__input         = Input[0]
-    self.__metadata      = metadata
+    try:   self.__input         = copy.deepcopy(Input[0])
+    except:self.__input         = copy.copy(Input[0])
+    self.__metadata      = copy.deepcopy(metadata)
     self.retcode         = 0
 
   def isDone(self):
@@ -193,8 +195,7 @@ class JobHandler:
   def addInternal(self,Input,functionToRun,identifier,metadata=None):
     self.__queue.put(InternalRunner(Input,functionToRun,identifier,metadata))
     self.__numSubmitted += 1
-    if self.howManyFreeSpots()>0: 
-      self.addRuns()
+    if self.howManyFreeSpots()>0: self.addRuns()
 
   def isFinished(self):
     if not self.__queue.empty():

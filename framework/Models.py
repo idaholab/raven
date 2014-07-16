@@ -193,7 +193,7 @@ class Dummy(Model):
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
 
   def _manipulateInput(self,dataIn):
-    if len(dataIn)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name'+self.name)
+    if len(dataIn)>1: raise IOError('Only one input is accepted by the model type '+self.type+' with name '+self.name)
     if type(dataIn[0])!=tuple: inRun = self._inputToInternal(dataIn[0]) #this might happen when a single run is used and the input it does not come from self.createNewInput
     else:                      inRun = dataIn[0][0]    
     return inRun
@@ -249,7 +249,6 @@ class Dummy(Model):
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception("MODEL DUMMY: ERROR -> No available Output to collect (Run probabably is not finished yet)")
     exportDict = {'input_space_params':copy.deepcopy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.deepcopy(finishedJob.returnEvaluation()[1]),'metadata':copy.deepcopy(finishedJob.returnMetadata())}
-    
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] : 
@@ -340,17 +339,22 @@ class ExternalModel(Dummy):
     self.modelVariableValues = {}
     self.modelVariableType   = {}
     self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
-
+    class Object(object):pass
+    self.initExtSelf = Object()
+    
   def initialize(self,runInfo,inputs,initDict=None):
-    if 'initialize' in dir(self.sim): self.sim.initialize(self,runInfo,inputs)
+    if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)      
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
+    modelVariableValues ={}
+    for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     if 'createNewInput' in dir(self.sim): 
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: raise Exception('MODEL EXTERNAL: ERROR -> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      return [(extCreateNewInput)],copy.deepcopy(Kwargs)
-    else                                : return Dummy.createNewInput(self, myInput,samplerType,**Kwargs)   
+      return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.deepcopy(modelVariableValues)
+    else: 
+      return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.deepcopy(modelVariableValues) 
 
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
@@ -367,8 +371,6 @@ class ExternalModel(Dummy):
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
-        self.modelVariableValues[son.text] = None
-        exec('self.'+son.text+' = self.modelVariableValues['+'son.text'+']')
         if 'type' in son.attrib.keys():
           if not (son.attrib['type'].lower() in self.__availableVariableTypes):
             raise IOError('MODEL EXTERNAL: ERROR -> the "type" of variable ' + son.text + 'not among available types')
@@ -378,16 +380,23 @@ class ExternalModel(Dummy):
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
 
   def __externalRun(self, Input): 
+    class Object(object):pass
+    externalSelf        = Object()
+    for key,value in self.initExtSelf.__dict__.items(): exec('externalSelf.'+ key +' = copy.deepcopy(value)') 
+    modelVariableValues = {} 
+    for key in self.modelVariableType.keys(): modelVariableValues[key] = None
+    for key in Input[1].keys(): modelVariableValues[key] = copy.deepcopy(Input[1][key])
     if 'createNewInput' not in dir(self.sim):
-      for key in Input.keys(): self.modelVariableValues[key] = Input[key]
-      self.__uploadValues() 
-    self.sim.run(self,Input)
-    self.__pointSolution()
-    return copy.deepcopy(self.modelVariableValues) 
+      for key in Input[0].keys(): modelVariableValues[key] = copy.deepcopy(Input[0][key])
+      for key in self.modelVariableType.keys() : exec('externalSelf.'+ key +' = copy.deepcopy(modelVariableValues[key])')  #self.__uploadSolution()
+    self.sim.run(externalSelf, Input[0])
+    for key in self.modelVariableType.keys()   : exec('modelVariableValues[key]  = copy.deepcopy(externalSelf.'+key+')') #self.__pointSolution()
+    for key in self.initExtSelf.__dict__.keys(): exec('self.initExtSelf.' +key+' = copy.deepcopy(externalSelf.'+key+')')
+    return copy.deepcopy(modelVariableValues) 
 
   def run(self,Input,jobHandler):
-    inRun = copy.deepcopy(self._manipulateInput(Input[0]))
-    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1])  
+    inRun = copy.deepcopy(self._manipulateInput(Input[0][0]))
+    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1])  
     
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception("MODEL EXTERNAL: ERROR -> No available Output to collect (Run probabably is not finished yet)")
@@ -396,17 +405,9 @@ class ExternalModel(Dummy):
       return type_var.__name__ == var_type_str or \
         type_var.__module__+"."+type_var.__name__ == var_type_str
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    print(finishedJob.returnEvaluation()[1])
-    print(self.modelVariableType)
     for key in finishedJob.returnEvaluation()[1]: 
       if not (typeMatch(finishedJob.returnEvaluation()[1][key],self.modelVariableType[key])): raise RuntimeError('MODEL EXTERNAL: ERROR -> type of variable '+ key + ' is ' + str(type(finishedJob.returnEvaluation()[1][key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!') 
     Dummy.collectOutput(self, finishedJob, output)
-    
-  def __pointSolution(self):
-    for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
-
-  def __uploadValues(self):
-    for variable in self.modelVariableValues.keys(): exec('self.'+ variable +' = self.modelVariableValues[variable]')
 #
 #
 #
