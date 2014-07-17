@@ -363,7 +363,7 @@ class BasicStatistics(BasePostProcessor):
             if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
             else                                      : N = Input['targets'][targetP].size
             if Input['metadata'].keys().count('ProbabilityWeight') > 0:
-              outputDict[what][targetP] = np.average((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**2, weights=Input['metadata']['ProbabilityWeight'])
+              outputDict[what][targetP] = np.average(((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**2)**0.5, weights=Input['metadata']['ProbabilityWeight'])
             else: outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1.0)**0.5
       if what == 'variance':
         #variance

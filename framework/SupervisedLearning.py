@@ -391,7 +391,6 @@ class SciKitLearn(superVisedLearning):
       self.evaluate = lambda edict : myNumber
 
   def __confidenceLocal__(self,edict):
-    print(self.__class__.qualityEstType)
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
     else            : raise IOError('the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
 
@@ -399,9 +398,7 @@ class SciKitLearn(superVisedLearning):
     return self.ROM.predict(featureVals)
 
   def __resetLocal__(self):
-    print(**self.initOptionDict)
     self.ROM = self.ROM.__class__(**self.initOptionDict)
-    print(type(self.ROM))
 
   def __returnInitialParametersLocal__(self):
     return self.ROM.get_params()

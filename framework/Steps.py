@@ -351,7 +351,7 @@ class Adaptive(MultiRun):
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
     if 'ROM'            in inDictionary.keys():
       self._samplerInitDict['ROM'           ]=inDictionary['ROM']
-#      self._samplerInitDict['ROM'].initialize(None,None)
+      self._samplerInitDict['ROM'].reset()
     MultiRun._localInitializeStep(self,inDictionary)
 #
 #
@@ -460,7 +460,6 @@ class PostProcess(SingleRun):
       if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
     #use the models static testing of roles compatibility
     for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
-    if 'Output' not in roles: raise IOError ('STEPS         : ERROR -> It is not possible a run without an Output!!!')
     #SingleRun._localInputAndChecks(self)
     for role in self.parList:
       if role[0] == 'Function':

@@ -712,8 +712,6 @@ class LogNormal(BoostDistribution):
     tempDict['sigma'] = self.sigma
 
   def initializeDistribution(self):
-    print(self.mean)
-    print(self.sigma)
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma)
       self.lowerBound = -sys.float_info.max

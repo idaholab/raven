@@ -116,7 +116,6 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.subType  = ''
     self.runQueue = []
-    self.FIXME = False
 
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
@@ -200,7 +199,7 @@ class Dummy(Model):
 
   def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''  
-    if self.FIXME: print('FIXME: wondering if a dictionary compatibility should be kept')
+    if self.debug: print('FIXME: wondering if a dictionary compatibility should be kept')
     if  type(dataIN)!=dict and dataIN.type not in self.admittedData: raise IOError('type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
     if full==False: length = -1
@@ -263,7 +262,6 @@ class ROM(Dummy):
   '''ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome'''
   @classmethod
   def specializeValidateDict(cls):
-    print(cls.specializeValidateDict.__doc__)
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
@@ -282,7 +280,6 @@ class ROM(Dummy):
         try: self.initializzationOptionDict[child.tag] = float(child.text)
         except ValueError: self.initializzationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
-    print(self.initializzationOptionDict)
     self.SupervisedEngine = SupervisedLearning.returnInstance(self.subType,**self.initializzationOptionDict)
 
   def reset(self):
@@ -303,7 +300,7 @@ class ROM(Dummy):
     self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
     self.SupervisedEngine.train(self.trainingSet)
     self.amITrained = self.SupervisedEngine.amITrained
-    if self.FIXME:print('FIXME: add self.amITrained to currentParamters')
+    if self.debug:print('FIXME: add self.amITrained to currentParamters')
   
   def confidence(self,request):
     '''

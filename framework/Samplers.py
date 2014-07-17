@@ -129,7 +129,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @ In/Out tempDict: {'attribute name':value}
     '''
     for variable in self.toBeSampled.items():
-      tempDict[variable[0]+' is sampled using the distribution'] = variable[1]
+      tempDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
     tempDict['limit' ]        = self.limit
     tempDict['initial seed' ] = self.initSeed
     self.localAddInitParams(tempDict)
@@ -335,11 +335,11 @@ class AdaptiveSampler(Sampler):
 
 
   def localAddInitParams(self,tempDict):
-    tempDict['Force the sampler to reach the iteration limit '] = str(self.forceIteration)
-    tempDict['The norm tolerance is '                         ] = str(self.tolerance)
-    tempDict['The sub grid size is  '                         ] = str(self.subGridTol)
-    tempDict['The type of weighting for the error is '        ] = str(self.toleranceWeight)
-    tempDict['The number of no error repetition requested is '] = str(self.repetition)
+    tempDict['Iter. forced'    ] = str(self.forceIteration)
+    tempDict['Norm tolerance'  ] = str(self.tolerance)
+    tempDict['Sub grid size'   ] = str(self.subGridTol)
+    tempDict['Error Weight'    ] = str(self.toleranceWeight)
+    tempDict['Persistence'     ] = str(self.repetition)
 
   def localAddCurrentSetting(self,tempDict):
     if self.solutionExport!=None:
@@ -379,7 +379,8 @@ class AdaptiveSampler(Sampler):
     #build a lambda function to masquerade the ROM <-> cKDTree presence
     if not goalFunction: raise IOError('SAMPLER ADAPT : ERROR -> Gaol Function not provided!!')
     #set up the ROM for the acceleration
-    if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
+    mySrting= ','.join(list(self.distDict.keys()))
+    if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
     else        : self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.toleranceWeight=='none':
@@ -438,8 +439,10 @@ class AdaptiveSampler(Sampler):
         print ('SAMPLER ADAPT : PRINT -> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
     self.hangingPoints    = np.ndarray((0, self.nVar))
+    if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
+    else        : self.ROM = ROM
     print('SAMPLER ADAPT : Initialization done')
-
+    
   def localStillReady(self,ready,lastOutput=None):
     '''
     first perform some check to understand what it needs to be done possibly perform an early return

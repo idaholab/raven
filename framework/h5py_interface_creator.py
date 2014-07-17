@@ -329,11 +329,25 @@ class hdf5Database(object):
       # for a "histories" type we create a number of groups = number of histories (compatibility with loading structure)
       data_in  = list(source['name'].getInpParametersValues().values())
       data_out = list(source['name'].getOutParametersValues().values())
+      # TO REMOVE
+      print("headers_in")
+      print(headers_in)
+      print("headers_out")
+      print(headers_out)
+      print("data_in")
+      print(data_in)
+      print("data_out")
+      print(data_out)
+      # TO REMOVE
       metadata = source['name'].getAllMetadata()
       if source['name'].type in ['Histories','TimePointSet']:
         groups = []
         if 'Histories' in source['name'].type: nruns = len(data_in)
         else:                                  nruns = data_in[0].size
+        # TO REMOVE
+        print("nruns")
+        print(nruns)
+        # TO REMOVE
         for run in range(nruns): 
           if upGroup: 
             groups.append(parentgroup_obj.require_group(gname + b'|' +str(run)))
@@ -353,7 +367,7 @@ class hdf5Database(object):
             #collect the outputs
             dataout = np.zeros((next(iter(data_out[run].values())).size,len(data_out[run].values())))
             for param in range(len(data_out[run].values())): dataout[:,param] = list(data_out[run].values())[param][:]
-            groups[run].create_dataset(gname +"_data" , dtype="float", data=copy.deepcopy(dataout))
+            groups[run].create_dataset(gname +'|' +str(run)+"_data" , dtype="float", data=copy.deepcopy(dataout))
             groups[run].attrs[b'n_ts'                ] = len(data_out[run].values())
           else:
             groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([toBytes(headers_in[i])  for i in range(len(headers_in))]) 
@@ -362,9 +376,24 @@ class hdf5Database(object):
             groups[run].attrs[b'n_params'            ] = len(headers_out)
             groups[run].attrs[b'n_ts'                ] = 1
             #collect the outputs
+            # TO REMOVE
+            print("len(data_out)")
+            print(len(data_out))
+            # TO ROMOVE
             dataout = np.zeros((1,len(data_out)))
-            for param in range(len(data_out)): dataout[0,param] = copy.deepcopy(data_out[param][run])
-            groups[run].create_dataset(gname +"_data", dtype="float", data=dataout) 
+            for param in range(len(data_out)): 
+              # TO ROMOVE
+              print("copy.deepcopy(data_out[param][run]) ->" + str(param))
+              print(copy.deepcopy(data_out[param][run]))  
+              print(type(data_out[param][run]))    
+              # TO ROMOVE        
+              dataout[0,param] = copy.deepcopy(data_out[param][run])
+            # TO ROMOVE
+            print("database "+ gname +"_data")
+            print(dataout.shape)
+            print(dataout)
+            # TO ROMOVE
+            groups[run].create_dataset(gname +'|' +str(run)+"_data", dtype="float", data=dataout) 
           # add metadata if present
           for attr in attributes.keys(): 
             objectToConvert = convertNumpyToLists(attributes[attr]) 
@@ -588,6 +617,7 @@ class hdf5Database(object):
         path  = self.allGroupPaths[i]
         list_path = list_str_w
         break
+    print("found "+ str(found))
     if found:
       # Check the filter type
       if not filterHist or filterHist == 0:
@@ -635,7 +665,10 @@ class hdf5Database(object):
         for i in xrange(len(where_list)):
           grp = self.h5_file_w.require_group(where_list[i])
           namel = name_list[i] +'_data'
+          print("n_ts" + str(grp.attrs['n_ts']))
+          print(name +'_data')
           dataset = grp.require_dataset(namel, (int(grp.attrs['n_ts']),int(grp.attrs['n_params'])), dtype='float').value
+          print(dataset)
           if i == 0: n_params = int(grp.attrs['n_params'])
           if n_params != int(grp.attrs['n_params']): raise Exception("Can not merge datasets with different number of parameters")
           # Get numpy array
