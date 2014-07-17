@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug='True'>
+<RunInfo>
+  <WorkingDir>./postProcess1</WorkingDir>
+  <!--Sequence>exercise1a,exercise1b,exercise1c,exercise1d,exercise1e,exercise1f,exercise1g,exercise1h,exercise1i,PP1,PP2,PP3</Sequence-->
+  <Sequence>exercise1c,exercise1d,exercise1i</Sequence>
+  <batchSize>1</batchSize>
+</RunInfo>
+<Distributions>
+  <Uniform   name='FlatPowerHistory'>
+    <low>0.95</low>
+    <high>1.05</high>
+  </Uniform>
+  <LogNormal name='LogNormalThermalExpansion'>
+    <upperBound>1.1e-5</upperBound>
+    <lowerBound>9e-6</lowerBound>
+    <mean>-11.512925464970229</mean>
+    <sigma>0.03</sigma>
+  </LogNormal>
+  <Normal name='NormalGrainRadius'>
+    <upperBound>1.5</upperBound>
+    <lowerBound>0.5</lowerBound>
+    <mean>1</mean>
+    <sigma>0.1</sigma>
+  </Normal>
+</Distributions>
+<Samplers>
+  <MonteCarlo name='exercise1a' limit='100'>
+    <variable name='PowHist'>
+      <distribution>FlatPowerHistory</distribution>
+    </variable>
+    <variable name='ThExp'>
+      <distribution>LogNormalThermalExpansion</distribution>
+    </variable>
+    <variable name='GrainRad'>
+      <distribution>NormalGrainRadius</distribution>
+    </variable>
+  </MonteCarlo>
+  <Grid name='exercise1b'>
+    <variable name='ThExp' >
+      <distribution>LogNormalThermalExpansion</distribution>
+      <grid         type='value' construction='custom' >1.1e-5 1.e-5 9e-6</grid>
+    </variable>
+    <variable name='GrainRad' >
+      <distribution>NormalGrainRadius</distribution>
+      <grid         type='value' construction='custom' >1.5 1. 0.7 0.8 0.5</grid>
+    </variable>
+  </Grid>
+  <Grid name='exercise1c'>
+    <variable name='ThExp' >
+      <distribution>LogNormalThermalExpansion</distribution>
+      <grid         type='CDF' construction='equal' steps='5' upperBound='1'>0.2</grid>
+    </variable>
+    <variable name='GrainRad' >
+      <distribution>NormalGrainRadius</distribution>
+      <grid         type='value' construction='equal' steps='5' lowerBound='0.5'>0.2</grid>
+    </variable>
+  </Grid>
+  <LHS name='exercise1d'>
+    <variable name='ThExp' >
+      <distribution>LogNormalThermalExpansion</distribution>
+      <grid         type='CDF' construction='equal' steps='10' upperBound='1'>0.1</grid>
+    </variable>
+    <variable name='GrainRad' >
+      <distribution>NormalGrainRadius</distribution>
+      <grid         type='value' construction='equal' steps='10' lowerBound='0.5'>0.1</grid>
+    </variable>
+  </LHS>
+  <Adaptive name='exercise1AdapPb'>
+    <Convergence limit='30' forceIteration='False' weight='probability' persistence='30'>1E-4</Convergence>
+      <variable name='ThExp'>
+        <distribution>LogNormalThermalExpansion</distribution>
+      </variable>
+      <variable name='GrainRad'>
+        <distribution>NormalGrainRadius</distribution>
+      </variable>
+  </Adaptive>
+  <Adaptive name='exercise1AdapValue'>
+    <Convergence limit='10000' forceIteration='False' weight='none' persistence='30'>1E-4</Convergence>
+      <variable name='ThExp'>
+        <distribution>LogNormalThermalExpansion</distribution>
+      </variable>
+      <variable name='GrainRad'>
+        <distribution>NormalGrainRadius</distribution>
+      </variable>
+  </Adaptive>
+</Samplers>
+<Functions>
+  <External name='sinThreshold' file='sinThreshold.py'>
+    <variable type='numpy.float64'>sin</variable>
+  </External>
+</Functions>
+<Models>
+  <Dummy name='exercise1'  subType='' print='True'/>
+  <ExternalModel name='extExec1' subType='' ModuleToLoad='extModel'>
+    <variable type='numpy.ndarray'>ThExp</variable>
+    <variable type='numpy.ndarray'>GrainRad</variable>
+    <variable type='numpy.ndarray'>sum</variable>
+    <variable type='numpy.ndarray'>prod</variable>
+    <variable type='numpy.ndarray'>sin</variable>
+  </ExternalModel>
+  <ROM name='AccROM' subType='SciKitLearn'>
+    <Features>ThExp,GrainRad</Features>
+    <Target>sinThreshold</Target>
+    <SKLtype>svm|SVC</SKLtype>
+    <kernel>rbf</kernel>
+    <gamma>1</gamma>
+    <tol>0.00001</tol>
+    <C>50</C>
+  </ROM>
+  <PostProcessor name="autoCorrelationTest" subType='BasicStatistics'>
+     <what>all</what>
+     <parameters>ThExp,GrainRad,sum,prod,sin</parameters>
+   </PostProcessor>
+</Models>
+<Datas>
+  <TimePointSet name='dummyIN1a'>
+    <Input>PowHist,ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyIN1b'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyIN1c'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyIN1d'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyIN1e'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyIN1f'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyIN1g'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyIN1h'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='out1a'>
+    <Input>PowHist,ThExp,GrainRad</Input>
+    <Output>sum,prod,sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1b'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sum,prod,sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1c'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sum,prod,sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1d'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sum,prod,sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1cCopy'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sum,prod,sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1dCopy'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sum,prod,sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1e'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1f'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1g'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sin</Output>
+  </TimePointSet>
+  <TimePointSet name='out1h'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sin</Output>
+  </TimePointSet>
+  <TimePointSet name='LimitSurf_e'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='LimitSurf_f'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='LimitSurf_g'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='LimitSurf_h'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+</Datas>
+<Steps>
+  <MultiRun name='exercise1a' pauseAtEnd='True'>
+    <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
+    <Input   class = 'Datas'             type='TimePointSet' >dummyIN1a</Input>    
+    <Model   class = 'Models'            type='Dummy'        >exercise1</Model>
+    <Output  class = 'Datas'             type='TimePointSet' >out1a</Output>
+    <Output  class = 'OutStreamManager'  type='Print'        >DistriDump1a</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramPowerScaleFact1a</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramThExp1a</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramGrainSizeScaleFact1a</Output>
+  </MultiRun >
+  <MultiRun name='exercise1b' pauseAtEnd='True'>
+    <Sampler class = 'Samplers'          type='Grid'         >exercise1b</Sampler>
+    <Input   class = 'Datas'             type='TimePointSet' >dummyIN1b</Input>    
+    <Model   class = 'Models'            type='ExternalModel'>extExec1</Model>
+    <Output  class = 'Datas'             type='TimePointSet' >out1b</Output>
+    <Output  class = 'OutStreamManager'  type='Print'        >out1b</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Sum1b</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Prod1b</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Sin1b</Output>
+  </MultiRun >
+  <MultiRun name='exercise1c' pauseAtEnd='True'>
+    <Sampler class = 'Samplers'          type='Grid'         >exercise1c</Sampler>
+    <Input   class = 'Datas'             type='TimePointSet' >dummyIN1c</Input>    
+    <Model   class = 'Models'            type='ExternalModel'>extExec1</Model>
+    <Output  class = 'Datas'             type='TimePointSet' >out1cCopy</Output>
+    <Output  class = 'Datas'             type='TimePointSet' >out1c</Output>
+    <Output  class = 'OutStreamManager'  type='Print'        >out1c</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Sum1c</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Prod1c</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Sin1c</Output>
+  </MultiRun >
+  <MultiRun name='exercise1d' pauseAtEnd='True'>
+    <Sampler class = 'Samplers'          type='LHS'          >exercise1d</Sampler>
+    <Input   class = 'Datas'             type='TimePointSet' >dummyIN1d</Input>    
+    <Model   class = 'Models'            type='ExternalModel'>extExec1</Model>
+    <Output  class = 'Datas'             type='TimePointSet' >out1dCopy</Output>
+    <Output  class = 'Datas'             type='TimePointSet' >out1d</Output>
+    <Output  class = 'OutStreamManager'  type='Print'        >out1d</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Sum1d</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Prod1d</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >Sin1d</Output>
+  </MultiRun >
+  <Adaptive name='exercise1e' pauseAtEnd='True'>
+    <Input             class = 'Datas'            type = 'TimePointSet' >dummyIN1e</Input>   
+    <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapPb</Sampler>
+    <TargetEvaluation  class = 'Datas'            type = 'TimePointSet' >out1e</TargetEvaluation>
+    <Output            class = 'Datas'            type = 'TimePointSet' >out1e</Output>            
+    <SolutionExport    class = 'Datas'            type = 'TimePointSet' >LimitSurf_e</SolutionExport>
+    <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
+    <Model             class = 'Models'           type = 'ExternalModel'>extExec1</Model>
+    <ROM               class = 'Models'           type = 'ROM'          >AccROM</ROM>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >limitSurf_e</Output>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint_e</Output>    
+  </Adaptive>
+  <Adaptive name='exercise1f' pauseAtEnd='True'>
+    <Input             class = 'Datas'            type = 'TimePointSet' >dummyIN1f</Input>   
+    <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapValue</Sampler>
+    <TargetEvaluation  class = 'Datas'            type = 'TimePointSet' >out1f</TargetEvaluation>
+    <Output            class = 'Datas'            type = 'TimePointSet' >out1f</Output>            
+    <SolutionExport    class = 'Datas'            type = 'TimePointSet' >LimitSurf_f</SolutionExport>
+    <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
+    <Model             class = 'Models'           type = 'ExternalModel'>extExec1</Model>
+    <ROM               class = 'Models'           type = 'ROM'          >AccROM</ROM>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >limitSurf_f</Output>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint_f</Output>    
+  </Adaptive>
+  <Adaptive name='exercise1g' pauseAtEnd='True'>
+    <Input             class = 'Datas'            type = 'TimePointSet' >dummyIN1g</Input>   
+    <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapPb</Sampler>
+    <TargetEvaluation  class = 'Datas'            type = 'TimePointSet' >out1dCopy</TargetEvaluation>
+    <Output            class = 'Datas'            type = 'TimePointSet' >out1dCopy</Output>            
+    <SolutionExport    class = 'Datas'            type = 'TimePointSet' >LimitSurf_g</SolutionExport>
+    <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
+    <Model             class = 'Models'           type = 'ExternalModel'>extExec1</Model>
+    <ROM               class = 'Models'           type = 'ROM'          >AccROM</ROM>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >limitSurf_g</Output>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint_g</Output>    
+  </Adaptive>
+  <Adaptive name='exercise1h' pauseAtEnd='True'>
+    <Input             class = 'Datas'            type = 'TimePointSet' >dummyIN1h</Input>   
+    <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapValue</Sampler>
+    <TargetEvaluation  class = 'Datas'            type = 'TimePointSet' >out1cCopy</TargetEvaluation>
+    <Output            class = 'Datas'            type = 'TimePointSet' >out1cCopy</Output>            
+    <SolutionExport    class = 'Datas'            type = 'TimePointSet' >LimitSurf_h</SolutionExport>
+    <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
+    <Model             class = 'Models'           type = 'ExternalModel'>extExec1</Model>
+    <ROM               class = 'Models'           type = 'ROM'          >AccROM</ROM>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >limitSurf_h</Output>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint_h</Output>    
+  </Adaptive>
+  <IODataBase name='exercise1i'>
+    <Input  class='Datas'     type='TimePointSet'>out1c</Input>
+    <Output class='DataBases' type='HDF5'        >DB_GridValue</Output>
+    <Input  class='Datas'     type='TimePointSet'>out1d</Input>
+    <Output class='DataBases' type='HDF5'        >DB_LHS</Output>
+    <Output class='OutStreamManager' type='Print'>dumping</Output>
+  </IODataBase>  
+  <PostProcess name='PP1'>
+    <Input    class='Datas'            type='TimePointSet'    >out1b</Input>
+    <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
+  </PostProcess>
+  <PostProcess name='PP2'>
+    <Input    class='Datas'            type='TimePointSet'    >out1c</Input>
+    <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
+  </PostProcess>
+  <PostProcess name='PP3'>
+    <Input    class='Datas'            type='TimePointSet'    >out1d</Input>
+    <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
+  </PostProcess>
+</Steps>
+<DataBases>
+        <HDF5 name="DB_GridValue"/> 
+        <HDF5 name="DB_LHS"/> 
+</DataBases>
+<OutStreamManager>
+  <Print name='dumping'>
+    <type>csv</type>
+    <source>out1c</source>
+  </Print>
+  <Print name='DistriDump1a'>
+    <type>csv</type>
+    <source>dummyIN1a</source>
+  </Print>
+  <Print name='out1b'>
+    <type>csv</type>
+    <source>out1b</source>
+  </Print>
+  <Print name='out1c'>
+    <type>csv</type>
+    <source>out1c</source>
+  </Print>
+  <Print name='out1d'>
+    <type>csv</type>
+    <source>out1d</source>
+  </Print>
+  <Print name='out1e'>
+    <type>csv</type>
+    <source>out1c</source>
+  </Print>
+  <Print name='out1f'>
+    <type>csv</type>
+    <source>out1c</source>
+  </Print>
+  <Print name='out1ff'>
+    <type>csv</type>
+    <source>out1c</source>
+  </Print>
+  <Plot  name='HistogramPowerScaleFact1a'      dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>histogram</type>
+        <x>out1a|Input|PowHist</x>
+        <ylabel>Grain Radius Scaling Factor</ylabel>
+        <bins>20</bins>
+      </plot>
+      <xlabel>Power Scaling Factor</xlabel>
+      <ylabel>Count</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Power Scaling Factor Histogram</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='HistogramThExp1a'               dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>histogram</type>
+        <x>out1a|Input|ThExp</x>
+        <ylabel>Grain Radius Scaling Factor</ylabel>
+        <bins>20</bins>
+      </plot>
+      <xlabel>Thermal Expansion Coefficient</xlabel>
+      <ylabel>Count</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Thermal Expansion Coefficient Histogram</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='HistogramGrainSizeScaleFact1a'  dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>histogram</type>
+        <x>out1a|Input|GrainRad</x>
+        <bins>20</bins>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Count</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Grain Radius Scaling Factor Histogram</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Sum1b'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1b|Input|GrainRad</x>
+        <y>out1b|Input|ThExp</y>
+        <z>out1b|Output|sum</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sum</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Prod1b'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1b|Input|GrainRad</x>
+        <y>out1b|Input|ThExp</y>
+        <z>out1b|Output|prod</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Prod</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Sin1b'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1b|Input|GrainRad</x>
+        <y>out1b|Input|ThExp</y>
+        <z>out1b|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Sum1c'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1c|Input|GrainRad</x>
+        <y>out1c|Input|ThExp</y>
+        <z>out1c|Output|sum</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sum</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Prod1c'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1c|Input|GrainRad</x>
+        <y>out1c|Input|ThExp</y>
+        <z>out1c|Output|prod</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Prod</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Sin1c'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1c|Input|GrainRad</x>
+        <y>out1c|Input|ThExp</y>
+        <z>out1c|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Sum1d'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1d|Input|GrainRad</x>
+        <y>out1d|Input|ThExp</y>
+        <z>out1d|Output|sum</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sum</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Prod1d'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1d|Input|GrainRad</x>
+        <y>out1d|Input|ThExp</y>
+        <z>out1d|Output|prod</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Prod</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='Sin1d'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1d|Input|GrainRad</x>
+        <y>out1d|Input|ThExp</y>
+        <z>out1d|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='limitSurf_e'  dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>LimitSurf_e|Input|GrainRad</x>
+        <y>LimitSurf_e|Input|ThExp</y>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Prod</text></title>
+      <range><ymin>0.5e-5</ymin><ymax>1.5e-5</ymax></range>
+    </actions>
+  </Plot>
+  <Plot  name='testedPoint_e'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1e|Input|GrainRad</x>
+        <y>out1e|Input|ThExp</y>
+        <z>out1e|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='limitSurf_f'  dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>LimitSurf_f|Input|GrainRad</x>
+        <y>LimitSurf_f|Input|ThExp</y>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Prod</text></title>
+      <range><ymin>0.5e-5</ymin><ymax>1.5e-5</ymax></range>
+    </actions>
+  </Plot>
+  <Plot  name='testedPoint_f'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1f|Input|GrainRad</x>
+        <y>out1f|Input|ThExp</y>
+        <z>out1f|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='limitSurf_g'  dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>LimitSurf_g|Input|GrainRad</x>
+        <y>LimitSurf_g|Input|ThExp</y>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Prod</text></title>
+      <range><ymin>0.5e-5</ymin><ymax>1.5e-5</ymax></range>
+    </actions>
+  </Plot>
+  <Plot  name='testedPoint_g'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1dCopy|Input|GrainRad</x>
+        <y>out1dCopy|Input|ThExp</y>
+        <z>out1dCopy|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='limitSurf_h'  dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>LimitSurf_h|Input|GrainRad</x>
+        <y>LimitSurf_h|Input|ThExp</y>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Prod</text></title>
+      <range><ymin>0.5e-5</ymin><ymax>1.5e-5</ymax></range>
+    </actions>
+  </Plot>
+  <Plot  name='testedPoint_h'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>out1cCopy|Input|GrainRad</x>
+        <y>out1cCopy|Input|ThExp</y>
+        <z>out1cCopy|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel> 
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+</OutStreamManager>
+
+</Simulation>

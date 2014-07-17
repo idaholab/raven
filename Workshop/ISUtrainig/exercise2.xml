@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug='True'>
+<RunInfo>
+  <WorkingDir>./postProcess1</WorkingDir>
+  <Sequence>extract_DB_GridValue,extract_DB_LHS,train_Sum_GridValues,train_Sin_LHS,MCsum,MCsin,PPsum,PPsin,adptive</Sequence>
+  <batchSize>1</batchSize>
+</RunInfo>
+
+<DataBases>
+        <HDF5 name="DB_GridValue" directory='DataBaseStorage' filename='DB_GridValue.h5'/>
+        <HDF5 name="DB_LHS" directory='DataBaseStorage' filename='DB_LHS.h5'/>
+</DataBases>
+
+<Distributions>
+  <LogNormal name='LogNormalThermalExpansion'>
+    <upperBound>1.1e-5</upperBound>
+    <lowerBound>9e-6</lowerBound>
+    <mean>-11.512925464970229</mean>
+    <sigma>0.03</sigma>
+  </LogNormal>
+  <Normal name='NormalGrainRadius'>
+    <upperBound>1.5</upperBound>
+    <lowerBound>0.5</lowerBound>
+    <mean>1</mean>
+    <sigma>0.1</sigma>
+  </Normal>
+</Distributions>
+
+<Samplers>
+  <MonteCarlo name='exercise1a' limit='100'>
+    <variable name='ThExp'>
+      <distribution>LogNormalThermalExpansion</distribution>
+    </variable>
+    <variable name='GrainRad'>
+      <distribution>NormalGrainRadius</distribution>
+    </variable>
+  </MonteCarlo>
+  <Adaptive name='exercise1AdapValue'>
+    <Convergence limit='10000' forceIteration='False' weight='none' persistence='50'>1E-4</Convergence>
+      <variable name='ThExp'>
+        <distribution>LogNormalThermalExpansion</distribution>
+      </variable>
+      <variable name='GrainRad'>
+        <distribution>NormalGrainRadius</distribution>
+      </variable>
+  </Adaptive>
+</Samplers>
+
+<Functions>
+  <External name='sinThreshold' file='sinThreshold.py'>
+    <variable type='numpy.float64'>sin</variable>
+  </External>
+</Functions>
+
+<Models>
+  <ROM  name='ROMforSinLHS' subType='SciKitLearn'>
+    <Features>ThExp,GrainRad</Features>
+    <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <Target>sin</Target>
+  </ROM>
+  <ROM  name='ROMforSumGridValue' subType='SciKitLearn'>
+    <Features>ThExp,GrainRad</Features>
+    <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <Target>sum</Target>
+  </ROM>
+  <PostProcessor name="PPsum" subType='BasicStatistics'>
+     <what>all</what>
+     <parameters>ThExp,GrainRad,sum</parameters>
+   </PostProcessor>
+  <PostProcessor name="PPsin" subType='BasicStatistics'>
+     <what>all</what>
+     <parameters>ThExp,GrainRad,sin</parameters>
+   </PostProcessor>
+</Models>
+<Datas>
+  <TimePointSet name='DB_GridValue'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sum,prod,sin</Output>
+  </TimePointSet>
+  <TimePointSet name='DB_LHS'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sum,prod,sin</Output>
+  </TimePointSet>
+  <TimePointSet name='outMCsum'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sum</Output>
+  </TimePointSet>
+  <TimePointSet name='outMCsin'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sin</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyMCsum'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummyMCsin'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='DummyLimitSurf'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='LimitSurf'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='Sampled'>
+    <Input>ThExp,GrainRad</Input>
+    <Output>sin</Output>
+  </TimePointSet>
+</Datas>
+<Steps>
+  <IODataBase name='extract_DB_GridValue' pauseAtEnd='True'>
+    <Input   class='DataBases'        type='HDF5'         >DB_GridValue</Input >
+    <Output  class='Datas'            type='TimePointSet' >DB_GridValue</Output>
+    <Output  class='OutStreamManager' type='Plot'         >GridValue</Output>
+    <Output  class='OutStreamManager' type='Print'        >printGridValue</Output>
+  </IODataBase>
+  <IODataBase name='extract_DB_LHS' pauseAtEnd='True'>
+    <Input   class ='DataBases'        type ='HDF5'         >DB_LHS</Input >
+    <Output  class ='Datas'            type ='TimePointSet' >DB_LHS</Output>
+    <Output  class='OutStreamManager'  type ='Plot'          >LHS</Output>   
+  </IODataBase>
+  <RomTrainer name='train_Sum_GridValues'>
+    <Input   class='Datas'             type='TimePointSet'>DB_GridValue</Input>
+    <Output  class='Models'            type='ROM'         >ROMforSumGridValue</Output>
+  </RomTrainer> 
+  <RomTrainer name='train_Sin_LHS'>
+    <Input   class='Datas'             type='TimePointSet'>DB_GridValue</Input>
+    <Output  class='Models'            type='ROM'         >ROMforSinLHS</Output>
+  </RomTrainer>
+  <MultiRun name='MCsum' pauseAtEnd='True'>
+    <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
+    <Input   class = 'Datas'             type='TimePointSet' >dummyMCsum</Input>    
+    <Model   class = 'Models'            type='ROM'          >ROMforSumGridValue</Model>
+    <Output  class = 'Datas'             type='TimePointSet' >outMCsum</Output>
+    <Output  class='OutStreamManager'    type ='Plot'        >MCforSum</Output>   
+  </MultiRun >
+  <MultiRun name='MCsin' pauseAtEnd='True'>
+    <Sampler class = 'Samplers'          type='MonteCarlo'   >exercise1a</Sampler>
+    <Input   class = 'Datas'             type='TimePointSet' >dummyMCsin</Input>    
+    <Model   class = 'Models'            type='ROM'          >ROMforSinLHS</Model>
+    <Output  class = 'Datas'             type='TimePointSet' >outMCsin</Output>
+    <Output  class='OutStreamManager'    type ='Plot'        >MCforSin</Output> 
+  </MultiRun >
+  <PostProcess name='PPsum'>
+    <Input    class='Datas'            type='TimePointSet'    >outMCsum</Input>
+    <Model    class='Models'           type='PostProcessor'   >PPsum</Model>
+  </PostProcess>
+  <PostProcess name='PPsin'>
+    <Input    class='Datas'            type='TimePointSet'    >outMCsin</Input>
+    <Model    class='Models'           type='PostProcessor'   >PPsin</Model>
+  </PostProcess>
+  <Adaptive name='adptive' pauseAtEnd='True'>
+    <Input             class = 'Datas'            type = 'TimePointSet' >DummyLimitSurf</Input>   
+    <Sampler           class = 'Samplers'         type = 'Adaptive'     >exercise1AdapValue</Sampler>
+    <TargetEvaluation  class = 'Datas'            type = 'TimePointSet' >Sampled</TargetEvaluation>
+    <Output            class = 'Datas'            type = 'TimePointSet' >Sampled</Output>            
+    <SolutionExport    class = 'Datas'            type = 'TimePointSet' >LimitSurf</SolutionExport>
+    <Function          class = 'Functions'        type = 'External'     >sinThreshold</Function>
+    <Model             class = 'Models'           type = 'ROM'          >ROMforSinLHS</Model>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >limitSurf</Output>
+    <Output            class = 'OutStreamManager' type = 'Plot'         >testedPoint</Output>    
+  </Adaptive>
+</Steps>
+
+<OutStreamManager>
+  <Print name='printGridValue'>
+    <type>csv</type>
+    <source>DB_GridValue</source>
+  </Print>
+  <Plot  name='GridValue'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>surface</type>
+        <x>DB_GridValue|Input|GrainRad</x>
+        <y>DB_GridValue|Input|ThExp</y>
+        <z>DB_GridValue|Output|sum</z>
+        <colorMap>DB_GridValue|Output|sin</colorMap>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sum</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='LHS'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>surface</type>
+        <x>DB_LHS|Input|GrainRad</x>
+        <y>DB_LHS|Input|ThExp</y>
+        <z>DB_LHS|Output|sum</z>
+        <colorMap>DB_LHS|Output|sin</colorMap>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sum</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='MCforSum'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>outMCsum|Input|GrainRad</x>
+        <y>outMCsum|Input|ThExp</y>
+        <z>outMCsum|Output|sum</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sum</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sum</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='MCforSin'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>outMCsin|Input|GrainRad</x>
+        <y>outMCsin|Input|ThExp</y>
+        <z>outMCsin|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='limitSurf'  dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>LimitSurf|Input|GrainRad</x>
+        <y>LimitSurf|Input|ThExp</y>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Limit Surf Sin</text></title>
+      <range><ymin>0.5e-5</ymin><ymax>1.5e-5</ymax></range>
+    </actions>
+  </Plot>
+  <Plot  name='testedPoint'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>Sampled|Input|GrainRad</x>
+        <y>Sampled|Input|ThExp</y>
+        <z>Sampled|Output|sin</z>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Sin</zlabel> 
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Sin</text></title>
+    </actions>
+  </Plot>
+</OutStreamManager>
+
+</Simulation>
