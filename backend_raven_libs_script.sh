@@ -205,7 +205,7 @@ fi
 
 update_python_path
 
-if $PYTHON_CMD -c 'import sklearn'
+if $PYTHON_CMD -c 'import sklearn,sys;sys.exit(not sklearn.__version__ > "0.14")'
 then
     echo sklearn module already built
 else
