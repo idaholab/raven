@@ -14,6 +14,7 @@
   csv = 'output_check/fullprint_histories_2.csv output_check/testprint_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_hist2_4.csv output_check/testprint_selective_hist3_4.csv output_check/testprint_selective_timepointset.csv'
 #  skip = 'Cannot run headless'
   #skip = 'Problem with output system filenames'
+   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_branch]
@@ -23,6 +24,7 @@
   output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf'
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
   #skip = 'Problem with output system filenames'
+  required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_branch_heavy]
@@ -62,6 +64,7 @@
   csv = 'test_extract_data_s_from_hdf5/timepointset_from_database_dump.csv'
   max_time = 500
   rel_err = 0.01
+  required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_rom_trainer]
@@ -72,6 +75,7 @@
   csv = 'test_rom_trainer/outputMontecarloRom_dump.csv test_rom_trainer/outputMontecarloRomND_dump.csv'
   max_time = 1500
   rel_err = 0.001
+  required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./test_rom_train_from_already_dumped_HDF5]
@@ -149,6 +153,7 @@
    output = 'LHStestRaven/FirstMRun/out~1~simple_flow_3eqn'
    csv = 'LHStestRaven/outGrid_dump.csv'
    method = 'devel opt'
+   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
  [./testGridRaven]
@@ -157,6 +162,7 @@
    output = 'GridTestRaven/FirstMRun/out~1~simple_flow_3eqn'
    csv = 'GridTestRaven/outGrid_dump.csv'
    method = 'devel opt'
+   required_executable = '../../RAVEN-%METHOD%' 
  [../]
 
 
