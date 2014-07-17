@@ -1,0 +1,46 @@
+Things to talk about:
+
+Wiki: https://hpcsc.inel.gov/moose/wiki/RAVEN
+
+Ticket system: https://hpcsc.inel.gov/moose/report and https://hpcsc.inel.gov/moose/newticket  Set component as raven, email one of developers.
+
+Unix hint:
+
+whatever 2>&1 | tee output.txt
+
+will save the output of whatever to the file output.txt as well as
+echo it to the screen.
+
+Compiling:
+1. Get moose running (follow instructions at http://mooseframework.org/getting-started/ )
+ a. Get dependencies
+ b. compile libmesh
+ c. compile moose test
+ d. run tests
+2. Either install framework dependencies or run compile script.
+ a. linux can grab them from repositories.
+ b. There is a package for OSX.
+ c. Otherwise you can run raven_libs_script.sh
+3. Compile crow
+4. Run tests.
+
+PBS:
+See the raven/framework/README.txt for many more details.
+Can run with either mpi (openmpi) or pbsdsh.
+
+Can also create a new method of running.  Need to use a mode of
+CustomMode and specify the class and file that contains a class that
+overrides SimulationMode
+
+<CustomMode file="./mode_test/new_mode.py" class="NewMode">a_new_mode</CustomMode>
+
+The custom class should override modifySimulation, and can also
+override runOverride, doOverrideRun and XMLread.
+
+Take a look at raven/inputs/mpi_driver_test/test_mpiqsub.xml and
+raven/inputs/mpi_driver_test/test_pbs.xml  for examples.
+
+Take a look at raven/framework/Simulation.py
+
+
+
