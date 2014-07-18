@@ -44,9 +44,10 @@ update_python_path ()
 download_files ()
 {
     ORIG_DIR=`pwd`
-    DL_FILENAME=$1
-    SHA_SUM=$2
-    URL=$3
+
+    SHA_SUM=$1
+    URL=$2
+    DL_FILENAME=`basename $URL`
     cd $DOWNLOAD_DIR
     if test -f $DL_FILENAME; then
         NEW_SHA_SUM=`$SHASUM_CMD $DL_FILENAME | cut -d " " -f 1`
@@ -95,7 +96,7 @@ then
 else
     #setuptools
     cd $BUILD_DIR
-    download_files setuptools-2.1.tar.gz 3e4a325d807eb0104e98985e7bd9f1ef86fc2efa https://pypi.python.org/packages/source/s/setuptools/setuptools-2.1.tar.gz
+    download_files 3e4a325d807eb0104e98985e7bd9f1ef86fc2efa https://pypi.python.org/packages/source/s/setuptools/setuptools-2.1.tar.gz
     echo Extracting setuptools
     tar -xzf $DOWNLOAD_DIR/setuptools-2.1.tar.gz
     cd setuptools-2.1
@@ -109,15 +110,15 @@ else
 #numpy
 #no dependencies
     cd $BUILD_DIR
-    download_files blas.tgz a643b737c30a0a5b823e11e33c9d46a605122c61 http://www.netlib.org/blas/blas.tgz
+    download_files a643b737c30a0a5b823e11e33c9d46a605122c61 http://www.netlib.org/blas/blas.tgz
     echo Extracting blas
     tar -xzf $DOWNLOAD_DIR/blas.tgz
     export BLAS_SRC=$BUILD_DIR/BLAS
-    download_files lapack-3.4.2.tgz 93a6e4e6639aaf00571d53a580ddc415416e868b http://www.netlib.org/lapack/lapack-3.4.2.tgz
+    download_files 93a6e4e6639aaf00571d53a580ddc415416e868b http://www.netlib.org/lapack/lapack-3.4.2.tgz
     echo Extracting lapack
     tar -xzf $DOWNLOAD_DIR/lapack-3.4.2.tgz
     export LAPACK_SRC=$BUILD_DIR/lapack-3.4.2
-    download_files numpy-1.7.0.tar.gz ba328985f20390b0f969a5be2a6e1141d5752cf9 http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
+    download_files ba328985f20390b0f969a5be2a6e1141d5752cf9 http://downloads.sourceforge.net/project/numpy/NumPy/1.7.0/numpy-1.7.0.tar.gz
     echo Extracting numpy
     tar -xzf $DOWNLOAD_DIR/numpy-1.7.0.tar.gz
     cd numpy-1.7.0
@@ -134,8 +135,8 @@ else
 #hdf5
 #no dependencies
     cd $BUILD_DIR
-    download_files hdf5-1.8.12.tar.bz2 8414ca0e6ff7d08e423955960d641ec5f309a55f http://www.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
-    #download_files hdf5-1.8.13.tar.bz2 712955025f03db808f000d8f4976b8df0c0d37b5 http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.13.tar.bz2 
+    download_files 8414ca0e6ff7d08e423955960d641ec5f309a55f http://www.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2
+    #download_files 712955025f03db808f000d8f4976b8df0c0d37b5 http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.13.tar.bz2 
     echo Extracting hdf5
     tar -xjf $DOWNLOAD_DIR/hdf5-1.8.12.tar.bz2
     cd hdf5-1.8.12
@@ -148,7 +149,7 @@ else
 #cython
 #no dependencies
     cd $BUILD_DIR
-    download_files Cython-0.18.tar.gz 03e18d5551ece9b4e3a43d4d96ad9f98c5cf6c43 http://www.cython.org/release/Cython-0.18.tar.gz
+    download_files 03e18d5551ece9b4e3a43d4d96ad9f98c5cf6c43 http://www.cython.org/release/Cython-0.18.tar.gz
     echo Extracting Cython
     tar -xzf $DOWNLOAD_DIR/Cython-0.18.tar.gz
     cd Cython-0.18
@@ -158,7 +159,7 @@ else
 #h5py
 #depends on numpy, hdf5, cython
     cd $BUILD_DIR
-    download_files h5py-2.2.1.tar.gz 4b511ed7aa28ac4c61188a121d42f17f3096c15a https://pypi.python.org/packages/source/h/h5py/h5py-2.2.1.tar.gz
+    download_files 4b511ed7aa28ac4c61188a121d42f17f3096c15a https://pypi.python.org/packages/source/h/h5py/h5py-2.2.1.tar.gz
     echo Extracting h5py
     tar -xzf $DOWNLOAD_DIR/h5py-2.2.1.tar.gz
     cd h5py-2.2.1
@@ -179,7 +180,7 @@ else
 #scipy
 #depends on numpy
     cd $BUILD_DIR
-    download_files scipy-0.12.0.tar.gz 1ba2e2fc49ba321f62d6f78a5351336ed2509af3 http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
+    download_files 1ba2e2fc49ba321f62d6f78a5351336ed2509af3 http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz
     echo Extracting scipy
     tar -xzf $DOWNLOAD_DIR/scipy-0.12.0.tar.gz
     cd scipy-0.12.0
@@ -213,8 +214,8 @@ else
 #scikit
 #depends on numpy, scipy
     cd $BUILD_DIR
-    #download_files scikit-learn-0.13.1.tar.gz f06a15abb107fecf7b58ef0a7057444e2d7f1369 https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
-    download_files scikit-learn-0.14.1.tar.gz 98128859b75e3c82c995cb7524e9dbd49c1a3d9f https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.14.1.tar.gz
+    #download_files f06a15abb107fecf7b58ef0a7057444e2d7f1369 https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.13.1.tar.gz
+    download_files 98128859b75e3c82c995cb7524e9dbd49c1a3d9f https://pypi.python.org/packages/source/s/scikit-learn/scikit-learn-0.14.1.tar.gz
     echo Extracting scikit-learn
     tar -xzf $DOWNLOAD_DIR/scikit-learn-0.14.1.tar.gz
     cd scikit-learn-0.14.1
@@ -233,7 +234,7 @@ else
 #freetype
 #no dependencies
     cd $BUILD_DIR
-    download_files freetype-2.4.12.tar.bz2 382479336faefbc77e4b63c9ce4a96cf5d2c3585 http://downloads.sourceforge.net/project/freetype/freetype2/2.4.12/freetype-2.4.12.tar.bz2
+    download_files 382479336faefbc77e4b63c9ce4a96cf5d2c3585 http://downloads.sourceforge.net/project/freetype/freetype2/2.4.12/freetype-2.4.12.tar.bz2
     echo Extracting freetype
     tar -xjf $DOWNLOAD_DIR/freetype-2.4.12.tar.bz2
     cd freetype-2.4.12
@@ -248,7 +249,7 @@ else
 #libpng
 #no dependencies
     cd $BUILD_DIR
-    download_files libpng-1.6.12.tar.gz 6bcd6efa7f20ccee51e70453426d7f4aea7cf4bb http://download.sourceforge.net/libpng/libpng-1.6.12.tar.gz
+    download_files 6bcd6efa7f20ccee51e70453426d7f4aea7cf4bb http://download.sourceforge.net/libpng/libpng-1.6.12.tar.gz
     echo Extracting libpng
     tar -xzf $DOWNLOAD_DIR/libpng-1.6.12.tar.gz
     cd libpng-1.6.12
@@ -262,7 +263,7 @@ fi
    cd $BUILD_DIR
 #   git clone https://github.com/matplotlib/matplotlib.git
 #   cd matplotlib; git checkout v1.4.x
-   download_files v1.4.0rc1.tar.gz befdcf1229163277439dccc00bd5be04685229e4 https://github.com/matplotlib/matplotlib/archive/v1.4.0rc1.tar.gz
+   download_files befdcf1229163277439dccc00bd5be04685229e4 https://github.com/matplotlib/matplotlib/archive/v1.4.0rc1.tar.gz
    tar -xzf $DOWNLOAD_DIR/v1.4.0rc1.tar.gz
    cd matplotlib-1.4.0rc1
    sed -i -e "s/default_libraries=\['png', 'z'\])/default_libraries=\['png', 'z'\], alt_exec='libpng-config --ldflags')/g" setupext.py
@@ -271,7 +272,7 @@ fi
 #matplotlib
 #depends on numpy, freetype
 #    cd $BUILD_DIR
-#    download_files matplotlib-1.3.1.tar.gz 8578afc86424392591c0ee03f7613ffa9b6f68ee http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
+#    download_files 8578afc86424392591c0ee03f7613ffa9b6f68ee http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
 #    echo Extracting matplotlib
 #    tar -xzf $DOWNLOAD_DIR/matplotlib-1.3.1.tar.gz
 #    cd matplotlib-1.3.1
@@ -286,7 +287,7 @@ update_python_path
 # if test ! -e $INSTALL_DIR/include/boost/random/mersenne_twister.hpp
 # then
 #     cd $BUILD_DIR
-#     download_files boost_1_55_0.tar.gz 61ed0e57d3c7c8985805bb0682de3f4c65f4b6e5  http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.gz
+#     download_files 61ed0e57d3c7c8985805bb0682de3f4c65f4b6e5  http://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.gz
 #     tar -xzf $DOWNLOAD_DIR/boost_1_55_0.tar.gz
 #     mkdir -p $INSTALL_DIR/include
 #     cp -Rp boost_1_55_0/boost $INSTALL_DIR/include
