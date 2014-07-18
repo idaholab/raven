@@ -5,6 +5,7 @@ BUILD_DIR=${BUILD_DIR:=$HOME/raven_libs/build}
 INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}
 DOWNLOAD_DIR=${DOWNLOAD_DIR:=$BUILD_DIR/../downloads}
 PYTHON_CMD=${PYTHON_CMD:=python}
+export PATH=$INSTALL_DIR/bin:$PATH
 JOBS=${JOBS:=1}
 OS_NAME=`uname -sr | sed 's/\..*//'`
 mkdir -p $BUILD_DIR
@@ -16,7 +17,7 @@ DOWNLOADER='curl -C - -L --insecure -O '
 
 if test "$OS_NAME" = "Darwin 13"
 then
-    #Work around for bug in OSX.  
+    #Work around for bug in OSX.
     # The flags Apple used to compile python can't compile with Xcode 5.
     # See Xcode 5.1 release notes and
     # http://stackoverflow.com/questions/22703393
@@ -240,14 +241,33 @@ else
     make -j $JOBS
     make install
 
+#libpng
+#no dependencies
+    cd $BUILD_DIR
+    download_files libpng-1.6.12.tar.gz 6bcd6efa7f20ccee51e70453426d7f4aea7cf4bb http://download.sourceforge.net/libpng/libpng-1.6.12.tar.gz
+    echo Extracting libpng
+    tar -xjf $DOWNLOAD_DIR/libpng-1.6.12.tar.gz
+    cd libpng-1.6.12
+    (unset CC CXX; ./configure --prefix=$INSTALL_DIR)
+    make -j $JOBS
+    make install
+
+#git matplotlib
+#depends on numpy, freetype, a patch file, png
+   cd $BUILD_DIR
+   git clone https://github.com/matplotlib/matplotlib.git
+   cd matplotlib; git checkout v1.4.x
+   sed -i -e "s/default_libraries=\['png', 'z'\])/default_libraries=\['png', 'z'\], alt_exec='libpng-config --ldflags')/g" setupext.py
+   (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+
 #matplotlib
 #depends on numpy, freetype
-    cd $BUILD_DIR
-    download_files matplotlib-1.3.1.tar.gz 8578afc86424392591c0ee03f7613ffa9b6f68ee http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
-    echo Extracting matplotlib
-    tar -xzf $DOWNLOAD_DIR/matplotlib-1.3.1.tar.gz
-    cd matplotlib-1.3.1
-    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
+#    cd $BUILD_DIR
+#    download_files matplotlib-1.3.1.tar.gz 8578afc86424392591c0ee03f7613ffa9b6f68ee http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.3.1/matplotlib-1.3.1.tar.gz
+#    echo Extracting matplotlib
+#    tar -xzf $DOWNLOAD_DIR/matplotlib-1.3.1.tar.gz
+#    cd matplotlib-1.3.1
+#    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 
 fi
 
