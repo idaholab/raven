@@ -572,7 +572,8 @@ class AdaptiveSampler(Sampler):
     if self.debug: print('generating input')
     varSet=False
     if self.surfPoint!=None and len(self.surfPoint)>0:
-      sampledMatrix = np.zeros((len(self.functionValue[self.axisName[0]])+len(self.hangingPoints[:,0]),len(self.axisName)))
+      
+      sampledMatrix = np.zeros((len(self.functionValue[self.axisName[0].replace('<distribution>','')])+len(self.hangingPoints[:,0]),len(self.axisName)))
       for varIndex, name in enumerate([key.replace('<distribution>','') for key in self.axisName]): sampledMatrix [:,varIndex] = np.append(self.functionValue[name],self.hangingPoints[:,varIndex])
       distanceTree = spatial.cKDTree(copy.copy(sampledMatrix),leafsize=12)
       tempDict = {}
