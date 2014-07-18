@@ -241,22 +241,30 @@ else
     make -j $JOBS
     make install
 
+if which libpng-config
+then
+    echo libpng already installed
+else
 #libpng
 #no dependencies
     cd $BUILD_DIR
     download_files libpng-1.6.12.tar.gz 6bcd6efa7f20ccee51e70453426d7f4aea7cf4bb http://download.sourceforge.net/libpng/libpng-1.6.12.tar.gz
     echo Extracting libpng
-    tar -xjf $DOWNLOAD_DIR/libpng-1.6.12.tar.gz
+    tar -xzf $DOWNLOAD_DIR/libpng-1.6.12.tar.gz
     cd libpng-1.6.12
     (unset CC CXX; ./configure --prefix=$INSTALL_DIR)
     make -j $JOBS
     make install
+fi
 
 #git matplotlib
 #depends on numpy, freetype, a patch file, png
    cd $BUILD_DIR
-   git clone https://github.com/matplotlib/matplotlib.git
-   cd matplotlib; git checkout v1.4.x
+#   git clone https://github.com/matplotlib/matplotlib.git
+#   cd matplotlib; git checkout v1.4.x
+   download_files v1.4.0rc1.tar.gz befdcf1229163277439dccc00bd5be04685229e4 https://github.com/matplotlib/matplotlib/archive/v1.4.0rc1.tar.gz
+   tar -xzf $DOWNLOAD_DIR/v1.4.0rc1.tar.gz
+   cd matplotlib-1.4.0rc1
    sed -i -e "s/default_libraries=\['png', 'z'\])/default_libraries=\['png', 'z'\], alt_exec='libpng-config --ldflags')/g" setupext.py
    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 
