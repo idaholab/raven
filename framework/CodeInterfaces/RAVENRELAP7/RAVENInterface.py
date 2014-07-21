@@ -26,9 +26,10 @@ class RAVENInterface:
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                       ' Outputs/file_base='+ outputfile +
                       ' Outputs/interval=1'+ ' Outputs/output_initial=true' +
-                      ' Outputs/csv=true'+' Outputs/num_checkpoint_files=1'+
+                      ' Outputs/csv=false'+' Outputs/num_checkpoint_files=1'+
                       ' Outputs/checkpoint=true'+
-                      ' Outputs/tail/type=ControlLogicBranchingInfo')
+                      ' Outputs/tail/type=ControlLogicBranchingInfo'+
+                      ' Outputs/ravenCSV/type=CSVRaven')
     return executeCommand,outputfile
 
   def appendLoadFileExtension(self,fileRoot):
