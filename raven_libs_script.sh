@@ -1,4 +1,3 @@
-
 #!/bin/bash
 cd `dirname $0`
 ./backend_raven_libs_script.sh
