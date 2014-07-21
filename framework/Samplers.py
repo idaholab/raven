@@ -1410,17 +1410,42 @@ class PreconditionedDET(DynamicEventTree):
     self.preconditionerAvail['Stratified'] = LHS
     self.preconditionerAvail['Grid'      ] = Grid
     self.preconditionerToApply             = {}
+    
+#  def _readMoreXML(self,xmlNode):
+#    try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
+#    except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
+#     for child in xmlNode:
+#       for childChild in child:
+#         if childChild.tag =='distribution':
+#           if child.tag == 'Distribution':
+#             #Add <distribution> to name so we know it is not the direct variable
+#             self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
+#           elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = childChild.text
+#           else: raise IOError('SAMPLER       : ERROR -> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
+#         if self.distAttribAvail and childChild.tag =='distribution':
+#           attrfound = []
+#           for key in childChild.attrib.keys():
+#             if key not in self.distAttribAvail: attrfound.append(key)
+#           if len(attrfound) > 0: raise IOError('SAMPLER       : ERROR -> Unknown attributes for distribution node '+childChild.text+'. Available are '+ str(self.distAttribAvail) + '. Got '+str(attrfound).replace('[', '').replace(']',''))
+#         elif childChild.tag =='distribution':
+#           if len(list(childChild.attrib.keys())) > 0: raise IOError('SAMPLER       : ERROR -> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
+#     self.localInputAndChecks(xmlNode)  
+  
   def localInputAndChecks(self,xmlNode):
-    # initialize Dynamic Event Tree
-    DynamicEventTree.localInputAndChecks(self, xmlNode)
+    # initialize Dynamic Event Tree  
     for child in xmlNode:
-      if child.tag == 'PreconditionerSampler':               
+      if child.tag   == 'DynamicEventTree':
+        DynamicEventTree._readMoreXML(self,child)
+      elif child.tag == 'PreconditionerSampler':               
         if not 'type' in child.attrib.keys()                          : raise IOError('PreconditionDET: ERROR -> Not found attribute type in PreconditionerSampler block!')
         if child.attrib['type'] in self.preconditionerToApply.keys()  : raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
         if child.attrib['type'] not in self.preconditionerAvail.keys(): raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
+        # the user can decided how to preconditionate 
         self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
-    
-
+        # make the preconditioner sampler read its own xml block
+        self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
+      else: raise IOError('PreconditionDET: ERROR -> unkown xml block named ' + child.tag + '. Available are DynamicEventTree and PreconditionerSampler' )
+    return
 '''
  Interface Dictionary (factory) (private)
 '''

@@ -3,7 +3,7 @@
 <RunInfo>
     <WorkingDir>./output_check</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
-    <Sequence>FirstMRun</Sequence>
+    <Sequence>FirstMRun,testOutstreamStep</Sequence>
     <batchSize>3</batchSize>
 </RunInfo>
 
@@ -139,8 +139,16 @@
         <Output    class='Datas'            type='TimePointSet' >TimePointSets</Output>
         <Output    class='Datas'            type='TimePoint'    >TimePointt</Output>
         <Output    class='Datas'            type='History'      >Historyy</Output>
-        <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
+    </MultiRun >
+    <OutStreamStep name='testOutstreamStep' pauseAtEnd='False'>
+        <Input    class='Datas'            type='Histories'    >stories</Input>
+        <Input    class='Datas'            type='TimePointSet' >TimePointSets</Input>
+        <Input    class='Datas'            type='TimePoint'    >TimePointt</Input>
+        <Input    class='Datas'            type='History'      >Historyy</Input>
+        
+        <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist1</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist2</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist3</Output>
@@ -150,8 +158,7 @@
         <Output    class='OutStreamManager' type='Print'        >fullprint_histories</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_history</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_timepoint</Output>
-        <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
-    </MultiRun >
+    </OutStreamStep>
 </Steps>
 <DataBases>
     <HDF5 name="testOutputDataBase" type="MC"/>

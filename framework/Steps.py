@@ -390,7 +390,7 @@ class IODataBase(Step):
     for output in inDictionary['Output']: 
       if output.type in ['OutStreamPrint','OutStreamPlot']:
         output.initialize(inDictionary)        
-        if self.debug: print('STEPS         : PRINT -> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+        if self.debug: print('STEPS         : PRINT -> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
       
   def _localTakeAstepRun(self,inDictionary):
     outputs = []
@@ -493,6 +493,43 @@ class PostProcess(SingleRun):
 #
 #
 #
+class OutStreamStep(Step):
+  '''
+    This step type is used only to plot 
+    @Input, Data(s)
+    @Output,OutStream(s)
+  '''
+  def _localInitializeStep(self,inDictionary):
+    for output in inDictionary['Output']: 
+      output.initialize(inDictionary)        
+      if self.debug: print('STEPS         : PRINT -> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
+      
+  def _localTakeAstepRun(self,inDictionary):
+    for output in inDictionary['Output']: 
+      output.addOutput()
+      print('STEPS OutStream: Executing OutStream named ' + output.name) 
+  
+  def _localAddInitParams(self,tempDict):
+    return tempDict # no inputs
+
+  def _localInputAndChecks(self):
+    rolesItem = []
+    for parameter in self.parList: rolesItem.append(parameter[0])
+    error_found = False
+    for role in self.parList:
+      if role[0] == 'Input':
+        if role[1] != 'Datas': 
+          print('STEPS         : ERROR -> The Input needs to be a Data(s), in step ' + self.name)
+          error_found = True
+      if role[0] == 'Output':
+        if role[1] != 'OutStreamManager': 
+          print('STEPS         : ERROR -> The Output needs to be a OutStreamManager object, in step ' + self.name)
+          error_found = True
+    if error_found: raise("STEPS         : ERRORS found. See above!") 
+
+#
+#
+#
 __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
@@ -500,6 +537,7 @@ __interFaceDict['Adaptive'         ] = Adaptive
 __interFaceDict['IODataBase'       ] = IODataBase 
 __interFaceDict['RomTrainer'       ] = RomTrainer
 __interFaceDict['PostProcess'      ] = PostProcess
+__interFaceDict['OutStreamStep'    ] = OutStreamStep
 __base                               = 'Step'
 
 def returnInstance(Type):
