@@ -333,7 +333,6 @@ class AdaptiveSampler(Sampler):
     if self.subGridTol> self.tolerance: raise IOError('SAMPLER ADAPT : ERROR -> The sub grid tolerance '+str(self.subGridTol)+' have to be smaller than the tolerance: '+str(self.tolerance))
     if len(attribList)>0: raise IOError('SAMPLER ADAPT : ERROR -> There are unknown keywords in the convergence specifications: '+str(attribList))
 
-
   def localAddInitParams(self,tempDict):
     tempDict['Iter. forced'    ] = str(self.forceIteration)
     tempDict['Norm tolerance'  ] = str(self.tolerance)
@@ -918,13 +917,14 @@ class LHS(Grid):
     self.inputInfo['SamplerType'] = 'Stratified'
 #
 #
-#
-class DynamicEventTree(Sampler):
+#Grid
+#class DynamicEventTree(Sampler):
+class DynamicEventTree(Grid):
   '''
-  DYNAMIC EVEN TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET      ) :D
+  DYNAMIC EVENT TREE Sampler - "ANalysis of Dynamic REactor Accident evolution" module (DET      ) :D
   '''
   def __init__(self):
-    Sampler.__init__(self)
+    Grid.__init__(self)
     self.distAttribAvail = ['ValueThresholds','ProbabilityThresholds']
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
     self.workingDir = ""
@@ -1336,53 +1336,40 @@ class DynamicEventTree(Sampler):
     return newerinput
 
   def localInputAndChecks(self,xmlNode):
-    if 'limit' in xmlNode.attrib.keys():
-      try: self.limit = int(xmlNode.attrib['limit'])
-      except ValueError:
-        IOError ('reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
-
-    try:    self.print_end_xml = (xmlNode.attrib['print_end_xml'].lower() in ['true','t','yes','si','y'])
-    except KeyError: self.print_end_xml = False
-
-    # retrieve max simulation time, if input
-    try:    self.maxSimulTime = xmlNode.attrib['maxSimulationTime']
-    except (KeyError,NameError): self.maxSimulTime = None
-
-    # Read branching settings
-    #children = xmlNode.find("BranchingSettings")
-    # this branching levels may be either probability thresholds or value thresholds
+    Grid.localInputAndChecks(self,xmlNode)
+    self.limit = sys.maxsize
+    if 'print_end_xml' in xmlNode.attrib.keys():
+      if xmlNode.attrib['print_end_xml'].lower() in ['true','t','yes','si','y']: self.print_end_xml = True
+      else: self.print_end_xml = False
+    if 'maxSimulationTime' in xmlNode.attrib.keys(): 
+      try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
+      except (KeyError,NameError): raise IOError("SAMPLER DET   : ERROR -> Can not convert maxSimulationTime in float number!!!")
     branchedLevel = {}
     error_found = False
-    for child in xmlNode:
-      for childChild in child:
-        if childChild.tag =='distribution':
-          branchedLevel[childChild.text] = 0
-          if 'ProbabilityThresholds' in childChild.attrib.keys():
-            self.branchProbabilities[childChild.text] = [float(x) for x in childChild.attrib['ProbabilityThresholds'].split()]
-            self.branchProbabilities[childChild.text].sort(key=float)
-            if max(self.branchProbabilities[childChild.text]) > 1:
-              print("SAMPLER DET   : ERROR -> One of the Thresholds for distribution " + str(child.attrib['distName']) + " is > 1")
+    for keyk in self.axisName:
+      branchedLevel[self.toBeSampled[keyk]] = 0
+      if self.gridInfo[keyk][0] == 'CDF':
+        self.branchProbabilities[self.toBeSampled[keyk]] = self.gridInfo[keyk][2]     
+        self.branchProbabilities[self.toBeSampled[keyk]].sort(key=float)
+        if max(self.branchProbabilities[self.toBeSampled[keyk]]) > 1:
+          print("SAMPLER DET   : ERROR -> One of the Thresholds for distribution " + str(self.gridInfo[keyk][2]) + " is > 1")
+          error_found = True 
+          for index in range(len(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float))):
+            if sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float).count(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index]) > 1:
+              print("SAMPLER DET   : ERROR -> In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchProbabilities[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
               error_found = True
-            for index in range(len(sorted(self.branchProbabilities[childChild.text], key=float))):
-              if sorted(self.branchProbabilities[childChild.text], key=float).count(sorted(self.branchProbabilities[childChild.text], key=float)[index]) > 1:
-                print("SAMPLER DET   : ERROR -> In distribution " + str(childChild.text) + " the Threshold " + str(sorted(self.branchProbabilities[childChild.text], key=float)[index])+" appears multiple times!!")
-                error_found = True
-            # the invCDF of the branchProbabilities are computed in the initialize method (called right before the Sampler gets used)
-          elif 'ValueThresholds' in childChild.attrib:
-            self.branchValues[childChild.text] = [float(x) for x in childChild.attrib['ValueThresholds'].split()]
-            self.branchValues[childChild.text].sort(key=float)
-            for index in range(len(sorted(self.branchValues[childChild.text], key=float))):
-              if sorted(self.branchValues[childChild.text], key=float).count(sorted(self.branchValues[childChild.text], key=float)[index]) > 1:
-                print("SAMPLER DET   : ERROR -> In distribution " + str(childChild.text) + " the Threshold " + str(sorted(self.branchValues[childChild.text], key=float)[index])+" appears multiple times!!")
-                error_found = True
-            # the associated CDF of the branchValues are computed in the initialize method (called right before the Sampler gets used)
-          else: raise IOError('The DynamicEventTree sampler needs that all distributions have either Probability Thresholds or Value Thresholds!!!!')
-    if error_found: raise IOError("In Sampler " + self.name+' ERRORS have been found!!!' )
+      else:
+        self.branchValues[self.toBeSampled[keyk]] = self.gridInfo[keyk][2]
+        self.branchValues[self.toBeSampled[keyk]].sort(key=float)
+        for index in range(len(sorted(self.branchValues[self.toBeSampled[keyk]], key=float))):
+          if sorted(self.branchValues[self.toBeSampled[keyk]], key=float).count(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index]) > 1:
+            print("SAMPLER DET   : ERROR -> In distribution " + str(self.toBeSampled[keyk]) + " the Threshold " + str(sorted(self.branchValues[self.toBeSampled[keyk]], key=float)[index])+" appears multiple times!!")
+            error_found = True
+    if error_found: raise IOError("SAMPLER DET   : ERROR -> In sampler named " + self.name+' ERRORS have been found!!!' )  
     # Append the branchedLevel dictionary in the proper list
     self.branchedLevel.append(branchedLevel)
 
   def localAddInitParams(self,tempDict):
-
     for key in self.branchProbabilities.keys():
       tempDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
     for key in self.branchValues.keys():
@@ -1393,7 +1380,6 @@ class DynamicEventTree(Sampler):
 
   def localInitialize(self):
     elm = ETS.Node(self.name + '_1')
-
     elm.add('name', self.name + '_1')
     elm.add('start_time', str(0.0))
     # Initialize the end_time to be equal to the start one...
@@ -1408,27 +1394,44 @@ class DynamicEventTree(Sampler):
     # Here it is stored all the info regarding the DET => we create the info for all the
     # branchings and we store them
     self.TreeInfo = ETS.NodeTree(elm)
-
-    if (len(self.branchProbabilities.keys()) != 0):
-      #compute the associated invCDF values
-      for key in self.branchProbabilities.keys():
-        self.branchValues[key] = [copy.deepcopy(self.distDict[key].ppf(float(self.branchProbabilities[key][index]))) for index in range(len(self.branchProbabilities[key]))]
-    else:
-      #compute the associated CDF values
-      for key in self.branchValues.keys():
-        self.branchProbabilities[key] = [copy.deepcopy(self.distDict[key].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
+    for key in self.branchProbabilities.keys():
+      kk = self.toBeSampled.values().index(key)
+      self.branchValues[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[kk]].ppf(float(self.branchProbabilities[key][index]))) for index in range(len(self.branchProbabilities[key]))]
+    for key in self.branchValues.keys():
+      kk = self.toBeSampled.values().index(key)
+      self.branchProbabilities[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[kk]].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
     return
+
+class PreconditionedDET(DynamicEventTree):
+  def __init__(self):
+    DynamicEventTree.__init__(self)
+    self.preconditionerAvail = {}
+    self.preconditionerAvail['MonteCarlo'] = MonteCarlo
+    self.preconditionerAvail['Stratified'] = LHS
+    self.preconditionerAvail['Grid'      ] = Grid
+    self.preconditionerToApply             = {}
+  def localInputAndChecks(self,xmlNode):
+    # initialize Dynamic Event Tree
+    DynamicEventTree.localInputAndChecks(self, xmlNode)
+    for child in xmlNode:
+      if child.tag == 'PreconditionerSampler':               
+        if not 'type' in child.attrib.keys()                          : raise IOError('PreconditionDET: ERROR -> Not found attribute type in PreconditionerSampler block!')
+        if child.attrib['type'] in self.preconditionerToApply.keys()  : raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
+        if child.attrib['type'] not in self.preconditionerAvail.keys(): raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
+        self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
+    
 
 '''
  Interface Dictionary (factory) (private)
 '''
 __base = 'Sampler'
 __interFaceDict = {}
-__interFaceDict['MonteCarlo'            ] = MonteCarlo
-__interFaceDict['DynamicEventTree'      ] = DynamicEventTree
-__interFaceDict['LHS'                   ] = LHS
-__interFaceDict['Grid'                  ] = Grid
-__interFaceDict['Adaptive'              ] = AdaptiveSampler
+__interFaceDict['MonteCarlo'                    ] = MonteCarlo
+__interFaceDict['DynamicEventTree'              ] = DynamicEventTree
+__interFaceDict['LHS'                           ] = LHS
+__interFaceDict['Grid'                          ] = Grid
+__interFaceDict['Adaptive'                      ] = AdaptiveSampler
+__interFaceDict['PreconditionedDynamicEventTree'] = PreconditionedDET
 __knownTypes = list(__interFaceDict.keys())
 
 def knonwnTypes():

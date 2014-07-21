@@ -22,14 +22,37 @@ class ExternalRunner:
   def __init__(self,command,workingDir,output=None,metadata=None):
     ''' Initialize command variable'''
     self.command    = command
-
+    workingDirI     = None
     if    output!=None: 
       self.output   = output
-      self.identifier =  str(output).split("~")[1]
+      if os.path.split(output)[0] != workingDir: workingDirI = os.path.split(output)[0]
+      if len(str(output).split("~")) > 1:
+        self.identifier =  str(output).split("~")[1]
+      else:
+        # try to find the identifier in the folder name
+        # to eliminate when the identifier is passed from outside
+        def splitall(path):
+          allparts = []
+          while 1:
+            parts = os.path.split(path)
+            if parts[0] == path:  # sentinel for absolute paths
+              allparts.insert(0, parts[0])
+              break
+            elif parts[1] == path: # sentinel for relative paths
+              allparts.insert(0, parts[1])
+              break
+            else:
+              path = parts[0]
+              allparts.insert(0, parts[1])
+          return allparts 
+        splitted = splitall(str(output))     
+        if len(splitted) >= 2: self.identifier= splitted[-2]
+        else: self.identifier= 'generalOut'  
     else: 
       self.output   = os.path.join(workingDir,'generalOut')
       self.identifier = 'generalOut'  
-    self.__workingDir = workingDir
+    if workingDirI: self.__workingDir = workingDirI
+    else          : self.__workingDir = workingDir
     self.__metadata   = metadata
     # Initialize logger
     #self.logger     = self.createLogger(self.identifier)

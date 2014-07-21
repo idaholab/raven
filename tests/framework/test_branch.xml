@@ -23,9 +23,15 @@
 
 <Samplers>
   <DynamicEventTree name='DET_test' print_end_xml="False">
+      <Distribution name='zeroToOne'>
+          <distribution >zeroToOne</distribution>
+          <grid type='CDF' construction='custom'>0.1 0.5 0.8</grid>
+      </Distribution>
+      <!--
       <variable name='zeroToOne' >
         <distribution ProbabilityThresholds='0.1 0.5 0.8'>zeroToOne</distribution>
-      </variable>  
+      </variable> 
+      -->
   </DynamicEventTree>   
 </Samplers>
 <OutStreamManager>
