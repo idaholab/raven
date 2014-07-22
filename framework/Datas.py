@@ -310,11 +310,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                 self.updateMetadata(key, value, options)    
         elif type(tupleVar[2][hist]) == dict:
           for key,value in tupleVar[2][hist].items():
-            for elem in value:
-              if type(elem) == dict:
-                for ke ,val  in elem.items():
-                  self.updateMetadata(ke, val, options)    
-              else: raise IOError('DATAS     : ERROR -> unknown type for metadata adding process. Relevant type = '+ str(elem))             
+            if value:
+              for elem in value:
+                if type(elem) == dict:
+                  for ke ,val  in elem.items():
+                    self.updateMetadata(ke, val, options)    
+                else: raise IOError('DATAS     : ERROR -> unknown type for metadata adding process. Relevant type = '+ str(elem))             
            
         else: 
           print('FIXME: This if statement is for back Compatibility... Remove it whitin end of July')
