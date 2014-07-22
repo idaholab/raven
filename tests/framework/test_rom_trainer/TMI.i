@@ -1111,6 +1111,7 @@
  initial_pow = 1
  operating_time = 20736000
  power_coefficient = 0.74
+ start_time = 0.0
  [../]
  [./PumpCoastDownSec]
  type = pumpCoastdownExponential
