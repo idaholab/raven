@@ -965,6 +965,15 @@ class DynamicEventTree(Grid):
     self.RunQueue['identifiers'] = []
     # Corresponding inputs
     self.RunQueue['queue'      ] = []
+    # dictionary of preconditioner sampler available
+    self.preconditionerAvail = {}                            
+    self.preconditionerAvail['MonteCarlo'] = MonteCarlo      # MC
+    self.preconditionerAvail['Stratified'] = LHS             # Stratified
+    self.preconditionerAvail['Grid'      ] = Grid            # Grid
+    # dictionary of inputted preconditioners need to be applied 
+    self.preconditionerToApply             = {}
+    # total number of preconditioner samples (combination of all different preconditioner strategy)      
+    self.precNumberSamples                 = 0              
 
   def localStillReady(self,_):
     '''
@@ -974,7 +983,7 @@ class DynamicEventTree(Grid):
     '''
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0): return True
     else:
-      if self.print_end_xml: self.TreeInfo.writeNodeTree(self.workingDir+"/"+self.name + "_output_summary.xml")
+      if self.print_end_xml: self.TreeInfo.writeNodeTree(os.path.join(self.workingDir,self.name + "_output_summary.xml"))
       return False
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
@@ -1294,7 +1303,7 @@ class DynamicEventTree(Grid):
       self.limit = self.counter
       # If the user specified to print the xml representation of the calculation
       #  Print it out
-      if self.print_end_xml: self.TreeInfo.writeNodeTree(self.workingDir+"/"+self.name + "_output_summary.xml")
+      if self.print_end_xml: self.TreeInfo.writeNodeTree(os.path.join(self.workingDir,self.name + "_output_summary.xml"))
       return None
     else:
       # Pop out the first input in queue
@@ -1401,20 +1410,49 @@ class DynamicEventTree(Grid):
       kk = self.toBeSampled.values().index(key)
       self.branchProbabilities[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[kk]].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
     return
-
-class PreconditionedDET(DynamicEventTree):
+#class PreconditionedDET(DynamicEventTree):
+class PreconditionedDET(Sampler):
   def __init__(self):
-    DynamicEventTree.__init__(self)
-    self.preconditionerAvail = {}
-    self.preconditionerAvail['MonteCarlo'] = MonteCarlo
-    self.preconditionerAvail['Stratified'] = LHS
-    self.preconditionerAvail['Grid'      ] = Grid
-    self.preconditionerToApply             = {}
-    self.precNumberSamplers                = 0
+    Sampler.__init__(self)
+    #DynamicEventTree.__init__(self)
+    self.preconditionerAvail = {}                            # dictionary of preconditioner sampler available
+    self.preconditionerAvail['MonteCarlo'] = MonteCarlo      # MC
+    self.preconditionerAvail['Stratified'] = LHS             # Stratified
+    self.preconditionerAvail['Grid'      ] = Grid            # Grid
+    self.preconditionerToApply             = {}              # dictionary of inputted preconditioners need to be applied 
+    self.precNumberSamples                 = 0               # total number of preconditioner samples (combination of all different preconditioner strategy)
+    self.dynamicEventTreeSampler           = DynamicEventTree()
 
+#   def localInputAndChecks(self,xmlNode):
+#     # initialize Dynamic Event Tree  
+#     DynamicEventTree.localInputAndChecks(self,xmlNode)
+#     for child in xmlNode:
+#       if child.tag == 'PreconditionerSampler':               
+#         if not 'type' in child.attrib.keys()                          : raise IOError('PreconditionDET: ERROR -> Not found attribute type in PreconditionerSampler block!')
+#         if child.attrib['type'] in self.preconditionerToApply.keys()  : raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
+#         if child.attrib['type'] not in self.preconditionerAvail.keys(): raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
+#         # the user can decided how to preconditionate 
+#         self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
+#         # make the preconditioner sampler read  its own xml block
+#         self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
+#       elif child.tag not in ['variable','Distribution']: raise IOError('PreconditionDET: ERROR -> unknown xml block named ' + child.tag + '. Available are DynamicEventTree and PreconditionerSampler' )
+#     return
+# 
+#   def localInitialize(self):
+#     from pympler.asizeof import asizeof
+#     DynamicEventTree.localInitialize(self)
+#     if len(self.preconditionerToApply.keys()) > 0: self.precNumberSamplers = 1
+#     for preconditioner in self.preconditionerToApply.values(): 
+#       preconditioner.localInitialize()
+#       print(str(asizeof(preconditioner)))
+#       self.precNumberSamplers *= preconditioner.limit
+#     print("self " + str(asizeof(self)))
+#     print(asizeof(self.preconditionerToApply))
+#     print('PreconditionDET: PRINT -> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
+  def localGenerateInput(self,model,myInput):pass
   def localInputAndChecks(self,xmlNode):
     # initialize Dynamic Event Tree  
-    DynamicEventTree.localInputAndChecks(self,xmlNode)
+    #DynamicEventTree.localInputAndChecks(self,xmlNode)
     for child in xmlNode:
       if child.tag == 'PreconditionerSampler':               
         if not 'type' in child.attrib.keys()                          : raise IOError('PreconditionDET: ERROR -> Not found attribute type in PreconditionerSampler block!')
@@ -1424,17 +1462,27 @@ class PreconditionedDET(DynamicEventTree):
         self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
         # make the preconditioner sampler read  its own xml block
         self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
+      elif child.tag == 'DynamicEventTree':
+        self.dynamicEventTreeSampler._readMoreXML(child)  
       elif child.tag not in ['variable','Distribution']: raise IOError('PreconditionDET: ERROR -> unknown xml block named ' + child.tag + '. Available are DynamicEventTree and PreconditionerSampler' )
     return
-
-  def localInitialize(self):
-    DynamicEventTree.localInitialize(self)
-    if len(self.preconditionerToApply.keys()) > 0: self.precNumberSamplers = 1
-    for preconditioner in self.preconditionerToApply: 
-      preconditioner.localInitialize()
-      self.precNumberSamplers *= preconditioner.limit
-    print('PreconditionDET: PRINT -> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
+     
+  def generateDistributions(self,availableDist): 
+    for preconditioner in self.preconditionerToApply.values(): preconditioner.generateDistributions(availableDist)
+    self.dynamicEventTreeSampler.generateDistributions(availableDist)
     
+  def localInitialize(self):
+    from pympler.asizeof import asizeof
+    self.dynamicEventTreeSampler.initialize()
+    print(str(asizeof(self.dynamicEventTreeSampler)))
+    if len(self.preconditionerToApply.keys()) > 0: self.precNumberSamplers = 1
+    for preconditioner in self.preconditionerToApply.values(): 
+      preconditioner.initialize()
+      print(str(asizeof(preconditioner)))
+      self.precNumberSamplers *= preconditioner.limit
+    print("self " + str(asizeof(self)))
+    print(asizeof(self.preconditionerToApply))
+    print('PreconditionDET: PRINT -> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')    
 '''
  Interface Dictionary (factory) (private)
 '''

@@ -562,20 +562,20 @@ class OutStreamPlot(OutStreamManager):
             tempDict = {}
             foundPlot = True
             for subsubsub in subsub:
-              if subsubsub.tag != 'kwargs': tempDict[subsubsub.tag] = subsubsub.text
+              if subsubsub.tag != 'kwargs': tempDict[subsubsub.tag] = subsubsub.text.strip()
               else:
                 tempDict['attributes'] = {}
-                for sss in subsubsub: tempDict['attributes'][sss.tag] = sss.text
+                for sss in subsubsub: tempDict['attributes'][sss.tag] = sss.text.strip()
             self.options[subnode.tag][subsub.tag].append(copy.deepcopy(tempDict))
-          else: self.options[subnode.tag][subsub.tag] = subsub.text
+          else: self.options[subnode.tag][subsub.tag] = subsub.text.strip()
       if subnode.tag in 'title':
         self.options[subnode.tag] = {}
-        for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text
+        for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text.strip()
         if 'text'     not in self.options[subnode.tag].keys(): self.options[subnode.tag]['text'    ] = xmlNode.attrib['name']
         if 'location' not in self.options[subnode.tag].keys(): self.options[subnode.tag]['location'] = 'center'
       if subnode.tag == 'figure_properties':
         self.options[subnode.tag] = {}
-        for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text
+        for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text.strip()
     self.type = 'OutStreamPlot'
     if not 'plotSettings' in self.options.keys(): raise IOError('STREAM MANAGER: ERROR -> For plot named ' + self.name + ' the plotSettings block IS REQUIRED!!')
     if not foundPlot: raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot section has been found in the plotSettings block!')
@@ -650,8 +650,9 @@ class OutStreamPlot(OutStreamManager):
                   self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(self.colorMapValues[pltindex][key])
-                  actcm = self.fig.colorbar(m)
-                  actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
+                  actcm = self.fig.colorbar(m)    
+                  #actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
+                  actcm.set_label('Fission gas release (/)')
                 else:
                   self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=(self.options['plotSettings']['plot'][pltindex]['c']),marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
               elif self.dim == 3:
@@ -839,7 +840,7 @@ class OutStreamPlot(OutStreamManager):
                   print('STREAM MANAGER: pseudocolor Plot needs coordinates for color map... Returning without plotting')
                   return
                 for z_index in range(len(self.colorMapValues[pltindex][key])):
-                  if self.zValues[pltindex][key][z_index].size <= 3: return
+                  if self.colorMapValues[pltindex][key][z_index].size <= 3: return
                   try:
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationType']) > 0 or self.colorMapValues[pltindex][key][z_index].size <= 3:
                       if self.options['plotSettings']['plot'][pltindex]['interpolationType'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationType'])
