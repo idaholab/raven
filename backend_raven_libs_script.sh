@@ -11,6 +11,9 @@ OS_NAME=`uname -sr | sed 's/\..*//'`
 mkdir -p $BUILD_DIR
 mkdir -p $INSTALL_DIR
 mkdir -p $DOWNLOAD_DIR
+unset OPT #OPT is sometimes defined by MOOSE, and some of the
+# makefiles use it to try and determine the optimizer options.
+
 #--insecure added to get it to work on fission computer, but should
 # probably be removed at some point when running on fission is not required.
 DOWNLOADER='curl -C - -L --insecure -O '
