@@ -223,23 +223,7 @@ class Uniform(BoostDistribution):
     # no other additional parameters required
 
   def initializeDistribution(self):
-    #self._distribution = dist.uniform(loc=self.low,scale=self.range)
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
-
-  # def cdf(self,x):
-  #   value = super(Uniform,self).cdf(x)
-  #   print("Uniform CDF",x,value)
-  #   return value
-
-  # def ppf(self,x):
-  #   value = super(Uniform,self).ppf(x)
-  #   print("Uniform PPF",x,value)
-  #   return value
-
-  # def rvs(self,*args):
-  #   value = super(Uniform,self).rvs(*args)
-  #   print("Uniform RVS",value)
-  #   return value
 
 
 class Normal(BoostDistribution):
@@ -273,7 +257,6 @@ class Normal(BoostDistribution):
 
   def initializeDistribution(self):
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      #self._distribution = dist.norm(loc=self.mean,scale=self.sigma)
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma)
       self.polynomial = polys.hermitenorm
@@ -300,21 +283,18 @@ class Normal(BoostDistribution):
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
     else:
-      print('FIXME: this should be removed.... :special case distribution for stochastic colocation')
-      if self.lowerBoundUsed == False: 
+      if self.debug: print('FIXME: this should be removed.... :special case distribution for stochastic colocation')
+      if self.lowerBoundUsed == False:
         a = -sys.float_info.max
         self.lowerBound = a
       else:a = self.lowerBound
-      #else:a = (self.lowerBound - self.mean) / self.sigma
-      if self.upperBoundUsed == False: 
+      if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
-      #else:b = (self.upperBound - self.mean) / self.sigma
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma,
                                                                   a,b)
-      #self._distribution = dist.truncnorm(a,b,loc=self.mean,scale=self.sigma)
 
 class Gamma(BoostDistribution):
   def __init__(self):
@@ -355,22 +335,21 @@ class Gamma(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    #self._distribution = dist.gamma(self.alpha,loc=self.low,scale=self.beta)
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
       self.lowerBoundUsed = 0.0
       self.upperBound     = sys.float_info.max
     else:
-      if self.lowerBoundUsed == False: 
+      if self.lowerBoundUsed == False:
         a = 0.0
         self.lowerBound = a
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: 
+      if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)   
-         
+      self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
+
     self.polynomial = polys.genlaguerre
     def norm(n):
       return np.sqrt(factorial(n)/polys.gamma(n+self.alpha+1.0))
@@ -401,7 +380,7 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
-    print('FIXME: # TODO default to specific Beta distro?')
+    if self.debug: print('FIXME: # TODO default to specific Beta distro?')
     # TODO default to specific Beta distro?
 
   def getCrowDistDict(self):
@@ -445,7 +424,6 @@ class Beta(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    #self._distribution = dist.beta(self.alpha,self.beta,scale=self.hi-self.low)
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low)
     else:
@@ -570,10 +548,10 @@ class Binomial(BoostDistribution):
 
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
-      #self._distribution = dist.binom(n=self.n,p=self.p)
       self._distribution = distribution1D.BasicBinomialDistribution(self.n,self.p)
     else:
       raise IOError ('Truncated Binomial not yet implemented')
+
 
 class Bernoulli(BoostDistribution):
   def __init__(self):
@@ -602,6 +580,7 @@ class Bernoulli(BoostDistribution):
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
     else:
       raise IOError ('Truncated Bernoulli not yet implemented')
+
 
 class Logistic(BoostDistribution):
   def __init__(self):
@@ -639,7 +618,8 @@ class Logistic(BoostDistribution):
       else:a = self.lowerBound
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)     
+      self._distribution = distribution1D.BasicLogisticDistribution(self.location,self.scale,a,b)
+
 
 class Exponential(BoostDistribution):
   def __init__(self):
@@ -662,7 +642,7 @@ class Exponential(BoostDistribution):
       self.lowerBoundUsed = True
       self.lowerBound     = 0.0
     self.initializeDistribution()
-   
+
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
@@ -673,15 +653,16 @@ class Exponential(BoostDistribution):
       self.lowerBound = 0.0
       self.upperBound = sys.float_info.max
     else:
-      if self.lowerBoundUsed == False: 
+      if self.lowerBoundUsed == False:
         a = 0.0
         self.lowerBound = a
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: 
+      if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b)
+
 
 class LogNormal(BoostDistribution):
   def __init__(self):
@@ -717,15 +698,16 @@ class LogNormal(BoostDistribution):
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
     else:
-      if self.lowerBoundUsed == False: 
+      if self.lowerBoundUsed == False:
         a = -sys.float_info.max
         self.lowerBound = a
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: 
+      if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicLogNormalDistribution(self.mean,self.sigma,a,b)
+
 
 class Weibull(BoostDistribution):
   def __init__(self):
@@ -764,15 +746,16 @@ class Weibull(BoostDistribution):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or self.lowerBound == 0.0:
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
     else:
-      if self.lowerBoundUsed == False: 
+      if self.lowerBoundUsed == False:
         a = 0.0
         self.lowerBound = a
       else:a = self.lowerBound
-      if self.upperBoundUsed == False: 
+      if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
+
 
 class NDimensionalDistributions(Distribution):
   def __init__(self):
@@ -795,6 +778,7 @@ class NDimensionalDistributions(Distribution):
     Distribution.addInitParams(self, tempDict)
     tempDict['function_type'] = self.function_type
     tempDict['data_filename'] = self.data_filename
+
 
 class NDInverseWeight(NDimensionalDistributions):
   def __init__(self):
@@ -843,6 +827,7 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def rvs(self,*args):
     raise NotImplementedError('rvs not yet implemented for ' + self.type)
+
 
 class NDScatteredMS(NDimensionalDistributions):
   def __init__(self):
@@ -896,6 +881,7 @@ class NDScatteredMS(NDimensionalDistributions):
 
   def rvs(self,*args):
     raise NotImplementedError('rvs not yet implemented for ' + self.type)
+
 
 class NDCartesianSpline(NDimensionalDistributions):
   def __init__(self):
