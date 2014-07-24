@@ -563,7 +563,8 @@ class HDF5(DateBase):
     else: raise RuntimeError("Type" + attributes["type"] +" unknown.Caller: hdf5Manager.retrieveData")
     # return data
     gc.collect()
-    return copy.deepcopy(data) 
+    #return copy.deepcopy(data)
+    return copy.copy(data)
 
 __base                  = 'DataBase'
 __interFaceDict         = {}

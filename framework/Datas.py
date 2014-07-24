@@ -751,7 +751,7 @@ class TimePointSet(Data):
     else:
       if name in self._dataContainer['inputs'].keys():
         popped = self._dataContainer['inputs'].pop(name)
-        self._dataContainer['inputs'][name] = copy.deepcopy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
+        self._dataContainer['inputs'][name] = copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
         self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
@@ -785,7 +785,7 @@ class TimePointSet(Data):
       else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
       self.addNodeInTreeMode(tsnode,options)
     else: 
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
       else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
@@ -821,7 +821,7 @@ class TimePointSet(Data):
     else:
       if name in self._dataContainer['outputs'].keys():
         popped = self._dataContainer['outputs'].pop(name)
-        self._dataContainer['outputs'][name] = copy.deepcopy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
+        self._dataContainer['outputs'][name] = copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
         self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))

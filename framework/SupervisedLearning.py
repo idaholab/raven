@@ -361,8 +361,8 @@ class SciKitLearn(superVisedLearning):
     if 'SKLtype' not in self.initOptionDict.keys(): raise IOError('to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.initOptionDict.pop('SKLtype')
-    if not SKLtype in self.__class__.availImpl.keys(): raise IOError ('not known SKLtype ' + self.initOptionDict['type']+'(from ROM '+self.name+')')
-    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): raise IOError ('not known SKLsubType ' + self.initOptionDict['type']+'(from ROM '+self.name+')')
+    if not SKLtype in self.__class__.availImpl.keys(): raise IOError ('not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
+    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): raise IOError ('not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.ROM                      = self.__class__.availImpl[SKLtype][SKLsubType][0]()
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
