@@ -137,6 +137,9 @@
     order = FIRST
   [../]
 []
+ [Outputs]
+ output_initial = true
+ []
 #[Output]
   # Turn on performance logging
 #  exodus = true

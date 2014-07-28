@@ -289,11 +289,12 @@ class NodeTree(object):
       This method is used to write the content of the whole tree into a file
       @ In, file instance or string, filename (string) or file instance(opened file)
     '''
-    myFile = open(dumpFile,'w')
-    myFile.write('<NodeTree>\n')
+    if type(dumpFile) in [str,unicode,bytes]: myFile = open(dumpFile,'w')
+    else                                    : myFile = dumpFile
+    myFile.write('<NodeTree name = "'+self._rootnode.name+'">\n')
     self._rootnode.writeNode(myFile)
     myFile.write('</NodeTree>\n')
-    myFile.close()
+    if type(dumpFile) in [str,unicode,bytes]: myFile.close()
 
 ####################
 #  NodePath Class  #

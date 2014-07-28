@@ -25,7 +25,7 @@ class RAVENInterface:
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                       ' Outputs/file_base='+ outputfile +
-                      ' Outputs/interval=1'+ ' Outputs/output_initial=true' +
+                      ' Outputs/interval=1'+
                       ' Outputs/csv=false'+' Outputs/num_checkpoint_files=1'+
                       ' Outputs/checkpoint=true'+
                       ' Outputs/tail/type=ControlLogicBranchingInfo'+
@@ -38,7 +38,7 @@ class RAVENInterface:
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
-    MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'))
+    MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
     self._samplersDictionary                          = {}
     self._samplersDictionary['MonteCarlo'           ] = self.monteCarloForRAVEN
     self._samplersDictionary['Grid'                 ] = self.gridForRAVEN
@@ -93,7 +93,16 @@ class RAVENInterface:
     return listDict
 
   def dynamicEventTreeForRAVEN(self,**Kwargs):
+    
     listDict = []
+    if 'preconditionerCoordinate' in Kwargs.keys():
+      for preconditioner in Kwargs['preconditionerCoordinate']:
+        preconditioner['executable'] = Kwargs['executable']
+        if 'MC' in preconditioner['SamplerType']: 
+          listDict = self.__genBasePointSampler(**preconditioner)[1]
+          listDict.extend(self.monteCarloForRAVEN(**preconditioner))
+        elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRAVEN(**preconditioner))
+        elif 'LHS' in preconditioner['SamplerType'] or 'Stratified' in preconditioner['SamplerType']: listDict.extend(self.latinHyperCubeForRAVEN(**preconditioner))
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiator_distribution'])):
@@ -190,7 +199,7 @@ class RAVENInterface:
       #distributionInstance = Distributions.returnInstance(distributionType)
       #distributionInstance._readMoreXML(distributionNode)
       #print(key,distributions[key],distributionNode,crowDistribution)
-    mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'))
+    mooseInterface = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MooseBasedAppInterface.py'),False)
 
     mooseApp = mooseInterface.MooseBasedAppInterface()
     listDict = mooseApp.pointSamplerForMooseBasedApp(**Kwargs)

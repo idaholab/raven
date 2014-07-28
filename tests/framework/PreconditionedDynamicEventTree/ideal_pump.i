@@ -137,9 +137,6 @@
     order = FIRST
   [../]
 []
- [Outputs]
- output_initial = true
- []
 #[Output]
   # Turn on performance logging
 #  exodus = true
@@ -180,22 +177,26 @@
     component_name = pipe2
     property_name = f
     data_type = double
+     print_csv = True
   [../]
   [./pump_mass_flow_rate]
     print_csv = true
     component_name = pump
     property_name = 'mass_flow_rate'
     data_type = double
+    print_csv = True
   [../]
   [./inlet_TDV_p_bc]
     component_name = 'inlet_TDV'
     property_name = 'p_bc'
     data_type = double
+     print_csv = True
   [../]
   [./inlet_TDV_T_bc]
     component_name = 'inlet_TDV'
     property_name = 'T_bc'
     data_type = double
+     print_csv = True
   [../]
   [./inlet_TDV_void_fraction_bc]
     component_name = 'inlet_TDV'
@@ -206,11 +207,13 @@
     component_name = 'outlet_TDV'
     property_name = 'p_bc'
     data_type = double
+    print_csv = True
   [../]
   [./outlet_TDV_T_bc]
     component_name = 'outlet_TDV'
     property_name = 'T_bc'
     data_type = double
+    print_csv = True
   [../]
   [./outlet_TDV_void_fraction_bc]
     component_name = 'outlet_TDV'
@@ -224,13 +227,43 @@
   [./aBoolean]
     data_type =  bool
     initial_value =  False
-print_csv = True
+    print_csv = True
   [../]
 [./dummy_for_branch]
   data_type =  double
   initial_value =  0.0
   print_csv = True
 [../]
+ [./testMCpreconditioned1]
+ data_type =  double
+ initial_value =  0.0
+ print_csv = True
+ [../]
+ [./testMCpreconditioned2]
+ data_type =  double
+ initial_value =  0.0
+ print_csv = True
+ [../]
+ [./testGridpreconditioned1]
+ data_type =  double
+ initial_value =  0.0
+ print_csv = True
+ [../]
+ [./testGridpreconditioned2]
+ data_type =  double
+ initial_value =  0.0
+ print_csv = True
+ [../]
+ [./testLHSpreconditioned1]
+ data_type =  double
+ initial_value =  0.0
+ print_csv = True
+ [../]
+ [./testLHSpreconditioned2]
+ data_type =  double
+ initial_value =  0.0
+ print_csv = True
+ [../]
 []
 [Distributions]
  RNG_seed = 1
@@ -239,6 +272,23 @@ print_csv = True
  xMin = 0.0
  xMax = 1.0
  ProbabilityThreshold = 0.1
-  
+ [../]
+ [./testPreconditionerMonteCarloDist2]
+ type = UniformDistribution
+ xMin = 0.0
+ xMax = 1.0
+ ProbabilityThreshold = 0.1
+ [../]
+ [./testPreconditionerGridDist2]
+ type = UniformDistribution
+ xMin = 0.0
+ xMax = 1.0
+ ProbabilityThreshold = 0.1
+ [../]
+ [./testPreconditionerLHSDist2]
+ type = UniformDistribution
+ xMin = 0.0
+ xMax = 1.0
+ ProbabilityThreshold = 0.1
  [../]
 []

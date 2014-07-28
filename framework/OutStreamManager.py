@@ -16,7 +16,8 @@ import numpy as np
 from BaseType import BaseType
 import copy
 import ast
-from scipy.interpolate import Rbf, griddata
+from scipy.interpolate import Rbf,griddata
+import numpy.ma as ma
 import importlib                #it is used in exec code so it might be detected as unused
 import platform
 import os
@@ -235,7 +236,7 @@ class OutStreamPlot(OutStreamManager):
         if self.colorMapCoordinates: self.colorMapValues[pltindex] = {1:[]}
         for i in range(len(self.xCoordinates [pltindex])):
           xsplit = self.__splitVariableNames('x', (pltindex,i))
-          parame = self.sourceData[pltindex].getParam(xsplit[1],xsplit[2])
+          parame = self.sourceData[pltindex].getParam(xsplit[1],xsplit[2],nodeid='ending')
           if type(parame) == np.ndarray: self.xValues[pltindex][1].append(np.asarray(parame))
           else:
             conarr = np.zeros(len(parame.keys()))
@@ -245,7 +246,7 @@ class OutStreamPlot(OutStreamManager):
         if self.yCoordinates :
           for i in range(len(self.yCoordinates [pltindex])):
             ysplit = self.__splitVariableNames('y', (pltindex,i))
-            parame = self.sourceData[pltindex].getParam(ysplit[1],ysplit[2])
+            parame = self.sourceData[pltindex].getParam(ysplit[1],ysplit[2],nodeid='ending')
             if type(parame) == np.ndarray: self.yValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -255,7 +256,7 @@ class OutStreamPlot(OutStreamManager):
         if self.zCoordinates  and self.dim>2:
           for i in range(len(self.zCoordinates [pltindex])):
             zsplit = self.__splitVariableNames('z', (pltindex,i))
-            parame = self.sourceData[pltindex].getParam(zsplit[1],zsplit[2])
+            parame = self.sourceData[pltindex].getParam(zsplit[1],zsplit[2],nodeid='ending')
             if type(parame) == np.ndarray: self.zValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
@@ -276,7 +277,7 @@ class OutStreamPlot(OutStreamManager):
         if self.yCoordinates : self.yValues[pltindex] = {}
         if self.zCoordinates   and self.dim>2: self.zValues[pltindex] = {}
         if self.colorMapCoordinates: self.colorMapValues[pltindex] = {}
-        for cnt,key in enumerate(self.sourceData[pltindex].getInpParametersValues().keys()):
+        for cnt,key in enumerate(self.sourceData[pltindex].getInpParametersValues(nodeid='RecontructEnding').keys()):
           #the key is the actual history number (ie 1, 2 , 3 etc)
           self.xValues[pltindex][cnt] = []
           if self.yCoordinates : self.yValues[pltindex][cnt] = []
@@ -284,19 +285,19 @@ class OutStreamPlot(OutStreamManager):
           if self.colorMapCoordinates: self.colorMapValues[pltindex][cnt] = []
           for i in range(len(self.xCoordinates [pltindex])):
             xsplit = self.__splitVariableNames('x', (pltindex,i))
-            self.xValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],cnt+1)[xsplit[2]]))
+            self.xValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],cnt+1,nodeid='RecontructEnding')[xsplit[2]]))
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltindex])):
               ysplit = self.__splitVariableNames('y', (pltindex,i))
-              self.yValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(ysplit[1],cnt+1)[ysplit[2]]))
+              self.yValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(ysplit[1],cnt+1,nodeid='RecontructEnding')[ysplit[2]]))
           if self.zCoordinates  and self.dim>2:
             for i in range(len(self.zCoordinates [pltindex])):
               zsplit = self.__splitVariableNames('z', (pltindex,i))
-              self.zValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],cnt+1)[zsplit[2]]))
+              self.zValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],cnt+1,nodeid='RecontructEnding')[zsplit[2]]))
           if self.colorMapCoordinates:
             for i in range(len(self.colorMapCoordinates[pltindex])):
               zsplit = self.__splitVariableNames('colorMap', (pltindex,i))
-              self.colorMapValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],cnt+1)[zsplit[2]]))
+              self.colorMapValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(zsplit[1],cnt+1,nodeid='RecontructEnding')[zsplit[2]]))
       #check if something has been got or not
       if len(self.xValues[pltindex].keys()) == 0: return False
       else:
@@ -362,7 +363,12 @@ class OutStreamPlot(OutStreamManager):
           if 'xmax' in self.options[key].keys(): self.plt3D.set_xlim3d(xmax = ast.literal_eval(self.options[key]['xmax']))
           if 'ymin' in self.options[key].keys(): self.plt3D.set_ylim3d(ymin = ast.literal_eval(self.options[key]['ymin']))
           if 'ymax' in self.options[key].keys(): self.plt3D.set_ylim3d(ymax = ast.literal_eval(self.options[key]['ymax']))
-          if 'zmin' in self.options[key].keys(): self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
+          if 'zmin' in self.options[key].keys(): 
+            if 'zmax' not in self.options[key].keys(): print('STREAM MANAGER: Warning -> zmin inputted but not zmax. zmin ignored! ')
+            else:self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
+          if 'zmax' in self.options[key].keys(): 
+            if 'zmin' not in self.options[key].keys(): print('STREAM MANAGER: Warning -> zmax inputted but not zmin. zmax ignored! ')
+            else:self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
       elif key == 'labelFormat':
         if 'style' not in self.options[key].keys(): self.options[key]['style'        ]   = 'sci'
         if 'limits' not in self.options[key].keys(): self.options[key]['limits'      ] = '(0,0)'
@@ -469,7 +475,7 @@ class OutStreamPlot(OutStreamManager):
           #if self.dim == 2:  exec('self.plt.' + key + '(' + command_args + ')')
           #elif self.dim == 3:exec('self.plt3D.' + key + '(' + command_args + ')')
         except ValueError as ae:
-          raise Exception('STREAM MANAGER: ERROR <'+ae+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')
+          raise Exception('STREAM MANAGER: ERROR <'+str(ae)+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')
 
   ####################
   #  PUBLIC METHODS  #
@@ -587,11 +593,12 @@ class OutStreamPlot(OutStreamManager):
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])
     self.mpl = importlib.import_module("matplotlib")
     #exec('self.mpl =  importlib.import_module("matplotlib")')
-    print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
+    if self.debug: print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
     if self.dim not in [2,3]: raise('STREAM MANAGER: ERROR -> This Plot interface is able to handle 2D-3D plot only')
     if not disAvail: self.mpl.use('Agg')
     self.plt = importlib.import_module("matplotlib.pyplot")
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D
+
   def addOutput(self,blockFigure=False):
     '''
     Function to show and/or save a plot
@@ -651,8 +658,7 @@ class OutStreamPlot(OutStreamManager):
                   m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(self.colorMapValues[pltindex][key])
                   actcm = self.fig.colorbar(m)    
-                  #actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
-                  actcm.set_label('Fission gas release (/)')
+                  actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                 else:
                   self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=(self.options['plotSettings']['plot'][pltindex]['c']),marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
               elif self.dim == 3:
@@ -685,10 +691,10 @@ class OutStreamPlot(OutStreamManager):
                     rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                     yi  = rbf(xi)
                 except Exception as ae:
-                  print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + ae + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                  print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(str(ae)) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                   if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.yValues[pltindex][key][y_index].size <= 2:
                     if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.yValues[pltindex][key][y_index].size > 2: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[:]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
-                    else: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[:]), method='nearest')
+                    else: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[:]), interp='nearest')
                   else:
                     rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                     yi  = rbf(xi)
@@ -723,7 +729,7 @@ class OutStreamPlot(OutStreamManager):
                         rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                         zi  = rbf(xi, yi)
                     except Exception as ae:
-                      print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + ae + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                      print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                       if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.zValues[pltindex][key][z_index].size <= 3:
                         if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.zValues[pltindex][key][z_index].size > 3: zi = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.zValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                         else: zi = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.zValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
@@ -813,14 +819,13 @@ class OutStreamPlot(OutStreamManager):
                     rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                     yi  = rbf(xi)
                 except Exception as ae:
-                  print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + ae + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                  print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                   if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.yValues[pltindex][key][y_index].size <= 2:
                     if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.yValues[pltindex][key][y_index].size > 2: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[None,:]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     else: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[None,:]), method='nearest')
                   else:
                     rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                     yi  = rbf(xi)
-
                 self.actPlot = self.plt.step(xi,yi,where=self.options['plotSettings']['plot'][pltindex]['where'],**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
         elif self.dim == 3:
           print('STREAM MANAGER: step Plot not available in 3D')
@@ -835,7 +840,7 @@ class OutStreamPlot(OutStreamManager):
               xi = np.linspace(self.xValues[pltindex][key][x_index].min(),self.xValues[pltindex][key][x_index].max(),ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['interpPointsX']))
               for y_index in range(len(self.yValues[pltindex][key])):
                 yi = np.linspace(self.yValues[pltindex][key][y_index].min(),self.yValues[pltindex][key][y_index].max(),ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['interpPointsY']))
-                xig, yig = np.meshgrid(xi, yi)
+                xig, yig = np.meshgrid(xi, yi)                     
                 if not self.colorMapCoordinates:
                   print('STREAM MANAGER: pseudocolor Plot needs coordinates for color map... Returning without plotting')
                   return
@@ -843,23 +848,22 @@ class OutStreamPlot(OutStreamManager):
                   if self.colorMapValues[pltindex][key][z_index].size <= 3: return
                   try:
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationType']) > 0 or self.colorMapValues[pltindex][key][z_index].size <= 3:
-                      if self.options['plotSettings']['plot'][pltindex]['interpolationType'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationType'])
-                      else: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
+                       if self.options['plotSettings']['plot'][pltindex]['interpolationType'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationType'] )
+                       else: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
                     else:
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.colorMapValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + ae + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.colorMapValues[pltindex][key][z_index].size <= 3:
-                      if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationType'])
-                      else: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
+                      if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata ((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationType'] )
+                      else: Ci = mlab.griddata ((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
                     else:
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.colorMapValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
-
-                  self.actPlot = self.plt.pcolormesh(xig,yig,Ci,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                  self.actPlot = self.plt.pcolormesh(xig,yig,ma.masked_where(np.isnan(Ci),Ci),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                  m.set_array(Ci)
+                  m.set_array(ma.masked_where(np.isnan(Ci),Ci))
                   actcm = self.fig.colorbar(m)
                   actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
         elif self.dim == 3:
@@ -899,7 +903,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       zi  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + ae + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.zValues[pltindex][key][z_index].size <= 3:
                       if self.colorMapCoordinates:
                         if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
@@ -912,15 +916,14 @@ class OutStreamPlot(OutStreamManager):
                         Ci  = rbfc(xig, yig)
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       zi  = rbf(xig, yig)
-
                   if self.colorMapCoordinates:
-                    self.actPlot = self.plt3D.plot_surface(xig,yig,zi, rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),facecolors=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])(Ci),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.plot_surface(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),facecolors=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])(ma.masked_where(np.isnan(Ci),Ci)),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                     m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                    m.set_array(Ci)
+                    m.set_array(ma.masked_where(np.isnan(Ci),Ci))
                     actcm = self.fig.colorbar(m)
                     actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                   else:
-                    self.actPlot = self.plt3D.plot_surface(xig,yig,zi, rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.plot_surface(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
       ########################
       #   TRI-SURFACE PLOT   #
       ########################
@@ -935,11 +938,20 @@ class OutStreamPlot(OutStreamManager):
             for x_index in range(len(self.xValues[pltindex][key])):
               for y_index in range(len(self.yValues[pltindex][key])):
                 for z_index in range(len(self.zValues[pltindex][key])):
+                  metric = (self.xValues[pltindex][key][x_index]**2+self.yValues[pltindex][key][y_index]**2)**0.5
+                  metricIndeces = np.argsort(metric)  
+                  xs = np.zeros(self.xValues[pltindex][key][x_index].shape) 
+                  ys = np.zeros(self.yValues[pltindex][key][y_index].shape)
+                  zs = np.zeros(self.zValues[pltindex][key][z_index].shape)     
+                  for sindex in range(len(metricIndeces)):
+                    xs[sindex]=self.xValues[pltindex][key][x_index][metricIndeces[sindex]]
+                    ys[sindex]=self.yValues[pltindex][key][y_index][metricIndeces[sindex]]
+                    zs[sindex]=self.zValues[pltindex][key][z_index][metricIndeces[sindex]]
                   if self.zValues[pltindex][key][z_index].size <= 3: return
                   if self.colorMapCoordinates:
-                    self.actPlot = self.plt3D.plot_trisurf(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index], color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   else:
-                    self.actPlot = self.plt3D.plot_trisurf(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index], color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
       ########################
       #    WIREFRAME  PLOT   #
       ########################
@@ -973,7 +985,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       zi  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + ae + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.zValues[pltindex][key][z_index].size <= 3:
                       if self.colorMapCoordinates:
                         if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
@@ -988,13 +1000,13 @@ class OutStreamPlot(OutStreamManager):
                       zi  = rbf(xig, yig)
 
                   if self.colorMapCoordinates:
-                    self.actPlot = self.plt3D.plot_wireframe(xig,yig,zi, rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), color=Ci, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.plot_wireframe(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), color=ma.masked_where(np.isnan(Ci),Ci), cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                     m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                    m.set_array(Ci)
+                    m.set_array(ma.masked_where(np.isnan(Ci),Ci))
                     actcm = self.fig.colorbar(m)
                     actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
                   else:
-                    self.actPlot = self.plt3D.plot_wireframe(xig,yig,zi, rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.plot_wireframe(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
 
       ########################
       #     CONTOUR   PLOT   #
@@ -1021,7 +1033,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.colorMapValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + ae + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.yValues[pltindex][key][y_index].size <= 3:
                       if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                       else: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
@@ -1029,9 +1041,9 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.colorMapValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
                   if self.outStreamTypes[pltindex] == 'contour':
-                    self.actPlot = self.plt.contour(xig,yig,Ci,nbins,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt.contour(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   else:
-                    self.actPlot = self.plt.contourf(xig,yig,Ci,nbins,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt.contourf(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   self.plt.clabel(self.actPlot, inline=1, fontsize=10)
                   self.plt.colorbar(self.actPlot, shrink=0.8, extend='both')
         elif self.dim == 3:
@@ -1061,7 +1073,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + ae + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.zValues[pltindex][key][z_index].size <= 3:
                       if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                       else: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.zValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
@@ -1069,9 +1081,9 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
                   if self.outStreamTypes[pltindex] == 'contour3D':
-                    self.actPlot = self.plt3D.contour3D(xig,yig,Ci,nbins,extend3d=ext3D, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.contour3D(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,extend3d=ext3D, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   else:
-                    self.actPlot = self.plt3D.contourf3D(xig,yig,Ci,nbins,extend3d=ext3D, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.contourf3D(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,extend3d=ext3D, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   self.plt.clabel(self.actPlot, inline=1, fontsize=10)
                   self.plt.colorbar(self.actPlot, shrink=0.8, extend='both')
       else:
@@ -1089,7 +1101,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2:  execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
           elif self.dim == 3:execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
         except ValueError as ae:
-          raise Exception('STREAM MANAGER: ERROR <'+ae+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
+          raise Exception('STREAM MANAGER: ERROR <'+str(ae)+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
     # SHOW THE PICTURE
     self.plt.draw()
     #self.plt3D.draw(self.fig.canvas.renderer)

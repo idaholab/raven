@@ -95,7 +95,6 @@ class PrintCSV(BasePostProcessor):
         #  Retrieve the metadata (posion 1 of the history tuple)
         attributes = histories[key][1]
         #  Construct the header in csv format (first row of the file)
-        print(attributes)
         headers = b",".join([histories[key][1]['output_space_headers'][i] for i in
                              range(len(attributes['output_space_headers']))])
         #  Construct history name
@@ -199,6 +198,7 @@ class PrintCSV(BasePostProcessor):
           addcsvfile.write(b' \n')
 
     elif(self.inObj.type == "Datas"):
+      # we have the capability...so do that (AndreA)
       pass
     else:
       raise NameError ('PostProcessor PrintCSV for input type ' + self.inObj.type + ' not yet implemented.')
@@ -474,7 +474,6 @@ class BasicStatistics(BasePostProcessor):
         expectedValues = np.zeros(len(self.parameters['targets']))
         for cnt,targetP in enumerate(self.parameters['targets']): expectedValues[cnt] = outputDict['expectedValue'][targetP]
         for cnt,targetP in enumerate(self.parameters['targets']):  outputDict[what][cnt,:] = copy.deepcopy(covarianceM[cnt,:]*expectedValues/outputDict['expectedValue'][targetP])   
-   
       if what == 'percentile':
         outputDict.pop(what)
         if what+'_5%'  not in outputDict.keys(): outputDict[what+'_5%']  ={}

@@ -19,7 +19,7 @@ from operator import mul
 from functools import reduce
 from scipy import spatial
 import xml.etree.ElementTree as ET
-import TreeStructure as ETS
+import itertools
 from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ from sklearn import neighbors
 from utils import metaclass_insert
 from BaseType import BaseType
 import Distributions
+import TreeStructure as ETS
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -167,6 +168,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys():
+      if self.toBeSampled[key] not in availableDist.keys(): IOError('SAMPLER       : ERROR -> Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!!!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
 
@@ -715,7 +717,6 @@ class MonteCarlo(Sampler):
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
-
     # create values dictionary
     for key in self.distDict:
       # check if the key is a comma separated list of strings
@@ -965,6 +966,8 @@ class DynamicEventTree(Grid):
     self.RunQueue['identifiers'] = []
     # Corresponding inputs
     self.RunQueue['queue'      ] = []
+    # mapping from jobID to rootname in TreeInfo {jobID:rootName}
+    self.rootToJob               = {}
     # dictionary of preconditioner sampler available
     self.preconditionerAvail = {}                            
     self.preconditionerAvail['MonteCarlo'] = MonteCarlo      # MC
@@ -973,7 +976,7 @@ class DynamicEventTree(Grid):
     # dictionary of inputted preconditioners need to be applied 
     self.preconditionerToApply             = {}
     # total number of preconditioner samples (combination of all different preconditioner strategy)      
-    self.precNumberSamples                 = 0              
+    self.precNumberSamplers                = 0         
 
   def localStillReady(self,_):
     '''
@@ -983,7 +986,10 @@ class DynamicEventTree(Grid):
     '''
     if(len(self.RunQueue['queue']) != 0 or self.counter == 0): return True
     else:
-      if self.print_end_xml: self.TreeInfo.writeNodeTree(os.path.join(self.workingDir,self.name + "_output_summary.xml"))
+      if self.print_end_xml: 
+        myFile = open(os.path.join(self.workingDir,self.name + "_output_summary.xml"),'w')
+        for treeNode in self.TreeInfo.values(): treeNode.writeNodeTree(myFile)
+        myFile.close()
       return False
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
@@ -1005,8 +1011,8 @@ class DynamicEventTree(Grid):
     endInfo = {'end_time':self.actual_end_time,'end_ts':self.actual_end_ts,'branch_dist':list(self.actualBranchInfo.keys())[0]}
     endInfo['branch_changed_params'] = self.actualBranchInfo[endInfo['branch_dist']]
     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
-    if(jobObject.identifier == self.TreeInfo.getrootnode().name): endInfo['parent_node'] = self.TreeInfo.getrootnode()
-    else: endInfo['parent_node'] = list(self.TreeInfo.getrootnode().iter(jobObject.identifier))[0]
+    if(jobObject.identifier == self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().name): endInfo['parent_node'] = self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode()
+    else: endInfo['parent_node'] = list(self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().iter(jobObject.identifier))[0]
     # get the branchedLevel dictionary
     branchedLevel = endInfo['parent_node'].get('branchedLevel')
     if not branchedLevel: raise Exception('SAMPLER DET   : ERROR -> branchedLevel of node '+jobObject.identifier+'not found!!!!')
@@ -1084,7 +1090,6 @@ class DynamicEventTree(Grid):
                     to try reading.
     @ Out, boolean: true if the info are present (a set of new branches need to be run), false if the actual parent calculation reached an end point
     '''
-
     # Remove all the elements from the info container
     del self.actualBranchInfo
     self.actualBranchInfo = {}
@@ -1173,15 +1178,11 @@ class DynamicEventTree(Grid):
           if self.branchCountOnLevel != 1:
             subGroup.add('branch_changed_param_value',copy.deepcopy(endInfo['branch_changed_params'][key]['actual_value'][self.branchCountOnLevel-2]))
             subGroup.add('branch_changed_param_pb',copy.deepcopy(endInfo['branch_changed_params'][key]['associated_pb'][self.branchCountOnLevel-2]))
-            #try:
             cond_pb_c = cond_pb_c + copy.deepcopy(endInfo['branch_changed_params'][key]['changed_cond_pb'][self.branchCountOnLevel-2])
-            #except? pass
           else:
             subGroup.add('branch_changed_param_value',copy.deepcopy(endInfo['branch_changed_params'][key]['old_value']))
             subGroup.add('branch_changed_param_pb',copy.deepcopy(endInfo['branch_changed_params'][key]['unchanged_pb']))
-            #try:
             cond_pb_un =  cond_pb_un + copy.deepcopy(endInfo['branch_changed_params'][key]['unchanged_cond_pb'])
-            #except? pass
         # add conditional probability
         if self.branchCountOnLevel != 1: subGroup.add('conditional_pb',copy.deepcopy(cond_pb_c))
         else: subGroup.add('conditional_pb',copy.deepcopy(cond_pb_un))
@@ -1191,8 +1192,8 @@ class DynamicEventTree(Grid):
         # initialize the end_time to be equal to the start one... It will modified at the end of this branch
         subGroup.add('end_time', copy.deepcopy(endInfo['parent_node'].get('end_time')))
         # add the branchedLevel dictionary to the subgroup
-        if self.branchCountOnLevel != 1: branchedLevel[endInfo['branch_dist']] = branchedLevel[endInfo['branch_dist']] - 1
-
+        if self.branchCountOnLevel != 1: branchedLevel[endInfo['branch_dist']] = branchedLevel[endInfo['branch_dist']] - 1  
+        
         subGroup.add('branchedLevel', copy.deepcopy(branchedLevel))
         # branch calculation info... running, queue, etc are set here
         subGroup.add('runEnded',False)
@@ -1201,7 +1202,6 @@ class DynamicEventTree(Grid):
 #        subGroup.set('restartFileRoot',endInfo['restartRoot'])
         # Append the new branch (subgroup) info to the parent_node in the xml tree object
         endInfo['parent_node'].appendBranch(subGroup)
-
         # Fill the values dictionary that will be passed into the model in order to create an input
         # In this dictionary the info for changing the original input is stored
         self.inputInfo = {'prefix':copy.deepcopy(rname),'end_ts':copy.deepcopy(endInfo['end_ts']),
@@ -1210,7 +1210,13 @@ class DynamicEventTree(Grid):
                   'conditional_prb':copy.deepcopy([subGroup.get('conditional_pb')]),
                   'start_time':copy.deepcopy(endInfo['parent_node'].get('end_time')),
                   'parent_id':subGroup.get('parent')}
-
+        # add the newer branch name to the map
+        self.rootToJob[copy.deepcopy(rname)] = copy.deepcopy(self.rootToJob[subGroup.get('parent')])
+        # check if it is a preconditioned DET sampling, if so add the relative information
+        precSampled = endInfo['parent_node'].get('preconditionerSampled')
+        if precSampled: 
+          self.inputInfo['preconditionerCoordinate'] = copy.deepcopy(precSampled)
+          subGroup.add('preconditionerSampled', precSampled)    
         # Check if the distribution that just triggered hitted the last probability threshold .
         #  In this case there is not a probability threshold that needs to be added in the input
         #  for this particular distribution
@@ -1218,7 +1224,6 @@ class DynamicEventTree(Grid):
           self.inputInfo['initiator_distribution'] = copy.deepcopy([endInfo['branch_dist']])
           self.inputInfo['PbThreshold'           ] = copy.deepcopy([self.branchProbabilities[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]])
           self.inputInfo['ValueThreshold'        ] = copy.deepcopy([self.branchValues[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]])
-
         #  For the other distributions, we put the unbranched thresholds
         #  Before adding these thresholds, check if the keyword 'initiator_distribution' is present...
         #  (In the case the previous if statement is true, this keyword is not present yet
@@ -1227,7 +1232,6 @@ class DynamicEventTree(Grid):
           self.inputInfo['initiator_distribution'] = []
           self.inputInfo['PbThreshold'           ] = []
           self.inputInfo['ValueThreshold'        ] = []
-
         # Add the unbranched thresholds
         for key in self.branchProbabilities.keys():
           if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])): self.inputInfo['initiator_distribution'].append(copy.deepcopy(key.encode()))
@@ -1240,53 +1244,55 @@ class DynamicEventTree(Grid):
         for varname in self.toBeSampled.keys():
           self.inputInfo['SampledVars'][varname]   = copy.deepcopy(self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
           self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
-
         self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
         self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
-
         # Call the model function "createNewInput" with the "values" dictionary just filled.
         # Add the new input path into the RunQueue system
         self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**self.inputInfo)))
         self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
         del branchedLevel
-
     else:
       # We construct the input for the first DET branch calculation'
       # Increase the counter
       # The root name of the xml element tree is the starting name for all the branches
       # (this root name = the user defined sampler name)
-      rname = self.TreeInfo.getrootnode().name
       # Get the initial branchedLevel dictionary (=> the list gets empty)
       branchedLevelG = copy.deepcopy(self.branchedLevel.pop(0))
-      branchedLevel = copy.deepcopy(branchedLevelG)
-      # Fill th values dictionary in
-      self.inputInfo['prefix'                    ] = copy.deepcopy(rname)
-      self.inputInfo['initiator_distribution'    ] = []
-      self.inputInfo['PbThreshold'               ] = []
-      self.inputInfo['ValueThreshold'            ] = []
-      self.inputInfo['branch_changed_param'      ] = copy.deepcopy([b'None'])
-      self.inputInfo['branch_changed_param_value'] = copy.deepcopy([b'None'])
-      self.inputInfo['start_time'                ] = copy.deepcopy(b'Initial')
-      self.inputInfo['end_ts'                    ] = copy.deepcopy(0)
-      self.inputInfo['parent_id'                 ] = copy.deepcopy(b'root')
-      self.inputInfo['conditional_prb'           ] = copy.deepcopy([1.0])
-      for key in self.branchProbabilities.keys():self.inputInfo['initiator_distribution'].append(copy.deepcopy(key.encode()))
-      for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(copy.deepcopy(self.branchProbabilities[key][branchedLevel[key]]))
-      for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(copy.deepcopy(self.branchValues[key][branchedLevel[key]]))
-      for varname in self.toBeSampled.keys():
-        self.inputInfo['SampledVars'  ][varname] = copy.deepcopy(self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
-        self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
-      self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-      self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
-      if(self.maxSimulTime): self.inputInfo['end_time'] = self.maxSimulTime
-      # Call the model function "createNewInput" with the "values" dictionary just filled.
-      # Add the new input path into the RunQueue system
-      newInputs = model.createNewInput(myInput,self.type,**self.inputInfo)
-      self.RunQueue['queue'].append(copy.deepcopy(newInputs))
-      self.RunQueue['identifiers'].append(copy.deepcopy(self.inputInfo['prefix']))
-      del newInputs
+      branchedLevel = copy.deepcopy(branchedLevelG)      
+      for rootTree in self.TreeInfo.values():
+        precSampled = rootTree.getrootnode().get('preconditionerSampled')
+        rname = rootTree.getrootnode().name
+        # Fill th values dictionary in
+        if precSampled: self.inputInfo['preconditionerCoordinate'  ] = copy.deepcopy(precSampled)
+        self.inputInfo['prefix'                    ] = copy.deepcopy(rname)
+        self.inputInfo['initiator_distribution'    ] = []
+        self.inputInfo['PbThreshold'               ] = []
+        self.inputInfo['ValueThreshold'            ] = []
+        self.inputInfo['branch_changed_param'      ] = copy.deepcopy([b'None'])
+        self.inputInfo['branch_changed_param_value'] = copy.deepcopy([b'None'])
+        self.inputInfo['start_time'                ] = copy.deepcopy(b'Initial')
+        self.inputInfo['end_ts'                    ] = copy.deepcopy(0)
+        self.inputInfo['parent_id'                 ] = copy.deepcopy(b'root')
+        self.inputInfo['conditional_prb'           ] = copy.deepcopy([1.0])
+        for key in self.branchProbabilities.keys():self.inputInfo['initiator_distribution'].append(copy.deepcopy(key.encode()))
+        for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(copy.deepcopy(self.branchProbabilities[key][branchedLevel[key]]))
+        for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(copy.deepcopy(self.branchValues[key][branchedLevel[key]]))
+        for varname in self.toBeSampled.keys():
+          self.inputInfo['SampledVars'  ][varname] = copy.deepcopy(self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
+          self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
+        self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+        self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
+        
+        if(self.maxSimulTime): self.inputInfo['end_time'] = self.maxSimulTime
+        # Call the model function "createNewInput" with the "values" dictionary just filled.
+        # Add the new input path into the RunQueue system
+        newInputs = model.createNewInput(myInput,self.type,**self.inputInfo)
+        self.RunQueue['queue'].append(copy.deepcopy(newInputs))
+        self.RunQueue['identifiers'].append(copy.deepcopy(self.inputInfo['prefix']))
+        self.rootToJob[copy.deepcopy(self.inputInfo['prefix'])] = copy.deepcopy(rname)
+        del newInputs
+        self.counter += 1
       del branchedLevel
-      self.counter += 1
     del branchedLevelG
     return
 
@@ -1307,10 +1313,10 @@ class DynamicEventTree(Grid):
       return None
     else:
       # Pop out the first input in queue
-      jobInput = self.RunQueue['queue'].pop(0)
+      jobInput  = self.RunQueue['queue'      ].pop(0)
       jobId     = self.RunQueue['identifiers'].pop(0)
       #set running flags in self.TreeInfo
-      root = self.TreeInfo.getrootnode()
+      root = self.TreeInfo[self.rootToJob[jobId]].getrootnode()
       # Update the run information flags
       if (root.name == jobId):
         root.add('runEnded',str(False))
@@ -1344,6 +1350,10 @@ class DynamicEventTree(Grid):
       print("SAMPLER DET   : A Branch ended!!!!")
     return newerinput
 
+  def generateDistributions(self,availableDist):
+    Grid.generateDistributions(self,availableDist)
+    for preconditioner in self.preconditionerToApply.values(): preconditioner.generateDistributions(availableDist)
+    
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
     self.limit = sys.maxsize
@@ -1353,6 +1363,16 @@ class DynamicEventTree(Grid):
     if 'maxSimulationTime' in xmlNode.attrib.keys(): 
       try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
       except (KeyError,NameError): raise IOError("SAMPLER DET   : ERROR -> Can not convert maxSimulationTime in float number!!!")
+    for child in xmlNode:
+      if child.tag == 'PreconditionerSampler':               
+        if not 'type' in child.attrib.keys()                          : raise IOError('PreconditionDET: ERROR -> Not found attribute type in PreconditionerSampler block!')
+        if child.attrib['type'] in self.preconditionerToApply.keys()  : raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
+        if child.attrib['type'] not in self.preconditionerAvail.keys(): raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
+        self.precNumberSamplers = 1
+        # the user can decided how to preconditionate 
+        self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
+        # make the preconditioner sampler read  its own xml block
+        self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
     branchedLevel = {}
     error_found = False
     for keyk in self.axisName:
@@ -1388,21 +1408,42 @@ class DynamicEventTree(Grid):
     tempDict['actual threshold levels are '] = self.branchedLevel[0]
 
   def localInitialize(self):
-    elm = ETS.Node(self.name + '_1')
-    elm.add('name', self.name + '_1')
-    elm.add('start_time', str(0.0))
-    # Initialize the end_time to be equal to the start one...
-    # It will modified at the end of each branch
-    elm.add('end_time', str(0.0))
-    elm.add('runEnded',str(False))
-    elm.add('running',str(True))
-    elm.add('queue',str(False))
-    # The dictionary branchedLevel is stored in the xml tree too. That's because
-    # the advancement of the thresholds must follow the tree structure
-    elm.add('branchedLevel', self.branchedLevel[0])
-    # Here it is stored all the info regarding the DET => we create the info for all the
-    # branchings and we store them
-    self.TreeInfo = ETS.NodeTree(elm)
+    if len(self.preconditionerToApply.keys()) > 0: precondlistoflist = []
+    for cnt, preckey  in enumerate(self.preconditionerToApply.keys()):
+      preconditioner =  self.preconditionerToApply[preckey]
+      precondlistoflist.append([]) 
+      preconditioner.initialize()
+      self.precNumberSamplers *= preconditioner.limit
+      while preconditioner.amIreadyToProvideAnInput():
+        preconditioner.counter +=1
+        preconditioner.localGenerateInput(None,None)
+        preconditioner.inputInfo['prefix'] = copy.deepcopy(preconditioner.counter)
+        precondlistoflist[cnt].append(copy.deepcopy(preconditioner.inputInfo))
+    if self.precNumberSamplers > 0: 
+      print('PreconditionDET: PRINT -> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!') 
+      precNumber = self.precNumberSamplers
+      combinations = list(itertools.product(*precondlistoflist)) 
+    else: precNumber = 1
+    self.TreeInfo = {}
+    for precSample in range(precNumber):
+      elm = ETS.Node(self.name + '_' + str(precSample+1))
+      elm.add('name', self.name + '_'+ str(precSample+1))
+      elm.add('start_time', str(0.0))
+      # Initialize the end_time to be equal to the start one...
+      # It will modified at the end of each branch
+      elm.add('end_time', str(0.0))
+      elm.add('runEnded',str(False))
+      elm.add('running',str(True))
+      elm.add('queue',str(False))
+      # if preconditioned DET, add the sampled from preconditioner samplers
+      if self.precNumberSamplers > 0: elm.add('preconditionerSampled', combinations[precSample])
+      # The dictionary branchedLevel is stored in the xml tree too. That's because
+      # the advancement of the thresholds must follow the tree structure
+      elm.add('branchedLevel', self.branchedLevel[0])
+      # Here it is stored all the info regarding the DET => we create the info for all the
+      # branchings and we store them
+      self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.NodeTree(copy.deepcopy(elm))
+      
     for key in self.branchProbabilities.keys():
       kk = self.toBeSampled.values().index(key)
       self.branchValues[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[kk]].ppf(float(self.branchProbabilities[key][index]))) for index in range(len(self.branchProbabilities[key]))]
@@ -1410,90 +1451,31 @@ class DynamicEventTree(Grid):
       kk = self.toBeSampled.values().index(key)
       self.branchProbabilities[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[kk]].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
     return
-#class PreconditionedDET(DynamicEventTree):
-class PreconditionedDET(Sampler):
-  def __init__(self):
-    Sampler.__init__(self)
-    #DynamicEventTree.__init__(self)
-    self.preconditionerAvail = {}                            # dictionary of preconditioner sampler available
-    self.preconditionerAvail['MonteCarlo'] = MonteCarlo      # MC
-    self.preconditionerAvail['Stratified'] = LHS             # Stratified
-    self.preconditionerAvail['Grid'      ] = Grid            # Grid
-    self.preconditionerToApply             = {}              # dictionary of inputted preconditioners need to be applied 
-    self.precNumberSamples                 = 0               # total number of preconditioner samples (combination of all different preconditioner strategy)
-    self.dynamicEventTreeSampler           = DynamicEventTree()
 
-#   def localInputAndChecks(self,xmlNode):
-#     # initialize Dynamic Event Tree  
-#     DynamicEventTree.localInputAndChecks(self,xmlNode)
-#     for child in xmlNode:
-#       if child.tag == 'PreconditionerSampler':               
-#         if not 'type' in child.attrib.keys()                          : raise IOError('PreconditionDET: ERROR -> Not found attribute type in PreconditionerSampler block!')
-#         if child.attrib['type'] in self.preconditionerToApply.keys()  : raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
-#         if child.attrib['type'] not in self.preconditionerAvail.keys(): raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
-#         # the user can decided how to preconditionate 
-#         self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
-#         # make the preconditioner sampler read  its own xml block
-#         self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
-#       elif child.tag not in ['variable','Distribution']: raise IOError('PreconditionDET: ERROR -> unknown xml block named ' + child.tag + '. Available are DynamicEventTree and PreconditionerSampler' )
-#     return
-# 
-#   def localInitialize(self):
-#     from pympler.asizeof import asizeof
-#     DynamicEventTree.localInitialize(self)
-#     if len(self.preconditionerToApply.keys()) > 0: self.precNumberSamplers = 1
-#     for preconditioner in self.preconditionerToApply.values(): 
-#       preconditioner.localInitialize()
-#       print(str(asizeof(preconditioner)))
-#       self.precNumberSamplers *= preconditioner.limit
-#     print("self " + str(asizeof(self)))
-#     print(asizeof(self.preconditionerToApply))
-#     print('PreconditionDET: PRINT -> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
-  def localGenerateInput(self,model,myInput):pass
+class AdaptiveDET(DynamicEventTree):
+  def __init__(self):
+    DynamicEventTree.__init__(self)
+  def localGenerateInput(self,model,myInput):
+    DynamicEventTree.localGenerateInput(self,model,myInput)
   def localInputAndChecks(self,xmlNode):
-    # initialize Dynamic Event Tree  
-    #DynamicEventTree.localInputAndChecks(self,xmlNode)
-    for child in xmlNode:
-      if child.tag == 'PreconditionerSampler':               
-        if not 'type' in child.attrib.keys()                          : raise IOError('PreconditionDET: ERROR -> Not found attribute type in PreconditionerSampler block!')
-        if child.attrib['type'] in self.preconditionerToApply.keys()  : raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
-        if child.attrib['type'] not in self.preconditionerAvail.keys(): raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
-        # the user can decided how to preconditionate 
-        self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
-        # make the preconditioner sampler read  its own xml block
-        self.preconditionerToApply[child.attrib['type']]._readMoreXML(child)
-      elif child.tag == 'DynamicEventTree':
-        self.dynamicEventTreeSampler._readMoreXML(child)  
-      elif child.tag not in ['variable','Distribution']: raise IOError('PreconditionDET: ERROR -> unknown xml block named ' + child.tag + '. Available are DynamicEventTree and PreconditionerSampler' )
-    return
-     
+    DynamicEventTree.localInputAndChecks(self,xmlNode)
+    return  
   def generateDistributions(self,availableDist): 
-    for preconditioner in self.preconditionerToApply.values(): preconditioner.generateDistributions(availableDist)
-    self.dynamicEventTreeSampler.generateDistributions(availableDist)
+    DynamicEventTree.generateDistributions(self,availableDist)
     
   def localInitialize(self):
-    from pympler.asizeof import asizeof
-    self.dynamicEventTreeSampler.initialize()
-    print(str(asizeof(self.dynamicEventTreeSampler)))
-    if len(self.preconditionerToApply.keys()) > 0: self.precNumberSamplers = 1
-    for preconditioner in self.preconditionerToApply.values(): 
-      preconditioner.initialize()
-      print(str(asizeof(preconditioner)))
-      self.precNumberSamplers *= preconditioner.limit
-    print("self " + str(asizeof(self)))
-    print(asizeof(self.preconditionerToApply))
-    print('PreconditionDET: PRINT -> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')    
+    DynamicEventTree.localInitialize(self)  
 '''
  Interface Dictionary (factory) (private)
 '''
 __base = 'Sampler'
 __interFaceDict = {}
-__interFaceDict['MonteCarlo'                    ] = MonteCarlo
-__interFaceDict['DynamicEventTree'              ] = DynamicEventTree
-__interFaceDict['LHS'                           ] = LHS
-__interFaceDict['Grid'                          ] = Grid
-__interFaceDict['Adaptive'                      ] = AdaptiveSampler
-__interFaceDict['PreconditionedDynamicEventTree'] = PreconditionedDET
+__interFaceDict['MonteCarlo'              ] = MonteCarlo
+__interFaceDict['DynamicEventTree'        ] = DynamicEventTree
+__interFaceDict['LHS'                     ] = LHS
+__interFaceDict['Grid'                    ] = Grid
+__interFaceDict['Adaptive'                ] = AdaptiveSampler
+__interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __knownTypes = list(__interFaceDict.keys())
 
 def knonwnTypes():

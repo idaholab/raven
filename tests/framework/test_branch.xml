@@ -22,7 +22,7 @@
 </Distributions>
 
 <Samplers>
-  <DynamicEventTree name='DET_test' print_end_xml="False">
+  <DynamicEventTree name='DET_test' print_end_xml="True">
       <Distribution name='zeroToOne'>
           <distribution >zeroToOne</distribution>
           <grid type='CDF' construction='custom'>0.1 0.5 0.8</grid>

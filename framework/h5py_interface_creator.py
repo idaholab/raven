@@ -132,7 +132,7 @@ class hdf5Database(object):
       if 'parent_id' in attributes.keys(): parent_id = attributes['parent_id']
     if parent_id:
       #If Hierarchical structure, firstly add the root group 
-      if not self.firstRootGroup:
+      if not self.firstRootGroup or parent_id == 'root':
         self.__addGroupRootLevel(gname,attributes,source,upGroup)
         self.firstRootGroup = True
         self.type = 'DET'
