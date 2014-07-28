@@ -24,17 +24,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 
-RAVEN ~\cite{ravenFY12,alfonsiMC} is a software tool that is focused on performing statistical analysis of stochastic dynamic systems. RAVEN has been designed in a high modular and pluggable way in order to enable easy integration of different programming languages (i.e., C++, Python) and coupling with other applications (system codes). Among the several capabilities currently present in RAVEN, there are five different sampling strategies: Monte Carlo, Latin Hyper Cube, Grid, Adaptive and Dynamic Event Tree (DET) sampling methodologies~\cite{ravenFY14}. \\ The scope of this paper is to present a new sampling approach, currently under definition and implementation: an evolution of the DET method enhanced by the  sampling adaptivity features~\cite{mandelliSVMANS}. 
+RAVEN ~\cite{ravenFY12,alfonsiMC,alfonsiESREL2014} is a software tool that is focused on performing statistical analysis of stochastic dynamic systems. RAVEN has been designed in a high modular and pluggable way in order to enable easy integration of different programming languages (i.e., C++, Python) and coupling with other applications (system codes). Among the several capabilities currently present in RAVEN, there are five different sampling strategies: Monte Carlo, Latin Hyper Cube, Grid, Adaptive and Dynamic Event Tree (DET) sampling methodologies~\cite{ravenFY14}. \\ The scope of this paper is to present a new sampling approach, currently under definition and implementation: an evolution of the DET method enhanced by the  sampling adaptivity features~\cite{mandelliSVMANS}. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Dynamic Event Tree Methodology}
 %Before analyzing the new adaptive approach, a short overview regarding the basic DET method needs to be reported. 
-The DET technique brings several advantages~\cite{alfonsiPSA2013,ADAPTHakobyan} with respect the conventional event trees approach, among which the fact that it actually employs system simulators ij order to model the actual accident evolution. In DET,  event sequences run simultaneously starting from a single initiating event. The branchings occur at user specified times and/or when an action is required by the operator and/or the system, creating a deterministic sequence of events based on the time of their occurrence (see Fig.~\ref{fig:detScheme}). 
+The DET technique brings several advantages~\cite{alfonsiPSA2013,ADAPTHakobyan} with respect the conventional event trees approach, among which the fact that it actually employs system simulators in order to model the actual accident evolution. In DET,  event sequences run simultaneously starting from a single initiating event. The branchings occur at user specified times and/or when an action is required by the operator and/or the system, creating a deterministic sequence of events based on the time of their occurrence (see Fig.~\ref{fig:detScheme}). 
 
 This leads to a more realistic and mechanistically consistent analysis of the system taken in consideration. Thus, the DET methodology (along with other dynamic PRA methods) is designed to take explicitly into account the timing of events which can become very important especially when uncertainties in complex phenomena are considered. 
 
-Starting from an initiating event, the main idea behind the DET methodology is to let a system code (i.e., RELAP5-3D, RELAP-7, etc.) determine the pathway of an accident scenario within a probabilistic ``environment''. \\ Figure~\ref{fig:detScheme} schematically shows the DET logic. Based on an user defined branching logic, driven by \textbf{P}robabilistic \textbf{D}istribution \textbf{F}unctions (PDFs), an event occurs at a certain time instant. The simulation spoons $n$ different branches. In each of them, the branching event determines a different consequence (including an associated probabilities). Each sequence continues until another event occurs and a new set of branching is spooned. The simulation ends when an exit condition or a maximum mission time is reached.       
+Starting from an initiating event, the main idea behind the DET methodology is to let a system code (i.e., RELAP5-3D, RELAP-7, etc.) determine the pathway of an accident scenario within a probabilistic ``environment''. \\ Figure~\ref{fig:detScheme} schematically shows the DET logic. Based on an user defined branching logic, driven by Probabilistic Density Functions (PDFs), an event occurs at a certain time instant. The simulation spoons $n$ different branches. In each of them, the branching event determines a different consequence (including an associated probabilities). Each sequence continues until another event occurs and a new set of branching is spooned. The simulation ends when an exit condition or a maximum mission time is reached.       
 \begin{figure} % replace 't' with 'b' to force it to be on the bottom
   \centering
   \includegraphics[width=0.4\textwidth]{detScheme.png}
@@ -48,17 +48,17 @@ The  adaptive methodology can be considered as a goal oriented sampling strategi
 %The information content of the LS image is rather minimal because it only illustrates a property of the goal function with respect the status of the system. 
 It could be already noticed that the integration domain of the risk integral is the volume within the limit surface image $\partial V_{L}$:
 \begin{equation} 
-R=\int_{S\bigcap D} f _{\overline{X}}(\overline{x},t_{end}d\overline{x}) =\int_{V_{L}}    f _{\overline{X}}(\overline{x},t_{end}d\overline{x})    
+R=\int_{S\bigcap D} f _{\overline{X}}(\overline{x},t_{end})d\overline{x} =\int_{V_{L}}    f _{\overline{X}}(\overline{x},t_{end})d\overline{x}
 \end{equation}
 where, $D$ is the damaged space and the image of the limit surface $\partial V_{L}$ satisfies $\begin{vmatrix} \overline{\triangledown} C\left ( \partial V_{L} \right ) \end{vmatrix} = \infty $.
 In most of the cases\cite{MathFrameworkMC2013}, the probabilistic behavior can be studied as a function of uncertainty in the model parameters and initial conditions.
-Under this assumption, the phase space coordinates of the system at any moment in time is a function of $\overline{x_{0}}$, which represents the initial conditions and stochastic parameters characterizing the system. Therefore the system behavior can be now described by $\overline{x(t)}=h(\overline{x_{0}},t)$, where $h(\overline{x_{0}})$ is the mathematical model representing the system, once the initial conditions and the uncertain parameters are chosen. The probability propagates according:
+Under this assumption, the phase space coordinates of the system at any moment in time is a function of $\overline{x}_{0}$, which represents the initial conditions and stochastic parameters characterizing the system. Therefore the system behavior can be now described by $\overline{x}(t)=h(\overline{x}_{0},t)$, where $h(\overline{x}_{0})$ is the mathematical model representing the system, once the initial conditions and the uncertain parameters are chosen. The probability propagates according:
 \begin{equation} 
-f _{\overline{X}}(\overline{x})d\overline{x}) = f _{\overline{X}_{0}}(\overline{x}_{0})d\overline{x}_{0})
+f _{\overline{X}}(\overline{x})d\overline{x} = f _{\overline{X}_{0}}(\overline{x}_{0})d\overline{x}_{0}
 \end{equation}
 As a consequence the risk integral can be evaluated as:
 \begin{equation} 
-R=\int_{h^{-1}(V_{L})} f _{\overline{X}_{0}}(\overline{x}_{0})d\overline{x}_{0})
+R=\int_{h^{-1}(V_{L})} f _{\overline{X}_{0}}(\overline{x}_{0})d\overline{x}_{0}
 \end{equation}
 where $h^{-1}(V_{L})$ is the pre-image of $V_{L}$ and therefore $h^{-1}(\partial V_{L})$ is the limit surface.
 \\
@@ -88,7 +88,7 @@ For this reason, it appears natural to use the DET approach to perform a goal fu
 \item A limited number of points in the input space $\overline{x}_{0i}$ are selected via a DET approach
 \item The system code is used to compute the status of the system for the set of points in the input set:
 \begin{equation}
-    \overline{x(t)}=h(\overline{x_{0i}},t)
+    \overline{x}(t)=h(\overline{x}_{0i},t)
 \end{equation}
 \item The goal function (Boolean) is evaluated at the phase space coordinate of the system: 
 \begin{equation}
