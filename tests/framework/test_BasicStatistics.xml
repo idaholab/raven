@@ -2,7 +2,7 @@
 <Simulation>
 <RunInfo>
     <WorkingDir>basicStatistics</WorkingDir>
-    <Files>basicStatisticsExternalModelTest.py</Files>
+    <Files>basicStatisticsExternalModelTest.py,output_basicStatistics_PP1.csv,output_basicStatistics_PP2.csv,output_basicStatistics_PP3.csv</Files>
     <Sequence>FirstMRun,PP1,PP2,PP3</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
@@ -87,17 +87,17 @@
         <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model    class='Models'           type='PostProcessor'   >autoCorrelationTest</Model>
         <Function class='Functions'        type='External'        >testFunctionComputeProbability</Function>
-        <Output  class='Datas'             type='TimePointSet'    >TimePointSetPostProcTest</Output>
+        <Output   class='Files'            type=''                >output_basicStatistics_PP1.csv</Output>
     </PostProcess>
     <PostProcess name='PP2'>
         <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model   class='Models'           type='PostProcessor'   >NotCorrellatedTest</Model>
-        <Output  class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
+        <Output   class='Files'            type=''                >output_basicStatistics_PP2.csv</Output>
     </PostProcess>
     <PostProcess name='PP3'>
         <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model   class='Models'           type='PostProcessor'   >InverseCorrelatedTest</Model>
-        <Output  class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Output>
+        <Output   class='Files'            type=''                >output_basicStatistics_PP3.csv</Output>
     </PostProcess>
 </Steps>
 

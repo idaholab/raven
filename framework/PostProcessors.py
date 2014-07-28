@@ -277,58 +277,51 @@ class BasicStatistics(BasePostProcessor):
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    
-    with open(os.path.join(self.__workingDir,self.name+'_out.txt'), 'wb') as basicStatdump:
-      basicStatdump.write('POSTPROC: BasicStatistics '+str(self.name)+'pp outputs\n')
-      for targetP in self.parameters['targets']:
-        basicStatdump.write('        *************'+'*'*len(targetP)+'***\n')
-        basicStatdump.write('        * Variable * '+ targetP +'  *\n')
-        basicStatdump.write('        *************'+'*'*len(targetP)+'***\n')
+    if type(output) in [str,unicode,bytes]:
+      availextens = ['csv','txt']
+      outputextension = output.split('.')[-1].lower()
+      if outputextension not in availextens: 
+        print('POSTPROC: Warning -> BasicStatistics postprocessor output extension you input is '+outputextension)
+        print('                     Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
+        outputextension = availextens[0]
+      if outputextension != 'csv': separator = ' '
+      else                       : separator = ','
+      with open(os.path.join(self.__workingDir,output.split('.')[0]+'.'+outputextension), 'wb') as basicStatdump:
+        basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
+        basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
+        for targetP in self.parameters['targets']:
+          basicStatdump.write('Variable'+ separator + targetP +'\n')
+          basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
+          for what in outputDict.keys():
+            if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+              basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
+        maxLenght = max(len(max(self.parameters['targets'], key=len))+5,16)
         for what in outputDict.keys():
-          if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-            basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
-            basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *\n')
-            basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
-      maxLenght = max(len(max(self.parameters['targets'], key=len))+5,16)
-      if 'covariance' in outputDict.keys():
-        basicStatdump.write(' '*maxLenght+'*****************************\n')
-        basicStatdump.write(' '*maxLenght+'*         Covariance        *\n')
-        basicStatdump.write(' '*maxLenght+'*****************************\n')
-
-        basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
-        for index in range(len(self.parameters['targets'])):
-          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]])+'\n')
-      if 'pearson' in outputDict.keys():
-        basicStatdump.write(' '*maxLenght+'*****************************\n')
-        basicStatdump.write(' '*maxLenght+'*          Pearson          *\n')
-        basicStatdump.write(' '*maxLenght+'*****************************\n')
-        basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
-        for index in range(len(self.parameters['targets'])):
-          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]])+'\n')
-      if 'sensitivity' in outputDict.keys():
-        basicStatdump.write(' '*maxLenght+'*****************************\n')
-        basicStatdump.write(' '*maxLenght+'*        Sensitivity        *\n')
-        basicStatdump.write(' '*maxLenght+'*****************************\n')
-        basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
-        for index in range(len(self.parameters['targets'])):
-          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]])+'\n')
-      if 'NormalizedSensitivity' in outputDict.keys():
-        basicStatdump.write(' '*maxLenght+'*****************************\n')
-        basicStatdump.write(' '*maxLenght+'*   Normalized Sensitivity  *\n')
-        basicStatdump.write(' '*maxLenght+'*****************************\n')
-        basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
-        for index in range(len(self.parameters['targets'])):
-          basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]])+'\n')
-
+          if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
+            basicStatdump.write(what+' \n')
+            if outputextension != 'csv': basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
+            else                       : basicStatdump.write(''.join([str(item) + separator for item in self.parameters['targets']])+'\n')
+            for index in range(len(self.parameters['targets'])):
+              if outputextension != 'csv': basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict[what][index]])+'\n')
+              else                       : basicStatdump.write(self.parameters['targets'][index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
+        if self.externalFunction:
+          basicStatdump.write('\n' +'EXT FUNCTION \n')
+          basicStatdump.write('------------ \n')
+          for what in self.methodsToRun:
+            if what not in self.acceptedCalcParam: basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
+    elif output.type == 'Datas': 
+      for what in outputDict.keys():
+        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest: 
+          for targetP in self.parameters['targets']: output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
+        else:
+          if what not in methodToTest: 
+            output.updateMetadata('targets|'+what,self.parameters['targets'])
+            output.updateMetadata(what,outputDict[what])
       if self.externalFunction:
-        basicStatdump.write(' '*maxLenght+'+++++++++++++++++++++++++++++\n')
-        basicStatdump.write(' '*maxLenght+'+ OUTCOME FROM EXT FUNCTION +\n')
-        basicStatdump.write(' '*maxLenght+'+++++++++++++++++++++++++++++\n')
-        for what in self.methodsToRun:
-          if what not in self.acceptedCalcParam:
-            basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
-            basicStatdump.write('              '+'* '+what+' * ' + '%.8E' % outputDict[what]+'  *\n')
-            basicStatdump.write('              '+'**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***\n')
+        for what in self.methodsToRun: 
+          if what not in self.acceptedCalcParam: output.updateMetadata(what,outputDict[what])
+    elif output.type == 'HDF5' : print('POSTPROC: Warning -> BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else: raise IOError('POSTPROC: ERROR -> BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown!!')
 
   def run(self, InputIn):
     '''
