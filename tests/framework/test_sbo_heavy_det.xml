@@ -47,21 +47,31 @@
 </Distributions>
 <Samplers>
     <DynamicEventTree name='DET' print_end_xml='yes' maxSimulationTime='2500.0'>
-      <variable name='crew1DG1' >
-        <distribution   ProbabilityThresholds='0.8 0.9'>crew1DG1</distribution>
-      </variable> 
-      <variable name='crew1DG2CoupledDG1' >
-        <distribution   ProbabilityThresholds='0.8 0.9'>crew1DG2CoupledDG1</distribution>
-      </variable> 
-       <variable name='crewSecPG' >
-        <distribution   ProbabilityThresholds='0.8 0.9'>crewSecPG</distribution>
-      </variable> 
-      <variable name='PrimPGrecovery' >
-        <distribution   ProbabilityThresholds='0.9'>PrimPGrecovery</distribution>
-      </variable>     
-      <variable name='CladFailureDist' >
-        <distribution   ProbabilityThresholds='0.05 0.1 0.15'>CladFailureDist</distribution>
-      </variable>
+        <Distribution name='crew1DG1'>
+            <distribution >crew1DG1</distribution>
+            <grid type='CDF' construction='custom'>0.8 0.9</grid>
+        </Distribution>
+        
+        <Distribution name='crew1DG2CoupledDG1'>
+            <distribution >crew1DG2CoupledDG1</distribution>
+            <grid type='CDF' construction='custom'>0.8 0.9</grid>
+        </Distribution>
+        
+        <Distribution name='crewSecPG'>
+            <distribution >crewSecPG</distribution>
+            <grid type='CDF' construction='custom'>0.8 0.9</grid>
+        </Distribution>
+
+        <Distribution name='PrimPGrecovery'>
+            <distribution >PrimPGrecovery</distribution>
+            <grid type='CDF' construction='custom'>0.9</grid>
+        </Distribution>
+
+        <Distribution name='CladFailureDist'>
+           <distribution >CladFailureDist</distribution>
+           <grid type='CDF' construction='custom'>0.05 0.1 0.15</grid>
+        </Distribution>
+
     </DynamicEventTree>     
 </Samplers>
 <Steps> 
