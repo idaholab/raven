@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
 <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/trunk/raven/tests/framework/PreconditionedDynamicEventTree</WorkingDir>
+    <WorkingDir>PreconditionedDynamicEventTree</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py,DET_histories.csv</Files>
     <Sequence>PreconditionedDETrunTest,testOutstreamStep</Sequence>
     <batchSize>4</batchSize>
