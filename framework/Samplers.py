@@ -1365,9 +1365,9 @@ class DynamicEventTree(Grid):
       except (KeyError,NameError): raise IOError("SAMPLER DET   : ERROR -> Can not convert maxSimulationTime in float number!!!")
     for child in xmlNode:
       if child.tag == 'PreconditionerSampler':               
-        if not 'type' in child.attrib.keys()                          : raise IOError('PreconditionDET: ERROR -> Not found attribute type in PreconditionerSampler block!')
-        if child.attrib['type'] in self.preconditionerToApply.keys()  : raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
-        if child.attrib['type'] not in self.preconditionerAvail.keys(): raise IOError('PreconditionDET: ERROR -> PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
+        if not 'type' in child.attrib.keys()                          : raise IOError('SAMPLER DET   : ERROR -> Not found attribute type in PreconditionerSampler block!')
+        if child.attrib['type'] in self.preconditionerToApply.keys()  : raise IOError('SAMPLER DET   : ERROR -> PreconditionerSampler type '+child.attrib['type'] + ' already inputted!')
+        if child.attrib['type'] not in self.preconditionerAvail.keys(): raise IOError('SAMPLER DET   : ERROR -> PreconditionerSampler type' +child.attrib['type'] + 'unknown. Available are '+ str(self.preconditionerAvail.keys()).replace("[","").replace("]",""))
         self.precNumberSamplers = 1
         # the user can decided how to preconditionate 
         self.preconditionerToApply[child.attrib['type']] = self.preconditionerAvail[child.attrib['type']]()
@@ -1452,9 +1452,10 @@ class DynamicEventTree(Grid):
       self.branchProbabilities[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[kk]].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
     return
 
-class AdaptiveDET(DynamicEventTree):
-  def __init__(self):
-    DynamicEventTree.__init__(self)
+class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
+  #def __init__(self):
+  #  DynamicEventTree.__init__(self)
+  #  AdaptiveSampler.__init__(self)
   def localGenerateInput(self,model,myInput):
     DynamicEventTree.localGenerateInput(self,model,myInput)
   def localInputAndChecks(self,xmlNode):

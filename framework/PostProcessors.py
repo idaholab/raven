@@ -286,40 +286,54 @@ class BasicStatistics(BasePostProcessor):
         outputextension = availextens[0]
       if outputextension != 'csv': separator = ' '
       else                       : separator = ','
+      if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping output in file named ' + os.path.join(self.__workingDir,output.split('.')[0]+'.'+outputextension))
       with open(os.path.join(self.__workingDir,output.split('.')[0]+'.'+outputextension), 'wb') as basicStatdump:
         basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
         basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
         for targetP in self.parameters['targets']:
+          if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing variable '+ targetP)
           basicStatdump.write('Variable'+ separator + targetP +'\n')
           basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
           for what in outputDict.keys():
             if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+              if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
         maxLenght = max(len(max(self.parameters['targets'], key=len))+5,16)
         for what in outputDict.keys():
           if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
+            if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing parameter matrix '+ what )
             basicStatdump.write(what+' \n')
             if outputextension != 'csv': basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
-            else                       : basicStatdump.write(''.join([str(item) + separator for item in self.parameters['targets']])+'\n')
+            else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in self.parameters['targets']])+'\n')
             for index in range(len(self.parameters['targets'])):
               if outputextension != 'csv': basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict[what][index]])+'\n')
               else                       : basicStatdump.write(self.parameters['targets'][index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
         if self.externalFunction:
+          if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing External Function results')
           basicStatdump.write('\n' +'EXT FUNCTION \n')
           basicStatdump.write('------------ \n')
           for what in self.methodsToRun:
-            if what not in self.acceptedCalcParam: basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
+            if what not in self.acceptedCalcParam: 
+              if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing External Function parameter '+ what )
+              basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
     elif output.type == 'Datas': 
+      if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest: 
-          for targetP in self.parameters['targets']: output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
+          for targetP in self.parameters['targets']: 
+            if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
+            output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
         else:
           if what not in methodToTest: 
+            if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping matrix '+ what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
             output.updateMetadata('targets|'+what,self.parameters['targets'])
             output.updateMetadata(what,outputDict[what])
       if self.externalFunction:
+        if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping External Function results')
         for what in self.methodsToRun: 
-          if what not in self.acceptedCalcParam: output.updateMetadata(what,outputDict[what])
+          if what not in self.acceptedCalcParam: 
+            output.updateMetadata(what,outputDict[what])
+            if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping External Function parameter '+ what)
     elif output.type == 'HDF5' : print('POSTPROC: Warning -> BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
     else: raise IOError('POSTPROC: ERROR -> BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown!!')
 
