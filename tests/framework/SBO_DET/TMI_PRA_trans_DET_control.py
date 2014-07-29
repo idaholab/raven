@@ -4,6 +4,8 @@ import distribution1D
 import crowtools
 # initialize distribution container
 
+def keep_going_function(monitored, controlled, auxiliary): return auxiliary.keepGoing
+
 def restart_function(monitored, controlled, auxiliary):
     # here we store some critical parameters that we want in the output
     if auxiliary.CladDamaged and auxiliary.CladTempBranched == 0:
@@ -54,7 +56,7 @@ def initial_function(monitored, controlled, auxiliary):
     return
 
 def control_function(monitored, controlled, auxiliary):
-
+    if auxiliary.CladDamaged:  auxiliary.keepGoing = False
     if auxiliary.CladDamaged and auxiliary.CladTempBranched == 0:
         auxiliary.CladTempBranched = max(monitored.avg_temp_clad_CH1,monitored.avg_temp_clad_CH2,monitored.avg_temp_clad_CH3)
     if auxiliary.crew1DG1 and auxiliary.DG1recoveryTime == 0.0:
@@ -91,9 +93,10 @@ def control_function(monitored, controlled, auxiliary):
     else:
         auxiliary.DG1_time_ratio = 0
 
-    if auxiliary.CladDamaged:
-        if monitored.time_step > 1:
-            raise NameError ('exit condition reached - failure of the clad')
+
+    #if auxiliary.CladDamaged:
+    #        if monitored.time_step > 1:
+    #            raise NameError ('exit condition reached - failure of the clad')
     auxiliary.a_power_CH1 = controlled.power_CH1
     auxiliary.a_power_CH2 = controlled.power_CH2
     auxiliary.a_power_CH3 = controlled.power_CH3

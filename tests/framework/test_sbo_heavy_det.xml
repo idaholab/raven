@@ -49,27 +49,27 @@
     <DynamicEventTree name='DET' print_end_xml='yes' maxSimulationTime='2500.0'>
         <Distribution name='crew1DG1'>
             <distribution >crew1DG1</distribution>
-            <grid type='CDF' construction='custom'>0.8 0.9</grid>
+            <grid type='CDF' construction='custom'>0.1 0.4 0.8 0.9</grid>
         </Distribution>
         
         <Distribution name='crew1DG2CoupledDG1'>
             <distribution >crew1DG2CoupledDG1</distribution>
-            <grid type='CDF' construction='custom'>0.8 0.9</grid>
+            <grid type='CDF' construction='custom'>0.1 0.4 0.8 0.9</grid>
         </Distribution>
         
         <Distribution name='crewSecPG'>
             <distribution >crewSecPG</distribution>
-            <grid type='CDF' construction='custom'>0.8 0.9</grid>
+            <grid type='CDF' construction='custom'>0.1 0.4 0.8 0.9</grid>
         </Distribution>
 
         <Distribution name='PrimPGrecovery'>
             <distribution >PrimPGrecovery</distribution>
-            <grid type='CDF' construction='custom'>0.9</grid>
+            <grid type='CDF' construction='custom'>0.8 0.9</grid>
         </Distribution>
 
         <Distribution name='CladFailureDist'>
            <distribution >CladFailureDist</distribution>
-           <grid type='CDF' construction='custom'>0.05 0.1 0.15</grid>
+           <grid type='CDF' construction='custom'>0.05 0.1 0.15 0.5 0.9</grid>
         </Distribution>
 
     </DynamicEventTree>     

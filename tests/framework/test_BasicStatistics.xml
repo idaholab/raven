@@ -92,12 +92,12 @@
     <PostProcess name='PP2'>
         <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model   class='Models'           type='PostProcessor'   >NotCorrellatedTest</Model>
-        <Output   class='Files'            type=''                >output_basicStatistics_PP2.csv</Output>
+        <Output   class='Files'           type=''                >output_basicStatistics_PP2.csv</Output>
     </PostProcess>
     <PostProcess name='PP3'>
         <Input   class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
         <Model   class='Models'           type='PostProcessor'   >InverseCorrelatedTest</Model>
-        <Output   class='Files'            type=''                >output_basicStatistics_PP3.csv</Output>
+        <Output   class='Files'           type=''                >output_basicStatistics_PP3.csv</Output>
     </PostProcess>
 </Steps>
 

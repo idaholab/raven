@@ -8,7 +8,9 @@
   global_init_P = 15.17e6
   global_init_V = 0.
   global_init_T = 564.15
-  scaling_factor_var = '1.e-1 1.e-5 1.e-8'
+  scaling_factor_var   = '1e-3 1e-4 1e-8'
+ temperature_sf = '1e-4'
+ stabilization_type = 'LAPIDUS'
 []
 
 [EoS]
@@ -585,44 +587,51 @@
 []
 
 [Preconditioning]
-  # active = 'FDP_Newton'
-  # End preconditioning block
-  active = 'SMP_PJFNK'
-  [./SMP_PJFNK]
-    petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
-    full = true
-    type = SMP
-    petsc_options_value = 'ds             ds'
-    petsc_options = -snes_mf_operator
-  [../]
-  [./SMP]
-    full = true
-    type = SMP
-    petsc_options = -snes_mf_operator
-  [../]
-  [./FDP_PJFNK]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
-    petsc_options_iname = -mat_fd_type
-    full = true
-    type = FDP
-    petsc_options_value = ds
-    petsc_options = '-snes_mf_operator -pc_factor_shift_nonzero'
-  [../]
-  [./FDP_Newton]
-    # These options **together** cause a zero pivot in this problem, even without SUPG terms.
-    # But using either option alone appears to be OK.
-    # petsc_options_iname = '-mat_fd_coloring_err -mat_fd_type'
-    # petsc_options_value = '1.e-10               ds'
-    petsc_options_iname = -mat_fd_type
-    full = true
-    type = FDP
-    petsc_options_value = ds
-    petsc_options = -snes
-  [../]
-[]
+# active = 'SMP_Newton'
+ active = 'SMP_PJFNK'
+# active = 'FDP_PJFNK'
+# active = 'FDP_Newton'
+ 
+# The definitions of the above-named blocks follow.
+ [./SMP_PJFNK]
+ type = SMP
+ full = true
+ 
+# Preconditioned JFNK (default)
+ solve_type = 'PJFNK'
+ petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
+ petsc_options_value = 'ds             ds'
+ [../]
+ 
+ [./SMP_Newton]
+ type = SMP
+ full = true
+ solve_type = 'NEWTON'
+ [../]
+ 
+ [./FDP_PJFNK]
+ type = FDP
+ full = true
+ 
+# Preconditioned JFNK (default)
+ solve_type = 'PJFNK'
+ petsc_options_iname = '-mat_fd_coloring_err'
+ petsc_options_value = '1.e-10'
+ petsc_options_iname = '-mat_fd_type'
+ petsc_options_value = 'ds'
+ [../]
+ 
+ [./FDP_Newton]
+ type = FDP
+ full = true
+ solve_type = 'NEWTON'
+ 
+ petsc_options_iname = '-mat_fd_coloring_err'
+ petsc_options_value = '1.e-10'
+ petsc_options_iname = '-mat_fd_type'
+ petsc_options_value = 'ds'
+ [../]
+ [] # End preconditioning block
 
 [Executioner]
   # petsc_options_iname = '-ksp_gmres_restart -pc_type'
@@ -630,9 +639,9 @@
   # num_steps = '3'
   # time_t =  ' 0      1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     100.8    101.5  102.2 120.0  400 1000 1.0e5'
   # time_dt =  '1.e-1  0.1        0.15        0.20       0.25      0.30    0.35        0.40    0.45      0.09      0.005     0.008   0.2   0.2    0.2 0.3  0.6'
-  nl_abs_tol = 1e-8
+  nl_abs_tol = 1e-4 #5e-5
   restart_file_base = 0957
-  nl_rel_tol = 1e-5
+   nl_rel_tol = 1e-8 #1e-9
   ss_check_tol = 1e-05
   perf_log = true
   nl_max_its = 120
@@ -650,7 +659,7 @@
   dt = 5e-5
   petsc_options_iname = -pc_type
   e_tol = 10.0
-  l_tol = 1e-5 # Relative linear tolerance for each Krylov solve
+  l_tol = 1e-4 # Relative linear tolerance for each Krylov solve
   end_time = 2500.0
   e_max = 99999.
   [./TimeStepper]
@@ -1128,6 +1137,11 @@
  data_type = double
  print_csv = true
  initial_value = 0.0
+ [../]
+ [./keepGoing]
+ data_type = bool
+ print_csv = true
+ initial_value = true
  [../]
  []
  
