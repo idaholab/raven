@@ -36,12 +36,11 @@
  [./test_branch_heavy]
   type = 'RavenFramework'
   input = 'test_sbo_heavy_det.xml'
-  #skip = 'waiting for new output system fix'
   output = 'SBO_DET/DET/out~DET_1-2-2~TMI SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
-  csv = 'SBO_DET/stories_from_database_dump_1.csv'
-  max_time = 100000
+  csv = 'SBO_DET/stories_from_database_dump_8.csv SBO_DET/DET/out~DET_1-2-1-1-1-2~TMI.csv'
+  max_time = 1000000
   heavy=True
-  rel_err = 0.1
+  rel_err = 0.01
  [../]
 
  [./test_mpi]
