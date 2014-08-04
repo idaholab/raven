@@ -12,6 +12,7 @@ if not 'xrange' in dir(__builtins__):
 
 import numpy as np
 import csv
+from utils import returnPrintTag
 
 class CsvLoader:
   def __init__(self):
@@ -21,6 +22,8 @@ class CsvLoader:
     self.all_out_param      = False # all output parameters?
     self.field_names        = []    # 
     self.all_field_names    = []
+    self.type               = 'CsvLoader'
+    self.printTag           = returnPrintTag(self.type)
 
   def loadCsvFile(self,filein):
     '''
@@ -109,7 +112,7 @@ class CsvLoader:
         del tupleVar
       return(listhist_in,listhist_out)
     else:
-      raise IOError ('CSV LOADER : ******ERROR Type ' + options['type'] + 'unknown')
+      raise IOError (self.printTag+': ERROR -> Type ' + options['type'] + 'unknown')
     
   # loader for time point data type
   def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,inputTs):
@@ -135,7 +138,7 @@ class CsvLoader:
       time_float = float(time)
     if inputTs: ints = int(inputTs)
     else: ints = 0
-    if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR inputTs is greater than number of actual ts in file '+ str(filein) + '!')
+    if ints > data[:,0].size -1: raise IOError(self.printTag+': ERROR ->  inputTs is greater than number of actual ts in file '+ str(filein) + '!')
        
     #inDict  = inParamDict
     #outDict = outParamDict       
@@ -152,8 +155,7 @@ class CsvLoader:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
           inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
-        else:
-          raise Exception("ERROR: the parameter " + key + " has not been found")
+        else: raise Exception(self.printTag+": ERROR ->  the parameter " + key + " has not been found")
     
     # fill output param dictionary
     
@@ -165,10 +167,8 @@ class CsvLoader:
           outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))
       else:
         for key in outParam:
-          if key in self.all_field_names:
-            outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))       
-          else:
-            raise Exception("ERROR: the parameter " + key + " has not been found")
+          if key in self.all_field_names: outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))       
+          else: raise Exception(self.printTag+": ERROR ->  the parameter " + key + " has not been found")
     else:
       
       for i in data:
@@ -194,10 +194,8 @@ class CsvLoader:
                 else:
                   actual_value   = data[i,self.all_field_names.index(key)]
                   previous_value = data[i-1,self.all_field_names.index(key)] 
-                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
-                         
-              else:
-                raise Exception("ERROR: the parameter " + key + " has not been found")
+                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))        
+              else: raise Exception(self.printTag+": ERROR ->  the parameter " + key + " has not been found")
     return (inDict,outDict)
 
   def __csvLoaderForTimePointSet(self,filesin,time,inParam,outParam,inputTs):
@@ -227,7 +225,7 @@ class CsvLoader:
     for i in range(len(filesin)): 
       #load the data into the numpy array
       data = self.loadCsvFile(filesin[i])
-      if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR inputTs is greater than number of actual ts in file '+ str(filesin[i]) + '!') 
+      if ints > data[:,0].size -1: raise IOError(self.printTag+': ERROR ->  inputTs is greater than number of actual ts in file '+ str(filesin[i]) + '!') 
       if i == 0:
         if(self.all_out_param):
           self.field_names = self.all_field_names
@@ -244,7 +242,7 @@ class CsvLoader:
           inDict[key][i] = data[ints,ix]
           #inDict[key][i] = 1
         else:
-          raise Exception("ERROR: the parameter " + str(key) + " has not been found")
+          raise Exception(self.printTag+": ERROR ->  the parameter " + str(key) + " has not been found")
       # time end case
       if time_end:
         last_row = data[:,0].size - 1
@@ -263,7 +261,7 @@ class CsvLoader:
                 outDict[key] = np.zeros(len(filesin))
               outDict[key][i] = data[last_row,self.all_field_names.index(key)]
             else:
-              raise Exception("ERROR: the parameter " + str(key) + " has not been found")
+              raise Exception(self.printTag+": ERROR ->  the parameter " + str(key) + " has not been found")
       else:
         
         for i in data:
@@ -282,10 +280,7 @@ class CsvLoader:
                               
                   outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
                 else:
-                  if i == 0:
-                    #create numpy array
-                    outDict[key] = np.zeros(np.shape(len(filesin))) 
-                                    
+                  if i == 0: outDict[key] = np.zeros(np.shape(len(filesin)))
                   actual_value   = data[i,self.all_field_names.index(key)]
                   previous_value = data[i-1,self.all_field_names.index(key)] 
                   outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
@@ -295,19 +290,15 @@ class CsvLoader:
                   if(actual_time == previous_time):
                     if i == 0:
                       #create numpy array
-                      outDict[key] = np.zeros(np.shape(len(filesin))) 
-                                            
+                      outDict[key] = np.zeros(np.shape(len(filesin)))
                     outDict[key][i] = (data[i,self.all_field_names.index(key)]  - time_float) / actual_time 
                   else:
-                    if i == 0:
-                      #create numpy array
-                      outDict[key] = np.zeros(np.shape(len(filesin)))
-                    
+                    if i == 0: outDict[key] = np.zeros(np.shape(len(filesin)))
                     actual_value   = data[i,self.all_field_names.index(key)]
                     previous_value = data[i-1,self.all_field_names.index(key)] 
                     outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
                 else:
-                  raise Exception("ERROR: the parameter " + key + " has not been found")      
+                  raise Exception(self.printTag+": ERROR ->  the parameter " + key + " has not been found")      
       del data 
     return (inDict,outDict)
 
@@ -342,7 +333,7 @@ class CsvLoader:
       #time_float[0] = -1.0
     if inputTs: ints = int(inputTs)
     else: ints = 0
-    if ints > data[:,0].size : raise IOError('CSV LOADER : ******ERROR inputTs is greater than number of actual ts in file '+ str(filein) + '!')    
+    if ints > data[:,0].size-1: raise IOError(self.printTag+': ERROR ->  inputTs is greater than number of actual ts in file '+ str(filein) + '!')    
     inDict  = {}
     outDict = {}  
     
@@ -357,7 +348,7 @@ class CsvLoader:
           ix = self.all_field_names.index(key)
           inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
         else:
-          raise Exception("ERROR: the parameter " + key + " has not been found")
+          raise Exception(self.printTag+': ERROR ->  the parameter ' + key + ' has not been found')
     
     # time all case
     if time_all:
@@ -369,7 +360,7 @@ class CsvLoader:
           if key in self.all_field_names:
             outDict[key] = data[:,self.all_field_names.index(key)]        
           else:
-            raise Exception("ERROR: the parameter " + key + " has not been found")
+            raise Exception(self.printTag+": ERROR ->  the parameter " + key + " has not been found")
     else:
       # it will be implemented when we decide a strategy about time filtering 
       ## for now it is a copy paste of the time_all case
@@ -381,5 +372,5 @@ class CsvLoader:
           if key in self.all_field_names:
             outDict[key] = data[:,self.all_field_names.index(key)]        
           else:
-            raise Exception("ERROR: the parameter " + key + " has not been found")      
+            raise Exception(self.printTag+": ERROR ->  the parameter " + key + " has not been found")      
     return (inDict,outDict)         

@@ -5,6 +5,7 @@ Created on Mar 16, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+from utils    import returnPrintTag
 
 class BaseType(object):
   '''this is the base class for each general type used by the simulation'''
@@ -16,15 +17,16 @@ class BaseType(object):
     self.globalAttributes = None    #this is a dictionary that contains parameters that are set at the level of the base classes defining the types    
     self._knownAttribute  = []      #this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','debug']
-    
+    self.printTag         = returnPrintTag('BaseType')
+
   def readXML(self,xmlNode,debug=False,globalAttributes=None):
     '''
     provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
     that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag)
     '''
     if 'name' in xmlNode.attrib.keys(): self.name = xmlNode.attrib['name']
-    else: raise IOError('not found name for a '+self.__class__.__name__)
-    self.type = xmlNode.tag
+    else: raise IOError(self.printTag+':not found name for a '+self.__class__.__name__)
+    self.type     = xmlNode.tag
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'debug' in xmlNode.attrib:
       if   xmlNode.attrib['debug'].lower() in ['true','t','yes'] : self.debug = True
@@ -33,7 +35,7 @@ class BaseType(object):
     else                                     : self.debug = debug
     self._readMoreXML(xmlNode)
     if self.debug:
-      print('------Reading Completed for:')
+      print(self.printTag+'------Reading Completed for:')
       self.printMe()
 
   def _readMoreXML(self,xmlNode):
@@ -82,10 +84,10 @@ class BaseType(object):
     tempDict = self.whoAreYou()
     for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myInitializzationParams()
-    print('Initialization Parameters:')
+    print(self.printTag+'Initialization Parameters:')
     for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
     tempDict = self.myCurrentSetting()
-    print('Current Setting:')
+    print(self.printTag+'Current Setting:')
     for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
     print('\n')
     

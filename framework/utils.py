@@ -1,4 +1,9 @@
 import numpy as np
+import bisect
+
+def getPrintTagLenght(): return 25
+
+def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())
 
 def toString(s):
   if type(s) == type(""):
@@ -77,7 +82,7 @@ def first(c):
   return next(iter(c))
 
 def importFromPath(filename, printImporting = True):
-    if printImporting: print('importing module '+ filename)
+    if printImporting: print(returnPrintTag('UTILS')+': Message -> importing module '+ filename)
     import imp, os.path
     try:
       (path, name) = os.path.split(filename)
@@ -86,7 +91,42 @@ def importFromPath(filename, printImporting = True):
       importedModule = imp.load_module(name, file, filename, data)
     except: importedModule = None   
     return importedModule
- 
+
+def index(a, x):
+    'Locate the leftmost value exactly equal to x'
+    i = bisect.bisect_left(a, x)
+    if i != len(a) and a[i] == x: return i
+    return None
+
+def find_lt(a, x):
+    'Find rightmost value less than x'
+    i = bisect.bisect_left(a, x)
+    if i: return a[i-1],i-1
+    return None,None
+
+def find_le_index(a,x):
+    'Find the index of the rightmost value less than or equal to x'
+    i = bisect.bisect_right(a, x)
+    if i: return i-1
+    return None
+  
+def find_le(a, x):
+    'Find rightmost value less than or equal to x'
+    i = bisect.bisect_right(a, x)
+    if i: return a[i-1],i-1
+    return None,None
+
+def find_gt(a, x):
+    'Find leftmost value greater than x'
+    i = bisect.bisect_right(a, x)
+    if i != len(a): return a[i],i
+    return None,None
+
+def find_ge(a, x):
+    'Find leftmost item greater than or equal to x'
+    i = bisect.bisect_left(a, x)
+    if i != len(a): return a[i],i
+    return None,None 
 
 def metaclass_insert(metaclass,*base_classes):
   """This allows a metaclass to be inserted as a base class.

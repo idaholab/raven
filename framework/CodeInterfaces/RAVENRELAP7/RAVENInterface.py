@@ -39,13 +39,14 @@ class RAVENInterface:
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
     MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
-    self._samplersDictionary                          = {}
-    self._samplersDictionary['MonteCarlo'           ] = self.monteCarloForRAVEN
-    self._samplersDictionary['Grid'                 ] = self.gridForRAVEN
-    self._samplersDictionary['Adaptive'             ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
-    self._samplersDictionary['LHS'                  ] = self.latinHyperCubeForRAVEN
-    self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForRAVEN
-    self._samplersDictionary['StochasticCollocation'] = self.stochasticCollocationForRAVEN
+    self._samplersDictionary                             = {}
+    self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRAVEN
+    self._samplersDictionary['Grid'                    ] = self.gridForRAVEN
+    self._samplersDictionary['Adaptive'                ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
+    self._samplersDictionary['LHS'                     ] = self.latinHyperCubeForRAVEN
+    self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRAVEN
+    self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRAVEN
+    self._samplersDictionary['StochasticCollocation'   ] = self.stochasticCollocationForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
@@ -91,7 +92,10 @@ class RAVENInterface:
     modifDict[b'RNG_seed'] = str(RNG_seed)
     listDict.append(modifDict)
     return listDict
-
+  
+  def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs):
+    return self.dynamicEventTreeForRAVEN(**Kwargs) 
+  
   def dynamicEventTreeForRAVEN(self,**Kwargs):
     
     listDict = []

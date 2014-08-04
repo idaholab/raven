@@ -15,6 +15,7 @@ import subprocess
 import os
 import signal
 import copy
+from utils import returnPrintTag
 #import logging, logging.handlers
 import threading 
 
@@ -118,7 +119,7 @@ class ExternalRunner:
   
   def kill(self):
     #In python 2.6 this could be self.process.terminate()
-    print("JOB HANDLER   : Terminating ",self.__process.pid,self.command)
+    print(returnPrintTag('JOB HANDLER')+ ": Terminating ",self.__process.pid,self.command)
     os.kill(self.__process.pid,signal.SIGTERM)    
 
   def getWorkingDir(self): return self.__workingDir
@@ -137,7 +138,7 @@ class InternalRunner:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
-    if type(Input) != tuple: raise IOError("JOB HANDLER   : ERROR -> The input for InternalRunner needs to be a tuple!!!!")
+    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HADLER') + ": ERROR -> The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
     self.subque          = queue.Queue()
     self.functionToRun   = functionToRun
@@ -169,11 +170,11 @@ class InternalRunner:
   def start(self): 
     try: self.__thread.start()
     except Exception as ae:
-      print("JOB HANDLER   : ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
+      print(returnPrintTag('JOB HADLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
       self.retcode = -1
   
   def kill(self): 
-    print("JOB HANDLER   : Terminating ",self.__thread.ident(), " Identifier " + self.identifier)
+    print(returnPrintTag('JOB HADLER')+": Terminating ",self.__thread.ident(), " Identifier " + self.identifier)
     os.kill(self.__thread.ident(),signal.SIGTERM)    
 
 class JobHandler:
@@ -255,17 +256,17 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            print("JOB HANDLER   : Process Failed ",running,running.command," returncode",returncode)
+            print(returnPrintTag('JOB HADLER')+": Process Failed ",running,running.command," returncode",returncode)
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
             outputFilename = running.getOutputFilename()
             if os.path.exists(outputFilename):
               print(open(outputFilename,"r").read())
             else:
-              print("No output ",outputFilename)
+              print(returnPrintTag('JOB HADLER')+" No output ",outputFilename)
           else:
             if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
-              print('JOB HANDLER   : Run "' +running.identifier+'" ended smoothly, removing log file!')
+              print('JOB HANDLER'.ljust(25) + ': Run "' +running.identifier+'" ended smoothly, removing log file!')
               if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
             if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
               for fileExt in self.runInfoDict['deleteOutExtension']:

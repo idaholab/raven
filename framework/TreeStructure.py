@@ -174,6 +174,18 @@ class Node(object):
       for e in e.iter(name):
         yield e
 
+  def iterProvidedFunction(self, providedFunction):
+    '''
+       Creates a tree iterator.  The iterator loops over this node
+       and all subnodes and returns all nodes for which the providedFunction returns True
+       @ In, string, name of the branch wanted        
+    '''
+    if  providedFunction(self.values):
+      yield self
+    for e in self._branches:
+      for e in e.iterProvidedFunction(providedFunction):
+        yield e
+
   def iterEnding(self):
     '''
        Creates a tree iterator for ending branches.  The iterator loops over this node
@@ -245,6 +257,13 @@ class NodeTree(object):
       @ Out, the iterator
     '''
     return self._rootnode.iterEnding()
+
+  def iterProvidedFunction(self, providedFunction):
+    '''
+      Method for creating a tree iterator for the root node (depending on returning of provided function)
+      @ Out, the iterator
+    '''
+    return self._rootnode.iterProvidedFunction(providedFunction)  
 
   def iterWholeBackTrace(self,startnode):
     '''

@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 #External Modules--------------------end
-
+from utils import returnPrintTag
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 ravenDir = os.path.dirname(frameworkDir)
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]))
     else:
-      print('WARNING:',configFile,' should only have Simulation and inside it RunInfo')
+      print(returnPrintTag('DRIVER') + ' -> WARNING:',configFile,' should only have Simulation and inside it RunInfo')
 
   # Find the XML input file
   if len(sys.argv) == 1:
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     #except?  raise IOError('not possible to parse (xml based) the input file '+inputFile)
     if debug: print('opened file '+inputFile)
     root = tree.getroot()
-    if root.tag != 'Simulation': raise IOError ('The outermost block of the input file '+inputFile+' it is not Simulation')
+    if root.tag != 'Simulation': raise IOError (returnPrintTag('DRIVER') +' The outermost block of the input file '+inputFile+' it is not Simulation')
     #generate all the components of the simulation
 
     #Call the function to read and construct each single module of the simulation

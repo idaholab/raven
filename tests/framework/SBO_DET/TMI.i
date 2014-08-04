@@ -647,7 +647,7 @@
   nl_max_its = 120
   type = RavenExecutioner
   max_increase = 3
-  petsc_options_value = lu # '300'
+  petsc_options_value = 'lu 30' # '300'
   l_max_its = 100 # Number of linear iterations for each Krylov solve
   start_time = 100.0
   [./Predictor]

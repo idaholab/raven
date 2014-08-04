@@ -34,14 +34,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one         
     if inParamValues: 
-      if type(inParamValues) != dict: raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
+      if type(inParamValues) != dict: raise ConstructError('DATAS'.ljust(25)+': ERROR ->  in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
       self._dataContainer['inputs'] = inParamValues
     if outParamValues: 
-      if type(outParamValues) != dict: raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
+      if type(outParamValues) != dict: raise ConstructError('DATAS'.ljust(25)+': ERROR ->  in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
       self._dataContainer['outputs'] = outParamValues
     self.notAllowedInputs  = []#this is a list of keyword that are not allowed as inputs
     self.notAllowedOutputs = []#this is a list of keyword that are not allowed as Outputs
-    self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8]                      
+    self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8]
+    self.printTag = utils.returnPrintTag('DATAS') 
+             
   def _readMoreXML(self,xmlNode):
     '''
     Function to read the xml input block.
@@ -57,7 +59,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       raise IOError('the keyword '+str(set(xmlNode.find('Output' ).text.strip().split(','))&set(self.notAllowedOutputs))+' is not allowed among inputs')
     #test for same input/output variables name
     if len(set(xmlNode.find('Input' ).text.strip().split(','))&set(xmlNode.find('Output' ).text.strip().split(',')))!=0:
-      raise IOError('It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
+      raise IOError(self.printTag+': ERROR -> It is not allowed to have the same name of input/output variables in the data '+self.name+' of type '+self.type)
     #
     # retrieve history name if present
     try:   self._dataParameters['history'] = xmlNode.find('Input' ).attrib['name']
@@ -73,17 +75,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if 'operator' in xmlNode.attrib.keys():
       # check if time information are present... in case, store it
       self._dataParameters['operator'] = xmlNode.attrib['operator'].lower()
-      if self._dataParameters['operator'] not in ['min','max','average']: raise IOError("DATAS     : ERROR -> Only operation available are "+str(['min','max','average'])+" .Data named "+ self.name + "of type " + self.type  ) 
+      if self._dataParameters['operator'] not in ['min','max','average']: raise IOError(self.printTag+': ERROR ->  Only operation available are '+str(['min','max','average'])+' .Data named '+ self.name + 'of type ' + self.type  ) 
        
     # check if inputTs is provided => the time step that the inputs refer to
     try: self._dataParameters['inputTs'] = int(xmlNode.attrib['inputTs'])
     except KeyError:self._dataParameters['inputTs'] = None
     # check if this data needs to be in hierarchical fashion 
     if 'hierarchical' in xmlNode.attrib.keys():
-      if xmlNode.attrib['hierarchical'].lower() in ['true','t','1']: self._dataParameters['hierarchical'] = True
+      if xmlNode.attrib['hierarchical'].lower() in ['true','t','1','yes','y']: self._dataParameters['hierarchical'] = True
       else: self._dataParameters['hierarchical'] = False
       if self._dataParameters['hierarchical'] and not self.acceptHierarchical(): 
-        print("DATAS     : WARNING -> hierarchical fashion is not available (No Sense) for Data named "+ self.name + "of type " + self.type + "!!!")
+        print(self.printTag+': Warning ->  hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
         self._dataParameters['hierarchical'] = False
       else: 
         self.TSData = None
@@ -159,7 +161,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: return self.getHierParam('metadata',nodeid,keyword,serialize)
     else:   
       if keyword in self._dataContainer['metadata'].keys(): return self._dataContainer ['metadata'][keyword]
-      else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in metadata dictionary. Available keys are "+str(self._dataContainer['metadata'].keys())+".Function: Data.getMetadata")    
+      else: raise Exception(self.printTag+': ERROR ->  parameter ' + str(keyword) + ' not found in metadata dictionary. Available keys are '+str(self._dataContainer['metadata'].keys())+'.Function: Data.getMetadata')    
 
   def getAllMetadata(self,nodeid=None,serialize=False):
     if self._dataParameters['hierarchical']: return self.getHierParam('metadata',nodeid,None,serialize)
@@ -189,9 +191,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   def __getVariablesToPrint(self,var,inOrOut):
-    """ Returns a list of variables to print.
-    Takes the variable and either "input" or "output"
-    """
+    ''' Returns a list of variables to print.
+    Takes the variable and either 'input' or 'output'
+    '''
     variables_to_print = []
     lvar = var.lower()
     if type(list(self._dataContainer[inOrOut+'s'].values())[0]) == dict: varKeys = list(self._dataContainer[inOrOut+'s'].values())[0].keys()
@@ -200,9 +202,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for invar in varKeys: variables_to_print.append(inOrOut+'|'+str(invar))  
     elif '|' in var and lvar.startswith(inOrOut+'|'):
       varName = var.split('|')[1]
-      if varName not in varKeys: raise Exception("DATAS     : ERROR -> variable " + varName + " is not present among the "+inOrOut+"s of Data " + self.name)
+      if varName not in varKeys: raise Exception(self.printTag+': ERROR ->  variable ' + varName + ' is not present among the '+inOrOut+'s of Data ' + self.name)
       else: variables_to_print.append(inOrOut+'|'+str(varName))
-    else: raise Exception("DATAS    : ERROR -> unexpected variable "+ var)
+    else: raise Exception(self.printTag+': ERROR ->  unexpected variable '+ var)
     return variables_to_print
 
   def printCSV(self,options=None):
@@ -215,9 +217,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     options_int = {}
     # print content of data in a .csv format
     if self.debug:
-      print('=======================')
-      print('DATAS: print on file(s)')
-      print('=======================')
+      print(' '*len(self.printTag)+':=======================')
+      print(' '*len(self.printTag)+':DATAS: print on file(s)')
+      print(' '*len(self.printTag)+':=======================')
     if options:
       if ('filenameroot' in options.keys()): filenameLocal = options['filenameroot']
       else: filenameLocal = self.name + '_dump'
@@ -229,24 +231,24 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             variables_to_print.extend(self.__getVariablesToPrint(var,'input'))
           elif lvar.startswith('output'):
             variables_to_print.extend(self.__getVariablesToPrint(var,'output'))
-          else: raise Exception("DATAS     : ERROR -> variable " + var + " is unknown in Data " + self.name + ". You need to specify an input or a output")
+          else: raise Exception(self.printTag+': ERROR -> variable ' + var + ' is unknown in Data ' + self.name + '. You need to specify an input or a output')
         options_int['variables'] = variables_to_print
     else:   filenameLocal = self.name + '_dump'
     
     self.specializedPrintCSV(filenameLocal,options_int)
 
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
-    """Creates an XML file to contain the input and output data list
+    '''Creates an XML file to contain the input and output data list
     and the type.
-    """
+    '''
     myXMLFile = open(filenameLocal + '.xml', 'w')
-    root = ET.Element("data",{"name":filenameLocal,"type":fileType})
+    root = ET.Element('data',{'name':filenameLocal,'type':fileType})
     inputNode = ET.SubElement(root,'input')
     inputNode.text = ','.join(inpKeys)
     outputNode = ET.SubElement(root,'output')
     outputNode.text = ','.join(outKeys) 
     filenameNode = ET.SubElement(root,'input_filename')
-    filenameNode.text = filenameLocal + ".csv"
+    filenameNode.text = filenameLocal + '.csv'
     if len(self._dataContainer['metadata'].keys()) > 0:
       #write metadata as well_known_implementations
       metadataNode = ET.SubElement(root,'metadata')
@@ -254,9 +256,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       for key,value in self._dataContainer['metadata'].items():
         if key not in self.metaExclXml:
           submetadataNodes.append(ET.SubElement(metadataNode,key))
-          submetadataNodes[-1].text = utils.toString(str(value)).replace("[","").replace("]","").replace("{","").replace("}","")
+          submetadataNodes[-1].text = utils.toString(str(value)).replace('[','').replace(']','').replace('{','').replace('}','')
     myXMLFile.write(utils.toString(ET.tostring(root)))
-    myXMLFile.write("\n")
+    myXMLFile.write('\n')
     myXMLFile.close()
 
   def addOutput(self,toLoadFrom,options=None):
@@ -264,18 +266,18 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       Function to construct a data from a source
       @ In, toLoadFrom, loading source, it can be an HDF5 database, a csv file and in the future a xml file
       @ In, options, it's a dictionary of options. For example useful for metadata storing or, 
-                     in case an hierarchical fashion has been requested, it must contain the parent_id and the name of the actual "branch"
+                     in case an hierarchical fashion has been requested, it must contain the parent_id and the name of the actual 'branch'
     '''
     self._toLoadFromList.append(toLoadFrom)
     self.addSpecializedReadingSettings()
 
     sourceType = None
-    print('DATAS         : Constructiong data type "' +self.type +'" named "'+ self.name + '" from:')
+    print(self.printTag+': PRINT ->  Constructiong data type '' +self.type +'' named ''+ self.name + '' from:')
     try:    
       sourceType =  self._toLoadFromList[-1].type
-      print(' '*16 +'Object type "' + self._toLoadFromList[-1].type + '" named "' + self._toLoadFromList[-1].name+ '"')
+      print(self.printTag+': PRINT -> Object type ' + self._toLoadFromList[-1].type + ' named ' + self._toLoadFromList[-1].name)
     except AttributeError: 
-      print(' '*16 +'CSV "' + toLoadFrom + '"')
+      print(self.printTag+': PRINT -> Object type' +'CSV named ' + toLoadFrom)
   
     if(sourceType == 'HDF5'):
       tupleVar = self._toLoadFromList[-1].retrieveData(self._dataParameters)
@@ -286,7 +288,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         else:
           if 'parent_id' in options.keys(): parent_id = options['parent_id']
         if parent_id and self._dataParameters['hierarchical']: 
-          print('DATAS         : WARNING -> Data storing in hierarchical fashion from HDF5 not yet implemented!')
+          print(self.printTag+': Warning ->  Data storing in hierarchical fashion from HDF5 not yet implemented!')
           self._dataParameters['hierarchical'] = False
     else: tupleVar = ld().csvLoadData([toLoadFrom],self._dataParameters) 
     
@@ -319,30 +321,22 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                 if type(elem) == dict:
                   for ke ,val  in elem.items():
                     self.updateMetadata(ke, val, options)    
-                else: raise IOError('DATAS     : ERROR -> unknown type for metadata adding process. Relevant type = '+ str(elem))             
+                else: raise IOError(self.printTag+': ERROR ->  unknown type for metadata adding process. Relevant type = '+ str(elem))             
            
         else: 
           print('FIXME: This if statement is for back Compatibility... Remove it whitin end of July')
-          if tupleVar[2][hist]: raise IOError('DATAS     : ERROR -> unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))         
-        #if type(tupleVar[2][hist]) == dict:
-        #  for key in tupleVar[1][hist].keys(): 
-        #    self.updateMetadata(key, tupleVar[2][hist][key], options)
-        #else: 
-        #  if self.type in ['TimePoint','TimePointSet']:
-        #    for index in range(tupleVar[2][hist].size): 
-        #      self.updateMetadata(hist, tupleVar[2][hist][index], options) 
-        #  else: self.updateMetadata(hist, tupleVar[2][hist], options)        
+          if tupleVar[2][hist]: raise IOError(self.printTag+': ERROR ->  unknown type for metadata adding process. Relevant type = '+ str(type(tupleVar[2][hist])))              
     self.checkConsistency()
     return
 
-  def getParametersValues(self,typeVar):
+  def getParametersValues(self,typeVar,nodeid=None, serialize=False):
     '''
     Functions to get the parameter values
     @ In, variable type (input or output)
     '''
-    if    typeVar.lower() in "inputs" : return self.getInpParametersValues()
-    elif  typeVar.lower() in "outputs": return self.getOutParametersValues()
-    else: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParametersValues")
+    if    typeVar.lower() in 'inputs' : return self.getInpParametersValues(nodeid,serialize)
+    elif  typeVar.lower() in 'outputs': return self.getOutParametersValues(nodeid,serialize)
+    else: raise Exception(self.printTag+': ERROR ->  type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
   
   def getParaKeys(self,typePara):
     '''
@@ -351,7 +345,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     if   typePara.lower() in 'inputs' : return self._dataParameters['inParam' ]
     elif typePara.lower() in 'outputs': return self._dataParameters['outParam']
-    else: raise Exception("DATAS     : ERROR -> type " + typePara + " is not a valid type. Function: Data.getParaKeys")
+    else: raise Exception(self.printTag+': ERROR ->  type ' + typePara + ' is not a valid type. Function: Data.getParaKeys')
 
   def isItEmpty(self):
     '''
@@ -383,7 +377,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @, Out, Reference to self._dataContainer['outputs'] or something else in hierarchical
     '''
     if self._dataParameters['hierarchical']: return self.getHierParam('outputs',nodeid,serialize=serialize)
-    else:                                   return self._dataContainer['outputs']      
+    else:                                    return self._dataContainer['outputs']      
   
   def getParam(self,typeVar,keyword,nodeid=None,serialize=False):
     '''
@@ -394,22 +388,22 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     if self.type == 'Histories': acceptedType = [str,unicode,bytes,int]
     else                       : acceptedType = [str,unicode,bytes]
-    if type(typeVar) not in [str,unicode,bytes] : raise Exception("DATAS     : ERROR -> type of parameter typeVar needs to be a string. Function: Data.getParam")
-    if type(keyword) not in acceptedType        : raise Exception("DATAS     : ERROR -> type of parameter keyword needs to be "+str(acceptedType)+" . Function: Data.getParam")
+    if type(typeVar) not in [str,unicode,bytes] : raise Exception(self.printTag+': ERROR ->  type of parameter typeVar needs to be a string. Function: Data.getParam')
+    if type(keyword) not in acceptedType        : raise Exception(self.printTag+': ERROR ->  type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeid:
-      if type(nodeid) not in [str,unicode,bytes]  : raise Exception("DATAS     : ERROR -> type of parameter nodeid needs to be a string. Function: Data.getParam")
-    if typeVar.lower() not in ["input","inputs","output","outputs"]: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
+      if type(nodeid) not in [str,unicode,bytes]  : raise Exception(self.printTag+': ERROR ->  type of parameter nodeid needs to be a string. Function: Data.getParam')
+    if typeVar.lower() not in ['input','inputs','output','outputs']: raise Exception(self.printTag+': ERROR ->  type ' + typeVar + ' is not a valid type. Function: Data.getParam')
     if self._dataParameters['hierarchical']: 
       if type(keyword) == int: 
         return list(self.getHierParam(typeVar.lower(),nodeid,None,serialize).values())[keyword-1]
       else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
     else:
-      if typeVar.lower() in ["input","inputs"]:
+      if typeVar.lower() in ['input','inputs']:
         if keyword in self._dataContainer['inputs'].keys(): return self._dataContainer['inputs'][keyword]
-        else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in inpParametersValues dictionary. Available keys are "+str(self._dataContainer['inputs'].keys())+".Function: Data.getParam")    
-      elif typeVar.lower() in ["output","outputs"]:
+        else: raise Exception(self.printTag+': ERROR ->  parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')    
+      elif typeVar.lower() in ['output','outputs']:
         if keyword in self._dataContainer['outputs'].keys(): return self._dataContainer['outputs'][keyword]    
-        else: raise Exception("DATAS     : ERROR -> parameter " + str(keyword) + " not found in outParametersValues dictionary. Available keys are "+str(self._dataContainer['outputs'].keys())+".Function: Data.getParam")
+        else: raise Exception(self.printTag+': ERROR ->  parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
     
   def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''
@@ -433,7 +427,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myType=self.type
     if   varName in self._dataParameters['inParam' ]: inOutType = 'input'
     elif varName in self._dataParameters['outParam']: inOutType = 'output'
-    else: raise Exception('the variable named '+varName+' was not found in the data: '+self.name)
+    else: raise Exception(self.printTag+': ERROR -> the variable named '+varName+' was not found in the data: '+self.name)
     return self.__extractValueLocal__(myType,inOutType,varTyp,varName,varID,stepID,nodeid)
   
   @abc.abstractmethod
@@ -449,7 +443,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In,  typeVar,  string, it's the variable type... input,output, or inout
       @ In,  nodeid,   string, it's the node name... if == None or *, a dictionary of of data is returned, otherwise the actual node data is returned in a dict as well (see serialize attribute)
       @ In, keyword,   string, it's a parameter name (for example, cladTemperature), if None, the whole dict is returned, otherwise the parameter value is got (see serialize attribute)
-      @ In, serialize, bool  , if true a sequence of TimePointSet is generated (a dictionary where the keys are the "ending" branches and the values are a sorted list of _dataContainers (from first branch to the ending ones)
+      @ In, serialize, bool  , if true a sequence of TimePointSet is generated (a dictionary where the keys are the 'ending' branches and the values are a sorted list of _dataContainers (from first branch to the ending ones)
                                if false see explaination for nodeid 
       @ Out, a dictionary of data (see above)
     '''
@@ -463,34 +457,34 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             nodesDict[node.name] = []
             for se in list(TSData.iterWholeBackTrace(node)):
               if typeVar   in 'inout'              and not keyword: nodesDict[node.name].append( se.get('dataContainer'))
-              elif typeVar in ['inputs',"input"]   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
-              elif typeVar in ["output","outputs"] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
+              elif typeVar in ['inputs','input']   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
+              elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
               elif typeVar in 'metadata'           and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-              elif typeVar in ['inputs',"input"]   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-              elif typeVar in ["output","outputs"] and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
+              elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
+              elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
               elif typeVar in 'metadata'           and     keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])    
       else:
         for TSData in self.TSData.values():
           for node in TSData.iter():
             if typeVar   in 'inout'              and not keyword: nodesDict[node.name] = node.get('dataContainer')
-            elif typeVar in ['inputs',"input"]   and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ]
-            elif typeVar in ["output","outputs"] and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ] 
+            elif typeVar in ['inputs','input']   and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ]
+            elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ] 
             elif typeVar in 'metadata'           and not keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'] 
-            elif typeVar in ['inputs',"input"]   and     keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ][keyword] 
-            elif typeVar in ["output","outputs"] and     keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ][keyword]
+            elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ][keyword] 
+            elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ][keyword]
             elif typeVar in 'metadata'           and     keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'][keyword]
-    elif nodeid == 'ending' or (nodeid == 'RecontructEnding' and self.type == 'TimePointSet'):
+    elif nodeid == 'ending':
       for TSDat in self.TSData.values():
         for ending in TSDat.iterEnding(): 
           if typeVar   in 'inout'              and not keyword: nodesDict[ending.name] = ending.get('dataContainer')
-          elif typeVar in ['inputs',"input"]   and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ]
-          elif typeVar in ["output","outputs"] and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ] 
+          elif typeVar in ['inputs','input']   and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ]
+          elif typeVar in ['output','outputs'] and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ] 
           elif typeVar in 'metadata'           and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['metadata'] 
-          elif typeVar in ['inputs',"input"]   and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ][keyword] 
-          elif typeVar in ["output","outputs"] and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ][keyword]
+          elif typeVar in ['inputs','input']   and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ][keyword] 
+          elif typeVar in ['output','outputs'] and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ][keyword]
           elif typeVar in 'metadata'           and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['metadata'][keyword]
     elif nodeid == 'RecontructEnding':
-      # if history, reconstruct the history... if timepoint set take the last one (see above)
+      # if history, reconstruct the history... if timepoint set take the last one (see below)
       backTrace = {}
       for TSData in self.TSData.values():
         for node in TSData.iterEnding():
@@ -498,11 +492,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             backTrace[node.name] = []
             for se in list(TSData.iterWholeBackTrace(node)):
               if typeVar   in 'inout'              and not keyword: backTrace[node.name].append( se.get('dataContainer'))
-              elif typeVar in ['inputs',"input"]   and not keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ])
-              elif typeVar in ["output","outputs"] and not keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ])
+              elif typeVar in ['inputs','input']   and not keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ])
+              elif typeVar in ['output','outputs'] and not keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ])
               elif typeVar in 'metadata'           and not keyword: backTrace[node.name].append( se.get('dataContainer')['metadata'])
-              elif typeVar in ['inputs',"input"]   and     keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-              elif typeVar in ["output","outputs"] and     keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ][keyword])
+              elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
+              elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ][keyword])
               elif typeVar in 'metadata'           and     keyword: backTrace[node.name].append( se.get('dataContainer')['metadata'][keyword])
             #reconstruct history
             nodesDict[node.name] = None
@@ -522,7 +516,31 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
               else:
                 # it is a value
                 if not nodesDict[node.name]: nodesDict[node.name] = element
-                else: nodesDict[node.name] = np.concatenate((nodesDict[node.name],element))              
+                else: nodesDict[node.name] = np.concatenate((nodesDict[node.name],element))
+          else:
+            #timepointset
+            if typeVar   in 'inout'              and not keyword: backTrace[node.name] = node.get('dataContainer')
+            elif typeVar in ['inputs','input']   and not keyword: backTrace[node.name] = node.get('dataContainer')['inputs'  ]
+            elif typeVar in ['output','outputs'] and not keyword: backTrace[node.name] = node.get('dataContainer')['outputs' ] 
+            elif typeVar in 'metadata'           and not keyword: backTrace[node.name] = node.get('dataContainer')['metadata'] 
+            elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name] = node.get('dataContainer')['inputs'  ][keyword] 
+            elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name] = node.get('dataContainer')['outputs' ][keyword]
+            elif typeVar in 'metadata'           and     keyword: backTrace[node.name] = node.get('dataContainer')['metadata'][keyword]     
+            if type(backTrace[node.name]) == dict: 
+              for innerkey in backTrace[node.name].keys():
+                if type(backTrace[node.name][innerkey]) == dict:
+                  #inputs outputs metadata
+                  if innerkey not in backTrace[node.name][innerkey].keys(): nodesDict[innerkey] = {}
+                  for ininnerkey in backTrace[node.name][innerkey].keys():
+                    if ininnerkey not in nodesDict[innerkey].keys(): nodesDict[innerkey][ininnerkey] = backTrace[node.name][innerkey][ininnerkey]
+                    else: nodesDict[innerkey][ininnerkey] = np.concatenate((nodesDict[innerkey][ininnerkey],backTrace[node.name][innerkey][ininnerkey]))  
+                else:
+                  if innerkey not in nodesDict.keys(): nodesDict[innerkey] = np.atleast_1d(backTrace[node.name][innerkey])
+                  else: nodesDict[innerkey] = np.concatenate((nodesDict[innerkey],backTrace[node.name][innerkey]))            
+            else:
+              #it is a value
+              if type(nodesDict) == dict: nodesDict = np.empty(0)
+              nodesDict = np.concatenate((nodesDict,backTrace[node.name]))        
     else:
       # we want a particular node
       found = False
@@ -532,25 +550,25 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           found = True
           TSData = TSDat
           break
-      if not found: raise Exception("DATAS     : ERROR -> Starting node called "+ nodeid+ " not found!") 
+      if not found: raise Exception(self.printTag+': ERROR ->  Starting node called '+ nodeid+ ' not found!') 
       if serialize:
         # we want a particular node and serialize it
         nodesDict[nodeid] = []
         for se in nodelist:
           if typeVar   in 'inout' and not keyword             : nodesDict[node.name].append( se.get('dataContainer'))
-          elif typeVar in ['inputs',"input"] and not keyword  : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
-          elif typeVar in ["output","outputs"] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
+          elif typeVar in ['inputs','input'] and not keyword  : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
+          elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
           elif typeVar in 'metadata' and not keyword          : nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-          elif typeVar in ['inputs',"input"] and keyword      : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-          elif typeVar in ["output","outputs"] and keyword    : nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword]) 
+          elif typeVar in ['inputs','input'] and keyword      : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
+          elif typeVar in ['output','outputs'] and keyword    : nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword]) 
           elif typeVar in 'metadata' and keyword              : nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])  
       else:
         if typeVar   in 'inout'              and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')
-        elif typeVar in ['inputs',"input"]   and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ]
-        elif typeVar in ["output","outputs"] and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['outputs' ] 
+        elif typeVar in ['inputs','input']   and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ]
+        elif typeVar in ['output','outputs'] and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['outputs' ] 
         elif typeVar in 'metadata'           and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['metadata'] 
-        elif typeVar in ['inputs',"input"]   and     keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ][keyword] 
-        elif typeVar in ["output","outputs"] and     keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['outputs' ][keyword]
+        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ][keyword] 
+        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['outputs' ][keyword]
         elif typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['metadata'][keyword]
     return nodesDict
     
@@ -579,7 +597,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           if parentName: 
             for node in foundNodes: 
               if node.getParentName() == parentName: return node
-            raise Exception("DATAS     : ERROR -> the node " + nodeName + "has been found but no one has a parent named "+ parentName)                 
+            raise Exception(self.printTag+': ERROR ->  the node ' + nodeName + 'has been found but no one has a parent named '+ parentName)                 
           else: return(foundNodes[0])
  
   def addNodeInTreeMode(self,tsnode,options):
@@ -595,7 +613,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if 'parent_id' in options['metadata'].keys(): parent_id = options['metadata']['parent_id']  
       else:
         if 'parent_id' in options.keys(): parent_id = options['parent_id']
-      if not parent_id: raise ConstructError('DATAS     : ERROR -> the parent_id must be provided if a new node needs to be appended')
+      if not parent_id: raise ConstructError(self.printTag+': ERROR ->  the parent_id must be provided if a new node needs to be appended')
       self.retrieveNodeInTreeMode(parent_id).appendBranch(tsnode)
 
 class TimePoint(Data):
@@ -613,8 +631,8 @@ class TimePoint(Data):
     try: sourceType = self._toLoadFromList[0].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      if(not self._dataParameters['history']): raise IOError('DATAS     : ERROR -> DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
-      self._dataParameters['filter'] = "whole"
+      if(not self._dataParameters['history']): raise IOError(self.printTag+': ERROR ->  DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
+      self._dataParameters['filter'] = 'whole'
 
   def checkConsistency(self):
     '''
@@ -624,10 +642,10 @@ class TimePoint(Data):
     '''
     for key in self._dataContainer['inputs'].keys():
       if (self._dataContainer['inputs'][key].size) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+        raise NotConsistentData(self.printTag+': ERROR ->  The input parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
     for key in self._dataContainer['outputs'].keys():
       if (self._dataContainer['outputs'][key].size) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+        raise NotConsistentData(self.printTag+': ERROR ->  The output parameter value, for key ' + key + ' has not a consistent shape for TimePoint ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     ''' 
@@ -665,7 +683,7 @@ class TimePoint(Data):
   def specializedPrintCSV(self,filenameLocal,options):
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
+      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is gonna be called 'homo_homini_lupus.csv')
       @ In,  options, dictionary, dictionary of printing options
       @ Out, None (a csv is gonna be printed)
     '''    
@@ -691,10 +709,10 @@ class TimePoint(Data):
         if var.split('|')[0] == 'metadata':
           if var.split('|')[1] in self.metaExclXml:
             if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype: 
-              raise NotConsistentData('DATAS     : ERROR -> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              raise NotConsistentData(self.printTag+': ERROR ->  metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(var.split('|')[1])
             inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: print('DATAS     : Warning -> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          else: print(self.printTag+': Warning ->  metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -705,7 +723,7 @@ class TimePoint(Data):
         for key,value in self._dataContainer['metadata'].items():
           if key in self.metaExclXml: 
             if type(value) not in self.metatype: 
-              raise NotConsistentData('DATAS     : ERROR -> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              raise NotConsistentData(self.printTag+': ERROR ->  metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(key)
             inpValues.append(np.atleast_1d(np.float(value)))
     if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
@@ -718,7 +736,7 @@ class TimePoint(Data):
     myFile.write(b','.join([utils.toBytes(str(item[0])) for item in  itertools.chain(inpValues,outValues)]))
     myFile.write(b'\n')
     myFile.close()
-    self._createXMLFile(filenameLocal,"timepoint",inpKeys,outKeys)
+    self._createXMLFile(filenameLocal,'timepoint',inpKeys,outKeys)
     
   
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
@@ -745,7 +763,7 @@ class TimePointSet(Data):
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       self._dataParameters['histories'] = self._toLoadFromList[0].getEndingGroupNames()
-      self._dataParameters['filter'   ] = "whole"
+      self._dataParameters['filter'   ] = 'whole'
 
   def checkConsistency(self):
     '''
@@ -764,25 +782,25 @@ class TimePointSet(Data):
       eg = self._toLoadFromList[0].getEndingGroupNames()
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != len(eg):
-          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+          raise NotConsistentData(self.printTag+': ERROR ->  The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
       for key in self._dataContainer['outputs'].keys():
         if (self._dataContainer['outputs'][key].size) != len(eg):
-          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+          raise NotConsistentData(self.printTag+': ERROR ->  The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
     else:
       if self._dataParameters['hierarchical']:
         for key in self._dataContainer['inputs'].keys():
           if (self._dataContainer['inputs'][key].size) != 1:
-            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+            raise NotConsistentData(self.printTag+': ERROR ->  The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
         for key in self._dataContainer['outputs'].keys():
           if (self._dataContainer['outputs'][key].size) != 1:
-            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+            raise NotConsistentData(self.printTag+': ERROR ->  The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
       else:  
         for key in self._dataContainer['inputs'].keys():
           if (self._dataContainer['inputs'][key].size) != lenMustHave:
-            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+            raise NotConsistentData(self.printTag+': ERROR ->  The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
         for key in self._dataContainer['outputs'].keys():
           if (self._dataContainer['outputs'][key].size) != lenMustHave:
-            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+            raise NotConsistentData(self.printTag+': ERROR ->  The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
   
 
   def _updateSpecializedInputValue(self,name,value,options=None):
@@ -793,7 +811,7 @@ class TimePointSet(Data):
       @ Out, None 
     '''
     if options and self._dataParameters['hierarchical']:
-      # we retrieve the node in which the specialized "TimePoint" has been stored
+      # we retrieve the node in which the specialized 'TimePoint' has been stored
       parent_id = None
       if 'metadata' in options.keys(): 
         prefix    = options['metadata']['prefix']
@@ -829,7 +847,7 @@ class TimePointSet(Data):
       NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
     '''
     if options and self._dataParameters['hierarchical']:
-      # we retrieve the node in which the specialized "TimePoint" has been stored
+      # we retrieve the node in which the specialized 'TimePoint' has been stored
       parent_id = None
       if 'metadata' in options.keys(): 
         prefix    = options['metadata']['prefix']
@@ -860,7 +878,7 @@ class TimePointSet(Data):
       @ Out, None 
     '''
     if options and self._dataParameters['hierarchical']:
-      # we retrieve the node in which the specialized "TimePoint" has been stored
+      # we retrieve the node in which the specialized 'TimePoint' has been stored
       parent_id = None
       if 'metadata' in options.keys(): 
         prefix    = options['metadata']['prefix']
@@ -893,7 +911,7 @@ class TimePointSet(Data):
   def specializedPrintCSV(self,filenameLocal,options): 
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
+      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is gonna be called 'homo_homini_lupus.csv')
       @ In,  options, dictionary, dictionary of printing options
       @ Out, None (a csv is gonna be printed)
     '''    
@@ -925,7 +943,7 @@ class TimePointSet(Data):
             if var.split('|')[0] == 'metadata': 
               if var.split('|')[1] in self.metaExclXml: 
                 if type(O_o[key][index]['metadata'][var.split('|')[1]]) not in self.metatype: 
-                  raise NotConsistentData('DATAS     : ERROR -> metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+                  raise NotConsistentData(self.printTag+': ERROR ->  metadata '+var.split('|')[1] +' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
                 inpKeys[-1].append(var.split('|')[1])
                 axa = np.zeros(len(O_o[key]))
                 for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
@@ -946,7 +964,7 @@ class TimePointSet(Data):
             for metaname,value in O_o[key][0]['metadata'].items():
               if metaname in self.metaExclXml: 
                 if type(value) not in self.metatype: 
-                  raise NotConsistentData('DATAS     : ERROR -> metadata '+metaname+' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
+                  raise NotConsistentData(self.printTag+': ERROR ->  metadata '+metaname+' not compatible with CSV output. Its type needs to be one of '+str(np.ndarray))
                 inpKeys[-1].append(metaname)
                 axa = np.zeros(len(O_o[key]))
                 for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][metaname]))[0]
@@ -991,11 +1009,11 @@ class TimePointSet(Data):
           if var.split('|')[0] == 'metadata':
             if var.split('|')[1] in self.metaExclXml:
               if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype: 
-                raise NotConsistentData('DATAS     : ERROR -> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+                raise NotConsistentData(self.printTag+': ERROR ->  metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
               inpKeys.append(var.split('|')[1])
               if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
               else: inpValues.append(np.atleast_1d(self._dataContainer['metadata'][var.split('|')[1]]))
-            else: print('DATAS     : Warning -> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+            else: print(self.printTag+': Warning ->  metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
       else:
         inpKeys   = self._dataContainer['inputs'].keys()
         inpValues = self._dataContainer['inputs'].values()
@@ -1006,7 +1024,7 @@ class TimePointSet(Data):
           for key,value in self._dataContainer['metadata'].items():
             if key in self.metaExclXml: 
               if type(value) not in self.metatype: 
-                raise NotConsistentData('DATAS     : ERROR -> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+                raise NotConsistentData(self.printTag+': ERROR ->  metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
               inpKeys.append(key)
               if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(value)))
               else: inpValues.append(np.atleast_1d(value))
@@ -1021,18 +1039,18 @@ class TimePointSet(Data):
         myFile.write(b','.join([utils.toBytes(str(item[j])) for item in itertools.chain(inpValues,outValues)]))
         myFile.write(b'\n')
       myFile.close()
-      self._createXMLFile(filenameLocal,"timepointset",inpKeys,outKeys)
+      self._createXMLFile(filenameLocal,'timepointset',inpKeys,outKeys)
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
-    if stepID!=None: raise Exception('DATAS     : ERROR -> seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
+    if stepID!=None: raise Exception(self.printTag+': ERROR ->  seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varID!=None:
         if self._dataParameters['hierarchical']: exec('extractedValue ='+varTyp +'(self.getHierParam(inOutType,nodeid,varName,serialize=False)[nodeid])')    
         else: exec('extractedValue ='+varTyp +'(self.getParam(inOutType,varName)[varID])')
         return extractedValue
       #if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[varID])')
-      else: raise Exception('DATAS     : ERROR -> trying to extract a scalar value from a time point set without an index')
+      else: raise Exception(self.printTag+': ERROR ->  trying to extract a scalar value from a time point set without an index')
     else: 
       if self._dataParameters['hierarchical']: 
         paramss = self.getHierParam(inOutType,nodeid,varName,serialize=True)
@@ -1054,8 +1072,8 @@ class History(Data):
     try: sourceType = self._toLoadFromList[0].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      if(not self._dataParameters['history']): raise IOError('DATAS     : ERROR -> In order to create a History data, history name must be provided')
-      self._dataParameters['filter'] = "whole"
+      if(not self._dataParameters['history']): raise IOError(self.printTag+': ERROR ->  In order to create a History data, history name must be provided')
+      self._dataParameters['filter'] = 'whole'
 
   def checkConsistency(self):
     '''
@@ -1065,10 +1083,10 @@ class History(Data):
     '''
     for key in self._dataContainer['inputs'].keys():
       if (self._dataContainer['inputs'][key].size) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
+        raise NotConsistentData(self.printTag+': ERROR ->  The input parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
     for key in self._dataContainer['outputs'].keys():
       if (self._dataContainer['outputs'][key].ndim) != 1:
-        raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
+        raise NotConsistentData(self.printTag+': ERROR ->  The output parameter value, for key ' + key + ' has not a consistent shape for History ' + self.name + '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     ''' 
@@ -1107,11 +1125,10 @@ class History(Data):
   def specializedPrintCSV(self,filenameLocal,options):
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
+      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is gonna be called 'homo_homini_lupus.csv')
       @ In,  options, dictionary, dictionary of printing options
       @ Out, None (a csv is gonna be printed)
     '''    
-
     #For history, create an XML file and two CSV files.  The
     #first CSV file has a header with the input names, and a column
     #for the filename.  The second CSV file is named the same as the
@@ -1133,10 +1150,10 @@ class History(Data):
         if var.split('|')[0] == 'metadata':
           if var.split('|')[1] in self.metaExclXml:
             if type(self._dataContainer['metadata'][var.split('|')[1]]) not in self.metatype: 
-              raise NotConsistentData('DATAS     : ERROR -> metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              raise NotConsistentData(self.printTag+': ERROR ->  metadata '+var.split('|')[1]+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(var.split('|')[1])
             inpValues.append(np.atleast_1d(np.float(self._dataContainer['metadata'][var.split('|')[1]])))
-          else: print('DATAS     : Warning -> metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
+          else: print(self.printTag+': Warning ->  metadata '+var.split('|')[1]+' not compatible with CSV output.It is going to be outputted into Xml out')
     else:
       inpKeys   = self._dataContainer['inputs'].keys()
       inpValues = self._dataContainer['inputs'].values()
@@ -1147,7 +1164,7 @@ class History(Data):
         for key,value in self._dataContainer['metadata'].items():
           if key in self.metaExclXml: 
             if type(value) not in self.metatype: 
-              raise NotConsistentData('DATAS     : ERROR -> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
+              raise NotConsistentData(self.printTag+': ERROR ->  metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(key)
             inpValues.append(np.atleast_1d(np.float(value)))
     
@@ -1156,46 +1173,37 @@ class History(Data):
 
     #Create Input file
     #Print header 
-    myFile.write(b','.join([utils.toBytes(item) for item in
-                            itertools.chain(inpKeys,["filename"])]))
+    myFile.write(b','.join([utils.toBytes(item) for item in  itertools.chain(inpKeys,['filename'])]))
     myFile.write(b'\n')
-    
     #Print data
-    myFile.write(b','.join([utils.toBytes(str(item[0])) for item in
-                            itertools.chain(inpValues,[[filenameLocal + '_0' + '.csv']])]))
+    myFile.write(b','.join([utils.toBytes(str(item[0])) for item in itertools.chain(inpValues,[[filenameLocal + '_0' + '.csv']])]))
     myFile.write(b'\n')
-
     myFile.close()
-    
     #Create Output file
     myDataFile = open(filenameLocal + '_0' + '.csv', 'wb')
     #Print headers
     #Print time + output values
     myDataFile.write(b','.join([utils.toBytes(item) for item in outKeys]))
     myDataFile.write(b'\n')
-
     #Print data
     for j in range(next(iter(outValues)).size):
-      myDataFile.write(b','.join([utils.toBytes(str(item[j])) for item in
-                                  outValues]))
+      myDataFile.write(b','.join([utils.toBytes(str(item[j])) for item in outValues]))
       myDataFile.write(b'\n')
-    
     myDataFile.close()
-
-    self._createXMLFile(filenameLocal,"history",inpKeys,outKeys)
+    self._createXMLFile(filenameLocal,'history',inpKeys,outKeys)
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
-    if varID!=None: raise Exception('seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName)
+    if varID!=None: raise Exception(self.printTag+': ERROR -> seeking to extract a slice over number of parameters an History type of data is not possible. Data name: '+self.name+' variable: '+varName)
     if varTyp!='numpy.ndarray':
       if varName in self._dataParameters['inParam']: exec ('return varTyp(self.getParam('+inOutType+','+varName+')[0])')
       else:
         if stepID!=None and type(stepID)!=tuple: exec ('return self.getParam('+inOutType+','+varName+')['+str(stepID)+']')
-        else: raise Exception('To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name)
+        else: raise Exception(self.printTag+': ERROR -> To extract a scalar from an history a step id is needed. Variable: '+varName+', Data: '+self.name)
     else:
       if stepID==None : return self.getParam(inOutType,varName)
       elif stepID!=None and type(stepID)==tuple: return self.getParam(inOutType,varName)[stepID[0]:stepID[1]]
-      else: raise Exception('trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID))
+      else: raise Exception(self.printTag+': ERROR -> trying to extract variable '+varName+' from '+self.name+' the id coordinate seems to be incoherent: stepID='+str(stepID))
     
 
 class Histories(Data):
@@ -1216,7 +1224,7 @@ class Histories(Data):
     try: sourceType = self._toLoadFromList[0].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      self._dataParameters['filter'   ] = "whole"
+      self._dataParameters['filter'   ] = 'whole'
 
   def checkConsistency(self):
     ''' 
@@ -1230,26 +1238,26 @@ class Histories(Data):
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != 1:
-          raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
+          raise NotConsistentData(self.printTag+': ERROR ->  The input parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be a single value since we are in hierarchical mode.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key])))
       for key in self._dataContainer['outputs'].keys():
         if (self._dataContainer['outputs'][key].ndim) != 1:
-          raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
+          raise NotConsistentData(self.printTag+': ERROR ->  The output parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
       if('HDF5' == sourceType):
         eg = self._toLoadFromList[0].getEndingGroupNames()
         if(len(eg) != len(self._dataContainer['inputs'].keys())):
-          raise NotConsistentData('DATAS     : ERROR -> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+          raise NotConsistentData(self.printTag+': ERROR ->  Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       else:
         if(len(self._toLoadFromList) != len(self._dataContainer['inputs'].keys())):
-          raise NotConsistentData('DATAS     : ERROR -> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+          raise NotConsistentData(self.printTag+': ERROR ->  Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       for key in self._dataContainer['inputs'].keys():
         for key2 in self._dataContainer['inputs'][key].keys():
           if (self._dataContainer['inputs'][key][key2].size) != 1:
-            raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key][key2])))
+            raise NotConsistentData(self.printTag+': ERROR ->  The input parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be a single value.' + '.Actual size is ' + str(len(self._dataContainer['inputs'][key][key2])))
       for key in self._dataContainer['outputs'].keys():
         for key2 in self._dataContainer['outputs'][key].keys():
           if (self._dataContainer['outputs'][key][key2].ndim) != 1:
-            raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key][key2].ndim))
+            raise NotConsistentData(self.printTag+': ERROR ->  The output parameter value, for key ' + key2 + ' has not a consistent shape for History ' + key + ' contained in Histories ' +self.name+ '!! It should be an 1D array.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key][key2].ndim))
 
   def _updateSpecializedInputValue(self,name,value,options=None):
     ''' 
@@ -1261,12 +1269,12 @@ class Histories(Data):
       @ Out, None 
     '''
     if (not isinstance(value,(float,int,bool,np.ndarray))):
-      raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array (dim 1) or a single value for method "_updateSpecializedInputValue". Got type ' + str(type(value)))
+      raise NotConsistentData(self.printTag+': ERROR ->  Histories Data accepts only a numpy array (dim 1) or a single value for method <_updateSpecializedInputValue>. Got type ' + str(type(value)))
     if isinstance(value,np.ndarray): 
-      if value.size != 1: raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array of dim 1 or a single value for method "_updateSpecializedInputValue". Size is ' + str(value.size))
+      if value.size != 1: raise NotConsistentData(self.printTag+': ERROR ->  Histories Data accepts only a numpy array of dim 1 or a single value for method <_updateSpecializedInputValue>. Size is ' + str(value.size))
 
     if options and self._dataParameters['hierarchical']:
-      # we retrieve the node in which the specialized "History" has been stored
+      # we retrieve the node in which the specialized 'History' has been stored
       parent_id = None
       if type(name) == list: 
         namep = name[1]
@@ -1327,7 +1335,7 @@ class Histories(Data):
       NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
     '''
     if options and self._dataParameters['hierarchical']:
-      # we retrieve the node in which the specialized "TimePoint" has been stored
+      # we retrieve the node in which the specialized 'TimePoint' has been stored
       parent_id = None
       if type(name) == list: 
         namep = name[1]
@@ -1357,7 +1365,7 @@ class Histories(Data):
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
       if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                                     : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
+      else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
       self.addNodeInTreeMode(tsnode,options)
     else: 
       if name in self._dataContainer['metadata'].keys():
@@ -1373,7 +1381,7 @@ class Histories(Data):
       @ Out, None 
     '''
     if not isinstance(value,np.ndarray): 
-        raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "_updateSpecializedOutputValue". Got ' + str(type(value)))
+        raise NotConsistentData(self.printTag+': ERROR ->  Histories Data accepts only numpy array as type for method <_updateSpecializedOutputValue>. Got ' + str(type(value)))
 
     if options and self._dataParameters['hierarchical']:
       parent_id = None
@@ -1431,7 +1439,7 @@ class Histories(Data):
   def specializedPrintCSV(self,filenameLocal,options):
     ''' 
       This function prints a CSV file with the content of this class (Input and Output space)
-      @ In,  filenameLocal, string, filename root (for example, "homo_homini_lupus" -> the final file name is gonna be called "homo_homini_lupus.csv")
+      @ In,  filenameLocal, string, filename root (for example, 'homo_homini_lupus' -> the final file name is gonna be called 'homo_homini_lupus.csv')
       @ In,  options, dictionary, dictionary of printing options
       @ Out, None (a csv is gonna be printed)
     '''    
@@ -1537,9 +1545,9 @@ class Histories(Data):
         #Write header for main file
         if n == 0:
           myFile.write(b','.join([utils.toBytes(item) for item in 
-                                  itertools.chain(inpKeys_h,["filename"])]))
+                                  itertools.chain(inpKeys_h,['filename'])]))
           myFile.write(b'\n')
-          self._createXMLFile(filenameLocal,"histories",inpKeys_h,outKeys_h)
+          self._createXMLFile(filenameLocal,'histories',inpKeys_h,outKeys_h)
         myFile.write(b','.join([utils.toBytes(str(item[0])) for item in 
                                 itertools.chain(inpValues_h,[[dataFilename]])]))
         myFile.write(b'\n')
@@ -1565,12 +1573,12 @@ class Histories(Data):
     if varTyp!='numpy.ndarray':
       if varName in self._dataParameters['inParam']:
         if varID!=None: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName]')
-        else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
+        else: raise Exception(self.printTag+': ERROR -> to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID to identify the history (varID missed)')
       else:
         if varID!=None:
           if stepID!=None and type(stepID)!=tuple: exec ('return varTyp(self.getParam('+inOutType+','+str(varID)+')[varName][stepID]')
-          else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
-        else: raise Exception('to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
+          else: raise Exception(self.printTag+': ERROR -> to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used and a time coordinate (time or timeID missed or tuple)')
+        else: raise Exception(self.printTag+': ERROR -> to extract a scalar ('+varName+') form the data '+self.name+', it is needed an ID of the input set used (varID missed)')
     else:
       if varName in self._dataParameters['inParam']:
         myOut=np.zeros(len(self.getInpParametersValues().keys()))
@@ -1586,13 +1594,13 @@ class Histories(Data):
             else: return self.getParam(inOutType,varID)[varName][stepID[0]:stepID[1]]
           else: return self.getParam(inOutType,varID)[varName][stepID]
         else:
-          if stepID==None: raise Exception('more info needed trying to extract '+varName+' from data '+self.name)
+          if stepID==None: raise Exception(self.printTag+': ERROR -> more info needed trying to extract '+varName+' from data '+self.name)
           elif type(stepID)==tuple:
             if stepID[1]!=None:
               myOut=np.zeros((len(self.getOutParametersValues().keys()),stepID[1]-stepID[0]))
               for key in self.getOutParametersValues().keys():
                 myOut[int(key),:]=self.getParam(inOutType,key)[varName][stepID[0]:stepID[1]]
-            else: raise Exception('more info needed trying to extract '+varName+' from data '+self.name)
+            else: raise Exception(self.printTag+': ERROR -> more info needed trying to extract '+varName+' from data '+self.name)
           else:
             myOut=np.zeros(len(self.getOutParametersValues().keys()))
             for key in self.getOutParametersValues().keys():

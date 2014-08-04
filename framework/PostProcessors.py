@@ -18,7 +18,7 @@ import imp
 import math
 import inspect
 import copy as cp
-from utils import toString, toBytes, metaclass_insert, first
+from utils import toString, toBytes, metaclass_insert, first, returnPrintTag
 import copy
 #Internal Modules------------------------------------------------------------------------------------
 import abc
@@ -42,6 +42,7 @@ class BasePostProcessor:
   def _readMoreXML(self,xmlNode):
     self.type = xmlNode.tag
     self.name = xmlNode.attrib['name']
+    self.printTag = self.type.ljust(25)
     if 'debug' in xmlNode.attrib.keys():self.debug = bool(xmlNode.attrib['debug'])
     self._localReadMoreXML(xmlNode)
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
@@ -56,7 +57,7 @@ class PrintCSV(BasePostProcessor):
     self.paramters  = ['all']
     self.inObj      = None
     self.workingDir = None
-
+    self.printTag = returnPrintTag('POSTPROCESSOR PRINTCSV')
   def inputToInternal(self,currentInput): return [(currentInput)]
 
   def initialize(self, runInfo, inputs, initDict):
@@ -64,7 +65,7 @@ class PrintCSV(BasePostProcessor):
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     runInfo['TempWorkingDir']     = self.workingDir
     try:                            os.mkdir(self.workingDir)
-    except:                         print('POST-PROCESSOR: Warning -> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except:                         print(self.printTag+': Warning -> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
 
   def _localReadMoreXML(self,xmlNode):
     '''
@@ -201,7 +202,7 @@ class PrintCSV(BasePostProcessor):
       # we have the capability...so do that (AndreA)
       pass
     else:
-      raise NameError ('PostProcessor PrintCSV for input type ' + self.inObj.type + ' not yet implemented.')
+      raise NameError (self.printTag+': ERROR -> for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
     '''
@@ -209,9 +210,9 @@ class PrintCSV(BasePostProcessor):
      @ Out, None      : Print of the CSV file
     '''
     self.inObj = Input
-
-
-
+#
+#
+#
 class BasicStatistics(BasePostProcessor):
   '''
     BasicStatistics filter class. It computes all the most popular statistics
@@ -222,6 +223,7 @@ class BasicStatistics(BasePostProcessor):
     self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtois','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
     self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
+    self.printTag = returnPrintTag('POSTPROCESSOR BASIC STATISTIC')
     #self.goalFunction.evaluate('residuumSign',tempDict)
 
   def inputToInternal(self,currentInput):
@@ -232,7 +234,7 @@ class BasicStatistics(BasePostProcessor):
     try: inType = currentInput.type
     except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
-      else: raise IOError('POSTPROC: Error -> BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+      else: raise IOError(self.printTag+': ERROR -> BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
     if inType == 'file':
       if currentInput.endswith('csv'): pass
     if inType == 'HDF5': pass # to be implemented
@@ -265,14 +267,14 @@ class BasicStatistics(BasePostProcessor):
         if self.what == 'all': self.what = self.acceptedCalcParam
         else:
           for whatc in self.what.split(','):
-            if whatc not in self.acceptedCalcParam: raise IOError('POSTPROC: Error -> BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
+            if whatc not in self.acceptedCalcParam: raise IOError(self.printTag+': ERROR -> BasicStatistics postprocessor asked unknown operation ' + whatc + '. Available '+str(self.acceptedCalcParam))
           self.what = self.what.split(',')
       if child.tag =="parameters"   : self.parameters['targets'] = child.text.split(',')
       if child.tag =="methodsToRun" : self.methodsToRun          = child.text.split(',')
 
   def collectOutput(self,finishedjob,output):
     #output
-    if finishedjob.returnEvaluation() == -1: raise Exception("POSTPROC: ERROR -> No available Output to collect (Run probabably is not finished yet)")
+    if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+": ERROR ->  No available Output to collect (Run probabably is not finished yet)")
     outputDict = finishedjob.returnEvaluation()[1]
     methodToTest = []
     for key in self.methodsToRun:
@@ -281,27 +283,27 @@ class BasicStatistics(BasePostProcessor):
       availextens = ['csv','txt']
       outputextension = output.split('.')[-1].lower()
       if outputextension not in availextens: 
-        print('POSTPROC: Warning -> BasicStatistics postprocessor output extension you input is '+outputextension)
+        print(self.printTag+': Warning -> BasicStatistics postprocessor output extension you input is '+outputextension)
         print('                     Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
         outputextension = availextens[0]
       if outputextension != 'csv': separator = ' '
       else                       : separator = ','
-      if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping output in file named ' + os.path.join(self.__workingDir,output.split('.')[0]+'.'+outputextension))
+      if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: dumping output in file named ' + os.path.join(self.__workingDir,output.split('.')[0]+'.'+outputextension))
       with open(os.path.join(self.__workingDir,output.split('.')[0]+'.'+outputextension), 'wb') as basicStatdump:
         basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
         basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
         for targetP in self.parameters['targets']:
-          if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing variable '+ targetP)
+          if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: writing variable '+ targetP)
           basicStatdump.write('Variable'+ separator + targetP +'\n')
           basicStatdump.write('--------'+ separator +'-'*len(targetP)+'\n')
           for what in outputDict.keys():
             if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
-              if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
+              if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
         maxLenght = max(len(max(self.parameters['targets'], key=len))+5,16)
         for what in outputDict.keys():
           if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
-            if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing parameter matrix '+ what )
+            if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: writing parameter matrix '+ what )
             basicStatdump.write(what+' \n')
             if outputextension != 'csv': basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']])+'\n')
             else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in self.parameters['targets']])+'\n')
@@ -309,33 +311,33 @@ class BasicStatistics(BasePostProcessor):
               if outputextension != 'csv': basicStatdump.write(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict[what][index]])+'\n')
               else                       : basicStatdump.write(self.parameters['targets'][index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
         if self.externalFunction:
-          if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing External Function results')
+          if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: writing External Function results')
           basicStatdump.write('\n' +'EXT FUNCTION \n')
           basicStatdump.write('------------ \n')
           for what in self.methodsToRun:
             if what not in self.acceptedCalcParam: 
-              if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: writing External Function parameter '+ what )
+              if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: writing External Function parameter '+ what )
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
     elif output.type == 'Datas': 
-      if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping output in data object named ' + output.name)
+      if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest: 
           for targetP in self.parameters['targets']: 
-            if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
+            if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
             output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
         else:
           if what not in methodToTest: 
-            if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping matrix '+ what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
+            if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: dumping matrix '+ what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
             output.updateMetadata('targets|'+what,self.parameters['targets'])
             output.updateMetadata(what,outputDict[what])
       if self.externalFunction:
-        if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping External Function results')
+        if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: dumping External Function results')
         for what in self.methodsToRun: 
           if what not in self.acceptedCalcParam: 
             output.updateMetadata(what,outputDict[what])
-            if self.debug: print('POSTPROC: Print -> BasicStatistics postprocessor: dumping External Function parameter '+ what)
-    elif output.type == 'HDF5' : print('POSTPROC: Warning -> BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
-    else: raise IOError('POSTPROC: ERROR -> BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown!!')
+            if self.debug: print(self.printTag+': Print -> BasicStatistics postprocessor: dumping External Function parameter '+ what)
+    elif output.type == 'HDF5' : print(self.printTag+': Warning -> BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
+    else: raise IOError(self.printTag+': ERROR -> BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown!!')
 
   def run(self, InputIn):
     '''
@@ -348,7 +350,7 @@ class BasicStatistics(BasePostProcessor):
     if 'ProbabilityWeight' not in Input['metadata'].keys():
       if Input['metadata'].keys().count('SamplerType') > 0:
         if Input['metadata']['SamplerType'][0] != 'MC' : print('POSTPROC: Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      else: print('POSTPROC: Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+      else: print(self.printTag+': Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
       pbweights = 1.0
       globPb = 1.0*len(Input['targets'][self.parameters['targets'][0]])
     else: 
@@ -362,10 +364,10 @@ class BasicStatistics(BasePostProcessor):
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
           if what not in ['pearson','covariance','NormalizedSensitivity','sensitivity']:
-            if type(outputDict[what]) != dict: raise IOError('POSTPROC: ERROR -> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
+            if type(outputDict[what]) != dict: raise IOError(self.printTag+': ERROR -> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a dictionary!!')
           else:
-            if type(outputDict[what]) != np.ndarray: raise IOError('POSTPROC: ERROR -> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
-            if len(outputDict[what].shape) != 2:     raise IOError('POSTPROC: ERROR -> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a 2D numpy.ndarray!!')
+            if type(outputDict[what]) != np.ndarray: raise IOError(self.printTag+': ERROR -> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
+            if len(outputDict[what].shape) != 2:     raise IOError(self.printTag+': ERROR -> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a 2D numpy.ndarray!!')
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     
@@ -492,7 +494,7 @@ class BasicStatistics(BasePostProcessor):
             outputDict[what+'_95%'][targetP]  = np.percentile(Input['targets'][targetP],95)
 
     # print on screen
-    print('POSTPROC: BasicStatistics '+str(self.name)+'pp outputs')
+    print(self.printTag+': PRINT -> BasicStatistics '+str(self.name)+'pp outputs')
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
@@ -558,16 +560,17 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.sourceDirectory = None
-    self.listOfCsvFiles = []
+    self.listOfCsvFiles = [] 
+    self.printTag = returnPrintTag('POSTPROCESSOR LoadCsv')
 
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
     if '~' in self.sourceDirectory               : self.sourceDirectory = os.path.expanduser(self.sourceDirectory)
     if not os.path.isabs(self.sourceDirectory)   : self.sourceDirectory = os.path.normpath(os.path.join(self.__workingDir,self.sourceDirectory))
-    if not os.path.exists(self.sourceDirectory)  : raise IOError("POSTPROC: ERROR -> The directory indicated for PostProcessor "+ self.name + "does not exist. Path: "+self.sourceDirectory)
+    if not os.path.exists(self.sourceDirectory)  : raise IOError(self.printTag+": ERROR -> The directory indicated for PostProcessor "+ self.name + "does not exist. Path: "+self.sourceDirectory)
     for _dir,_,_ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir,"*.csv")))
-    if len(self.listOfCsvFiles) == 0             : raise IOError("POSTPROC: ERROR -> The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
+    if len(self.listOfCsvFiles) == 0             : raise IOError(self.printTag+": ERROR -> The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
     self.listOfCsvFiles.sort()
     
   def inputToInternal(self,currentInput): return self.listOfCsvFiles
@@ -581,7 +584,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     '''
     for child in xmlNode:
       if child.tag =="directory": self.sourceDirectory = child.text
-    if not self.sourceDirectory: raise IOError("POSTPROC: ERROR -> The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
+    if not self.sourceDirectory: raise IOError(self.printTag+": ERROR -> The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
 
   def collectOutput(self,finishedjob,output):
     #output
@@ -618,7 +621,8 @@ class LimitSurface(BasePostProcessor):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None
     self.subGridTol        = 1.0e-4
-     
+    self.printTag = returnPrintTag('POSTPROCESSOR LIMITSURFACE')
+    
   def inputToInternal(self,currentInput):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInput) == dict:
@@ -627,7 +631,7 @@ class LimitSurface(BasePostProcessor):
     try: inType = currentInput.type
     except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
-      else: raise IOError('POSTPROC: Error -> BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
+      else: raise IOError(self.printTag+': ERROR -> LimitSurface postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
     if inType == 'file':
       if currentInput.endswith('csv'): pass
     if inType == 'HDF5': pass # to be implemented
@@ -664,16 +668,16 @@ class LimitSurface(BasePostProcessor):
     self.__workingDir = copy.deepcopy(runInfo['WorkingDir'])
     indexes = [-1,-1]
     for index,inp in enumerate(self.inputs):
-      if type(inp) in [str,bytes,unicode]: raise IOError('POSTPROC: Error -> LimitSurface PostProcessor only accepts Data(s) as inputs!') 
+      if type(inp) in [str,bytes,unicode]: raise IOError(self.printTag+': ERROR -> LimitSurface PostProcessor only accepts Data(s) as inputs!') 
       if inp.type in ['TimePointSet','TimePoint']: indexes[0] = index
-    if indexes[0] == -1: raise IOError('POSTPROC: Error -> LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
+    if indexes[0] == -1: raise IOError(self.printTag+': ERROR -> LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
       inpKeys = self.inputs[indexes[0]].getParaKeys("inputs")
       outKeys = self.inputs[indexes[0]].getParaKeys("outputs")
       self.paramType ={}
       for param in self.parameters['targets']: 
-        if param not in inpKeys+outKeys: raise IOError('POSTPROC: Error -> LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[indexes[0]].name +' !')
+        if param not in inpKeys+outKeys: raise IOError(self.printTag+': ERROR -> LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[indexes[0]].name +' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
     # check if a ROM is present
@@ -743,7 +747,7 @@ class LimitSurface(BasePostProcessor):
 
   def collectOutput(self,finishedjob,output):
     #output
-    if finishedjob.returnEvaluation() == -1: raise Exception("POSTPROC: ERROR -> No available Output to collect (Run probabably is not finished yet)")
+    if finishedjob.returnEvaluation() == -1: raise Exception(self.printTag+": ERROR -> No available Output to collect (Run probabably is not finished yet)")
     limitSurf = finishedjob.returnEvaluation()[1]
     if limitSurf[0]!=None:
       for varName in output.getParaKeys('inputs'):
@@ -779,16 +783,16 @@ class LimitSurface(BasePostProcessor):
       for key, value in self.functionValue.items(): tempDict[key] = copy.deepcopy(value[myIndex])       
       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
-      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception("POSTPROC: ERROR -> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!")
+      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+": ERROR -> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!")
       if self.externalFunction.name in InputIn.getParaKeys('inputs'): InputIn.self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
       if self.externalFunction.name in InputIn.getParaKeys('output'): InputIn.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
-      raise Exception("POSTPROC: ERROR -> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!") 
+      raise Exception(self.printTag+": ERROR -> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!") 
 
     #printing----------------------
-    if self.debug: print('POSTPROC: Message -> LimitSurface: Mapping of the goal function evaluation performed')
+    if self.debug: print(self.printTag+': Message -> LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
-      print('POSTPROC: Print -> LimitSurface: Already evaluated points and function values:')
+      print(self.printTag+': Message -> LimitSurface: Already evaluated points and function values:')
       keyList = list(self.functionValue.keys())
       print(','.join(keyList))
       for index in range(indexEnd+1):
@@ -798,8 +802,8 @@ class LimitSurface(BasePostProcessor):
     for name in self.axisName: tempDict[name] = self.functionValue[name]
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
-    print('POSTPROC: Message -> LimitSurface: Training performed')
-    if self.debug: print('POSTPROC: Message -> LimitSurface: Training finished')                                   
+    print(self.printTag+': Message -> LimitSurface: Training performed')
+    if self.debug: print(self.printTag+': Message -> LimitSurface: Training finished')                                   
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
@@ -808,16 +812,16 @@ class LimitSurface(BasePostProcessor):
     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
-    if self.debug: print('POSTPROC: Message -> LimitSurface: Prediction performed')
+    if self.debug: print(self.printTag+': Message -> LimitSurface: Prediction performed')
     #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
     #printing----------------------
     if self.debug:
-      print('POSTPROC: Print -> LimitSurface:  Limit surface candidate points')
+      print(self.printTag+': Print -> LimitSurface:  Limit surface candidate points')
       for coordinate in np.rollaxis(toBeTested,0):
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print('POSTPROC: LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+        print(self.printTag+': Print -> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
     #check which one of the preselected points is really on the limit surface
     listsurfPoint = []
@@ -840,11 +844,11 @@ class LimitSurface(BasePostProcessor):
             myIdList[iVar]+=1
     #printing----------------------
     if self.debug:
-      print('POSTPROC: Print -> LimitSurface: Limit surface points:')
+      print(self.printTag+': Print -> LimitSurface: Limit surface points:')
       for coordinate in listsurfPoint:
         myStr = ''
         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print('POSTPROC: LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+        print(self.printTag+': Print -> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
 
     #if the number of point on the limit surface is > than zero than save it

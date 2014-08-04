@@ -25,6 +25,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 import Datas
+from utils import returnPrintTag
 #Internal Modules End--------------------------------------------------------------------------------
 
 # set a global variable for backend default setting
@@ -62,6 +63,7 @@ class OutStreamManager(BaseType):
     self.availableOutStreamType = []
     # number of agregated outstreams
     self.numberAggregatedOS = 1
+    self.printTag = returnPrintTag('OUTSTREAM MANAGER')
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -100,7 +102,7 @@ class OutStreamManager(BaseType):
     @ In, toLoadFrom, source object
     @ Out, None
     '''
-    raise NotImplementedError('STREAM MANAGER: ERROR -> method addOutput must be implemented by derived classes!!!!')
+    raise NotImplementedError(self.printTag+': ERROR -> method addOutput must be implemented by derived classes!!!!')
 
   def initialize(self,inDict):
     '''
@@ -129,7 +131,7 @@ class OutStreamManager(BaseType):
         if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knonwnTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
-      if not foundData: raise IOError('STREAM MANAGER: ERROR -> the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
+      if not foundData: raise IOError(self.printTag+': ERROR -> the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
 #
 #
 #
@@ -137,6 +139,7 @@ class OutStreamPlot(OutStreamManager):
   def __init__(self):
     OutStreamManager.__init__(self)
     self.type         = 'OutStreamPlot'
+    self.printTag     = returnPrintTag('OUTSTREAM PLOT')
     # available 2D and 3D plot types
     self.availableOutStreamTypes = {2:['scatter','line','histogram','stem','step','polar','pseudocolor'],
                                     3:['scatter','line','stem','surface','wireframe','tri-surface',
@@ -183,12 +186,12 @@ class OutStreamPlot(OutStreamManager):
     # or it can look like DataName|Input|variableName
     if var:
       if '(' in var and ')' in var:
-        if var.count('(') > 1: raise IOError('STREAM MANAGER: ERROR -> In Plot ' +self.name +'.Only a couple of () is allowed in variable names!!!!!!')
+        if var.count('(') > 1: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'.Only a couple of () is allowed in variable names!!!!!!')
         result = var.split('|(')[0].split('|')
         result.append(var.split('(')[1].replace(")", ""))
       else:  result = var.split('|')
     else: result = None
-    if len(result) != 3: raise IOError('STREAM MANAGER: ERROR -> In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
+    if len(result) != 3: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'.Only three level variables are accepted !!!!!')
     return result
 
   def __readPlotActions(self,snode):
@@ -202,12 +205,12 @@ class OutStreamPlot(OutStreamManager):
         for subnode in node:
           if subnode.tag != 'kwargs':
             self.options[node.tag][subnode.tag] = subnode.text
-            if not subnode.text: raise IOError('STREAM MANAGER: ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
+            if not subnode.text: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
           else:
             self.options[node.tag]['attributes'] = {}
             for subsub in subnode:
               self.options[node.tag]['attributes'][subsub.tag] = subsub.text
-              if not subnode.text: raise IOError('STREAM MANAGER: ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
+              if not subnode.text: raise IOError(self.printTag+': ERROR -> In Plot ' +self.name +'. Problem in sub-tag ' + subnode.tag + ' in '+node.tag+' block. Please check!')
       elif node.text:
         if node.text.strip(): self.options[node.tag][node.tag] = node.text
     if 'how' not in self.options.keys(): self.options['how']={'how':'screen'}
@@ -364,10 +367,10 @@ class OutStreamPlot(OutStreamManager):
           if 'ymin' in self.options[key].keys(): self.plt3D.set_ylim3d(ymin = ast.literal_eval(self.options[key]['ymin']))
           if 'ymax' in self.options[key].keys(): self.plt3D.set_ylim3d(ymax = ast.literal_eval(self.options[key]['ymax']))
           if 'zmin' in self.options[key].keys(): 
-            if 'zmax' not in self.options[key].keys(): print('STREAM MANAGER: Warning -> zmin inputted but not zmax. zmin ignored! ')
+            if 'zmax' not in self.options[key].keys(): print(self.printTag+': Warning -> zmin inputted but not zmax. zmin ignored! ')
             else:self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
           if 'zmax' in self.options[key].keys(): 
-            if 'zmin' not in self.options[key].keys(): print('STREAM MANAGER: Warning -> zmax inputted but not zmin. zmax ignored! ')
+            if 'zmin' not in self.options[key].keys(): print(self.printTag+': Warning -> zmax inputted but not zmin. zmax ignored! ')
             else:self.plt3D.set_zlim(ast.literal_eval(self.options[key]['zmin']),ast.literal_eval(self.options[key]['zmax']))
       elif key == 'labelFormat':
         if 'style' not in self.options[key].keys(): self.options[key]['style'        ]   = 'sci'
@@ -377,7 +380,7 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2:  self.plt.ticklabel_format(**{'style':self.options[key]['style'],'scilimits':ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})
         elif self.dim == 3:self.plt3D.ticklabel_format(**{'style':self.options[key]['style'],'scilimits':ast.literal_eval(self.options[key]['limits']),'useOffset':ast.literal_eval(self.options[key]['useOffset']),'axis':self.options[key]['axis']})
       elif key == 'camera':
-        if self.dim == 2: print('STREAM MANAGER: Warning -> 2D plots have not a camera attribute... They are 2D!!!!')
+        if self.dim == 2: print(self.printTag+': Warning -> 2D plots have not a camera attribute... They are 2D!!!!')
         elif self.dim == 3:
           if 'elevation' in self.options[key].keys() and 'azimuth' in self.options[key].keys():       self.plt3D.view_init(elev = float(self.options[key]['elevation']),azim = float(self.options[key]['azimuth']))
           elif 'elevation' in self.options[key].keys() and 'azimuth' not in self.options[key].keys(): self.plt3D.view_init(elev = float(self.options[key]['elevation']),azim = None)
@@ -401,7 +404,7 @@ class OutStreamPlot(OutStreamManager):
         if 'fontdict' not in self.options[key].keys(): self.options[key]['fontdict'] = 'None'
         else:
           try: self.options[key]['fontdict'] = ast.literal_eval(self.options[key]['fontdict'])
-          except AttributeError: raise('STREAM MANAGER: ERROR -> In ' + key +' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
+          except AttributeError: raise(self.printTag+': ERROR -> In ' + key +' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
         if self.dim == 2 :
           self.plt.text(float(self.options[key]['position'].split(',')[0]),float(self.options[key]['position'].split(',')[1]),self.options[key]['text'],fontdict=self.options[key]['fontdict'],**self.options[key].get('attributes',{}))
         elif self.dim ==3:
@@ -415,7 +418,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2  : self.plt.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
           elif self.dim == 3: self.plt3D.autoscale(enable = ast.literal_eval(self.options[key]['enable']), axis = self.options[key]['axis'], tight = ast.literal_eval(self.options[key]['tight']))
       elif key == 'horizontalLine':
-        if self.dim == 3: print('STREAM MANAGER: Warning -> horizontal_line not available in 3-D plots!!')
+        if self.dim == 3: print(self.printTag+': Warning -> -> horizontal_line not available in 3-D plots!!')
         elif self.dim == 2:
           if 'y' not in self.options[key].keys(): self.options[key]['y'] = '0'
           if 'xmin' not in self.options[key].keys()  : self.options[key]['xmin'] = '0'
@@ -423,7 +426,7 @@ class OutStreamPlot(OutStreamManager):
           if 'hold' not in self.options[key].keys() : self.options[key]['hold'] = 'None'
           self.plt.axhline(y=ast.literal_eval(self.options[key]['y']), xmin=ast.literal_eval(self.options[key]['xmin']), xmax=ast.literal_eval(self.options[key]['xmax']), hold=ast.literal_eval(self.options[key]['hold']),**self.options[key].get('attributes',{}))
       elif key == 'verticalLine':
-        if self.dim == 3: print('STREAM MANAGER: Warning -> vertical_line not available in 3-D plots!!')
+        if self.dim == 3: print(self.printTag+': Warning -> vertical_line not available in 3-D plots!!')
         elif self.dim == 2:
           if 'x' not in self.options[key].keys(): self.options[key]['x'] = '0'
           if 'ymin' not in self.options[key].keys()  : self.options[key]['ymin'] = '0'
@@ -431,23 +434,23 @@ class OutStreamPlot(OutStreamManager):
           if 'hold' not in self.options[key].keys() : self.options[key]['hold'] = 'None'
           self.plt.axhline(x=ast.literal_eval(self.options[key]['x']), ymin=ast.literal_eval(self.options[key]['ymin']), ymax=ast.literal_eval(self.options[key]['ymax']), hold=ast.literal_eval(self.options[key]['hold']),**self.options[key].get('attributes',{}))
       elif key == 'horizontalRectangle':
-        if self.dim == 3: print('STREAM MANAGER: Warning -> horizontal_rectangle not available in 3-D plots!!')
+        if self.dim == 3: print(self.printTag+': Warning -> horizontal_rectangle not available in 3-D plots!!')
         elif self.dim == 2:
-          if 'ymin' not in self.options[key].keys(): raise('STREAM MANAGER: ERROR -> ymin parameter is needed for function horizontal_rectangle!!')
-          if 'ymax' not in self.options[key].keys(): raise('STREAM MANAGER: ERROR -> ymax parameter is needed for function horizontal_rectangle!!')
+          if 'ymin' not in self.options[key].keys(): raise(self.printTag+': ERROR -> ymin parameter is needed for function horizontal_rectangle!!')
+          if 'ymax' not in self.options[key].keys(): raise(self.printTag+': ERROR -> ymax parameter is needed for function horizontal_rectangle!!')
           if 'xmin' not in self.options[key].keys()  : self.options[key]['xmin'] = '0'
           if 'xmax' not in self.options[key].keys() : self.options[key]['xmax'] = '1'
           self.plt.axhspan(ast.literal_eval(self.options[key]['ymin']),ast.literal_eval(self.options[key]['ymax']), ymin=ast.literal_eval(self.options[key]['xmin']), ymax=ast.literal_eval(self.options[key]['xmax']),**self.options[key].get('attributes',{}))
       elif key == 'verticalRectangle':
-        if self.dim == 3: print('STREAM MANAGER: Warning -> vertical_rectangle not available in 3-D plots!!')
+        if self.dim == 3: print(self.printTag+': Warning -> vertical_rectangle not available in 3-D plots!!')
         elif self.dim == 2:
-          if 'xmin' not in self.options[key].keys(): raise('STREAM MANAGER: ERROR -> xmin parameter is needed for function vertical_rectangle!!')
-          if 'xmax' not in self.options[key].keys(): raise('STREAM MANAGER: ERROR -> xmax parameter is needed for function vertical_rectangle!!')
+          if 'xmin' not in self.options[key].keys(): raise(self.printTag+': ERROR -> xmin parameter is needed for function vertical_rectangle!!')
+          if 'xmax' not in self.options[key].keys(): raise(self.printTag+': ERROR -> xmax parameter is needed for function vertical_rectangle!!')
           if 'ymin' not in self.options[key].keys()  : self.options[key]['ymin'] = '0'
           if 'ymax' not in self.options[key].keys() : self.options[key]['ymax'] = '1'
           self.plt.axvspan(ast.literal_eval(self.options[key]['xmin']),ast.literal_eval(self.options[key]['xmax']), ymin=ast.literal_eval(self.options[key]['ymin']), ymax=ast.literal_eval(self.options[key]['ymax']),**self.options[key].get('attributes',{}))
       elif key == 'axesBox':
-        if   self.dim == 3: print('STREAM MANAGER: Warning -> axes_box not available in 3-D plots!!')
+        if   self.dim == 3: print(self.printTag+': Warning -> axes_box not available in 3-D plots!!')
         elif self.dim == 2: self.plt.box(self.options[key][key])
       elif key == 'grid':
         if 'b' not in self.options[key].keys()  : self.options[key]['b'] = 'off'
@@ -460,7 +463,7 @@ class OutStreamPlot(OutStreamManager):
         elif self.dim == 3:
           self.plt3D.grid(b=self.options[key]['b'],**self.options[key].get('attributes',{}))
       else:
-        print('STREAM MANAGER: Warning -> Try to perform not-predifined action ' + key +'. If it does not work check manual and/or relavite matplotlib method specification.')
+        print(self.printTag+': Warning -> Try to perform not-predifined action ' + key +'. If it does not work check manual and/or relavite matplotlib method specification.')
         command_args = ' '
         import CustomCommandExecuter as execcommand
         for kk in self.options[key]:
@@ -475,7 +478,7 @@ class OutStreamPlot(OutStreamManager):
           #if self.dim == 2:  exec('self.plt.' + key + '(' + command_args + ')')
           #elif self.dim == 3:exec('self.plt3D.' + key + '(' + command_args + ')')
         except ValueError as ae:
-          raise Exception('STREAM MANAGER: ERROR <'+str(ae)+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')
+          raise Exception(self.printTag+': ERROR -> <'+str(ae)+'> -> in execution custom action "' + key + '" in Plot ' + self.name + '.\n ' + self.printTag+': ERROR -> command has been called in the following way: ' + 'self.plt.' + key + '(' + command_args + ')')
 
   ####################
   #  PUBLIC METHODS  #
@@ -523,24 +526,24 @@ class OutStreamPlot(OutStreamManager):
       self.sourceName.append(self.xCoordinates [pltindex][0].split('|')[0].strip())
       if 'y' in self.options['plotSettings']['plot'][pltindex].keys():
         self.yCoordinates .append(self.options['plotSettings']['plot'][pltindex]['y'].split(','))
-        if self.yCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.yCoordinates [pltindex][0].split('|')[0])
+        if self.yCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError(self.printTag+': ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got y_cord source is' + self.yCoordinates [pltindex][0].split('|')[0])
       if 'z' in self.options['plotSettings']['plot'][pltindex].keys():
         self.zCoordinates .append(self.options['plotSettings']['plot'][pltindex]['z'].split(','))
-        if self.zCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.zCoordinates [pltindex][0].split('|')[0])
+        if self.zCoordinates [pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError(self.printTag+': ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got z_cord source is' + self.zCoordinates [pltindex][0].split('|')[0])
       if 'colorMap' in self.options['plotSettings']['plot'][pltindex].keys():
         self.colorMapCoordinates.append(self.options['plotSettings']['plot'][pltindex]['colorMap'].split(','))
-        if self.colorMapCoordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError('STREAM MANAGER: ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got colorMap_coordinates source is' + self.colorMapCoordinates[pltindex][0].split('|')[0])
+        if self.colorMapCoordinates[pltindex][0].split('|')[0] != self.sourceName[pltindex]: raise IOError(self.printTag+': ERROR -> Every plot can be linked to one Data only. x_cord source is ' + self.sourceName[pltindex] + '. Got colorMap_coordinates source is' + self.colorMapCoordinates[pltindex][0].split('|')[0])
       for pltindex in range(len(self.options['plotSettings']['plot'])):
         if 'interpPointsY' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpPointsY'] = '20'
         if 'interpPointsX' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = '20'
         if 'interpolationType' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationType'] = 'linear'
-        elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: raise IOError('STREAM MANAGER: ERROR -> surface interpolation unknown. Available are :' + str(self.interpAvail))
+        elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: raise IOError(self.printTag+': ERROR -> surface interpolation unknown. Available are :' + str(self.interpAvail))
         if 'epsilon' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['smooth'] = '0.0'
         if 'cmap' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
         elif self.options['plotSettings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))
         if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] = 'nearest'
-        elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: raise IOError('STREAM MANAGER: ERROR -> surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
+        elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: raise IOError(self.printTag+': ERROR -> surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
     # initialize here the base class
     OutStreamManager.initialize(self,inDict)
@@ -555,7 +558,7 @@ class OutStreamPlot(OutStreamManager):
     '''
     if not 'dim' in xmlNode.attrib.keys(): self.dim = 2
     else:                                  self.dim = int(xmlNode.attrib['dim'])
-    if self.dim not in [2,3]: raise IOError('STREAM MANAGER: ERROR -> Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
+    if self.dim not in [2,3]: raise IOError(self.printTag+': ERROR -> Wrong dimension... 2D or 3D only!!! Got '+ str(self.dim)+'D')
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block
@@ -583,18 +586,18 @@ class OutStreamPlot(OutStreamManager):
         self.options[subnode.tag] = {}
         for subsub in subnode: self.options[subnode.tag][subsub.tag] = subsub.text.strip()
     self.type = 'OutStreamPlot'
-    if not 'plotSettings' in self.options.keys(): raise IOError('STREAM MANAGER: ERROR -> For plot named ' + self.name + ' the plotSettings block IS REQUIRED!!')
-    if not foundPlot: raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot section has been found in the plotSettings block!')
+    if not 'plotSettings' in self.options.keys(): raise IOError(self.printTag+': ERROR -> For plot named ' + self.name + ' the plotSettings block IS REQUIRED!!')
+    if not foundPlot: raise IOError(self.printTag+': ERROR -> For plot named'+ self.name + ', No plot section has been found in the plotSettings block!')
     self.outStreamTypes = []
     for pltindex in range(len(self.options['plotSettings']['plot'])):
-      if not 'type' in self.options['plotSettings']['plot'][pltindex].keys(): raise IOError('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
+      if not 'type' in self.options['plotSettings']['plot'][pltindex].keys(): raise IOError(self.printTag+': ERROR -> For plot named'+ self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
       else:
-        if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0: print('STREAM MANAGER: ERROR -> For plot named'+ self.name + ', type '+self.options['plotSettings']['plot'][pltindex]['type']+' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!!!')
+        if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltindex]['type']) == 0: print(self.printTag+': ERROR -> For plot named'+ self.name + ', type '+self.options['plotSettings']['plot'][pltindex]['type']+' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!!!')
         self.outStreamTypes.append(self.options['plotSettings']['plot'][pltindex]['type'])
     self.mpl = importlib.import_module("matplotlib")
     #exec('self.mpl =  importlib.import_module("matplotlib")')
-    if self.debug: print('STREAM MANAGER: matplotlib version is ' + str(self.mpl.__version__))
-    if self.dim not in [2,3]: raise('STREAM MANAGER: ERROR -> This Plot interface is able to handle 2D-3D plot only')
+    if self.debug: print(self.printTag+': PRINT -> matplotlib version is ' + str(self.mpl.__version__))
+    if self.dim not in [2,3]: raise(self.printTag+': ERROR -> This Plot interface is able to handle 2D-3D plot only')
     if not disAvail: self.mpl.use('Agg')
     self.plt = importlib.import_module("matplotlib.pyplot")
     if self.dim == 3: from mpl_toolkits.mplot3d import Axes3D
@@ -609,7 +612,7 @@ class OutStreamPlot(OutStreamManager):
     self.fig = self.plt.figure(self.name)
     # fill the x_values,y_values,z_values dictionaries
     if not self.__fillCoordinatesFromSource():
-      print('STREAM MANAGER: Warning -> Nothing to Plot Yet... Returning!!!!')
+      print(self.printTag+': Warning -> Nothing to Plot Yet... Returning!!!!')
       return
     self.counter += 1
     if self.counter > 1:
@@ -636,7 +639,7 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2  : self.plt.ylabel(self.options['plotSettings']['ylabel'])
         elif self.dim == 3: self.plt3D.set_ylabel(self.options['plotSettings']['ylabel'])
       if 'zlabel' in self.options['plotSettings'].keys():
-        if self.dim == 2  : print('STREAM MANAGER: Warning -> zlabel keyword does not make sense in 2-D Plots!')
+        if self.dim == 2  : print(self.printTag+': Warning -> zlabel keyword does not make sense in 2-D Plots!')
         elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel(self.options['plotSettings']['zlabel'])
       elif self.dim == 3 and self.zCoordinates : self.plt3D.set_zlabel('z')
       # Let's start plotting
@@ -691,7 +694,7 @@ class OutStreamPlot(OutStreamManager):
                     rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                     yi  = rbf(xi)
                 except Exception as ae:
-                  print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(str(ae)) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                  print(self.printTag+': Warning -> The interpolation process failed with error : ' + str(str(ae)) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                   if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.yValues[pltindex][key][y_index].size <= 2:
                     if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.yValues[pltindex][key][y_index].size > 2: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[:]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     else: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[:]), method='nearest')
@@ -729,7 +732,7 @@ class OutStreamPlot(OutStreamManager):
                         rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                         zi  = rbf(xi, yi)
                     except Exception as ae:
-                      print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                      print(self.printTag+': Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                       if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.zValues[pltindex][key][z_index].size <= 3:
                         if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.zValues[pltindex][key][z_index].size > 3: zi = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.zValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                         else: zi = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.zValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
@@ -819,7 +822,7 @@ class OutStreamPlot(OutStreamManager):
                     rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                     yi  = rbf(xi)
                 except Exception as ae:
-                  print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                  print(self.printTag+': Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                   if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.yValues[pltindex][key][y_index].size <= 2:
                     if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.yValues[pltindex][key][y_index].size > 2: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[None,:]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     else: yi = griddata((self.xValues[pltindex][key][x_index]), self.yValues[pltindex][key][y_index], (xi[None,:]), method='nearest')
@@ -828,7 +831,7 @@ class OutStreamPlot(OutStreamManager):
                     yi  = rbf(xi)
                 self.actPlot = self.plt.step(xi,yi,where=self.options['plotSettings']['plot'][pltindex]['where'],**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
         elif self.dim == 3:
-          print('STREAM MANAGER: step Plot not available in 3D')
+          print(self.printTag+': Warning ->  step Plot not available in 3D')
           return
       ########################
       #    PSEUDOCOLOR PLOT  #
@@ -854,7 +857,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.colorMapValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print(self.printTag+': Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.colorMapValues[pltindex][key][z_index].size <= 3:
                       if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata ((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationType'] )
                       else: Ci = griddata ((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
@@ -867,14 +870,14 @@ class OutStreamPlot(OutStreamManager):
                   actcm = self.fig.colorbar(m)
                   actcm.set_label(self.colorMapCoordinates[pltindex][key-1].split('|')[-1].replace(')',''))
         elif self.dim == 3:
-          print('STREAM MANAGER: pseudocolor Plot is considered a 2D plot, not a 3D!')
+          print(self.printTag+': Warning -> pseudocolor Plot is considered a 2D plot, not a 3D!')
           return
       ########################
       #     SURFACE PLOT     #
       ########################
       elif self.outStreamTypes[pltindex] == 'surface':
         if self.dim == 2:
-          print('STREAM MANAGER: surface Plot is NOT available for 2D plots, IT IS A 2D!')
+          print(self.printTag+': Warning -> surface Plot is NOT available for 2D plots, IT IS A 2D!')
           return
         elif self.dim == 3:
           if 'rstride' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rstride'] = '1'
@@ -903,7 +906,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       zi  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print(self.printTag+': Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.zValues[pltindex][key][z_index].size <= 3:
                       if self.colorMapCoordinates:
                         if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
@@ -929,7 +932,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'tri-surface':
         if self.dim == 2:
-          print('STREAM MANAGER: TRI-surface Plot is NOT available for 2D plots, IT IS A 2D!')
+          print(self.printTag+': Warning -> TRI-surface Plot is NOT available for 2D plots, IT IS A 3D!')
           return
         elif self.dim == 3:
           if 'color' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['color'] = 'b'
@@ -957,7 +960,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'wireframe':
         if self.dim == 2:
-          print('STREAM MANAGER: wireframe Plot is NOT available for 2D plots, IT IS A 2D!')
+          print(self.printTag+': Warning -> wireframe Plot is NOT available for 2D plots, IT IS A 3D!')
           return
         elif self.dim == 3:
           if 'rstride' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rstride'] = '1'
@@ -985,7 +988,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       zi  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print(self.printTag+': Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.zValues[pltindex][key][z_index].size <= 3:
                       if self.colorMapCoordinates:
                         if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
@@ -1017,7 +1020,7 @@ class OutStreamPlot(OutStreamManager):
           else: nbins = 5
           for key in self.xValues[pltindex].keys():
             if not self.colorMapCoordinates:
-              print('STREAM MANAGER: '+self.outStreamTypes[pltindex]+' Plot needs coordinates for color map... Returning without plotting')
+              print(self.printTag+': Warning -> ' +self.outStreamTypes[pltindex]+' Plot needs coordinates for color map... Returning without plotting')
               return
             for x_index in range(len(self.xValues[pltindex][key])):
               xi = np.linspace(self.xValues[pltindex][key][x_index].min(),self.xValues[pltindex][key][x_index].max(),ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['interpPointsX']))
@@ -1033,7 +1036,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.colorMapValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print(self.printTag+': Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.yValues[pltindex][key][y_index].size <= 3:
                       if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                       else: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
@@ -1047,11 +1050,11 @@ class OutStreamPlot(OutStreamManager):
                   self.plt.clabel(self.actPlot, inline=1, fontsize=10)
                   self.plt.colorbar(self.actPlot, shrink=0.8, extend='both')
         elif self.dim == 3:
-          print('STREAM MANAGER: contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
+          print(self.printTag+': Warning -> contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
           return
       elif self.outStreamTypes[pltindex] == 'contour3D' or self.outStreamTypes[pltindex] == 'filledContour3D':
         if self.dim == 2:
-          print('STREAM MANAGER: contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
+          print(self.printTag+': Warning -> contour3D/filledContour3D Plot is NOT available for 2D plots, IT IS A 2D! Check "contour/filledContour"!')
           return
         elif self.dim == 3:
           if 'number_bins' in self.options['plotSettings']['plot'][pltindex].keys(): nbins = int(self.options['plotSettings']['plot'][pltindex]['number_bins'])
@@ -1073,7 +1076,7 @@ class OutStreamPlot(OutStreamManager):
                       rbf = Rbf(self.xValues[pltindex][key][x_index], self.yValues[pltindex][key][y_index], self.zValues[pltindex][key][z_index],function=str(str(self.options['plotSettings']['plot'][pltindex]['interpolationType']).replace('Rbf', '')),epsilon=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['epsilon']),smooth=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['smooth']))
                       Ci  = rbf(xig, yig)
                   except Exception as ae:
-                    print('STREAM MANAGER: Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
+                    print(self.printTag+': Warning -> The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                     if ['nearest','linear','cubic'].count(self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp']) > 0 or self.zValues[pltindex][key][z_index].size <= 3:
                       if self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] != 'nearest' and self.colorMapValues[pltindex][key][z_index].size > 3: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.colorMapValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method=self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'])
                       else: Ci = griddata((self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index]), self.zValues[pltindex][key][z_index], (xi[None,:], yi[:,None]), method='nearest')
@@ -1088,7 +1091,7 @@ class OutStreamPlot(OutStreamManager):
                   self.plt.colorbar(self.actPlot, shrink=0.8, extend='both')
       else:
         # Let's try to "write" the code for the plot on the fly
-        print('STREAM MANAGER: Warning -> Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] +'. If it does not work check manual and/or relavite matplotlib method specification.')
+        print(self.printTag+': Warning -> Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] +'. If it does not work check manual and/or relavite matplotlib method specification.')
         command_args = ' '
         import CustomCommandExecuter as execcommand
         for kk in self.options['plotSettings']['plot'][pltindex]:
@@ -1101,7 +1104,7 @@ class OutStreamPlot(OutStreamManager):
           if self.dim == 2:  execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
           elif self.dim == 3:execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
         except ValueError as ae:
-          raise Exception('STREAM MANAGER: ERROR <'+str(ae)+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
+          raise Exception(self.printTag+': ERROR -> <'+str(ae)+'> -> in execution custom plot "' + self.outStreamTypes[pltindex] + '" in Plot ' + self.name + '.\nSTREAM MANAGER: ERROR -> command has been called in the following way: ' + 'self.plt.' + self.outStreamTypes[pltindex] + '(' + command_args + ')')
     # SHOW THE PICTURE
     self.plt.draw()
     #self.plt3D.draw(self.fig.canvas.renderer)
@@ -1117,7 +1120,9 @@ class OutStreamPlot(OutStreamManager):
 
 class OutStreamPrint(OutStreamManager):
   def __init__(self):
+    OutStreamManager.__init__(self)
     self.type = 'OutStreamPrint'
+    self.printTag = returnPrintTag('OUTSTREAM PRINT')
     self.availableOutStreamTypes = ['csv']
     OutStreamManager.__init__(self)
     self.sourceName   = []
@@ -1138,8 +1143,8 @@ class OutStreamPrint(OutStreamManager):
     for subnode in xmlNode:
       if subnode.tag == 'source': self.sourceName = subnode.text.split(',')
       else:self.options[subnode.tag] = subnode.text
-    if 'type' not in self.options.keys(): raise('STREAM MANAGER: ERROR -> type tag not present in Print block called '+ self.name)
-    if self.options['type'] not in self.availableOutStreamTypes : raise('STREAM MANAGER: ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
+    if 'type' not in self.options.keys(): raise(self.printTag+': ERROR -> type tag not present in Print block called '+ self.name)
+    if self.options['type'] not in self.availableOutStreamTypes : raise(self.printTag+': ERROR -> Print type ' + self.options['type'] + ' not available yet. ')
     if 'variables' in self.options.keys(): self.variables = self.options['variables']
   def addOutput(self):
     if self.variables: dictOptions = {'filenameroot':self.name,'variables':self.variables}

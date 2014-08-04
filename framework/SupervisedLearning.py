@@ -27,7 +27,7 @@ import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert
+from utils import metaclass_insert, returnPrintTag
 if sys.version_info.major > 2: import interpolationNDpy3 as interpolationND
 else                         : import interpolationNDpy2 as interpolationND  
 #Internal Modules End--------------------------------------------------------------------------------
@@ -53,15 +53,16 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     return (True,'')
   
   def __init__(self,**kwargs):
+    self.printTag = returnPrintTag('Super Visioned')
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
-    if 'Features' not in self.initOptionDict.keys(): raise IOError('Super Visioned: ERROR -> Feature names not provided')
-    if 'Target'   not in self.initOptionDict.keys(): raise IOError('Super Visioned: ERROR ->Target name not provided')
+    if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ERROR -> Feature names not provided')
+    if 'Target'   not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ERROR -> Target name not provided')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')    
-    if self.features.count(self.target) > 0: raise IOError('Super Visioned: ERROR -> The target and one of the features have the same name!!!!')
+    if self.features.count(self.target) > 0: raise IOError(self.printTag + ': ERROR -> The target and one of the features have the same name!!!!')
     #average value and sigma are used for normalization of the feature data
     self.muAndSigmaFeatures = {} #a dictionary where for each feature a tuple (average value, sigma)
     #these need to be declared in the child classes!!!!
@@ -75,21 +76,21 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
       @ In, tdict, training dictionary
       @ Out, None
     '''
-    if type(tdict) != dict: raise IOError('Super Visioned: ERROR -> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if type(tdict) != dict: raise IOError(self.printTag + ': ERROR -> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
     if self.target in names: targetValues = values[names.index(self.target)]
-    else                   : raise IOError('Super Visioned: ERROR -> The output sought '+self.target+' is not in the training set')    
+    else                   : raise IOError(self.printTag + ': ERROR -> The output sought '+self.target+' is not in the training set')    
     # check if the targetValues are consistent with the expected structure
     resp = self.checkArrayConsistency(targetValues)
-    if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for target '+self.target+':'+resp[1])
+    if not resp[0]: raise IOError(self.printTag + ': ERROR -> In training set for target '+self.target+':'+resp[1])
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the training set')   
+      if feat not in names: raise IOError(self.printTag + ': ERROR -> The feature sought '+feat+' is not in the training set')   
       else: 
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size: raise IOError('Super Visioned: ERROR -> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        if not resp[0]: raise IOError(self.printTag + ': ERROR -> In training set for feature '+feat+':'+resp[1])
+        if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ERROR -> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
@@ -102,17 +103,17 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     This call is used to get an estimate of the confidence in the prediction.
     The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
     '''
-    if type(edict) != dict: raise IOError('Super Visioned: ERROR -> method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: raise IOError(self.printTag + ': ERROR -> method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values   = list(edict.keys()), list(edict.values()) 
     for index in range(len(values)): 
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: raise IOError('Super Visioned: ERROR -> In evaluate request for feature '+names[index]+':'+resp[1])
+      if not resp[0]: raise IOError(self.printTag + ': ERROR -> In evaluate request for feature '+names[index]+':'+resp[1])
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the evaluate set')   
+      if feat not in names: raise IOError(self.printTag + ': ERROR -> The feature sought '+feat+' is not in the evaluate set')   
       else: 
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
+        if not resp[0]: raise IOError(self.printTag + ': ERROR -> In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
     
@@ -124,18 +125,18 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     @ In, tdict, evaluation dictionary
     @ Out, numpy array of evaluated points
     '''
-    if type(edict) != dict: raise IOError('Super Visioned: ERROR -> method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    if type(edict) != dict: raise IOError(self.printTag + ': ERROR -> method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
     names, values  = list(edict.keys()), list(edict.values()) 
     for index in range(len(values)): 
       resp = self.checkArrayConsistency(values[index])
-      if not resp[0]: raise IOError('Super Visioned: ERROR -> In evaluate request for feature '+names[index]+':'+resp[1])
+      if not resp[0]: raise IOError(self.printTag + ': ERROR -> In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError('Super Visioned: ERROR -> The feature sought '+feat+' is not in the evaluate set')   
+      if feat not in names: raise IOError(self.printTag + ': ERROR -> The feature sought '+feat+' is not in the evaluate set')   
       else: 
         resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError('Super Visioned: ERROR -> In training set for feature '+feat+':'+resp[1])
+        if not resp[0]: raise IOError(self.printTag + ': ERROR -> In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
@@ -191,6 +192,7 @@ class NDinterpolatorRom(superVisedLearning):
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.interpolator = None
+    self.printTag = returnPrintTag('ND Interpolation ROM')
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -234,8 +236,9 @@ class NDsplineRom(NDinterpolatorRom):
   ROMtype         = 'NDsplineRom'
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
+    self.printTag = returnPrintTag('ND-SPLINE ROM')
     self.interpolator = interpolationND.NDspline()
-
+    
   def __resetLocal__(self):
     ''' The reset here erase the Interpolator while keeping the instance'''
     self.interpolator.reset()
@@ -246,7 +249,8 @@ class NDinvDistWeigth(NDinterpolatorRom):
   ROMtype         = 'NDinvDistWeigth'
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
-    if not 'p' in self.initOptionDict.keys(): raise IOError ('NDinvDistWeigth: the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
+    self.printTag = returnPrintTag('ND-INVERSEWEIGHT ROM')
+    if not 'p' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ERROR -> the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')
     self.interpolator = interpolationND.InverseDistanceWeighting(float(self.initOptionDict['p']))
 
   def __resetLocal__(self):
@@ -259,8 +263,9 @@ class NDmicroSphere(NDinterpolatorRom):
   ROMtype         = 'NDmicroSphere'
   def __init__(self,**kwargs):
     NDinterpolatorRom.__init__(self,**kwargs)
-    if not 'p' in self.initOptionDict.keys(): raise IOError ('NDmicroSphere : the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
-    if not 'precision' in self.initOptionDict.keys(): raise IOError ('NDmicroSphere : the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
+    self.printTag = returnPrintTag('ND-MICROSPHERE ROM')
+    if not 'p' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ERROR -> the <p> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
+    if not 'precision' in self.initOptionDict.keys(): raise IOError (self.printTag + ': ERROR -> the <precision> parameter must be provided in order to use NDmicroSphere as ROM!!!!')
     self.interpolator = interpolationND.microSphere(float(self.initOptionDict['p']),int(self.initOptionDict['precision']))
 
   def __resetLocal__(self):
@@ -358,11 +363,12 @@ class SciKitLearn(superVisedLearning):
   
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
-    if 'SKLtype' not in self.initOptionDict.keys(): raise IOError('to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
+    self.printTag = returnPrintTag('SCIKITLEARN')
+    if 'SKLtype' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ERROR -> to define a scikit learn ROM the SKLtype keyword is needed (from ROM '+self.name+')')
     SKLtype, SKLsubType = self.initOptionDict['SKLtype'].split('|')
     self.initOptionDict.pop('SKLtype')
-    if not SKLtype in self.__class__.availImpl.keys(): raise IOError ('not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
-    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): raise IOError ('not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
+    if not SKLtype in self.__class__.availImpl.keys(): raise IOError (self.printTag + ': ERROR -> not known SKLtype ' + SKLtype +'(from ROM '+self.name+')')
+    if not SKLsubType in self.__class__.availImpl[SKLtype].keys(): raise IOError (self.printTag + ': ERROR -> not known SKLsubType ' + SKLsubType +'(from ROM '+self.name+')')
     self.__class__.returnType     = self.__class__.availImpl[SKLtype][SKLsubType][1]
     self.ROM                      = self.__class__.availImpl[SKLtype][SKLsubType][0]()
     self.__class__.qualityEstType = self.__class__.qualityEstTypeDict[SKLtype][SKLsubType]
@@ -392,7 +398,7 @@ class SciKitLearn(superVisedLearning):
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
-    else            : raise IOError('the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
+    else            : raise IOError(self.printTag + ': ERROR -> the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')
 
   def __evaluateLocal__(self,featureVals):
     return self.ROM.predict(featureVals)
@@ -404,7 +410,7 @@ class SciKitLearn(superVisedLearning):
     return self.ROM.get_params()
 
   def __returnCurrentSettingLocal__(self):
-    print('FIXME: here we need to collect some info on the ROM status')
+    print(self.printTag + ': FIXME -> here we need to collect some info on the ROM status')
     localInitParam = {}
     return localInitParam
 #

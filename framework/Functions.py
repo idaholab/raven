@@ -31,7 +31,7 @@ class Function(BaseType):
     self.__inputFromWhat                 = {}
     self.__inputFromWhat['dict']         = self.__inputFromDict
     self.__inputFromWhat['Data']         = self.__inputFromData    
-    
+    self.printTag                        = utils.returnPrintTag('FUNCTIONS')
   def _readMoreXML(self,xmlNode,debug=False):
     if 'file' in xmlNode.attrib.keys():
       self.functionFile = xmlNode.attrib['file']
@@ -68,13 +68,13 @@ class Function(BaseType):
           #custom
           self.__actionDictionary[method]                    = importedModule.__dict__[method]
           self.__actionImplemented[method]                   = True 
-    else: raise IOError('No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
+    else: raise IOError(self.printTag+': ERROR -> No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
     for child in xmlNode:
       if child.tag=='variable':
         exec('self.'+child.text+' = None')
         if 'type' in child.attrib.keys(): self.__varType[child.text] = child.attrib['type']
-        else                            : raise IOError('the type for the variable '+child.text+' is missed')
-    if len(self.__varType.keys())==0: raise IOError('not variable found in the definition of the function '+self.name)
+        else                            : raise IOError(self.printTag+': ERROR -> the type for the variable '+child.text+' is missed')
+    if len(self.__varType.keys())==0: raise IOError( self.printTag+': ERROR -> not variable found in the definition of the function '+self.name)
         
   def addInitParams(self,tempDict):
     '''
@@ -108,7 +108,7 @@ class Function(BaseType):
     '''this makes available the variable values sent in as self.key'''
     if type(myInput)==dict         :self.__inputFromWhat['dict'](myInput)
     elif 'Data' in myInput.__base__:self.__inputFromWhat['Data'](myInput)
-    else: raise 'Unknown type of input provided to the function '+str(self.name)
+    else: raise Exception (self.printTag+': ERROR -> Unknown type of input provided to the function '+str(self.name))
 
   def __inputFromData(self,inputData):
     '''
@@ -148,8 +148,8 @@ class Function(BaseType):
     for name, myType in self.__varType.items():
       if name in inDict.keys():
         if myType.split('.')[-1] == type(inDict[name]).__name__: exec("self."+name+"=inDict[name]")
-        else: raise Exception('Not proper type for the variable '+name+' in external function '+self.name + '.\nExpected type: ' + myType.split('.')[-1] + '. Got ' + type(inDict[name]).__name__)
-      else: raise Exception('The input variable '+name+' in external function seems not to be passed in')
+        else: raise Exception(self.printTag+': ERROR -> Not proper type for the variable '+name+' in external function '+self.name + '.\nExpected type: ' + myType.split('.')[-1] + '. Got ' + type(inDict[name]).__name__)
+      else: raise Exception(self.printTag+': ERROR -> The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):
     '''return the result of the type of action described by 'what' '''
