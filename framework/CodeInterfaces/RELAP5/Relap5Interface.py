@@ -12,7 +12,7 @@ import copy
 
 class Relap5Interface:
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
-  def generateCommand(self,inputFiles,executable):
+  def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1

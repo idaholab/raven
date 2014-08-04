@@ -18,12 +18,14 @@ import Distributions
 
 class RAVENInterface:
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
-  def generateCommand(self,inputFiles,executable):
+  def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
+    if flags: precommand = executable + flags
+    else    : precommand = executable
+    executeCommand = (precommand + ' -i '+os.path.split(inputFiles[index])[1] +
                       ' Outputs/file_base='+ outputfile +
                       ' Outputs/interval=1'+
                       ' Outputs/csv=false'+' Outputs/num_checkpoint_files=1'+

@@ -18,7 +18,7 @@ import shutil
 
 class HOBOInterface:
   '''this class is used a part of a code dictionary to specialize Model.Code for ExampleCode'''
-  def generateCommand(self,inputFiles,executable):
+  def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
     # here the developer generates the command...
     # for this particular code, we have to retrieve the path of the executable contained into the generated input files

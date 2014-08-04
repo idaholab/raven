@@ -11,7 +11,7 @@ import os
 import copy
 
 class ExternalTest:
-  def generateCommand(self,inputFiles,executable):
+  def generateCommand(self,inputFiles,executable,flags=None):
     return '', ''
   def findOutputFile(self,command):
     return ''

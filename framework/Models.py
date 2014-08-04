@@ -428,7 +428,9 @@ class Code(Model):
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
     self.alias              = {}   #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
                                    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
+    self.flags              = None #flags for the code
     self.printTag = returnPrintTag('MODEL CODE')
+  
   def _readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
     !!!!generate also the code interface for the proper type of code!!!!'''
@@ -441,7 +443,10 @@ class Code(Model):
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
         else: raise Exception (self.printTag+': ERROR -> not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
-      else: raise Exception (self.printTag+': ERROR -> unknown tag within the definition of the code model '+str(self.name))
+      elif child.tag=='flags':
+        self.flags = str(child.text)      
+      else: 
+        raise Exception (self.printTag+': ERROR -> unknown tag within the definition of the code model '+str(self.name))
     if self.executable == '': raise IOError(self.printTag+': ERROR -> not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
     abspath = os.path.abspath(self.executable)
@@ -495,7 +500,8 @@ class Code(Model):
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles[0]
-    executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
+    if self.flags: executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable, self.flags)
+    else         : executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
     if self.currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
