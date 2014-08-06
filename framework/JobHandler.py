@@ -15,7 +15,7 @@ import subprocess
 import os
 import signal
 import copy
-from utils import returnPrintTag
+from utils import returnPrintTag, returnPrintPostTag
 #import logging, logging.handlers
 import threading 
 
@@ -138,7 +138,7 @@ class InternalRunner:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
-    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HADLER') + ": ERROR -> The input for InternalRunner needs to be a tuple!!!!")
+    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HADLER') + ": " +returnPrintPostTag('ERROR') + "-> The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
     self.subque          = queue.Queue()
     self.functionToRun   = functionToRun
@@ -266,7 +266,7 @@ class JobHandler:
               print(returnPrintTag('JOB HADLER')+" No output ",outputFilename)
           else:
             if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
-              print('JOB HANDLER'.ljust(25) + ': Run "' +running.identifier+'" ended smoothly, removing log file!')
+              print(returnPrintTag('JOB HANDLER') + ': Run "' +running.identifier+'" ended smoothly, removing log file!')
               if os.path.exists(running.getOutputFilename()): os.remove(running.getOutputFilename())
             if len(self.runInfoDict['deleteOutExtension']) >= 1 and running.__class__.__name__ != 'InternalRunner':
               for fileExt in self.runInfoDict['deleteOutExtension']:

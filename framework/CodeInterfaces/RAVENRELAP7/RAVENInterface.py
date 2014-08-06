@@ -144,7 +144,7 @@ class RAVENInterface:
         restart_file_base = output_parent + "_cp/" + end_ts_str
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base
-        print('CODE INTERFACE: Restart file name base is "' + restart_file_base + '"')
+        print(utils.returnPrintTag('CODE INTERFACE')+': ' +utils.returnPrintPostTag('Message')+ '-> Restart file name base is "' + restart_file_base + '"')
         listDict.append(modifDict)
         del modifDict
     # max simulation time (if present)

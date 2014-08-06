@@ -3,7 +3,9 @@ import bisect
 
 def getPrintTagLenght(): return 25
 
-def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())
+def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
+
+def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
 def toString(s):
   if type(s) == type(""):
@@ -43,7 +45,7 @@ def convertDictToListOfLists(inputDict):
       if type(value) == dict: returnList[1].append(convertDictToListOfLists(value))
       else: returnList[1].append(value)
   else:   
-    print('UTILS         : WARNING -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
+    print(returnPrintTag('UTILS') + ': '+returnPrintPostTag('WARNING')+ ' -> in method "convertDictToListOfLists", inputDict is not a dictionary!')
     returnList = None
   return returnList
 
@@ -82,7 +84,7 @@ def first(c):
   return next(iter(c))
 
 def importFromPath(filename, printImporting = True):
-    if printImporting: print(returnPrintTag('UTILS')+': Message -> importing module '+ filename)
+    if printImporting: print(returnPrintTag('UTILS') + ': '+returnPrintPostTag('Message')+ '-> importing module '+ filename)
     import imp, os.path
     try:
       (path, name) = os.path.split(filename)
@@ -107,7 +109,7 @@ def find_lt(a, x):
 def find_le_index(a,x):
     'Find the index of the rightmost value less than or equal to x'
     i = bisect.bisect_right(a, x)
-    if i: return i-1
+    if i: return i
     return None
   
 def find_le(a, x):

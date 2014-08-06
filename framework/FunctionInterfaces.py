@@ -62,13 +62,13 @@ class Function(BaseType):
           #custom
           self.__actionDictionary[method]                    = moduleName.__dict__[method]
           self.__actionImplemented[method]                   = True          
-    else: raise IOError(self.printTag+': ERROR -> No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
+    else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
     for child in xmlNode:
       if child.tag=='variable':
         self.__inVarValues[child.text] = None
         exec('self.'+child.text+' = self.inVarValues['+'child.text'+']')
         if 'type' in child.attrib.keys(): self.varType[child.text] = child.attrib['type']
-        else                            : raise IOError(self.printTag+': ERROR -> the type for the variable '+child.text+' is missed')
+        else                            : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the type for the variable '+child.text+' is missed')
         
   def addInitParams(self,tempDict):
     '''
@@ -105,7 +105,7 @@ class Function(BaseType):
     '''this makes available the variable values sent in as self.key'''
     if type(myInput)==dict         :self.__inputFromWhat['dict'](myInput)
     elif 'Data' in myInput.__base__:self.__inputFromWhat['Data'](myInput)
-    else: raise Exception (self.printTag+': ERROR -> Unknown type of input provided to the function '+str(self.name))
+    else: raise Exception (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown type of input provided to the function '+str(self.name))
 
   def __inputFromData(self,inputData):
     '''
@@ -124,8 +124,8 @@ class Function(BaseType):
     for name, myType in self.varType.items():
       if name in inDict.keys():
         if myType == type(inDict[name]): exec("self."+name+"=inDict[name]")
-        else: raise Exception(self.printTag+': ERROR ->Not proper type for the variable '+name+' in external function '+self.name)
-      else: raise Exception(self.printTag+': ERROR ->The input variable '+name+' in external function seems not to be passed in')
+        else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->Not proper type for the variable '+name+' in external function '+self.name)
+      else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):
     '''return the result of the type of action described by 'what' '''
