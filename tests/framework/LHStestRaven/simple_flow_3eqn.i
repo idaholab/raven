@@ -28,7 +28,7 @@
     orientation = '1 0 0'
     A = 1.
     Dh = 1.12837916709551
-    aw = 3.54490770181103
+#aw = 3.54490770181103
     f = 0.0
     Hw = 0.0 # convective heat transfer coefficient
     Tw = 310 # wall temperature

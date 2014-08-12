@@ -56,7 +56,7 @@
     inputs = 'pipe1(out)'
     outputs = 'pipe2(in)'
     mass_flow_rate = 0.3141159265 # rho * u * A (kg/s)
-    Area = 2.624474
+#Area = 2.624474
     Initial_pressure = 151.7e5
   [../]
   [./inlet_TDV]
@@ -126,9 +126,9 @@
   dt = 1.e-1
   dtmin = 1.e-10
   dtmax = 9999
-  e_tol = 10.0
-  e_max = 99999.
-  max_increase = 10
+#e_tol = 10.0
+#e_max = 99999.
+#max_increase = 10
   petsc_options_iname = '-ksp_gmres_restart -pc_type'
   petsc_options_value = '300 lu'
   nl_rel_tol = 1e-6
@@ -148,8 +148,8 @@
   # Turn on performance logging
   exodus = true
   output_initial = true
-  output_displaced = true
-  perf_log = true
+#output_displaced = true
+#perf_log = true
 []
 [Controlled]
   control_logic_input = 'ideal_pump_control'

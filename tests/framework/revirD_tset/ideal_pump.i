@@ -57,7 +57,7 @@
     inputs = 'pipe1(out)'
     outputs = 'pipe2(in)'
     mass_flow_rate = 0.3141159265 # rho * u * A (kg/s)
-    Area = 2.624474
+#Area = 2.624474
     Initial_pressure = 151.7e5
   [../]
   [./inlet_TDV]

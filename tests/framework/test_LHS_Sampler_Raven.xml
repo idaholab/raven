@@ -62,10 +62,6 @@
         <distribution >Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>
       </variable>
-      <variable name='Components|inlet|T_bc'>
-        <distribution >Gauss2</distribution>
-        <grid type='CDF' construction='equal' upperBound='0.2' steps='3'>0.01</grid>
-      </variable>
       <Distribution name='Dummy1'>
         <distribution >ANormalDistribution</distribution>
         <grid type='CDF' construction='equal' upperBound='0.9' steps='3'>0.01</grid>
