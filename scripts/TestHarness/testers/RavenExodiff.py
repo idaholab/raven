@@ -19,7 +19,7 @@ class RavenExodiff(Exodiff):
     has_python2 = py2_output.startswith("HELLO")
 
     try:
-        py_cfg_output = subprocess.Popen(["python-config","--help"],stderr=subprocess.PIPE).communicate()[1]
+        py_cfg_output = subprocess.Popen(["python-config","--help"],stdout=subprocess.PIPE).communicate()[0]
     except OSError:
         py_cfg_output = "Failed"
 
