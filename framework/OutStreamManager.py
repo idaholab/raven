@@ -119,7 +119,7 @@ class OutStreamManager(BaseType):
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
-          if not isinstance(inp, basestring):
+          if not type(inp) == type(""):
             if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knonwnTypes():
               self.sourceData.append(inp)
               foundData = True

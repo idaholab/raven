@@ -386,12 +386,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, keyword, keyword
     @ Out, Reference to the parameter
     '''
-    if self.type == 'Histories': acceptedType = [str,unicode,bytes,int]
-    else                       : acceptedType = [str,unicode,bytes]
-    if type(typeVar) not in [str,unicode,bytes] : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter typeVar needs to be a string. Function: Data.getParam')
-    if type(keyword) not in acceptedType        : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
+    if self.type == 'Histories': acceptedType = ['str','unicode','bytes','int']
+    else                       : acceptedType = ['str','unicode','bytes']
+    if type(typeVar).__name__ not in ['str','unicode','bytes'] : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter typeVar needs to be a string. Function: Data.getParam')
+    if type(keyword).__name__ not in acceptedType        : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeid:
-      if type(nodeid) not in [str,unicode,bytes]  : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter nodeid needs to be a string. Function: Data.getParam')
+      if type(nodeid).__name__ not in ['str','unicode','bytes']  : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter nodeid needs to be a string. Function: Data.getParam')
     if typeVar.lower() not in ['input','inputs','output','outputs']: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.getParam')
     if self._dataParameters['hierarchical']:
       if type(keyword) == int:
@@ -774,7 +774,7 @@ class TimePointSet(Data):
     except AttributeError:sourceType = None
     # here we assume that the outputs are all read....so we need to compute the total number of time point sets
     for sourceLoad in self._toLoadFromList:
-      if not isinstance(sourceLoad, basestring):
+      if not type(sourceLoad) == type(""):
         if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
       else: lenMustHave += 1
 
