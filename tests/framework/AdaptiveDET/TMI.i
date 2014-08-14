@@ -911,7 +911,7 @@
  upperBound = 1499.8167
  [../]
  []
-[RavenAuxiliary]
+[Auxiliary]
   [./DG1_time_ratio]
     print_csv =  true
     data_type =  double

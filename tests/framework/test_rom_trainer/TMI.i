@@ -902,7 +902,7 @@
   [../]
 []
 
-[RavenAuxiliary]
+[Auxiliary]
   [./init_exp_frict]
     print_csv = false
     data_type = bool

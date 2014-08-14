@@ -140,7 +140,7 @@
     sigma = 3.0
   [../]
 []
-[RavenAuxiliary]
+[Auxiliary]
   [./Dummy1]
     print_csv = true
     data_type = double

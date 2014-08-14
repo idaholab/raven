@@ -855,7 +855,7 @@
     component_name =  pipe1-SC-A
   [../]
 []
-[RavenAuxiliary]
+[Auxiliary]
   [./DG1_time_ratio]
     print_csv =  true
     data_type =  double

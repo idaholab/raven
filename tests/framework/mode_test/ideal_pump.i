@@ -220,7 +220,7 @@
 []
 [Monitored]
 []
-[RavenAuxiliary]
+[Auxiliary]
   [./aBoolean]
     data_type =  bool
     initial_value =  False

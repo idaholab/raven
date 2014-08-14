@@ -44,14 +44,14 @@
 <Samplers>
   <DynamicEventTree name='PreconditionedDET_test' print_end_xml="True">
       <PreconditionerSampler type='MonteCarlo' limit='2'>
-          <variable name='RavenAuxiliary|testMCpreconditioned1|initial_value' >
+          <variable name='Auxiliary|testMCpreconditioned1|initial_value' >
               <distribution>testPreconditionerMonteCarloDist1</distribution>
           </variable>
           <!-- The second sampled variable is directly performed in RAVEN (since we perform the seeding)-->
       </PreconditionerSampler>
       <PreconditionerSampler type='Grid'>
           <!-- Point sampler way (directly sampling the variable) -->
-          <variable name='RavenAuxiliary|testGridpreconditioned1|initial_value' >
+          <variable name='Auxiliary|testGridpreconditioned1|initial_value' >
               <distribution>testPreconditionerGridDist1</distribution>
               <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
           </variable>
@@ -63,7 +63,7 @@
       </PreconditionerSampler>
       <PreconditionerSampler type='Stratified'>
           <!-- Point sampler way (directly sampling the variable ) -->
-          <variable name='RavenAuxiliary|testLHSpreconditioned1|initial_value' >
+          <variable name='Auxiliary|testLHSpreconditioned1|initial_value' >
               <distribution>testPreconditionerLHSDist1</distribution>
               <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
           </variable>
