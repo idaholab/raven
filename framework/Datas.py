@@ -726,15 +726,15 @@ class TimePoint(Data):
               raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> metadata '+key+' not compatible with CSV output. Its type needs to be one of '+str(self.metatype))
             inpKeys.append(key)
             inpValues.append(np.atleast_1d(np.float(value)))
-    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
     else: return
 
     #Print header
-    myFile.write(b','.join([utils.toBytes(item) for item in itertools.chain(inpKeys,outKeys)]))
-    myFile.write(b'\n')
+    myFile.write(','.join([item for item in itertools.chain(inpKeys,outKeys)]))
+    myFile.write('\n')
     #Print values
-    myFile.write(b','.join([utils.toBytes(str(item[0])) for item in  itertools.chain(inpValues,outValues)]))
-    myFile.write(b'\n')
+    myFile.write(','.join([str(item[0]) for item in  itertools.chain(inpValues,outValues)]))
+    myFile.write('\n')
     myFile.close()
     self._createXMLFile(filenameLocal,'timepoint',inpKeys,outKeys)
 
@@ -969,24 +969,24 @@ class TimePointSet(Data):
                 axa = np.zeros(len(O_o[key]))
                 for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][metaname]))[0]
                 inpValues[-1].append(copy.deepcopy(axa))
-      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
       O_o_keys = list(O_o.keys())
       for index in range(len(O_o.keys())):
-        myFile.write(b'Ending branch,'+utils.toBytes(O_o_keys[index])+b'\n')
-        myFile.write(b'branch #')
+        myFile.write('Ending branch,'+O_o_keys[index]+'\n')
+        myFile.write('branch #')
         for item in inpKeys[index]:
-            myFile.write(b',' + utils.toBytes(item))
+            myFile.write(',' + item)
         for item in outKeys[index]:
-            myFile.write(b',' + utils.toBytes(item))
-        myFile.write(b'\n')
+            myFile.write(',' + item)
+        myFile.write('\n')
         for j in range(outValues[index][0].size):
-          myFile.write(utils.toBytes(str(j+1)))
+          myFile.write(str(j+1))
           for i in range(len(inpKeys[index])):
-            myFile.write(b',' + utils.toBytes(str(inpValues[index][i][j])))
+            myFile.write(',' + str(inpValues[index][i][j]))
           for i in range(len(outKeys[index])):
-            myFile.write(b',' + utils.toBytes(str(outValues[index][i][j])))
-          myFile.write(b'\n')
+            myFile.write(',' + str(outValues[index][i][j]))
+          myFile.write('\n')
       myFile.close()
     else:
       #If not hierarchical
@@ -1028,16 +1028,16 @@ class TimePointSet(Data):
               inpKeys.append(key)
               if type(value) != np.ndarray: inpValues.append(np.atleast_1d(np.float(value)))
               else: inpValues.append(np.atleast_1d(value))
-      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
 
       #Print header
-      myFile.write(b','.join([utils.toBytes(str(item)) for item in itertools.chain(inpKeys,outKeys)]))
-      myFile.write(b'\n')
+      myFile.write(','.join([str(item) for item in itertools.chain(inpKeys,outKeys)]))
+      myFile.write('\n')
       #Print values
       for j in range(len(next(iter(itertools.chain(inpValues,outValues))))):
-        myFile.write(b','.join([utils.toBytes(str(item[j])) for item in itertools.chain(inpValues,outValues)]))
-        myFile.write(b'\n')
+        myFile.write(','.join([str(item[j]) for item in itertools.chain(inpValues,outValues)]))
+        myFile.write('\n')
       myFile.close()
       self._createXMLFile(filenameLocal,'timepointset',inpKeys,outKeys)
 
@@ -1168,27 +1168,27 @@ class History(Data):
             inpKeys.append(key)
             inpValues.append(np.atleast_1d(np.float(value)))
 
-    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'wb')
+    if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
     else: return
 
     #Create Input file
     #Print header
-    myFile.write(b','.join([utils.toBytes(item) for item in  itertools.chain(inpKeys,['filename'])]))
-    myFile.write(b'\n')
+    myFile.write(','.join([item for item in  itertools.chain(inpKeys,['filename'])]))
+    myFile.write('\n')
     #Print data
-    myFile.write(b','.join([utils.toBytes(str(item[0])) for item in itertools.chain(inpValues,[[filenameLocal + '_0' + '.csv']])]))
-    myFile.write(b'\n')
+    myFile.write(','.join([str(item[0]) for item in itertools.chain(inpValues,[[filenameLocal + '_0' + '.csv']])]))
+    myFile.write('\n')
     myFile.close()
     #Create Output file
-    myDataFile = open(filenameLocal + '_0' + '.csv', 'wb')
+    myDataFile = open(filenameLocal + '_0' + '.csv', 'w')
     #Print headers
     #Print time + output values
-    myDataFile.write(b','.join([utils.toBytes(item) for item in outKeys]))
-    myDataFile.write(b'\n')
+    myDataFile.write(','.join([item for item in outKeys]))
+    myDataFile.write('\n')
     #Print data
     for j in range(next(iter(outValues)).size):
-      myDataFile.write(b','.join([utils.toBytes(str(item[j])) for item in outValues]))
-      myDataFile.write(b'\n')
+      myDataFile.write(','.join([str(item[j]) for item in outValues]))
+      myDataFile.write('\n')
     myDataFile.close()
     self._createXMLFile(filenameLocal,'history',inpKeys,outKeys)
 
@@ -1482,30 +1482,30 @@ class Histories(Data):
               axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var]))
             outValues[-1].append(copy.deepcopy(axa))
 
-        if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '_' + key + '.csv', 'wb')
+        if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '_' + key + '.csv', 'w')
         else: return
-        myFile.write(b'Ending branch,'+utils.toBytes(key)+b'\n')
-        myFile.write(b'branch #')
+        myFile.write('Ending branch,'+key+'\n')
+        myFile.write('branch #')
         for item in inpKeys[-1]:
-          myFile.write(b',' + utils.toBytes(item))
-        myFile.write(b'\n')
+          myFile.write(',' + item)
+        myFile.write('\n')
         # write the input paramters' values for each branch
         for i in range(inpValues[-1][0].size):
-          myFile.write(utils.toBytes(str(i+1)))
+          myFile.write(str(i+1))
           for index in range(len(inpValues[-1])):
-            myFile.write(b',' + utils.toBytes(str(inpValues[-1][index][i])))
-          myFile.write(b'\n')
+            myFile.write(',' + str(inpValues[-1][index][i]))
+          myFile.write('\n')
         # write out keys
-        myFile.write(b'\n')
-        myFile.write(b'TimeStep #')
+        myFile.write('\n')
+        myFile.write('TimeStep #')
         for item in outKeys[-1]:
-          myFile.write(b',' + utils.toBytes(item))
-        myFile.write(b'\n')
+          myFile.write(',' + item)
+        myFile.write('\n')
         for i in range(outValues[-1][0].size):
-          myFile.write(utils.toBytes(str(i+1)))
+          myFile.write(str(i+1))
           for index in range(len(outValues[-1])):
-            myFile.write(b',' + utils.toBytes(str(outValues[-1][index][i])))
-          myFile.write(b'\n')
+            myFile.write(',' + str(outValues[-1][index][i]))
+          myFile.write('\n')
         myFile.close()
     else:
       #if not hierarchical
@@ -1519,7 +1519,7 @@ class Histories(Data):
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = list(self._dataContainer['outputs'].values())
       #Create Input file
-      myFile = open(filenameLocal + '.csv','wb')
+      myFile = open(filenameLocal + '.csv','w')
       for n in range(len(outKeys)):
         inpKeys_h   = []
         inpValues_h = []
@@ -1540,26 +1540,26 @@ class Histories(Data):
           outValues_h = list(outValues[n].values())
 
         dataFilename = filenameLocal + '_'+ str(n) + '.csv'
-        if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'wb')
+        if len(inpKeys_h) > 0 or len(outKeys_h) > 0: myDataFile = open(dataFilename, 'w')
         else: return #XXX should this just skip this iteration?
         #Write header for main file
         if n == 0:
-          myFile.write(b','.join([utils.toBytes(item) for item in
+          myFile.write(','.join([item for item in
                                   itertools.chain(inpKeys_h,['filename'])]))
-          myFile.write(b'\n')
+          myFile.write('\n')
           self._createXMLFile(filenameLocal,'histories',inpKeys_h,outKeys_h)
-        myFile.write(b','.join([utils.toBytes(str(item[0])) for item in
+        myFile.write(','.join([str(item[0]) for item in
                                 itertools.chain(inpValues_h,[[dataFilename]])]))
-        myFile.write(b'\n')
+        myFile.write('\n')
         #Data file
         #Print time + output values
-        myDataFile.write(b','.join([utils.toBytes(item) for item in outKeys_h]))
+        myDataFile.write(','.join([item for item in outKeys_h]))
         if len(outKeys_h) > 0:
-          myDataFile.write(b'\n')
+          myDataFile.write('\n')
           for j in range(outValues_h[0].size):
-            myDataFile.write(b','.join([utils.toBytes(str(item[j])) for item in
+            myDataFile.write(','.join([str(item[j]) for item in
                                     outValues_h]))
-            myDataFile.write(b'\n')
+            myDataFile.write('\n')
         myDataFile.close()
       myFile.close()
 
