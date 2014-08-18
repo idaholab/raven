@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug='False'>
+<RunInfo>
+  <WorkingDir>./postProcess2</WorkingDir>
+  <Sequence>extractHDf5,BisonRomTrainer,MCrun1,MCrun2,MCplots,PPmc1,PPmc2,adaptive</Sequence>
+  <batchSize>10</batchSize>
+</RunInfo>
+
+
+<DataBases>
+  <HDF5 name="BisonDB" directory='.' filename='BisonDB.h5'/>
+</DataBases>
+
+<Distributions>
+  <Uniform   name='FlatPowerHistory'>
+    <low>0.95</low>
+    <high>1.05</high>
+  </Uniform>
+  <LogNormal name='LogNormalThermalExpansion'>
+    <upperBound>1.1e-5</upperBound>
+    <lowerBound>9e-6</lowerBound>
+    <mean>-11.512925464970229</mean>
+    <sigma>0.03</sigma>
+  </LogNormal>
+  <Normal name='NormalGrainRadius'>
+    <upperBound>1.5</upperBound>
+    <lowerBound>0.5</lowerBound>
+    <mean>1</mean>
+    <sigma>0.2</sigma>
+  </Normal>
+  <Normal name='NormalGrainRadius2'>
+    <upperBound>1.5</upperBound>
+    <lowerBound>0.5</lowerBound>
+    <mean>1.4</mean>
+    <sigma>0.1</sigma>
+  </Normal>
+</Distributions>
+
+<Samplers>
+  <MonteCarlo name='MC1' limit='1000'>
+    <variable name='Functions|power_history|scale_factor'>
+      <distribution>FlatPowerHistory</distribution>
+    </variable>
+    <variable name='Materials|fuel_creep|thermal_expansion'>
+      <distribution>LogNormalThermalExpansion</distribution>
+    </variable>
+    <variable name='Materials|fission_gas_release_and_swelling|grainradius_scalef'>
+      <distribution>NormalGrainRadius</distribution>
+    </variable>
+  </MonteCarlo>
+  <MonteCarlo name='MC2' limit='1000'>
+    <variable name='Functions|power_history|scale_factor'>
+      <distribution>FlatPowerHistory</distribution>
+    </variable>
+    <variable name='Materials|fuel_creep|thermal_expansion'>
+      <distribution>LogNormalThermalExpansion</distribution>
+    </variable>
+    <variable name='Materials|fission_gas_release_and_swelling|grainradius_scalef'>
+      <distribution>NormalGrainRadius2</distribution>
+    </variable>
+  </MonteCarlo>
+  <Adaptive name='AdaptiveSampler'>
+    <Convergence limit='1000' forceIteration='False' weight='probability' persistence='30'>1E-4</Convergence>
+      <variable name='Functions|power_history|scale_factor'>
+        <distribution>FlatPowerHistory</distribution>
+      </variable>
+      <variable name='Materials|fuel_creep|thermal_expansion'>
+        <distribution>LogNormalThermalExpansion</distribution>
+      </variable>
+      <variable name='Materials|fission_gas_release_and_swelling|grainradius_scalef'>
+        <distribution>NormalGrainRadius</distribution>
+      </variable>
+  </Adaptive>
+</Samplers>
+
+<Functions>
+  <External name='AVGstressThreshold' file='/Users/crisr/raven_db/Bison/AVGstressThreshold.py'>
+    <variable type='numpy.float64'>average_creep_strain_hoop</variable>
+  </External>
+</Functions>
+
+
+<Models>
+  <ROM  name='BisonROM' subType='SciKitLearn'>
+    <Features>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Features>
+    <SKLtype>neighbors|KNeighborsRegressor</SKLtype>
+    <Target>average_creep_strain_hoop</Target>
+  </ROM>
+  <ROM name='Acc' subType='SciKitLearn'>
+    <Features>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Features>
+    <Target>AVGstressThreshold</Target>
+    <SKLtype>svm|SVC</SKLtype>
+    <kernel>rbf</kernel>
+    <gamma>0.5</gamma>
+    <tol>0.0001</tol>
+    <C>50</C>
+  </ROM>
+  <PostProcessor name="StatStandard" subType='BasicStatistics'>
+     <what>all</what>
+     <parameters>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef,average_creep_strain_hoop</parameters>
+   </PostProcessor>
+</Models>
+
+<Datas>
+  <TimePointSet name='OriData'>
+    <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+    <Output>average_creep_strain_hoop</Output>
+  </TimePointSet>
+  <TimePointSet name='MC1'>
+    <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+    <Output>average_creep_strain_hoop</Output>
+  </TimePointSet>
+  <TimePointSet name='MC2'>
+    <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+    <Output>average_creep_strain_hoop</Output>
+  </TimePointSet>
+  <TimePointSet name='TestedPoint'>
+    <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+    <Output>average_creep_strain_hoop</Output>
+  </TimePointSet>
+  <TimePointSet name='limitSurf'>
+    <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  <TimePointSet name='dummy'>
+    <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+</Datas>
+
+<Steps>
+  <IODataBase name='extractHDf5' pauseAtEnd='True'>
+    <Input   class = 'DataBases'         type = 'HDF5'         >BisonDB</Input >
+    <Output  class = 'Datas'             type = 'TimePointSet' >OriData</Output>
+    <Output  class = 'OutStreamManager'  type = 'Plot'         >StressVsPowerGrain</Output>
+    <Output  class = 'OutStreamManager'  type = 'Plot'         >StressVsThCoeffGrain</Output>
+    <Output  class = 'OutStreamManager'  type = 'Plot'         >StressVsThCoeffPower</Output>    
+  </IODataBase>
+  <RomTrainer name = 'BisonRomTrainer'>
+     <Input  class = 'Datas'             type = 'TimePointSet' >OriData</Input>
+     <Output class = 'Models'            type = 'ROM'          >BisonROM</Output>
+  </RomTrainer>
+  <MultiRun name='MCrun1'>
+    <Sampler class = 'Samplers'          type ='MonteCarlo'    >MC1</Sampler>
+    <Input   class = 'Datas'             type ='TimePointSet'  >dummy</Input>    
+    <Model   class = 'Models'            type ='ROM'           >BisonROM</Model>
+    <Output  class = 'Datas'             type ='TimePointSet'  >MC1</Output>
+  </MultiRun >
+  <MultiRun name='MCrun2'>
+    <Sampler class = 'Samplers'          type ='MonteCarlo'    >MC2</Sampler>
+    <Input   class = 'Datas'             type ='TimePointSet'  >dummy</Input>    
+    <Model   class = 'Models'            type ='ROM'           >BisonROM</Model>
+    <Output  class = 'Datas'             type ='TimePointSet'  >MC2</Output>
+  </MultiRun >
+  <OutStreamStep name='MCplots' pauseAtEnd='True'>
+    <Input   class = 'Datas'             type ='TimePointSet'  >MC1</Input>
+    <Input   class = 'Datas'             type ='TimePointSet'  >MC2</Input> 
+    <Output  class = 'OutStreamManager'  type ='Plot'          >MC1</Output>
+    <Output  class = 'OutStreamManager'  type ='Plot'          >MC2</Output>
+  </OutStreamStep>
+  <PostProcess name='PPmc1'>
+    <Input   class = 'Datas'             type = 'TimePointSet' >MC1</Input>
+    <Model   class = 'Models'            type = 'PostProcessor'>StatStandard</Model>
+  </PostProcess>
+  <PostProcess name = 'PPmc2'>
+    <Input    class = 'Datas'            type = 'TimePointSet' >MC2</Input>
+    <Model    class = 'Models'           type = 'PostProcessor'>StatStandard</Model>
+  </PostProcess>
+
+  <Adaptive name='adaptive' pauseAtEnd='True'>
+    <Input             class = 'Datas'            type = 'TimePointSet'>dummy</Input>
+    <Sampler           class = 'Samplers'         type = 'Adaptive'    >AdaptiveSampler</Sampler>
+    <TargetEvaluation  class = 'Datas'            type = 'TimePointSet'>TestedPoint</TargetEvaluation>
+    <SolutionExport    class = 'Datas'            type = 'TimePointSet'>limitSurf</SolutionExport>
+    <Function          class = 'Functions'        type = 'External'    >AVGstressThreshold</Function>
+    <Model             class = 'Models'           type = 'ROM'         >BisonROM</Model>
+    <ROM               class = 'Models'           type = 'ROM'         >Acc</ROM>
+    <Output            class = 'Datas'            type = 'TimePointSet'>TestedPoint</Output>
+    <Output            class = 'Datas'            type = 'TimePointSet'>OriData</Output>
+    <Output            class = 'Datas'            type = 'TimePointSet'>limitSurf</Output>
+    <Output            class = 'OutStreamManager' type = 'Plot'        >LimitSurf</Output>
+    <Output            class = 'OutStreamManager' type = 'Plot'        >TestedPoint</Output>    
+  </Adaptive>
+</Steps>
+
+<OutStreamManager>
+  <Plot name='StressVsPowerGrain' dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>OriData|Input|(Functions|power_history|scale_factor)</x>
+        <y>OriData|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</y>
+        <z>OriData|Output|average_creep_strain_hoop</z>
+        <colorMap>OriData|Input|(Materials|fuel_creep|thermal_expansion)</colorMap>
+      </plot>
+      <xlabel>Power Scaling Factor</xlabel>
+      <ylabel>Grain Radius Scaling Factor</ylabel>
+      <zlabel>Max Stress</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Max Stress</text></title>
+    </actions>
+  </Plot>
+  <Plot name='StressVsThCoeffGrain'          dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>OriData|Input|(Materials|fuel_creep|thermal_expansion)</x>
+        <y>OriData|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</y>
+        <z>OriData|Output|average_creep_strain_hoop</z>
+        <colorMap>OriData|Input|(Functions|power_history|scale_factor)</colorMap>
+      </plot>
+      <xlabel>Thermal Expansion Coefficien</xlabel>
+      <ylabel>Grain Radius Scaling Factor</ylabel>
+      <zlabel>Max Stress</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Max Stress</text></title>
+    </actions>
+  </Plot>
+  <Plot name='StressVsThCoeffPower'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>OriData|Input|(Materials|fuel_creep|thermal_expansion)</x>
+        <y>OriData|Input|(Functions|power_history|scale_factor)</y>
+        <z>OriData|Output|average_creep_strain_hoop</z>
+        <colorMap>OriData|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</colorMap>
+      </plot>
+      <xlabel>Thermal Expansion Coefficient</xlabel>
+      <ylabel>Power Scaling Factor</ylabel>
+      <zlabel>Max Stress</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>Max Stress</text></title>
+    </actions>
+  </Plot>
+  <Plot name='MC1'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>MC1|Input|(Materials|fuel_creep|thermal_expansion)</x>
+        <y>MC1|Input|(Functions|power_history|scale_factor)</y>
+        <z>MC1|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</z>
+        <colorMap>MC1|Output|average_creep_strain_hoop</colorMap>
+      </plot>
+      <xlabel>Thermal Expansion Coefficient</xlabel>
+      <ylabel>Power Scaling Factor</ylabel>
+      <zlabel>Grain Radius Scaling Factor</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>MC1 sampling</text></title>
+    </actions>
+  </Plot>
+  <Plot name='MC2'  dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>MC2|Input|(Materials|fuel_creep|thermal_expansion)</x>
+        <y>MC2|Input|(Functions|power_history|scale_factor)</y>
+        <z>MC2|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</z>
+        <colorMap>MC2|Output|average_creep_strain_hoop</colorMap>
+      </plot>
+      <xlabel>Thermal Expansion Coefficient</xlabel>
+      <ylabel>Power Scaling Factor</ylabel>
+      <zlabel>Grain Radius Scaling Factor</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>MC2 sampling</text></title>
+    </actions>
+  </Plot>
+  <Plot name='LimitSurf' dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>limitSurf|Input|(Functions|power_history|scale_factor)</x>
+        <z>limitSurf|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</z>
+        <y>limitSurf|Input|(Materials|fuel_creep|thermal_expansion)</y>
+      </plot>
+      <xlabel>Power Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Grain Radius Scaling Factor</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>limit Surface</text></title>
+    </actions>
+  </Plot>
+  <Plot name='TestedPoint' dim='3' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>TestedPoint|Input|(Functions|power_history|scale_factor)</x>
+        <y>TestedPoint|Input|(Materials|fuel_creep|thermal_expansion)</y>
+        <z>TestedPoint|Output|average_creep_strain_hoop</z>
+        <kwargs><color>black</color></kwargs>
+      </plot>
+      <plot>
+        <type>scatter</type>
+        <x>OriData|Input|(Functions|power_history|scale_factor)</x>
+        <y>OriData|Input|(Materials|fuel_creep|thermal_expansion)</y>
+        <z>OriData|Output|average_creep_strain_hoop</z>
+        <marker>+</marker>
+        <kwargs><facecolors>none</facecolors> <color>green</color></kwargs>
+      </plot>
+      <xlabel>Power Scaling Factor</xlabel>
+      <ylabel>Thermal Expansion Coefficient</ylabel>
+      <zlabel>Max Stress</zlabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg,screen</how>
+      <title><text>limit Surface Sampled Points</text></title>
+    </actions>
+  </Plot>
+</OutStreamManager>
+
+</Simulation>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>../inputs/bison_uncertainty_3/Grid</WorkingDir>
+    <Files>inputSmeared.i,peakingfactors12.csv,powerhistory.csv,smeared.e,BisonOut.csv,histories.csv</Files>
+    <Sequence>Run0_lhs</Sequence>
+    <batchSize>3</batchSize>
+</RunInfo>
+
+<Models>
+    <Code name='Bison-opt' subType='MooseBasedApp'><executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable></Code>
+    <!-- <Filter name = 'printing' subType = 'PrintCSV'>Functions|power_history|scale_factor,Materials|clad_solid_mechanics|clad_solid_mechanics|youngs_modulus,
+    Materials|fission_gas_release_and_swelling|grainradius_scalef,max_stress</Filter> -->
+    <!-- <Filter name="csv_from_hdf5" subType='PrintCSV'>all</Filter> -->
+</Models>
+
+<Distributions>
+    <Uniform name='FlatPowerHistory'>
+        <low>0.95</low>
+        <high>1.05</high>
+    </Uniform>
+    <Uniform name='FlatThermalExpansion'>
+        <low>9e-6</low>
+        <high>1.1e-5</high>
+    </Uniform>
+    <Uniform name='FlatGrainRadius'>
+        <low>0.4</low>
+        <high>1.5</high>
+    </Uniform>
+</Distributions>
+
+<Samplers>
+    <Grid name='Bison1'>
+        <variable name='Functions|power_history|scale_factor'>
+          <distribution type ='Uniform'>FlatPowerHistory</distribution>
+          <grid type='CDF' construction='equal' lowerBound='0.001' steps='10'>0.099</grid>
+          <!-- <grid type='CDF' construction='equal' upperBound='0.9' steps='3'>0.3</grid> -->
+        </variable>
+        <variable name='Materials|fuel_creep|thermal_expansion'>
+          <distribution type ='Uniform'>FlatThermalExpansion</distribution>
+          <grid type='CDF' construction='equal' lowerBound='0.001' steps='10'>0.099</grid>
+          <!-- <grid type='CDF' construction='equal' upperBound='0.9' steps='3'>0.3</grid> -->
+        </variable>
+        <variable name='Materials|fission_gas_release_and_swelling|grainradius_scalef'>
+          <distribution type ='Uniform'>FlatGrainRadius</distribution>
+          <grid type='CDF' construction='equal' lowerBound='0.001' steps='10'>0.099</grid>
+          <!-- <grid type='CDF' construction='equal' upperBound='0.9' steps='3'>0.3</grid> -->
+        </variable>
+    </Grid>
+</Samplers>
+
+<OutStreamManager>
+  <Plot name='Plot1' dim='2' interactive='False' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>timepointset|Input|(Functions|power_history|scale_factor)</x>
+        <y>timepointset|Output|max_stress</y>
+      </plot>
+      <xlabel>Power History Scale Factor</xlabel>
+      <ylabel>Max Stress</ylabel>
+    </plotSettings>
+    <actions>
+      <title><text>Power Projection</text></title>
+      <how>pdf,png</how>
+    </actions>
+  </Plot>
+  <!-- <Plot name='Plot2' dim='3' interactive='False' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>timepointset|Input|(Functions|power_history|scale_factor)</x>
+        <y>timepointset|Input|(Materials|fuel_creep|thermal_expansion)</y>
+        <z>timepointset|Output|max_stress</z>
+      </plot>
+      <xlabel>Power History Scale Factor</xlabel>
+      <ylabel>Thermal Expansion</ylabel>
+      <zlabel>Max Stress</zlabel>
+    </plotSettings>
+    <actions>
+      <title><text> </text></title>
+      <how>pdf,png</how>
+    </actions>
+  </Plot>
+  <Plot name='Plot3' dim='3' interactive='False' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>wireframe</type>
+        <x>timepointset|Input|(Functions|power_history|scale_factor)</x>
+        <y>timepointset|Input|(Materials|fuel_creep|thermal_expansion)</y>
+        <z>timepointset|Output|max_stress</z>
+      </plot>
+      <xlabel>Power History Scale Factor</xlabel>
+      <ylabel>Thermal Expansion</ylabel>
+      <zlabel>Max Stress</zlabel>
+    </plotSettings>
+    <actions>
+      <title><text> </text></title>
+      <how>pdf,png</how>
+      <camera><azimuth>170</azimuth></camera>
+    </actions>
+  </Plot> -->
+  <Plot name='Plot4' dim='2' interactive='False' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>timepointset|Input|(Materials|fuel_creep|thermal_expansion)</x>
+        <y>timepointset|Output|max_stress</y>
+      </plot>
+      <xlabel>Thermal Expansion</xlabel>
+      <ylabel>Max Stress</ylabel>
+    </plotSettings>
+    <actions>
+      <title><text>Thermal Expansion Projection</text></title>
+      <how>pdf,png</how>
+    </actions>
+  </Plot>
+  <Plot name='Plot5' dim='2' interactive='False' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>scatter</type>
+        <x>timepointset|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</x>
+        <y>timepointset|Output|max_stress</y>
+      </plot>
+      <xlabel>Initial Grain Radius</xlabel>
+      <ylabel>Max Stress</ylabel>
+    </plotSettings>
+    <actions>
+      <title><text>Radius Projection</text></title>
+      <how>pdf,png</how>
+    </actions>
+  </Plot>
+
+</OutStreamManager>
+
+<Steps>
+    <MultiRun name='Run0_lhs'>
+        <Input   class = 'Files'      type=''          >inputSmeared.i</Input>
+        <Input   class = 'Files'      type=''          >peakingfactors12.csv</Input>
+        <Input   class = 'Files'      type=''          >powerhistory.csv</Input>
+        <Input   class = 'Files'      type=''          >smeared.e</Input>
+        <Model   class = 'Models'     type='Code'      >Bison-opt</Model>
+        <Sampler class = 'Samplers'   type='LHS'>Bison1</Sampler>
+        <Output  class = 'DataBases'  type='HDF5'      >MyDatabaseGrid3</Output>
+        <Output     class='Datas'      type='Histories' >stories</Output>
+        <Output     class='Datas'      type='TimePointSet' >timepointset</Output>
+        <Output    class='OutStreamManager' type='Plot'>Plot1</Output>
+        <!-- <Output    class='OutStreamManager' type='Plot'>Plot2</Output>
+        <Output    class='OutStreamManager' type='Plot'>Plot3</Output> -->
+        <Output    class='OutStreamManager' type='Plot'>Plot4</Output>
+        <Output    class='OutStreamManager' type='Plot'>Plot5</Output>
+    </MultiRun >
+    <!-- <SingleRun name='extract_hist_lhs'>
+      <Input   class='DataBases' type='HDF5'   >MyDatabaseGrid3</Input>
+      <Model   class='Models'    type='Filter' >csv_from_hdf5</Model>
+      <Output  class='Files'     type=''       >histories.csv</Output>
+    </SingleRun> -->
+    <!-- <PostProcessing name = 'printCSV'>
+        <Input   class = 'DataBases' type='HDF5'   >MyDatabaseGrid3</Input>
+        <Model   class = 'Models'    type='Filters'>printing</Model>
+        <Output  class = 'Files'     type=''      >BisonOut.csv</Output>
+    </PostProcessing> -->
+</Steps>
+<Datas>
+    <Histories name='stories'>
+        <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+        <Output>max_stress,avg_clad_temp,ave_temp_interior,fis_gas_released</Output>
+   </Histories>
+   <TimePointSet name='timepointset'>
+        <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+        <Output>max_stress,avg_clad_temp,ave_temp_interior,fis_gas_released</Output>
+   </TimePointSet>
+</Datas>
+<DataBases>
+    <HDF5 name = 'MyDatabaseGrid3'/>
+</DataBases>
+<!--
+<Tests>
+    <Sigma  name='failurePB' tolerance ='0.00001'>cladFailure</Sigma>
+    <Integral name='failure'  tolerance='0.00001' >cladFailure</Integral>
+</Tests>
+-->
+
+</Simulation>

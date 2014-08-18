@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug='True'>
+<RunInfo>
+  <WorkingDir>./postProcess1</WorkingDir>
+  <Sequence>DistTesting</Sequence>
+  <batchSize>8</batchSize>
+</RunInfo>
+
+<Distributions>
+  <Uniform   name='FlatPowerHistory'>
+    <low>0.95</low>
+    <high>1.05</high>
+  </Uniform>
+  <LogNormal name='NormalThermalExpansion'>
+    <mean>-0.00001</mean>
+    <sigma>0.2</sigma>
+  </LogNormal>
+  <LogNormal name='LogNormalGrainRadius'>
+    <upperBound>1.5</upperBound>
+    <lowerBound>0.4</lowerBound>
+    <mean>0</mean>
+    <sigma>2.30</sigma>
+  </LogNormal>
+</Distributions>
+
+<Samplers>
+  <MonteCarlo name='BisonRomMC' limit='10000'>
+    <variable name='Functions|power_history|scale_factor'>
+      <distribution type ='Uniform'>FlatPowerHistory</distribution>
+    </variable>
+    <variable name='Materials|fuel_creep|thermal_expansion'>
+      <distribution type ='LogNormal'>NormalThermalExpansion</distribution>
+    </variable>
+    <variable name='Materials|fission_gas_release_and_swelling|grainradius_scalef'>
+      <distribution type ='LogNormal'>LogNormalGrainRadius</distribution>
+    </variable>
+  </MonteCarlo>
+</Samplers>
+
+<Models>
+  <Dummy name='MyDummy'  subType='' print='True'/>
+</Models>
+
+<Datas>
+  <TimePointSet name='dummyIN'>
+    <Input>Functions|power_history|scale_factor,Materials|fuel_creep|thermal_expansion,Materials|fission_gas_release_and_swelling|grainradius_scalef</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+</Datas>
+
+<Steps>
+  <MultiRun name='DistTesting'>
+    <Sampler class = 'Samplers'          type='MonteCarlo'   >BisonRomMC</Sampler>
+    <Input   class = 'Datas'             type='TimePointSet' >dummyIN</Input>    
+    <Model   class = 'Models'            type='Dummy'        >MyDummy</Model>
+    <Output  class = 'Datas'             type='TimePointSet' >dummyIN</Output>
+    <Output  class = 'OutStreamManager'  type='Print'        >DistributionsDump</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramPowerScaleFact</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramThExp</Output>
+    <Output  class = 'OutStreamManager'  type='Plot'         >HistogramGrainSizeScaleFact</Output>
+  </MultiRun >
+</Steps>
+
+<OutStreamManager>
+  <Print name='DistributionsDump'>
+    <type>csv</type>
+    <source>dummyIN</source>
+  </Print>
+  <Plot  name='HistogramPowerScaleFact'      dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>histogram</type>
+        <x>dummyIN|Input|(Functions|power_history|scale_factor)</x>
+        <ylabel>Grain Radius Scaling Factor</ylabel>
+        <bins>20</bins>
+      </plot>
+      <xlabel>Power Scaling Factor</xlabel>
+      <ylabel>Count</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg</how>
+      <title><text>Power Scaling Factor Histogram</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='HistogramThExp'               dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>histogram</type>
+        <x>dummyIN|Input|(Materials|fuel_creep|thermal_expansion)</x>
+        <ylabel>Grain Radius Scaling Factor</ylabel>
+        <bins>20</bins>
+      </plot>
+      <xlabel>Thermal Expansion Coefficient</xlabel>
+      <ylabel>Count</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg</how>
+      <!--range><xmax>1.1e-5</xmax><xmin>9e-6</xmin></range-->
+      <title><text>Thermal Expansion Coefficient Histogram</text></title>
+    </actions>
+  </Plot>
+  <Plot  name='HistogramGrainSizeScaleFact'  dim='2' overwrite='True'>
+    <plotSettings>
+      <plot>
+        <type>histogram</type>
+        <x>dummyIN|Input|(Materials|fission_gas_release_and_swelling|grainradius_scalef)</x>
+        <bins>20</bins>
+      </plot>
+      <xlabel>Grain Radius Scaling Factor</xlabel>
+      <ylabel>Count</ylabel>
+    </plotSettings>
+    <actions>
+      <how>jpeg</how>
+      <title><text>Grain Radius Scaling Factor Histogram</text></title>
+    </actions>
+  </Plot>
+</OutStreamManager>
+
+</Simulation>
