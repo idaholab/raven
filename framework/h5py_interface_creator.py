@@ -356,7 +356,7 @@ class hdf5Database(object):
             dataout = np.zeros((next(iter(data_out[run].values())).size,len(data_out[run].values())))
             for param in range(len(data_out[run].values())): dataout[:,param] = list(data_out[run].values())[param][:]
             groups[run].create_dataset(gname +'|' +str(run)+"_data" , dtype="float", data=copy.deepcopy(dataout))
-            groups[run].attrs[b'n_ts'                ] = len(data_out[run].values())
+            groups[run].attrs[b'n_ts'                ] = next(iter(data_out[run].values())).size
           else:
             groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([toBytes(headers_in[i])  for i in range(len(headers_in))]) 
             groups[run].attrs[b'output_space_headers'] = copy.deepcopy([toBytes(headers_out[i])  for i in range(len(headers_out))]) 
