@@ -62,7 +62,12 @@ download_files ()
     else
         rm -f $DL_FILENAME
         $DOWNLOADER $URL
-        if test $SHA_SUM != `$SHASUM_CMD $DL_FILENAME | cut -d " " -f 1`; then 
+        if test -f $DL_FILENAME; then
+            NEW_SHA_SUM=`$SHASUM_CMD $DL_FILENAME | cut -d " " -f 1`
+        else
+            NEW_SHA_SUM=no_file
+        fi
+        if test $SHA_SUM != $NEW_SHA_SUM; then
             echo Download of $URL failed
         else
             echo Download of $URL succeeded
