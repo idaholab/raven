@@ -74,7 +74,7 @@
 </Samplers>
 
 <Functions>
-  <External name='AVGstressThreshold' file='/Users/crisr/raven_db/Bison/AVGstressThreshold.py'>
+  <External name='AVGstressThreshold' file='AVGstressThreshold.py'>
     <variable type='numpy.float64'>average_creep_strain_hoop</variable>
   </External>
 </Functions>
