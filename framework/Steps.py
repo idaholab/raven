@@ -29,7 +29,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   myInstance = Step()                                !Generate the instance
   myInstance.XMLread(xml.etree.ElementTree.Element)  !This method read the xml and perform all the needed checks
   myInstance.takeAstep()                             !This method perform the step
-  
+
   --Internal chain [in square brackets methods that can be/must be overwritten]
   self.XMLread(xml)-->self._readMoreXML(xml)     -->[self._localInputAndChecks()]
   self.takeAstep() -->self_initializeStep()      -->[self._localInitializeStep()]
@@ -40,8 +40,8 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   myInstance.myInitializzationParams()   -see BaseType class-
   myInstance.myCurrentSetting()          -see BaseType class-
   myInstance.printMe()                   -see BaseType class-
-  
-  --Adding a new step subclass--  
+
+  --Adding a new step subclass--
    **<MyClass> should inherit at least from Step or from another step already presents
    **DO NOT OVERRIDE any of the class method that are not starting with self.local*
    **ADD your class to the dictionary __InterfaceDict at the end of the module
@@ -52,7 +52,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   self._localInitializeStep(inDictionary) : called after this call the step should be able the accept the call self.takeAstep(inDictionary):
   self._localTakeAstepRun(inDictionary)   : this is where the step happens, after this call the output is ready
   '''
-  
+
   def __init__(self):
     self.FIXME = False
     BaseType.__init__(self)
@@ -79,7 +79,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     if 're-seeding' in xmlNode.attrib.keys():
       self.initSeed=xmlNode.attrib['re-seeding']
       if self.initSeed.lower()   == "continue": self.initSeed  = "continue"
-      else: 
+      else:
         try   : self.initSeed  = int(self.initSeed)
         except: raise IOError (printString.format(self.type,self.name,self.initSeed,'re-seeding'))
     if 'sleepTime' in xmlNode.attrib.keys():
@@ -87,7 +87,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
       except: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
     for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.pauseEndStep = False
-    if 'pauseAtEnd' in xmlNode.attrib.keys(): 
+    if 'pauseAtEnd' in xmlNode.attrib.keys():
       if   xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t','y']: self.pauseEndStep = True
       elif xmlNode.attrib['pauseAtEnd'].lower() in ['no','false','f','n']: self.pauseEndStep = False
       else: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
@@ -97,12 +97,12 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   @abc.abstractmethod
   def _localInputAndChecks(self):
     '''
-    Place here specialized reading, input consistency check and 
+    Place here specialized reading, input consistency check and
     initialization of what will not change during the whole life of the object
     @in xmlNode: xml.etree.ElementTree.Element containing the input to construct the step
     '''
     pass
-  
+
   def addInitParams(self,tempDict):
     '''Export to tempDict the information that will stay constant during the existence of the instance of this class. Overloaded from BaseType'''
     tempDict['Sleep time'  ] = str(self.sleepTime)
@@ -141,14 +141,14 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   def _localTakeAstepRun(self,inDictionary):
     '''this is the API for the local run of a step for the children classes'''
     pass
-  
+
   def _endStepActions(self,inDictionary):
     '''This method is intended for performing actions at the end of a step'''
     if self.pauseEndStep:
       for i in range(len(inDictionary['Output'])):
         if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
           if inDictionary['Output'][i].type in ['OutStreamPlot']: inDictionary['Output'][i].endInstructions('interactive')
-  
+
   def takeAstep(self,inDictionary):
     '''
     This should work for everybody just split the step in an initialization and the run itself
@@ -193,7 +193,7 @@ class SingleRun(Step):
     for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
     if 'Input'  not in roles: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->  It is not possible a run without an Input!!!')
     if 'Output' not in roles: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->  It is not possible a run without an Output!!!')
-    
+
   def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
     #Model initialization
@@ -205,14 +205,14 @@ class SingleRun(Step):
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
         if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
-    
+
   def _localTakeAstepRun(self,inDictionary):
     '''main driver for a step'''
     jobHandler = inDictionary['jobHandler']
     model      = inDictionary['Model'     ]
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
-    model.run(inputs,jobHandler) 
+    model.run(inputs,jobHandler)
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -221,11 +221,11 @@ class SingleRun(Step):
           for output in outputs:
             if type(output).__name__ not in ['str','bytes','unicode']:
               if output.type not in ['OutStreamPlot','OutStreamPrint']: model.collectOutput(finishedJob,output)
-              elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput() 
+              elif output.type in   ['OutStreamPlot','OutStreamPrint']: output.addOutput()
             else: model.collectOutput(finishedJob,output)
-        else: 
+        else:
           print(self.printTag+': ' +returnPrintPostTag('Message') + '-> the failed jobs are tracked in the JobHandler... we can retrieve and treat them separately. Andrea')
-          print(self.printTag+': ' +returnPrintPostTag('Message') + '-> a job failed... call the handler for this situation')   
+          print(self.printTag+': ' +returnPrintPostTag('Message') + '-> a job failed... call the handler for this situation')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0: break
       time.sleep(self.sleepTime)
   def _localAddInitParams(self,tempDict): pass
@@ -237,7 +237,7 @@ class MultiRun(SingleRun):
   def __init__(self):
     SingleRun.__init__(self)
     self._samplerInitDict = {} #this is a dictionary that gets sent as key-worded list to the initialization of the sampler
-    self.counter          = 0  #just an handy counter of the runs already performed 
+    self.counter          = 0  #just an handy counter of the runs already performed
     self.printTag = returnPrintTag('STEP MULTIRUN')
 
   def _localInputAndChecks(self):
@@ -251,7 +251,7 @@ class MultiRun(SingleRun):
 
   def _localInitializeStep(self,inDictionary):
     SingleRun._localInitializeStep(self,inDictionary)
-    self.conter                              = 0 
+    self.conter                              = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
     #generate lambda function list to collect the output without checking the type
@@ -282,14 +282,14 @@ class MultiRun(SingleRun):
       for finishedJob in finishedJobs:
         self.counter +=1
         sampler.finalizeActualSampling(finishedJob,model,inputs)
-        if finishedJob.getReturnCode() == 0: 
+        if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
-        else: 
+        else:
           print(self.printTag+': ' +returnPrintPostTag('Message') + '-> the job failed... call the handler for this situation... not yet implemented...')
           print(self.printTag+": " +returnPrintPostTag('Message') + "-> tThe JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")
-        for _ in xrange(jobHandler.howManyFreeSpots()): # put back this loop (DO NOT TAKE IT OFF AGAIN. IT IS NEEDED FOR NOT-POINT SAMPLERS(aka DET)). Andrea 
+        for _ in xrange(jobHandler.howManyFreeSpots()): # put back this loop (DO NOT TAKE IT OFF AGAIN. IT IS NEEDED FOR NOT-POINT SAMPLERS(aka DET)). Andrea
           if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Testing the sampler if it is ready to generate a new input')
           if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
             newInput =sampler.generateInput(model,inputs)
@@ -378,7 +378,7 @@ class IODataBase(Step):
     databases       = []
     self.actionType = []
     for out in inDictionary['Output']:
-      if out.type not in ['OutStreamPlot','OutStreamPrint']: outputs.append(out) 
+      if out.type not in ['OutStreamPlot','OutStreamPrint']: outputs.append(out)
     if len(inDictionary['Input']) != len(outputs): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + ', the number of Inputs != number of Outputs')
     for i in range(len(outputs)):
       if (inDictionary['Input'][i].type != 'HDF5'):
@@ -396,22 +396,22 @@ class IODataBase(Step):
             databases.append(outputs[i].name)
             outputs[i].initialize(self.name)
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
-    for output in inDictionary['Output']: 
+    for output in inDictionary['Output']:
       if output.type in ['OutStreamPrint','OutStreamPlot']:
-        output.initialize(inDictionary)        
+        output.initialize(inDictionary)
         if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
-      
+
   def _localTakeAstepRun(self,inDictionary):
     outputs = []
     for out in inDictionary['Output']:
-      if out.type not in ['OutStreamPlot','OutStreamPrint']: outputs.append(out) 
+      if out.type not in ['OutStreamPlot','OutStreamPrint']: outputs.append(out)
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-DATAS':
         outputs[i].addOutput(inDictionary['Input'][i])
       else: outputs[i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
-    for output in inDictionary['Output']: 
-      if output.type in ['OutStreamPrint','OutStreamPlot']:output.addOutput() 
-  
+    for output in inDictionary['Output']:
+      if output.type in ['OutStreamPrint','OutStreamPlot']:output.addOutput()
+
   def _localAddInitParams(self,tempDict):
     pass # no inputs
 
@@ -437,7 +437,7 @@ class RomTrainer(Step):
     del tempDict['Initial seed'] #this entry in not meaningful for a training step
 
   def _localInitializeStep(self,inDictionary): pass
-        
+
   def _localTakeAstepRun(self,inDictionary):
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
     for ROM in inDictionary['Output']:
@@ -480,11 +480,11 @@ class PostProcess(SingleRun):
         self.foundFunction   = True
         if role[1]!='Functions': raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The optional function must be of class "Functions", in step ' + self.name)
       elif role[0] == 'Model' and role[1] == 'Models':
-        if role[2] != 'PostProcessor' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The required model in "PostProcess" step must be of type PostProcessor, in step ' + self.name)   
+        if role[2] != 'PostProcessor' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The required model in "PostProcess" step must be of type PostProcessor, in step ' + self.name)
       elif role[0] == 'ROM' and role[1] == 'Models':
         self.ROMCounter+=1
         self.foundROM   = True
-        if role[2] != 'ROM' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The optional ROM in "PostProcess" step must be of type ROM, in step ' + self.name)   
+        if role[2] != 'ROM' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The optional ROM in "PostProcess" step must be of type ROM, in step ' + self.name)
 
   def _localInitializeStep(self,inDictionary):
     functionExt = None
@@ -500,15 +500,15 @@ class PostProcess(SingleRun):
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
         if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
-    
-  def _localTakeAstepRun(self,inDictionary): 
+
+  def _localTakeAstepRun(self,inDictionary):
     SingleRun._localTakeAstepRun(self, inDictionary)
 #
 #
 #
 class OutStreamStep(Step):
   '''
-    This step type is used only to plot 
+    This step type is used only to plot
     @Input, Data(s)
     @Output,OutStream(s)
   '''
@@ -517,15 +517,15 @@ class OutStreamStep(Step):
     self.printTag = returnPrintTag('STEP OUTSTREAM')
 
   def _localInitializeStep(self,inDictionary):
-    for output in inDictionary['Output']: 
-      output.initialize(inDictionary)        
+    for output in inDictionary['Output']:
+      output.initialize(inDictionary)
       if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
-      
+
   def _localTakeAstepRun(self,inDictionary):
-    for output in inDictionary['Output']: 
+    for output in inDictionary['Output']:
       output.addOutput()
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Executing OutStream named ' + output.name) 
-  
+      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Executing OutStream named ' + output.name)
+
   def _localAddInitParams(self,tempDict):
     return tempDict # no inputs
 
@@ -535,14 +535,14 @@ class OutStreamStep(Step):
     error_found = False
     for role in self.parList:
       if role[0] == 'Input':
-        if role[1] != 'Datas': 
+        if role[1] != 'Datas':
           print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The Input needs to be a Data(s), in step ' + self.name)
           error_found = True
       if role[0] == 'Output':
-        if role[1] != 'OutStreamManager': 
+        if role[1] != 'OutStreamManager':
           print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The Output needs to be a OutStreamManager object, in step ' + self.name)
           error_found = True
-    if error_found: raise(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ERRORS found. See above!') 
+    if error_found: raise(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ERRORS found. See above!')
 
 #
 #
@@ -551,7 +551,7 @@ __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
 __interFaceDict['Adaptive'         ] = Adaptive
-__interFaceDict['IODataBase'       ] = IODataBase 
+__interFaceDict['IODataBase'       ] = IODataBase
 __interFaceDict['RomTrainer'       ] = RomTrainer
 __interFaceDict['PostProcess'      ] = PostProcess
 __interFaceDict['OutStreamStep'    ] = OutStreamStep
@@ -560,4 +560,3 @@ __base                               = 'Step'
 def returnInstance(Type):
   return __interFaceDict[Type]()
   raise NameError('not known '+__base+' type '+Type)
-  
