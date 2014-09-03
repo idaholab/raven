@@ -14,7 +14,7 @@ import copy
 import os
 import abc
 import gc
-from utils import toBytes,keyIn,returnPrintTag
+from utils import toBytes,keyIn,returnPrintTag,returnPrintPostTag
 
 class DateBase(BaseType):
   '''
