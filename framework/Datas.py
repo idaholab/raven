@@ -1364,13 +1364,13 @@ class Histories(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.copy(np.atleast_1d(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
+        self._dataContainer['metadata'][name] = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.copy(np.atleast_1d(value))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     '''
@@ -1434,7 +1434,7 @@ class Histories(Data):
           if name in list(self._dataContainer['outputs'].values())[-1]:
             hisn += 1
             self._dataContainer['outputs'][hisn] = {}
-          self._dataContainer['outputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+          self._dataContainer['outputs'][hisn][name] = copy.copy(np.atleast_1d(np.array(value)))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
