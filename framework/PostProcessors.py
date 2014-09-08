@@ -7,21 +7,16 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-#import Datas
+#External Modules------------------------------------------------------------------------------------
 import numpy as np
-import scipy as sci   
 from sklearn import tree
-import scipy.stats as stat
 import os
 from glob import glob
-import imp
-import math
-import inspect
-import copy as cp
-from utils import toString, toBytes, metaclass_insert, first, returnPrintTag, returnPrintPostTag
 import copy
+#External Modules End--------------------------------------------------------------------------------
+
 #Internal Modules------------------------------------------------------------------------------------
-import abc
+from utils import toString, toBytes, first, returnPrintTag, returnPrintPostTag
 #Internal Modules End--------------------------------------------------------------------------------
 
 '''
@@ -31,6 +26,7 @@ import abc
 '''
 
 class BasePostProcessor:
+  '''This is the base class for postprocessors'''
   def __init__(self):
     self.type =''     # pp type
     self.name = None  # pp name
@@ -50,7 +46,7 @@ class BasePostProcessor:
 
 class PrintCSV(BasePostProcessor):
   '''
-    PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
+  PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
   '''
   def __init__(self):
     BasePostProcessor.__init__(self)
@@ -69,10 +65,10 @@ class PrintCSV(BasePostProcessor):
 
   def _localReadMoreXML(self,xmlNode):
     '''
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode    : Xml element node
-      @ Out, None
+    Function to read the portion of the xml input that belongs to this specialized class
+    and initialize some stuff based on the inputs got
+    @ In, xmlNode    : Xml element node
+    @ Out, None
     '''
     for child in xmlNode:
       if child.tag == 'parameters':
@@ -347,15 +343,6 @@ class BasicStatistics(BasePostProcessor):
     '''
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
-    if 'ProbabilityWeight' not in Input['metadata'].keys():
-      if Input['metadata'].keys().count('SamplerType') > 0:
-        if Input['metadata']['SamplerType'][0] != 'MC' : print('POSTPROC: Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      else: print(self.printTag+': ' +returnPrintPostTag('Warning') + '->BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
-      pbweights = 1.0
-      globPb = 1.0*len(Input['targets'][self.parameters['targets'][0]])
-    else: 
-      pbweights = Input['metadata']['ProbabilityWeight']  
-      globPb = np.sum(Input['metadata']['ProbabilityWeight'])
 
     if self.externalFunction:
       # there is an external function
@@ -368,121 +355,64 @@ class BasicStatistics(BasePostProcessor):
           else:
             if type(outputDict[what]) != np.ndarray: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a numpy.ndarray!!')
             if len(outputDict[what].shape) != 2:     raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: You have overwritten the "'+what+'" method through an external function, it must be a 2D numpy.ndarray!!')
+
+    #setting some convenience values
+    parameterSet = list(set(list(self.parameters['targets'])))  #@Andrea I am using set to avoid the test: if targetP not in outputDict[what].keys()
+    N            = [np.asarray(Input['targets'][targetP]).size for targetP in parameterSet]
+    pbPresent    = Input['metadata'].keys().count('ProbabilityWeight')>0
+
+    if 'ProbabilityWeight' not in Input['metadata'].keys():
+      if Input['metadata'].keys().count('SamplerType') > 0:
+        if Input['metadata']['SamplerType'][0] != 'MC' : print('POSTPROC: Warning -> BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+      else: print(self.printTag+': ' +returnPrintPostTag('Warning') + '->BasicStatistics postprocessor can not compute expectedValue without ProbabilityWeights. Use unit weight')
+      pbweights    = np.zeros(len(Input['targets'][self.parameters['targets'][0]]),dtype=np.float)
+      pbweights[:] = 1/pbweights.size
+    else: pbweights       = Input['metadata']['ProbabilityWeight']
+    sumSquarePbWeights  = np.sum(np.square(pbweights))
+    sumPbWeights        = np.sum(pbweights)
+
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
-    
-    for targetP in self.parameters['targets']:
-      if targetP not in outputDict['expectedValue'].keys():
-        if Input['metadata'].keys().count('ProbabilityWeight') > 0:
-          outputDict['expectedValue'][targetP]= np.sum(np.multiply(Input['metadata']['ProbabilityWeight'],Input['targets'][targetP]))/np.sum(Input['metadata']['ProbabilityWeight'])
-        else: outputDict['expectedValue'][targetP]= np.sum(np.multiply(pbweights,Input['targets'][targetP]))/globPb
+    expValues = np.zeros(len(parameterSet))
+    for myIndex, targetP in enumerate(parameterSet): 
+      outputDict['expectedValue'][targetP]= np.average(Input['targets'][targetP],weights=pbweights)
+      expValues[myIndex] = outputDict['expectedValue'][targetP]
 
     for what in self.what:
       if what not in outputDict.keys(): outputDict[what] = {}
+      #sigma
       if what == 'sigma':
-        #sigma
-        for targetP in self.parameters['targets']:
-          if targetP not in outputDict[what].keys():
-            if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-            else                                      : N = Input['targets'][targetP].size
-            if Input['metadata'].keys().count('ProbabilityWeight') > 0:
-              outputDict[what][targetP] = np.average(((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**2)**0.5, weights=Input['metadata']['ProbabilityWeight'])
-            else: outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1.0)**0.5
+        for myIndex, targetP in enumerate(parameterSet):
+          outputDict[what][targetP] = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights))
+      #variance
       if what == 'variance':
-        #variance
-        for targetP in self.parameters['targets']:
-          if targetP not in outputDict[what].keys():
-            if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-            else                                      : N = Input['targets'][targetP].size
-            if Input['metadata'].keys().count('ProbabilityWeight') > 0:
-              outputDict[what][targetP] = np.average(((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**2), weights=Input['metadata']['ProbabilityWeight'])
-            else: outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1)**0.5
+        for myIndex, targetP in enumerate(parameterSet):
+          outputDict[what][targetP] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
+      #coefficient of variation (sigma/mu)
       if what == 'variationCoefficient':
-        #coefficient of variation (sigma/mu)
-        for targetP in self.parameters['targets']:
-          if targetP not in outputDict[what].keys():
-            if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-            else                                      : N = Input['targets'][targetP].size
-            if Input['metadata'].keys().count('ProbabilityWeight') > 0: sigma = np.average((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**2, weights=Input['metadata']['ProbabilityWeight'])**0.5
-            else: sigma = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1.0)**0.5
-            outputDict[what][targetP] = copy.deepcopy(sigma/outputDict['expectedValue'][targetP])
+        for myIndex, targetP in enumerate(parameterSet):
+          sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights))
+          outputDict[what][targetP] = copy.deepcopy(sigma/outputDict['expectedValue'][targetP])
+      #kurtois
       if what == 'kurtois':
-        #kurtois
-        for targetP in self.parameters['targets']:
-          if targetP not in outputDict[what].keys():
-            if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-            else                                      : N = Input['targets'][targetP].size
-            if Input['metadata'].keys().count('ProbabilityWeight') > 0:
-              sigma = np.average((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**2, weights=Input['metadata']['ProbabilityWeight'])**0.5
-              outputDict[what][targetP] = np.average(((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**4), weights=Input['metadata']['ProbabilityWeight'])/sigma**4
-            else: 
-              outputDict[what][targetP] = -3.0 + (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**4)*(N-1)**-1)/(np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1)**2
+        for myIndex, targetP in enumerate(parameterSet):
+          if pbPresent:
+              sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2, weights=pbweights))
+              outputDict[what][targetP] = np.average(((Input['targets'][targetP]-expValues[myIndex])**4), weights=pbweights)/sigma**4
+          else: 
+            outputDict[what][targetP] = -3.0 + (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex])**4)/(N[myIndex]-1))/(np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex])**2)/float(N[myIndex]-1))**2
+      #skewness
       if what == 'skewness':
-        #skewness
-        for targetP in self.parameters['targets']:
-          if targetP not in outputDict[what].keys():
-            if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-            else                                      : N = Input['targets'][targetP].size
-            if Input['metadata'].keys().count('ProbabilityWeight') > 0:
-              sigma = np.average((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**2, weights=Input['metadata']['ProbabilityWeight'])**0.5
-              outputDict[what][targetP] = np.average((((Input['targets'][targetP]-outputDict['expectedValue'][targetP])/sigma)**3), weights=Input['metadata']['ProbabilityWeight'])
-            else: 
-              outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**3)*(N-1)**-1)/(np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1)**1.5
+        for myIndex, targetP in enumerate(parameterSet):
+          if pbPresent:
+            sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2, weights=pbweights))
+            outputDict[what][targetP] = np.average((((Input['targets'][targetP]-expValues[myIndex])/sigma)**3), weights=pbweights)
+          else: 
+            outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex])**3)*(N[myIndex]-1)**-1)/(np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex])**2)/float(N[myIndex]-1))**1.5
+      #median
       if what == 'median':
-        #median
-        if targetP not in outputDict[what].keys():
-          for targetP in self.parameters['targets'  ]: outputDict[what][targetP]  = np.median(Input['targets'][targetP]  )
-      if what == 'pearson':
-        #pearson matrix
-        if targetP not in outputDict[what].keys():
-          feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
-          for cnt, targetP in enumerate(self.parameters['targets']):
-            feat[cnt,:] = Input['targets'][targetP][:]
-          outputDict[what] = np.corrcoef(feat)
-      if what == 'covariance':
-        #cov matrix
-        if targetP not in outputDict[what].keys():
-          feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
-          for cnt, targetP in enumerate(self.parameters['targets']):
-            feat[cnt,:] = Input['targets'][targetP][:]
-          outputDict[what] = np.cov(feat)
-      if what == 'sensitivity':
-        #sensitivity matrix
-        if 'covariance' not in outputDict.keys():  
-          if targetP not in outputDict[what].keys():
-            feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
-            for cnt, targetP in enumerate(self.parameters['targets']):
-              feat[cnt,:] = Input['targets'][targetP][:]
-            covarianceM = np.cov(feat)
-        else: covarianceM = outputDict['covariance']
-        if 'sigma' not in outputDict.keys() and 'variance' not in outputDict.keys():  
-          varianceS = {}
-          for targetP in self.parameters['targets']:
-            if targetP not in outputDict[what].keys():
-              if type(Input['targets'][targetP]) == list: N = len(Input['targets'][targetP])
-              else                                      : N = Input['targets'][targetP].size
-              if Input['metadata'].keys().count('ProbabilityWeight') > 0:
-                varianceS[targetP] = np.average(((Input['targets'][targetP]-outputDict['expectedValue'][targetP])**2), weights=Input['metadata']['ProbabilityWeight'])
-              else: varianceS[targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - outputDict['expectedValue'][targetP])**2)*(N-1)**-1.0)
-        else: 
-          if 'sigma' in outputDict.keys(): 
-            for targetP in self.parameters['targets']: varianceS[targetP] = outputDict['sigma'][targetP]**2
-          else: varianceS = outputDict['variance']
-        outputDict[what] = np.zeros(covarianceM.shape)
-        for cnt,targetP in enumerate(self.parameters['targets']):  outputDict[what][cnt,:] = copy.deepcopy(covarianceM[cnt,:]/varianceS[targetP])   
-      if what == 'NormalizedSensitivity':
-        #sensitivity matrix
-        if 'covariance' not in outputDict.keys():  
-          if targetP not in outputDict[what].keys():
-            feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
-            for cnt, targetP in enumerate(self.parameters['targets']):
-              feat[cnt,:] = Input['targets'][targetP][:]
-            covarianceM = np.cov(feat)
-        else: covarianceM = outputDict['covariance']
-        outputDict[what] = np.zeros(covarianceM.shape)
-        expectedValues = np.zeros(len(self.parameters['targets']))
-        for cnt,targetP in enumerate(self.parameters['targets']): expectedValues[cnt] = outputDict['expectedValue'][targetP]
-        for cnt,targetP in enumerate(self.parameters['targets']):  outputDict[what][cnt,:] = copy.deepcopy(covarianceM[cnt,:]*expectedValues/outputDict['expectedValue'][targetP])   
+        for targetP in parameterSet: outputDict[what][targetP]  = np.median(Input['targets'][targetP])
+      #percentile
       if what == 'percentile':
         outputDict.pop(what)
         if what+'_5%'  not in outputDict.keys(): outputDict[what+'_5%']  ={}
@@ -492,51 +422,81 @@ class BasicStatistics(BasePostProcessor):
             outputDict[what+'_5%'][targetP]  = np.percentile(Input['targets'][targetP],5)
           if targetP not in outputDict[what+'_95%'].keys():
             outputDict[what+'_95%'][targetP]  = np.percentile(Input['targets'][targetP],95)
+      #cov matrix
+      if what == 'covariance':
+        feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]            
+        outputDict[what] = np.cov(feat)
+      #pearson matrix
+      if what == 'pearson':
+        feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]            
+        outputDict[what] = np.corrcoef(feat)
+      #sensitivity matrix
+      if what == 'sensitivity':
+        feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]            
+        covMatrix = np.cov(feat)
+        variance  = np.zeros(len(list(parameterSet)))
+        for myIndex, targetP in enumerate(parameterSet):
+          variance[myIndex] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
+        for myIndex in range(len(parameterSet)):
+          outputDict[what][myIndex] = covMatrix[myIndex,:]/variance
+      #Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
+      if what == 'NormalizedSensitivity':
+        feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]            
+        covMatrix = np.cov(feat)
+        variance  = np.zeros(len(list(parameterSet)))
+        for myIndex, targetP in enumerate(parameterSet):
+          variance[myIndex] = np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights)
+        for myIndex in range(len(parameterSet)):
+          outputDict[what][myIndex] = ((covMatrix[myIndex,:]/variance)*expValues)/expValues[myIndex]
 
     # print on screen
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics '+str(self.name)+'pp outputs')
     methodToTest = []
     for key in self.methodsToRun:
       if key not in self.acceptedCalcParam: methodToTest.append(key)
-    for targetP in self.parameters['targets']:
+    for targetP in parameterSet:
       print('        *************'+'*'*len(targetP)+'***')
-      print('        * Variable * ' + targetP +'  *')
+      print('        * Variable * '+ targetP +'  *')
       print('        *************'+'*'*len(targetP)+'***')
       for what in outputDict.keys():
         if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
           print('              ','* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *')
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-    maxLenght = max(len(max(self.parameters['targets'], key=len))+5,16)
+    maxLenght = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
       print(' '*maxLenght,'*****************************')
       print(' '*maxLenght,'*         Covariance        *')
       print(' '*maxLenght,'*****************************')
 
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']]))
-      for index in range(len(self.parameters['targets'])):
-        print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]]))
+      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      for index in range(len(parameterSet)):
+        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]]))
     if 'pearson' in outputDict.keys():
       print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*          Pearson          *')
+      print(' '*maxLenght,'*    Pearson/Correlation    *')
       print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']]))
-      for index in range(len(self.parameters['targets'])):
-        print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))
+      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      for index in range(len(parameterSet)):
+        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))
     if 'sensitivity' in outputDict.keys():
       print(' '*maxLenght,'*****************************')
       print(' '*maxLenght,'*        Sensitivity        *')
       print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']]))
-      for index in range(len(self.parameters['targets'])):
-        print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))
+      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      for index in range(len(parameterSet)):
+        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['sensitivity'][index]]))
     if 'NormalizedSensitivity' in outputDict.keys():
       print(' '*maxLenght,'*****************************')
       print(' '*maxLenght,'*   Normalized Sensitivity  *')
       print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in self.parameters['targets']]))
-      for index in range(len(self.parameters['targets'])):
-        print(self.parameters['targets'][index] + ' '*(maxLenght-len(self.parameters['targets'][index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))
+      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      for index in range(len(parameterSet)):
+        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['NormalizedSensitivity'][index]]))
 
     if self.externalFunction:
       print(' '*maxLenght,'+++++++++++++++++++++++++++++')
@@ -605,8 +565,6 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
 #
 #
 #
-#
-
 class LimitSurface(BasePostProcessor):
   '''
     LimitSurface filter class. It computes the limit surface associated to a dataset

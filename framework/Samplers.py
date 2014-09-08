@@ -488,7 +488,7 @@ class AdaptiveSampler(Sampler):
     if lastOutput == None and self.ROM.amITrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
     if lastOutput !=None: self._trainingROM(lastOutput)
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')           #happy thinking :)
+    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
@@ -550,7 +550,7 @@ class AdaptiveSampler(Sampler):
         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
         self.invPointPersistence[pointID]=abs(self.persistenceMatrix[tuple(coordinate)])
       maxPers = np.max(self.invPointPersistence)
-      self.invPointPersistence = (maxPers-self.invPointPersistence)/maxPers
+      if maxPers!=0: self.invPointPersistence = (maxPers-self.invPointPersistence)/maxPers
       if self.solutionExport!=None:
         for varName in self.solutionExport.getParaKeys('inputs'):
           for varIndex in range(len(self.axisName)):
