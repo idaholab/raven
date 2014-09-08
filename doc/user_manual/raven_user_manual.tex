@@ -3,7 +3,7 @@
 % It shows how a SAND report should be formatted, what sections and
 % elements it should contain, and how to use the SANDreport class.
 % It uses the LaTeX article class, but not the strict option.
-% It uses .eps logos and files to show how pdflatex can be used
+% ItINLreport uses .eps logos and files to show how pdflatex can be used
 %
 % Get the latest version of the class file and more at
 %    http://www.cs.sandia.gov/~rolf/SANDreport
@@ -185,7 +185,7 @@ showstringspaces=false            %
     }
 
     % There is a "Printed" date on the title page of a SAND report, so
-    % the generic \date should generally be empty.
+    % the generic \date should [WorkingDir:]generally be empty.
     \date{}
 
 
@@ -193,7 +193,7 @@ showstringspaces=false            %
 % Set some things we need for SAND reports. These are mandatory
 %
 \SANDnum{INL/EXT-14-xxxxx}
-\SANDprintDate{February 2014}
+\SANDprintDate{August 2014}
 \SANDauthor{ }
 \SANDreleaseType{Draft Release}
 
@@ -214,7 +214,7 @@ showstringspaces=false            %
 % Start the document
 %
 \begin{document}
-    \maketitle
+    \maketitle[Title]
 
     % ------------------------------------------------------------------------ %
     % An Abstract is required for SAND reports
@@ -300,11 +300,12 @@ showstringspaces=false            %
 \input{runInfo.tex}
 \input{ProbabilityDistributions.tex}
 \input{sampler.tex}
+\input{functions.tex}
 \input{model.tex}
 \input{step.tex}
 \input{database_data.tex}
 \input{OutStreamSystem.tex}
-
+\input{existing_interfaces.tex}
 
     % ---------------------------------------------------------------------- %
     % References

@@ -1,3 +1,48 @@
-\section{XXX  \\ \vspace{2 mm} {\small Author: xxx x. xxx}}
+\section{Datas  \\ \vspace{2 mm} {\small }}
 
+
+\begin{itemize}
+\item TimePoint: A couple of points inside the input and output spaces. 
+\item TimePointSet: A set of couples of points inside the input and output spaces.  
+\item History: A set of couple of points inside the input space and a time dependent array inside the output space. Because time is not a continuous variable inside the RAVEN environment, each array is associated with an array of time points. The input space points and the output space array are correlated by model. (see section \textit{models}) 	
+\item Histories: A set of couple of points inside the input space and a set of array inside the output space. The input space points and the output space array are correlated by model. (see section \textit{models})
+\end{itemize}
+
+Input: sampling variables inside relap or any TH code
+
+Output: variables inside the model output (OutPlaceHolder is a keyword for a something that doesn't have an output)
+
+\begin{lstlisting}[style=XML]
+<Datas> 
+ <TimePointSet name='***'>  
+  <Input>***,***,***</Input>
+  <Output>***,***</Output>
+ </TimePointSet> 
+</Datas>   
+\end{lstlisting}
+
+
+
+
+
+
+
+\section{Databases}
+
+\begin{itemize}
+\item name: database name
+\item directory:
+\begin{itemize}
+\item if it is not specified a directory, such directory will be created. It will be named DataBaseStorage in the working directory with inside the .h5 file containing the database. 
+\item if input directory name is given the code will look for DataBaseStorage folder and pick the file from filename from inside such directory
+\end{itemize}
+\item filename: input file to be read from, if not there such file will be created
+
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<DataBases> 
+     <HDF5 name="***" directory='***' filename='***'/>  
+</DataBases>   
+\end{lstlisting}
 

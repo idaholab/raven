@@ -1,3 +1,105 @@
-\section{XXX  \\ \vspace{2 mm} {\small Author: xxx x. xxx}}
+\section{Steps  \\ \vspace{2 mm} {\small }}
+
+
+\begin{itemize}
+\item SingleRun: This is the step that will perform just one evaluation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\item MultiRun: This class implements one step of the simulation pattern where several runs are, needed without being adaptive.  
+\begin{itemize}
+	\begin{itemize}
+	\item name = name of the step (sequence) defined in the RunInfo block, under the Sequence card
+	\end{itemize}
+\item pauseAtEnd= if True the code will not go to next step until plots are closed manually by the user
+\end{itemize}
+\begin{itemize}
+\item Sampler: 
+\begin {itemize}
+\item class=Samplers 
+\item type: the type of sampler used in the Samplers block 
+\item name of the sampler
+\end{itemize}
+\item Model: 
+\begin{itemize}
+\item class= (Models) 
+\item type=(dummy, ROM, External Model, Code, Projector, PostProcessor) 
+\item name of the model
+\end{itemize}
+\item Input:  
+\begin{itemize}
+\item class=(Data e Files)
+\item type:
+\begin{itemize}
+\item if class = files ----$>$ none
+\item if class = Data  ----$>$ timepoint, timepointset, historie, histories
+\end{itemize}
+\end{itemize}
+\item Output: 
+\begin{itemize}
+\item class: they are the output destinations
+\begin{itemize}
+\item Datas 
+\item OutStreamManager
+\end{itemize} 
+\item type:
+\begin{itemize}
+\item if class=Datas ----$>$(timepoint, timepointset, historie, histories) 
+\item if class=OutstreamManager ---$>$ type:print, plot
+\end{itemize} 
+\item name of the output  
+\end{itemize}
+
+\end{itemize}
+\begin{lstlisting}[style=XML]
+<MultiRun name='***' pauseAtEnd='***'>
+ <Sampler class='Samplers' type='***'>***</Sampler>
+ <Input class='***' type='***'>***</Input>
+ <Model class='Models' type='***'>***</Model>
+ <Output class='Datas'*** type='***'</Output>
+ <Output class='OutStreamManager' type='***'>***</Output>
+</MultiRun>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\item Adaptive: this class implement one step of the simulation pattern where several runs are needed in an adaptive scheme
+\begin{itemize}
+\item Sampler: class=samplers type=Adaptive>???<
+\item Model: class=Models type=(dummy, ROM, External Model, Code, Projector, PostProcessor)
+\item Function: it takes in a datas and generate the value of the goal functions, it gives the criteria for which i represent the limit surface (class=Functions)
+\item Input:
+\item TargetEvaluation: is the output datas that is used for the evaluation of the goal function, it represents the sampling points. It has to be declared among the outputs. 
+\item SolutionExport: if declared it is used to export the location of the goal functions = 0, it exports the limit surface
+\item ROM: is boolean, it selects values of input (through sampling) to find the limit surface through the values that were given by the function. 
+\item Output:
+\end{itemize}
+\begin{lstlisting}[style=XML]
+<Adaptive name='***' pauseAtEnd='***'> 
+ <Input class = 'Datas' type = 'TimePointSet'>***</Input>
+ <Sampler class = 'Samplers' type = 'Adaptive'>***</Sampler>
+ <TargetEvaluation class = 'Datas' type = '***'>***</TargetEvaluation>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\item IODataBase: This step type is used only to extract or push information from/into a DataBase. If in the Databases block the Database is created (no directory or filename) the then the Databse will be an output of this block, otherwise, if it is uploaded then in this block it will be a Input
+\begin{itemize}
+\item Input: class=(Datas or Databases) type=(if Databases, HDF5, if Datas:timepoint, timepointset, historie, histories) 
+\item Output: class=(Datas or Databases) type=(if Databases, HDF5, if Datas:timepoint, timepointset, historie, histories) 
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\item RomTrainer: This step type is used only to train a ROM. 
+\begin{lstlisting}[style=XML]
+<RomTrainer name='***'>
+ <Input   class='Datas' type='TimePointSet'>***</Input>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\item PostProcess:
+\item OutStreamStep:
+\end{itemize}
+
+
+
+
+
+
+
+
+
 
 

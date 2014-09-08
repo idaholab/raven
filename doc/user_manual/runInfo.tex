@@ -1,31 +1,31 @@
 \section{RunInfo  \\ \vspace{2 mm} {\small Author: xxx x. xxx}}
 
-The section RunInfo contains the following information:
-\begin{description}
-\item [DefaultInputFile:] default input file to use
-\item [SimulationFiles:] the xml input file
-\item [ScriptDir:] the location of the pbs script interfaces
-\item [FrameworkDir:] the directory where the framework is located
-\item [WorkingDir:] the directory where the framework should be running
-\item [TempWorkingDir:] the temporary directory where a simulation step is run
-\item [NumMPI:] the number of mpi process by run
-\item [NumThreads:] Number of Threads by run
-\item [numProcByRun:] the total number of core used by one run (number of threads by number of mpi)
-\item [batchSize:] number of contemporaneous runs
-\item [ParallelCommand:] the command that should be used to submit jobs in parallel (mpi)
-\item [ThreadingCommand:] the command should be used to submit multi-threaded  
-\item [numNode:] number of nodes
-\item [procByNode:] number of processors by node
-\item [totalNumCoresUsed:] total number of cores used by driver 
-\item [quequingSoftware:] quequing software name
-\item [stepName:] the name of the step currently running
-\item [precommand:] add to the front of the command that is run
-\item [postcommand:] added after the command that is run.
-\item [delSucLogFiles:] if a simulation (code run) has not failed, delete the relative log file (if True)
-\item [deleteOutExtension:] if a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
-\item [mode:] running mode: currently the only modes supported are pbsdsh and mpi
-\item [expectedTime:] how long the complete input is expected to run.
-\end{description}
+General information of how the program is queried
+\begin{itemize}
+%\item [Simulation:] First and last lines of the input file, the whole input file must be written between these two lines
+%\item [RunInfo:] General information of how the program is queried
+\item  \textbf{WorkingDir}: the path to the directory where the output files are going to be located (starting from the same directory where the input file was located)
+\item \textbf{ParallelCommand*}: the command that should be used to submit jobs in parallel
+\item \textbf{quequingSoftware*?}: quequing software name
+\item \textbf{ThreadingCommand*}: The command should be used to submit multi-threaded jobs?????
+\item \textbf{NumThreads*}: number of threads by run
+\item \textbf{NumNode*}: number of nodes used in the HPC 
+\item \textbf{procByNode*}: number of processors used in a single node 
+\item \textbf{NumCoresUsed*}: total number of cores used
+\item \textbf{NumMPI*}: number of MPI processes by run
+\item \textbf{MaxLogFileSize*} :**********
+\item \textbf{precommand}: add before of the command that is used to run the external model
+\item \textbf{postcommand}: add after of the command that is used to run the external model
+\item \textbf{deleteOutExtension}:if a run of an external model has not failed delete the outut files with the listed extension
+\item \textbf{delSucLogFiles}:if a run of an external model has not failed delete the log files with the listed extension
+\item \textbf{Files}: these are the paths to the files required by the code, string from the working directory 
+\item \textbf{Sequence}: ordered list of the step name that the simulation will run
+\item \textbf{mode}: these refers to the way in which the parallel environment is set up (currently the only modes supported are pbsdsh and mpi).
+\item \textbf{batchSize}: number of contemporaneous runs, 
+\item \textbf{expectedTime*}: how much time the simulation is expected to run
+\item \textbf{DefaultInputFile}: default input file to be read*******
+\item \textbf{CustomMode}: **********
+\end{itemize}
 % source: Simulation.py
 
 The example:
@@ -40,5 +40,5 @@ The example:
     <NumMPI>2</NumMPI>
 </RunInfo>
 \end{lstlisting}
-specifies the working directory (WorkingDir) where are located the files necessary (Files) to run a series of 10 (batchSize) Monte-Carlo calculations (Sequence).
+Specifies the working directory (WorkingDir) where are located the files necessary (Files) to run a series of 100 (batchSize) Monte-Carlo calculations (Sequence).
 MPI (mode) mode is used along with 4 threads (NumThreads) and 2 mpi process per run (NumMPI).

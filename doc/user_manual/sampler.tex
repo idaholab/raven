@@ -1,4 +1,208 @@
-\section{XXX  \\ \vspace{2 mm} {\small Author: xxx x. xxx}}
+\section{Samplers  \\ \vspace{2 mm} {\small }}
+
+Samplers own the sampling strategy (Type) and they generate the input values using the associate distribution. They do not have distributions inside.
+
+There are different kind of samplers:
+\begin{itemize}
+\item \textbf{MonteCarlo}
+\item \textbf{Grid}
+\item \textbf{LHS}
+\item \textbf{Adaptive}
+\item \textbf{DynamicEventTree}
+\item \textbf{AdaptiveDynamicEventTree}
+\end{itemize}
+
+For MonteCarlo method: 
+\begin{itemize}
+\item \textbf{MonteCarlo}
+\begin{itemize}
+\item name: name of sampling method used
+\item limit: number of samplings the MonteCarlo method will use
+\item initial seed: (optional) initial number of the iterations
+\end{itemize}
+\item variable 
+\begin{itemize}
+\item name: name of the variable that the code will do the sampling of
+\end{itemize}
+\item distribution: 
+\begin{itemize}
+\item what kind of distribution the variable follows (it is chosen from the distribution block)
+\end{itemize}
+\end{itemize}
+
+Example:
+
+\begin{lstlisting}[style=XML]
+<MonteCarlo name='MC_Sampler' limit='1000'> 
+ <variable name='pressure'> 
+  <distribution>***</distribution> 	
+ </variable> 
+</MonteCarlo> 
+\end{lstlisting}
+In the example the code is sampling 1000 times (limit) the variable "pressure" with a distribution taken from the distribution block.
+
+For the Grid method:
+\begin{itemize}
+\item \textbf{Grid}
+\begin{itemize}
+\item name: name of the sampling method used
+\item initial seed (optional)
+\end{itemize}
+\item variable
+\begin{itemize}
+\item name: name of the variable that the code will do the sampling of
+\end{itemize}
+\item distribution: what kind of distribution the variable follows (it is chosen from the distribution block) 
+\item grid
+\begin{itemize}
+\item type
+\begin{itemize}
+\item value
+\item CDF
+\end{itemize}
+\item construction 
+\begin{itemize}
+\item equal
+\begin{itemize}
+\item the size of the step, given in the input node, is the same for all steps
+\item requires lowerbound or upperbound
+\item requires steps
+\end{itemize}
+\item custom
+\begin{itemize} 
+\item no lowerbound or upperbound 
+\item no number of steps
+\item in the input node it is necessary to input each step of the grid separated by a space
+\end{itemize}
+\end{itemize}
+\item lowerbound or upperbound
+\item steps
+\item input node
+\end{itemize}
+\end{itemize}
+
+Example: 
+
+\begin{lstlisting}[style=XML]
+<Grid name='Grid_Sampler'> 
+ <variable name='pressure'>  
+  <distribution>***</distribution> 
+  <grid	type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>   
+ </variable> 
+</Grid> 
+\end{lstlisting}
+In the example the code is sampling the variable "pressure" with a distribution "***" which was chosen by the distribution block. The grid ranges from 1.0 (lowerbound) to 21.0 (100 steps of equal size of 0.2).  
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\\
+For the LHS method:
+\begin{itemize}
+\item \textbf{LHS}
+\begin{itemize}
+\item name: name of the sampling method used
+\item initial seed (optional)
+\end{itemize}
+\item variable
+\begin{itemize}
+\item name: name of the variable that the code will do the sampling of
+\end{itemize}
+\item distribution: what kind of distribution the variable follows (it is chosen from the distribution block) 
+\item grid
+\begin{itemize}
+\item type
+\begin{itemize}
+\item value
+\item CDF
+\end{itemize}
+\item construction 
+\begin{itemize}
+\item equal
+\begin{itemize}
+\item the size of the step, given in the input node, is the same for all steps
+\item requires lowerbound or upperbound
+\item requires steps
+\end{itemize}
+\item custom
+\begin{itemize} 
+\item no lowerbound or upperbound 
+\item no number of steps
+\item in the input node it is necessary to input each step of the grid separated by a space
+\end{itemize}
+\end{itemize}
+\item lowerbound or upperbound
+\item steps
+\item input node
+\end{itemize}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<LHS name='***' initial_seed='***'> 
+ <variable name='***'>  
+  <distribution>***</distribution> 	
+  <grid	type='***' construction='***' steps='***' lowerBound='***'>****</grid>   
+ </variable> 
+</LHS> 
+\end{lstlisting}
+The input structure is the same as the \textbf{Grid} input structure
+
+For the Adaptive method:
+\begin{itemize}
+\item \textbf{Adaptive}
+\begin{itemize}
+\item name
+\item initial seed (optional)
+\end{itemize}
+\item Convergence
+\begin{itemize}
+\item limit: 'Integer'
+\item persistence: 'Integer'
+\item weight='probability' or 'None': 
+\item subGridTol='None' or 'Float' :This is the tolerance used to construct the testing sub grid
+\item forcelteration='True' or 'False': this flag control if at least a self.limit number of iteration should be done
+\end{itemize}
+\item variable
+\item distribution
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+<Adaptive name='***' initial_seed='***'> 
+ <Convergence limit='***' persistence='***' weight='***' subGridTol='***' forcelteration='***'>***</Convergence>  
+  <variable name='***'>
+   <distribution>***</distribution>
+  </variable> 
+</Adaptive>   
+\end{lstlisting}
+
+
+
+For DynamicEventTree:
+***
+
+For AdaptiveDynamicEventTree:
+***
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

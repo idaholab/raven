@@ -1,0 +1,52 @@
+\section{Existing Interfaces  \\ \vspace{2 mm} {\small }}
+
+\subsubsection{RELAP5 Interface}
+
+Example:
+We want to do the sampling of 3 variables:
+\begin{itemize}
+\item Battery Fail Time
+\item Battery Repair Time
+\item Scaling Factor Power Rate
+\end{itemize}
+We are going to sample these 3 variables using two different sampling methods: grid and MonteCarlo.
+
+In RELAP5 the sampler reads the variable in this way:
+Given the name, the first number is the card number, the second number is the word number.
+In this example we are sampling:
+\begin{itemize}
+\item For card 0000588 (trip) the word 6 (battery failure time)
+\item For card 0000575 (trip) the word 6 (battery repari time)
+\item For card 20210000 (reactor power) the word 4 (reactor scaling factor)
+\end{itemize}
+
+We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
+
+\begin{lstlisting}[style=XML]
+<Samplers debug='True'>
+    <Grid name='Grid_Sampler' initial_seed ='210491' >
+        <variable name='0000588:6'>
+            <distribution>BPfailtime</distribution>
+            <grid type='value' construction='equal' lowerBound='0.0' steps='10'>2880</grid>
+        </variable>
+        <variable name='0000575:6'>
+            <distribution>BPrepairtime</distribution>
+            <grid type='value' construction='equal' lowerBound='0.0' steps='10'>2880</grid>
+        </variable>
+		<variable name='20210000:4'>
+            <distribution>ScalFactPower</distribution>
+            <grid type='value' construction='equal' lowerBound='1.0' steps='10'>0.02</grid>
+	</Grid>
+	<MonteCarlo name='MC_Sampler' limit='1000'>
+		<variable name='0000588:6'>
+            <distribution>BPfailtime</distribution>
+		</variable>
+		<variable name='0000575:6'>
+            <distribution>BPrepairtime</distribution>
+		</variable>
+		<variable name='20210000:4'>
+            <distribution>ScalFactPower</distribution>
+		</variable>
+	</MonteCarlo>
+</Samplers>
+\end{lstlisting}

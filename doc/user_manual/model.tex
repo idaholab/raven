@@ -1,6 +1,6 @@
-\section{Models  \\ \vspace{2 mm} {\small Author: xxx x. xxx}}
+\section{Models  \\ \vspace{2 mm} {\small }}
 
-The xml section "models" contains the information regarding the code employed in the analysis (e.g., RAVEN/RELAP-7, RELAP-5 or an external model).
+The xml section "models" contains the information regarding the code employed in the analysis (e.g., RAVEN/RELAP-7, RELAP-5 or an external model). A model is something that given an input will return an output reproducing some physical model it could be as complex as a stand alone code, a reduced order model trained somehow or something externally build and imported by the user.
 The available models are:
 \begin{description}
 \item [Dummy:] it is a dummy model that just return the effect of the sampler. The values reported as input in the output are the output of the sampler and the output is the counter of the performed sampling
@@ -20,14 +20,36 @@ Summary
 
 Example
 
-\subsection{Code}
-\label{sec:models_code}
+\subsection{ROM}
+\label{sec:models_ROM}
 
 Description
 
-Summary
+Summary 
+\begin{itemize}
+\item name: name of the ROM model
+\item subType: 'SciKitLearn'. Imports the libraries from scikitlearn
+\item Features: input the variables set in the Samplers block separated by a comma
+\item SKLtype: input a model from http://scikit-learn.org/stable/modules/classes.html (LinearRegression in the example)
+\item Target: Input a set of variables inside the output space which the ROM has to be developed for. 
+\item Parameters: From the SKLtype class are defined all the parameters required ($fit\_intercept$ and $normalize$ in the exemple) 
+\end{itemize}
 
 Example
+
+\begin{lstlisting}[style=XML]
+<Models>
+ <ROM name='***' subType='***'>
+  <Features>***,***</Features>
+  <SKLtype>linear_model|LinearRegression</SKLtype>
+  <Target>***</Target>
+  <fit_intercept>***</fit_intercept>
+  <normalize>***</normalize>
+ </ROM>
+\end{lstlisting}
+
+
+
 
 \subsection{External Model}
 \label{sec:models_externalModel}
@@ -79,6 +101,15 @@ def run(self,Input):
 </Models> 
 \end{lstlisting}
 
+\subsection{Code}
+\label{sec:models_code}
+
+Description: This is the generic class that import an external code into the framework
+
+Summary
+
+Example
+
 \subsection{Projector}
 \label{sec:models_projector}
 
@@ -92,6 +123,9 @@ Example
 \label{sec:models_postProcessor}
 
 Description
+
+List variable, Input Data, 
+Keyword sul tipo analisi statistica!!
 
 Summary
 
