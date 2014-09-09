@@ -1,9 +1,9 @@
-\section{RunInfo  \\ \vspace{2 mm} {\small Author: xxx x. xxx}}
+\section{RunInfo  \\ \vspace{2 mm} {\small }}
 
 General information of how the program is queried
 \begin{itemize}
 %\item [Simulation:] First and last lines of the input file, the whole input file must be written between these two lines
-%\item [RunInfo:] General information of how the program is queried
+
 \item  \textbf{WorkingDir}: the path to the directory where the output files are going to be located (starting from the same directory where the input file was located)
 \item \textbf{ParallelCommand*}: the command that should be used to submit jobs in parallel
 \item \textbf{quequingSoftware*?}: quequing software name
@@ -20,9 +20,9 @@ General information of how the program is queried
 \item \textbf{delSucLogFiles}:if a run of an external model has not failed delete the log files with the listed extension
 \item \textbf{Files}: these are the paths to the files required by the code, string from the working directory 
 \item \textbf{Sequence}: ordered list of the step name that the simulation will run
-\item \textbf{mode}: these refers to the way in which the parallel environment is set up (currently the only modes supported are pbsdsh and mpi).
-\item \textbf{batchSize}: number of contemporaneous runs, 
-\item \textbf{expectedTime*}: how much time the simulation is expected to run
+\item \textbf{mode}: these refers to the way in which the parallel environment is set up (currently the only modes supported are pbsdsh and mpi). When the user is running the code on his own machine \textit{no mode should be set}. On the contrary, when the user wants to run the code on the cluster, he should specify the mode. Additional info can be found in the readme file. 
+\item \textbf{batchSize}: number of contemporaneous processors used when the code is running on the cluster. It is good pratice to try to run the input a first time using a batchSize=1 to see if there are no faults inside the RAVEN input and/or any code that is coupled with RAVEN. If there are no faults then the user can input batchSize= to as many processors are needed to be used.
+\item \textbf{expectedTime*}: how much time the simulation is expected to run. After this period of time the cluster will automatically stop the simulation (even if the simulation is not competed) so be sure that the time is overestimated.
 \item \textbf{DefaultInputFile}: default input file to be read*******
 \item \textbf{CustomMode}: **********
 \end{itemize}
