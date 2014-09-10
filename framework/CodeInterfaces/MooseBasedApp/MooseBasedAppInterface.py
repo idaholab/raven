@@ -41,7 +41,7 @@ class MooseBasedAppInterface:
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
-    modifDict.append(copy.deepcopy({'name':['Outputs'],'special':set(['erase_block'])}))
+    #modifDict.append(copy.deepcopy({'name':['Outputs'],'special':set(['erase_block'])}))
 #     modifDict.append(copy.deepcopy({'name':['Outputs'],'exodus':'true'}))
 #     modifDict.append(copy.deepcopy({'name':['Outputs'],'interval':'1'}))
 #     modifDict.append(copy.deepcopy({'name':['Outputs'],'output_initial':'true'}))

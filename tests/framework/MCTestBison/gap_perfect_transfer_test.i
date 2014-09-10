@@ -190,10 +190,10 @@
 []
 
 [Outputs]
-  linear_residuals = true
+  #linear_residuals = true
   file_base = out
   interval = 1
   output_initial = true
   exodus = true
-  perf_log = true
+  #perf_log = true
 []
