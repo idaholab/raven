@@ -271,9 +271,12 @@ fi
    cd $BUILD_DIR
 #   git clone https://github.com/matplotlib/matplotlib.git
 #   cd matplotlib; git checkout v1.4.x
-   download_files befdcf1229163277439dccc00bd5be04685229e4 https://github.com/matplotlib/matplotlib/archive/v1.4.0rc1.tar.gz
-   tar -xzf $DOWNLOAD_DIR/v1.4.0rc1.tar.gz
-   cd matplotlib-1.4.0rc1
+   download_files bdd84b713290207b108343c8af37ea25c8e2aadb https://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.4.0/matplotlib-1.4.0.tar.gz
+   tar -xzf $DOWNLOAD_DIR/matplotlib-1.4.0.tar.gz
+   cd matplotlib-1.4.0
+   #download_files befdcf1229163277439dccc00bd5be04685229e4 https://github.com/matplotlib/matplotlib/archive/v1.4.0rc1.tar.gz
+   #tar -xzf $DOWNLOAD_DIR/v1.4.0rc1.tar.gz
+   #cd matplotlib-1.4.0rc1
    sed -i -e "s/default_libraries=\['png', 'z'\])/default_libraries=\['png', 'z'\], alt_exec='libpng-config --ldflags')/g" setupext.py
    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 
