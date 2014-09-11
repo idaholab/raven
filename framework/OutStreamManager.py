@@ -1134,14 +1134,18 @@ class OutStreamPlot(OutStreamManager):
     self.plt.draw()
     #self.plt3D.draw(self.fig.canvas.renderer)
     if 'screen' in self.options['how']['how'].split(',') and disAvail:
+      def handle_close(event):
+        self.fig.canvas.stop_event_loop()
+        print('Closed Figure')
+      self.fig.canvas.mpl_connect('close_event',handle_close)
       self.fig.show()
-      if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
+      #if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
     for i in range(len(self.options['how']['how'].split(','))):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
         if not self.overwrite: prefix = copy.deepcopy(str(self.counter)) + '-'
         else: prefix = ''
-        self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
-        #self.fig.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])        
+        self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
+        #self.fig.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
   def __init__(self):

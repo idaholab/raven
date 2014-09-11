@@ -125,6 +125,36 @@
       </title>
     </actions>
   </Plot>
+  <Plot name='2DHistoryPlot2' dim='2' overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>line</type>
+        <x>stories|Output|time</x>
+        <y>stories|Output|pump_mass_flow_rate</y>
+        <kwargs>
+         <color>green</color>
+         <label>pump mass flow rate</label>
+        </kwargs>
+      </plot>
+       <plot>
+        <type>line</type>
+        <x>stories|Output|time</x>
+        <y>stories|Output|pump_mass_flow_rate</y>
+        <kwargs>
+         <color>blue</color>
+         <label>pump mass flow rate</label>
+        </kwargs>
+      </plot>
+      <xlabel>time [s]</xlabel>
+      <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+      <how>pdf,png,eps</how>
+      <title>
+        <text> </text>
+      </title>
+    </actions>
+  </Plot>
 </OutStreamManager>
 
 
@@ -141,13 +171,13 @@
         <Output    class='Datas'            type='History'      >Historyy</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
+        <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot2</Output>
     </MultiRun >
     <OutStreamStep name='testOutstreamStep' pauseAtEnd='False'>
         <Input    class='Datas'            type='Histories'    >stories</Input>
         <Input    class='Datas'            type='TimePointSet' >TimePointSets</Input>
         <Input    class='Datas'            type='TimePoint'    >TimePointt</Input>
         <Input    class='Datas'            type='History'      >Historyy</Input>
-        
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist1</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist2</Output>
