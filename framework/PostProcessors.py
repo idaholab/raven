@@ -284,9 +284,11 @@ class BasicStatistics(BasePostProcessor):
         outputextension = availextens[0]
       if outputextension != 'csv': separator = ' '
       else                       : separator = ','
-      print("workingDir",self.__workingDir,"output",output.split('.'))
-      if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping output in file named ' + os.path.join(self.__workingDir,output.split('.')[0]+'.'+outputextension))
-      with open(os.path.join(self.__workingDir,output.split('.')[0]+'.'+outputextension), 'wb') as basicStatdump:
+      basicStatFilename = os.path.join(self.__workingDir,output[:output.rfind('.')]+'.'+outputextension)
+      if self.debug:
+        print(self.printTag+': ' +returnPrintPostTag('Message') + '->' + "workingDir",self.__workingDir,"output",output.split('.'))
+        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping output in file named ' + basicStatFilename)
+      with open(basicStatFilename, 'wb') as basicStatdump:
         basicStatdump.write('BasicStatistics '+separator+str(self.name)+'\n')
         basicStatdump.write('----------------'+separator+'-'*len(str(self.name))+'\n')
         for targetP in self.parameters['targets']:
