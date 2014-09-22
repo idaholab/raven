@@ -32,7 +32,7 @@ class BasePostProcessor:
     self.name = None  # pp name
     self.externalFunction = None
     self.debug = False
-  def initialize(self, runInfo, inputs, initDict) : 
+  def initialize(self, runInfo, inputs, initDict) :
     if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
     self.inputs           = inputs
   def _readMoreXML(self,xmlNode):
@@ -243,7 +243,7 @@ class BasicStatistics(BasePostProcessor):
       if inputDict['metadata'].keys().count('SamplerType') > 0: pass
         #if inputDict['metadata']['SamplerType'] == 'Adaptive':
         #pass
-        
+
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -278,7 +278,7 @@ class BasicStatistics(BasePostProcessor):
     if type(output) in [str,unicode,bytes]:
       availextens = ['csv','txt']
       outputextension = output.split('.')[-1].lower()
-      if outputextension not in availextens: 
+      if outputextension not in availextens:
         print(self.printTag+': ' +returnPrintPostTag('Warning') + '->BasicStatistics postprocessor output extension you input is '+outputextension)
         print('                     Available are '+str(availextens)+ '. Convertint extension to '+str(availextens[0])+'!')
         outputextension = availextens[0]
@@ -314,25 +314,25 @@ class BasicStatistics(BasePostProcessor):
           basicStatdump.write('\n' +'EXT FUNCTION \n')
           basicStatdump.write('------------ \n')
           for what in self.methodsToRun:
-            if what not in self.acceptedCalcParam: 
+            if what not in self.acceptedCalcParam:
               if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing External Function parameter '+ what )
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what]+'\n')
-    elif output.type == 'Datas': 
+    elif output.type == 'Datas':
       if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping output in data object named ' + output.name)
       for what in outputDict.keys():
-        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest: 
-          for targetP in self.parameters['targets']: 
+        if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
+          for targetP in self.parameters['targets']:
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping variable '+ targetP + '. Parameter: '+ what + '. Metadata name = '+ targetP+'|'+what)
             output.updateMetadata(targetP+'|'+what,outputDict[what][targetP])
         else:
-          if what not in methodToTest: 
+          if what not in methodToTest:
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping matrix '+ what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
             output.updateMetadata('targets|'+what,self.parameters['targets'])
             output.updateMetadata(what,outputDict[what])
       if self.externalFunction:
         if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping External Function results')
-        for what in self.methodsToRun: 
-          if what not in self.acceptedCalcParam: 
+        for what in self.methodsToRun:
+          if what not in self.acceptedCalcParam:
             output.updateMetadata(what,outputDict[what])
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: dumping External Function parameter '+ what)
     elif output.type == 'HDF5' : print(self.printTag+': ' +returnPrintPostTag('Warning') + '->BasicStatistics postprocessor: Output type '+ str(output.type) + ' not yet implemented. Skip it !!!!!')
@@ -349,8 +349,8 @@ class BasicStatistics(BasePostProcessor):
 
     if self.externalFunction:
       # there is an external function
-      for what in self.methodsToRun: 
-        outputDict[what] = self.externalFunction.evaluate(what,Input['targets'])      
+      for what in self.methodsToRun:
+        outputDict[what] = self.externalFunction.evaluate(what,Input['targets'])
         # check if "what" corresponds to an internal method
         if what in self.acceptedCalcParam:
           if what not in ['pearson','covariance','NormalizedSensitivity','sensitivity']:
@@ -377,7 +377,7 @@ class BasicStatistics(BasePostProcessor):
     # if here because the user could have overwritten the method through the external function
     if 'expectedValue' not in outputDict.keys(): outputDict['expectedValue'] = {}
     expValues = np.zeros(len(parameterSet))
-    for myIndex, targetP in enumerate(parameterSet): 
+    for myIndex, targetP in enumerate(parameterSet):
       outputDict['expectedValue'][targetP]= np.average(Input['targets'][targetP],weights=pbweights)
       expValues[myIndex] = outputDict['expectedValue'][targetP]
 
@@ -402,7 +402,7 @@ class BasicStatistics(BasePostProcessor):
           if pbPresent:
               sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2, weights=pbweights))
               outputDict[what][targetP] = np.average(((Input['targets'][targetP]-expValues[myIndex])**4), weights=pbweights)/sigma**4
-          else: 
+          else:
             outputDict[what][targetP] = -3.0 + (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex])**4)/(N[myIndex]-1))/(np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex])**2)/float(N[myIndex]-1))**2
       #skewness
       if what == 'skewness':
@@ -410,7 +410,7 @@ class BasicStatistics(BasePostProcessor):
           if pbPresent:
             sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2, weights=pbweights))
             outputDict[what][targetP] = np.average((((Input['targets'][targetP]-expValues[myIndex])/sigma)**3), weights=pbweights)
-          else: 
+          else:
             outputDict[what][targetP] = (np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex])**3)*(N[myIndex]-1)**-1)/(np.sum((np.asarray(Input['targets'][targetP]) - expValues[myIndex])**2)/float(N[myIndex]-1))**1.5
       #median
       if what == 'median':
@@ -428,17 +428,17 @@ class BasicStatistics(BasePostProcessor):
       #cov matrix
       if what == 'covariance':
         feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]            
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
         outputDict[what] = np.cov(feat)
       #pearson matrix
       if what == 'pearson':
         feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]            
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
         outputDict[what] = np.corrcoef(feat)
       #sensitivity matrix
       if what == 'sensitivity':
         feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]            
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
         covMatrix = np.cov(feat)
         variance  = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
@@ -448,7 +448,7 @@ class BasicStatistics(BasePostProcessor):
       #Normalizzate sensitivity matrix: linear regression slopes normalizited by the mean (% change)/(% change)
       if what == 'NormalizedSensitivity':
         feat = np.zeros((len(Input['targets'].keys()),first(Input['targets'].values()).size))
-        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]            
+        for myIndex, targetP in enumerate(parameterSet): feat[myIndex,:] = Input['targets'][targetP][:]
         covMatrix = np.cov(feat)
         variance  = np.zeros(len(list(parameterSet)))
         for myIndex, targetP in enumerate(parameterSet):
@@ -523,7 +523,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.sourceDirectory = None
-    self.listOfCsvFiles = [] 
+    self.listOfCsvFiles = []
     self.printTag = returnPrintTag('POSTPROCESSOR LoadCsv')
 
   def initialize(self, runInfo, inputs, initDict):
@@ -535,7 +535,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     for _dir,_,_ in os.walk(self.sourceDirectory): self.listOfCsvFiles.extend(glob(os.path.join(_dir,"*.csv")))
     if len(self.listOfCsvFiles) == 0             : raise IOError(self.printTag+': ' +returnPrintPostTag("ERROR") + "-> The directory indicated for PostProcessor "+ self.name + "does not contain any csv file. Path: "+self.sourceDirectory)
     self.listOfCsvFiles.sort()
-    
+
   def inputToInternal(self,currentInput): return self.listOfCsvFiles
 
   def _localReadMoreXML(self,xmlNode):
@@ -553,7 +553,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
     #output
     '''collect the output file in the output object'''
     for index,csvFile in enumerate(self.listOfCsvFiles):
-      
+
       attributes={"prefix":str(index),"input_file":self.name,"type":"csv","name":os.path.join(self.sourceDirectory,csvFile)}
       metadata = finishedjob.returnMetadata()
       if metadata:
@@ -583,7 +583,7 @@ class LimitSurface(BasePostProcessor):
     self.ROM               = None
     self.subGridTol        = 1.0e-4
     self.printTag = returnPrintTag('POSTPROCESSOR LIMITSURFACE')
-    
+
   def inputToInternal(self,currentInput):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInput) == dict:
@@ -603,7 +603,7 @@ class LimitSurface(BasePostProcessor):
       inputDict['metadata'] = currentInput.getAllMetadata()
     # to be added
     return inputDict
-  
+
   def _griddataInterface(self,action,data,target):
     m = len(list(data.keys()))
     if target in data.keys(): m -= 1
@@ -612,7 +612,7 @@ class LimitSurface(BasePostProcessor):
     if action=='train':
       self._KDTreeMappingList = []
       cnt = 0
-      for key in data.keys(): 
+      for key in data.keys():
           if key == target: targetValues = data[key]
           else:
             self._KDTreeMappingList.append(key)
@@ -623,13 +623,13 @@ class LimitSurface(BasePostProcessor):
     elif action == 'evaluate':
       for key in data.keys(): dataMatrix[:,self._KDTreeMappingList.index(key)] = data[key]
       return self._tree.predict(dataMatrix)
-  
+
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = copy.deepcopy(runInfo['WorkingDir'])
     indexes = [-1,-1]
     for index,inp in enumerate(self.inputs):
-      if type(inp) in [str,bytes,unicode]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor only accepts Data(s) as inputs!') 
+      if type(inp) in [str,bytes,unicode]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor only accepts Data(s) as inputs!')
       if inp.type in ['TimePointSet','TimePoint']: indexes[0] = index
     if indexes[0] == -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
     else:
@@ -637,13 +637,13 @@ class LimitSurface(BasePostProcessor):
       inpKeys = self.inputs[indexes[0]].getParaKeys("inputs")
       outKeys = self.inputs[indexes[0]].getParaKeys("outputs")
       self.paramType ={}
-      for param in self.parameters['targets']: 
+      for param in self.parameters['targets']:
         if param not in inpKeys+outKeys: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[indexes[0]].name +' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
     # check if a ROM is present
     if 'ROM' in initDict.keys():
-      if initDict['ROM']: indexes[1] = 1          
+      if initDict['ROM']: indexes[1] = 1
     if indexes[1] == -1:
       class ROM(object):
         def __init__(self,cKDTreeInterface,target):
@@ -656,7 +656,7 @@ class LimitSurface(BasePostProcessor):
         def evaluate(self,coordinateVect): return self._cKDTreeInterface('evaluate',coordinateVect,self.target)
         def confidence(self,coordinateVect): return self._cKDTreeInterface('confidence',coordinateVect,self.target)[0]
       self.ROM = ROM(self._griddataInterface,self.externalFunction.name)
-    else: self.ROM = initDict['ROM'] 
+    else: self.ROM = initDict['ROM']
     self.nVar        = len(self.parameters['targets'])         #Total number of variables
     stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
@@ -692,9 +692,9 @@ class LimitSurface(BasePostProcessor):
     self.axisStepSize = {}
     for varName in self.parameters['targets']:
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
-           
-      
-      
+
+
+
   def _localReadMoreXML(self,xmlNode):
     '''
       Function to read the portion of the xml input that belongs to this specialized class
@@ -715,9 +715,9 @@ class LimitSurface(BasePostProcessor):
         for varIndex in range(len(self.axisName)):
           if varName == self.axisName[varIndex]:
             output.removeInputValue(varName)
-            for value in limitSurf[0][:,varIndex]: output.updateInputValue(varName,copy.copy(value))    
+            for value in limitSurf[0][:,varIndex]: output.updateInputValue(varName,copy.copy(value))
       output.removeOutputValue('OutputPlaceOrder')
-      for value in limitSurf[1]: output.updateOutputValue('OutputPlaceOrder',copy.copy(value)) 
+      for value in limitSurf[1]: output.updateOutputValue('OutputPlaceOrder',copy.copy(value))
 
   def run(self, InputIn): # inObj,workingDir=None):
     '''
@@ -733,22 +733,22 @@ class LimitSurface(BasePostProcessor):
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
     else                                                  : indexLast = -1
     #index of last set of point tested and ready to perform the function evaluation
-    
+
     indexEnd  = len(self.functionValue[self.axisName[0]])-1
     tempDict  = {}
     if self.externalFunction.name in self.functionValue.keys():
       self.functionValue[self.externalFunction.name] = np.append( self.functionValue[self.externalFunction.name], np.zeros(indexEnd-indexLast))
     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
-    
+
     for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.functionValue.items(): tempDict[key] = copy.deepcopy(value[myIndex])       
+      for key, value in self.functionValue.items(): tempDict[key] = copy.deepcopy(value[myIndex])
       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
       if self.externalFunction.name in InputIn.getParaKeys('inputs'): InputIn.self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
       if self.externalFunction.name in InputIn.getParaKeys('output'): InputIn.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
-      raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!') 
+      raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
 
     #printing----------------------
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
@@ -764,7 +764,7 @@ class LimitSurface(BasePostProcessor):
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> LimitSurface: Training finished')                                   
+    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
