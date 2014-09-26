@@ -632,6 +632,7 @@
   perf_log = true
   nl_max_its = 120
   type = RavenExecutioner
+  control_logic_file = TMI_PRA_trans_SC_control.py
   max_increase = 3
   petsc_options_value = lu # '300'
   l_max_its = 100 # Number of linear iterations for each Krylov solve
@@ -682,7 +683,6 @@
   # data_type = double
   # component_name = high_pressure_seconday_B
   # [../]
-  control_logic_input = TMI_PRA_trans_SC_control
   [./power_CH1]
     print_csv =  true
     data_type =  double

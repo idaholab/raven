@@ -120,6 +120,7 @@
   # nl_abs_step_tol = 1e-15
   # close Executioner section
   type = RavenExecutioner
+  control_logic_file = 'ideal_pump_control.py'
   dt = 1.e-1
   dtmin = 1.e-5
   petsc_options_iname = '-ksp_gmres_restart -pc_type'
@@ -148,7 +149,6 @@
 #  perf_log = true
 #[]
 [Controlled]
-  control_logic_input = 'ideal_pump_control'
   [./pipe1_Area]
     print_csv = true
     component_name = pipe1

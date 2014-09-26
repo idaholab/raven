@@ -67,6 +67,7 @@
   # nl_abs_step_tol = 1e-15
   # close Executioner section
   type = RavenExecutioner
+  control_logic_file = 'simple_flow_3eqn_control.py'
   dt = 1.e-4 # With pc_type=lu, we can use dt=1
   dtmin = 1.e-7
   petsc_options_iname = '-ksp_gmres_restart'
@@ -92,7 +93,6 @@
 #  postprocessor_csv = true
 #[]
 [Controlled]
-  control_logic_input = 'simple_flow_3eqn_control'
   [./pipe_Area]
     print_csv = true
     component_name = pipe
