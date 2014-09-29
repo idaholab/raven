@@ -18,6 +18,8 @@ import abc
 from BaseType import BaseType
 from utils    import metaclass_insert, returnPrintTag, returnPrintPostTag
 import Models
+from OutStreamManager import OutStreamManager
+from Datas import Data
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -374,7 +376,7 @@ class IODataBase(Step):
   def __getOutputs(self, inDictionary):
     outputs         = []
     for out in inDictionary['Output']:
-      if out.type not in ['OutStreamPlot','OutStreamPrint']: outputs.append(out)
+      if not isinstance(out,OutStreamManager): outputs.append(out)
     return outputs
 
   def _localInitializeStep(self,inDictionary):
@@ -389,12 +391,13 @@ class IODataBase(Step):
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       if (inDictionary['Input'][i].type != 'HDF5'):
-        if (not (inDictionary['Input'][i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
+        if not isinstance(inDictionary['Input'][i],Data): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
         elif(outputs[i].type != 'HDF5'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
         else: self.actionType.append('DATAS-HDF5')
       else:
-        if (not (outputs[i].type in ['TimePoint','TimePointSet','History','Histories'])): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-        else: self.actionType.append('HDF5-DATAS')
+        if not isinstance(outputs[i],Data): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
+        else:
+          self.actionType.append('HDF5-DATAS')
 
     #Initialize all the HDF5 outputs.
     for i in range(len(outputs)):
