@@ -7,6 +7,19 @@ def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTag
 
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
+def partialEval(s):
+  try:
+    r = int(s)
+    return r
+  except ValueError:
+    pass
+  try:
+    r = float(s)
+    return r
+  except ValueError:
+    pass
+  return s
+
 def toString(s):
   if type(s) == type(""):
     return s

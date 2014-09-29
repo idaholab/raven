@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>test_iostep_load</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py</Files>
+    <Sequence>test_read_in,test_rewrite</Sequence>
+    <batchSize>3</batchSize>
+  </RunInfo>
+  <Models>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
+  </Models>
+  <Samplers>
+    <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>
+  </Samplers>
+  <Steps>
+    <IODataBase name='test_read_in' fromDirectory='../output_check'>
+      <Input  class='Datas'    type='Histories'>fullprint_histories</Input>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+      <Input  class='Datas'    type='TimePoint'>fullprint_timepoint</Input>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+      <Input  class='Datas'    type='History'>fullprint_history</Input>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+      <Input  class='Datas'    type='TimePointSet'>fullprint_timepointset</Input>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+    </IODataBase>
+    <OutStreamStep name='test_rewrite'>
+      <Input class='Datas' type='History'>fullprint_history</Input>
+      <Input class='Datas' type='Histories'>fullprint_histories</Input>
+      <Input class='Datas' type='TimePoint'>fullprint_timepoint</Input>
+      <Input class='Datas' type='TimePointSet'>fullprint_timepointset</Input>
+      <!-- <Input   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>-->
+      <!-- <Output class='OutStreamManager' type='Print'>reprint_timepointset</Output>-->
+      <Output class='OutStreamManager' type='Print'>reprint_timepoint</Output>
+      <Output class='OutStreamManager' type='Print'>reprint_timepointset</Output>
+      <Output class='OutStreamManager' type='Print'>reprint_history</Output>
+      <Output class='OutStreamManager' type='Print'>reprint_histories</Output>
+
+    </OutStreamStep>
+  </Steps>
+  <DataBases>
+    <HDF5 name="MC_TEST_EXTRACT_STEP"/>
+    <HDF5 name="MC_TEST_PUSH_STEP"/>
+  </DataBases>
+  <OutStreamManager>
+    <Print name='timepointset_from_database_dump'>
+      <type>csv</type>
+      <source>timepointset_from_database</source>
+    </Print>
+    <Print name='timepointset_IN_database_dump'>
+      <type>csv</type>
+      <source>timepointset_IN_database</source>
+    </Print>
+
+  </OutStreamManager>
+
+
+  <Datas>
+    <Histories name='fullprint_histories'>
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </Histories>
+    <TimePointSet name='fullprint_timepointset'>
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </TimePointSet>
+    <TimePoint name='fullprint_timepoint'>
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </TimePoint>
+    <History name='fullprint_history'>
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </History>
+  </Datas>
+
+  <OutStreamManager>
+    <Print name='reprint_histories'>
+      <type>csv</type>
+      <source>fullprint_histories</source>
+    </Print>
+    <Print name='reprint_history'>
+      <type>csv</type>
+      <source>fullprint_history</source>
+    </Print>
+    <Print name='reprint_timepoint'>
+      <type>csv</type>
+      <source>fullprint_timepoint</source>
+    </Print>
+    <Print name='reprint_timepointset'>
+      <type>csv</type>
+      <source>fullprint_timepointset</source>
+    </Print>
+  </OutStreamManager>
+</Simulation>

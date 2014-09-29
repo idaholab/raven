@@ -10,6 +10,7 @@ if not 'xrange' in dir(__builtins__):
   xrange = range
 from BaseType import BaseType
 from Csv_loader import CsvLoader as ld
+import os
 import copy
 import itertools
 import abc
@@ -237,6 +238,12 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
     self.specializedPrintCSV(filenameLocal,options_int)
 
+  def loadXML_CSV(self,filenameRoot,options=None):
+    self._specializedLoadXML_CSV(filenameRoot,options)
+
+  def _specializedLoadXML_CSV(self,filenameRoot,options):
+    raise Exception("specializedLoadXML_CSV not implemented "+str(self))
+
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
     '''Creates an XML file to contain the input and output data list
     and the type.
@@ -260,6 +267,32 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myXMLFile.write(utils.toString(ET.tostring(root)))
     myXMLFile.write('\n')
     myXMLFile.close()
+
+  def _loadXMLFile(self, filenameLocal):
+    myXMLFile = open(filenameLocal + '.xml', 'r')
+    root = ET.fromstring(myXMLFile.read())
+    myXMLFile.close()
+    assert(root.tag == 'data')
+    retDict = {}
+    retDict["fileType"] = root.attrib['type']
+    #print(root.tag,retDict)
+    inputNode = root.find("input")
+    outputNode = root.find("output")
+    filenameNode = root.find("input_filename")
+    retDict["inpKeys"] = inputNode.text.split(",")
+    retDict["outKeys"] = outputNode.text.split(",")
+    retDict["filenameCSV"] = filenameNode.text
+    metadataNode = root.find("metadata")
+    if metadataNode:
+      metadataDict = {}
+      for child in metadataNode:
+        key = child.tag
+        value = child.text
+        metadataDict[key] = value
+      retDict["metadata"] = metadataDict
+    #print(inputNode,outputNode,retDict)
+    return retDict
+
 
   def addOutput(self,toLoadFrom,options=None):
     '''
@@ -738,6 +771,32 @@ class TimePoint(Data):
     myFile.close()
     self._createXMLFile(filenameLocal,'timepoint',inpKeys,outKeys)
 
+  def _specializedLoadXML_CSV(self, filenameRoot, options):
+    #For timepoint it creates an XML file and one csv file.  The
+    #CSV file will have a header with the input names and output
+    #names, and one line of data with the input and output numeric
+    #values.
+    filenameLocal = os.path.join(filenameRoot,self.name)
+    xmlData = self._loadXMLFile(filenameLocal)
+    #print(xmlData)
+    assert(xmlData["fileType"] == "timepoint")
+    mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
+    myFile = open(mainCSV,"r")
+    header = myFile.readline().rstrip()
+    firstLine = myFile.readline().rstrip()
+    myFile.close()
+    inoutKeys = header.split(",")
+    inoutValues = [utils.partialEval(a) for a in firstLine.split(",")]
+    inoutDict = {}
+    for key,value in zip(inoutKeys,inoutValues):
+      inoutDict[key] = value
+    self._dataContainer['inputs'] = {}
+    self._dataContainer['outputs'] = {}
+    for key in xmlData["inpKeys"]:
+      self._dataContainer["inputs"][key] = np.array([inoutDict[key]])
+    for key in xmlData["outKeys"]:
+      self._dataContainer["outputs"][key] = np.array([inoutDict[key]])
+
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
@@ -1041,6 +1100,37 @@ class TimePointSet(Data):
       myFile.close()
       self._createXMLFile(filenameLocal,'timepointset',inpKeys,outKeys)
 
+  def _specializedLoadXML_CSV(self, filenameRoot, options):
+    #For timepointset it will create an XML file and one CSV file.
+    #The CSV file will have a header with the input names and output
+    #names, and multiple lines of data with the input and output
+    #numeric values, one line for each input.
+    filenameLocal = os.path.join(filenameRoot,self.name)
+    xmlData = self._loadXMLFile(filenameLocal)
+    assert(xmlData["fileType"] == "timepointset")
+    mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
+    myFile = open(mainCSV,"r")
+    header = myFile.readline().rstrip()
+    inoutKeys = header.split(",")
+    inoutValues = [[] for a in range(len(inoutKeys))]
+    #print(inoutKeys)
+    for line in myFile.readlines():
+      line_list = line.rstrip().split(",")
+      #print(line_list)
+      for i in range(len(inoutKeys)):
+        inoutValues[i].append(utils.partialEval(line_list[i]))
+    self._dataContainer['inputs'] = {}
+    self._dataContainer['outputs'] = {}
+    inoutDict = {}
+    for key,value in zip(inoutKeys,inoutValues):
+      inoutDict[key] = value
+    for key in xmlData["inpKeys"]:
+      self._dataContainer["inputs"][key] = np.array(inoutDict[key])
+    for key in xmlData["outKeys"]:
+      self._dataContainer["outputs"][key] = np.array(inoutDict[key])
+    #print(inoutKeys,inoutValues)
+
+
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
     if stepID!=None: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> seeking to extract a history slice over an TimePointSet type of data is not possible. Data name: '+self.name+' variable: '+varName)
@@ -1191,6 +1281,45 @@ class History(Data):
       myDataFile.write('\n')
     myDataFile.close()
     self._createXMLFile(filenameLocal,'history',inpKeys,outKeys)
+
+  def _specializedLoadXML_CSV(self, filenameRoot, options):
+    #For history, create an XML file and two CSV files.  The
+    #first CSV file has a header with the input names, and a column
+    #for the filename.  The second CSV file is named the same as the
+    #filename, and has the output names for a header, a column for
+    #time, and the rest of the file is data for different times.
+
+    filenameLocal = os.path.join(filenameRoot,self.name)
+    xmlData = self._loadXMLFile(filenameLocal)
+    #print(xmlData)
+    assert(xmlData["fileType"] == "history")
+    mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
+    myFile = open(mainCSV,"r")
+    header = myFile.readline().rstrip()
+    firstLine = myFile.readline().rstrip()
+    myFile.close()
+    inpKeys = header.split(",")[:-1]
+    subCSVFilename = os.path.join(filenameRoot,firstLine.split(",")[-1])
+    inpValues = [utils.partialEval(a) for a in firstLine.split(",")[:-1]]
+    #print(inpKeys,subCSVFilename,inpValues)
+    myDataFile = open(subCSVFilename, "r")
+    header = myDataFile.readline().rstrip()
+    outKeys = header.split(",")
+    outValues = [[] for a in range(len(outKeys))]
+    #print(outKeys)
+    for line in myDataFile.readlines():
+      line_list = line.rstrip().split(",")
+      for i in range(len(outKeys)):
+        outValues[i].append(utils.partialEval(line_list[i]))
+    #print(outValues)
+    self._dataContainer['inputs'] = {}
+    self._dataContainer['outputs'] = {}
+    for key,value in zip(inpKeys,inpValues):
+      self._dataContainer['inputs'][key] = [value]*len(outValues[0])
+    for key,value in zip(outKeys,outValues):
+      self._dataContainer['outputs'][key] = np.array(value)
+    #print(self._dataContainer['inputs'],self._dataContainer['outputs'])
+
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''override of the method in the base class Datas'''
@@ -1515,6 +1644,7 @@ class Histories(Data):
       #data line in the first CSV and they are named with the
       #filename.  They have the output names for a header, a column
       #for time, and the rest of the file is data for different times.
+      #print("inputs",self._dataContainer['inputs'],"outputs",self._dataContainer['outputs'])
       inpValues = list(self._dataContainer['inputs'].values())
       outKeys   = self._dataContainer['outputs'].keys()
       outValues = list(self._dataContainer['outputs'].values())
@@ -1562,6 +1692,57 @@ class Histories(Data):
             myDataFile.write('\n')
         myDataFile.close()
       myFile.close()
+
+  def _specializedLoadXML_CSV(self, filenameRoot, options):
+    #For histories, create an XML file, and multiple CSV
+    #files.  The first CSV file has a header with the input names,
+    #and a column for the filenames.  There is one CSV file for each
+    #data line in the first CSV and they are named with the
+    #filename.  They have the output names for a header, a column
+    #for time, and the rest of the file is data for different times.
+    filenameLocal = os.path.join(filenameRoot,self.name)
+    xmlData = self._loadXMLFile(filenameLocal)
+    assert(xmlData["fileType"] == "histories")
+    mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
+    myFile = open(mainCSV,"r")
+    header = myFile.readline().rstrip()
+    inpKeys = header.split(",")[:-1]
+    inpValues = []
+    outKeys = []
+    outValues = []
+    for mainLine in myFile.readlines():
+      mainLineList = mainLine.rstrip().split(",")
+      inpValues_h = [utils.partialEval(a) for a in mainLineList[:-1]]
+      inpValues.append(inpValues_h)
+      dataFilename = mainLineList[-1]
+      #print(inpValues_h,dataFilename)
+      subCSVFilename = os.path.join(filenameRoot,dataFilename)
+      myDataFile = open(subCSVFilename, "r")
+      header = myDataFile.readline().rstrip()
+      outKeys_h = header.split(",")
+      outValues_h = [[] for a in range(len(outKeys_h))]
+      for line in myDataFile.readlines():
+        line_list = line.rstrip().split(",")
+        for i in range(len(outKeys_h)):
+          outValues_h[i].append(utils.partialEval(line_list[i]))
+      myDataFile.close()
+      outKeys.append(outKeys_h)
+      outValues.append(outValues_h)
+      #print(outKeys_h,outValues_h)
+    self._dataContainer['inputs'] = {} #XXX these are indexed by 1,2,...
+    self._dataContainer['outputs'] = {} #XXX these are indexed by 1,2,...
+    for i in range(len(inpValues)):
+      mainKey = i + 1
+      subInput = {}
+      subOutput = {}
+      for key,value in zip(inpKeys,inpValues[i]):
+        subInput[key] = [value]*len(outValues[0][0])
+      for key,value in zip(outKeys[i],outValues[i]):
+        subOutput[key] = np.array(value)
+      self._dataContainer['inputs'][mainKey] = subInput
+      self._dataContainer['outputs'][mainKey] = subOutput
+    #print("inpKeys",inpKeys,"inpValues",inpValues,"outKeys",outKeys,"outValues",outValues)
+    #print("inputs",self._dataContainer['inputs'],"outputs",self._dataContainer['outputs'])
 
   def __extractValueLocal__(self,myType,inOutType,varTyp,varName,varID=None,stepID=None,nodeid='root'):
     '''

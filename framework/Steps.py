@@ -33,7 +33,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
   myInstance.takeAstep()                             !This method perform the step
 
   --Internal chain [in square brackets methods that can be/must be overwritten]
-  self.XMLread(xml)-->self._readMoreXML(xml)     -->[self._localInputAndChecks()]
+  self.XMLread(xml)-->self._readMoreXML(xml)     -->[self._localInputAndChecks(xmlNode)]
   self.takeAstep() -->self_initializeStep()      -->[self._localInitializeStep()]
                    -->[self._localTakeAstepRun()]
                    -->self._endStepActions()
@@ -49,7 +49,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
    **ADD your class to the dictionary __InterfaceDict at the end of the module
 
   Overriding the following methods overriding unless you inherit from one of the already existing methods:
-  self._localInputAndChecks()             : used to specialize the xml reading and the checks
+  self._localInputAndChecks(xmlNode)      : used to specialize the xml reading and the checks
   self._localAddInitParams(tempDict)      : used to add the local parameters and values to be printed
   self._localInitializeStep(inDictionary) : called after this call the step should be able the accept the call self.takeAstep(inDictionary):
   self._localTakeAstepRun(inDictionary)   : this is where the step happens, after this call the output is ready
@@ -65,7 +65,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed        = None
-    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd']
+    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory']
     self.printTag = returnPrintTag('STEPS')
 
   def _readMoreXML(self,xmlNode):
@@ -93,11 +93,11 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
       if   xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t','y']: self.pauseEndStep = True
       elif xmlNode.attrib['pauseAtEnd'].lower() in ['no','false','f','n']: self.pauseEndStep = False
       else: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
-    self._localInputAndChecks()
+    self._localInputAndChecks(xmlNode)
     if None in self.parList: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> A problem was found in  the definition of the step '+str(self.name))
 
   @abc.abstractmethod
-  def _localInputAndChecks(self):
+  def _localInputAndChecks(self,xmlNode):
     '''
     Place here specialized reading, input consistency check and
     initialization of what will not change during the whole life of the object
@@ -174,7 +174,7 @@ class SingleRun(Step):
     Step.__init__(self)
     self.printTag = returnPrintTag('STEP SINGLERUN')
 
-  def _localInputAndChecks(self):
+  def _localInputAndChecks(self,xmlNode):
     if self.FIXME:print(self.printTag+': FIXME -> the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below')
     found     = 0
     rolesItem = []
@@ -242,8 +242,8 @@ class MultiRun(SingleRun):
     self.counter          = 0  #just an handy counter of the runs already performed
     self.printTag = returnPrintTag('STEP MULTIRUN')
 
-  def _localInputAndChecks(self):
-    SingleRun._localInputAndChecks(self)
+  def _localInputAndChecks(self,xmlNode):
+    SingleRun._localInputAndChecks(self,xmlNode)
     if 'Sampler' not in [item[0] for item in self.parList]: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is not possible a multi-run without a sampler !!!')
 
   def _initializeSampler(self,inDictionary):
@@ -307,7 +307,7 @@ class Adaptive(MultiRun):
   def __init__(self):
     MultiRun.__init__(self)
     self.printTag = returnPrintTag('STEP ADAPTIVE')
-  def _localInputAndChecks(self):
+  def _localInputAndChecks(self,xmlNode):
     '''we check coherence of Sampler, Functions and Solution Output'''
     #test sampler information:
     if self.FIXME: print(self.printTag+': FIXME ->  all these test should be done at the beginning in a static fashion being careful since not all goes to the model')
@@ -372,6 +372,7 @@ class IODataBase(Step):
   def __init__(self):
     Step.__init__(self)
     self.printTag = returnPrintTag('STEP IODATABASE')
+    self.fromDirectory = None
 
   def __getOutputs(self, inDictionary):
     outputs         = []
@@ -393,7 +394,8 @@ class IODataBase(Step):
       if (inDictionary['Input'][i].type != 'HDF5'):
         if not isinstance(inDictionary['Input'][i],Data): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
         elif(outputs[i].type != 'HDF5'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
-        else: self.actionType.append('DATAS-HDF5')
+        else:
+          self.actionType.append('DATAS-HDF5')
       else:
         if not isinstance(outputs[i],Data): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
         else:
@@ -407,6 +409,13 @@ class IODataBase(Step):
             databases.add(outputs[i].name)
             outputs[i].initialize(self.name)
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
+
+    #if have a fromDirectory and are a DATAS-*, need to load data
+    if self.fromDirectory:
+      for i in range(len(inDictionary['Input'])):
+        if self.actionType[i].startswith('DATAS-'):
+          inInput = inDictionary['Input'][i]
+          inInput.loadXML_CSV(self.fromDirectory)
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
@@ -431,7 +440,9 @@ class IODataBase(Step):
   def _localAddInitParams(self,tempDict):
     pass # no inputs
 
-  def _localInputAndChecks(self): pass
+  def _localInputAndChecks(self,xmlNode):
+    if 'fromDirectory' in xmlNode.attrib.keys():
+      self.fromDirectory = xmlNode.attrib['fromDirectory']
 #
 #
 #
@@ -443,7 +454,7 @@ class RomTrainer(Step):
     Step.__init__(self)
     self.printTag = returnPrintTag('STEP ROM TRAINER')
 
-  def _localInputAndChecks(self):
+  def _localInputAndChecks(self,xmlNode):
     if [item[0] for item in self.parList].count('Input')!=1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
     if [item[0] for item in self.parList].count('Output')<1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> At least one Output is need in a training step. Step name: '+str(self.name))
     for item in self.parList:
@@ -471,7 +482,7 @@ class PostProcess(SingleRun):
     self.foundROM        = False
     self.printTag = returnPrintTag('STEP POSTPROCESS')
 
-  def _localInputAndChecks(self):
+  def _localInputAndChecks(self,xmlNode):
     found     = 0
     rolesItem = []
     for index, parameter in enumerate(self.parList):
@@ -489,7 +500,7 @@ class PostProcess(SingleRun):
       if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
     #use the models static testing of roles compatibility
     for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
-    #SingleRun._localInputAndChecks(self)
+    #SingleRun._localInputAndChecks(self,xmlNode)
     for role in self.parList:
       if role[0] == 'Function':
         self.functionCounter+=1
@@ -545,7 +556,7 @@ class OutStreamStep(Step):
   def _localAddInitParams(self,tempDict):
     return tempDict # no inputs
 
-  def _localInputAndChecks(self):
+  def _localInputAndChecks(self,xmlNode):
     rolesItem = []
     for parameter in self.parList: rolesItem.append(parameter[0])
     error_found = False
