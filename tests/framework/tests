@@ -234,4 +234,12 @@
   requires_swig2 = True
  [../]
 
+ [./test_iostep_load]
+   type = 'RavenFramework'
+   input = 'test_iostep_load.xml'
+   output = 'test_iostep_load/reprint_histories.xml'
+   csv = 'test_iostep_load/reprint_histories_1.csv test_iostep_load/reprint_histories.csv test_iostep_load/reprint_history.csv test_iostep_load/reprint_timepoint.csv test_iostep_load/reprint_timepointset.csv'
+   prereq = test_output
+ [../]
+
 []
