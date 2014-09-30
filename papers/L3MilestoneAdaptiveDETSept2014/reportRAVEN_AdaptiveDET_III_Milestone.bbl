@@ -1,0 +1,54 @@
+\begin{thebibliography}{1}
+
+\bibitem{neams}
+Neams: The nuclear energy advanced modeling and simulation program.
+\newblock Technical Report ANL/NE-13/5.
+
+\bibitem{lwrs}
+Light water reactor sustainability program integrated program plan.
+\newblock Technical Report INL-EXT-11-23452, April 2013.
+
+\bibitem{alfonsiPSA}
+A.~Alfonsi, C.~Rabiti, D.~Mandelli, J.~Cogliati, B.~Kinoshita, and A.~Naviglio.
+\newblock Dynamic event tree analysis through raven.
+\newblock In {\em Proceedings of ANS PSA 2013 International Topical Meeting on
+  Probabilistic Safety Assessment and Analysis, Columbia (South Carolina)},
+  2013.
+
+\bibitem{DETmilestone2013}
+A.~Alfonsi, C.~Rabiti, D.~Mandelli, J.~Cogliati, and R.~Kinoshita.
+\newblock Raven: Dynamic event tree approach level iii milestone.
+\newblock Technical Report INL/EXT-13-30332, INL, September 2013.
+
+\bibitem{relap7FY12}
+David Anders, Ray Berry, Derek Gaston, Richard Martineau, John Peterson,
+  Hongbin Zhang, Haihua Zhao, and Ling Zou.
+\newblock Relap-7 level 2 milestone report: Demonstration of a steady state
+  single phase pwr simulation with relap-7.
+\newblock Technical Report INL/EXT-12-25924, Idaho National Laboratory (INL),
+  2012.
+
+\bibitem{scikitlearn}
+Pedregosa et~al.
+\newblock Scikit-learn: Machine learning in python.
+\newblock {\em Journal of Machine Learning Research}, pages 2825--2830, 2011.
+
+\bibitem{ADAPTHakobyan}
+A.~Hakobyan, T.~Aldemir, R.~Denning, S.~Dunagan, D.~Kunsman, B.~Rutt, and
+  U.~Catalyurek.
+\newblock Dynamic generation of accident progression event trees.
+\newblock {\em Nuclear Engineering and Design}, 238(12):3457 -- 3467, 2008.
+
+\bibitem{mandelliANS_RISMC}
+D.~Mandelli and C.~Smith.
+\newblock Integrating safety assessment methods using the risk informed safety
+  margins characterization (rismc) approach.
+\newblock In {\em Proceeding of American Nuclear Society (ANS), San Diego
+  (CA)}, volume 107, pages 883--885, 2012.
+
+\bibitem{Urbanic1978}
+V.~F. Urbanic and T.~R. Heidrick.
+\newblock High-temperature oxidation of zircaloy-2 and zircaloy-4 in steam.
+\newblock {\em Nuclear Materials}, 251(75), 1978.
+
+\end{thebibliography}
