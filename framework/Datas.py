@@ -780,6 +780,8 @@ class TimePoint(Data):
     xmlData = self._loadXMLFile(filenameLocal)
     #print(xmlData)
     assert(xmlData["fileType"] == "timepoint")
+    if "metadata" in xmlData:
+      self._dataContainer['metadata'] = xmlData["metadata"]
     mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
     myFile = open(mainCSV,"r")
     header = myFile.readline().rstrip()
@@ -1108,6 +1110,8 @@ class TimePointSet(Data):
     filenameLocal = os.path.join(filenameRoot,self.name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "timepointset")
+    if "metadata" in xmlData:
+      self._dataContainer['metadata'] = xmlData["metadata"]
     mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
     myFile = open(mainCSV,"r")
     header = myFile.readline().rstrip()
@@ -1293,6 +1297,8 @@ class History(Data):
     xmlData = self._loadXMLFile(filenameLocal)
     #print(xmlData)
     assert(xmlData["fileType"] == "history")
+    if "metadata" in xmlData:
+      self._dataContainer['metadata'] = xmlData["metadata"]
     mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
     myFile = open(mainCSV,"r")
     header = myFile.readline().rstrip()
@@ -1703,6 +1709,8 @@ class Histories(Data):
     filenameLocal = os.path.join(filenameRoot,self.name)
     xmlData = self._loadXMLFile(filenameLocal)
     assert(xmlData["fileType"] == "histories")
+    if "metadata" in xmlData:
+      self._dataContainer['metadata'] = xmlData["metadata"]
     mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
     myFile = open(mainCSV,"r")
     header = myFile.readline().rstrip()
