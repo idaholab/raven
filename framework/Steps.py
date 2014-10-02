@@ -557,8 +557,6 @@ class OutStreamStep(Step):
     return tempDict # no inputs
 
   def _localInputAndChecks(self,xmlNode):
-    rolesItem = []
-    for parameter in self.parList: rolesItem.append(parameter[0])
     error_found = False
     for role in self.parList:
       if role[0] == 'Input':
