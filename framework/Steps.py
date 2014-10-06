@@ -363,89 +363,6 @@ class Adaptive(MultiRun):
 #
 #
 #
-class IODataBase(Step):
-  '''
-    This step type is used only to extract or push information from/into a DataBase
-    @Input, DataBase (for example, HDF5) or Datas
-    @Output,Data(s) (for example, History) or DataBase
-  '''
-  def __init__(self):
-    Step.__init__(self)
-    self.printTag = returnPrintTag('STEP IODATABASE')
-    self.fromDirectory = None
-
-  def __getOutputs(self, inDictionary):
-    outputs         = []
-    for out in inDictionary['Output']:
-      if not isinstance(out,OutStreamManager): outputs.append(out)
-    return outputs
-
-  def _localInitializeStep(self,inDictionary):
-    # check if #inputs == #outputs
-    # collect the outputs without outstreams
-    outputs         = self.__getOutputs(inDictionary)
-    databases       = set()
-    self.actionType = []
-    if len(inDictionary['Input']) != len(outputs): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + ', the number of Inputs != number of Outputs')
-
-    #determine if this is a DATAS->HDF5, HDF5->DATAS or both.
-    # also determine if this is an invalid combination
-    for i in range(len(outputs)):
-      if (inDictionary['Input'][i].type != 'HDF5'):
-        if not isinstance(inDictionary['Input'][i],Data): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
-        elif(outputs[i].type != 'HDF5'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
-        else:
-          self.actionType.append('DATAS-HDF5')
-      else:
-        if not isinstance(outputs[i],Data): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-        else:
-          self.actionType.append('HDF5-DATAS')
-
-    #Initialize all the HDF5 outputs.
-    for i in range(len(outputs)):
-      if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
-        if 'HDF5' in inDictionary['Output'][i].type:
-          if outputs[i].name not in databases:
-            databases.add(outputs[i].name)
-            outputs[i].initialize(self.name)
-            if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
-
-    #if have a fromDirectory and are a DATAS-*, need to load data
-    if self.fromDirectory:
-      for i in range(len(inDictionary['Input'])):
-        if self.actionType[i].startswith('DATAS-'):
-          inInput = inDictionary['Input'][i]
-          inInput.loadXML_CSV(self.fromDirectory)
-
-    #Initialize all the OutStreamPrint and OutStreamPlot outputs
-    for output in inDictionary['Output']:
-      if output.type in ['OutStreamPrint','OutStreamPlot']:
-        output.initialize(inDictionary)
-        if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
-
-  def _localTakeAstepRun(self,inDictionary):
-    outputs = self.__getOutputs(inDictionary)
-    for i in range(len(outputs)):
-      if self.actionType[i] == 'HDF5-DATAS':
-        #inDictionary['Input'][i] is HDF5, outputs[i] is a Datas
-        outputs[i].addOutput(inDictionary['Input'][i])
-      elif self.actionType[i] == 'DATAS-HDF5':
-        #inDictionary['Input'][i] is a datas, outputs[i] is HDF5
-        outputs[i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
-      else:
-        raise IOError("Unknown action type "+self.actionType[i])
-    for output in inDictionary['Output']:
-      if output.type in ['OutStreamPrint','OutStreamPlot']:output.addOutput()
-
-  def _localAddInitParams(self,tempDict):
-    pass # no inputs
-
-  def _localInputAndChecks(self,xmlNode):
-    if 'fromDirectory' in xmlNode.attrib.keys():
-      self.fromDirectory = xmlNode.attrib['fromDirectory']
-#
-#
-#
 class RomTrainer(Step):
   '''This step type is used only to train a ROM
     @Input, DataBase (for example, HDF5)
@@ -533,46 +450,7 @@ class PostProcess(SingleRun):
 #
 #
 #
-class OutStreamStep(Step):
-  '''
-    This step type is used only to plot
-    @Input, Data(s)
-    @Output,OutStream(s)
-  '''
-  def __init__(self):
-    Step.__init__(self)
-    self.printTag = returnPrintTag('STEP OUTSTREAM')
-
-  def _localInitializeStep(self,inDictionary):
-    for output in inDictionary['Output']:
-      output.initialize(inDictionary)
-      if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
-
-  def _localTakeAstepRun(self,inDictionary):
-    for output in inDictionary['Output']:
-      output.addOutput()
-      print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Executing OutStream named ' + output.name)
-
-  def _localAddInitParams(self,tempDict):
-    return tempDict # no inputs
-
-  def _localInputAndChecks(self,xmlNode):
-    error_found = False
-    for role in self.parList:
-      if role[0] == 'Input':
-        if role[1] != 'Datas':
-          print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The Input needs to be a Data(s), in step ' + self.name)
-          error_found = True
-      if role[0] == 'Output':
-        if role[1] != 'OutStreamManager':
-          print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The Output needs to be a OutStreamManager object, in step ' + self.name)
-          error_found = True
-    if error_found: raise(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ERRORS found. See above!')
-
-#
-#
-#
-class IOCombined(Step):
+class IOStep(Step):
   '''
   This step is used to extract or push information from/into a Database,
   or from a directory, or print out the data to an OutStream
@@ -658,10 +536,11 @@ __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
 __interFaceDict['Adaptive'         ] = Adaptive
-__interFaceDict['IODataBase'       ] = IOCombined #IODataBase
+__interFaceDict['IOStep'           ] = IOStep
+__interFaceDict['IODataBase'       ] = IOStep
 __interFaceDict['RomTrainer'       ] = RomTrainer
 __interFaceDict['PostProcess'      ] = PostProcess
-__interFaceDict['OutStreamStep'    ] = IOCombined #OutStreamStep
+__interFaceDict['OutStreamStep'    ] = IOStep
 __base                               = 'Step'
 
 def returnInstance(Type):
