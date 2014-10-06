@@ -13,7 +13,7 @@
     <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>
   </Samplers>
   <Steps>
-    <IODataBase name='test_read_in' fromDirectory='../output_check'>
+    <IOStep name='test_read_in' fromDirectory='../output_check'>
       <Input  class='Datas'    type='Histories'>fullprint_histories</Input>
       <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
       <Input  class='Datas'    type='TimePoint'>fullprint_timepoint</Input>
@@ -22,8 +22,8 @@
       <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
       <Input  class='Datas'    type='TimePointSet'>fullprint_timepointset</Input>
       <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
-    </IODataBase>
-    <OutStreamStep name='test_rewrite'>
+    </IOStep>
+    <IOStep name='test_rewrite'>
       <Input class='Datas' type='History'>fullprint_history</Input>
       <Input class='Datas' type='Histories'>fullprint_histories</Input>
       <Input class='Datas' type='TimePoint'>fullprint_timepoint</Input>
@@ -35,7 +35,7 @@
       <Output class='OutStreamManager' type='Print'>reprint_history</Output>
       <Output class='OutStreamManager' type='Print'>reprint_histories</Output>
 
-    </OutStreamStep>
+    </IOStep>
   </Steps>
   <DataBases>
     <HDF5 name="MC_TEST_EXTRACT_STEP"/>

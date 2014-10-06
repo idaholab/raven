@@ -20,7 +20,7 @@
         <Sampler class='Samplers'   type='MonteCarlo'>RAVENmc3</Sampler>
         <Output  class='DataBases'  type='HDF5'      >MC_TEST_EXTRACT_STEP</Output>
     </MultiRun>
-    <IODataBase name='test_extract'>
+    <IOStep name='test_extract'>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='Datas'    type='Histories'>histories_from_database</Output>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
@@ -30,8 +30,8 @@
         <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='Datas'    type='TimePointSet'>timepointset_from_database</Output>
         <Output    class='OutStreamManager' type='Print'     >timepointset_from_database_dump</Output>
-    </IODataBase>
-    <IODataBase name='test_push_in'>
+    </IOStep>
+    <IOStep name='test_push_in'>
         <Input  class='Datas'    type='Histories'>histories_from_database</Input>
         <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
         <Input  class='Datas'    type='TimePoint'>timepoint_from_database</Input>
@@ -40,8 +40,8 @@
         <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
         <Input  class='Datas'    type='TimePointSet'>timepointset_from_database</Input>
         <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
-    </IODataBase>
-    <IODataBase name='test_extract_again'>
+    </IOStep>
+    <IOStep name='test_extract_again'>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
         <Output  class='Datas'    type='Histories'>histories_IN_database</Output>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
@@ -51,7 +51,7 @@
         <Input   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
         <Output  class='Datas'    type='TimePointSet'>timepointset_IN_database</Output>
         <Output    class='OutStreamManager' type='Print'     >timepointset_IN_database_dump</Output>
-    </IODataBase>
+    </IOStep>
 </Steps>
 <DataBases>
         <HDF5 name="MC_TEST_EXTRACT_STEP"/>

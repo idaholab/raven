@@ -37,10 +37,10 @@
   </MonteCarlo>
 </Samplers>
 <Steps> 
-    <IODataBase name='test_extract_for_rom_trainer'>
+    <IOStep name='test_extract_for_rom_trainer'>
         <Input   class='DataBases' type='HDF5'                      >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
         <Output  class='Datas'    type='TimePointSet'               >timepointset_from_database_for_rom_trainer</Output>
-    </IODataBase>  
+    </IOStep>  
     <RomTrainer name='test_rom_trainer'>
         <Input   class='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
         <Output  class='Models' type='ROM'         >ROM1</Output>

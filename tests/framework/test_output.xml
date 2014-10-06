@@ -173,7 +173,7 @@
         <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot2</Output>
     </MultiRun >
-    <OutStreamStep name='testOutstreamStep' pauseAtEnd='False'>
+    <IOStep name='testOutstreamStep' pauseAtEnd='False'>
         <Input    class='Datas'            type='Histories'    >stories</Input>
         <Input    class='Datas'            type='TimePointSet' >TimePointSets</Input>
         <Input    class='Datas'            type='TimePoint'    >TimePointt</Input>
@@ -188,7 +188,7 @@
         <Output    class='OutStreamManager' type='Print'        >fullprint_histories</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_history</Output>
         <Output    class='OutStreamManager' type='Print'        >fullprint_timepoint</Output>
-    </OutStreamStep>
+    </IOStep>
 </Steps>
 <DataBases>
     <HDF5 name="testOutputDataBase" type="MC"/>

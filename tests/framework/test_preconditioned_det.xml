@@ -150,7 +150,7 @@
         <Output  class='Datas'            type='Histories'         >stories</Output>
         <Output  class='Datas'            type='TimePointSet'      >timepointset</Output>
     </MultiRun >
-    <OutStreamStep name='testOutstreamStep'>
+    <IOStep name='testOutstreamStep'>
       <Input   class='Datas'            type='Histories'       >stories</Input>
       <Input   class='Datas'            type='TimePointSet'    >timepointset</Input>
       <Output  class='OutStreamManager' type='Print'           >testprint_hist_hier</Output>
@@ -159,7 +159,7 @@
       <Output  class='OutStreamManager' type='Print'           >testprint_tpset_hier_variables</Output>
       <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot</Output>
       <Output  class='OutStreamManager' type='Plot'            >2DHistoryPlot_tps</Output>
-    </OutStreamStep>
+    </IOStep>
 </Steps>
 <DataBases>
     <HDF5 name="testPreconditionedBranchDataBase"/>
