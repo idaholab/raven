@@ -200,7 +200,7 @@ class Dummy(Model):
        
   def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''  
-    if self.debug: print(self.printTag+': FIXME -> wondering if a dictionary compatibility should be kept')
+    if self.debug: print(self.printTag+': ' +returnPrintPostTag('FIXME') + '-> wondering if a dictionary compatibility should be kept')
     if  type(dataIN)!=dict and dataIN.type not in self.admittedData: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
     if full==False: length = -1
@@ -568,6 +568,12 @@ class PostProcessor(Model):
     cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
+    from Distributions import _FrameworkToCrowDistNames
+    cls.validateDict['Input'].append(cls.testDict.copy())
+    cls.validateDict['Input'  ][3]['class'       ] = 'Distributions'
+    cls.validateDict['Input'  ][3]['type'        ] = _FrameworkToCrowDistNames.keys()
+    cls.validateDict['Input'  ][3]['required'    ] = False
+    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']
