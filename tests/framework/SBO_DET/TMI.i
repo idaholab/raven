@@ -78,11 +78,11 @@
     elem_number_of_hs = '3 1 1'
     Ts_init = 564.15
     orientation = '0 0 1'
-    rho_hs = '1.0412e2 1.0 6.6e1'
+    #rho_hs = '1.0412e2 1.0 6.6e1'
 #aw = 276.5737513
     Phf = 321.341084980423
     n_elems = 8
-    k_hs = '3.65 1.084498 16.48672'
+    #k_hs = '3.65 1.084498 16.48672'
     material_hs = 'fuel-mat gap-mat clad-mat'
     Dh = 0.01332254
     fuel_type = cylinder
@@ -93,7 +93,7 @@
     power_fraction = '3.33672612e-1 0 0'
     f = 0.01
     type = CoreChannel
-    Cp_hs = '288.734 1.0 321.384'
+    #Cp_hs = '288.734 1.0 321.384'
     eos = eos
     length = 3.6576
     position = '0 -1.2 0'
@@ -104,11 +104,11 @@
     elem_number_of_hs = '3 1 1'
     Ts_init = 564.15
     orientation = '0 0 1'
-    rho_hs = '1.0412e2 1. 6.6e1'
+    #rho_hs = '1.0412e2 1. 6.6e1'
 #aw = 276.5737513
  Phf = 428.454929876871
     n_elems = 8
-    k_hs = '3.65  1.084498  16.48672'
+    #k_hs = '3.65  1.084498  16.48672'
     material_hs = 'fuel-mat gap-mat clad-mat'
     Dh = 0.01332254
     fuel_type = cylinder
@@ -119,7 +119,7 @@
     power_fraction = '3.69921461e-1 0 0'
     f = 0.01
     type = CoreChannel
-    Cp_hs = '288.734  1.0  321.384'
+    #Cp_hs = '288.734  1.0  321.384'
     eos = eos
     length = 3.6576
     position = '0 0 0'
@@ -130,10 +130,10 @@
     elem_number_of_hs = '3 1 1'
     Ts_init = 564.15
     orientation = '0 0 1'
-    rho_hs = '1.0412e2  1.0  6.6e1'
+    #rho_hs = '1.0412e2  1.0  6.6e1'
     Phf = 514.145916018189
     n_elems = 8
-    k_hs = '3.65  1.084498  16.48672'
+    #k_hs = '3.65  1.084498  16.48672'
     material_hs = 'fuel-mat gap-mat clad-mat'
     Dh = 0.01332254
     fuel_type = cylinder
@@ -144,7 +144,7 @@
     power_fraction = '2.96405926e-1 0 0'
     f = 0.01
     type = CoreChannel
-    Cp_hs = '288.734  1.0  6.6e3'
+    #Cp_hs = '288.734  1.0  6.6e3'
     eos = eos
     length = 3.6576
     position = '0 1.2 0'
@@ -168,7 +168,7 @@
     outputs =  'CH1(in) CH2(in) CH3(in) bypass_pipe(in)'
     K =  '0.2 0.2 0.2 0.2 0.4 40.0'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./UpperPlenum]
@@ -177,7 +177,7 @@
     outputs =  'pipe1-HL-A(in) pipe1-HL-B(in)'
     K =  '0.5 0.5 0.5 80.0 0.5 0.5'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./DownComer-A]
@@ -270,7 +270,7 @@
     outputs =  'pipe2-HL-A(in) pipe-to-Pressurizer(in)'
     K =  '0.5 0.7 80.'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Branch2-A]
@@ -279,7 +279,7 @@
     outputs =  'DownComer-A(in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Branch3-A]
@@ -288,7 +288,7 @@
     outputs =  'HX-A(primary_in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Pump-A]
@@ -320,10 +320,10 @@
     Dh_secondary = 0.001
     Hw_secondary = 1.e4
     n_wall_elems = 2
-    Cp_wall = 100.0
+    #Cp_wall = 100.0
     f_secondary = 0.01
-    rho_wall = 100.0
-    k_wall = 100.0
+#rho_wall = 100.0
+    #k_wall = 100.0
     f = 0.01
     eos = eos
     length = 4.
@@ -336,7 +336,7 @@
     outputs =  HX-A(secondary_in)
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Branch5-A]
@@ -345,7 +345,7 @@
     outputs =  'pipe2-SC-A(in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Branch6-A]
@@ -354,7 +354,7 @@
     outputs =  'pipe2-CL-A(in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./PressureOutlet-SC-A]
@@ -454,7 +454,7 @@
     outputs =  'pipe2-HL-B(in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Branch2-B]
@@ -463,7 +463,7 @@
     outputs =  'DownComer-B(in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Branch3-B]
@@ -472,7 +472,7 @@
     outputs =  'HX-B(primary_in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Pump-B]
@@ -503,10 +503,10 @@
     Dh_secondary = 0.001
     Hw_secondary = 1.e4
     n_wall_elems = 2
-    Cp_wall = 100.0
+    #Cp_wall = 100.0
     f_secondary = 0.01
-    rho_wall = 100.0
-    k_wall = 100.0
+#rho_wall = 100.0
+    #k_wall = 100.0
     f = 0.01
     eos = eos
     length = 4.
@@ -519,7 +519,7 @@
     outputs =  'HX-B(secondary_in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+#Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Branch5-B]
@@ -528,7 +528,7 @@
     outputs =  'pipe2-SC-B(in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./Branch6-B]
@@ -537,7 +537,7 @@
     outputs =  'pipe2-CL-B(in)'
     K =  '0.5 0.7'
     eos =  eos
-    Initial_pressure =  151.7e5
+    #Initial_pressure =  151.7e5
     type =  Branch
   [../]
   [./PressureOutlet-SC-B]
@@ -643,11 +643,11 @@
   restart_file_base = 0957
    nl_rel_tol = 1e-8 #1e-9
   ss_check_tol = 1e-05
-  perf_log = true
+#perf_log = true
   nl_max_its = 120
   type = RavenExecutioner
   control_logic_file = TMI_PRA_trans_DET_control.py
-  max_increase = 3
+#max_increase = 3
   petsc_options_value = 'lu 30' # '300'
   l_max_its = 100 # Number of linear iterations for each Krylov solve
   start_time = 100.0
@@ -658,11 +658,11 @@
   dtmax = 9999
   nl_rel_step_tol = 1e-3
   dt = 5e-5
-  petsc_options_iname = -pc_type
-  e_tol = 10.0
+  petsc_options_iname = '-pc_type -pc_type'
+#e_tol = 10.0
   l_tol = 1e-4 # Relative linear tolerance for each Krylov solve
   end_time = 2500.0
-  e_max = 99999.
+#e_max = 99999.
   [./TimeStepper]
     type = FunctionDT
     time_t = ' 0      1.0        3.0         5.01       9.5       9.75    14          17        60       61.1     100.8    101.5  102.2 120.0  2501.23 1.0e5'
@@ -678,12 +678,12 @@
   # xda = true
   # num_restart_files = 1
   output_initial = true
-  output_displaced = false
+#output_displaced = false
   exodus = false 
   file_base = TMI_test_PRA_transient_less_w_out
   exodus = true
   csv = true
-  max_pps_rows_screen = 25
+#max_pps_rows_screen = 25
 []
 
 [Controlled]
@@ -1166,10 +1166,16 @@
  initial_pow = 1
  operating_time = 20736000
  power_coefficient = 0.74
+ start_time=0.0
  [../]
  [./PumpCoastDownSec]
  type = pumpCoastdownExponential
  coefficient = 10.5
  initial_flow_rate = 1.0
+ [../]
+ []
+[RestartInitialize]
+ [./CladDamaged]
+ value = 1
  [../]
  []

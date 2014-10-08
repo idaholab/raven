@@ -139,9 +139,285 @@
 % ---------------------------------------------------------------------------- %
 % Set some things we need for SAND reports. These are mandatory
 %
-\SANDnum{INL/EXT-13-30332}
-\SANDprintDate{07/30/2013}
+\SANDnum{INL/MIS-14-33246 - Rev.1}
+\SANDprintDate{09/30/2014}
 \SANDauthor{Andrea Alfonsi, Cristian Rabiti, Diego Mandelli, Joshua Cogliati, Robert Kinoshita}
+
+
+% ---------------------------------------------------------------------------- %
+% Include the markings required for your SAND report. The default is "Unlimited
+% Release". You may have to edit the file included here, or create your own
+% (see the examples provided).
+%
+% \include{MarkOUO} % Not needed for unlimted release reports
+
+
+
+% ---------------------------------------------------------------------------- %
+
+% ---------------------------------------------------------------------------- %
+%
+% Start the document
+%
+\begin{document}
+    \maketitle
+
+    % ------------------------------------------------------------------------ %
+    % An Abstract is required for SAND reports
+    %
+%    \begin{abstract}
+%      \input abstract
+%    \end{abstract}
+
+
+    % ------------------------------------------------------------------------ %
+    % An Acknowledgement section is optional but important, if someone made
+    % contributions or helped beyond the normal part of a work assignment.
+    % Use \section* since we don't want it in the table of context
+    %
+    \clearpage
+    \section*{Acknowledgment}
+	This work is supported by the U.S. Department of Energy, under DOE Idaho Operations Office Contract DE-AC07-05ID14517. Accordingly, the U.S. Government retains a nonexclusive, royalty-free license to publish or reproduce the published form of this contribution, or allow others to do so, for U.S. Government purposes.
+%
+%	The format of this report is based on information found
+%	in~\cite{Sand98-0730}.
+
+
+    % ------------------------------------------------------------------------ %
+    % The table of contents and list of figures and tables
+    % Comment out \listoffigures and \listoftables if there are no
+    % figures or tables. Make sure this starts on an odd numbered page
+    %
+    \cleardoublepage		% TOC needs to start on an odd page
+    \tableofcontents
+    \listoffigures
+    %\listoftables
+
+
+    % ---------------------------------------------------------------------- %
+    % An optional preface or Foreword
+%    \clearpage
+%    \section*{Preface}
+%    \addcontentsline{toc}{section}{Preface}
+%	Although muggles usually have only limited experience with
+%	magic, and many even dispute its existence, it is worthwhile
+%	to be open minded and explore the possibilities.
+
+
+    % ---------------------------------------------------------------------- %
+    % An optional executive summary
+%    \clearpage
+%    \section*{Summary}
+%    \addcontentsline{toc}{section}{Summary}
+%    \input summary
+
+
+    % ---------------------------------------------------------------------- %
+    % An optional glossary. We don't want it to be numbered
+%    \clearpage
+%    \section*{Nomenclature}
+%    \addcontentsline{toc}{section}{Nomenclature}
+%    \begin{description}
+%	\item[alohomoral]
+%	    spell to open locked doors and containers
+%	\item[leviosa]
+%	    spell to levitate objects
+%%	\item[remembrall]
+%	    device to alert you that you have forgotten something
+%	\item[wand]
+%	    device to execute spells
+%    \end{description}
+
+
+    % ---------------------------------------------------------------------- %
+    % This is where the body of the report begins; usually with an Introduction
+    %
+    \SANDmain		% Start the main part of the report
+
+    \section{Introduction}
+    \input introduction
+
+    \section{The Dynamic Event Tree Methodology}
+   \input det
+
+    \section{Adaptive Dynamic Event Tree}
+   \input adet
+
+    \section{Dynamic PRA analysis on a simplified PWR model}
+    \input results
+
+    \section{Conclusions}
+    \input conclusion
+
+    %\nocite{*}
+
+
+    % ---------------------------------------------------------------------- %
+    % References
+    %
+    \clearpage
+    % If hyperref is included, then \phantomsection is already defined.
+    % If not, we need to define it.
+    \providecommand*{\phantomsection}{}
+    \phantomsection
+
+    \addcontentsline{toc}{section}{References}
+    \bibliographystyle{plain}
+    \bibliography{bib.bib}
+
+
+    % ---------------------------------------------------------------------- %
+    %
+
+    % \printindex
+
+    %\include{distribution}
+
+\end{document}
+%
+% $Id: SANDExampleArticleNotstrict.tex,v 1.23 2007/12/13 21:27:14 rolf Exp $
+%
+% This is an example LaTeX file which uses the SANDreport class file.
+% It shows how a SAND report should be formatted, what sections and
+% elements it should contain, and how to use the SANDreport class.
+% It uses the LaTeX article class, but not the strict option.
+% It uses .eps logos and files to show how pdflatex can be used
+%
+% Get the latest version of the class file and more at
+%    http://www.cs.sandia.gov/~rolf/SANDreport
+%
+% This file and the SANDreport.cls file are based on information
+% contained in "Guide to Preparing {SAND} Reports", Sand98-0730, edited
+% by Tamara K. Locke, and the newer "Guide to Preparing SAND Reports and
+% Other Communication Products", SAND2002-2068P.
+% Please send corrections and suggestions for improvements to
+% Rolf Riesen, Org. 9223, MS 1110, rolf@cs.sandia.gov
+%
+\documentclass[pdf,ps2pdf,12pt]{INLreport}
+
+
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{5}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{4}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {0.0001pt \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{5}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {0.0001pt \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\makeatother
+
+\usepackage{pslatex}
+\usepackage{mathptmx}	% Use the Postscript Times font
+%\usepackage[FIGBOTCAP,normal,bf,tight]{subfigure}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{subcaption}
+%
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{pifont}
+\usepackage{float} %utiliser H pour forcer � mettre l'image o� on ve
+
+%\usepackage[dvips,light,first,bottomafter]{draftcopy}
+%\draftcopyName{Sample, contains no OUO}{70}
+%\draftcopyName{Draft}{300}
+
+\usepackage{xspace}
+\input{./def.tex}
+
+% If you want to relax some of the SAND98-0730 requirements, use the "relax"
+% option. It adds spaces and boldface in the table of contents, and does not
+% force the page layout sizes.
+% e.g. \documentclass[relax,12pt]{SANDreport}
+%
+% You can also use the "strict" option, which applies even more of the
+% SAND98-0730 guidelines. It gets rid of section numbers which are often
+% useful; e.g. \documentclass[strict]{SANDreport}
+
+%\newcommand{\bu}{{\bf u}}
+\newcommand{\bx}{{\bf x}}
+\newcommand{\ba}{{\bf a}}
+
+\newcommand{\NLF}{\mathcal{F}}
+\newcommand{\NLFi}{\mathbf{F}^{i}}
+\newcommand{\Jac}{\mathcal{J}}
+\newcommand{\JacD}{\mathcal{D}}
+\newcommand{\JacC}{\mathcal{C}}
+\newcommand{\PreJac}{\mathcal{P}}
+
+\newcommand{\mta}{g_{\alpha \beta}}
+\newcommand{\mtb}{g^{\alpha \beta}}
+
+
+\newcommand{\MT}{\mathcal{G}}
+%\newcommand{\mt}{g}
+
+\newcommand{\mtdet}{\mt}
+\newcommand{\mtcov}{\mt_{\alpha\beta}}
+\newcommand{\mtcon}{\mt^{\alpha\beta}}
+
+\newcommand{\MTc}{\widehat{\MT}}
+\newcommand{\etal}{et al.}
+
+
+% ---------------------------------------------------------------------------- %
+%
+% Set the title, author, and date
+%
+    \title{RAVEN: Development of the Adaptive Dynamic Event Tree Approach}
+
+    \author{Andrea Alfonsi \\
+	  Idaho National Laboratory\\
+	  P.O. Box 1625\\
+	  Idaho Falls, ID 83415-3870\\
+	  andrea.alfonsi@inl.gov\\
+	  \\
+	  \and
+         Cristian Rabiti \\
+	  Idaho National Laboratory\\
+	  P.O. Box 1625\\
+	  Idaho Falls, ID 83415-3870\\
+	  cristian.rabiti@inl.gov\\
+	  \\
+	  \and
+         Diego Mandelli \\
+	  Idaho National Laboratory\\
+	  P.O. Box 1625\\
+	  Idaho Falls, ID 83415-3850\\
+	  diego.mandelli@inl.gov\\
+	  \\
+	  \and
+         Joshua Cogliati \\
+	  Idaho National Laboratory\\
+	  P.O. Box 1625\\
+	  Idaho Falls, ID 83415-3870\\
+	  joshua.cogliati@inl.gov\\
+	  \\
+	  \and
+         Robert Kinoshita \\
+	  Idaho National Laboratory\\
+	  P.O. Box 1625\\
+	  Idaho Falls, ID 83415-2210\\
+	  robert.kinoshita@inl.gov\\
+	  \\
+	 }
+
+    % There is a "Printed" date on the title page of a SAND report, so
+    % the generic \date should generally be empty.
+    \date{}
+
+
+% ---------------------------------------------------------------------------- %
+% Set some things we need for SAND reports. These are mandatory
+%
+%\SANDnum{INL/EXT-xx-xxxxx Rev 1}
+%\SANDprintDate{08/30/2014}
+%\SANDauthor{Andrea Alfonsi, Cristian Rabiti, Diego Mandelli, Joshua Cogliati, Robert Kinoshita}
 
 
 % ---------------------------------------------------------------------------- %

@@ -42,8 +42,8 @@ class DateBase(BaseType):
     @ Out, None
     '''
     # Check if a directory has been provided
-    if 'directory' in xmlNode.attrib.keys(): self.databaseDir = xmlNode.attrib['directory']
-    else:                                    self.databaseDir = os.path.join(os.getcwd(),'DataBaseStorage')
+    if 'directory' in xmlNode.attrib.keys(): self.databaseDir = copy.deepcopy(xmlNode.attrib['directory'])
+    else:                                    self.databaseDir = copy.deepcopy(os.path.join(os.getcwd(),'DataBaseStorage'))
 
   def addInitParams(self,tempDict):
     '''
@@ -100,8 +100,9 @@ class HDF5(DateBase):
     '''
     DateBase._readMoreXML(self, xmlNode)
     # Check if database directory exist, otherwise create it
-    if '~' in self.databaseDir: self.databaseDir = os.path.expanduser(self.databaseDir)
+    if '~' in self.databaseDir: self.databaseDir = copy.deepcopy(os.path.expanduser(self.databaseDir))
     if not os.path.exists(self.databaseDir): os.makedirs(self.databaseDir)
+    print(self.printTag+': ' +returnPrintPostTag('Message') + '->  DataBase Directory is '+self.databaseDir+'!')
     # Check if a filename has been provided
     # if yes, we assume the user wants to load the data from there
     # or update it
@@ -241,7 +242,7 @@ class HDF5(DateBase):
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
-            if ints > histVar[0][:,0].size : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!') 
+            if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!') 
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')            
         else:
@@ -251,7 +252,7 @@ class HDF5(DateBase):
               ix = histVar[1]['output_space_headers'].index(key)
             else:
               ix = histVar[1]['output_space_headers'].index(toBytes(key))
-            if ints > histVar[0][:,0].size : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')
   
@@ -372,7 +373,7 @@ class HDF5(DateBase):
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
-            if ints > histVar[0][:,0].size : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
+            if ints > histVar[0][:,0].size and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = np.array(histVar[0][ints,ix])
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the parameter ' + key + ' has not been found')            
         else:
@@ -380,7 +381,7 @@ class HDF5(DateBase):
           if inKey is not None:
             ix = histVar[1]['output_space_headers'].index(inKey)
             if i == 0: inDict[key] = np.zeros(len(hist_list))
-            if ints > histVar[0][:,0].size : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = histVar[0][ints,ix]
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  the parameter ' + key + ' has not been found in '+str(histVar[1]))   
       
@@ -498,14 +499,14 @@ class HDF5(DateBase):
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
-            if ints > histVar[0][:,0].size : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found in '+str(histVar[1]['input_space_headers'])+' or '+str(histVar[1]['output_space_headers']))
         else:
           inKey = keyIn(histVar[1]['output_space_headers'],key)
           if inKey is not None:
             ix = histVar[1]['output_space_headers'].index(inKey)
-            if ints > histVar[0][:,0].size : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
+            if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found in '+str(histVar[1]['output_space_headers']))
 

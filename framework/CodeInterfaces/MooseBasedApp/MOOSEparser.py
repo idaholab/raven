@@ -157,6 +157,7 @@ class MOOSEparser:
       if has_erase_block:
         returnElement.remove(returnElement.find(true_name))
       elif has_assert_match:
+        self.__matchDict(returnElement.find(true_name).attrib,modiDictionary)
         assert(self.__matchDict(returnElement.find(true_name).attrib,modiDictionary))
       elif found:
         self.__updateDict(returnElement.find(true_name).attrib,modiDictionary)

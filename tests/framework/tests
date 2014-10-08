@@ -23,7 +23,7 @@
   output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf'
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
   required_executable = '../../RAVEN-%METHOD%'
-  skip = 'Josh Broke it by breaking RestartInitialize'
+  #skip = 'Josh Broke it by breaking RestartInitialize'
  [../]
 
  [./test_Preconditioned_DynamicEventTreeRAVEN]
@@ -32,7 +32,7 @@
   output = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump PreconditionedDynamicEventTree/testprint_hist_hier_PreconditionedDET_test_5-2.csv PreconditionedDynamicEventTree/testprint_hist_hier_variables_PreconditionedDET_test_1-1-2.csv PreconditionedDynamicEventTree/2DHistoryPlot_line.pdf'
   csv = 'PreconditionedDynamicEventTree/PreconditionedDETrunTest/out~PreconditionedDET_test_5-1-2~ideal_pump.csv'
   required_executable = '../../RAVEN-%METHOD%'
-  skip = 'Josh Broke it by breaking RestartInitialize'
+  #skip = 'Josh Broke it by breaking RestartInitialize'
  [../]
 
  [./test_branch_heavy]

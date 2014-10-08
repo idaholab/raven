@@ -107,7 +107,7 @@ class PrintCSV(BasePostProcessor):
         csvfilen = splitted[0] + '_' + hist + '.'+splitted[1]
         #  Check if workingDir is present and in case join the two paths
         if self.workingDir:
-          addfile = os.path.join(self.workingDir,addfile)
+          addfile  = os.path.join(self.workingDir,addfile)
           csvfilen = os.path.join(self.workingDir,csvfilen)
 
         #  Open the files and save the data
@@ -672,6 +672,11 @@ class LimitSurface(BasePostProcessor):
     for varId, varName in enumerate(self.parameters['targets']):
       self.axisName.append(varName)
       [myStepLenght, start, end]  = stepParam(varName)
+      if start == end:
+        start = start - 0.001*start
+        end   = end   + 0.001*end
+        myStepLenght = stepLenght*(end - start)
+      stepLenght
       start                      += 0.5*myStepLenght
       self.gridVectors[varName]   = np.arange(start,end,myStepLenght)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]

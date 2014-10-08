@@ -429,6 +429,11 @@ class hdf5Database(object):
     @ In, source     : data source (for example, csv file)
     @ Out, None
     '''
+    for index in xrange(len(self.allGroupPaths)):
+      comparisonName = self.allGroupPaths[index]
+      splittedPath=comparisonName.split('/')
+      for splgroup in splittedPath:
+        if gname == splgroup: raise IOError(self.printTag+": ERROR -> Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
       f = open(source['name'],'rb')
@@ -461,6 +466,8 @@ class hdf5Database(object):
       grp.attrs["EndGroup"]   = False
       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Adding group named "' + gname + '" in DataBase "'+ self.name +'"')
       # Create the sub-group
+      #print(self.allGroupEnds.keys())
+      #print(gname)
       sgrp = grp.create_group(gname)
       # Create data set in this new group
       sgrp.create_dataset(gname+"_data", dtype="float", data=data)
@@ -563,7 +570,7 @@ class hdf5Database(object):
         workingList.append(self.allGroupPaths[index].split('/')[len(self.allGroupPaths[index].split('/'))-1])
     return workingList
 
-  def retrieveHistory(self,name,filterHist=None):
+  def retrieveHistory(self,name,filterHist=None,attributes = None):
     '''
     Function to retrieve the history whose end group name is "name"
     @ In,  name       : history name => It must correspond to a group name (string)
@@ -571,6 +578,7 @@ class hdf5Database(object):
                     ('whole' = whole history, 
                      integer value = groups back from the group "name", 
                      or None = retrieve only the group "name". Defaul is None)
+    @ In, attributes : dictionary of attributes (options)
     @ Out, history: tuple where position 0 = 2D numpy array (history), 1 = dictionary (metadata) 
     '''
     list_str_w = []
@@ -579,6 +587,12 @@ class hdf5Database(object):
     found      = False
     result     = None
     attrs = {}
+    if attributes:
+      if 'inputTs' in attributes.keys() : inputTs  = attributes['inputTs' ]
+      if 'operator' in attributes.keys(): operator = attributes['operator'] 
+    else:
+      inputTs  = None 
+      operator = None
     
     # Check if the h5 file is already open, if not, open it
     # and create the "self.allGroupPaths" list from the existing database

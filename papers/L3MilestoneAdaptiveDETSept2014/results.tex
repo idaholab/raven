@@ -1,15 +1,15 @@
 \label{sec:demo}
 %%%%%%%%%%%%%%%%%%%%%%%%
+In order to show the capabilities introduced with the new Adaptive DET module, a simplified PWR Dynamic PRA analysis is here presented.
+Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the down-comers, the lower plenum, the reactor core model, and the upper plenum. core channels (flow channels with heat structure attached to each of them) are used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. There are two primary loops, i.e., loop A and loop B. Each loop consists of hot leg, heat exchanger and secondary side pipes, cold leg, and primary pump. A pressurizer is attached to the loop A piping system to control system pressure. A time dependent volume (pressure boundary conditions) component is used to represent the pressurizer. Since the RELAP-7 code two-phase flow capability has not been used for this test, single-phase counter-current heat exchanger models are implemented to mimic the function of steam generators to transfer heat from the primary to the secondary.
+
+The DPRA analysis of this simplified model here presented, it has been performed by controlling unconventional parameters to speed up the simulation and overcome some modeling challenges. In the following paragraph, the PRA station black out sequence of events is reported.
 \begin{figure}[h]
    \centering
     \includegraphics[width=1.0\textwidth]{figures/PWR_TMI_SCHEME.PNG}
     \caption{PWR model scheme}
     \label{fig:PWRmodel}
 \end{figure}
-In order to show the capabilities introduced with the new Adaptive DET module, a simplified PWR Dynamic PRA analysis is here presented.
-Figure~\ref{fig:PWRmodel} shows the scheme of the PWR model. The reactor vessel model consists of the down-comers, the lower plenum, the reactor core model, and the upper plenum. core channels (flow channels with heat structure attached to each of them) are used to describe the reactor core. The core model consists of three parallel core channels and one bypass flow channel. There are two primary loops, i.e., loop A and loop B. Each loop consists of hot leg, heat exchanger and secondary side pipes, cold leg, and primary pump. A pressurizer is attached to the loop A piping system to control system pressure. A time dependent volume (pressure boundary conditions) component is used to represent the Pressurizer. Since the RELAP-7 code two-phase flow capability has not been used for this test, single-phase counter-current heat exchanger models are implemented to mimic the function of steam generators to transfer heat from the primary to the secondary.
-\\The DPRA analysis of this simplified model here presented, it has been performed by controlling unconventional parameters to speed up the simulation and overcome some modeling challenges. In the following paragraph, the PRA station black out sequence of events is reported.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Station Black Out (SBO) analysis} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,14 +78,15 @@ Given the uncertainties associated to the recovery timing of DGs, RSST and 138KV
 
 In addition, the clad failure temperature $T_{C,fail}$, our success/failure criterion, is probabilistic distributed with a triangular distribution with the following characteristics:
 \begin{itemize}
-\item mode: xPeak = 1477.59 K, 10CFR regulatory limit
-\item lower bound: xMin = 1255.37 K, PRA success criterion
-\item upper bound: xMax = 1699.82 K, Urbanic-Heidrick transition temperature ~\cite{Urbanic1978}
+\item mode(apex): 1477.59 K, 10CFR regulatory limit
+\item lower bound: 1255.37 K, PRA success criterion
+\item upper bound: 1699.82 K, Urbanic-Heidrick transition temperature ~\cite{Urbanic1978}
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 The PRA analysis for this accident scenario has been carried over using the ADET algorithm. The parameters controlling the convergence of the iterative process has been chosen such as the maximum error in terms of the determination of the probability of failure of the system would be below 1.0E-4.
-\\ As already mentioned, the ADET methodology performs a pre-screening of the input space through a standard DET approach, before starting the real adaptive scheme. In this specific case, pre-screening DET calculation has been run using equally spaced branching probability thresholds for all uncertain parameters considered in this scenario.
+
+As already mentioned, the ADET methodology performs a pre-screening of the input space through a standard DET approach, before starting the real adaptive scheme. In this specific case, pre-screening DET calculation has been run using equally spaced branching probability thresholds for all uncertain parameters considered in this scenario.
 
 \begin{figure}
         \centering %
@@ -170,14 +171,36 @@ In the following section, the simulations results are shown and discussed.
 \subsection{Results} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 In order to show the newer capability added in RAVEN code, a standard DET~\cite{alfonsiPSA,DETmilestone2013} analysis analysis and an Adaptive tree (ADET) have been compared. 
-\\ Figure~\ref{fig:SampledTEMP} shows histograms of the “sampled” clad failure temperatures for DET and ADET. It can be noticed how the Adaptive DET (right figure) focuses on the higher temperatures, reasonably closer to failure regions. The standard DET (left figure) presents a spike in the histogram for the lowest temperatures. This is due to the intrinsic initial mechanics of the methodology in the exploration of the input space (in this case, no branches on clad failure temperature until the first transition is reached). As already mentioned, the cooling of the system is ensured when:
+
+Figure~\ref{fig:SampledTEMP} shows histograms of the “sampled” clad failure temperatures for DET and ADET. It can be noticed how the Adaptive DET (right figure) focuses on the higher temperatures, reasonably closer to failure regions. The standard DET (left figure) presents a spike in the histogram for the lowest temperatures. This is due to the intrinsic initial mechanics of the methodology in the exploration of the input space (in this case, no branches on clad failure temperature until the first transition is reached).
+
+As already mentioned, the cooling of the system is ensured when:
 \begin{itemize}
 \item Diesel Generators are repaired, or,
 \item the 138 kV line is restored, or, 
 \item the RSST switch-yard is repaired. 
 \end{itemize}
-Such a situation determines that the timing of these events can be pratically collapsed into a global recovery time of the cooling system. This helps us in the 2-Dimensional visualization of the results (ACS recovery time vs. clad failure temperature). Figure~\ref{fig:SampledCollapsed} shows the sampled points (translated in collapsed time) for the DET (left picture) and ADET (right figure) methodologies. It can be seen how both methodologies march in time, looking for the first transition that determines the first branch for the Clad Failure temperature. Obviously, the ADET method starts its adaptive strategy in proximity to the clad failure transitions (being it the goal function target).
+\begin{table}[h]
+\begin{tabular}{|c|c|c|c|c|
+>{\columncolor[HTML]{FFCCC9}}c |}
+\hline
+                                                                        & \textbf{\begin{tabular}[c]{@{}c@{}}Clad Temp\\ Failure\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}DGS\\ Recovery Time\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}SecPG\\ Recovery Time\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}PrimPG\\ Recovery Time\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Clad\\ Damaged\end{tabular}} \\ \hline
+\textbf{\begin{tabular}[c]{@{}c@{}}Clad Temp \\ Failure\end{tabular}}   & 1.00E+00                                                             & -5.99E-18                                                            & -9.66E-19                                                              & -1.31E-17                                                               & -2.78E-01                                                       \\ \hline
+\textbf{\begin{tabular}[c]{@{}c@{}}DGS\\ Recovery Time\end{tabular}}    & -5.99E-18                                                            & 1.00E+00                                                             & 3.56E-17                                                               & 3.56E-18                                                                & 3.20E-01                                                        \\ \hline
+\textbf{\begin{tabular}[c]{@{}c@{}}SecPG\\ Recovery Time\end{tabular}}  & -9.66E-19                                                            & 3.56E-17                                                             & 1.00E+00                                                               & -2.37E-18                                                               & 1.60E-02                                                        \\ \hline
+\textbf{\begin{tabular}[c]{@{}c@{}}PrimPG\\ Recovery Time\end{tabular}} & -1.31E-17                                                            & 3.56E-18                                                             & -2.37E-18                                                              & 1.00E+00                                                                & 2.38E-01                                                        \\ \hline
+\textbf{\begin{tabular}[c]{@{}c@{}}Clad\\ Damaged\end{tabular}}         & -2.78E-01                                                            & 3.20E-01                                                             & 1.60E-02                                                               & 2.38E-01                                                                & 1.00E+00                                                        \\ \hline
+\end{tabular}
+\caption{Pearson Correlation Matrix.}
+\label{table:corr}
+\end{table}
+Such a situation determines that the timing of these events can be pratically collapsed into a global recovery time of the cooling system. This helps us in the 2-Dimensional visualization of the results (ACS recovery time vs. clad failure temperature). Figure~\ref{fig:SampledCollapsed} shows the sampled points (translated in collapsed time) for the DET (left picture) and ADET (right figure) methodologies. It can be seen how both methodologies march toward higher recovery times, looking for the first transition that determines the first branch for the Clad Failure temperature. Obviously, the ADET method starts its adaptive strategy in proximity to the clad failure transitions, which is the goal function transition surface.
 
+Figure~\ref{fig:LS_DETADET} shows the limit surface obtained by the ADET. As expected, the LS testifies that the higher is the clad failure temperature, the more time we can wait before recovering the auxiliary cooling systems.  The LS for the DET is not shown here, as it is extremely similar to the one just seen.
+Table~\ref{table:corr} shows the correlation coefficients' matrix.  As is shown in  the last column, the failure of the clad is inversely proportional to the clad failure temperature. This means, as expected, increasing its threshold reduces the probability of failure of the system. The correlation coefficients of the other parameters (timing of recovery of the cooling system) are instead all positive; meaning the probability of failure increases if those parameters increase. Since the transient, subject of this analysis, is quite fast, obviously the DGs recovery time is the most important (mean = 800 seconds) and the recovery of the 138 kV power line is of lesser importance (mean = 2,000 seconds). As for the LS, the DET correlation matrix is not show here, since it does not add any different information.
+
+For both approaches, the probability of failure has been computed. The ADET and DET methods determined a probability of failure of $0.277 \pm 0.229$ and $0.227\pm 0.402$, respectively. Since the Adaptive methodology is much more focused on the failure regions, its sigma is consequently lower.
+%%%%%%%%%%%%%%%
 %%% SAMPLED TEMPERATURE
 \begin{figure}[h]
  \begin{minipage}[b]{8.5cm}
@@ -217,22 +240,6 @@ Such a situation determines that the timing of these events can be pratically co
 \label{fig:SampledCollapsed}
 \end{figure}
 %%% SAMPLED PARAMETERS COLLAPSED
-Figure~\ref{fig:LS_DETADET} shows the limit surface obtained by the ADET. As expected, the LS testifies that the higher is the clad failure temperature, the more time we can wait before recovering the auxiliary cooling systems.  The LS for the DET is not shown here, as it is extremely similar to the one just seen.
-\begin{table}[h]
-\begin{tabular}{|c|c|c|c|c|
->{\columncolor[HTML]{FFCCC9}}c |}
-\hline
-                                                                        & \textbf{\begin{tabular}[c]{@{}c@{}}Clad Temp\\ Failure\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}DGS\\ Recovery Time\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}SecPG\\ Recovery Time\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}PrimPG\\ Recovery Time\end{tabular}} & \textbf{\begin{tabular}[c]{@{}c@{}}Clad\\ Damaged\end{tabular}} \\ \hline
-\textbf{\begin{tabular}[c]{@{}c@{}}Clad Temp \\ Failure\end{tabular}}   & 1.00E+00                                                             & -5.99E-18                                                            & -9.66E-19                                                              & -1.31E-17                                                               & -2.78E-01                                                       \\ \hline
-\textbf{\begin{tabular}[c]{@{}c@{}}DGS\\ Recovery Time\end{tabular}}    & -5.99E-18                                                            & 1.00E+00                                                             & 3.56E-17                                                               & 3.56E-18                                                                & 3.20E-01                                                        \\ \hline
-\textbf{\begin{tabular}[c]{@{}c@{}}SecPG\\ Recovery Time\end{tabular}}  & -9.66E-19                                                            & 3.56E-17                                                             & 1.00E+00                                                               & -2.37E-18                                                               & 1.60E-02                                                        \\ \hline
-\textbf{\begin{tabular}[c]{@{}c@{}}PrimPG\\ Recovery Time\end{tabular}} & -1.31E-17                                                            & 3.56E-18                                                             & -2.37E-18                                                              & 1.00E+00                                                                & 2.38E-01                                                        \\ \hline
-\textbf{\begin{tabular}[c]{@{}c@{}}Clad\\ Damaged\end{tabular}}         & -2.78E-01                                                            & 3.20E-01                                                             & 1.60E-02                                                               & 2.38E-01                                                                & 1.00E+00                                                        \\ \hline
-\end{tabular}
-\caption{Pearson Correlation Matrix.}
-\label{table:corr}
-\end{table}
-%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% LIMIT SURFACE
 \begin{figure}[h]
   \centering
@@ -240,7 +247,5 @@ Figure~\ref{fig:LS_DETADET} shows the limit surface obtained by the ADET. As exp
   \caption{Limit Surface DET/ADET.}
    \label{fig:LS_DETADET}
 \end{figure}
-Table~\ref{table:corr} shows the correlation coefficients' matrix.  As is shown in  the last column, the failure of the clad is inversely proportional to the clad failure temperature. This means, as expected, increasing its threshold reduces the probability of failure of the system. The correlation coefficients of the other parameters (timing of recovery of the cooling system) are instead all positive; meaning the probability of failure increases if those parameters increase. Since the transient, subject of this analysis, is quite fast, obviously the DGs recovery time is the most important (mean = 800 seconds) and the recovery of the 138 kV power line is of lesser importance (mean = 2,000 seconds). As for the LS, the DET correlation matrix is not show here, since it does not add any different information.
-\\ For both approaches, the probability of failure has been computed. The ADET and DET methods determined a probability of failure of $0.277 \pm 0.229$ and $0.227\pm 0.402$, respectively. Since the Adaptive methodology is much more focused on the failure regions, its sigma is consequently lower.
 
 

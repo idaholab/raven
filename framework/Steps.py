@@ -266,7 +266,11 @@ class MultiRun(SingleRun):
           self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
       else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     if self.debug:print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
-    newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'])
+    
+    # we check if a Target evaluation object is here (in case, we point to it)
+    if 'TargetEvaluation' in inDictionary.keys(): self.targetOutput = inDictionary['TargetEvaluation']
+    else                                        : self.targetOutput = None
+    newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'],lastOutput=self.targetOutput)
     for inputIndex, newInput in enumerate(newInputs):
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Submitted input '+str(inputIndex+1))
@@ -277,8 +281,6 @@ class MultiRun(SingleRun):
     inputs     = inDictionary['Input'     ]
     outputs    = inDictionary['Output'    ]
     sampler    = inDictionary['Sampler'   ]
-    if 'TargetEvaluation' in inDictionary.keys(): targetOutput = inDictionary['TargetEvaluation']
-    else                                        : targetOutput = None
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -290,10 +292,10 @@ class MultiRun(SingleRun):
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
         else:
           print(self.printTag+': ' +returnPrintPostTag('Message') + '-> the job failed... call the handler for this situation... not yet implemented...')
-          print(self.printTag+": " +returnPrintPostTag('Message') + "-> tThe JOBS that failed are tracked in the JobHandler... so we can retrieve and treat them separately. skipping here is Ok. Andrea")
-        for _ in xrange(jobHandler.howManyFreeSpots()): # put back this loop (DO NOT TAKE IT OFF AGAIN. IT IS NEEDED FOR NOT-POINT SAMPLERS(aka DET)). Andrea
+          print(self.printTag+": " +returnPrintPostTag('Message') + '-> the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
+        for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
           if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Testing the sampler if it is ready to generate a new input')
-          if sampler.amIreadyToProvideAnInput(inLastOutput=targetOutput):
+          if sampler.amIreadyToProvideAnInput(inLastOutput=self.targetOutput):
             newInput =sampler.generateInput(model,inputs)
             model.run(newInput,jobHandler)
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> New input generated')
@@ -357,7 +359,7 @@ class Adaptive(MultiRun):
     self._samplerInitDict['goalFunction'] = inDictionary['Function']
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
     if 'ROM'            in inDictionary.keys():
-      self._samplerInitDict['ROM'           ]=inDictionary['ROM']
+      self._samplerInitDict['ROM']=inDictionary['ROM']
       self._samplerInitDict['ROM'].reset()
     MultiRun._localInitializeStep(self,inDictionary)
 #

@@ -13,7 +13,7 @@
             <Target>relapFunction</Target>
             <SKLtype>svm|SVC</SKLtype>
             <kernel>rbf</kernel>
-            <gamma>0.5</gamma>
+            <gamma>0.8</gamma>
             <tol>0.0001</tol>
             <C>50</C>
         </ROM>
@@ -112,7 +112,7 @@
          -->
     </Steps>
     <DataBases>
-        <HDF5 name="testAdaptiveBranchDataBase"/>
+        <HDF5 name="testAdaptiveBranchDataBase" directory="/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET"/>
     </DataBases>
     
     <OutStreamManager>
@@ -142,7 +142,10 @@
             <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
             <Output>OutputPlaceHolder</Output>
         </TimePointSet>
-
+        <TimePointSet name='LimitSurfReduced'>
+            <Input>DG1_time_ratio,DG1recoveryTime,CladTempBranched,PrimPGrecoveryTime,SecPGrecoveryTime,crewSecPG</Input>
+            <Output>OutputPlaceHolder</Output>
+        </TimePointSet>
     </Datas>
 </Simulation>
 

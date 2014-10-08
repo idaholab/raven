@@ -70,6 +70,8 @@ def convertNumpyToLists(inputDict):
       if   type(value) == np.ndarray: returnDict[key] = value.tolist() 
       elif type(value) == dict      : returnDict[key] = (convertNumpyToLists(value))
       else                          : returnDict[key] = value 
+  elif type(inputDict) == np.ndarray:
+    returnDict = inputDict.tolist()  
   return returnDict
 
 

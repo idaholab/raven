@@ -40,6 +40,12 @@ class Node(object):
     node = self.__class__(self.name, self.values)
     node[:] = self
     return node
+  
+  def isAnActualBranch(self,branchName):
+    isHere = False
+    for branchv in self._branches:
+      if branchName.strip() == branchv.name: isHere = True  
+    return isHere
 
   def numberBranches(self):
     '''

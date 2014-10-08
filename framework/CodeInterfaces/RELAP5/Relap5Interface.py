@@ -10,7 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 
-class Relap5Interface:
+class Relap5:
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
   def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''

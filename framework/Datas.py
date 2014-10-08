@@ -43,7 +43,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.notAllowedInputs  = []#this is a list of keyword that are not allowed as inputs
     self.notAllowedOutputs = []#this is a list of keyword that are not allowed as Outputs
     self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8]
-    self.printTag = utils.returnPrintTag('DATAS')
+    self.printTag  = utils.returnPrintTag('DATAS')
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -398,7 +398,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @, Out, Reference to self._dataContainer['inputs'] or something else in hierarchical
     '''
     if self._dataParameters['hierarchical']: return self.getHierParam('inputs',nodeid,serialize=serialize)
-    else:                                   return self._dataContainer['inputs']
+    else:                                    return self._dataContainer['inputs']
 
   def getOutParametersValues(self,nodeid=None,serialize=False):
     '''
@@ -425,7 +425,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if type(keyword).__name__ not in acceptedType        : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeid:
       if type(nodeid).__name__ not in ['str','unicode','bytes']  : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter nodeid needs to be a string. Function: Data.getParam')
-    if typeVar.lower() not in ['input','inputs','output','outputs']: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.getParam')
+    if typeVar.lower() not in ['input','inout','inputs','output','outputs']: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.getParam')
     if self._dataParameters['hierarchical']:
       if type(keyword) == int:
         return list(self.getHierParam(typeVar.lower(),nodeid,None,serialize).values())[keyword-1]
@@ -480,7 +480,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                                if false see explaination for nodeid
       @ Out, a dictionary of data (see above)
     '''
+    if type(keyword).__name__ in ['str','unicode','bytes']:
+      if keyword == 'none': keyword = None
     nodesDict = {}
+    if not self.TSData: return nodesDict
     if not nodeid or nodeid=='*':
       # we want all the nodes
       if serialize:
@@ -578,10 +581,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       # we want a particular node
       found = False
       for TSDat in self.TSData.values():
-        nodelist = list(TSDat.iterWholeBackTrace(TSDat.iter(nodeid)[0]))
+        #a = TSDat.iter(nodeid)
+        #b = TSDat.iterWholeBackTrace(a)
+        nodelist = []
+        for node in TSDat.iter(nodeid):
+          if serialize: 
+            for se in list(TSDat.iterWholeBackTrace(node)): nodelist.append(se)
+          else: nodelist.append(node)  
+          break  
+        #nodelist = list(TSDat.iterWholeBackTrace(TSDat.iter(nodeid)[0]))
         if len(nodelist) > 0:
           found = True
-          TSData = TSDat
           break
       if not found: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Starting node called '+ nodeid+ ' not found!')
       if serialize:
@@ -596,13 +606,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           elif typeVar in ['output','outputs'] and keyword    : nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
           elif typeVar in 'metadata' and keyword              : nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])
       else:
-        if typeVar   in 'inout'              and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')
-        elif typeVar in ['inputs','input']   and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ]
-        elif typeVar in ['output','outputs'] and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['outputs' ]
-        elif typeVar in 'metadata'           and not keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['metadata']
-        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['inputs'  ][keyword]
-        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['outputs' ][keyword]
-        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = TSData.iter(nodeid)[0].get('dataContainer')['metadata'][keyword]
+        if typeVar   in 'inout'              and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')
+        elif typeVar in ['inputs','input']   and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['inputs'  ]
+        elif typeVar in ['output','outputs'] and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['outputs' ]
+        elif typeVar in 'metadata'           and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['metadata']
+        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['inputs'  ][keyword]
+        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['outputs' ][keyword]
+        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['metadata'][keyword]
     return nodesDict
 
   def retrieveNodeInTreeMode(self,nodeName,parentName=None):

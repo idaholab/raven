@@ -356,7 +356,6 @@
       <plot>
         <type>histogram</type>
         <x>out1a|Input|PowHist</x>
-        <ylabel>Grain Radius Scaling Factor</ylabel>
         <bins>20</bins>
       </plot>
       <xlabel>Power Scaling Factor</xlabel>

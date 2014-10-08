@@ -54,7 +54,7 @@ class RAVENInterface:
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
-
+    #print(modifDict)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
@@ -166,7 +166,7 @@ class RAVENInterface:
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
     if 'branch_changed_param' in Kwargs.keys():
-      if Kwargs['branch_changed_param'][0] not in ('None',b'None'):
+      if Kwargs['branch_changed_param'][0] not in ('None',b'None',None):
         for i in range(len(Kwargs['branch_changed_param'])):
           modifDict = {}
           modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]

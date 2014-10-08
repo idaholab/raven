@@ -138,7 +138,7 @@ class CsvLoader:
       time_float = float(time)
     if inputTs: ints = int(inputTs)
     else: ints = 0
-    if ints > data[:,0].size -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in file '+ str(filein) + '!')
+    if ints > data[:,0].size -1  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in file '+ str(filein) + '!')
        
     #inDict  = inParamDict
     #outDict = outParamDict       
@@ -225,7 +225,7 @@ class CsvLoader:
     for i in range(len(filesin)): 
       #load the data into the numpy array
       data = self.loadCsvFile(filesin[i])
-      if ints > data[:,0].size -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in file '+ str(filesin[i]) + '!') 
+      if ints > data[:,0].size -1  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in file '+ str(filesin[i]) + '!') 
       if i == 0:
         if(self.all_out_param):
           self.field_names = self.all_field_names
@@ -333,7 +333,7 @@ class CsvLoader:
       #time_float[0] = -1.0
     if inputTs: ints = int(inputTs)
     else: ints = 0
-    if ints > data[:,0].size-1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in file '+ str(filein) + '!')    
+    if ints > data[:,0].size-1  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in file '+ str(filein) + '!')    
     inDict  = {}
     outDict = {}  
     
