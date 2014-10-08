@@ -15,13 +15,13 @@
   <Steps>
     <IOStep name='test_read_in' fromDirectory='../output_check'>
       <Input  class='Datas'    type='Histories'>fullprint_histories</Input>
-      <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
       <Input  class='Datas'    type='TimePoint'>fullprint_timepoint</Input>
-      <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
       <Input  class='Datas'    type='History'>fullprint_history</Input>
-      <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
       <Input  class='Datas'    type='TimePointSet'>fullprint_timepointset</Input>
-      <Output   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Output>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
     </IOStep>
     <IOStep name='test_rewrite'>
       <Input class='Datas' type='History'>fullprint_history</Input>
@@ -38,8 +38,7 @@
     </IOStep>
   </Steps>
   <DataBases>
-    <HDF5 name="MC_TEST_EXTRACT_STEP"/>
-    <HDF5 name="MC_TEST_PUSH_STEP"/>
+    <HDF5 name="MC_TEST_REWRITE"/>
   </DataBases>
   <OutStreamManager>
     <Print name='timepointset_from_database_dump'>
