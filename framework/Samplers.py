@@ -1482,11 +1482,11 @@ class DynamicEventTree(Grid):
       self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.NodeTree(copy.deepcopy(elm))
       
     for key in self.branchProbabilities.keys():
-      kk = self.toBeSampled.values().index(key)
-      self.branchValues[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[kk]].ppf(float(self.branchProbabilities[key][index]))) for index in range(len(self.branchProbabilities[key]))]
+      #kk = self.toBeSampled.values().index(key)
+      self.branchValues[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].ppf(float(self.branchProbabilities[key][index]))) for index in range(len(self.branchProbabilities[key]))]
     for key in self.branchValues.keys():
-      kk = self.toBeSampled.values().index(key)
-      self.branchProbabilities[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[kk]].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
+      #kk = self.toBeSampled.values().index(key)
+      self.branchProbabilities[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
     return
 
 class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
@@ -1500,6 +1500,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     self.printTag = returnPrintTag('SAMPLER ADAPTIVE DET')
     self.adaptiveReady = False
     self.investigatedPoints = []
+    self.completedHistCnt   = 0
   @staticmethod
   def _checkIfRunnint(treeValues): return not treeValues['runEnded']
   @staticmethod
@@ -1696,7 +1697,10 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
           for key in histdict['outputs'].keys():
             if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))
             else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))))    
-      ready = AdaptiveSampler.localStillReady(self,ready,lastOutDict)
+      if len(completedHistNames) > self.completedHistCnt:
+        ready = AdaptiveSampler.localStillReady(self,ready,lastOutDict)
+        self.completedHistCnt = len(completedHistNames)
+      else: ready = False
       self.adaptiveReady = ready
       if ready or detReady and self.persistence > self.repetition : return True
       else: return False

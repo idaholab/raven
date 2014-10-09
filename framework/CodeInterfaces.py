@@ -14,13 +14,12 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 from glob import glob
-import imp
 import inspect
 import utils
 
 __moduleInterfaceList = []
 start_dir = os.path.join(os.path.dirname(__file__),'CodeInterfaces')
-for dir,_,_ in os.walk(start_dir): __moduleInterfaceList.extend(glob(os.path.join(dir,"*.py")))
+for dirr,_,_ in os.walk(start_dir): __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
 __moduleImportedList = []
 
 '''

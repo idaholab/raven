@@ -503,6 +503,9 @@ class Code(Model):
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
+    if 'finalizeCodeOutput' in dir(self.code): 
+      out = self.code.finalizeCodeOutput(self.currentInputFiles,finisishedjob.output)
+      if out: finisishedjob.output = out
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
