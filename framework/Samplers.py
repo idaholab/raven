@@ -182,7 +182,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport :
-      if not goalFunction : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Not Consistent Input... gaalFunction not provided but requested a sulotion export!!!')
+      if not goalFunction : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Not Consistent Input... gaalFunction not provided but requested a solution export!!!')
       self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction,ROM=ROM)
     else              : self.localInitialize()
 
@@ -376,6 +376,7 @@ class AdaptiveSampler(Sampler):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.surfPoint         = None
+    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raise IOError("Goal function name doesn't match solution export data output.")
     self._endJobRunnable   = 1
     #build a lambda function to masquerade the ROM <-> cKDTree presence
     if not goalFunction: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Gaol Function not provided!!')
@@ -497,7 +498,7 @@ class AdaptiveSampler(Sampler):
     if lastOutput == None and self.ROM.amITrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
     if lastOutput !=None: self._trainingROM(lastOutput)
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')
+    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')           #happy thinking :)
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
@@ -523,25 +524,10 @@ class AdaptiveSampler(Sampler):
         for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
         print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
-    #check which one of the preselected points is really on the limit surface
-    listsurfPoint = []
-    myIdList      = np.zeros(self.nVar)
-    for coordinate in np.rollaxis(toBeTested,0):
-      myIdList[:] = copy.deepcopy(coordinate)
-      if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
-        for iVar in range(self.nVar):
-          if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
-            myIdList[iVar]+=1
-            if self.testMatrix[tuple(myIdList)]>=0:
-              listsurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar]-=1
-          if coordinate[iVar]>0:
-            myIdList[iVar]-=1
-            if self.testMatrix[tuple(myIdList)]>=0:
-              listsurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar]+=1
+    listsurfPoint=self.__localLimitStateSearch__(toBeTested,-1)         #it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
+    nNegPoints=len(listsurfPoint)
+    listsurfPoint.extend(self.__localLimitStateSearch__(toBeTested,1))  #it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
+    nTotPoints=len(listsurfPoint)
     #printing----------------------
     if self.debug:
       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Limit surface points')
@@ -558,15 +544,43 @@ class AdaptiveSampler(Sampler):
         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
         self.invPointPersistence[pointID]=abs(self.persistenceMatrix[tuple(coordinate)])
       maxPers = np.max(self.invPointPersistence)
-      if maxPers!=0: self.invPointPersistence = (maxPers-self.invPointPersistence)/maxPers
+      self.invPointPersistence = (maxPers-self.invPointPersistence)/maxPers
       if self.solutionExport!=None:
         for varName in self.solutionExport.getParaKeys('inputs'):
           for varIndex in range(len(self.axisName)):
             if varName == [key.replace('<distribution>','') for key in self.axisName][varIndex]:
               self.solutionExport.removeInputValue(varName)
               for value in self.surfPoint[:,varIndex]: self.solutionExport.updateInputValue(varName,copy.copy(value))
-
+        evaluations=np.concatenate((-np.ones(nNegPoints),np.ones(nTotPoints-nNegPoints)), axis=0)
+        # to be fixed
+        self.solutionExport.removeOutputValue(self.goalFunction.name)
+        for index in range(len(evaluations)):
+          self.solutionExport.updateOutputValue(self.goalFunction.name,copy.copy(evaluations[index]))
     return ready
+
+  def __localLimitStateSearch__(self,toBeTested,sign):
+    '''
+    It returns the list of points belonging to the limit state surface and resulting in positive or negative responses by the ROM, depending on whether ''sign'' equals either -1 or 1, respectively.
+    '''
+    listsurfPoint=[]
+    myIdList= np.zeros(self.nVar)
+    for coordinate in np.rollaxis(toBeTested,0):
+      myIdList[:]=copy.deepcopy(coordinate)
+      if self.testMatrix[tuple(coordinate)]*sign>0:
+        for iVar in range(self.nVar):
+          if coordinate[iVar]+1<self.gridShape[iVar]:
+            myIdList[iVar]+=1
+            if self.testMatrix[tuple(myIdList)]*sign<=0:
+              listsurfPoint.append(copy.copy(coordinate))
+              break
+            myIdList[iVar]-=1
+            if coordinate[iVar]>0:
+              myIdList[iVar]-=1
+              if self.testMatrix[tuple(myIdList)]*sign<=0:
+                listsurfPoint.append(copy.copy(coordinate))
+                break
+              myIdList[iVar]+=1
+    return listsurfPoint
 
   def localGenerateInput(self,model,oldInput):
     #self.adaptAlgo.nextPoint(self.dataContainer,self.goalFunction,self.values,self.distDict)
@@ -842,6 +856,7 @@ class Grid(Sampler):
         elif self.gridInfo[varName][0]=='value':
           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+        else: raise IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
       if self.gridInfo[varName][0]=='CDF':
         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
