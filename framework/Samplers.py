@@ -376,7 +376,7 @@ class AdaptiveSampler(Sampler):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.surfPoint         = None
-    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raise IOError("Goal function name doesn't match solution export data output.")
+    if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Goal function name does not match solution export data output.')
     self._endJobRunnable   = 1
     #build a lambda function to masquerade the ROM <-> cKDTree presence
     if not goalFunction: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Gaol Function not provided!!')

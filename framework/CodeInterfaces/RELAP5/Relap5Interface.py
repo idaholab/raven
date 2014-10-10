@@ -9,24 +9,40 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
+import relapdata
 
 class Relap5:
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
   def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
-    if inputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    index = -1
+    for i in range(len(inputFiles)):
+      ''.lower()
+      if inputFiles[i].lower().endswith('.i') or inputFiles[i].lower().endswith('.inp') or inputFiles[i].lower().endswith('.in'): 
+        index = i
+        break
+    if index < 0: raise IOError('ERROR! Relap5 interface did not find an input file. a Relap5 input file needs to have the following extensions: ".i,.inp,.in"!!')
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    #   executeCommand will consist of a simple RELAP script that runs relap for inputfile
-    #   extracts data and stores in csv file format
-    executeCommand = (executable+' '+os.path.split(inputFiles[index])[1]+' ' +
-    outputfile)
+    if flags: addflags = flags
+    else    : addflags = ''
+    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
     return executeCommand,outputfile
 
   def appendLoadFileExtension(self,fileRoot):
     '''  '''
     return fileRoot + '.csv'
-
+  
+  def finalizeCodeOutput(self,command,output):
+    ''' this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional). 
+        It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
+        @ command, Input, the command used to run the just ended job
+        @ output, Input, the Output name root (string)
+        @ return is optional, in case the root of the output file gets changed in this method.
+    '''
+    outfile = command.split('-o')[0].split('-i')[-1]+'.o'
+    outputobj=relapdata.relapdata(outfile)
+    outputobj.write_csv(output+'.csv')
+  
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
     import RELAPparser
@@ -38,8 +54,13 @@ class Relap5:
     self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['BnBDynamicEventTree'  ] = self.DynamicEventTreeForRELAP5
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForRELAP5
-    if currentInputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    index = -1
+    for i in range(len(currentInputFiles)):
+      ''.lower()
+      if currentInputFiles[i].lower().endswith('.i') or currentInputFiles[i].lower().endswith('.inp') or currentInputFiles[i].lower().endswith('.in'): 
+        index = i
+        break
+    if index < 0: raise IOError('ERROR! Relap5 interface did not find an input file. a Relap5 input file needs to have the following extensions: ".i,.inp,.in"!!')
     parser = RELAPparser.RELAPparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
