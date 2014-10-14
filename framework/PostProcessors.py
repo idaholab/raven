@@ -222,14 +222,17 @@ class BasicStatistics(BasePostProcessor):
     self.printTag = returnPrintTag('POSTPROCESSOR BASIC STATISTIC')
     #self.goalFunction.evaluate('residuumSign',tempDict)
 
-  def inputToInternal(self,currentInput):
+  def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    if type(currentInp) == list  : currentInput = currentInp [-1]
+    else                         : currentInput = currentInp  
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{},'metadata':{}}
     try: inType = currentInput.type
     except:
       if type(currentInput) in [str,bytes,unicode]: inType = "file"
+      elif type(currentInput) in [list]: inType = "list"
       else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor accepts files,HDF5,Data(s) only! Got '+ str(type(currentInput)))
     if inType == 'file':
       if currentInput.endswith('csv'): pass
@@ -241,8 +244,8 @@ class BasicStatistics(BasePostProcessor):
       inputDict['metadata'] = currentInput.getAllMetadata()
 #     # now we check if the sampler that genereted the samples are from adaptive... in case... create the grid
       if inputDict['metadata'].keys().count('SamplerType') > 0: pass
-        #if inputDict['metadata']['SamplerType'] == 'Adaptive':
-        #pass
+      #if inputDict['metadata']['SamplerType'] == 'Adaptive':
+      #pass
 
     return inputDict
 
@@ -568,6 +571,7 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
 #
 #
 #
+
 class LimitSurface(BasePostProcessor):
   '''
     LimitSurface filter class. It computes the limit surface associated to a dataset
@@ -584,8 +588,10 @@ class LimitSurface(BasePostProcessor):
     self.subGridTol        = 1.0e-4
     self.printTag = returnPrintTag('POSTPROCESSOR LIMITSURFACE')
 
-  def inputToInternal(self,currentInput):
+  def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
+    if type(currentInput) == list: currentInput = currentInp[-1]
+    else                         : currentInput = currentInp 
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{},'metadata':{}}
@@ -732,8 +738,8 @@ class LimitSurface(BasePostProcessor):
     '''
     #Input  = self.inputToInternal(InputIn)
     print('Initiate training')
-    self.functionValue.update(InputIn.getParametersValues('input'))
-    self.functionValue.update(InputIn.getParametersValues('output'))
+    self.functionValue.update(InputIn[-1].getParametersValues('input'))
+    self.functionValue.update(InputIn[-1].getParametersValues('output'))
     #recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
     else                                                  : indexLast = -1
@@ -750,8 +756,8 @@ class LimitSurface(BasePostProcessor):
       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
-      if self.externalFunction.name in InputIn.getParaKeys('inputs'): InputIn.self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
-      if self.externalFunction.name in InputIn.getParaKeys('output'): InputIn.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
+      if self.externalFunction.name in InputIn[-1].getParaKeys('inputs'): InputIn[-1].self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
+      if self.externalFunction.name in InputIn[-1].getParaKeys('output'): InputIn[-1].self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
       raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
 

@@ -1515,7 +1515,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     self.printTag = returnPrintTag('SAMPLER ADAPTIVE DET')
     self.adaptiveReady = False
     self.investigatedPoints = []
-    self.completedHistCnt   = 0
+    self.completedHistCnt   = 1
   @staticmethod
   def _checkIfRunnint(treeValues): return not treeValues['runEnded']
   @staticmethod
@@ -1574,7 +1574,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       for ending in treer.iterProvidedFunction(self._checkEnded):
         #already ended branches, create training set for nearest algorithm (take coordinates <= of cdfValues) -> TODO: improve efficiency
         pbth = [ending.get('SampledVarsPb')[key] for key in lowerCdfValues.keys()]
-        if all(i <= pbth[cnt] for cnt,i in enumerate(lowerCdfValues.values())): 
+        if all(pbth[cnt] <= i for cnt,i in enumerate(lowerCdfValues.values())): 
           if nntrain == None: 
             nntrain = np.zeros((1,len(cdfValues.keys())))
             nntrain[0,:] = np.array(copy.copy(pbth))
@@ -1703,15 +1703,17 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
           completedHistNames.append(lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
       # assemble a dictionary
       if len(completedHistNames) > 0:
-        lastOutDict = {'inputs':{},'outputs':{}}
-        for histd in completedHistNames:
-          histdict = histd.values()[-1]
-          for key in histdict['inputs' ].keys():
-            if key not in lastOutDict['inputs'].keys(): lastOutDict['inputs'][key] = copy.deepcopy(np.atleast_1d(histdict['inputs'][key]))
-            else                                      : lastOutDict['inputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['inputs'][key]),copy.deepcopy(np.atleast_1d(histdict['inputs'][key]))))
-          for key in histdict['outputs'].keys():
-            if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))
-            else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))))    
+        if len(completedHistNames[-1].values()) > 0:
+          lastOutDict = {'inputs':{},'outputs':{}}
+          for histd in completedHistNames:
+            histdict = histd.values()[-1]
+            for key in histdict['inputs' ].keys():
+              if key not in lastOutDict['inputs'].keys(): lastOutDict['inputs'][key] = copy.deepcopy(np.atleast_1d(histdict['inputs'][key]))
+              else                                      : lastOutDict['inputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['inputs'][key]),copy.deepcopy(np.atleast_1d(histdict['inputs'][key]))))
+            for key in histdict['outputs'].keys():
+              if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))
+              else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))))    
+        else: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> No Completed histories! No possible to start an adaptive search! Something went wrongly!')  
       if len(completedHistNames) > self.completedHistCnt:
         ready = AdaptiveSampler.localStillReady(self,ready,lastOutDict)
         self.completedHistCnt = len(completedHistNames)

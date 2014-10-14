@@ -631,9 +631,12 @@ class PostProcessor(Model):
   def run(self,Input,jobHandler):
     '''run calls the interface finalizer'''
     if len(Input) > 0 :
-      for i in range(len(Input)):
-        lumbdaToRun = lambda x: self.interface.run(x)
-        jobHandler.submitDict['Internal'](((Input[i]),),lumbdaToRun,str(i)) 
+      #for i in range(len(Input)):
+      #  lumbdaToRun = lambda x: self.interface.run(x)
+      #  jobHandler.submitDict['Internal'](((Input[i]),),lumbdaToRun,str(i)) 
+      #for i in range(len(Input)):
+      lumbdaToRun = lambda x: self.interface.run(x)
+      jobHandler.submitDict['Internal'](((Input),),lumbdaToRun,'fregna') 
     else:
       lumbdaToRun = lambda x: self.interface.run(x)
       jobHandler.submitDict['Internal'](((None),),lumbdaToRun,str(0))   

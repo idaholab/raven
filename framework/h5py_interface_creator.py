@@ -460,7 +460,8 @@ class hdf5Database(object):
       else: parent_group_name = parent_name   
       # Retrieve the parent group from the HDF5 database
       if parent_group_name in self.h5_file_w: grp = self.h5_file_w.require_group(parent_group_name)
-      else: raise ValueError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> NOT FOUND group named ' + parent_group_name)  
+      else: 
+        raise ValueError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> NOT FOUND group named ' + parent_group_name)  
       # The parent group is not the endgroup for this branch
       self.allGroupEnds[parent_group_name] = False
       grp.attrs["EndGroup"]   = False
