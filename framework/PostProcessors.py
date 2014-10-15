@@ -205,7 +205,7 @@ class PrintCSV(BasePostProcessor):
      Function to finalize the filter => execute the filtering
      @ Out, None      : Print of the CSV file
     '''
-    self.inObj = Input
+    self.inObj = Input[-1]
 #
 #
 #
