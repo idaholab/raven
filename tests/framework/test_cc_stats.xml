@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>test_cc_stats</WorkingDir>
+    <Files>ideal_pump.i,ideal_pump_control.py,foo.csv</Files>
+    <Sequence>test_read_in,test_stats_step</Sequence>
+    <batchSize>3</batchSize>
+  </RunInfo>
+  <Models>
+    <PostProcessor name="test_stats" subType="ComparisonStatistics">
+      <data>fullprint_history|inputs|pipe1_Area</data>
+      <data>fullprint_history|outputs|pump_mass_flow_rate</data>
+    </PostProcessor>
+  </Models>
+  <Samplers>
+    <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>
+  </Samplers>
+  <Steps>
+    <IOStep name='test_read_in' fromDirectory='../output_check'>
+      <Input  class='Datas'    type='Histories'>fullprint_histories</Input>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
+      <Input  class='Datas'    type='TimePoint'>fullprint_timepoint</Input>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
+      <Input  class='Datas'    type='History'>fullprint_history</Input>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
+      <Input  class='Datas'  type='TimePointSet'>fullprint_timepointset</Input>
+      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
+    </IOStep>
+    <PostProcess name="test_stats_step">
+      <Input  class='Datas'  type='Histories'>fullprint_histories</Input>
+      <Input  class='Datas'  type='TimePoint'>fullprint_timepoint</Input>
+      <Input  class='Datas'  type='History'>fullprint_history</Input>
+      <Input  class='Datas'  type='TimePointSet'>fullprint_timepointset</Input>
+      <!-- <Input   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Input>-->
+      <Model class='Models' type='PostProcessor'>test_stats</Model>
+      <Output class='Files' type=''>foo.csv</Output>
+    </PostProcess>
+  </Steps>
+  <DataBases>
+    <HDF5 name="MC_TEST_REWRITE"/>
+  </DataBases>
+  <OutStreamManager>
+    <Print name='timepointset_from_database_dump'>
+      <type>csv</type>
+      <source>timepointset_from_database</source>
+    </Print>
+    <Print name='timepointset_IN_database_dump'>
+      <type>csv</type>
+      <source>timepointset_IN_database</source>
+    </Print>
+
+  </OutStreamManager>
+
+
+  <Datas>
+    <Histories name='fullprint_histories'>
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </Histories>
+    <TimePointSet name='fullprint_timepointset'>
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </TimePointSet>
+    <TimePoint name='fullprint_timepoint'>
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </TimePoint>
+    <History name='fullprint_history'>
+      <Input>pipe1_Area,pipe1_Dh</Input>
+      <Output>pipe1_Hw,pump_mass_flow_rate,time</Output>
+    </History>
+  </Datas>
+
+</Simulation>
