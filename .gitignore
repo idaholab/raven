@@ -35,6 +35,7 @@ tests/framework/LHStestRaven/FirstMRun/
 tests/framework/MCTestBison/CustomSampler/
 tests/framework/MCTestBison/CustomSampler_noalias/
 tests/framework/branch/DETrunTest/
+tests/framework/SBO_DET/DET/
 tests/framework/mode_test/FirstMRun/
 tests/framework/output_check/*.png
 tests/framework/output_check/FirstMRun/
