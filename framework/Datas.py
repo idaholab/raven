@@ -3,28 +3,42 @@ Created on Feb 16, 2013
 
 @author: alfoa
 '''
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
-from BaseType import BaseType
-from Csv_loader import CsvLoader as ld
+#End compatibility block for Python 3----------------------------------------------------------------
+
+#External Modules------------------------------------------------------------------------------------
 import os
 import copy
 import itertools
 import abc
 import numpy as np
+import xml.etree.ElementTree as ET
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+from BaseType import BaseType
+from Csv_loader import CsvLoader as ld
 import utils
 import TreeStructure as TS
-import xml.etree.ElementTree as ET
+#Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions
 class NotConsistentData(Exception): pass
 class ConstructError(Exception)   : pass
 
 class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
-  def __init__(self,inParamValues = None, outParamValues = None):
+  '''
+  The Data object is the base class for constructing derived data object classes.
+  It provides the common interfaces to access and to add data values into the RAVEN internal object format.
+  This object is "understood" by all the "active" modules (e.g. postprocessors, models, etc) and represents the way
+  RAVEN shares the information among the framework
+  '''
+  def __init__(self):
     BaseType.__init__(self)
     self._dataParameters                 = {}                         # in here we store all the data parameters (inputs params, output params,etc)
     self._dataParameters['inParam'     ] = []                         # inParam list
@@ -34,14 +48,8 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._dataContainer                  = {'inputs':{},'outputs':{}} # Dict that contains the actual data. self._dataContainer['inputs'] contains the input space, self._dataContainer['output'] the output space
     self._dataContainer['metadata'     ] = {}                         # In this dictionary we store metadata (For example, probability,input file names, etc)
     self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
-    if inParamValues:
-      if type(inParamValues) != dict: raise ConstructError('DATAS'.ljust(25)+': ' +utils.returnPrintPostTag('ERROR') + '-> in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
-      self._dataContainer['inputs'] = inParamValues
-    if outParamValues:
-      if type(outParamValues) != dict: raise ConstructError('DATAS'.ljust(25)+': ' +utils.returnPrintPostTag('ERROR') + '-> in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
-      self._dataContainer['outputs'] = outParamValues
-    self.notAllowedInputs  = []#this is a list of keyword that are not allowed as inputs
-    self.notAllowedOutputs = []#this is a list of keyword that are not allowed as Outputs
+    self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
+    self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
     self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8]
     self.printTag  = utils.returnPrintTag('DATAS')
 
@@ -157,6 +165,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._updateSpecializedMetadata(name,value,options)
 
   def getMetadata(self,keyword,nodeid=None,serialize=False):
+    '''
+    Function to get a value from the dictionary metadata
+    @ In, keyword, parameter name
+    @ In, nodeid, optional, id of the node if hierarchical
+    @ In, serialize, optional, serialize the tree if in hierarchical mode
+    @ Out, return the metadata
+    '''
     if self._dataParameters['hierarchical']:
       if type(keyword) == int: return list(self.getHierParam('metadata',nodeid,None,serialize).values())[keyword-1]
       else: return self.getHierParam('metadata',nodeid,keyword,serialize)
@@ -165,9 +180,14 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in metadata dictionary. Available keys are '+str(self._dataContainer['metadata'].keys())+'.Function: Data.getMetadata')
 
   def getAllMetadata(self,nodeid=None,serialize=False):
+    '''
+    Function to get all the metadata
+    @ In, nodeid, optional, id of the node if hierarchical
+    @ In, serialize, optional, serialize the tree if in hierarchical mode
+    @ Out, return the metadata (s)
+    '''
     if self._dataParameters['hierarchical']: return self.getHierParam('metadata',nodeid,None,serialize)
     else                                   : return self._dataContainer['metadata']
-
 
   @abc.abstractmethod
   def addSpecializedReadingSettings(self):
@@ -239,14 +259,30 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.specializedPrintCSV(filenameLocal,options_int)
 
   def loadXML_CSV(self,filenameRoot,options=None):
+    '''
+    Function to load the xml additional file of the csv for data
+    (it contains metadata, etc)
+    @ In, filenameRoot, file name
+    @ In, options, optional, dictionary -> options for loading
+    '''
     self._specializedLoadXML_CSV(filenameRoot,options)
 
   def _specializedLoadXML_CSV(self,filenameRoot,options):
+    '''
+    Function to load the xml additional file of the csv for data
+    (it contains metadata, etc). It must be implemented by the specialized classes
+    @ In, filenameRoot, file name
+    @ In, options, optional, dictionary -> options for loading
+    '''
     raise Exception("specializedLoadXML_CSV not implemented "+str(self))
 
   def _createXMLFile(self,filenameLocal,fileType,inpKeys,outKeys):
     '''Creates an XML file to contain the input and output data list
     and the type.
+    @ In, filenameLocal, file name
+    @ In, fileType, file type (csv, xml)
+    @ In, inpKeys, list, input keys
+    @ In, outKeys, list, output keys   
     '''
     myXMLFile = open(filenameLocal + '.xml', 'w')
     root = ET.Element('data',{'name':filenameLocal,'type':fileType})
@@ -269,6 +305,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myXMLFile.close()
 
   def _loadXMLFile(self, filenameLocal):
+    '''
+    Function to load the xml additional file of the csv for data
+    (it contains metadata, etc). It must be implemented by the specialized classes
+    @ In, filenameRoot, file name
+    '''
     myXMLFile = open(filenameLocal + '.xml', 'r')
     root = ET.fromstring(myXMLFile.read())
     myXMLFile.close()
@@ -292,7 +333,6 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       retDict["metadata"] = metadataDict
     #print(inputNode,outputNode,retDict)
     return retDict
-
 
   def addOutput(self,toLoadFrom,options=None):
     '''
@@ -660,6 +700,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       self.retrieveNodeInTreeMode(parent_id).appendBranch(tsnode)
 
 class TimePoint(Data):
+  '''
+  TimePoint is an object that stores a set of inputs and outputs for a particular point in time!  
+  '''
   def acceptHierarchical(self):
     ''' Overwritten from baseclass'''
     return False
@@ -730,12 +773,10 @@ class TimePoint(Data):
       @ In,  options, dictionary, dictionary of printing options
       @ Out, None (a csv is gonna be printed)
     '''
-
     #For timepoint it creates an XML file and one csv file.  The
     #CSV file will have a header with the input names and output
     #names, and one line of data with the input and output numeric
     #values.
-
     inpKeys   = []
     inpValues = []
     outKeys   = []
@@ -817,6 +858,9 @@ class TimePoint(Data):
     else: return self.getParam(inOutType,varName)
 
 class TimePointSet(Data):
+  '''
+  TimePointSet is an object that stores multiple sets of inputs and outputs for a particular point in time!  
+  '''
   def acceptHierarchical(self):
     ''' Overwritten from baseclass'''
     return True
@@ -1164,6 +1208,9 @@ class TimePointSet(Data):
       else: return self.getParam(inOutType,varName)
 
 class History(Data):
+  '''
+  History is an object that stores a set of inputs and associated history for output parameters. 
+  '''
   def acceptHierarchical(self):
     ''' Overwritten from baseclass'''
     return False
@@ -1352,6 +1399,9 @@ class History(Data):
 
 
 class Histories(Data):
+  '''
+  Histories is an object that stores multiple sets of inputs and associated history for output parameters. 
+  '''
   def acceptHierarchical(self):
     '''
       Overwritten from base class

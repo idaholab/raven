@@ -3,22 +3,32 @@ Created on Mar 7, 2013
 
 @author: crisr
 '''
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
 
+#External Modules------------------------------------------------------------------------------------
 import sys
 import copy
 import numpy as np
-from BaseType import BaseType
 import scipy.special as polys
-from utils import returnPrintTag
 from scipy.misc import factorial
 if sys.version_info.major > 2: import distribution1Dpy3 as distribution1D
 else:                          import distribution1Dpy2 as distribution1D
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+from BaseType import BaseType
+from utils import returnPrintTag
+#Internal Modules End--------------------------------------------------------------------------------
 
 stochasticEnv = distribution1D.DistributionContainer.Instance()
 
+'''
+ Mapping between internal framework and Crow distribution name
+'''
 _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'Normal':'NormalDistribution',
                               'Gamma':'GammaDistribution',
@@ -39,15 +49,18 @@ class Distribution(BaseType):
   '''
   def __init__(self):
     BaseType.__init__(self)
-    self.upperBoundUsed = False  #True if the distribution is right truncated
-    self.lowerBoundUsed = False  #True if the distribution is left truncated
-    self.upperBound       = 0.0  #Right bound
-    self.lowerBound       = 0.0  #Left bound
-    self.__adjustmentType   = ''   #this describe how the re-normalization to preserve the probability should be done for truncated distributions
-    self.dimensionality   = None #Dimensionality of the distribution (1D or ND)
+    self.upperBoundUsed = False  # True if the distribution is right truncated
+    self.lowerBoundUsed = False  # True if the distribution is left truncated
+    self.upperBound       = 0.0  # Right bound
+    self.lowerBound       = 0.0  # Left bound
+    self.__adjustmentType   = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
+    self.dimensionality   = None # Dimensionality of the distribution (1D or ND)
     self.printTag         = returnPrintTag('DISTRIBUTIONS')
 
   def _readMoreXML(self,xmlNode):
+    '''
+    Readmore xml, see BaseType.py explaination.
+    '''
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
@@ -58,8 +71,10 @@ class Distribution(BaseType):
     else: self.__adjustment = 'scaling'
 
   def getCrowDistDict(self):
-    """Returns a dictionary of the keys and values that would be
-    used to create the distribution for a Crow input file."""
+    '''
+    Returns a dictionary of the keys and values that would be
+    used to create the distribution for a Crow input file.
+    '''
     retDict = {}
     retDict['type'] = _FrameworkToCrowDistNames[self.type]
     if self.lowerBoundUsed:
@@ -69,6 +84,10 @@ class Distribution(BaseType):
     return retDict
 
   def addInitParams(self,tempDict):
+    '''
+    Function to get the input params that belong to this class
+    @ In, tempDict, temporary dictionary
+    '''    
     tempDict['upperBoundUsed'] = self.upperBoundUsed
     tempDict['lowerBoundUsed'] = self.lowerBoundUsed
     tempDict['upperBound'    ] = self.upperBound
@@ -77,15 +96,33 @@ class Distribution(BaseType):
     tempDict['dimensionality'] = self.dimensionality
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
+    '''
+    Function to get a random number from a truncated distribution
+    @ In, LowerBound, float -> lower bound
+    @ In, upperBound, float -> upper bound
+    @ In,           , float -> random number
+    '''
     point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
     return self._distribution.ppf(point)
 
   def rvsWithinbounds(self,LowerBound,upperBound):
+    '''
+    Function to get a random number from a truncated distribution
+    @ In, LowerBound, float -> lower bound
+    @ In, upperBound, float -> upper bound
+    @ Out,          , float -> random number
+    '''
     CDFupper = self._distribution.cdf(upperBound)
     CDFlower = self._distribution.cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def setQuad(self,quad,exp_order):
+    '''
+    Function to set the quadrature rule
+    @ In, quad, object -> quadrature
+    @ In, exp_order, int -> expansion order
+    @ Out,         , None 
+    '''
     self.__distQuad=quad
     self.__exp_order=exp_order
 
@@ -98,12 +135,28 @@ class Distribution(BaseType):
     except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Quadrature has not been set for this distr. yet.')
 
 def random():
+  '''
+  Function to get a random number <1<
+  @ In, None, None 
+  @ Out, float, random number         
+  '''
   return stochasticEnv.random()
 
 def randomSeed(value):
+  '''
+  Function to get a random seed
+  @ In, None, None 
+  @ Out, integer, random seed        
+  '''
   return stochasticEnv.seedRandom(value)
 
 def randomIntegers(low,high):
+  '''
+  Function to get a random integer
+  @ In, low, integer -> low boundary 
+  @ In, high, integer -> upper boundary 
+  @ Out, integer, random int        
+  '''
   int_range = high-low
   raw_num = low + random()*int_range
   raw_int = int(round(raw_num))
@@ -113,6 +166,11 @@ def randomIntegers(low,high):
   return raw_int
 
 def randomPermutation(l):
+  '''
+  Function to get a random permutation
+  @ In, l, list -> list to be permuted
+  @ Out, list, randomly permuted list         
+  '''
   new_list = []
   old_list = l[:]
   while len(old_list) > 0:
@@ -120,39 +178,85 @@ def randomPermutation(l):
   return new_list
 
 class BoostDistribution(Distribution):
+  '''
+  Base distribution class based on boost
+  '''
   def __init__(self):
     Distribution.__init__(self)
     self.dimensionality  = '1D'
 
   def cdf(self,x):
+    '''
+    Function to get the cdf at a provided coordinate
+    @ In, x, float -> value to get the cdf at
+    @ Out, flaot, requested cdf     
+    '''
     return self._distribution.Cdf(x)
 
   def ppf(self,x):
+    '''
+    Function to get the inverse cdf at a provided coordinate
+    @ In, x, float -> value to get the inverse cdf at
+    @ Out, flaot, requested inverse cdf     
+    '''
     return self._distribution.InverseCdf(x)
 
   def pdf(self,x):
+    '''
+    Function to get the pdf at a provided coordinate
+    @ In, x, float -> value to get the pdf at
+    @ Out, flaot, requested pdf     
+    '''
     return self._distribution.Pdf(x)
 
   def untruncatedCdfComplement(self, x):
+    '''
+    Function to get the untruncated  cdf complement at a provided coordinate
+    @ In, x, float -> value to get the untruncated  cdf complement  at
+    @ Out, flaot, requested untruncated  cdf complement    
+    '''
     return self._distribution.untrCdfComplement(x)
 
   def untruncatedHazard(self, x):
+    '''
+    Function to get the untruncated  Hazard  at a provided coordinate
+    @ In, x, float -> value to get the untruncated  Hazard   at
+    @ Out, flaot, requested untruncated  Hazard     
+    '''
     return self._distribution.untrHazard(x)
 
   def untruncatedMean(self):
+    '''
+    Function to get the untruncated  Mean 
+    @ In, None 
+    @ Out, flaot, requested Mean  
+    '''
     return self._distribution.untrMean()
 
   def untruncatedMedian(self):
+    '''
+    Function to get the untruncated  Median 
+    @ In, None 
+    @ Out, flaot, requested Median  
+    '''
     return self._distribution.untrMedian()
 
   def untruncatedMode(self):
+    '''
+    Function to get the untruncated  Mode 
+    @ In, None 
+    @ Out, flaot, requested Mode  
+    '''
     return self._distribution.untrMode()
 
   def rvs(self,*args):
-    if len(args) == 0:
-      return self.ppf(random())
-    else:
-      return [self.rvs() for _ in range(args[0])]
+    '''
+    Function to get random numbers
+    @ In, args, dictionary, args 
+    @ Out, flaot or list, requested random number or numbers  
+    '''    
+    if len(args) == 0: return self.ppf(random())
+    else             : return [self.rvs() for _ in range(args[0])]
 #==============================================================\
 #    Distributions convenient for stochastic collocation
 #==============================================================\

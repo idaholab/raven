@@ -5,11 +5,19 @@ Created on Mar 16, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+#External Modules------------------------------------------------------------------------------------
+ 
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+from utils    import returnPrintTag
+#Internal Modules End--------------------------------------------------------------------------------
+
+
 from utils    import returnPrintTag
 
 class BaseType(object):
   '''this is the base class for each general type used by the simulation'''
-  
   def __init__(self):
     self.name             = ''      # name of this istance (alias)
     self.type             = ''      # specific type within this class

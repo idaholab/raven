@@ -3,23 +3,34 @@ Created on Mar 5, 2013
 
 @author: crisr
 '''
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+if not 'xrange' in dir(__builtins__):
+  xrange = range
+#End compatibility block for Python 3----------------------------------------------------------------
 
-try:
-  import Queue as queue
-except ImportError:
-  import queue
+#External Modules------------------------------------------------------------------------------------
+try               : import Queue as queue
+except ImportError: import queue
 import subprocess
 import os
 import signal
 import copy
-from utils import returnPrintTag, returnPrintPostTag
 #import logging, logging.handlers
 import threading 
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
+from utils import returnPrintTag, returnPrintPostTag
+#Internal Modules End--------------------------------------------------------------------------------
+
 
 class ExternalRunner:
+  '''
+  Class for running external codes
+  '''
   def __init__(self,command,workingDir,output=None,metadata=None):
     ''' Initialize command variable'''
     self.command    = command
@@ -95,16 +106,34 @@ class ExternalRunner:
 #       #self.logger.debug('%s', line.srip())
 
   def isDone(self):
+    '''
+    Function to inquire the process to check if the calculation is finished
+    '''
     self.__process.poll()
     return self.__process.returncode != None
 
-  def getReturnCode(self): return self.__process.returncode
+  def getReturnCode(self): 
+    '''
+    Function to inquire the process to get the return code
+    '''
+    return self.__process.returncode
 
-  def returnEvaluation(self): return None
+  def returnEvaluation(self): 
+    '''
+    Function to return the External runner evaluation (outcome/s). Since in process, return None
+    '''
+    return None
   
-  def returnMetadata(self): return self.__metadata
+  def returnMetadata(self): 
+    '''
+    Function to return the External runner metadata 
+    '''
+    return self.__metadata
   
   def start(self):
+    '''
+    Function to run the driven code
+    '''
     oldDir = os.getcwd()
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
@@ -118,13 +147,24 @@ class ExternalRunner:
     #self.thread.start()
   
   def kill(self):
+    '''
+    Function to kill the subprocess of the driven code
+    '''
     #In python 2.6 this could be self.process.terminate()
     print(returnPrintTag('JOB HANDLER')+ ": Terminating ",self.__process.pid,self.command)
     os.kill(self.__process.pid,signal.SIGTERM)    
 
-  def getWorkingDir(self): return self.__workingDir
+  def getWorkingDir(self): 
+    '''
+    Function to get the working directory path
+    '''
+    return self.__workingDir
 
-  def getOutputFilename(self): return os.path.join(self.__workingDir,self.output)
+  def getOutputFilename(self): 
+    '''
+    Function to get the output filenames
+    '''
+    return os.path.join(self.__workingDir,self.output)
 #
 #
 #

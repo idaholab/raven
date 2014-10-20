@@ -7,15 +7,21 @@ comment: The CodeInterface Module is an Handler.
          It inquires all the modules contained in the folder './CodeInterfaces'
          and load them, constructing a '__interFaceDict' on the fly
 '''
-
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
+#End compatibility block for Python 3----------------------------------------------------------------
 
+#External Modules------------------------------------------------------------------------------------
 import os
 from glob import glob
-import inspect
+import inspect 
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
 import utils
+#Internal Modules End--------------------------------------------------------------------------------
 
 __moduleInterfaceList = []
 start_dir = os.path.join(os.path.dirname(__file__),'CodeInterfaces')

@@ -3,19 +3,26 @@ Created on Mar 25, 2013
 
 @author: alfoa
 '''
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
+#End compatibility block for Python 3----------------------------------------------------------------
+
+#External Modules------------------------------------------------------------------------------------
 import h5py  as h5
 import numpy as np
 import os
 import copy
 import json
+#External Modules End--------------------------------------------------------------------------------
 
+#Internal Modules------------------------------------------------------------------------------------
 from utils import toBytesIterative, toBytes, toString, convertDictToListOfLists, convertNumpyToLists, returnPrintTag, returnPrintPostTag
-
+#Internal Modules End--------------------------------------------------------------------------------
+ 
 '''
   *************************
   *  HDF5 DATABASE CLASS  *

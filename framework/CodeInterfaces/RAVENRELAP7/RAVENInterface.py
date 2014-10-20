@@ -28,7 +28,7 @@ class RAVENInterface:
     executeCommand = (precommand + ' -i '+os.path.split(inputFiles[index])[1] +
                       ' Outputs/file_base='+ outputfile +
                       ' Outputs/interval=1'+
-                      ' Outputs/csv=false'+' Outputs/num_checkpoint_files=1'+
+                      ' Outputs/csv=false' +
                       ' Outputs/checkpoint=true'+
                       ' Outputs/tail/type=ControlLogicBranchingInfo'+
                       ' Outputs/ravenCSV/type=CSVRaven')

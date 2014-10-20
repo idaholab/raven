@@ -1451,10 +1451,8 @@ class DynamicEventTree(Grid):
     self.branchedLevel.append(branchedLevel)
 
   def localAddInitParams(self,tempDict):
-    for key in self.branchProbabilities.keys():
-      tempDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
-    for key in self.branchValues.keys():
-      tempDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
+    for key in self.branchProbabilities.keys(): tempDict['Probability Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchProbabilities[key]]
+    for key in self.branchValues.keys()       : tempDict['Values Thresholds for dist ' + str(key) + ' are: '] = [str(x) for x in self.branchValues[key]]
 
   def localAddCurrentSetting(self,tempDict):
     tempDict['actual threshold levels are '] = self.branchedLevel[0]
@@ -1695,7 +1693,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     # since the RunQueue is empty, let's check if there are still branches running => if not => start the adaptive search
     self._checkIfStartAdaptive()
     if self.startAdaptive:
-      if self._endJobRunnable != 1: self._endJobRunnable = 1
+      #if self._endJobRunnable != 1: self._endJobRunnable = 1
       # retrieve the endHistory branches
       completedHistNames = []
       for treer in self.TreeInfo.values(): # this needs to be solved

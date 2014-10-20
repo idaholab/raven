@@ -4,15 +4,22 @@ Created on Feb 7, 2013
 This python module performs the loading of 
 data from csv files
 '''
+#for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 if not 'xrange' in dir(__builtins__):
   xrange = range
+#End compatibility block for Python 3----------------------------------------------------------------
 
+#External Modules------------------------------------------------------------------------------------
 import numpy as np
 import csv
+#External Modules End--------------------------------------------------------------------------------
+
+#Internal Modules------------------------------------------------------------------------------------
 from utils import returnPrintTag, returnPrintPostTag
+#Internal Modules End--------------------------------------------------------------------------------
 
 class CsvLoader:
   def __init__(self):
@@ -33,8 +40,9 @@ class CsvLoader:
     STRING,STRING,STRING,STRING
     FLOAT ,FLOAT ,FLOAT ,FLOAT 
     ...
-    ...
     FLOAT ,FLOAT ,FLOAT ,FLOAT
+    @ In, filein, string -> Input file name (absolute path)
+    @ Out, data, numpy.ndarray -> the loaded data
     '''
     # open file
     myFile = open (filein,'rb')
@@ -51,24 +59,28 @@ class CsvLoader:
   def getFieldNames(self):
     '''
     @ In, None
-    @ Out, None
+    @ Out, field_names, list -> field names' list
     Function to get actual field names (desired output parameter keywords)
     ''' 
     return self.field_names
 
-  # function to get all field names found in the csv file
   def getAllFieldNames(self):
+    '''
+    Function to get all field names found in the csv file
+    @ In, None
+    @ Out, all_field_names, list -> list of field names (headers) 
+    '''
     return self.all_field_names
 
-  # function to grep max dimensions in multiple csv files
   def parseFilesToGrepDimensions(self,filesin):      
     '''
+    Function to grep max dimensions in multiple csv files
     @ In, filesin, csv files list
     @ Out, None
-    filesin = file names
-    NtimeSteps   = maxNumberOfTs
+    filesin        = file names
+    NtimeSteps     = maxNumberOfTs
     maxNumOfParams = max number of parameters
-    NSamples = number of Samples   
+    NSamples       = number of Samples   
     '''    
     NSamples       = len(filesin)
     maxNumOfParams = 0
@@ -77,16 +89,10 @@ class CsvLoader:
       with open(filesin[i],'rb') as f:
         reader = csv.DictReader(f)
         #reader.next #XXX This line does nothing
-        if(len(reader.fieldnames) > maxNumOfParams):
-          maxNumOfParams = len(reader.fieldnames)
-        
+        if(len(reader.fieldnames) > maxNumOfParams): maxNumOfParams = len(reader.fieldnames)
         countTimeSteps = 1  
-        row = next(reader)
-        for row in reader:
-          countTimeSteps = countTimeSteps + 1   
-        
-        if(countTimeSteps>NtimeSteps):
-          NtimeSteps = countTimeSteps
+        for _ in reader: countTimeSteps = countTimeSteps + 1   
+        if(countTimeSteps>NtimeSteps): NtimeSteps = countTimeSteps
     return (NtimeSteps,maxNumOfParams,NSamples)  
  
   def csvLoadData(self,filein,options):
@@ -95,12 +101,9 @@ class CsvLoader:
     @ In, filein, csv file name
     @ In, options, dictionary of options
     '''
-    if   options['type'] == 'TimePoint':
-      return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'])
-    elif options['type'] == 'TimePointSet':
-      return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'],options['inputTs'])
-    elif options['type'] == 'History':
-      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'])
+    if   options['type'] == 'TimePoint':    return self.__csvLoaderForTimePoint(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'])
+    elif options['type'] == 'TimePointSet': return self.__csvLoaderForTimePointSet(filein,options['time'],options['inParam'],options['outParam'],options['inputTs'])
+    elif options['type'] == 'History':      return self.__csvLoaderForHistory(filein[0],options['time'],options['inParam'],options['outParam'],options['inputTs'])
     elif options['type'] == 'Histories':
       listhist_in  = {}
       listhist_out = {}
@@ -114,21 +117,17 @@ class CsvLoader:
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Type ' + options['type'] + 'unknown')
     
-  # loader for time point data type
   def __csvLoaderForTimePoint(self,filein,time,inParam,outParam,inputTs):
     '''
+    loader for time point data type
     @ In, filein = file name
     @ In, time   = time
     @ In, paramList = parameters to be picked up (optional)
     '''
     #load the data into the numpy array
     data = self.loadCsvFile(filein)
-    
-    if 'all' in outParam:
-      self.all_out_param  = True
-    else:
-      self.all_out_param = False
-    
+    if 'all' in outParam: self.all_out_param  = True
+    else                : self.all_out_param = False
     if (time == 'end') or (not time):
       time_end = True
       time_float = -1.0
@@ -139,26 +138,18 @@ class CsvLoader:
     if inputTs: ints = int(inputTs)
     else: ints = 0
     if ints > data[:,0].size -1  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in file '+ str(filein) + '!')
-       
-    #inDict  = inParamDict
-    #outDict = outParamDict       
+      
     inDict  = {}
-    outDict = {} 
-    
-    if(self.all_out_param):
-      self.field_names = self.all_field_names
-    else:
-      self.field_names = outParam
-    
+    outDict = {}    
+    if(self.all_out_param): self.field_names = self.all_field_names
+    else                  : self.field_names = outParam
     #fill input param dictionary
     for key in inParam:
         if key in self.all_field_names:
           ix = self.all_field_names.index(key)
           inDict[key] = np.atleast_1d(np.array(data[ints,ix]))
         else: raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "->  the parameter " + key + " has not been found")
-    
     # fill output param dictionary
-    
     # time end case
     if time_end:
       last_row = data[:,0].size - 1
@@ -170,13 +161,10 @@ class CsvLoader:
           if key in self.all_field_names: outDict[key] = np.atleast_1d(np.array(data[last_row,self.all_field_names.index(key)]))       
           else: raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "->  the parameter " + key + " has not been found")
     else:
-      
       for i in data:
         if data[i,0] >= time_float and time_float >= 0.0:
-          if i-1 >= 0:
-            previous_time = data[i-1,0]
-          else:
-            previous_time = data[i,0]
+          if i-1 >= 0: previous_time = data[i-1,0]
+          else:        previous_time = data[i,0]
           actual_time   = data[i,0]          
           if self.all_out_param:
             for key in self.all_field_names:

@@ -62,7 +62,6 @@ def convertDictToListOfLists(inputDict):
     returnList = None
   return returnList
 
-
 def convertNumpyToLists(inputDict):
   returnDict = inputDict
   if type(inputDict) == dict:
@@ -73,7 +72,6 @@ def convertNumpyToLists(inputDict):
   elif type(inputDict) == np.ndarray:
     returnDict = inputDict.tolist()  
   return returnDict
-
 
 def keyIn(dictionary,key):
   """Returns the key or toBytes key if in,
