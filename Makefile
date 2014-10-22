@@ -8,10 +8,20 @@
 # FRAMEWORK_DIR    - Location of the MOOSE framework
 #
 ###############################################################################
-MOOSE_DIR          ?= $(shell dirname `pwd`)/moose
+MOOSE_SUBMODULE    := $(CURDIR)/moose
+ifneq ($(wildcard $(MOOSE_SUBMODULE)/framework/Makefile),)
+  MOOSE_DIR        ?= $(MOOSE_SUBMODULE)
+else
+  MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
+endif
 HERD_TRUNK_DIR     ?= $(shell dirname `pwd`)
 FRAMEWORK_DIR      ?= $(MOOSE_DIR)/framework
-RELAP7_DIR         ?= $(HERD_TRUNK_DIR)/relap-7
+RELAP7_SUBMODULE   := $(CURDIR)/relap-7
+ifneq ($(wildcard $(RELAP7_SUBMODULE)/Makefile),)
+  RELAP7_DIR         ?= $(RELAP7_SUBMODULE)
+else
+  RELAP7_DIR         ?= $(HERD_TRUNK_DIR)/relap-7
+endif
 ###############################################################################
 
 CURR_DIR    := $(shell pwd)
@@ -38,12 +48,19 @@ include            $(FRAMEWORK_DIR)/app.mk
 #APPLICATION_NAME   := crow
 #DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 
-APPLICATION_DIR    := $(HERD_TRUNK_DIR)/crow
+CROW_SUBMODULE     := $(CURDIR)/crow
+ifneq ($(wildcard $(CROW_SUBMODULE)/Makefile),)
+  CROW_DIR         ?= $(CROW_SUBMODULE)
+else
+  CROW_DIR         ?= $(HERD_TRUNK_DIR)/crow
+endif
+
+APPLICATION_DIR    := $(CROW_DIR)
 APPLICATION_NAME   := CROW
 
-include 	   $(HERD_TRUNK_DIR)/crow/config.mk
-include            $(HERD_TRUNK_DIR)/crow/crow.mk
-include            $(HERD_TRUNK_DIR)/crow/crow_python_modules.mk
+include 	   $(CROW_DIR)/config.mk
+include            $(CROW_DIR)/crow.mk
+include            $(CROW_DIR)/crow_python_modules.mk
 
 APPLICATION_DIR    := $(HERD_TRUNK_DIR)/raven
 APPLICATION_NAME   := RAVEN

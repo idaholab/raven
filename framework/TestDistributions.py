@@ -10,7 +10,15 @@ import sys, os
 ravenDir = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
 pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","python_modules")
 print("pmoduleDir",pmoduleDir)
-sys.path.append(pmoduleDir)
+if os.path.exists(pmoduleDir):
+  sys.path.append(pmoduleDir)
+else:
+  pmoduleDir = os.path.join(ravenDir,"crow","python_modules")
+  print("pmoduleDir",pmoduleDir)
+  if os.path.exists(pmoduleDir):
+    sys.path.append(pmoduleDir)
+  else:
+    print("Could not find python_modules directory")
 
 
 import Distributions

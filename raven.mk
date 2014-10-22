@@ -78,7 +78,7 @@ $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_obj
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link --quiet \
           $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(RAVEN_app_objects) $(RAVEN_LIB) $(r7_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS) $(app_LIBS) $(CROW_LIB) $(PYTHON_LIB)
 
-RAVEN_MODULES = $(HERD_TRUNK_DIR)/crow/control_modules
+RAVEN_MODULES = $(CROW_DIR)/control_modules
 
 RAVEN_MODULE_COMPILE_LINE=@$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=compile --quiet $(libmesh_CXX) $(libmesh_CPPFLAGS) $(libmesh_CXXFLAGS)  $(app_INCLUDES) -DRAVEN_MODULES='"$(RAVEN_MODULES)"' $(libmesh_INCLUDE) -MMD -MF $@.d -MT $@ -c $< -o $@
 

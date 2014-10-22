@@ -34,6 +34,9 @@ class RavenExodiff(Exodiff):
 
     module_dir = os.path.join(os.path.dirname(os.getcwd()),"crow","control_modules")
     has_distributions = os.path.exists(os.path.join(module_dir,"_distribution1D.so"))
+    if not has_distributions:
+      module_dir = os.path.join(os.getcwd(),"crow","control_modules")
+      has_distributions = os.path.exists(os.path.join(module_dir,"_distribution1D.so"))
 
     def __init__(self, name, params):
         Exodiff.__init__(self, name, params)
