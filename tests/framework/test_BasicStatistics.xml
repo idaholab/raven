@@ -9,19 +9,19 @@
 
 <Models>
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='basicStatistics/basicStatisticsExternalModelTest'>
-       <variable type='numpy.ndarray'>x</variable>
-       <variable type='numpy.ndarray'>y</variable>
-       <variable type='numpy.ndarray'>z</variable>
-       <variable type='numpy.ndarray'>time</variable>
-       <variable type='float'>x0</variable>
-       <variable type='float'>x01</variable>
-       <variable type='float'>x02</variable>
-       <variable type='float'>y0</variable>
-       <variable type='float'>y02</variable>
-       <variable type='float'>y01</variable>
-       <variable type='float'>z0</variable>
-       <variable type='float'>z02</variable>
-       <variable type='float'>z01</variable>
+       <variable>x</variable>
+       <variable>y</variable>
+       <variable>z</variable>
+       <variable>time</variable>
+       <variable>x0</variable>
+       <variable>x01</variable>
+       <variable>x02</variable>
+       <variable>y0</variable>
+       <variable>y02</variable>
+       <variable>y01</variable>
+       <variable>z0</variable>
+       <variable>z02</variable>
+       <variable>z01</variable>
     </ExternalModel>
     <PostProcessor name="autoCorrelationTest" subType='BasicStatistics'  debug='true'>
         <!-- => you can here specify what type of figure of merit you need to compute
@@ -42,7 +42,7 @@
 </Models>
 <Functions>
     <External name='testFunctionComputeProbability' file='basicStatistics/testFunctionComputeProbability'>
-        <variable type='ndarray'>x01</variable>
+        <variable>x01</variable>
     </External>
 </Functions>
 

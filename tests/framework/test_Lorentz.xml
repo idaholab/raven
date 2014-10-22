@@ -9,16 +9,16 @@
 
 <Models>
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
-       <variable type='float'>sigma</variable>
-       <variable type='float'>rho</variable>
-       <variable type='float'>beta</variable>
-       <variable type='numpy.ndarray'>x</variable>
-       <variable type='numpy.ndarray'>y</variable>
-       <variable type='numpy.ndarray'>z</variable>
-       <variable type='numpy.ndarray'>time</variable>
-       <variable type='float'>x0</variable>
-       <variable type='float'>y0</variable>
-       <variable type='float'>z0</variable>
+       <variable>sigma</variable>
+       <variable>rho</variable>
+       <variable>beta</variable>
+       <variable>x</variable>
+       <variable>y</variable>
+       <variable>z</variable>
+       <variable>time</variable>
+       <variable>x0</variable>
+       <variable>y0</variable>
+       <variable>z0</variable>
     </ExternalModel>
 </Models> 
 

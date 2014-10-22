@@ -1,4 +1,8 @@
 '''
+Created on Oct 20, 2014
+
+@author: alfoa
+
 This module contains interfaces to import external functions
 '''
 #for future compatibility with Python 3--------------------------------------------------------------
@@ -12,6 +16,7 @@ This module contains interfaces to import external functions
 #Internal Modules------------------------------------------------------------------------------------
 from BaseType import BaseType
 import utils
+from CustomCommandExecuter import execCommand
 #import Datas
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -24,11 +29,11 @@ class Function(BaseType):
   '''
   def __init__(self):
     BaseType.__init__(self)
-    self.__functionFile                  = ''
-    self.__varType                       = {}
-    self.__actionDictionary              = {}
-    self.__actionImplemented             = {}
-    self.__inputFromWhat                 = {}
+    self.__functionFile                  = ''                                # function file name
+    self.__actionDictionary              = {}                                # action dictionary
+    self.__actionImplemented             = {}                                # dictionary of implemented actions
+    self.__inputVariables                = []                                # list of variables' names' given in input (xml)
+    self.__inputFromWhat                 = {}                                # dictionary of input data type
     self.__inputFromWhat['dict']         = self.__inputFromDict
     self.__inputFromWhat['Data']         = self.__inputFromData    
     self.printTag                        = utils.returnPrintTag('FUNCTIONS')
@@ -69,12 +74,14 @@ class Function(BaseType):
           self.__actionDictionary[method]                    = importedModule.__dict__[method]
           self.__actionImplemented[method]                   = True 
     else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
+    cnt = 0
     for child in xmlNode:
       if child.tag=='variable':
-        exec('self.'+child.text+' = None')
-        if 'type' in child.attrib.keys(): self.__varType[child.text] = child.attrib['type']
-        else                            : raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> the type for the variable '+child.text+' is missed')
-    if len(self.__varType.keys())==0: raise IOError( self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not variable found in the definition of the function '+self.name)
+        execCommand('self.'+child.text+' = None',self=self)
+        self.__inputVariables.append(child.text)
+        cnt +=1
+        if len(child.attrib.keys()) > 0: raise IOError( self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> variable block in the definition of the function '+self.name + ' should not have any attribute!')
+    if cnt == 0: raise IOError( self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not variable found in the definition of the function '+self.name)
         
   def addInitParams(self,tempDict):
     '''
@@ -99,10 +106,7 @@ class Function(BaseType):
     @ In, tempDict
     @ Out, tempDict 
     '''
-    for key in self.__varType.keys():
-      exec("tempDict['variable "+str(key)+" has value']=self."+key)
-      exec("tempDict['variable "+str(key)+" is of type'] = self._Function__varType[key]")
-
+    for key in self.__inputVariables: execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=tempDict) 
 
   def __importValues(self,myInput):
     '''this makes available the variable values sent in as self.key'''
@@ -113,7 +117,7 @@ class Function(BaseType):
   def __inputFromData(self,inputData):
     '''
     This is meant to be used to collect the input from a Data. A conversion to the declared type of data is attempted by inputData.extractValue'''
-    for key, myType in self.__varType.items():
+    for key in self.__inputVariables:
       #exec('self.'+key+'=inputData.extractValue(myType,key)')
       ##### TEMPORARY FIXXXXXXXX - ALIAS NEEDED#######
       print('FIXME: Alias are already in place why we have still the fixme (once done see also if the loop should contain the myType???')
@@ -123,7 +127,7 @@ class Function(BaseType):
       if not foundperfectly:
         for index in range(len(inputData.dataParameters['outParam'])):
           if key == inputData.dataParameters['outParam'][index]: foundperfectly = True
-      if foundperfectly: exec('self.'+key+'=inputData.extractValue(myType,key)')
+      if foundperfectly: execCommand('self.'+key+'=object.extractValue(myType,"'+key+'")',self=self,object=inputData) 
       if not foundperfectly:
         semifound = False
         for index in range(len(inputData.dataParameters['inParam'])):
@@ -135,7 +139,7 @@ class Function(BaseType):
             if key in inputData.dataParameters['outParam'][index]: 
               similarVariable = inputData.dataParameters['outParam'][index]
               semifound = True
-        if semifound: exec('self.'+key+'=inputData.extractValue(myType,similarVariable)')     
+        if semifound: execCommand('self.'+key+'=object.extractValue(myType,"'+similarVariable+'")',self=self,object=inputData)      
         
   def __inputFromDict(self,myInputDict):
     '''
@@ -145,11 +149,9 @@ class Function(BaseType):
     '''
     if 'SampledVars' in myInputDict.keys(): inDict = myInputDict['SampledVars']
     else                                  : inDict = myInputDict
-    for name, myType in self.__varType.items():
-      if name in inDict.keys():
-        if myType.split('.')[-1] == type(inDict[name]).__name__: exec("self."+name+"=inDict[name]")
-        else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Not proper type for the variable '+name+' in external function '+self.name + '.\nExpected type: ' + myType.split('.')[-1] + '. Got ' + type(inDict[name]).__name__)
-      else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input variable '+name+' in external function seems not to be passed in')
+    for name in self.__inputVariables:
+      if name in inDict.keys(): execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict) 
+      else                    : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):
     '''return the result of the type of action described by 'what' '''

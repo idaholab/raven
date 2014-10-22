@@ -4,14 +4,14 @@
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
     <Sequence>FirstMRun,ComputeLimitSurface</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>8</batchSize>
 </RunInfo>
 
 <Models>
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='limitSurface/limitSurfaceTestExternalModel'>
-       <variable type='numpy.ndarray'>z</variable>
-       <variable type='numpy.ndarray'>x0</variable>
-       <variable type='numpy.ndarray'>y0</variable>
+       <variable>z</variable>
+       <variable>x0</variable>
+       <variable>y0</variable>
     </ExternalModel>
     <PostProcessor name="computeLimitSurface" subType='LimitSurface' debug='True'>
         <what>all</what>
@@ -32,7 +32,7 @@
 
 <Functions>
     <External name='goalFunctionForLimitSurface' file='limitSurface/goalFunctionTest'>
-        <variable type='numpy.float64'>z</variable>
+        <variable>z</variable>
     </External>
 </Functions>
 

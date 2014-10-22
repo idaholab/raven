@@ -11,7 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import shutil
-import numpy
+import numpy as np
 from utils import metaclass_insert, returnPrintTag, returnPrintPostTag
 import abc
 import importlib
@@ -22,6 +22,7 @@ from BaseType import BaseType
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import Samplers
+from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(metaclass_insert(abc.ABCMeta,BaseType)):
@@ -228,7 +229,7 @@ class Dummy(Model):
     #test if all sampled variables are in the inputs category of the data
     if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
-    for key in Kwargs['SampledVars'].keys(): inputDict[key] = numpy.atleast_1d(Kwargs['SampledVars'][key])
+    for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
     if None in inputDict.values(): raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
@@ -243,7 +244,7 @@ class Dummy(Model):
     '''
     #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
     inRun = self._manipulateInput(Input[0])
-    lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':numpy.atleast_1d(numpy.float(Input[1]['prefix']))}
+    lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
     jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
     
   def collectOutput(self,finishedJob,output):
@@ -335,12 +336,13 @@ class ExternalModel(Dummy):
 
   def __init__(self):
     Dummy.__init__(self)
-    self.modelVariableValues = {}
-    self.modelVariableType   = {}
-    self.__availableVariableTypes = ['float','int','bool','numpy.ndarray']
-    self.printTag = returnPrintTag('MODEL EXTERNAL')
+    self.modelVariableValues      = {}                                                                                                        # dictionary of variable values for this   
+    self.modelVariableType        = {}
+    self.__availableVariableTypes = ['float','bool','int','ndarray','float16','float32','float64','float128','int16','int32','int64','bool8']
+    self.__availableVariableTypes = self.__availableVariableTypes + ['numpy.'+item for item in self.__availableVariableTypes]
+    self.printTag                 = returnPrintTag('MODEL EXTERNAL')
     class Object(object):pass
-    self.initExtSelf = Object()
+    self.initExtSelf              = Object()
     
   def initialize(self,runInfo,inputs,initDict=None):
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
@@ -371,27 +373,33 @@ class ExternalModel(Dummy):
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
-        if 'type' in son.attrib.keys():
-          if not (son.attrib['type'].lower() in self.__availableVariableTypes):
-            raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the "type" of variable ' + son.text + 'not among available types')
-          self.modelVariableType[son.text] = son.attrib['type']
-        else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the attribute "type" for variable '+son.text+' is missed')
+        if len(son.attrib.keys()) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
+        self.modelVariableType[son.text] = None
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
 
   def __externalRun(self, Input): 
     class Object(object):pass
     externalSelf        = Object()
-    for key,value in self.initExtSelf.__dict__.items(): exec('externalSelf.'+ key +' = copy.deepcopy(value)') 
+    for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.deepcopy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.deepcopy(value)') 
     modelVariableValues = {} 
     for key in self.modelVariableType.keys(): modelVariableValues[key] = None
     for key in Input[1].keys(): modelVariableValues[key] = copy.deepcopy(Input[1][key])
     if 'createNewInput' not in dir(self.sim):
       for key in Input[0].keys(): modelVariableValues[key] = copy.deepcopy(Input[0][key])
-      for key in self.modelVariableType.keys() : exec('externalSelf.'+ key +' = copy.deepcopy(modelVariableValues[key])')  #self.__uploadSolution()
+      for key in self.modelVariableType.keys() : execCommand('self.'+ key +' = copy.deepcopy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.deepcopy(modelVariableValues[key])')  #self.__uploadSolution()
     self.sim.run(externalSelf, Input[0])
-    for key in self.modelVariableType.keys()   : exec('modelVariableValues[key]  = copy.deepcopy(externalSelf.'+key+')') #self.__pointSolution()
-    for key in self.initExtSelf.__dict__.keys(): exec('self.initExtSelf.' +key+' = copy.deepcopy(externalSelf.'+key+')')
+    for key in self.modelVariableType.keys()   : execCommand('object["'+key+'"]  = copy.deepcopy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.deepcopy(externalSelf.'+key+')') #self.__pointSolution()
+    for key in self.initExtSelf.__dict__.keys(): execCommand('self.' +key+' = copy.deepcopy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.deepcopy(externalSelf.'+key+')')
+    if None in self.modelVariableType.values():
+      errorfound = False
+      for key in self.modelVariableType.keys():
+        self.modelVariableType[key] = type(modelVariableValues[key]).__name__
+        if self.modelVariableType[key] not in self.__availableVariableTypes: 
+          if not errorfound: print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unsupported type found. Available ones are: '+ str(self.__availableVariableTypes).replace('[','').replace(']', ''))
+          errorfound = True
+          print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key])   
+      if errorfound: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Errors detected. See above!!')  
     return copy.deepcopy(modelVariableValues) 
 
   def run(self,Input,jobHandler):

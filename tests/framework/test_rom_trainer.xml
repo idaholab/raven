@@ -40,6 +40,8 @@
       <distribution >DG1backup</distribution>
     </variable>
   </MonteCarlo>
+  <MonteCarlo     name='RAVENmcCode3'  limit='3'>
+  </MonteCarlo>
     <MonteCarlo     name='RAVENmcND'  limit='3' initial_seed='200286'>
         <variable name='DeltaTimeScramToAux'>
             <distribution  >auxbackup</distribution>
@@ -58,7 +60,7 @@
         <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr.0000</Input>
         <Input   class='Files'      type=''                >TMI_steady_restart/1863_mesh.cpr</Input>
         <Model   class='Models'     type='Code'            >MyRAVEN</Model>
-        <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmc3</Sampler>
+        <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmcCode3</Sampler>
         <Output  class='DataBases'  type='HDF5'            >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
     </MultiRun>  
     <IOStep name='test_extract_for_rom_trainer' debug='True'>
