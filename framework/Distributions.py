@@ -20,7 +20,7 @@ else:                          import distribution1Dpy2 as distribution1D
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseType import BaseType
+from BaseClasses import BaseType
 from utils import returnPrintTag
 #Internal Modules End--------------------------------------------------------------------------------
 

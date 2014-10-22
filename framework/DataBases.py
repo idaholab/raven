@@ -18,7 +18,7 @@ import gc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseType import BaseType
+from BaseClasses import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 from utils import toBytes,keyIn,returnPrintTag,returnPrintPostTag
 #Internal Modules End--------------------------------------------------------------------------------

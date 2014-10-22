@@ -18,7 +18,7 @@ import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseType import BaseType
+from BaseClasses import BaseType
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import Samplers
@@ -138,8 +138,10 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   def initialize(self,runInfo,inputs,initDict=None):
     ''' this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
     after this call the next one will be run
-    @in runInfo is the run info from the jobHandler
-    @in inputs is a list containing whatever is passed with an input role in the step'''
+    @ In, runInfo is the run info from the jobHandler
+    @ In, inputs is a list containing whatever is passed with an input role in the step
+    @ In, initDict, optional, dictionary of all objects available in the step is using this model
+    '''
     pass
 
   @abc.abstractmethod
@@ -335,30 +337,50 @@ class ExternalModel(Dummy):
     print('FIXME: think about how to import the roles to allowed class for the external model. For the moment we have just all')
 
   def __init__(self):
+    '''
+    Constructor
+    @ In, None
+    @ Out, None
+    '''
     Dummy.__init__(self)
-    self.modelVariableValues      = {}                                                                                                        # dictionary of variable values for this   
-    self.modelVariableType        = {}
-    self.__availableVariableTypes = ['float','bool','int','ndarray','float16','float32','float64','float128','int16','int32','int64','bool8']
-    self.__availableVariableTypes = self.__availableVariableTypes + ['numpy.'+item for item in self.__availableVariableTypes]
-    self.printTag                 = returnPrintTag('MODEL EXTERNAL')
-    class Object(object):pass
-    self.initExtSelf              = Object()
+    self.modelVariableValues      = {}                                                                                                        # dictionary of variable values for the external module imported at runtime   
+    self.modelVariableType        = {}                                                                                                        # dictionary of variable types, used for consistency checks
+    self.__availableVariableTypes = ['float','bool','int','ndarray','float16','float32','float64','float128','int16','int32','int64','bool8'] # available data types
+    self.__availableVariableTypes = self.__availableVariableTypes + ['numpy.'+item for item in self.__availableVariableTypes]                 # as above
+    self.printTag                 = returnPrintTag('MODEL EXTERNAL')                                                                          # print tag
+    class Object(object):pass                                 
+    self.initExtSelf              = Object()                                                                                                  # object used as "self" for external module imported at runtime
     
   def initialize(self,runInfo,inputs,initDict=None):
+    ''' 
+    Initialize method for the model 
+    @ In, runInfo is the run info from the jobHandler
+    @ In, inputs is a list containing whatever is passed with an input role in the step
+    @ In, initDict, optional, dictionary of all objects available in the step is using this model
+    '''
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)     
   
   def createNewInput(self,myInput,samplerType,**Kwargs):
+    ''' 
+    Function to create a new input, through the info contained in Kwargs 
+    @ In, myInput, list of original inputs
+    @ In, samplerType, string, sampler type (e.g. MonteCarlo, DET, etc.)
+    @ In, Kwargs, dictionary containing information useful for creation of a newer input (e.g. sampled variables, etc.)
+    '''
     modelVariableValues ={}
     for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     if 'createNewInput' in dir(self.sim): 
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.deepcopy(modelVariableValues)
-    else: 
-      return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.deepcopy(modelVariableValues) 
+    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.deepcopy(modelVariableValues) 
 
   def _readMoreXML(self,xmlNode):
+    '''
+    Function to read the peace of input belongs to this model
+    @ In, xmlTree object, xml node containg the peace of input that belongs to this model
+    '''
     Model._readMoreXML(self, xmlNode)
     if 'ModuleToLoad' in xmlNode.attrib.keys(): 
       self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
@@ -379,6 +401,10 @@ class ExternalModel(Dummy):
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
 
   def __externalRun(self, Input): 
+    '''
+    Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
+    @ In, Input, list, list of the inputs needed for running the model
+    '''
     class Object(object):pass
     externalSelf        = Object()
     for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.deepcopy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.deepcopy(value)') 
@@ -403,10 +429,20 @@ class ExternalModel(Dummy):
     return copy.deepcopy(modelVariableValues) 
 
   def run(self,Input,jobHandler):
+    '''
+    Method that performs the actual run of the imported external model  
+    @ In, Input, list, list of the inputs needed for running the model
+    @ In, jobHandler, jobHandler object, jobhandler instance
+    '''
     inRun = copy.deepcopy(self._manipulateInput(Input[0][0]))
     jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1])  
     
   def collectOutput(self,finishedJob,output):
+    '''
+    Method that collects the outputs from the previous run  
+    @ In, finishedJob, InternalRunner object, instance of the run just finished
+    @ In, output, "Datas" object, output where the results of the calculation needs to be stored
+    '''
     if finishedJob.returnEvaluation() == -1: raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "-> No available Output to collect (Run probabably is not finished yet)")
     def typeMatch(var,var_type_str):
       type_var = type(var)
@@ -441,7 +477,6 @@ class Code(Model):
     '''extension of info to be read for the Code(model)
     !!!!generate also the code interface for the proper type of code!!!!'''
     Model._readMoreXML(self, xmlNode)
-
     for child in xmlNode:
       if child.tag=='executable': 
         self.executable = str(child.text)

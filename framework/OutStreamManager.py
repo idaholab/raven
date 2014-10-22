@@ -13,7 +13,7 @@ if not 'xrange' in dir(__builtins__):
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-from BaseType import BaseType
+from BaseClasses import BaseType
 import copy
 import ast
 from scipy.interpolate import Rbf,griddata

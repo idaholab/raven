@@ -15,7 +15,7 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseType import BaseType
+from BaseClasses import BaseType
 from utils    import metaclass_insert, returnPrintTag, returnPrintPostTag
 import Models
 from OutStreamManager import OutStreamManager

@@ -25,7 +25,7 @@ from sklearn import neighbors
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import metaclass_insert,find_le,find_lt,index,find_le_index,returnPrintTag,returnPrintPostTag
-from BaseType import BaseType
+from BaseClasses import BaseType
 import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
