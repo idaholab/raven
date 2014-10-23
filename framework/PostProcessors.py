@@ -10,9 +10,11 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 from sklearn import tree
+from scipy import spatial
 import os
 from glob import glob
 import copy
+import Datas
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -44,58 +46,238 @@ class BasePostProcessor:
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
   def run(self, Input): pass
 
-class ComparisonStatistics(BasePostProcessor):
+class SafestPoint(BasePostProcessor):
   '''
-  ComparisonStatistics is to calculate statistics that compare
-  two different codes or code to experimental data.
+  It searches for the probability-weighted safest point inside the space of the system controllable variables
   '''
-
   def __init__(self):
-    BasePostProcessor.__init__(self)
-    self.dataDict = {} #Dictionary of all the input data, keyed by the name
-    self.dataPulls = [] #List of data references that will be used
-
-  def inputToInternal(self,currentInput):
-    return [(currentInput)]
-
-  def initialize(self, runInfo, inputs, initDict):
-    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    #print("runInfo",runInfo,"inputs",inputs,"initDict",initDict)
-
+    BasePostProcessor.__init__(self)    
+    self.controllableDist = {}         #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
+    self.nonControllableDist = {}      #dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
+    self.controllableGrid = {}         #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
+    self.nonControllableGrid = {}      #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
+    self.gridInfo = {}                 #dictionary contaning the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
+    self.controllableGridSpace = None
+    self.controllableOrd = []
+    self.nonControllableOrd = []
+    self.surfPointsMatrix = None
+    self.minDist = []
+    self.printTag = returnPrintTag('POSTPROCESSOR SAFESTPOINT')
+    
   def _localReadMoreXML(self,xmlNode):
     for child in xmlNode:
-      if child.tag == 'data':
-        dataName = child.text
-        splitName = dataName.split("|")
-        name, kind = splitName[:2]
-        rest = splitName[2:]
-        self.dataPulls.append([name, kind, rest])
-        #print("xml dataName",dataName,self.dataPulls[-1])
-
-
-  def run(self, Input): # inObj,workingDir=None):
-    '''
-     Function to finalize the filter => execute the filtering
-     @ Out, None      : Print of the CSV file
-    '''
-    self.dataDict[Input.name] = Input
-    #print("input",Input,"input name",Input.name,"input input",Input.getParametersValues('inputs'),
-    #      "input output",Input.getParametersValues('outputs'))
-
-  def collectOutput(self,finishedjob,output):
-    #print("finishedjob",finishedjob,"output",output)
-    dataToProcess = []
-    for dataPull in self.dataPulls:
-      name, kind, rest = dataPull
-      data = self.dataDict[name].getParametersValues(kind)
-      #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
-      if len(rest) == 1:
-        #print("dataPart",data[rest[0]])
-        dataToProcess.append((dataPull,data[rest[0]]))
-    #print("dataToProcess",dataToProcess)
-    for dataPull, data in dataToProcess:
-      print("data",dataPull,"average",sum(data)/len(data))
-
+      if child.tag == 'controllable':
+        for childChild in child:
+          if childChild.tag == 'variable':
+            varName = childChild.attrib['name']
+            for childChildChild in childChild:
+              if childChildChild.tag == 'distribution':
+                self.controllableDist[varName] = childChildChild.text              
+              elif childChildChild.tag == 'grid':
+                if 'type' in childChildChild.attrib.keys():
+                  if 'steps' in childChildChild.attrib.keys():
+                    self.controllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
+                  else:
+                    raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> number of steps missing after the grid call.')
+                else:
+                  raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> grid type missing after the grid call.')
+              else:
+                raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid labels after the variable call. Only ''distribution'' and ''grid'' are accepted.')
+          else:
+            raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the controllable variables call. Only ''variable'' is accepted.')  
+      elif child.tag == 'non-controllable':  
+        for childChild in child:
+          if childChild.tag == 'variable':
+            varName = childChild.attrib['name']
+            for childChildChild in childChild:
+              if childChildChild.tag == 'distribution':
+                self.nonControllableDist[varName] = childChildChild.text              
+              elif childChildChild.tag == 'grid':
+                if 'type' in childChildChild.attrib.keys():
+                  if 'steps' in childChildChild.attrib.keys():
+                    self.nonControllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
+                  else:
+                    raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> number of steps missing after the grid call.')            
+                else:
+                  raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> grid type missing after the grid call.')
+              else:
+                raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid labels after the variable call. Only ''distribution'' and ''grid'' are accepted.')
+          else:
+            raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the controllable variables call. Only ''variable'' is accepted.')
+      else:
+        raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only ''controllable'' and ''non-controllable'' are accepted.')  
+    print('Controllable Distributions')
+    print(self.controllableDist)
+    print('Controllable Grid')
+    print(self.controllableGrid)
+    print('Non-Controllable Distributions')
+    print(self.nonControllableDist)
+    print('Non-Controllable Grid')
+    print(self.nonControllableGrid)
+       
+  def initialize(self,runInfo,inputs,initDict):
+    from Distributions import _FrameworkToCrowDistNames
+    for varName in self.controllableGrid.keys():
+      found = False
+      for item in inputs:
+        if item.type in _FrameworkToCrowDistNames:
+          if item.name ==  self.controllableDist[varName]:
+            self.controllableDist[varName] = item
+            found = True
+      if found == False:
+        raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> distribution ' +self.controllableDist[varName]+ ' not found.')  
+    for varName in self.nonControllableGrid.keys():
+      found = False
+      for item in inputs:
+        if item.type in _FrameworkToCrowDistNames:
+          if item.name ==  self.nonControllableDist[varName]:
+            self.nonControllableDist[varName] = item
+            found = True
+      if found == False:
+        raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> distribution ' +self.controllableDist[varName]+ ' not found.')
+    self.__gridSetting__()
+    self.__gridGeneration__()
+    self.inputToInternal(inputs)
+    print('Grid Info')
+    print(self.gridInfo)
+    print('N-Dimensional Controllable Space')
+    print(self.controllableSpace)
+    print('N-Dimensional Non-Controllable Space')
+    print(self.nonControllableSpace)
+    print('Controllable Variables Order')
+    print(self.controllableOrd)
+    print('Non-Controllable Variables Order')
+    print(self.nonControllableOrd)
+    print('Surface Points Matrix')
+    print(self.surfPointsMatrix)
+        
+  def __gridSetting__(self,constrType='equal'):
+    for varName in self.controllableGrid.keys():
+      if self.controllableGrid[varName][0] == 'value':
+        self.__stepError__(float(self.controllableDist[varName].lowerBound),float(self.controllableDist[varName].upperBound),self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
+        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [float(self.controllableDist[varName].lowerBound)+self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
+      elif self.controllableGrid[varName][0] == 'CDF':
+        self.__stepError__(0,1,self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
+        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])      
+      else:
+        raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inserted invalid grid type. Only ''value'' and ''CDF'' are accepted.')
+    for varName in self.nonControllableGrid.keys():
+      if self.nonControllableGrid[varName][0] == 'value':
+        self.__stepError__(float(self.nonControllableDist[varName].lowerBound),float(self.nonControllableDist[varName].upperBound),self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
+        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [float(self.nonControllableDist[varName].lowerBound)+self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
+      elif self.nonControllableGrid[varName][0] == 'CDF':
+        self.__stepError__(0,1,self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
+        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])      
+      else:
+        raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inserted invalid grid type. Only ''value'' and ''CDF'' are accepted.') 
+       
+  def __stepError__(self,lowerBound,upperBound,steps,tol,varName):
+    if upperBound-lowerBound<steps*tol:
+      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inserted number of steps or tolerance for variable ' +varName+' exceeds its limit.')
+  
+  def __gridGeneration__(self): 
+    NotchesByVar = [None]*len(self.controllableGrid.keys())
+    controllableSpaceSize = None
+    for varId, varName in enumerate(self.controllableGrid.keys()):
+      NotchesByVar[varId] = self.controllableGrid[varName][1]+1
+      self.controllableOrd.append(varName)
+    controllableSpaceSize = tuple(NotchesByVar+[len(self.controllableGrid.keys())])
+    self.controllableSpace = np.zeros(controllableSpaceSize) 
+    iterIndex = np.nditer(self.controllableSpace,flags=['multi_index'])
+    while not iterIndex.finished:
+      coordIndex = iterIndex.multi_index[-1]
+      varName = self.controllableGrid.keys()[coordIndex]
+      notchPos = iterIndex.multi_index[coordIndex]
+      if self.gridInfo[varName][0] == 'CDF':
+        valList = []
+        for probVal in self.gridInfo[varName][2]:
+          valList.append(self.controllableDist[varName].cdf(probVal))
+        self.controllableSpace[iterIndex.multi_index] = valList[notchPos]
+      else:    
+        self.controllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
+      iterIndex.iternext()   
+    NotchesByVar = [None]*len(self.nonControllableGrid.keys())
+    nonControllableSpaceSize = None
+    for varId, varName in enumerate(self.nonControllableGrid.keys()):
+      NotchesByVar[varId] = self.nonControllableGrid[varName][1]+1
+      self.nonControllableOrd.append(varName)
+    nonControllableSpaceSize = tuple(NotchesByVar+[len(self.nonControllableGrid.keys())])
+    self.nonControllableSpace = np.zeros(nonControllableSpaceSize)
+    iterIndex = np.nditer(self.nonControllableSpace,flags=['multi_index'])
+    while not iterIndex.finished:
+      coordIndex = iterIndex.multi_index[-1]
+      varName = self.nonControllableGrid.keys()[coordIndex]
+      notchPos = iterIndex.multi_index[coordIndex]
+      if self.gridInfo[varName][0] == 'CDF':
+        valList = []
+        for probVal in self.gridInfo[varName][2]:
+          valList.append(self.nonControllableDist[varName].cdf(probVal))
+        self.nonControllableSpace[iterIndex.multi_index] = valList[notchPos]
+      else:       
+        self.nonControllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
+      iterIndex.iternext()
+           
+  def inputToInternal(self,currentInput):
+    for item in currentInput:
+      if item.type == 'TimePointSet':
+        self.surfPointsMatrix = np.zeros((len(item.getParam('output',item.getParaKeys('outputs')[-1])),len(self.gridInfo.keys())+1))
+        k=0
+        for varName in self.controllableOrd:
+          self.surfPointsMatrix[:,k] = item.getParam('input',varName)
+          k+=1
+        for varName in self.nonControllableOrd:
+          self.surfPointsMatrix[:,k] = item.getParam('input',varName)
+          k+=1
+        self.surfPointsMatrix[:,k] = item.getParam('output',item.getParaKeys('outputs')[-1])
+        
+  def run(self,Input):
+    nearestPointsInd = []
+    dataCollector = Datas.returnInstance('TimePointSet')     
+    surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1]))     
+    self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape)-1]),self.controllableSpace.shape[-1])
+    self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape)-1]),self.nonControllableSpace.shape[-1])
+    print('Reshaped Controllable Space')
+    print(self.controllableSpace)
+    print('Reshaped Non-Controllable Space')
+    print(self.nonControllableSpace)
+    for ncLine in range(self.nonControllableSpace.shape[0]):
+      queryPointsMatrix = np.append(self.controllableSpace,np.tile(self.nonControllableSpace[ncLine,:],(self.controllableSpace.shape[0],1)),axis=1)
+      print('Query Points Matrix')
+      print(queryPointsMatrix)
+      nearestPointsInd = surfTree.query(queryPointsMatrix)[-1]
+      distList = []
+      indexList = []
+      probList = []
+      for index in range(len(nearestPointsInd)):
+        if self.surfPointsMatrix[np.where(np.prod(surfTree.data[nearestPointsInd[index],0:self.surfPointsMatrix.shape[-1]-1] == self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1],axis=1))[0][0],-1] == 1:
+          distList.append(np.sqrt(np.sum(np.power(queryPointsMatrix[index,0:self.controllableSpace.shape[-1]]-surfTree.data[nearestPointsInd[index],0:self.controllableSpace.shape[-1]],2))))
+          indexList.append(index)
+      for cVarIndex in range(len(self.controllableOrd)):
+        dataCollector.updateInputValue(self.controllableOrd[cVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],cVarIndex]))
+      for ncVarIndex in range(len(self.nonControllableOrd)):
+        dataCollector.updateInputValue(self.nonControllableOrd[ncVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]))            
+        if queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:  
+          if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+            prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/2
+          else:
+            prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/2)
+        elif queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound:
+          if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+            prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/2
+          else:
+            prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/2)         
+        else: 
+          if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+            prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]
+          else:
+            prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/2)-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/2)
+        probList.append(prob)
+      dataCollector.updateOutputValue('Probability',np.prod(probList))
+    
+    print(dataCollector.getParametersValues('input'))
+    print(dataCollector.getParametersValues('output'))
+    print(self.nonControllableDist['gammay'].cdf(0.5))
+     
 class PrintCSV(BasePostProcessor):
   '''
   PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
@@ -106,7 +288,6 @@ class PrintCSV(BasePostProcessor):
     self.inObj      = None
     self.workingDir = None
     self.printTag = returnPrintTag('POSTPROCESSOR PRINTCSV')
-
   def inputToInternal(self,currentInput): return [(currentInput)]
 
   def initialize(self, runInfo, inputs, initDict):
@@ -894,11 +1075,11 @@ class LimitSurface(BasePostProcessor):
 '''
 __base                                       = 'PostProcessor'
 __interFaceDict                              = {}
+__interFaceDict['SafestPoint'              ] = SafestPoint
 __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
-__interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __knownTypes                                 = __interFaceDict.keys()
 
 def knonwnTypes():
