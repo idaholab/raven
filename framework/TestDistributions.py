@@ -6,19 +6,9 @@ warnings.simplefilter('default',DeprecationWarning)
 import xml.etree.ElementTree as ET
 import sys, os
 
-#Add the module directory to the search path.
-ravenDir = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
-pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","crow_modules")
-print("pmoduleDir",pmoduleDir)
-if os.path.exists(pmoduleDir):
-  sys.path.append(pmoduleDir)
-else:
-  pmoduleDir = os.path.join(ravenDir,"crow","crow_modules")
-  print("pmoduleDir",pmoduleDir)
-  if os.path.exists(pmoduleDir):
-    sys.path.append(pmoduleDir)
-  else:
-    print("Could not find crow_modules directory")
+from utils import find_crow
+
+find_crow(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 
 import Distributions

@@ -27,9 +27,8 @@ import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert, returnPrintTag, returnPrintPostTag
-if sys.version_info.major > 2: import interpolationNDpy3 as interpolationND
-else                         : import interpolationNDpy2 as interpolationND  
+from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, find_interpolationND
+interpolationND = find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
 class superVisedLearning(metaclass_insert(abc.ABCMeta)):

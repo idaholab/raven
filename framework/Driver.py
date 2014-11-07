@@ -14,20 +14,9 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 #External Modules--------------------end
-from utils import returnPrintTag, returnPrintPostTag
+from utils import returnPrintTag, returnPrintPostTag, find_crow
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-ravenDir = os.path.dirname(frameworkDir)
-
-#Add the module directory to the search path.
-pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","crow_modules")
-if os.path.exists(pmoduleDir):
-  sys.path.append(pmoduleDir)
-else:
-  pmoduleDir = os.path.join(ravenDir,"crow","crow_modules")
-  if os.path.exists(pmoduleDir):
-    sys.path.append(pmoduleDir)
-
-if not os.path.exists(pmoduleDir): raise IOError('The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
+find_crow(frameworkDir)
 
 #Internal Modules
 from Simulation import Simulation

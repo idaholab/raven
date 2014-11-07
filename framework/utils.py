@@ -1,5 +1,6 @@
 import numpy as np
 import bisect
+import sys, os
 
 def getPrintTagLenght(): return 25
 
@@ -171,3 +172,48 @@ class abstractstatic(staticmethod):
     super(abstractstatic, self).__init__(function)
     function.__isabstractmethod__ = True
   __isabstractmethod__ = True
+
+def find_crow(framework_dir):
+  """ Make sure that the crow path is in the python path. """
+  try:
+    import crow_modules.distribution1Dpy2
+    return
+  except:
+    ravenDir = os.path.dirname(framework_dir)
+    #Add the module directory to the search path.
+    pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","crow_modules")
+    if os.path.exists(pmoduleDir):
+      sys.path.append(pmoduleDir)
+    else:
+      pmoduleDir = os.path.join(ravenDir,"crow","crow_modules")
+      if os.path.exists(pmoduleDir):
+        sys.path.append(pmoduleDir)
+
+    #print("pmoduleDir",pmoduleDir)
+    if not os.path.exists(pmoduleDir): raise IOError('The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
+
+def find_distribution1D():
+  """ find the crow distribution1D module and return it. """
+  try:
+    import crow_modules.distribution1Dpy2
+    return crow_modules.distribution1Dpy2
+  except:
+    if sys.version_info.major > 2:
+      import distribution1Dpy3
+      return distribution1Dpy3
+    else:
+      import distribution1Dpy2
+      return distribution1Dpy2
+
+def find_interpolationND():
+  """ find the crow interpolationND module and return it. """
+  try:
+    import crow_modules.interpolationNDpy2
+    return crow_modules.interpolationNDpy2
+  except:
+    if sys.version_info.major > 2:
+      import interpolationNDpy3
+      return interpolationNDpy3
+    else:
+      import interpolationNDpy2
+      return interpolationNDpy2

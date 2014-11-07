@@ -15,13 +15,12 @@ import copy
 import numpy as np
 import scipy.special as polys
 from scipy.misc import factorial
-if sys.version_info.major > 2: import distribution1Dpy3 as distribution1D
-else:                          import distribution1Dpy2 as distribution1D
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import returnPrintTag
+from utils import returnPrintTag, find_distribution1D
+distribution1D = find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
 stochasticEnv = distribution1D.DistributionContainer.Instance()
