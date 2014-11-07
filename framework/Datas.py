@@ -834,7 +834,7 @@ class TimePoint(Data):
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
     mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
-    myFile = open(mainCSV,"r")
+    myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     firstLine = myFile.readline().rstrip()
     myFile.close()
@@ -1167,7 +1167,7 @@ class TimePointSet(Data):
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
     mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
-    myFile = open(mainCSV,"r")
+    myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     inoutKeys = header.split(",")
     inoutValues = [[] for a in range(len(inoutKeys))]
@@ -1357,7 +1357,7 @@ class History(Data):
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
     mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
-    myFile = open(mainCSV,"r")
+    myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     firstLine = myFile.readline().rstrip()
     myFile.close()
@@ -1365,7 +1365,7 @@ class History(Data):
     subCSVFilename = os.path.join(filenameRoot,firstLine.split(",")[-1])
     inpValues = [utils.partialEval(a) for a in firstLine.split(",")[:-1]]
     #print(inpKeys,subCSVFilename,inpValues)
-    myDataFile = open(subCSVFilename, "r")
+    myDataFile = open(subCSVFilename, "rU")
     header = myDataFile.readline().rstrip()
     outKeys = header.split(",")
     outValues = [[] for a in range(len(outKeys))]
@@ -1772,7 +1772,7 @@ class Histories(Data):
     if "metadata" in xmlData:
       self._dataContainer['metadata'] = xmlData["metadata"]
     mainCSV = os.path.join(filenameRoot,xmlData["filenameCSV"])
-    myFile = open(mainCSV,"r")
+    myFile = open(mainCSV,"rU")
     header = myFile.readline().rstrip()
     inpKeys = header.split(",")[:-1]
     inpValues = []
@@ -1785,7 +1785,7 @@ class Histories(Data):
       dataFilename = mainLineList[-1]
       #print(inpValues_h,dataFilename)
       subCSVFilename = os.path.join(filenameRoot,dataFilename)
-      myDataFile = open(subCSVFilename, "r")
+      myDataFile = open(subCSVFilename, "rU")
       header = myDataFile.readline().rstrip()
       outKeys_h = header.split(",")
       outValues_h = [[] for a in range(len(outKeys_h))]
