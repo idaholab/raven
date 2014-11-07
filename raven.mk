@@ -71,7 +71,7 @@ sa:: $(RAVEN_analyzer)
 ifeq ($(APPLICATION_NAME),RAVEN)
 all:: RAVEN
 
-RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(PYTHON_MODULES)
+RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(CROW_MODULES)
 
 $(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects) $(CROW_LIB)
 	@echo "Linking "$@"..."
@@ -99,10 +99,7 @@ clean::
           $(RAVEN_DIR)/control_modules/distribution1D.py \
           $(RAVEN_DIR)/control_modules/libdistribution1D.* \
           $(RAVEN_DIR)/control_modules/raventools.py \
-          $(RAVEN_DIR)/control_modules/*.so* \
-          $(RAVEN_DIR)/python_modules/*.so* \
-          $(RAVEN_DIR)/python_modules/*_wrap.cxx \
-          $(RAVEN_DIR)/python_modules/*py[23].py
+          $(RAVEN_DIR)/control_modules/*.so*
 
 clobber::
 	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \

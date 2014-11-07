@@ -19,15 +19,15 @@ frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 ravenDir = os.path.dirname(frameworkDir)
 
 #Add the module directory to the search path.
-pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","python_modules")
+pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","crow_modules")
 if os.path.exists(pmoduleDir):
   sys.path.append(pmoduleDir)
 else:
-  pmoduleDir = os.path.join(ravenDir,"crow","python_modules")
+  pmoduleDir = os.path.join(ravenDir,"crow","crow_modules")
   if os.path.exists(pmoduleDir):
     sys.path.append(pmoduleDir)
 
-if not os.path.exists(pmoduleDir): raise IOError('The directory "python_modules" has not been found. It location is supposed to be '+pmoduleDir)
+if not os.path.exists(pmoduleDir): raise IOError('The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
 
 #Internal Modules
 from Simulation import Simulation
