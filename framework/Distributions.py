@@ -19,7 +19,7 @@ from scipy.misc import factorial
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import returnPrintTag, find_distribution1D
+from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 distribution1D = find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -183,6 +183,7 @@ class BoostDistribution(Distribution):
   def __init__(self):
     Distribution.__init__(self)
     self.dimensionality  = '1D'
+    self.disttype        = 'Continuous'
 
   def cdf(self,x):
     '''
@@ -627,9 +628,10 @@ class Poisson(BoostDistribution):
 class Binomial(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
-    self.n  = 0.0
-    self.p  = 0.0
-    self.type = 'Binomial'
+    self.n       = 0.0
+    self.p       = 0.0
+    self.type     = 'Binomial'
+    self.disttype = 'Descrete'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -662,8 +664,11 @@ class Binomial(BoostDistribution):
 class Bernoulli(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
-    self.p  = 0.0
-    self.type = 'Bernoulli'
+    self.p        = 0.0
+    self.type     = 'Bernoulli'
+    self.disttype = 'Descrete'
+    self.lowerBound = 0.0
+    self.upperBound = 1.0
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -685,6 +690,22 @@ class Bernoulli(BoostDistribution):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
     else:  raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated Bernoulli not yet implemented')
+  
+  def cdf(self,x):
+    if x <= 0.5: return self._distribution.Cdf(self.lowerBound)
+    else       : return self._distribution.Cdf(self.upperBound)
+
+  def pdf(self,x):
+    if x <= 0.5: return self._distribution.Pdf(self.lowerBound)
+    else       : return self._distribution.Pdf(self.upperBound)
+
+  def untruncatedCdfComplement(self, x):
+    if x <= 0.5: return self._distribution.untrCdfComplement(self.lowerBound)
+    else       : return self._distribution.untrCdfComplement(self.upperBound)
+
+  def untruncatedHazard(self, x):
+    if x <= 0.5: return self._distribution.untrHazard(self.lowerBound)
+    else       : return self._distribution.untrHazard(self.upperBound)
 #
 #
 #

@@ -242,4 +242,11 @@
    prereq = test_output
  [../]
 
+ [./safest_point_pp]
+  type = 'RavenFramework'
+  input = 'test_safest_point.xml'
+  output = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
+  csv = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
+ [../]
+
 []

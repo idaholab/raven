@@ -27,7 +27,7 @@
         <!-- => you can here specify what type of figure of merit you need to compute
            <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what> 
          -->
-        <what>all</what>
+        <what>expectedValue</what>
         <parameters>x01,x02</parameters>
         <methodsToRun>failureProbability</methodsToRun>
     </PostProcessor>

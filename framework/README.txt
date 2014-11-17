@@ -169,3 +169,13 @@ overridden by values in the input file. Example:
   <DefaultInputFile>test.xml</DefaultInputFile>
 </RunInfo>
 </Simulation>
+
+
+
+The model of the reactor in RELAP5 only covered the upper and the lower plenum and the core. It is adopted a channel (pipe) for each fuel element for a total of 193. The radial reflector was modeled only as a bypass channel, taking its reach to a 6% of the total as typical for a PWR. For the upper and lower extremities was held as feedback on the temperature of the fuel more adjacent. The spectral effects are still at the marginal edges of the reactor.
+The only source of heat was considered fission, were not introduced that other structures such as temperature could be burnable poisons. This is because you have not used any dimension tab for them. It is, however, given that only a fraction of the power of fission (equal to 97.4% in the present reactor) is deposited directly in the fuel and that the other party ends up in the next moderator.
+It is also exploited the ability of RELAP5 to return a feedback on the fuel temperature that varies as √T, ensuring more accurate interpolation between the different tab stops.
+When it relates to the modeling of the boundary conditions have been used to Dipendent Time Junctions (TDJ) and Time Dipendent Volume (TDV) at the core, in fact they allow you to specify the mass flow rate and temperature of the refrigerant at the inlet. A couple TDJ and TDV was used for each assembly and the reflector. At the exit you have used a Multiple Junction (MJ) that combines the flow of all assemblies and simulates the upper plenum to a TDV. This configuration allows RELAP5 of calculated pressure all along the assembly in a consistent manner (and independently for each fuel element). A schematic of the model used is shown
+
+
+

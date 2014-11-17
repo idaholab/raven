@@ -16,7 +16,7 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils    import metaclass_insert, returnPrintTag, returnPrintPostTag
+from utils import metaclass_insert, returnPrintTag, returnPrintPostTag
 import Models
 from OutStreamManager import OutStreamManager
 from Datas import Data
@@ -59,13 +59,14 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     self.FIXME = False
     BaseType.__init__(self)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
-    self.sleepTime  = 0.1  # Waiting time before checking if a run is finished
+    self.sleepTime  = 0.025  # Waiting time before checking if a run is finished
     #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
     #  re-seeding = a number to be used as a new seed
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed        = None
     self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory']
+    self._excludeFromModelValidation = ['SolutionExport']
     self.printTag = returnPrintTag('STEPS')
 
   def _readMoreXML(self,xmlNode):
@@ -192,8 +193,11 @@ class SingleRun(Step):
     for  myInput in self.parList:
       if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
     #use the models static testing of roles compatibility
-    for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
-    if 'Input'  not in roles: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->  It is not possible a run without an Input!!!')
+    for role in roles: 
+      if role not in self._excludeFromModelValidation:
+        Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
+    if self.FIXME: print(self.printTag+': ' +returnPrintPostTag('FIXME') + '-> reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!!!!')
+    #if 'Input'  not in roles: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->  It is not possible a run without an Input!!!')
     if 'Output' not in roles: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->  It is not possible a run without an Output!!!')
 
   def _localInitializeStep(self,inDictionary):
@@ -247,6 +251,7 @@ class MultiRun(SingleRun):
     if 'Sampler' not in [item[0] for item in self.parList]: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is not possible a multi-run without a sampler !!!')
 
   def _initializeSampler(self,inDictionary):
+    if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
     inDictionary['Sampler'].initialize(**self._samplerInitDict)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role of sampler the item of class '+inDictionary['Sampler'].type+' and name '+inDictionary['Sampler'].name+' has been initialized')
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Sampler initialization dictionary: '+str(self._samplerInitDict))
@@ -260,17 +265,14 @@ class MultiRun(SingleRun):
     self._outputCollectionLambda            = []
     for outIndex, output in enumerate(inDictionary['Output']):
       if output.type not in ['OutStreamPlot','OutStreamPrint']:
-        if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
-          self._outputCollectionLambda.append((lambda x:None, outIndex))
-        else:
-          self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
+        if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name: self._outputCollectionLambda.append((lambda x:None, outIndex))
+        else: self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
       else: self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     if self.debug:print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
-    
-    # we check if a Target evaluation object is here (in case, we point to it)
-    if 'TargetEvaluation' in inDictionary.keys(): self.targetOutput = inDictionary['TargetEvaluation']
-    else                                        : self.targetOutput = None
-    newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize'],lastOutput=self.targetOutput)
+    newInputs = []
+    for _ in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
+      if inDictionary['Sampler'].amIreadyToProvideAnInput(): newInputs.append(inDictionary['Sampler'].generateInput(inDictionary["Model"],inDictionary['Input']))
+    #newInputs = inDictionary['Sampler'].generateInputBatch(inDictionary['Input'],inDictionary["Model"],inDictionary['jobHandler'].runInfoDict['batchSize']) #,lastOutput=self.targetOutput
     for inputIndex, newInput in enumerate(newInputs):
       inDictionary["Model"].run(newInput,inDictionary['jobHandler'])
       if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Submitted input '+str(inputIndex+1))
@@ -295,7 +297,8 @@ class MultiRun(SingleRun):
           print(self.printTag+": " +returnPrintPostTag('Message') + '-> the JOBS that failed are tracked in the JobHandler... hence, we can retrieve and treat them separately. skipping here is Ok. Andrea')
         for _ in range(min(jobHandler.howManyFreeSpots(),sampler.endJobRunnable())): # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
           if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Testing the sampler if it is ready to generate a new input')
-          if sampler.amIreadyToProvideAnInput(inLastOutput=self.targetOutput):
+          #if sampler.amIreadyToProvideAnInput(inLastOutput=self.targetOutput):
+          if sampler.amIreadyToProvideAnInput():
             newInput =sampler.generateInput(model,inputs)
             model.run(newInput,jobHandler)
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> New input generated')
@@ -304,64 +307,64 @@ class MultiRun(SingleRun):
 #
 #
 #
-class Adaptive(MultiRun):
-  '''this class implement one step of the simulation pattern' where several runs are needed in an adaptive scheme'''
-  def __init__(self):
-    MultiRun.__init__(self)
-    self.printTag = returnPrintTag('STEP ADAPTIVE')
-  def _localInputAndChecks(self,xmlNode):
-    '''we check coherence of Sampler, Functions and Solution Output'''
-    #test sampler information:
-    if self.FIXME: print(self.printTag+': FIXME ->  all these test should be done at the beginning in a static fashion being careful since not all goes to the model')
-    foundSampler     = False
-    samplCounter     = 0
-    foundTargEval    = False
-    targEvalCounter  = 0
-    solExportCounter = 0
-    functionCounter  = 0
-    foundFunction    = False
-    ROMCounter       = 0
-    #explanation new roles:
-    #Function        : it takes in a datas and generate the value of the goal functions
-    #TargetEvaluation: is the output datas that is used for the evaluation of the goal function. It has to be declared among the outputs
-    #SolutionExport  : if declared it is used to export the location of the  goal functions = 0
-    for role in self.parList:
-      if   role[0] == 'Sampler':
-        foundSampler    =True
-        samplCounter   +=1
-        if not(role[1]=='Samplers' and role[2] in ['Adaptive','AdaptiveDynamicEventTree']): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
-      elif role[0] == 'TargetEvaluation':
-        foundTargEval   = True
-        targEvalCounter+=1
-        if role[1]!='Datas'                               : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
-        if not(['Output']+role[1:] in self.parList[:])    : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not in the output list for step '+self.name)
-      elif role[0] == 'SolutionExport'  :
-        solExportCounter  +=1
-        if role[1]!='Datas'                               : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
-      elif role[0] == 'Function'       :
-        functionCounter+=1
-        foundFunction   = True
-        if role[1]!='Functions'                           : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> A class function is required as function in an adaptive step, in the step '+self.name)
-      elif role[0] == 'ROM':
-        ROMCounter+=1
-        if not(role[1]=='Models' and role[2]=='ROM')       : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The ROM could be only class=Models and type=ROM. It does not seems so in the step '+self.name)
-    if foundSampler ==False: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a sampler in step '           +self.name)
-    if foundTargEval==False: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a target output in step '     +self.name)
-    if foundFunction==False: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a proper function, in step '  +self.name)
-    if samplCounter    >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one sampler found in step '                                            +self.name)
-    if targEvalCounter >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one target defined for the adaptive sampler found in step '            +self.name)
-    if solExportCounter>1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one output to export the solution of the goal function, found in step '+self.name)
-    if functionCounter >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one function defined in the step '                                     +self.name)
-    if ROMCounter      >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one ROM defined in the step '                                          +self.name)
-
-  def _localInitializeStep(self,inDictionary):
-    '''this is the initialization for a generic step performing runs '''
-    self._samplerInitDict['goalFunction'] = inDictionary['Function']
-    if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
-    if 'ROM'            in inDictionary.keys():
-      self._samplerInitDict['ROM']=inDictionary['ROM']
-      self._samplerInitDict['ROM'].reset()
-    MultiRun._localInitializeStep(self,inDictionary)
+# class Adaptive(MultiRun):
+#   '''this class implement one step of the simulation pattern' where several runs are needed in an adaptive scheme'''
+#   def __init__(self):
+#     MultiRun.__init__(self)
+#     self.printTag = returnPrintTag('STEP ADAPTIVE')
+#   def _localInputAndChecks(self,xmlNode):
+#     '''we check coherence of Sampler, Functions and Solution Output'''
+#     #test sampler information:
+#     if self.FIXME: print(self.printTag+': FIXME ->  all these test should be done at the beginning in a static fashion being careful since not all goes to the model')
+#     foundSampler     = False
+#     samplCounter     = 0
+#     foundTargEval    = False
+#     targEvalCounter  = 0
+#     solExportCounter = 0
+#     functionCounter  = 0
+#     foundFunction    = False
+#     ROMCounter       = 0
+#     #explanation new roles:
+#     #Function        : it takes in a datas and generate the value of the goal functions
+#     #TargetEvaluation: is the output datas that is used for the evaluation of the goal function. It has to be declared among the outputs
+#     #SolutionExport  : if declared it is used to export the location of the  goal functions = 0
+#     for role in self.parList:
+#       if   role[0] == 'Sampler':
+#         foundSampler    =True
+#         samplCounter   +=1
+#         if not(role[1]=='Samplers' and role[2] in ['Adaptive','AdaptiveDynamicEventTree']): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  The type of sampler used for the step '+str(self.name)+' is not coherent with and adaptive strategy')
+#       elif role[0] == 'TargetEvaluation':
+#         foundTargEval   = True
+#         targEvalCounter+=1
+#         if role[1]!='Datas'                               : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not compatible,  in the step '+self.name)
+#         if not(['Output']+role[1:] in self.parList[:])    : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The data chosen for the evaluation of the adaptive strategy is not in the output list for step '+self.name)
+#       elif role[0] == 'SolutionExport'  :
+#         solExportCounter  +=1
+#         if role[1]!='Datas'                               : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The data chosen for exporting the goal function solution is not compatible, in the step '+self.name)
+#       elif role[0] == 'Function'       :
+#         functionCounter+=1
+#         foundFunction   = True
+#         if role[1]!='Functions'                           : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> A class function is required as function in an adaptive step, in the step '+self.name)
+#       elif role[0] == 'ROM':
+#         ROMCounter+=1
+#         if not(role[1]=='Models' and role[2]=='ROM')       : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The ROM could be only class=Models and type=ROM. It does not seems so in the step '+self.name)
+#     if foundSampler ==False: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a sampler in step '           +self.name)
+#     if foundTargEval==False: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a target output in step '     +self.name)
+#     if foundFunction==False: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> It is not possible to run an adaptive step without a proper function, in step '  +self.name)
+#     if samplCounter    >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one sampler found in step '                                            +self.name)
+#     if targEvalCounter >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one target defined for the adaptive sampler found in step '            +self.name)
+#     if solExportCounter>1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one output to export the solution of the goal function, found in step '+self.name)
+#     if functionCounter >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one function defined in the step '                                     +self.name)
+#     if ROMCounter      >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one ROM defined in the step '                                          +self.name)
+# 
+#   def _localInitializeStep(self,inDictionary):
+#     '''this is the initialization for a generic step performing runs '''
+#     #self._samplerInitDict['goalFunction'] = inDictionary['Function']
+#     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
+#     #if 'ROM'            in inDictionary.keys():
+#       #self._samplerInitDict['ROM']=inDictionary['ROM']
+#       #self._samplerInitDict['ROM'].reset()
+#     MultiRun._localInitializeStep(self,inDictionary)
 #
 #
 #
@@ -386,69 +389,68 @@ class RomTrainer(Step):
 
   def _localTakeAstepRun(self,inDictionary):
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
-    for ROM in inDictionary['Output']:
-      ROM.train(inDictionary['Input'][0])
+    for ROM in inDictionary['Output']: ROM.train(inDictionary['Input'][0])
 #
 #
 #
-class PostProcess(SingleRun):
-  '''this class implements a PostProcessing (PP) strategy. The driver of this PP action is the model that MUST be of type FILTER'''
-  def __init__(self):
-    SingleRun.__init__(self)
-    self.foundFunction   = False
-    self.functionCounter = 0
-    self.ROMCounter      = 0
-    self.foundROM        = False
-    self.printTag = returnPrintTag('STEP POSTPROCESS')
-
-  def _localInputAndChecks(self,xmlNode):
-    found     = 0
-    rolesItem = []
-    for index, parameter in enumerate(self.parList):
-      if parameter[0]=='Model':
-        found +=1
-        modelIndex = index
-      else: rolesItem.append(parameter[0])
-    #test the presence of one and only one model
-    if found > 1: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one model is allowed for the step named '+str(self.name))
-    elif found == 0: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No model has been found for the step named '+str(self.name))
-    roles      = set(rolesItem)
-    toBeTested = {}
-    for role in roles: toBeTested[role]=[]
-    for  myInput in self.parList:
-      if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
-    #use the models static testing of roles compatibility
-    for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
-    #SingleRun._localInputAndChecks(self,xmlNode)
-    for role in self.parList:
-      if role[0] == 'Function':
-        self.functionCounter+=1
-        self.foundFunction   = True
-        if role[1]!='Functions': raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The optional function must be of class "Functions", in step ' + self.name)
-      elif role[0] == 'Model' and role[1] == 'Models':
-        if role[2] != 'PostProcessor' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The required model in "PostProcess" step must be of type PostProcessor, in step ' + self.name)
-      elif role[0] == 'ROM' and role[1] == 'Models':
-        self.ROMCounter+=1
-        self.foundROM   = True
-        if role[2] != 'ROM' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The optional ROM in "PostProcess" step must be of type ROM, in step ' + self.name)
-
-  def _localInitializeStep(self,inDictionary):
-    functionExt = None
-    ROMExt      = None
-    if self.foundFunction: functionExt = inDictionary['Function']
-    if self.foundROM: ROMExt = inDictionary['ROM']
-    initDict = {'externalFunction':functionExt,'ROM':ROMExt}
-    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],initDict)
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
-    #HDF5 initialization
-    for i in range(len(inDictionary['Output'])):
-      if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-        if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
-        elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
-        if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
-
-  def _localTakeAstepRun(self,inDictionary):
-    SingleRun._localTakeAstepRun(self, inDictionary)
+# class PostProcess(SingleRun):
+#   '''this class implements a PostProcessing (PP) strategy. The driver of this PP action is the model that MUST be of type FILTER'''
+#   def __init__(self):
+#     SingleRun.__init__(self)
+#     self.foundFunction   = False
+#     self.functionCounter = 0
+#     self.ROMCounter      = 0
+#     self.foundROM        = False
+#     self.printTag = returnPrintTag('STEP POSTPROCESS')
+# 
+#   def _localInputAndChecks(self,xmlNode):
+#     found     = 0
+#     rolesItem = []
+#     for index, parameter in enumerate(self.parList):
+#       if parameter[0]=='Model':
+#         found +=1
+#         modelIndex = index
+#       else: rolesItem.append(parameter[0])
+#     #test the presence of one and only one model
+#     if found > 1: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one model is allowed for the step named '+str(self.name))
+#     elif found == 0: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No model has been found for the step named '+str(self.name))
+#     roles      = set(rolesItem)
+#     toBeTested = {}
+#     for role in roles: toBeTested[role]=[]
+#     for  myInput in self.parList:
+#       if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
+#     #use the models static testing of roles compatibility
+#     for role in roles: Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
+#     #SingleRun._localInputAndChecks(self,xmlNode)
+#     for role in self.parList:
+#       if role[0] == 'Function':
+#         self.functionCounter+=1
+#         self.foundFunction   = True
+#         if role[1]!='Functions': raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The optional function must be of class "Functions", in step ' + self.name)
+#       elif role[0] == 'Model' and role[1] == 'Models':
+#         if role[2] != 'PostProcessor' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The required model in "PostProcess" step must be of type PostProcessor, in step ' + self.name)
+#       elif role[0] == 'ROM' and role[1] == 'Models':
+#         self.ROMCounter+=1
+#         self.foundROM   = True
+#         if role[2] != 'ROM' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The optional ROM in "PostProcess" step must be of type ROM, in step ' + self.name)
+# 
+#   def _localInitializeStep(self,inDictionary):
+#     functionExt = None
+#     ROMExt      = None
+#     if self.foundFunction: functionExt = inDictionary['Function']
+#     if self.foundROM: ROMExt = inDictionary['ROM']
+#     initDict = {'externalFunction':functionExt,'ROM':ROMExt}
+#     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],initDict)
+#     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
+#     #HDF5 initialization
+#     for i in range(len(inDictionary['Output'])):
+#       if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
+#         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
+#         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
+#         if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
+# 
+#   def _localTakeAstepRun(self,inDictionary):
+#     SingleRun._localTakeAstepRun(self, inDictionary)
 #
 #
 #
@@ -537,11 +539,11 @@ class IOStep(Step):
 __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
-__interFaceDict['Adaptive'         ] = Adaptive
+#__interFaceDict['Adaptive'         ] = Adaptive
 __interFaceDict['IOStep'           ] = IOStep
 __interFaceDict['IODataBase'       ] = IOStep
 __interFaceDict['RomTrainer'       ] = RomTrainer
-__interFaceDict['PostProcess'      ] = PostProcess
+__interFaceDict['PostProcess'      ] = SingleRun
 __interFaceDict['OutStreamStep'    ] = IOStep
 __base                               = 'Step'
 

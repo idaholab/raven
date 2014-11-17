@@ -547,8 +547,25 @@ class Simulation(object):
         if key == 'Input' and b == 'Files': self.__checkExistPath(d) #if the input is a file, check if it exists 
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
-      #generate the needed distributions to send to the step
-      if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.distributionsDict)
+      #generate the needed assembler to send to the step
+      for key in stepInputDict.keys():
+        if type(stepInputDict[key]) == list: stepindict = stepInputDict[key]
+        else                               : stepindict = [stepInputDict[key]]
+        for stp in stepindict: 
+          if "whatDoINeed" in dir(stp): 
+            neededobjs    = {}
+            neededObjects = stp.whatDoINeed()
+            for mainClassStr in neededObjects.keys():
+              if mainClassStr not in self.whichDict.keys(): raise IOError(self.printTag+': ERROR -> Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
+              neededobjs[mainClassStr] = {}
+              for obj in neededObjects[mainClassStr]:
+                if obj[1] in self.whichDict[mainClassStr].keys():
+                  if obj[0]:
+                    if obj[0] not in self.whichDict[mainClassStr][obj[1]].type: raise IOError(self.printTag+': ERROR -> Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
+                  neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
+                else: raise IOError(self.printTag+': ERROR -> Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
+            stp.generateAssembler(neededobjs)
+      #if 'Sampler' in stepInputDict.keys(): stepInputDict['Sampler'].generateDistributions(self.distributionsDict)
       #running a step
       stepInstance.takeAstep(stepInputDict)
       #---------------here what is going on? Please add comments-----------------

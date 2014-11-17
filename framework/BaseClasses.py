@@ -6,11 +6,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
- 
+import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils    import returnPrintTag
+from utils    import returnPrintTag, metaclass_insert
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -98,7 +98,32 @@ class BaseType(object):
     print(self.printTag+'Current Setting:')
     for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
     print('\n')
-    
-    
-  
-  
+#    
+#    
+#  
+#
+class Assembler(metaclass_insert(abc.ABCMeta,object)):
+  '''
+  Assembler class is used as base class for all the objects that need, for initialization purposes,
+  to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
+  '''
+  @abc.abstractmethod
+  def whatDoINeed(self):
+    '''
+    This method is used mainly by the Simulation class at the Step construction stage. 
+    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
+    be initialize. It is an abstract method -> It must be implemented in the derived class!
+    @ In , None, None
+    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name)) 
+    '''
+    pass
+  @abc.abstractmethod
+  def generateAssembler(self,initDict):
+    '''
+    This method is used mainly by the Simulation class at the Step construction stage. 
+    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+    It is an abstract method -> It must be implemented in the derived class!
+    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
+    @ Out, None, None
+    '''
+    pass    

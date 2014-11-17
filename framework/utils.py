@@ -8,6 +8,18 @@ def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTag
 
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
+def compare(s1,s2):
+  sig_fig=6
+  w1 = partialEval(s1) 
+  w2 = partialEval(s2) 
+  if type(w1) == type(w2) and type(w1) != float: return w1 == w2
+  elif type(w1) == type(w2) and type(w1) == float: return int(w1*10**sig_fig) == int(w2*10**sig_fig)  
+  elif type(w1) != type(w2) and type(w1) in [float,int] and type(w2) in [float,int]:
+    w1 = float(w1)
+    w2 = float(w2)
+    return compare(w1,w2)
+  else: return (w1 == w2)
+
 def partialEval(s):
   try:
     r = int(s)

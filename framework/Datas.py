@@ -51,6 +51,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
     self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8]
+    self.type = self.__class__.__name__
     self.printTag  = utils.returnPrintTag('DATAS')
 
   def _readMoreXML(self,xmlNode):

@@ -19,6 +19,7 @@ from sklearn import neighbors
 from sklearn import qda
 from sklearn import tree
 from sklearn import lda
+from sklearn import gaussian_process
 import sys
 import numpy as np
 import numpy
@@ -349,7 +350,9 @@ class SciKitLearn(superVisedLearning):
   availImpl['tree']['DecisionTreeRegressor' ] = (tree.DecisionTreeRegressor , 'float'  )# A tree regressor.
   availImpl['tree']['ExtraTreeClassifier'   ] = (tree.ExtraTreeClassifier   , 'integer')# An extremely randomized tree classifier.
   availImpl['tree']['ExtraTreeRegressor'    ] = (tree.ExtraTreeRegressor    , 'float'  )# An extremely randomized tree regressor.
-
+ 
+  availImpl['GaussianProcess'] = {}
+  availImpl['GaussianProcess']['GaussianProcess'] = (gaussian_process.GaussianProcess    , 'float'  )
   #test if a method to estimate the probability of the prediction is available
   qualityEstTypeDict = {}
   for key1, myDict in availImpl.items():

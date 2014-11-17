@@ -18,7 +18,7 @@ import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses import BaseType, Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 import Samplers
@@ -473,6 +473,7 @@ class Code(Model):
     self.alias              = {}   #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
                                    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
     self.printTag = returnPrintTag('MODEL CODE')
+  
   def _readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
     !!!!generate also the code interface for the proper type of code!!!!'''
@@ -514,14 +515,12 @@ class Code(Model):
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
     except OSError: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-    for inputFile in inputFiles:    
-      shutil.copy(inputFile,self.workingDir)
+    for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> original input files copied in the current working dir: '+self.workingDir)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> files copied:')
     if self.debug: print(inputFiles)
     self.oriInputFiles = []
-    for i in range(len(inputFiles)):
-      self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
+    for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
     self.currentInputFiles        = None
     self.outFileRoot              = None
 
@@ -598,8 +597,8 @@ class Projector(Model):
 #
 #
 #
-class PostProcessor(Model):
-  '''Filter is an Action System. All the models here, take an input and perform an action'''
+class PostProcessor(Model, Assembler):
+  '''PostProcessor is an Action System. All the models here, take an input and perform an action'''
   @classmethod
   def specializeValidateDict(cls):
     cls.validateDict['Input']                    = [cls.validateDict['Input' ][0]]
@@ -656,6 +655,29 @@ class PostProcessor(Model):
     self.action = None   # action
     self.workingDir = ''
     self.printTag = returnPrintTag('MODEL POSTPROCESSOR')
+  
+  def whatDoINeed(self): 
+    '''
+    This method is used mainly by the Simulation class at the Step construction stage. 
+    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
+    be initialize. It is an abstract method -> It must be implemented in the derived class!
+    NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
+    @ In , None, None
+    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name)) 
+    '''
+    return self.interface.whatDoINeed()
+  
+  def generateAssembler(self,initDict):
+    '''
+    This method is used mainly by the Simulation class at the Step construction stage. 
+    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+    It is an abstract method -> It must be implemented in the derived class!
+    NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
+    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
+    @ Out, None, None
+    '''
+    self.interface.generateAssembler(initDict)
+  
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
     self.interface = PostProcessors.returnInstance(self.subType)
@@ -663,7 +685,6 @@ class PostProcessor(Model):
  
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
-  
   
   def initialize(self,runInfo,inputs, initDict=None):
     '''initialize some of the current setting for the runs and generate the working 

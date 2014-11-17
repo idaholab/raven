@@ -17,6 +17,10 @@
         <what>all</what>
         <parameters>x0,y0</parameters>
         <parameters>x0,y0</parameters>
+        <Assembler>
+            <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
+            <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+        </Assembler>
     </PostProcessor>
     <ROM name='Acc' subType='SciKitLearn'>
         <Features>x0,y0</Features>
@@ -68,9 +72,7 @@
     </MultiRun >
     <PostProcess name='ComputeLimitSurface' >
         <Input    class='Datas'            type='TimePointSet'    >TimePointSetPostProcTest</Input>
-         <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
         <Model    class='Models'           type='PostProcessor'   >computeLimitSurface</Model>
-        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
         <Output   class='Datas'            type='TimePointSet'    >LimitSurface</Output>
         <Output   class='OutStreamManager' type='Print'           >LimitSurface_dump</Output>
     </PostProcess>

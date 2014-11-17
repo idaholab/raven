@@ -25,13 +25,13 @@ from sklearn import neighbors
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import metaclass_insert,find_le,find_lt,index,find_le_index,returnPrintTag,returnPrintPostTag
-from BaseClasses import BaseType
+from BaseClasses import BaseType, Assembler
 import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
+class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   '''
   This is the base class for samplers
   Samplers own the sampling strategy (Type) and they generate the
@@ -44,6 +44,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   --usage--
   myInstance = Sampler()
   myInstance.XMLread(xml.etree.ElementTree.Element)  This method generate all permanent information of the object from <Simulation>
+  myInstance.whatDoINeed()                           -see Assembler class-
   myInstance.generateDistributions(dict)             Here the seed for the random engine is started and the distributions are supplied to the sampler and
                                                      initialized. The method is called come from <Simulation> since it is the only one possess all the distributions.
   myInstance.initialize()                            This method is called from the <Step> before the Step process start. In the base class it reset the counter to 0
@@ -77,6 +78,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
   def __init__(self):
     BaseType.__init__(self)
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
+    self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
     self.limit                         = sys.maxsize               # maximum number of Samples (for example, Monte Carlo = Number of Histories to run, DET = Unlimited)
     self.toBeSampled                   = {}                        # Sampling mapping dictionary {'Variable Name':'name of the distribution'}
     self.distDict                      = {}                        # Contains the instance of the distribution to be used, it is created every time the sampler is initialized. keys are the variable names
@@ -87,9 +89,35 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
     self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
+    self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is perfermed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = returnPrintTag(self.type) # prefix for all prints (sampler type)
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc) 
+  
+  def whatDoINeed(self): 
+    '''
+    This method is used mainly by the Simulation class at the Step construction stage. 
+    It is used for inquiring the Sampler about the kind of objects the Sampler needs to
+    be initialize. It is an abstract method that comes from the base class Assembler(see BaseClasses.py)
+    @ In , None, None
+    @ Out, needDict, dictionary of objects needed (class:list(tuple(object type{if None, Simulation does not check the type}, object name))). (eg. {'Distributions':[(type1,distname1),(type2,distname2)]} )
+    '''
+    # call the local method for getting additional needed objects
+    needDict = self._localWhatDoINeed()
+    # the distributions are the common things that are needed by each sampler 
+    if 'Distributions' not in needDict.keys(): needDict['Distributions'] = []
+    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))   
+    return needDict
+
+  def _localWhatDoINeed(self):
+    '''
+    This method is a local mirrow of the general whatDoINeed method. 
+    It is implmented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, needDict, list of objects needed
+    '''
+    return {}
+  
   def _readMoreXML(self,xmlNode):
     '''
     Function to read the portion of the xml input that belongs to this specialized class
@@ -101,6 +129,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
     except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
+    if 'reseedAtEachIteration' in xmlNode.attrib.keys(): 
+      if xmlNode.attrib['reseedAtEachIteration'].lower() in ['t','true','yes','y','si','oui','shi','etiam']: self.reseedAtEachIteration = True
     for child in xmlNode:
       for childChild in child:
         if childChild.tag =='distribution':
@@ -143,8 +173,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, tempDict
     @ Out, tempDict
     '''
-    tempDict['counter' ]      = self.counter
-    tempDict['initial seed' ] = self.initSeed
+    tempDict['counter'       ] = self.counter
+    tempDict['initial seed'  ] = self.initSeed
     for key in self.inputInfo:
       if key!='SampledVars': tempDict[key] = self.inputInfo[key]
       else:
@@ -155,7 +185,14 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
     pass
 
-  def generateDistributions(self,availableDist):
+  def generateAssembler(self,initDict):
+    availableDist = initDict['Distributions']
+    self._generateDistributions(availableDist)
+    self._localGenerateAssembler(initDict)
+  
+  def _localGenerateAssembler(self,initDict): pass
+  
+  def _generateDistributions(self,availableDist):
     '''
     here the needed distribution are made available to the step as also the initialization
     of the seeding (the siding could be overriden by the step by calling the initialize method
@@ -167,23 +204,23 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
       if self.toBeSampled[key] not in availableDist.keys(): IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!!!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
-
-  def initialize(self,externalSeeding=None,solutionExport=None,goalFunction=None,ROM=None):
+  
+  def initialize(self,externalSeeding=None,solutionExport=None):
     '''
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
-    @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrain)
-    @in goalFunction:   in goal oriented sampling this is the function to be used
+    @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
     '''
     self.counter = 0
-
-    if   not externalSeeding          : Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
-    elif externalSeeding=='continue'  : pass                                          #in this case the random sequence needs to be preserved
-    else                              : Distributions.randomSeed(externalSeeding)     #the external seeding is used
+    if   not externalSeeding          : 
+      Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
+      self.auxcnt = self.initSeed
+    elif externalSeeding=='continue'  : pass        #in this case the random sequence needs to be preserved
+    else                              : 
+      Distributions.randomSeed(externalSeeding)     #the external seeding is used
+      self.auxcnt = externalSeeding
     for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport :
-      if not goalFunction : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Not Consistent Input... gaalFunction not provided but requested a solution export!!!')
-      self.localInitialize(solutionExport=solutionExport,goalFunction=goalFunction,ROM=ROM)
+    if solutionExport : self.localInitialize(solutionExport=solutionExport)
     else              : self.localInitialize()
 
   def localInitialize(self):
@@ -193,21 +230,20 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     pass
 
-  def amIreadyToProvideAnInput(self,inLastOutput=None):
+  def amIreadyToProvideAnInput(self): #inLastOutput=None):
     '''
     This is a method that should be call from any user of the sampler before requiring the generation of a new sample.
     This method act as a "traffic light" for generating a new input.
     Reason for not being ready could be for example: exceeding number of samples, waiting for other simulation for providing more information etc. etc.
-    @in lastOutput is used for adaptive methodologies when the the last output is used to decide if convergence is achived
-    @return Boolean
+    @ In, None, None
+    @ Out, ready, Boolean
     '''
     if(self.counter < self.limit): ready = True
     else                         : ready = False
-    if inLastOutput == None      : ready = self.localStillReady(ready)
-    else                         : ready = self.localStillReady(ready,lastOutput=inLastOutput)
+    ready = self.localStillReady(ready)
     return ready
 
-  def localStillReady(self,ready,lastOutput=None):
+  def localStillReady(self,ready): #,lastOutput=None
     '''Use this function to change the ready status'''
     return ready
 
@@ -220,7 +256,9 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in oldInput: [] a list of the original needed inputs for the model (e.g. list of files, etc. etc)
     @return     : [] containing the new inputs -in reality it is the model that return this the Sampler generate the value to be placed in the intput the model
     '''
-    self.counter +=1                              #since we are creating the input for the next run we increase the counter
+    self.counter +=1                              #since we are creating the input for the next run we increase the counter and global counter
+    self.auxcnt  +=1
+    if self.reseedAtEachIteration: Distributions.randomSeed(self.auxcnt-1)
     self.inputInfo['prefix'] = str(self.counter)
     self.localGenerateInput(model,oldInput)
     return model.createNewInput(oldInput,self.type,**self.inputInfo)
@@ -235,7 +273,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     pass
 
-  def generateInputBatch(self,myInput,model,batchSize,projector=None,lastOutput=None):
+  def generateInputBatch(self,myInput,model,batchSize,projector=None): #,lastOutput=None
     '''
     this function provide a mask to create several inputs at the same time
     It call the generateInput function as many time as needed
@@ -245,10 +283,11 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType)):
     @in projector used for adaptive sampling to provide the projection of the solution on the success metric
     @return newInputs: [[]] list of the list of input sets'''
     newInputs = []
-    inlastO = None
-    if lastOutput: 
-      if not lastOutput.isItEmpty(): inlastO = lastOutput
-    while self.amIreadyToProvideAnInput(inlastO) and (self.counter < batchSize):
+    #inlastO = None
+    #if lastOutput: 
+    #  if not lastOutput.isItEmpty(): inlastO = lastOutput
+    #while self.amIreadyToProvideAnInput(inlastO) and (self.counter < batchSize):
+    while self.amIreadyToProvideAnInput() and (self.counter < batchSize):
       if projector==None: newInputs.append(self.generateInput(model,myInput))
       else              : newInputs.append(self.generateInput(model,myInput,projector))
     return newInputs
@@ -278,9 +317,11 @@ class AdaptiveSampler(Sampler):
   '''This is a general adaptive sampler'''
   def __init__(self):
     Sampler.__init__(self)
+    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
+    self.ROM              = None             #This contains a pointer to the ROM instance 
     self.toleranceWeight  = 'probability'    #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
     self.persistence      = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
     self.repetition       = 0                #the actual number of time the error was below the requested threshold
@@ -299,11 +340,35 @@ class AdaptiveSampler(Sampler):
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
     self.printTag         = returnPrintTag('SAMPLER ADAPTIVE')
-  
+
+  def _localWhatDoINeed(self):
+    '''
+    This method is a local mirrow of the general whatDoINeed method. 
+    It is implmented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, needDict, list of objects needed
+    '''
+    needDict = {}
+    for value in self.assemblerObjects.values():
+      if value[0] not in needDict.keys(): needDict[value[0]] = []
+      needDict[value[0]].append((value[1],value[2]))
+    return needDict
+
+  def _localGenerateAssembler(self,initDict):
+    for key, value in self.assemblerObjects.items():
+      if key in 'TargetEvaluation' : self.lastOutput = initDict[value[0]][value[2]]
+      if key in 'ROM'              : self.ROM = initDict[value[0]][value[2]]
+      if key in 'Function'         : self.goalFunction = initDict[value[0]][value[2]]
+    if self.ROM==None:
+      mySrting= ','.join(list(self.distDict.keys()))
+      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})     
+    self.ROM.reset()
+
   def localInputAndChecks(self,xmlNode):
     if 'limit' in xmlNode.attrib.keys():
       try: self.limit = int(xmlNode.attrib['limit'])
       except ValueError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+    # convergence Node
     convergenceNode = xmlNode.find('Convergence')
     if convergenceNode==None:raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the node Convergence was missed in the definition of the adaptive sampler '+self.name)
     try   : self.tolerance=float(convergenceNode.text)
@@ -330,6 +395,28 @@ class AdaptiveSampler(Sampler):
       if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
       else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
+    #assembler node
+    assemblerNode = xmlNode.find('Assembler')
+    if assemblerNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the node Assembler is missed in the definition of the adaptive sampler!')
+    targEvalCounter  = 0
+    romCounter       = 0
+    functionCounter  = 0
+    for subNode in assemblerNode:
+      if subNode.tag in ['TargetEvaluation','ROM','Function']: 
+        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!') 
+      if 'TargetEvaluation' in subNode.tag:
+        targEvalCounter += 1
+        self.assemblerObjects[subNode.tag] = [subNode.attrib['class'],subNode.attrib['type'],subNode.text]
+      if 'ROM'              in subNode.tag:
+        romCounter += 1
+        self.assemblerObjects[subNode.tag] = [subNode.attrib['class'],subNode.attrib['type'],subNode.text]
+      if 'Function'         in subNode.tag:
+        functionCounter += 1
+        self.assemblerObjects[subNode.tag] = [subNode.attrib['class'],subNode.attrib['type'],subNode.text]
+    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
+    if functionCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!')
+    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+    # set subgrid
     if self.subGridTol == None: self.subGridTol = self.tolerance
     if self.subGridTol> self.tolerance: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
     if len(attribList)>0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> There are unknown keywords in the convergence specifications: '+str(attribList))
@@ -349,26 +436,8 @@ class AdaptiveSampler(Sampler):
     for varName in self.distDict.keys():
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
 
-  def _cKDTreeInterface(self,action,data):
-    m = len(list(data.keys()))
-    n = len( data[  list(data.keys())[0]   ]  )
-    dataMatrix = np.zeros((n,m))
-    if action=='train':
-      self._KDTreeMappingList = []
-      for myIndex, key in enumerate(list(data.keys())):
-        self._KDTreeMappingList.append(key)
-        dataMatrix[:,myIndex] = data[key]
-      self._tree = spatial.cKDTree(copy.copy(dataMatrix),leafsize=2)
-      if self.FIXME:print(self.printTag+': FIXME -> here rather than using self.gridCoord a conversion of data would be more coherent')
-    elif action=='confidence':
-      for myIndex, key in enumerate(self._KDTreeMappingList):
-        dataMatrix[:,myIndex] = data[key]
-      distance, outId    = self._tree.query(dataMatrix)
-      return distance, outId
-
-  def localInitialize(self,goalFunction,solutionExport=None,ROM=None):
+  def localInitialize(self,solutionExport=None):
     self.memoryStep        = 5               # number of step for which the memory is kept
-    self.goalFunction      = goalFunction
     self.solutionExport    = solutionExport
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
@@ -379,11 +448,11 @@ class AdaptiveSampler(Sampler):
     if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Goal function name does not match solution export data output.')
     self._endJobRunnable   = 1
     #build a lambda function to masquerade the ROM <-> cKDTree presence
-    if not goalFunction: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Gaol Function not provided!!')
+    #if not goalFunction: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Gaol Function not provided!!')
     #set up the ROM for the acceleration
-    mySrting= ','.join(list(self.distDict.keys()))
-    if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
-    else        : self.ROM = ROM
+    #mySrting= ','.join(list(self.distDict.keys()))
+    #if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
+    #else        : self.ROM = ROM
     #check if convergence is not on probability if all variables are bounded in value otherwise the problem is unbounded
     if self.toleranceWeight=='none':
       for varName in self.distDict.keys():
@@ -441,8 +510,8 @@ class AdaptiveSampler(Sampler):
         print (self.printTag+': ' +returnPrintPostTag('Message') + '-> Indexes: '+str(myIterator.multi_index)+'    coordinate: '+str(self.gridCoord[myIterator.multi_index]))
         myIterator.iternext()
     self.hangingPoints    = np.ndarray((0, self.nVar))
-    if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
-    else        : self.ROM = ROM
+    #if ROM==None: self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':','.join(self.axisName),'Target':self.goalFunction.name})
+    #else        : self.ROM = ROM
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Initialization done')
   
   def _trainingROM(self,lastOutput):
@@ -484,7 +553,7 @@ class AdaptiveSampler(Sampler):
     tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
     self.ROM.train(tempDict)  
   
-  def localStillReady(self,ready,lastOutput=None):
+  def localStillReady(self,ready): #,lastOutput=None
     '''
     first perform some check to understand what it needs to be done possibly perform an early return
     ready is returned
@@ -492,12 +561,19 @@ class AdaptiveSampler(Sampler):
     lastOutput it is not considered to be present during the test performed for generating an input batch
     ROM if passed in it is used to construct the test matrix otherwise the nearest neightburn value is used
     '''
+    
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> From method localStillReady...')
     #test on what to do
-    if ready      == False : return ready #if we exceeded the limit just return that we are done
-    if lastOutput == None and self.ROM.amITrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
+    if ready      == False : return ready #if we exceeded the limit just return that we are done 
+    if type(self.lastOutput) == dict:
+      if self.lastOutput == None and self.ROM.amITrained==False: return ready
+    else:
+      if self.lastOutput.isItEmpty() and self.ROM.amITrained==False: return ready #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean 
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
-    if lastOutput !=None: self._trainingROM(lastOutput)
+    if type(self.lastOutput) == dict:
+      if self.lastOutput != None: self._trainingROM(self.lastOutput)
+    else:
+      if not self.lastOutput.isItEmpty(): self._trainingROM(self.lastOutput)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Training finished')           #happy thinking :)
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
@@ -1001,19 +1077,29 @@ class DynamicEventTree(Grid):
     self.precNumberSamplers                = 0         
     self.printTag = returnPrintTag('SAMPLER DYNAMIC ET')
 
-  def localStillReady(self,lastOutput=None):
+  def _localWhatDoINeed(self):
+    needDict = {}
+    for preconditioner in self.preconditionerToApply.values(): 
+      preneedDict = preconditioner.whatDoINeed()
+      for key,value in preneedDict.items():
+        if key not in needDict.keys(): needDict[key] = []
+        needDict[key] = needDict[key] + value
+    return needDict
+
+  def localStillReady(self, ready): #,lastOutput=None
     '''
     Function that inquires if there is at least an input the in the queue that needs to be run
     @ In, None
     @ Out, boolean
     '''
-    if(len(self.RunQueue['queue']) != 0 or self.counter == 0): return True
+    if(len(self.RunQueue['queue']) != 0 or self.counter == 0): ready = True
     else:
       if self.print_end_xml: 
         myFile = open(os.path.join(self.workingDir,self.name + "_output_summary.xml"),'w')
         for treeNode in self.TreeInfo.values(): treeNode.writeNodeTree(myFile)
         myFile.close()
-      return False
+      ready = False
+    return ready
   
   def _retrieveParentNode(self,idj):
     if(idj == self.TreeInfo[self.rootToJob[idj]].getrootnode().name): parentNode = self.TreeInfo[self.rootToJob[idj]].getrootnode()
@@ -1402,9 +1488,9 @@ class DynamicEventTree(Grid):
       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> A Branch ended!!!!')
     return newerinput
 
-  def generateDistributions(self,availableDist):
-    Grid.generateDistributions(self,availableDist)
-    for preconditioner in self.preconditionerToApply.values(): preconditioner.generateDistributions(availableDist)
+  def _generateDistributions(self,availableDist):
+    Grid._generateDistributions(self,availableDist)
+    for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist)
     
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
@@ -1514,6 +1600,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     self.adaptiveReady = False
     self.investigatedPoints = []
     self.completedHistCnt   = 1
+    self.actualLastOutput   = None
   @staticmethod
   def _checkIfRunnint(treeValues): return not treeValues['runEnded']
   @staticmethod
@@ -1681,7 +1768,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     # Call the model function "createNewInput" with the "values" dictionary just filled.
     return
 
-  def localStillReady(self,ready, lastOutput= None):
+  def localStillReady(self,ready): #, lastOutput= None
     '''
     Function that inquires if there is at least an input the in the queue that needs to be run
     @ In, None
@@ -1698,7 +1785,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       completedHistNames = []
       for treer in self.TreeInfo.values(): # this needs to be solved
         for ending in treer.iterProvidedFunction(self._checkCompleteHistory):
-          completedHistNames.append(lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
+          completedHistNames.append(self.lastOutput.getParam(typeVar='inout',keyword='none',nodeid=ending.get('name'),serialize=False))
       # assemble a dictionary
       if len(completedHistNames) > 0:
         if len(completedHistNames[-1].values()) > 0:
@@ -1713,7 +1800,9 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
               else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))))    
         else: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> No Completed histories! No possible to start an adaptive search! Something went wrongly!')  
       if len(completedHistNames) > self.completedHistCnt:
-        ready = AdaptiveSampler.localStillReady(self,ready,lastOutDict)
+        self.actualLastOutput = self.lastOutput
+        self.lastOutput       = self.actualLastOutput
+        ready = AdaptiveSampler.localStillReady(self,ready)
         self.completedHistCnt = len(completedHistNames)
       else: ready = False
       self.adaptiveReady = ready
@@ -1790,9 +1879,8 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     if 'updateGrid' in xmlNode.attrib.keys(): 
       if xmlNode.attrib['updateGrid'].lower() in ['y','yes','true','t']: self.insertAdaptBPb = True
   
-  def generateDistributions(self,availableDist): 
-    DynamicEventTree.generateDistributions(self,availableDist)
-    #AdaptiveSampler.generateDistributions(self,availableDist)
+  def _generateDistributions(self,availableDist): 
+    DynamicEventTree._generateDistributions(self,availableDist)
   
   def localInitialize(self,solutionExport = None,goalFunction = None,ROM = None):
     if self.detAdaptMode == 2: self.startAdaptive = True

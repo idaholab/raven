@@ -94,7 +94,6 @@ class RAVENInterface:
     if 'initial_seed' in Kwargs: init_seed = Kwargs['initial_seed']
     else                       : init_seed = 1
     _,listDict = self.__genBasePointSampler(**Kwargs)
-    print(listDict)
     #listDict = []
     modifDict = {}
     modifDict['name'] = ['Distributions']
@@ -233,6 +232,9 @@ class RAVENInterface:
       #assertDict = crowDist.copy()
       #assertDict['special'] = set(['assert_match'])
       #listDict.append(assertDict)
+      for crowDistKey in crowDist.keys():
+        if crowDistKey not in ['type']: listDict.append({'name':['Distributions',distName], 'special':set(['assert_match']), crowDistKey:crowDist[crowDistKey]})
+            
       listDict.append({'name':['Distributions',distName],
                        'special':set(['assert_match']),
                        'type':crowDist['type']})

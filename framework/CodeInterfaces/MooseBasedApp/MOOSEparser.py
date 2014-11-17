@@ -12,7 +12,7 @@ if not 'xrange' in dir(__builtins__):
 import xml.etree.ElementTree as ET
 import os
 import copy
-from utils import toBytes, toStrish
+from utils import toBytes, toStrish, compare
 
 class MOOSEparser:
   '''import the MOOSE input as xml tree, provide methods to add/change entries and print it back'''
@@ -117,13 +117,15 @@ class MOOSEparser:
     """
     for key in other:
       if key in dictionary:
-        if dictionary[key] != other[key]:
+        #if dictionary[key] != other[key]:
+        if not compare(dictionary[key],other[key]):
           print("Missmatch ",key,repr(dictionary[key]),repr(other[key]))
           return False
       else:
         bin_key = toBytes(key)
         if bin_key in dictionary:
-          if dictionary[bin_key] != other[key]:
+          if not compare(dictionary[bin_key],other[key]):
+          #if dictionary[bin_key] != other[key]:
             print("Missmatch_b ",key,dictionary[bin_key],other[key])
             return False
         else:
