@@ -73,10 +73,10 @@ all:: RAVEN
 
 RAVEN: $(RAVEN_APP) $(CONTROL_MODULES) $(CROW_MODULES)
 
-$(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(r7_LIB) $(RAVEN_LIB) $(RAVEN_app_objects) $(CROW_LIB)
+$(RAVEN_APP): $(moose_LIB) $(elk_MODULES) $(RAVEN_LIB) $(RAVEN_app_objects) $(CROW_LIB)
 	@echo "Linking "$@"..."
 	$(libmesh_LIBTOOL) --tag=CXX $(LIBTOOLFLAGS) --mode=link --quiet \
-          $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(RAVEN_app_objects) $(RAVEN_LIB) $(r7_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS) $(app_LIBS) $(CROW_LIB) $(PYTHON_LIB)
+          $(libmesh_CXX) $(libmesh_CXXFLAGS) -o $@ $(RAVEN_app_objects) $(RAVEN_LIB) $(elk_MODULES) $(moose_LIB) $(libmesh_LIBS) $(libmesh_LDFLAGS) $(ADDITIONAL_LIBS) $(app_LIBS) $(CROW_LIB) $(PYTHON_LIB)
 
 RAVEN_MODULES = $(CROW_DIR)/control_modules
 
