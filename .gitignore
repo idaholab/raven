@@ -48,3 +48,10 @@ work_in_progress/remote_tools/time
 framework/DataBaseStorage/
 tests/framework/LHStestFerret/myLHS/
 tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
+
+# eclipse
+.project
+.cproject
+
+# python
+*.pyc
