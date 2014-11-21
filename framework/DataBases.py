@@ -56,8 +56,8 @@ class DateBase(BaseType):
     '''
     Function that adds the initial parameter in a temporary dictionary
     @ In, tempDict
-    @ Out, tempDict 
-    ''' 
+    @ Out, tempDict
+    '''
     return tempDict
 
   @abc.abstractmethod
@@ -118,15 +118,15 @@ class HDF5(DateBase):
       self.database = h5Data(self.name,self.databaseDir,file_name)
       self.exist    = True
     except KeyError:
-      self.database = h5Data(self.name,self.databaseDir) 
+      self.database = h5Data(self.name,self.databaseDir)
       self.exist    = False
-      
+
   def addInitParams(self,tempDict):
     '''
     Function that adds the initial parameter in a temporary dictionary
     @ In, tempDict
-    @ Out, tempDict 
-    ''' 
+    @ Out, tempDict
+    '''
     tempDict = DateBase.addInitParams(self,tempDict)
     tempDict['exist'] = self.exist
     return tempDict
@@ -135,16 +135,16 @@ class HDF5(DateBase):
     '''
     Function to retrieve all the groups' paths of the ending groups
     @ In, None
-    @ Out, List of the ending groups' paths 
-    ''' 
+    @ Out, List of the ending groups' paths
+    '''
     return self.database.retrieveAllHistoryPaths()
 
   def getEndingGroupNames(self):
     '''
     Function to retrieve all the groups' names of the ending groups
     @ In, None
-    @ Out, List of the ending groups' names 
-    ''' 
+    @ Out, List of the ending groups' names
+    '''
     return self.database.retrieveAllHistoryNames()
 
   def addGroup(self,attributes,loadFrom,upGroup=False):
@@ -152,22 +152,22 @@ class HDF5(DateBase):
     Function to add a group in the HDF5 database
     @ In, attributes : dictionary of attributes (metadata and options)
     @ In, loadFrom   : source of the data (for example, a csv file)
-    @ Out, None 
-    ''' 
+    @ Out, None
+    '''
     if 'metadata' in attributes.keys(): attributes['group'] = attributes['metadata']['prefix']
-    elif 'prefix' in attributes.keys(): attributes['group'] = attributes['prefix'] 
+    elif 'prefix' in attributes.keys(): attributes['group'] = attributes['prefix']
     else                              : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  addGroup function needs a prefix (ID) for adding a new group to a database!')
     self.database.addGroup(attributes['group'],attributes,loadFrom,upGroup)
     self.built = True
-    
+
   def addGroupDatas(self,attributes,loadFrom,upGroup=False):
     #### TODO: this function and the function above can be merged together (Andrea)
     '''
     Function to add a group in the HDF5 database
     @ In, attributes : dictionary of attributes (metadata and options)
     @ In, loadFrom   : source of the data (must be a data(s) or a dictionary)
-    @ Out, None 
-    ''' 
+    @ Out, None
+    '''
     source = {}
     if type(loadFrom) != dict:
       if not loadFrom.type in ['TimePoint','TimePointSet','History','Histories']: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  addGroupDatas function needs to have a Data(s) as input source')
@@ -175,7 +175,7 @@ class HDF5(DateBase):
     source['name'] = loadFrom
     self.database.addGroupDatas(attributes['group'],attributes,source,upGroup)
     self.built = True
-  
+
   def initialize(self,gname,attributes=None,upGroup=False):
     '''
     Function to add an initial root group into the data base...
@@ -185,7 +185,7 @@ class HDF5(DateBase):
     @ Out, attributes: metadata muste be appended to the root group
     '''
     self.database.addGroupInit(gname,attributes,upGroup)
-  
+
   def returnHistory(self,attributes):
     '''
     Function to retrieve a history from the HDF5 database
@@ -204,7 +204,7 @@ class HDF5(DateBase):
     '''
     Function to retrieve a TimePoint from the HDF5 database
     @ In, attributes : dictionary of attributes (variables must be retrieved)
-    @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable) 
+    @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
     and the second is a dictionary of the numpy arrays (output variables).
     Note: This function retrieve a TimePoint from an HDF5 database
     '''
@@ -213,7 +213,7 @@ class HDF5(DateBase):
     # Check the outParam variables and the time filters
     if attributes['outParam'] == 'all': all_out_param  = True
     else:                               all_out_param = False
-  
+
     if attributes['time'] == 'end' or (not attributes['time']):
       time_end = True
       time_float = -1.0
@@ -221,24 +221,24 @@ class HDF5(DateBase):
       # convert the time in float
       time_end = False
       time_float = float(attributes['time'])
-      
-    if 'operator' in attributes.keys(): 
-      operator = True 
+
+    if 'operator' in attributes.keys():
+      operator = True
       time_end = True
-      time_float = -1.0      
+      time_float = -1.0
     else: operator = False
-    
+
     inDict  = {}
     outDict = {}
-    metaDict= {} 
-    if 'metadata' in histVar[1].keys(): metaDict[0] = histVar[1]['metadata']  
+    metaDict= {}
+    if 'metadata' in histVar[1].keys(): metaDict[0] = histVar[1]['metadata']
     else                              : metaDict[0] = None
-    
+
     ints = 0
-    if 'inputTs' in attributes.keys(): 
+    if 'inputTs' in attributes.keys():
       if attributes['inputTs']: ints = int(attributes['inputTs'])
-    else:                               ints = 0   
-    
+    else:                               ints = 0
+
     # fill input param dictionary
     for key in attributes['inParam']:
         if 'input_space_headers' in histVar[1]:
@@ -249,54 +249,54 @@ class HDF5(DateBase):
             inDict[key] = np.atleast_1d(np.array(histVar[1]['input_space_values'][ix]))
           elif inOutKey is not None:
             ix = histVar[1]['output_space_headers'].index(inOutKey)
-            if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!') 
+            if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
-          else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')            
+          else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')
         else:
           if key in histVar[1]['output_space_headers'] or \
              toBytes(key) in histVar[1]['output_space_headers']:
-            if key in histVar[1]['output_space_headers']: 
+            if key in histVar[1]['output_space_headers']:
               ix = histVar[1]['output_space_headers'].index(key)
             else:
               ix = histVar[1]['output_space_headers'].index(toBytes(key))
             if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +attributes['history']+ '!')
             inDict[key] = np.atleast_1d(np.array(histVar[0][ints,ix]))
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')
-  
+
     # Fill output param dictionary
     if time_end:
-      # time end case => TimePoint is the final status 
+      # time end case => TimePoint is the final status
       if all_out_param:
-        # Retrieve all the parameters 
-        if operator: 
-          if   attributes['operator'].lower() == 'max'    : outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))   
-          elif attributes['operator'].lower() == 'min'    : outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))  
+        # Retrieve all the parameters
+        if operator:
+          if   attributes['operator'].lower() == 'max'    : outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
+          elif attributes['operator'].lower() == 'min'    : outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
           elif attributes['operator'].lower() == 'average': outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  -> Operator '+ attributes['operator'] + ' unknown for TimePoint construction. Available are min,max,average!!')
         else:
           for key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(key)]))
       else:
-        # Retrieve only some parameters 
+        # Retrieve only some parameters
         for key in attributes['outParam']:
           if key in histVar[1]['output_space_headers'] or \
-             toBytes(key) in histVar[1]['output_space_headers']: 
-            if operator: 
-              if   attributes['operator'].lower() == 'max'    : 
+             toBytes(key) in histVar[1]['output_space_headers']:
+            if operator:
+              if   attributes['operator'].lower() == 'max'    :
                 if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
-                else: outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])))                   
-              elif attributes['operator'].lower() == 'min'    : 
+                else: outDict[key] = np.atleast_1d(np.array(max(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])))
+              elif attributes['operator'].lower() == 'min'    :
                 if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
-                else: outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])))                   
-              elif attributes['operator'].lower() == 'average': 
+                else: outDict[key] = np.atleast_1d(np.array(min(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])))
+              elif attributes['operator'].lower() == 'average':
                 if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])))
-                else: outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])))                  
+                else: outDict[key] = np.atleast_1d(np.array(np.average(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])))
               else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  -> Operator '+ attributes['operator'] + ' unknown for TimePoint construction. Available are min,max,average!!')
             else:
               if key in histVar[1]['output_space_headers']: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(key)]))
               else: outDict[key] = np.atleast_1d(np.array(histVar[0][-1,histVar[1]['output_space_headers'].index(toBytes(key))]))
           else: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  the parameter ' + key + ' has not been found')
     else:
-      # Arbitrary point in time case... If the requested time point does not match any of the stored ones and 
+      # Arbitrary point in time case... If the requested time point does not match any of the stored ones and
       # start_time <= requested_time_point <= end_time, compute an interpolated value
       for i in histVar[0]:
         if histVar[0][i,0] >= time_float and time_float >= 0.0:
@@ -306,13 +306,13 @@ class HDF5(DateBase):
             previous_time = histVar[0][i,0]
           actual_time   = histVar[0][i,0]
           if all_out_param:
-            # Retrieve all the parameters 
+            # Retrieve all the parameters
             for key in histVar[1]['output_space_headers']:
-              if(actual_time == previous_time): outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]['output_space_headers'].index(key)]  - time_float) / actual_time)) 
+              if(actual_time == previous_time): outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]['output_space_headers'].index(key)]  - time_float) / actual_time))
               else:
                 actual_value   = histVar[0][i,histVar[1]['output_space_headers'].index(key)]
-                previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)] 
-                outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
+                previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)]
+                outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))
           else:
             # Retrieve only some parameters
             for key in attributes['outParam']:
@@ -320,8 +320,8 @@ class HDF5(DateBase):
                 if(actual_time == previous_time): outDict[key] = np.atleast_1d(np.array((histVar[0][i,histVar[1]['output_space_headers'].index(key)]  - time_float) / actual_time))
                 else:
                   actual_value   = histVar[0][i,histVar[1]['output_space_headers'].index(key)]
-                  previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)] 
-                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))    
+                  previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)]
+                  outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))
               else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  the parameter ' + key + ' has not been found')
     # return tuple of dictionaries
     return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
@@ -330,14 +330,14 @@ class HDF5(DateBase):
     '''
     Function to retrieve a TimePointSet from the HDF5 database
     @ In, attributes : dictionary of attributes (variables must be retrieved)
-    @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable) 
+    @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
     and the second is a dictionary of the numpy arrays (output variables).
     Note: This function retrieve a TimePointSet from an HDF5 database
     '''
     # Check the outParam variables and the time filters
     if attributes['outParam'] == 'all': all_out_param  = True
     else: all_out_param = False
-  
+
     if attributes['time'] == 'end' or (not attributes['time']):
       time_end = True
       time_float = -1.0
@@ -345,29 +345,29 @@ class HDF5(DateBase):
       # convert the time in float
       time_end = False
       time_float = float(attributes['time'])
-    
-    if 'operator' in attributes.keys(): 
-      operator = True 
+
+    if 'operator' in attributes.keys():
+      operator = True
       time_end = True
-      time_float = -1.0      
+      time_float = -1.0
     else: operator = False
-    
-    
+
+
     ints = 0
-    if 'inputTs' in attributes.keys(): 
+    if 'inputTs' in attributes.keys():
       if attributes['inputTs']: ints = int(attributes['inputTs'])
-    else:                               ints = 0   
-          
+    else:                               ints = 0
+
     inDict   = {}
-    outDict  = {} 
-    metaDict = {}  
+    outDict  = {}
+    metaDict = {}
     hist_list = attributes['histories']
     # Retrieve all the associated histories and process them
-    for i in range(len(hist_list)): 
+    for i in range(len(hist_list)):
       # Load the data into the numpy array
       attributes['history'] = hist_list[i]
       histVar = self.returnHistory(attributes)
-      if 'metadata' in histVar[1].keys(): metaDict[i] = histVar[1]['metadata']  
+      if 'metadata' in histVar[1].keys(): metaDict[i] = histVar[1]['metadata']
       else                              : metaDict[i] = None
       for key in attributes['inParam']:
         if 'input_space_headers' in histVar[1]:
@@ -382,7 +382,7 @@ class HDF5(DateBase):
             if i == 0: inDict[key] = np.zeros(len(hist_list))
             if ints > histVar[0][:,0].size and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = np.array(histVar[0][ints,ix])
-          else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the parameter ' + key + ' has not been found')            
+          else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the parameter ' + key + ' has not been found')
         else:
           inKey = keyIn(histVar[1]['output_space_headers'],key)
           if inKey is not None:
@@ -390,15 +390,15 @@ class HDF5(DateBase):
             if i == 0: inDict[key] = np.zeros(len(hist_list))
             if ints > histVar[0][:,0].size  and ints != -1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  inputTs is greater than number of actual ts in history ' +hist_list[i]+ '!')
             inDict[key][i] = histVar[0][ints,ix]
-          else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  the parameter ' + key + ' has not been found in '+str(histVar[1]))   
-      
-      # time end case => TimePointSet is at the final status 
+          else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  the parameter ' + key + ' has not been found in '+str(histVar[1]))
+
+      # time end case => TimePointSet is at the final status
       if time_end:
         if all_out_param:
-          # Retrieve all the parameters 
+          # Retrieve all the parameters
           for key in histVar[1]['output_space_headers']:
             if i == 0: outDict[key] = np.zeros(len(hist_list))
-            if operator: 
+            if operator:
               if   attributes['operator'].lower() == 'max'    : outDict[key][i] = max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
               elif attributes['operator'].lower() == 'min'    : outDict[key][i] = min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
               elif attributes['operator'].lower() == 'average': outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
@@ -411,23 +411,23 @@ class HDF5(DateBase):
             if key in histVar[1]['output_space_headers'] or \
                toBytes(key) in histVar[1]['output_space_headers']:
               if i == 0: outDict[key] = np.zeros(len(hist_list))
-              if operator: 
-                if   attributes['operator'].lower() == 'max'    : 
+              if operator:
+                if   attributes['operator'].lower() == 'max'    :
                   if key in histVar[1]['output_space_headers']: outDict[key][i] = max(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
-                  else: outDict[key][i] = max(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])                
-                elif attributes['operator'].lower() == 'min'    : 
+                  else: outDict[key][i] = max(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])
+                elif attributes['operator'].lower() == 'min'    :
                   if key in histVar[1]['output_space_headers']: outDict[key][i] = min(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
-                  else: outDict[key][i] = min(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])                    
-                elif attributes['operator'].lower() == 'average': 
+                  else: outDict[key][i] = min(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])
+                elif attributes['operator'].lower() == 'average':
                   if key in histVar[1]['output_space_headers']: outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(key)])
-                  else: outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])                    
-                else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  -> Operator '+ attributes['operator'] + ' unknown for TimePointSet construction. Available are min,max,average!!')              
+                  else: outDict[key][i] = np.average(histVar[0][:,histVar[1]['output_space_headers'].index(toBytes(key))])
+                else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  -> Operator '+ attributes['operator'] + ' unknown for TimePointSet construction. Available are min,max,average!!')
               else:
                 if key in histVar[1]['output_space_headers']: outDict[key][i] = histVar[0][-1,histVar[1]['output_space_headers'].index(key)]
                 else: outDict[key][i] = histVar[0][-1,histVar[1]['output_space_headers'].index(toBytes(key))]
             else: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + str(key) + ' has not been found')
       else:
-        # Arbitrary point in time case... If the requested time point Set does not match any of the stored ones and 
+        # Arbitrary point in time case... If the requested time point Set does not match any of the stored ones and
         # start_time <= requested_time_point <= end_time, compute an interpolated value
         for i in histVar[0]:
           if histVar[0][i,0] >= time_float and time_float >= 0.0:
@@ -435,31 +435,31 @@ class HDF5(DateBase):
               previous_time = histVar[0][i-1,0]
             else:
               previous_time = histVar[0][i,0]
-            actual_time   = histVar[0][i,0]          
+            actual_time   = histVar[0][i,0]
             if all_out_param:
-              # Retrieve all the parameters 
+              # Retrieve all the parameters
               for key in histVar[1]['output_space_headers']:
                 if(actual_time == previous_time):
                   if i == 0: outDict[key] = np.zeros(np.shape(len(hist_list)))
-                  outDict[key][i] = (histVar[0][i,histVar[1]['output_space_headers'].index(key)]  - time_float) / actual_time 
+                  outDict[key][i] = (histVar[0][i,histVar[1]['output_space_headers'].index(key)]  - time_float) / actual_time
                 else:
                   if i == 0: outDict[key] = np.zeros(np.shape(len(hist_list)))
                   actual_value   = histVar[0][i,histVar[1]['output_space_headers'].index(key)]
-                  previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)] 
-                  outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                  previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)]
+                  outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
             else:
               # Retrieve only some parameters
               for key in attributes['outParam']:
                 if key in histVar[1]['output_space_headers']:
                   if(actual_time == previous_time):
-                    if i == 0:outDict[key] = np.zeros(np.shape(len(hist_list))) 
-                    outDict[key][i] = (histVar[0][i,histVar[1]['output_space_headers'].index(key)]  - time_float) / actual_time 
+                    if i == 0:outDict[key] = np.zeros(np.shape(len(hist_list)))
+                    outDict[key][i] = (histVar[0][i,histVar[1]['output_space_headers'].index(key)]  - time_float) / actual_time
                   else:
                     if i == 0: outDict[key] = np.zeros(np.shape(len(hist_list)))
                     actual_value   = histVar[0][i,histVar[1]['output_space_headers'].index(key)]
-                    previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)] 
-                    outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
-                else: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')      
+                    previous_value = histVar[0][i-1,histVar[1]['output_space_headers'].index(key)]
+                    outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
+                else: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')
       del histVar
     # return tuple of timepointSet
     return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
@@ -468,7 +468,7 @@ class HDF5(DateBase):
     '''
     Function to retrieve a History from the HDF5 database
     @ In, attributes : dictionary of attributes (variables and history name must be retrieved)
-    @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable) 
+    @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
     and the second is a dictionary of the numpy arrays (output variables).
     Note: This function retrieve a History from an HDF5 database
     '''
@@ -482,19 +482,19 @@ class HDF5(DateBase):
         time_all = False
         time_float = [float(x) for x in attributes['time']]
     else: time_all = True
-    
+
     ints = 0
-    if 'inputTs' in attributes.keys(): 
+    if 'inputTs' in attributes.keys():
       if attributes['inputTs']: ints = int(attributes['inputTs'])
-    else:                               ints = 0   
-                    
+    else:                               ints = 0
+
     inDict  = {}
-    outDict = {} 
-    metaDict= {} 
-    # Call the function to retrieve a single history and 
-    # load the data into the tuple 
+    outDict = {}
+    metaDict= {}
+    # Call the function to retrieve a single history and
+    # load the data into the tuple
     histVar = self.returnHistory(attributes)
-    if 'metadata' in histVar[1].keys(): metaDict[0] = histVar[1]['metadata']  
+    if 'metadata' in histVar[1].keys(): metaDict[0] = histVar[1]['metadata']
     else                              : metaDict[0] = None
     # fill input param dictionary
     for key in attributes['inParam']:
@@ -539,7 +539,7 @@ class HDF5(DateBase):
       else:
         for key in attributes['outParam']:
           if key in histVar[1]['output_space_headers']:
-            outDict[key] = histVar[0][:,histVar[1]['output_space_headers'].index(key)]        
+            outDict[key] = histVar[0][:,histVar[1]['output_space_headers'].index(key)]
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')
     # Return tuple of dictionaries containing the histories
     return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
@@ -548,7 +548,7 @@ class HDF5(DateBase):
     '''
     Function interface for retrieving a TimePoint or TimePointSet or History from the HDF5 database
     @ In, attributes : dictionary of attributes (variables, history name,metadata must be retrieved)
-    @ Out, data     : tuple in which the first position is a dictionary of numpy arays (input variable) 
+    @ Out, data     : tuple in which the first position is a dictionary of numpy arays (input variable)
     and the second is a dictionary of the numpy arrays (output variables).
     Note: Interface function
     '''
