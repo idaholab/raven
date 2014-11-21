@@ -75,7 +75,7 @@ class MOOSEparser:
           IOfile.write(b'    [../]\n')
         IOfile.write(b'  [../]\n')
       IOfile.write(b'[]\n')
-  
+
   def findNodeInXML(self,name):
     """find node in xml and return it, if not found... None is returned"""
     returnNode = None
@@ -83,8 +83,8 @@ class MOOSEparser:
     for child in self.root:
       if name.strip() == child.tag: returnNode = child
     return returnNode
-      
-      
+
+
   def __findInXML(self,element,name):
     """Checks if there is a tag with name or binary name in
     element, and returns the (found,actual_name)"""

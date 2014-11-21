@@ -23,16 +23,16 @@ from JobHandler import JobHandler
 
 
 class SimulationMode:
-  """SimulationMode allows changes to the how the simulation 
+  """SimulationMode allows changes to the how the simulation
   runs are done.  modifySimulation lets the mode change runInfoDict
   and other parameters.  runOverride lets the mode do the running instead
   of simulation. """
   def __init__(self,simulation):
     self.__simulation = simulation
-    
+
   def doOverrideRun(self):
-    """If doOverrideRun is true, then use runOverride instead of 
-    running the simulation normally.  This method should call 
+    """If doOverrideRun is true, then use runOverride instead of
+    running the simulation normally.  This method should call
     simulation.run somehow
     """
     return False
@@ -56,9 +56,9 @@ class PBSSimulationMode(SimulationMode):
   def __init__(self,simulation):
     self.__simulation = simulation
     self.__in_pbs = "PBS_NODEFILE" in os.environ
-    
+
   def doOverrideRun(self):
-    # Check if the simulation has been run in PBS mode and, in case, construct the proper command    
+    # Check if the simulation has been run in PBS mode and, in case, construct the proper command
     return not self.__in_pbs
 
   def runOverride(self):
@@ -133,7 +133,7 @@ class MPISimulationMode(SimulationMode):
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
     print("precommand",self.__simulation.runInfoDict['precommand'],"postcommand",self.__simulation.runInfoDict['postcommand'])
 
-    
+
 
 class Simulation:
   '''This is a class that contain all the object needed to run the simulation'''
@@ -151,11 +151,11 @@ class Simulation:
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threats by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
-    self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded  
+    self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
     self.runInfoDict['numNode'           ] = 1            # number of nodes
     self.runInfoDict['procByNode'        ] = 1            # number of processors by node
     self.runInfoDict['totNumbCores'      ] = 1            # total number of cores available
-    self.runInfoDict['quequingSoftware'  ] = ''           # quequing software name 
+    self.runInfoDict['quequingSoftware'  ] = ''           # quequing software name
     self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
     self.runInfoDict['postcommand'       ] = ''           # Added after the command is run.
@@ -174,9 +174,9 @@ class Simulation:
     self.dataBasesDict     = {}
     self.OutStreamsDict    = {}
     self.filesDict         = {} #this is different, for each file rather than an instance it just returns the absolute path of the file
-    
+
     self.stepSequenceList  = [] #the list of step of the simulation
-    
+
     #list of supported quequing software:
     self.knownQuequingSoftware = []
     self.knownQuequingSoftware.append('None')
@@ -206,7 +206,7 @@ class Simulation:
     self.whichDict['Distributions'] = self.DistributionsDict
     self.whichDict['DataBases'    ] = self.dataBasesDict
     self.whichDict['OutStreams'   ] = self.OutStreamsDict
-    
+
     self.jobHandler = JobHandler()
     self.__modeHandler = SimulationMode(self)
 
@@ -214,7 +214,7 @@ class Simulation:
     if os.path.split(filein)[0] == '': self.filesDict[filein] = os.path.join(self.runInfoDict['WorkingDir'],filein)
     elif not os.path.isabs(filein)   : self.filesDict[filein] = os.path.abspath(filein)
     return
-  
+
   def checkExistPath(self,filein):
     if not os.path.exists(self.filesDict[filein]): raise IOError('The file '+ filein +' has not been found')
     return
@@ -243,7 +243,7 @@ class Simulation:
       else: raise IOError('the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     #finalize the initialization
     self.initialize()
-    
+
   def initialize(self):
     '''gets simulation ready to run'''
     #check generate the existence of the working directory
@@ -256,7 +256,7 @@ class Simulation:
     #transform all files in absolute path
     for key in self.filesDict.keys():
       self.createAbsPath(key)
-    # 
+    #
     if self.runInfoDict['mode'] == 'pbs':
       self.__modeHandler = PBSSimulationMode(self)
     elif self.runInfoDict['mode'] == 'mpi':
@@ -332,14 +332,14 @@ class Simulation:
 #        if self.debug: print(a+' is:')
         #if self.debug:print([key,b,c,d])
         if key == 'Input':
-          #if the input is a file, check if it exists 
+          #if the input is a file, check if it exists
           if b == 'Files':
             self.checkExistPath(d)
           inputDict[key].append(self.whichDict[b][d])
 #          if self.debug: print('type '+b+', and name: '+ str(self.whichDict[b][d])+'\n')
         elif key == 'Output':
           inputDict[key].append(self.whichDict[b][d])
-          
+
 #          if self.debug: self.whichDict[b][d].printMe()
         else:
           #Create extra dictionary entry
@@ -350,14 +350,14 @@ class Simulation:
       inputDict['jobHandler'] = self.jobHandler
       if 'Sampler' in inputDict.keys():
         inputDict['Sampler'].fillDistribution(self.DistributionsDict)
-        
+
       stepInstance.takeAstep(inputDict)
       for output in inputDict['Output']:
         if "finalize" in dir(output):
           output.finalize()
-      
-      
-      
+
+
+
 #checks to be added: no same name within a data general class
 #cross check existence of needed data
 

@@ -77,9 +77,9 @@
 
 [Preconditioning]
   # Uncomment one of the lines below to activate one of the blocks...
-  # active = 'SMP_PJFNK' 
+  # active = 'SMP_PJFNK'
   # active = 'FDP_PJFNK'
-  # active = 'FDP_Newton' 
+  # active = 'FDP_Newton'
   active = 'SMP_Newton'
 
   # The definitions of the above-named blocks follow.
@@ -265,6 +265,6 @@ print_csv = True
  xMin = 0.0
  xMax = 1.0
  ProbabilityThreshold = 0.1
-  
+
  [../]
 []

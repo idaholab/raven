@@ -18,7 +18,7 @@ class Relap5:
     index = -1
     for i in range(len(inputFiles)):
       ''.lower()
-      if inputFiles[i].lower().endswith('.i') or inputFiles[i].lower().endswith('.inp') or inputFiles[i].lower().endswith('.in'): 
+      if inputFiles[i].lower().endswith('.i') or inputFiles[i].lower().endswith('.inp') or inputFiles[i].lower().endswith('.in'):
         index = i
         break
     if index < 0: raise IOError('ERROR! Relap5 interface did not find an input file. a Relap5 input file needs to have the following extensions: ".i,.inp,.in"!!')
@@ -31,9 +31,9 @@ class Relap5:
   def appendLoadFileExtension(self,fileRoot):
     '''  '''
     return fileRoot + '.csv'
-  
+
   def finalizeCodeOutput(self,command,output):
-    ''' this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional). 
+    ''' this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
         It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
         @ command, Input, the command used to run the just ended job
         @ output, Input, the Output name root (string)
@@ -42,7 +42,7 @@ class Relap5:
     outfile = command.split('-o')[0].split('-i')[-1]+'.o'
     outputobj=relapdata.relapdata(outfile)
     outputobj.write_csv(output+'.csv')
-  
+
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
     import RELAPparser
@@ -57,7 +57,7 @@ class Relap5:
     index = -1
     for i in range(len(currentInputFiles)):
       ''.lower()
-      if currentInputFiles[i].lower().endswith('.i') or currentInputFiles[i].lower().endswith('.inp') or currentInputFiles[i].lower().endswith('.in'): 
+      if currentInputFiles[i].lower().endswith('.i') or currentInputFiles[i].lower().endswith('.inp') or currentInputFiles[i].lower().endswith('.in'):
         index = i
         break
     if index < 0: raise IOError('ERROR! Relap5 interface did not find an input file. a Relap5 input file needs to have the following extensions: ".i,.inp,.in"!!')
@@ -77,7 +77,7 @@ class Relap5:
     for keys in Kwargs['SampledVars']:
       key = keys.split(':')
       if len(key) > 1:
-        position=int(key[1])    
+        position=int(key[1])
         cardList[key[0]]={'position':position,'value':Kwargs['SampledVars'][keys]}
       else: cardList[key[0]]={'position':0,'value':Kwargs['SampledVars'][keys]}
     modifDict['cards']=cardList
@@ -85,7 +85,7 @@ class Relap5:
     return listDict
 
   def DynamicEventTreeForRELAP5(self,**Kwargs):
-    listDict =[] 
+    listDict =[]
     cardList={}   #  List of cards to be modified in RELAP5 Input File
     # Check the initiator distributions and add the next threshold
     if 'initiator_distribution' in Kwargs.keys():
@@ -115,7 +115,7 @@ class Relap5:
 #        new_restart = Kwargs['prefix']+'~restart.r'
 #        shutil.copyfile(restart_parent,new_restart)
         modifDict['name'] = ['Executioner']
-#        modifDict['restart_file_base'] = new_restart 
+#        modifDict['restart_file_base'] = new_restart
 #        print('CODE INTERFACE: Restart file name base is "' + new_restart + '"')
         listDict.append(modifDict)
         del modifDict
@@ -127,7 +127,7 @@ class Relap5:
       modifDict['end_time'] = end_time
       listDict.append(modifDict)
       del modifDict
-      
+
     modifDict = {}
     modifDict['name'] = ['Output']
     modifDict['num_restart_files'] = 1
@@ -139,12 +139,12 @@ class Relap5:
     modifDict['name'] = ['RestartInitialize']
     modifDict['erase_block'] = True
     listDict.append(modifDict)
-   
-    del modifDict    
+
+    del modifDict
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
     if 'branch_changed_param' in Kwargs.keys():
-      if Kwargs['branch_changed_param'][0] not in ('None',b'None'): 
+      if Kwargs['branch_changed_param'][0] not in ('None',b'None'):
         for i in range(len(Kwargs['branch_changed_param'])):
           modifDict = {}
           modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
@@ -154,10 +154,10 @@ class Relap5:
     modifDict={}
     for keys in Kwargs['SampledVars']:
       key = keys.split(':')
-      if len(key) > 1:  
+      if len(key) > 1:
         if Kwargs['start_time'] != 'Initial':  cardList[key[0]]={'position':key[1],'value':float(Kwargs['SampledVars'][keys])}
         else: cardList[key[0]]={'position':key[1],'value':Kwargs['SampledVars'][keys]}
-      else: 
+      else:
         if Kwargs['start_time'] != 'Initial':  cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
         else: cardList[key[0]]={'position':0,'value':float(Kwargs['SampledVars'][keys])}
     modifDict['cards']=cardList
@@ -169,4 +169,4 @@ class Relap5:
         modifDict['cards']=cardList
     listDict.append(modifDict)
     del modifDict
-    return listDict  
+    return listDict

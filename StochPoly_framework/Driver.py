@@ -29,16 +29,16 @@ if __name__ == '__main__':
     if not os.path.isabs(inputFile): inputFile = os.path.join(workingDir,inputFile)
 
   #Parse the input
-  #Please do not put the parsing in a try statement... we need to make the parser able to print errors out 
+  #Please do not put the parsing in a try statement... we need to make the parser able to print errors out
   tree = ET.parse(inputFile)
   #except:  raise IOError('not possible to parse (xml based) the input file '+inputFile)
   if debug: print('opened file '+inputFile)
   root = tree.getroot()
   #generate all the components of the simulation
   simulation = Simulation(inputFile, frameworkDir,debug=debug)
-  #Call the function to read and construct each single module of the simulation 
+  #Call the function to read and construct each single module of the simulation
   simulation.XMLread(root)
-  # Run the simulation 
+  # Run the simulation
   simulation.run()
 
 

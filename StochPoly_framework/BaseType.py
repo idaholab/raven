@@ -33,7 +33,7 @@ class BaseType:
 
   def whoAreYou(self):
     '''this is a generic interface that will return the type
-       and name of any class that inherits this base class 
+       and name of any class that inherits this base class
        plus all the inherited classes'''
     tempDict = {}
     tempDict['class type'] = self.__class__.__name__ +' from'
@@ -59,7 +59,7 @@ class BaseType:
 
   def myCurrentSetting(self):
     '''this is a generic interface that will return the name and
-       value of the parameters that change during the simulation 
+       value of the parameters that change during the simulation
        of any class that inherits this base class.
        In reality it is just empty and will fill the dictionary calling addCurrentSetting
         that is the function to be overloaded used as API'''
@@ -87,7 +87,3 @@ class BaseType:
     for key in tempDict.keys():
       print(key+': '+str(tempDict[key]))
     print('\n')
-    
-    
-  
-  

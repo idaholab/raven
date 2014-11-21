@@ -18,7 +18,7 @@ class HOBOInputParser:
     IOfile         = open(inputFile,'r')
     self.inputfile = inputFile
     self.lines     = IOfile.readlines()
-      
+
   def printInput(self,outfile=None):
     # print back the input file
     if outfile==None: outfile =self.inputfile
@@ -36,7 +36,7 @@ class HOBOInputParser:
       valueToChange = copy.deepcopy(value['value'])
       if rowNumber > len(temp): raise IOError("ExampleCodeInputParser: ERROR -> row number defined in sampler bigger than input lines. Got" + str(rowNumber) + '>' +str(len(temp)))
       temp[rowNumber] = str(valueToChange)+'\n'
-    if save: 
+    if save:
       self.lines=copy.deepcopy(temp)
-    return self.lines     
+    return self.lines
 

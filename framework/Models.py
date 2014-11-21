@@ -88,7 +88,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     This class method is called to test the compatibility of the class with its possible usage
     @in who: a string identifying the what is the role of what we are going to test (i.e. input, output etc)
     @in what: a list (or a general iterable) that will be playing the 'who' role
-    ''' 
+    '''
     #counting successful matches
     if who not in cls.validateDict.keys(): raise IOError ('The role '+str(who)+' does not exist in the class '+str(cls))
     for myItemDict in cls.validateDict[who]: myItemDict['tempCounter'] = 0
@@ -121,11 +121,11 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
 
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
-    except KeyError: 
+    except KeyError:
       print(self.printTag+": " +returnPrintPostTag('ERROR') + "-> Failed in Node: ",xmlNode)
       raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> missed subType for the model '+self.name)
     del(xmlNode.attrib['subType'])
-  
+
   def localInputAndChecks(self,xmlNode):
     '''place here the additional reading, remember to add initial parameters in the method localAddInitParams'''
 
@@ -155,7 +155,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     @return the new input in a list form
     '''
     return [(copy.deepcopy(Kwargs))]
-  
+
   @abc.abstractmethod
   def run(self,Input,jobHandler):
     '''
@@ -165,7 +165,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     @in jobHandler an instance of jobhandler that might be possible used to append a job for parallel running
     '''
     pass
-  
+
   def collectOutput(self,collectFrom,storeTo):
     '''
     This call collect the output of the run
@@ -198,11 +198,11 @@ class Dummy(Model):
   def _manipulateInput(self,dataIn):
     if len(dataIn)>1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one input is accepted by the model type '+self.type+' with name '+self.name)
     if type(dataIn[0])!=tuple: inRun = self._inputToInternal(dataIn[0]) #this might happen when a single run is used and the input it does not come from self.createNewInput
-    else:                      inRun = dataIn[0][0]    
+    else:                      inRun = dataIn[0][0]
     return inRun
-       
+
   def _inputToInternal(self,dataIN,full=False):
-    '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''  
+    '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('FIXME') + '-> wondering if a dictionary compatibility should be kept')
     if  type(dataIN)!=dict and dataIN.type not in self.admittedData: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
@@ -219,7 +219,7 @@ class Dummy(Model):
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
     else: localInput = dataIN #here we do not make a copy since we assume that the dictionary is for just for the model usage and any changes are not impacting outside
     return localInput
-  
+
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''
     here only TimePoint and TimePointSet are accepted a local copy of the values is performed.
@@ -235,8 +235,8 @@ class Dummy(Model):
     if None in inputDict.values(): raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
-    return [(inputDict)],copy.deepcopy(Kwargs) 
-  
+    return [(inputDict)],copy.deepcopy(Kwargs)
+
   def run(self,Input,jobHandler):
     '''
     The input is a list of one element.
@@ -248,15 +248,15 @@ class Dummy(Model):
     inRun = self._manipulateInput(Input[0])
     lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
     jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
-    
+
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "-> No available Output to collect (Run probabably is not finished yet)")
     exportDict = {'input_space_params':copy.deepcopy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.deepcopy(finishedJob.returnEvaluation()[1]),'metadata':copy.deepcopy(finishedJob.returnMetadata())}
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
-      for key in exportDict['input_space_params' ] : 
+      for key in exportDict['input_space_params' ] :
         if key in output.getParaKeys('inputs'): output.updateInputValue (key,exportDict['input_space_params' ][key])
-      for key in exportDict['output_space_params'] : 
+      for key in exportDict['output_space_params'] :
         if key in output.getParaKeys('outputs'): output.updateOutputValue(key,exportDict['output_space_params'][key])
       for key in exportDict['metadata'] : output.updateMetadata(key,exportDict['metadata'][key])
 #
@@ -270,13 +270,13 @@ class ROM(Dummy):
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
-    
+
   def __init__(self):
     Dummy.__init__(self)
     self.initializzationOptionDict = {}
     self.amITrained   = False
     self.printTag = returnPrintTag('MODEL ROM')
-  
+
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
@@ -295,7 +295,7 @@ class ROM(Dummy):
     '''the ROM setting parameters are added'''
     ROMdict = self.SupervisedEngine.returnInitialParameters()
     for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
-  
+
   def train(self,trainingSet):
     '''Here we do the training of the ROM'''
     '''Fit the model according to the given training data.
@@ -306,7 +306,7 @@ class ROM(Dummy):
     self.SupervisedEngine.train(self.trainingSet)
     self.amITrained = self.SupervisedEngine.amITrained
     if self.debug:print('FIXME: add self.amITrained to currentParamters')
-  
+
   def confidence(self,request):
     '''
     This is to get a value that is inversely proportional to the confidence that we have
@@ -328,7 +328,7 @@ class ROM(Dummy):
     jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
 #
 #
-#  
+#
 class ExternalModel(Dummy):
   ''' External model class: this model allows to interface with an external python module'''
   @classmethod
@@ -343,38 +343,38 @@ class ExternalModel(Dummy):
     @ Out, None
     '''
     Dummy.__init__(self)
-    self.modelVariableValues      = {}                                                                                                        # dictionary of variable values for the external module imported at runtime   
+    self.modelVariableValues      = {}                                                                                                        # dictionary of variable values for the external module imported at runtime
     self.modelVariableType        = {}                                                                                                        # dictionary of variable types, used for consistency checks
     self.__availableVariableTypes = ['float','bool','int','ndarray','float16','float32','float64','float128','int16','int32','int64','bool8'] # available data types
     self.__availableVariableTypes = self.__availableVariableTypes + ['numpy.'+item for item in self.__availableVariableTypes]                 # as above
     self.printTag                 = returnPrintTag('MODEL EXTERNAL')                                                                          # print tag
-    class Object(object):pass                                 
+    class Object(object):pass
     self.initExtSelf              = Object()                                                                                                  # object used as "self" for external module imported at runtime
-    
+
   def initialize(self,runInfo,inputs,initDict=None):
-    ''' 
-    Initialize method for the model 
+    '''
+    Initialize method for the model
     @ In, runInfo is the run info from the jobHandler
     @ In, inputs is a list containing whatever is passed with an input role in the step
     @ In, initDict, optional, dictionary of all objects available in the step is using this model
     '''
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
-    Dummy.initialize(self, runInfo, inputs)     
-  
+    Dummy.initialize(self, runInfo, inputs)
+
   def createNewInput(self,myInput,samplerType,**Kwargs):
-    ''' 
-    Function to create a new input, through the info contained in Kwargs 
+    '''
+    Function to create a new input, through the info contained in Kwargs
     @ In, myInput, list of original inputs
     @ In, samplerType, string, sampler type (e.g. MonteCarlo, DET, etc.)
     @ In, Kwargs, dictionary containing information useful for creation of a newer input (e.g. sampled variables, etc.)
     '''
     modelVariableValues ={}
     for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
-    if 'createNewInput' in dir(self.sim): 
+    if 'createNewInput' in dir(self.sim):
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.deepcopy(modelVariableValues)
-    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.deepcopy(modelVariableValues) 
+    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.deepcopy(modelVariableValues)
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -382,7 +382,7 @@ class ExternalModel(Dummy):
     @ In, xmlTree object, xml node containg the peace of input that belongs to this model
     '''
     Model._readMoreXML(self, xmlNode)
-    if 'ModuleToLoad' in xmlNode.attrib.keys(): 
+    if 'ModuleToLoad' in xmlNode.attrib.keys():
       self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
       if (os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0] != ''):
         abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
@@ -400,15 +400,15 @@ class ExternalModel(Dummy):
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
 
-  def __externalRun(self, Input): 
+  def __externalRun(self, Input):
     '''
     Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
     @ In, Input, list, list of the inputs needed for running the model
     '''
     class Object(object):pass
     externalSelf        = Object()
-    for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.deepcopy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.deepcopy(value)') 
-    modelVariableValues = {} 
+    for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.deepcopy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.deepcopy(value)')
+    modelVariableValues = {}
     for key in self.modelVariableType.keys(): modelVariableValues[key] = None
     for key in Input[1].keys(): modelVariableValues[key] = copy.deepcopy(Input[1][key])
     if 'createNewInput' not in dir(self.sim):
@@ -421,25 +421,25 @@ class ExternalModel(Dummy):
       errorfound = False
       for key in self.modelVariableType.keys():
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
-        if self.modelVariableType[key] not in self.__availableVariableTypes: 
+        if self.modelVariableType[key] not in self.__availableVariableTypes:
           if not errorfound: print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unsupported type found. Available ones are: '+ str(self.__availableVariableTypes).replace('[','').replace(']', ''))
           errorfound = True
-          print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key])   
-      if errorfound: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Errors detected. See above!!')  
-    return copy.deepcopy(modelVariableValues) 
+          print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key])
+      if errorfound: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Errors detected. See above!!')
+    return copy.deepcopy(modelVariableValues)
 
   def run(self,Input,jobHandler):
     '''
-    Method that performs the actual run of the imported external model  
+    Method that performs the actual run of the imported external model
     @ In, Input, list, list of the inputs needed for running the model
     @ In, jobHandler, jobHandler object, jobhandler instance
     '''
     inRun = copy.deepcopy(self._manipulateInput(Input[0][0]))
-    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1])  
-    
+    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1])
+
   def collectOutput(self,finishedJob,output):
     '''
-    Method that collects the outputs from the previous run  
+    Method that collects the outputs from the previous run
     @ In, finishedJob, InternalRunner object, instance of the run just finished
     @ In, output, "Datas" object, output where the results of the calculation needs to be stored
     '''
@@ -449,8 +449,8 @@ class ExternalModel(Dummy):
       return type_var.__name__ == var_type_str or \
         type_var.__module__+"."+type_var.__name__ == var_type_str
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    for key in finishedJob.returnEvaluation()[1]: 
-      if not (typeMatch(finishedJob.returnEvaluation()[1][key],self.modelVariableType[key])): raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> type of variable '+ key + ' is ' + str(type(finishedJob.returnEvaluation()[1][key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!') 
+    for key in finishedJob.returnEvaluation()[1]:
+      if not (typeMatch(finishedJob.returnEvaluation()[1][key],self.modelVariableType[key])): raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> type of variable '+ key + ' is ' + str(type(finishedJob.returnEvaluation()[1][key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)
 #
 #
@@ -473,13 +473,13 @@ class Code(Model):
     self.alias              = {}   #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
                                    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
     self.printTag = returnPrintTag('MODEL CODE')
-  
+
   def _readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
     !!!!generate also the code interface for the proper type of code!!!!'''
     Model._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      if child.tag=='executable': 
+      if child.tag=='executable':
         self.executable = str(child.text)
       elif child.tag=='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
@@ -500,7 +500,7 @@ class Code(Model):
     tempDict['executable']=self.executable
     for key, value in self.alias.items():
       tempDict['The code variable '+str(value)+' it is filled using the framework variable '] = key
-      
+
   def addCurrentSetting(self,originalDict):
     '''extension of addInitParams for the Code(model)'''
     originalDict['current working directory'] = self.workingDir
@@ -509,7 +509,7 @@ class Code(Model):
     originalDict['original input file'      ] = self.oriInputFiles
 
   def initialize(self,runInfoDict,inputFiles,initDict=None):
-    '''initialize some of the current setting for the runs and generate the working 
+    '''initialize some of the current setting for the runs and generate the working
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
@@ -533,7 +533,7 @@ class Code(Model):
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),copy.deepcopy(Kwargs))
- 
+
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles[0]
@@ -545,7 +545,7 @@ class Code(Model):
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
-    if 'finalizeCodeOutput' in dir(self.code): 
+    if 'finalizeCodeOutput' in dir(self.code):
       out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output)
       if out: finisishedjob.output = out
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
@@ -555,9 +555,9 @@ class Code(Model):
       #for key in metadata: attributes[key] = metadata[key]
       attributes['metadata'] = metadata
     try:                   output.addGroup(attributes,attributes)
-    except AttributeError: 
+    except AttributeError:
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
-      if metadata: 
+      if metadata:
         for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
 #
 #
@@ -569,21 +569,21 @@ class Projector(Model):
     print('Remember to add the data type supported the class filter')
 
   def __init__(self):
-    Model.__init__(self)  
+    Model.__init__(self)
     self.printTag = returnPrintTag('MODEL PROJECTOR')
 
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
     self.code = PostProcessors.returnInstance(self.subType)
     self.code._readMoreXML(xmlNode)
- 
+
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
 
   def initialize(self,runInfoDict,myInput,initDict=None):
     if myInput.type == 'ROM':
       pass
-    #initialize some of the current setting for the runs and generate the working 
+    #initialize some of the current setting for the runs and generate the working
     #   directory with the starting input files
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
@@ -642,34 +642,34 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
     cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
     cls.validateDict['Function'  ][0]['required'    ] = False
-    cls.validateDict['Function'  ][0]['multiplicity'] = '1' 
+    cls.validateDict['Function'  ][0]['multiplicity'] = '1'
     cls.validateDict['ROM'] = [cls.testDict.copy()]
     cls.validateDict['ROM'       ][0]['class'       ] = 'Models'
     cls.validateDict['ROM'       ][0]['type'        ] = ['ROM']
     cls.validateDict['ROM'       ][0]['required'    ] = False
     cls.validateDict['ROM'       ][0]['multiplicity'] = '1'
-      
+
   def __init__(self):
     Model.__init__(self)
     self.input  = {}     # input source
     self.action = None   # action
     self.workingDir = ''
     self.printTag = returnPrintTag('MODEL POSTPROCESSOR')
-  
-  def whatDoINeed(self): 
+
+  def whatDoINeed(self):
     '''
-    This method is used mainly by the Simulation class at the Step construction stage. 
+    This method is used mainly by the Simulation class at the Step construction stage.
     It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
     be initialize. It is an abstract method -> It must be implemented in the derived class!
     NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
     @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name)) 
+    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     '''
     return self.interface.whatDoINeed()
-  
+
   def generateAssembler(self,initDict):
     '''
-    This method is used mainly by the Simulation class at the Step construction stage. 
+    This method is used mainly by the Simulation class at the Step construction stage.
     It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
     It is an abstract method -> It must be implemented in the derived class!
     NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
@@ -677,17 +677,17 @@ class PostProcessor(Model, Assembler):
     @ Out, None, None
     '''
     self.interface.generateAssembler(initDict)
-  
+
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
     self.interface = PostProcessors.returnInstance(self.subType)
     self.interface._readMoreXML(xmlNode)
- 
+
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
-  
+
   def initialize(self,runInfo,inputs, initDict=None):
-    '''initialize some of the current setting for the runs and generate the working 
+    '''initialize some of the current setting for the runs and generate the working
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
@@ -696,18 +696,18 @@ class PostProcessor(Model, Assembler):
     '''run calls the interface finalizer'''
     if len(Input) > 0 :
       lumbdaToRun = lambda x: self.interface.run(x)
-      jobHandler.submitDict['Internal'](((Input),),lumbdaToRun,str(0)) 
+      jobHandler.submitDict['Internal'](((Input),),lumbdaToRun,str(0))
     else:
       lumbdaToRun = lambda x: self.interface.run(x)
-      jobHandler.submitDict['Internal'](((None),),lumbdaToRun,str(0))   
- 
+      jobHandler.submitDict['Internal'](((None),),lumbdaToRun,str(0))
+
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)
-    
+
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''just for compatibility'''
     return self.interface.inputToInternal(self,myInput)
-     
+
 
 '''
  Factory......
@@ -740,6 +740,3 @@ def validate(className,role,what,debug=False):
   '''This is the general interface for the validation of a model usage'''
   if className in __knownTypes: return __interFaceDict[className].localValidateMethod(role,what)
   else                        : raise IOError('the class '+str(className)+' it is not a registered model')
-    
-  
-  

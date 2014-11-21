@@ -8,15 +8,15 @@ import math
 
 def __residuum__(self):
   print('variables in function '+str(self.__varType__))
-  return 
+  return
 
 def __gradient__(self):
   print('variables in function '+str(self.__varType__))
-  return 
+  return
 
 def __supportBoundingTest__(self):
   print('variables in function '+str(self.__varType__))
-  return 
+  return
 
 def __residuumSign(self):
 #  return np.copysign(1, 5-self.auxTime[-1:] -self.tempTH[-1:])

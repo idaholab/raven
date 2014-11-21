@@ -50,7 +50,7 @@ class RavenExodiff(Exodiff):
         params.addParam('requires_python_config', False, "Requires python-config for test")
         params.addParam('requires_distributions_module', False, "Requires distributions module to be built")
         return params
-        
+
     def checkRunnable(self, options):
         if self.specs['requires_python3'] and not RavenExodiff.has_python3:
             return (False, 'skipped (No python3 found)')

@@ -37,16 +37,16 @@ class RAVENInterface:
   def appendLoadFileExtension(self,fileRoot):
     '''  '''
     return fileRoot + '.csv'
-  
+
   def finalizeCodeOutput(self,currentInputFiles,output):
-    ''' this method is called by the RAVEN code at the end of each run (if the method is present). 
+    ''' this method is called by the RAVEN code at the end of each run (if the method is present).
         It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
         @ currentInputFiles, Input, the current input files (list)
         @ output, Input, the Output name root (string)
         @ return is optional, in case the root of the output file gets changed in this method.
-    ''' 
+    '''
     return output
-  
+
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
     MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
@@ -101,17 +101,17 @@ class RAVENInterface:
     modifDict[b'RNG_seed'] = str(RNG_seed)
     listDict.append(modifDict)
     return listDict
-  
+
   def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs):
-    return self.dynamicEventTreeForRAVEN(**Kwargs) 
-  
+    return self.dynamicEventTreeForRAVEN(**Kwargs)
+
   def dynamicEventTreeForRAVEN(self,**Kwargs):
-    
+
     listDict = []
     if 'preconditionerCoordinate' in Kwargs.keys():
       for preconditioner in Kwargs['preconditionerCoordinate']:
         preconditioner['executable'] = Kwargs['executable']
-        if 'MC' in preconditioner['SamplerType']: 
+        if 'MC' in preconditioner['SamplerType']:
           listDict = self.__genBasePointSampler(**preconditioner)[1]
           listDict.extend(self.monteCarloForRAVEN(**preconditioner))
         elif 'Grid' in preconditioner['SamplerType']: listDict.extend(self.gridForRAVEN(**preconditioner))
@@ -234,7 +234,7 @@ class RAVENInterface:
       #listDict.append(assertDict)
       for crowDistKey in crowDist.keys():
         if crowDistKey not in ['type']: listDict.append({'name':['Distributions',distName], 'special':set(['assert_match']), crowDistKey:crowDist[crowDistKey]})
-            
+
       listDict.append({'name':['Distributions',distName],
                        'special':set(['assert_match']),
                        'type':crowDist['type']})

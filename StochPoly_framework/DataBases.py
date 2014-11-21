@@ -57,8 +57,8 @@ class DateBase(BaseType):
       '''
       Function that adds the initial parameter in a temporary dictionary
       @ In, tempDict
-      @ Out, tempDict 
-      ''' 
+      @ Out, tempDict
+      '''
       return tempDict
 
     def addGroup(self,attributes,loadFrom):
@@ -78,7 +78,7 @@ class DateBase(BaseType):
       pass
 #    '''
 #      Function used to finalize the the database
-#      @ In, None 
+#      @ In, None
 #      @ Out, None
 #    '''
 #    def finalize(self):
@@ -128,7 +128,7 @@ class HDF5(DateBase):
       '''
       if not os.path.exists(self.databaseDir):
         os.makedirs(self.databaseDir)
-  
+
       # Check if a filename has been provided
       # if yes, we assume the user wants to load the data from there
       # or update it
@@ -137,15 +137,15 @@ class HDF5(DateBase):
         self.database = h5Data(self.name,self.databaseDir,file_name)
         self.exist   = True
       except:
-        self.database = h5Data(self.name,self.databaseDir) 
+        self.database = h5Data(self.name,self.databaseDir)
         self.exist   = False
-        
+
     def addInitParams(self,tempDict):
       '''
       Function that adds the initial parameter in a temporary dictionary
       @ In, tempDict
-      @ Out, tempDict 
-      ''' 
+      @ Out, tempDict
+      '''
       tempDict = DateBase.addInitParams(self,tempDict)
       tempDict['exist'] = self.exist
       return tempDict
@@ -154,16 +154,16 @@ class HDF5(DateBase):
       '''
       Function to retrieve all the groups' paths of the ending groups
       @ In, None
-      @ Out, List of the ending groups' paths 
-      ''' 
+      @ Out, List of the ending groups' paths
+      '''
       return self.database.retrieveAllHistoryPaths()
 
     def getEndingGroupNames(self):
       '''
       Function to retrieve all the groups' names of the ending groups
       @ In, None
-      @ Out, List of the ending groups' names 
-      ''' 
+      @ Out, List of the ending groups' names
+      '''
       return self.database.retrieveAllHistoryNames()
 
     def addGroup(self,attributes,loadFrom):
@@ -171,17 +171,17 @@ class HDF5(DateBase):
       Function to add a group in the HDF5 database
       @ In, attributes : dictionary of attributes (metadata and options)
       @ In, loadFrom   : source of the data (for example, a csv file
-      @ Out, None 
-      ''' 
+      @ Out, None
+      '''
       attributes["group"] = attributes['prefix']
      # if(self.subtype != "MC" and self.subtype != "DET"):
-     #   
+     #
      #   print("DATABASE HDF5:  type " + str(self.subtype) + " not implemented yet")
      #   return
 
       self.database.addGroup(attributes["group"],attributes,loadFrom)
       self.built = True
-    
+
     def addGroupInit(self,gname,attributes=None):
       '''
       Function to add an initial root group into the data base...
@@ -192,7 +192,7 @@ class HDF5(DateBase):
       '''
       self.database.addGroupInit(gname,attributes)
       return
-    
+
     def returnHistory(self,attributes):
       '''
       Function to retrieve a history from the HDF5 database
@@ -216,7 +216,7 @@ class HDF5(DateBase):
       '''
       Function to retrieve a TimePoint from the HDF5 database
       @ In, attributes : dictionary of attributes (variables must be retrieved)
-      @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable) 
+      @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
       and the second is a dictionary of the numpy arrays (output variables).
       Note: This function retrieve a TimePoint from an HDF5 database
       '''
@@ -227,7 +227,7 @@ class HDF5(DateBase):
         all_out_param  = True
       else:
         all_out_param = False
-    
+
       if attributes['time'] == 'end':
         time_end = True
         time_float = -1.0
@@ -235,10 +235,10 @@ class HDF5(DateBase):
         # convert the time in float
         time_end = False
         time_float = float(attributes['time'])
-            
+
       inDict  = {}
-      outDict = {} 
-      
+      outDict = {}
+
       field_names = []
       #all_field_names = []
       # Retrieve the field_names (aka headers if from CSV)
@@ -247,9 +247,9 @@ class HDF5(DateBase):
         #all_field_names = field_names
       else:
         field_names = attributes['outParam']
-        field_names.insert(0, 'time') 
+        field_names.insert(0, 'time')
         #all_field_names = histVar[1]["headers"]
-    
+
       # Fill input param dictionary
       for key in attributes['inParam']:
           if key in histVar[1]["headers"]:
@@ -257,24 +257,24 @@ class HDF5(DateBase):
             inDict[key] = histVar[0][0,ix]
           else:
             raise Exception("ERROR: the parameter " + key + " has not been found")
-    
+
       # Fill output param dictionary
       if time_end:
-        # time end case => TimePoint is the final status 
+        # time end case => TimePoint is the final status
         last_row = histVar[0][:,0].size - 1
         if all_out_param:
-          # Retrieve all the parameters 
+          # Retrieve all the parameters
           for key in histVar[1]["headers"]:
             outDict[key] = histVar[0][last_row,histVar[1]["headers"].index(key)]
         else:
-          # Retrieve only some parameters 
+          # Retrieve only some parameters
           for key in attributes['outParam']:
             if key in histVar[1]["headers"]:
-              outDict[key] = histVar[0][last_row,histVar[1]["headers"].index(key)]        
+              outDict[key] = histVar[0][last_row,histVar[1]["headers"].index(key)]
             else:
               raise Exception("ERROR: the parameter " + key + " has not been found")
       else:
-        # Arbitrary point in time case... If the requested time point does not match any of the stored ones and 
+        # Arbitrary point in time case... If the requested time point does not match any of the stored ones and
         # start_time <= requested_time_point <= end_time, compute an interpolated value
         for i in histVar[0]:
           if histVar[0][i,0] >= time_float and time_float >= 0.0:
@@ -283,37 +283,37 @@ class HDF5(DateBase):
               actual_time   = histVar[0][i,0]
             except:
               previous_time = histVar[0][i,0]
-              actual_time   = histVar[0][i,0]          
+              actual_time   = histVar[0][i,0]
             if all_out_param:
-              # Retrieve all the parameters 
+              # Retrieve all the parameters
               for key in histVar[1]["headers"]:
                 if(actual_time == previous_time):
-                  outDict[key] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time 
+                  outDict[key] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time
                 else:
                   actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
-                  previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
-                  outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                  previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)]
+                  outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
             else:
               # Retrieve only some parameters
               for key in attributes['outParam']:
                 if key in histVar[1]["headers"]:
                   if(actual_time == previous_time):
-                    outDict[key] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time 
+                    outDict[key] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time
                   else:
                     actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
-                    previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
-                    outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
-                           
+                    previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)]
+                    outDict[key] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
+
                 else:
                   raise Exception("ERROR: the parameter " + key + " has not been found")
-      # return tuple of dictionaries 
+      # return tuple of dictionaries
       return (inDict,outDict)
 
     def __retrieveDataTimePointSet(self,attributes):
       '''
       Function to retrieve a TimePointSet from the HDF5 database
       @ In, attributes : dictionary of attributes (variables must be retrieved)
-      @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable) 
+      @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
       and the second is a dictionary of the numpy arrays (output variables).
       Note: This function retrieve a TimePointSet from an HDF5 database
       '''
@@ -322,7 +322,7 @@ class HDF5(DateBase):
         all_out_param  = True
       else:
         all_out_param = False
-    
+
       if attributes['time'] == 'end':
         time_end = True
         time_float = -1.0
@@ -330,13 +330,13 @@ class HDF5(DateBase):
         # convert the time in float
         time_end = False
         time_float = float(attributes['time'])
-        
+
       inDict  = {}
-      outDict = {}    
+      outDict = {}
       hist_list = []
       hist_list = attributes['histories']
       # Retrieve all the associated histories and process them
-      for i in range(len(hist_list)): 
+      for i in range(len(hist_list)):
         # Load the data into the numpy array
         attributes['history'] = hist_list[i]
         histVar = self.returnHistory(attributes)
@@ -346,43 +346,43 @@ class HDF5(DateBase):
             field_names = histVar[1]["headers"]
           else:
             field_names = attributes['outParam']
-            field_names.insert(0, 'time') 
-        
-        # Fill input param dictionary 
+            field_names.insert(0, 'time')
+
+        # Fill input param dictionary
         for key in attributes['inParam']:
           if key in histVar[1]["headers"]:
             ix = histVar[1]["headers"].index(key)
             if i == 0:
-              # create numpy array 
+              # create numpy array
               inDict[key] = np.zeros(len(hist_list))
-              
+
             inDict[key][i] = histVar[0][0,ix]
             #inDict[key][i] = 1
           else:
             raise Exception("ERROR: the parameter " + str(key) + " has not been found")
-        # time end case => TimePointSet is at the final status 
+        # time end case => TimePointSet is at the final status
         if time_end:
           last_row = histVar[0][:,0].size - 1
           if all_out_param:
-            # Retrieve all the parameters 
+            # Retrieve all the parameters
             for key in histVar[1]["headers"]:
               if i == 0:
-                # create numpy array 
-                outDict[key] = np.zeros(len(hist_list))  
-              
+                # create numpy array
+                outDict[key] = np.zeros(len(hist_list))
+
               outDict[key][i] = histVar[0][last_row,histVar[1]["headers"].index(key)]
           else:
             # Retrieve only some parameters
             for key in attributes['outParam']:
               if key in histVar[1]["headers"]:
                 if i == 0:
-                  # create numpy array 
+                  # create numpy array
                   outDict[key] = np.zeros(len(hist_list))
                 outDict[key][i] = histVar[0][last_row,histVar[1]["headers"].index(key)]
               else:
                 raise Exception("ERROR: the parameter " + str(key) + " has not been found")
         else:
-          # Arbitrary point in time case... If the requested time point Set does not match any of the stored ones and 
+          # Arbitrary point in time case... If the requested time point Set does not match any of the stored ones and
           # start_time <= requested_time_point <= end_time, compute an interpolated value
           for i in histVar[0]:
             if histVar[0][i,0] >= time_float and time_float >= 0.0:
@@ -391,24 +391,24 @@ class HDF5(DateBase):
                 actual_time   = histVar[0][i,0]
               except:
                 previous_time = histVar[0][i,0]
-                actual_time   = histVar[0][i,0]          
+                actual_time   = histVar[0][i,0]
               if all_out_param:
-                # Retrieve all the parameters 
+                # Retrieve all the parameters
                 for key in histVar[1]["headers"]:
                   if(actual_time == previous_time):
                     if i == 0:
                       # create numpy array
-                      outDict[key] = np.zeros(np.shape(len(hist_list)))           
-                                
-                    outDict[key][i] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time 
+                      outDict[key] = np.zeros(np.shape(len(hist_list)))
+
+                    outDict[key][i] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time
                   else:
                     if i == 0:
                       # create numpy array
-                      outDict[key] = np.zeros(np.shape(len(hist_list))) 
-                                      
+                      outDict[key] = np.zeros(np.shape(len(hist_list)))
+
                     actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
-                    previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
-                    outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                    previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)]
+                    outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
               else:
                 # Retrieve only some parameters
                 for key in attributes['outParam']:
@@ -416,19 +416,19 @@ class HDF5(DateBase):
                     if(actual_time == previous_time):
                       if i == 0:
                         #create numpy array
-                        outDict[key] = np.zeros(np.shape(len(hist_list))) 
-                                              
-                      outDict[key][i] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time 
+                        outDict[key] = np.zeros(np.shape(len(hist_list)))
+
+                      outDict[key][i] = (histVar[0][i,histVar[1]["headers"].index(key)]  - time_float) / actual_time
                     else:
                       if i == 0:
                         # create numpy array
                         outDict[key] = np.zeros(np.shape(len(hist_list)))
-                      
+
                       actual_value   = histVar[0][i,histVar[1]["headers"].index(key)]
-                      previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)] 
-                      outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)    
+                      previous_value = histVar[0][i-1,histVar[1]["headers"].index(key)]
+                      outDict[key][i] = (actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)
                   else:
-                    raise Exception("ERROR: the parameter " + key + " has not been found")      
+                    raise Exception("ERROR: the parameter " + key + " has not been found")
         del histVar
       # return tuple of timepointSet
       return (inDict,outDict)
@@ -437,7 +437,7 @@ class HDF5(DateBase):
       '''
       Function to retrieve a History from the HDF5 database
       @ In, attributes : dictionary of attributes (variables and history name must be retrieved)
-      @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable) 
+      @ Out, tupleVar  : tuple in which the first position is a dictionary of numpy arays (input variable)
       and the second is a dictionary of the numpy arrays (output variables).
       Note: This function retrieve a History from an HDF5 database
       '''
@@ -459,21 +459,21 @@ class HDF5(DateBase):
           time_all = True
       except:
         time_all = True
-                     
+
       inDict  = {}
-      outDict = {}  
-      # Call the function to retrieve a single history and 
-      # load the data into the tuple 
+      outDict = {}
+      # Call the function to retrieve a single history and
+      # load the data into the tuple
       histVar = self.returnHistory(attributes)
-      
+
       if(all_out_param):
-        # Retrieve all the parameters 
+        # Retrieve all the parameters
         field_names = histVar[1]["headers"]
       else:
-        # Retrieve only some parameters 
+        # Retrieve only some parameters
         field_names = attributes["outParam"]
-        field_names.insert(0, 'time') 
-      
+        field_names.insert(0, 'time')
+
       # fill input param dictionary
       for key in attributes["inParam"]:
           if key in histVar[1]["headers"]:
@@ -489,7 +489,7 @@ class HDF5(DateBase):
         else:
           for key in attributes["outParam"]:
             if key in histVar[1]["headers"]:
-              outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]        
+              outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]
             else:
               raise Exception("ERROR: the parameter " + key + " has not been found")
       else:
@@ -503,7 +503,7 @@ class HDF5(DateBase):
         else:
           for key in attributes["outParam"]:
             if key in histVar[1]["headers"]:
-              outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]        
+              outDict[key] = histVar[0][:,histVar[1]["headers"].index(key)]
             else:
               raise Exception("ERROR: the parameter " + key + " has not been found")
       # Return tuple of dictionaries containing the histories
@@ -513,7 +513,7 @@ class HDF5(DateBase):
       '''
       Function interface for retrieving a TimePoint or TimePointSet or History from the HDF5 database
       @ In, attributes : dictionary of attributes (variables, history name,metadata must be retrieved)
-      @ Out, data     : tuple in which the first position is a dictionary of numpy arays (input variable) 
+      @ Out, data     : tuple in which the first position is a dictionary of numpy arays (input variable)
       and the second is a dictionary of the numpy arrays (output variables).
       Note: Interface function
       '''
@@ -545,4 +545,3 @@ def returnInstance(Type,debug=False):
   InterfaceDict['HDF5'   ] = HDF5
   try:return InterfaceDict[Type]()
   except KeyError: raise NameError(base +' of type ' + Type + " unknown")
-  

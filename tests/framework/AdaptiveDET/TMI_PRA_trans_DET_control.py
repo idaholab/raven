@@ -10,7 +10,7 @@ def restart_function(monitored, controlled, auxiliary):
     # here we store some critical parameters that we want in the output
     auxiliary.CladFailureDistThreshold = distributions.CladFailureDist.getVariable('ProbabilityThreshold')
     auxiliary.CladTempBranched = distributions.CladFailureDist.inverseCdf(auxiliary.CladFailureDistThreshold)
-    
+
     auxiliary.crew1DG1Threshold = distributions.crew1DG1.getVariable('ProbabilityThreshold')
     auxiliary.DG1recoveryTime   = distributions.crew1DG1.inverseCdf(auxiliary.crew1DG1Threshold)
 

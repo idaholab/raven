@@ -23,7 +23,7 @@ class HOBOInterface:
     # here the developer generates the command...
     # for this particular code, we have to retrieve the path of the executable contained into the generated input files
     # (remember..it is not needed if the code gives the possibility to chose the filenames for outputs and inputs)
-    
+
     pathOfExectuable = os.path.split(inputFiles[0])[0]
     nameOfExecutable = os.path.split(executable)[1]
     executeCommand = (os.path.join(pathOfExectuable,nameOfExecutable))
@@ -68,16 +68,16 @@ class HOBOInterface:
     # for a code that lets the user provide the filenames for the inputs and outputs, it is not needed to copy the inputs not perturbed into the directory
     # here we need to do that because the framework copies those files into the working directory (it is not aware of the newer directory we just created)
     for cnt,filenameToCopy in enumerate(oriInputFiles):
-      if cnt != index: 
+      if cnt != index:
         shutil.copyfile(filenameToCopy, os.path.join(os.path.split(str(oriInputFiles[cnt][:]))[0],Kwargs['prefix'],os.path.split(str(oriInputFiles[cnt][:]))[1]))
     # copy the executable (remember..it is not needed if the code gives the possibility to chose the filenames for outputs and inputs)
     try: os.remove(os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.basename(Kwargs['executable'])))
-    except:pass 
+    except:pass
     shutil.copyfile(Kwargs['executable'],os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.basename(Kwargs['executable'])))
     newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.split(temp)[1]))
     # change rights of executable
     shutil.copystat(Kwargs['executable'],os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.basename(Kwargs['executable'])))
-    
+
     parser.printInput(newInputFiles[index])
     return newInputFiles
 
@@ -85,19 +85,18 @@ class HOBOInterface:
     modifDict = {}
     for key in Kwargs['SampledVars']:
       #1_settings|row|12
-      # pathToVariable = list that represents the path to the variable that needs to be changed 
+      # pathToVariable = list that represents the path to the variable that needs to be changed
       # what we have inside (remember that this syntax is decided by the the developer is coupling the new code):
       # first entry is the inputfile name that needs to be perturbed (for this simple example, the only file name that is supported is 1_settings.txt)
       # second entry, for this syntax, is only a convinient keyword (row)
       # third entry is the row number that is going to be pertorbed
-      pathToVariable = key.split("|") 
+      pathToVariable = key.split("|")
       if len(pathToVariable) != 3: raise IOError('HOBOInterface: ERROR -> This interface expects a variable with the format'+
                                                  ' "filename(no extension)|row|rowNumber". Got' + key)
-      # we add the perturebed values into a dictionary (or whatever object the developer wants to use) 
+      # we add the perturebed values into a dictionary (or whatever object the developer wants to use)
       # in a format that is understandable by the input parser (for this particular code) that is provided in another module (or whitin this one)
       modifDict[key] = {'row':int(pathToVariable[2]),'value':Kwargs['SampledVars'][key]}
-    return copy.deepcopy(modifDict)  
+    return copy.deepcopy(modifDict)
 
   def DynamicEventTreeForExampleCode(self,**Kwargs):
     raise NotYetImplemented("DynamicEventTreeForHOBO not yet implemented")
-  

@@ -40,7 +40,7 @@ class Step(BaseType):
     inDictionary['Model'].reset(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'])
     print('STEPS         : the model '+inDictionary['Model'].name+' has been reset')
     for i in range(len(inDictionary['Output'])):
-      try: 
+      try:
         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].addGroupInit(self.name)
       except: pass
     return
@@ -140,7 +140,7 @@ class MultiRun(Step):
         inDictionary["Model"].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
         if inDictionary['Model'].type != 'Code':
           for output in inDictionary['Output']:                                                      #for all expected outputs
-            inDictionary['Model'].collectOutput(None,output) 
+            inDictionary['Model'].collectOutput(None,output)
     else:
       #we start the only case we have
       inDictionary["Model"].run(inDictionary['Input'],inDictionary['Output'],inDictionary['jobHandler'])
@@ -181,7 +181,7 @@ class MultiRun(Step):
           newInput = inDictionary['Sampler'].generateInput(inDictionary['Model'],inDictionary['Input'])
           inDictionary['Model'].run(newInput,inDictionary['Output'],inDictionary['jobHandler'])
           for output in inDictionary['Output']:
-            inDictionary['Model'].collectOutput(finishedJob,output) 
+            inDictionary['Model'].collectOutput(finishedJob,output)
         else:
           break
         time.sleep(0.001)
@@ -296,7 +296,7 @@ class ExtractFromDataBase(Step):
   '''
   def __init__(self):
     Step.__init__(self)
-    
+
 
   def addCurrentSetting(self,originalDict):
     Step.addCurrentSetting(self,originalDict)
@@ -323,8 +323,8 @@ class ExtractFromDataBase(Step):
     for i in xrange(len(inDictionary['Output'])):
       if (not inDictionary['Output'][i].type in avail_out.split('-')):
         raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts ' + avail_out + ' as Output only. Got ' + inDictionary['Output'][i].type)
-    return    
-    
+    return
+
   def takeAstepRun(self,inDictionary):
     for i in xrange(len(inDictionary['Output'])):
       #link the output to the database and construct the Data(s)
@@ -364,9 +364,9 @@ class RomTrainer(Step):
       if (inDictionary['Output'][i].type != 'ROM'):
         raise IOError('STEPS         : ERROR: In Step named ' + self.name + '. This step accepts a ROM as Output only. Got ' + inDictionary['Output'][i].type)
     self.initializeStep(inDictionary)
-    
-    return    
-    
+
+    return
+
   def takeAstepRun(self,inDictionary):
     #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
     for i in xrange(len(inDictionary['Output'])):
@@ -377,7 +377,7 @@ class PlottingStep(Step):
   '''this class implement one step of the simulation pattern' where several runs are needed'''
   def __init__(self):
     Step.__init__(self)
-    
+
 
   def addCurrentSetting(self,originalDict):
     Step.addCurrentSetting()
@@ -406,7 +406,7 @@ def returnInstance(Type):
   InterfaceDict['MultiRun'      ] = MultiRun
   InterfaceDict['PostProcessing'] = PostProcessing
   InterfaceDict['SCRun'         ] = SCRun
-  InterfaceDict['Extract'       ] = ExtractFromDataBase 
+  InterfaceDict['Extract'       ] = ExtractFromDataBase
   InterfaceDict['RomTrainer'    ] = RomTrainer
   InterfaceDict['Plotting'      ] = PlottingStep
   try:
@@ -414,8 +414,3 @@ def returnInstance(Type):
       return InterfaceDict[Type]()
   except:
     raise NameError('not known '+base+' type'+Type)
-  
-  
-  
-  
-  

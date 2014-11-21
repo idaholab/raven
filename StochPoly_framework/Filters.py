@@ -20,7 +20,7 @@ from utils import *
 
 class PrintCSV(object):
   '''
-    PrintCSV filter class. It prints a CSV file loading data from a hdf5 database or other sources 
+    PrintCSV filter class. It prints a CSV file loading data from a hdf5 database or other sources
   '''
   def __init__(self):
     self.paramters = []
@@ -37,23 +37,23 @@ class PrintCSV(object):
     if(param.lower() != 'all'):
       self.paramters = param.strip().split(',')
     else:
-      self.paramters.append(param) 
+      self.paramters.append(param)
     return
 
   def finalizeFilter(self,inObj,outObj,workingDir=None):
     '''
-     Function to finalize the filter => execute the filtering 
+     Function to finalize the filter => execute the filtering
      @ In, inObj      : Input object (for example HDF5 object)
-     @ In, outObj     : Output object (in this case is the csv file name) => string 
+     @ In, outObj     : Output object (in this case is the csv file name) => string
      @ In, workingDir : Working directory (where to store the csvs)
      @ Out, None      : Print of the CSV file
     '''
-    
-    # Check the input type 
+
+    # Check the input type
     if(inObj.type == "HDF5"):
 
       #  Input source is a database (HDF5)
-      
+
       #  Retrieve the ending groups' names
       endGroupNames = inObj.getEndingGroupNames()
       histories = {}
@@ -61,9 +61,9 @@ class PrintCSV(object):
       #  Construct a dictionary of all the histories
       for index in range(len(endGroupNames)):
         histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
-      
+
       try:
-        # not yet implemented 
+        # not yet implemented
         outType = outObj.type
       except:
 #        splitted = outObj.split('.')
@@ -75,13 +75,13 @@ class PrintCSV(object):
           #  Retrieve the metadata (posion 1 of the history tuple)
           attributes = histories[key][1]
           #  Construct the header in csv format (first row of the file)
-          headers = b",".join([histories[key][1]['headers'][i] for i in 
+          headers = b",".join([histories[key][1]['headers'][i] for i in
                                range(len(attributes['headers']))])
           #  Construct history name
           try:
             hist = ''
             hist = key
-            #hist = hist.replace(',','_') 
+            #hist = hist.replace(',','_')
           except:
             hist = key
           #  If file, split the strings and add the working directory if present
@@ -98,23 +98,23 @@ class PrintCSV(object):
           if workingDir:
             addfile = os.path.join(workingDir,addfile)
             csvfilen = os.path.join(workingDir,csvfilen)
-          
+
           #  Open the files and save the data
           with open(csvfilen, 'wb') as csvfile, open(addfile, 'wb') as addcsvfile:
             #  Add history to the csv file
             np.savetxt(csvfile, histories[key][0], delimiter=",",header=toString(headers))
             csvfile.write(b' \n')
             #  process the attributes in a different csv file (different kind of informations)
-            
+
             #  Add metadata to additional info csv file
             addcsvfile.write(b'# History Metadata, \n')
             addcsvfile.write(b'# ______________________________,' + b'_'*len(key)+b','+b'\n')
             addcsvfile.write(b'#number of parameters,\n')
             addcsvfile.write(toBytes(str(attributes['n_params']))+b',\n')
-            addcsvfile.write(b'#parameters,\n') 
-            addcsvfile.write(headers+b'\n') 
-            addcsvfile.write(b'#parent_id,\n') 
-            addcsvfile.write(toBytes(attributes['parent_id'])+b'\n') 
+            addcsvfile.write(b'#parameters,\n')
+            addcsvfile.write(headers+b'\n')
+            addcsvfile.write(b'#parent_id,\n')
+            addcsvfile.write(toBytes(attributes['parent_id'])+b'\n')
             addcsvfile.write(b'#start time,\n')
             addcsvfile.write(toBytes(str(attributes['start_time']))+b'\n')
             addcsvfile.write(b'#end time,\n')
@@ -130,7 +130,7 @@ class PrintCSV(object):
                 string_work_2 = ''
                 for j in init_dist[i]:
                   string_work_2 = string_work_2 + str(j) + ' '
-                string_work = string_work + string_work_2 + ','          
+                string_work = string_work + string_work_2 + ','
               addcsvfile.write('#initiator distributions,\n')
               addcsvfile.write(toBytes(string_work)+b'\n')
             except:
@@ -139,11 +139,11 @@ class PrintCSV(object):
               string_work = ''
               end_ts = attributes['end_timestep']
               for i in xrange(len(end_ts)):
-                string_work = string_work + str(end_ts[i]) + ','          
+                string_work = string_work + str(end_ts[i]) + ','
               addcsvfile.write('#end time step,\n')
               addcsvfile.write(str(string_work)+'\n')
             except:
-              pass             
+              pass
             try:
               string_work = ''
               branch_changed_param = attributes['branch_changed_param']
@@ -154,7 +154,7 @@ class PrintCSV(object):
                     string_work_2 = string_work_2 + 'None' + ' '
                   else:
                     string_work_2 = string_work_2 + str(j) + ' '
-                string_work = string_work + string_work_2 + ','          
+                string_work = string_work + string_work_2 + ','
               addcsvfile.write('#changed parameters,\n')
               addcsvfile.write(str(string_work)+'\n')
             except:
@@ -169,7 +169,7 @@ class PrintCSV(object):
                     string_work_2 = string_work_2 + 'None' + ' '
                   else:
                     string_work_2 = string_work_2 + str(j) + ' '
-                string_work = string_work + string_work_2 + ','                          
+                string_work = string_work + string_work_2 + ','
               addcsvfile.write('#changed parameters values,\n')
               addcsvfile.write(str(string_work)+'\n')
             except:
@@ -184,7 +184,7 @@ class PrintCSV(object):
                     string_work_2 = string_work_2 + 'None' + ' '
                   else:
                     string_work_2 = string_work_2 + str(j) + ' '
-                string_work = string_work + string_work_2 + ','                
+                string_work = string_work + string_work_2 + ','
               addcsvfile.write('#conditional probability,\n')
               addcsvfile.write(str(string_work)+'\n')
             except:
@@ -203,9 +203,9 @@ class PrintCSV(object):
               addcsvfile.write('#Probability threshold,\n')
               addcsvfile.write(str(string_work)+'\n')
             except:
-              pass            
+              pass
             addcsvfile.write(b' \n')
-            
+
     elif(inObj.type == "Datas"):
       pass
     else:
@@ -231,13 +231,13 @@ class Plot:
 
   def finalizeFilter(self,inObj,outObj,workingDir=None):
     '''
-      Function to finalize the filter => execute the filtering 
+      Function to finalize the filter => execute the filtering
       @ In, inObj      : Input object (for example HDF5 object)
       @ In, outObj     : Output object (Plot type)
       @ In, workingDir : Working directory (where to store the csvs)
     '''
 
-    #  Check the input type 
+    #  Check the input type
     if(inObj.type == "HDF5"):
       #  Input source is a database (HDF5)
 
@@ -247,13 +247,13 @@ class Plot:
       #  Retrieve histories from HDF5 database
       for index in xrange(len(endGroupNames)):
         histories[endGroupNames[index]] = inObj.returnHistory({'history':endGroupNames[index],'filter':'whole'})
-      
+
     elif (inObj.type == "CSV"):
       #  not implemented yet
       pass
     else:
       raise NameError ('Filter Plot for input type ' + inObj.type + ' not yet implemented.')
-    #  Plot the histories 
+    #  Plot the histories
     for i in range (len(endGroupNames)):
       fig[i]=plt.figure()
       plt.plot(histories[endGroupNames[1]],histories[endGroupNames[i]])
@@ -270,12 +270,12 @@ class Plot:
         fig[i].savefig(fileName,dpi=fig.dpi)
       elif (outObj.type == "eps"):
         fileName=str(histories[endGroupNames[i]])+'.eps'
-        fig[i].savefig(fileName,dpi=fig.dpi)        
+        fig[i].savefig(fileName,dpi=fig.dpi)
       elif (outObj.type == "pdf"):
         fileName=str(histories[endGroupNames[i]])+'.pdf'
-        fig[i].savefig(fileName,dpi=fig.dpi)        
+        fig[i].savefig(fileName,dpi=fig.dpi)
       else:
-        raise NameError ('Filter Plot for output type ' + outObj.type + ' not implemented.')  
+        raise NameError ('Filter Plot for output type ' + outObj.type + ' not implemented.')
     return
 
 def returnFilterInterface(Type):
@@ -291,4 +291,3 @@ def returnFilterInterface(Type):
   try: return filterInterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
 
-  

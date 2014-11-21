@@ -54,7 +54,7 @@
 []
 
 [Components]
-  # Core region components 
+  # Core region components
   # [./high_pressure_seconday_A]
   # T_bc = 537.15
   # p_bc = '152.19e5'
@@ -313,7 +313,7 @@
     Dh = 0.01
     Twall_init = 564.15
     Hw = 1.e4
- 
+
     eos_secondary = eos
     type = HeatExchanger
     A = 5.0
@@ -496,7 +496,7 @@
     Dh = 0.01
     Twall_init = 564.15
     Hw = 1.e4
-   
+
     eos_secondary = eos
     type = HeatExchanger
     A = 5.
@@ -591,28 +591,28 @@
  active = 'SMP_PJFNK'
 # active = 'FDP_PJFNK'
 # active = 'FDP_Newton'
- 
+
 # The definitions of the above-named blocks follow.
  [./SMP_PJFNK]
  type = SMP
  full = true
- 
+
 # Preconditioned JFNK (default)
  solve_type = 'PJFNK'
  petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
  petsc_options_value = 'ds             ds'
  [../]
- 
+
  [./SMP_Newton]
  type = SMP
  full = true
  solve_type = 'NEWTON'
  [../]
- 
+
  [./FDP_PJFNK]
  type = FDP
  full = true
- 
+
 # Preconditioned JFNK (default)
  solve_type = 'PJFNK'
  petsc_options_iname = '-mat_fd_coloring_err'
@@ -620,12 +620,12 @@
  petsc_options_iname = '-mat_fd_type'
  petsc_options_value = 'ds'
  [../]
- 
+
  [./FDP_Newton]
  type = FDP
  full = true
  solve_type = 'NEWTON'
- 
+
  petsc_options_iname = '-mat_fd_coloring_err'
  petsc_options_value = '1.e-10'
  petsc_options_iname = '-mat_fd_type'
@@ -679,7 +679,7 @@
   # num_restart_files = 1
   output_initial = true
 #output_displaced = false
-  exodus = false 
+  exodus = false
   file_base = TMI_test_PRA_transient_less_w_out
   exodus = true
   csv = true
@@ -794,7 +794,7 @@
 [Monitored]
   #  [./sec_inlet_density]
   #    operator = ElementAverageValue
-  #    path = 
+  #    path =
   #    data_type = double
   #    component_name = pipe1-SC-A
   #  [../]
@@ -805,7 +805,7 @@
     component_name =  CH1
   [../]
   [./avg_temp_clad_CH2]
-    operator =  ElementAverageValue    
+    operator =  ElementAverageValue
     path =  CLAD:TEMPERATURE
     data_type =  double
     component_name =  CH2
@@ -927,7 +927,7 @@
    print_csv =  true
    data_type =  bool
    initial_value =  False
- [../] 
+ [../]
   [./crewSecPG]
     print_csv =  true
     data_type =  bool
@@ -986,7 +986,7 @@
   [./CladTempBranched]
     print_csv =  true
     data_type =  double
-    initial_value = 0.0  
+    initial_value = 0.0
   [../]
   [./ScramStatus]
     print_csv =  true
@@ -997,11 +997,11 @@
     print_csv =  true
     data_type =  bool
     initial_value =  false
-  [../] 
+  [../]
   [./init_Power_Fraction_CH1]
     print_csv =  true
     data_type =  double
-    initial_value =  3.33672612e-1 
+    initial_value =  3.33672612e-1
   [../]
   [./init_Power_Fraction_CH2]
     print_csv =  true
@@ -1011,7 +1011,7 @@
   [./init_Power_Fraction_CH3]
     print_csv =  true
     data_type =  double
-    initial_value =  2.96405926e-1 
+    initial_value =  2.96405926e-1
   [../]
  [./a_power_CH1]
  print_csv =  true
@@ -1087,11 +1087,11 @@
  print_csv =  true
  data_type =  double
  initial_value =  0.001
- [../] 
+ [../]
  [./auxAbsolute]
-   print_csv = true 
-   data_type = double                                                                  
-   initial_value = 0.001                                                              
+   print_csv = true
+   data_type = double
+   initial_value = 0.001
  [../]
  [./DG1recoveryTime]
  data_type = double
@@ -1144,7 +1144,7 @@
  initial_value = true
  [../]
  []
- 
+
 [TimeController]
  [./cntrAux]
  comparisonID = auxAbsolute
@@ -1153,7 +1153,7 @@
  delta = 0.5
  [../]
  []
- 
+
  [RavenTools]
  [./PumpCoastDown]
  type = pumpCoastdownExponential

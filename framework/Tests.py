@@ -11,7 +11,7 @@ from BaseClasses import BaseType
 
 
 class Test(BaseType):
-  ''' 
+  '''
   a genral class containing the distributions
   '''
   def __init__(self):
@@ -20,10 +20,10 @@ class Test(BaseType):
     self.tolerance = 0.0
 
   def _readMoreXML(self,xmlNode):
-    #try: 
+    #try:
     self.toBeTested = xmlNode.text.split(',')
     #except? raise IOError('not found variable list to be tested in tester '+self.name)
-    #try: 
+    #try:
     self.name = xmlNode.attrib['tolerance']
     #except? raise IOError('not found tolerance for tester '+self.name)
 
@@ -69,7 +69,7 @@ def knonwnTypes():
   return __knownTypes
 
 def returnInstance(Type):
-  '''return one instance of Type''' 
+  '''return one instance of Type'''
   try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)  
+  except KeyError: raise NameError('not known '+__base+' type '+Type)
 

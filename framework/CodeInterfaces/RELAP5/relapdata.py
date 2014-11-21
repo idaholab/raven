@@ -1,9 +1,9 @@
 import re
-#  author  : nieljw   
+#  author  : nieljw
 #  modified: alfoa
 
 class relapdata:
-  '''   class that parses output of relap5 output file and reads in trip, minor block and write a csv file ''' 
+  '''   class that parses output of relap5 output file and reads in trip, minor block and write a csv file '''
   def __init__(self,filen):
     self.lines=open(filen,"r").readlines()
     self.trips=self.returntrip(self.lines)
@@ -13,7 +13,7 @@ class relapdata:
 
   def gettime(self,lines):
     for i in lines:
-      if re.match('^\s*Final time=',i): 
+      if re.match('^\s*Final time=',i):
         time=i.split()[2]
         return time
 
@@ -27,9 +27,9 @@ class relapdata:
           temp1 = lines[i].split();
           for j in range(len(temp1)/2):
             if (float(temp1[2*j+1])>-1.000):
-              triparray.append({temp1[2*j]:temp1[2*j+1]});                     
-          i=i+1;         
-    return triparray;   
+              triparray.append({temp1[2*j]:temp1[2*j+1]});
+          i=i+1;
+    return triparray;
 
   def readminorblock(self,lines,i):
     '''   reads in a block of minor edit data and returns a dictionary of lists  '''
@@ -56,7 +56,7 @@ class relapdata:
           tempdata=lines[i].split()
           for k in range(len(temparray)): temparray[k].append(tempdata[k])
           i=i+1
-          if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]): break 
+          if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]): break
         for l in range(len(tempkeys)): minordict.update({tempkeys[l]:temparray[l]})
         if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
           flagg2=1
@@ -80,7 +80,7 @@ class relapdata:
           for k in minordict.keys():
             for l in tempdict.get(k):
               minordict[k].append(l)
-    return minordict 
+    return minordict
 
   def readraven(self):
     flagg=0
@@ -88,7 +88,7 @@ class relapdata:
     for i in range(len(self.lines)):
       if re.search('RAVEN',self.lines[i]):
         i=i+1
-        while flagg==0: 
+        while flagg==0:
           if re.search('RAVEN',self.lines[i]): flagg=1
           else: self.ravendata[self.lines[i].split()[1].replace("*","")]=self.lines[i].split()[3]
           i=i+1
