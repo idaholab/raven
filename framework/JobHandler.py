@@ -31,9 +31,10 @@ class ExternalRunner:
   '''
   Class for running external codes
   '''
-  def __init__(self,command,workingDir,output=None,metadata=None):
+  def __init__(self,command,workingDir,bufsize,output=None,metadata=None):
     ''' Initialize command variable'''
     self.command    = command
+    self.bufsize    = bufsize
     workingDirI     = None
     if    output!=None:
       self.output   = output
@@ -138,7 +139,7 @@ class ExternalRunner:
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
     localenv['PYTHONPATH'] = ''
-    outFile = open(self.output,'w')
+    outFile = open(self.output,'w', self.bufsize)
     self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
     #self.__process = subprocess.Popen(self.command,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,cwd=self.__workingDir,env=localenv)
@@ -252,7 +253,7 @@ class JobHandler:
       command +=self.threadingCommand+' '
     command += executeCommand
     command += self.runInfoDict['postcommand']
-    self.__queue.put(ExternalRunner(command,workingDir,outputFile,metadata))
+    self.__queue.put(ExternalRunner(command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 

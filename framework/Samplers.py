@@ -24,7 +24,7 @@ from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert,find_le,find_lt,index,find_le_index,returnPrintTag,returnPrintPostTag
+from utils import metaclass_insert,find_le,find_lt,index,find_le_index,returnPrintTag,returnPrintPostTag,stringsThatMeanTrue
 from BaseClasses import BaseType, Assembler
 import Distributions
 import TreeStructure as ETS
@@ -130,7 +130,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
     except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
     if 'reseedAtEachIteration' in xmlNode.attrib.keys():
-      if xmlNode.attrib['reseedAtEachIteration'].lower() in ['t','true','yes','y','si','oui','shi','etiam']: self.reseedAtEachIteration = True
+      if xmlNode.attrib['reseedAtEachIteration'].lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
     for child in xmlNode:
       for childChild in child:
         if childChild.tag =='distribution':
@@ -1496,7 +1496,7 @@ class DynamicEventTree(Grid):
     Grid.localInputAndChecks(self,xmlNode)
     self.limit = sys.maxsize
     if 'print_end_xml' in xmlNode.attrib.keys():
-      if xmlNode.attrib['print_end_xml'].lower() in ['true','t','yes','si','y']: self.print_end_xml = True
+      if xmlNode.attrib['print_end_xml'].lower() in stringsThatMeanTrue(): self.print_end_xml = True
       else: self.print_end_xml = False
     if 'maxSimulationTime' in xmlNode.attrib.keys():
       try:    self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
@@ -1877,9 +1877,9 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       elif xmlNode.attrib['noTransitionStrategy'].lower() == 'grid': self.noTransitionStrategy = 2
       else:  raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
-      if xmlNode.attrib['updateGrid'].lower() in ['y','yes','true','t']: self.insertAdaptBPb = True
-
-  def _generateDistributions(self,availableDist):
+      if xmlNode.attrib['updateGrid'].lower() in stringsThatMeanTrue(): self.insertAdaptBPb = True
+  
+  def _generateDistributions(self,availableDist): 
     DynamicEventTree._generateDistributions(self,availableDist)
 
   def localInitialize(self,solutionExport = None,goalFunction = None,ROM = None):

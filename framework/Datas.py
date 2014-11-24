@@ -92,7 +92,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     except KeyError:self._dataParameters['inputTs'] = None
     # check if this data needs to be in hierarchical fashion
     if 'hierarchical' in xmlNode.attrib.keys():
-      if xmlNode.attrib['hierarchical'].lower() in ['true','t','1','yes','y']: self._dataParameters['hierarchical'] = True
+      if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
       else: self._dataParameters['hierarchical'] = False
       if self._dataParameters['hierarchical'] and not self.acceptHierarchical():
         print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')

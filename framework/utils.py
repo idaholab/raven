@@ -8,6 +8,28 @@ def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTag
 
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
+def convertMultipleToBytes(number,sitype=None):
+  '''
+  Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes 
+  International system type (e.g., 1 Mb = 10^6)
+  '''
+  try   : converted = int(number)
+  except: raise IOError(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  can not cast the string '+str(number)+' to integer!')
+  
+  if sitype == None          : return converted
+  if sitype.lower()   == 'mb': return converted*10**6
+  elif sitype.lower() == 'kb': return converted*10**3
+  elif sitype.lower() == 'gb': return converted*10**9
+  else                       : raise IOError(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  unknown multiple type '+str(type)+'!')
+
+def stringsThatMeanTrue():
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin)'''
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam'])
+
+def stringsThatMeanFalse():
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin)'''
+  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus'])
+
 def compare(s1,s2):
   sig_fig=6
   w1 = partialEval(s1)

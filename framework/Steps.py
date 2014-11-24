@@ -16,7 +16,7 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import metaclass_insert, returnPrintTag, returnPrintPostTag
+from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, stringsThatMeanTrue, stringsThatMeanFalse
 import Models
 from OutStreamManager import OutStreamManager
 from Datas import Data
@@ -91,8 +91,8 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys():
-      if   xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t','y']: self.pauseEndStep = True
-      elif xmlNode.attrib['pauseAtEnd'].lower() in ['no','false','f','n']: self.pauseEndStep = False
+      if   xmlNode.attrib['pauseAtEnd'].lower() in stringsThatMeanTrue(): self.pauseEndStep = True
+      elif xmlNode.attrib['pauseAtEnd'].lower() in stringsThatMeanFalse(): self.pauseEndStep = False
       else: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
     self._localInputAndChecks(xmlNode)
     if None in self.parList: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> A problem was found in  the definition of the step '+str(self.name))

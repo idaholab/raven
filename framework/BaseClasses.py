@@ -10,7 +10,7 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils    import returnPrintTag, metaclass_insert
+from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stringsThatMeanFalse
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -37,8 +37,8 @@ class BaseType(object):
     self.type     = xmlNode.tag
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'debug' in xmlNode.attrib:
-      if   xmlNode.attrib['debug'].lower() in ['true','t','yes'] : self.debug = True
-      elif xmlNode.attrib['debug'].lower() in ['false','f','no']: self.debug = False
+      if   xmlNode.attrib['debug'].lower() in stringsThatMeanTrue() : self.debug = True
+      elif xmlNode.attrib['debug'].lower() in stringsThatMeanFalse(): self.debug = False
       else                                   : raise IOError('For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
     else                                     : self.debug = debug
     self._readMoreXML(xmlNode)
