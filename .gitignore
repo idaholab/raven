@@ -55,3 +55,4 @@ tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
 
 # python
 *.pyc
+*~
