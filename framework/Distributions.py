@@ -55,6 +55,7 @@ class Distribution(BaseType):
     self.__adjustmentType   = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality   = None # Dimensionality of the distribution (1D or ND)
     self.printTag         = returnPrintTag('DISTRIBUTIONS')
+    self.preferredPolynomials = None #best polynomial for probability-weighted norm of error
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -267,6 +268,7 @@ class Uniform(BoostDistribution):
     self.low = 0.0
     self.hi = 0.0
     self.type = 'Uniform'
+    self.preferredPolynomials = 'Legendre'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -339,6 +341,7 @@ class Normal(BoostDistribution):
     self.mean  = 0.0
     self.sigma = 0.0
     self.type = 'Normal'
+    self.preferredPolynomials = 'Hermite'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -410,6 +413,7 @@ class Gamma(BoostDistribution):
     self.alpha = 0.0
     self.beta = 1.0
     self.type = 'Gamma'
+    self.preferredPolynomials = 'Laguerre'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -488,6 +492,7 @@ class Beta(BoostDistribution):
     self.beta = 0.0
     self.type = 'Beta'
     if self.debug: print('FIXME: # TODO default to specific Beta distro?')
+    self.preferredPolynomials = 'Jacobi'
     # TODO default to specific Beta distro?
 
   def getCrowDistDict(self):
