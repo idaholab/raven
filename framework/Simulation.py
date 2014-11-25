@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 import os,subprocess
 import math
 import sys
+import io
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -25,7 +26,7 @@ import DataBases
 import Functions
 import OutStreamManager
 from JobHandler import JobHandler
-from utils import returnPrintTag,returnPrintPostTag
+from utils import returnPrintTag,returnPrintPostTag,convertMultipleToBytes,stringsThatMeanTrue,stringsThatMeanFalse
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -119,7 +120,7 @@ class PBSDSHSimulationMode(SimulationMode):
         print(self.printTag+": " +returnPrintPostTag('Warning') + " -> changing batchsize from",oldBatchsize,"to",newBatchsize)
       print(self.printTag+": Message -> Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
       #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
-      self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+self.__simulation.runInfoDict['precommand']
+      self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(self.runInfoDict['logfileBuffer'])+" "+self.__simulation.runInfoDict['precommand']
       self.__simulation.runInfoDict['logfilePBS'] = 'out_%CURRENT_ID%'
       if(self.__simulation.runInfoDict['NumThreads'] > 1):
         #Add the MOOSE --n-threads command afterwards
@@ -284,6 +285,7 @@ class Simulation(object):
     self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
     self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbsdsh and mpi
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
+    self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
     #Theirs keywords in the dictionaries are the the user given names of data, sampler, etc.
@@ -365,8 +367,8 @@ class Simulation(object):
   def XMLread(self,xmlNode,runInfoSkip = set()):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
     if 'debug' in xmlNode.attrib.keys():
-      if xmlNode.attrib['debug']=='True'   : self.debug=True
-      elif xmlNode.attrib['debug']=='False': self.debug=False
+      if xmlNode.attrib['debug'].lower()   in stringsThatMeanTrue() : self.debug=True
+      elif xmlNode.attrib['debug'].lower() in stringsThatMeanFalse(): self.debug=False
       else                                 : raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> Not understandable keyword to set up the debug level: '+str(xmlNode.attrib['debug']))
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: raise IOError('The run info node is mandatory')
@@ -379,8 +381,8 @@ class Simulation(object):
         else:
           globalAttributes = child.attrib
           if 'debug' in  globalAttributes.keys():
-            if   globalAttributes['debug'] == 'False': globalAttributes['debug'] = False
-            elif globalAttributes['debug'] == 'True' : globalAttributes['debug'] = True
+            if   globalAttributes['debug'].lower() in stringsThatMeanFalse(): globalAttributes['debug'] = False
+            elif globalAttributes['debug'].lower() in stringsThatMeanTrue() : globalAttributes['debug'] = True
             else: raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> For the global attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
         if Class != 'RunInfo':
           for childChild in child:
@@ -468,8 +470,9 @@ class Simulation(object):
       elif element.tag == 'postcommand'       : self.runInfoDict['postcommand'       ] = element.text
       elif element.tag == 'deleteOutExtension': self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
       elif element.tag == 'delSucLogFiles'    :
-        if element.text.lower() in ['t','true']: self.runInfoDict['delSucLogFiles'    ] = True
-        else                                   : self.runInfoDict['delSucLogFiles'    ] = False
+        if element.text.lower() in stringsThatMeanTrue(): self.runInfoDict['delSucLogFiles'    ] = True
+        else                                            : self.runInfoDict['delSucLogFiles'    ] = False
+      elif element.tag == 'logfileBuffer'      : self.runInfoDict['logfileBuffer'] = convertMultipleToBytes(element.text.lower())
       elif element.tag == 'mode'              :
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment

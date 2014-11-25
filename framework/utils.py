@@ -8,6 +8,26 @@ def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTag
 
 def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(getPrintTagLenght()-15)]
 
+def convertMultipleToBytes(sizeString):
+  '''
+  Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes
+  International system type (e.g., 1 Mb = 10^6)
+  '''
+  if   'mb' in sizeString: return int(sizeString.replace("mb",""))*10**6
+  elif 'kb' in sizeString: return int(sizeString.replace("kb",""))*10**3
+  elif 'gb' in sizeString: return int(sizeString.replace("gb",""))*10**9
+  else:
+    try   : return int(sizeString)
+    except: raise IOError(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
+
+def stringsThatMeanTrue():
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin)'''
+  return list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','etiam'])
+
+def stringsThatMeanFalse():
+  '''return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin)'''
+  return list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus'])
+
 def compare(s1,s2):
   sig_fig=6
   w1 = partialEval(s1)
