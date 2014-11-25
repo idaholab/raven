@@ -383,6 +383,58 @@ class SafestPoint(BasePostProcessor):
             for val in value: output.updateOutputValue(key,val)
           for key,value in dataCollector.getAllMetadata().items(): output.updateMetadata(key,value)
 
+class ComparisonStatistics(BasePostProcessor):
+  '''
+  ComparisonStatistics is to calculate statistics that compare
+  two different codes or code to experimental data.
+  '''
+
+  def __init__(self):
+    BasePostProcessor.__init__(self)
+    self.dataDict = {} #Dictionary of all the input data, keyed by the name
+    self.dataPulls = [] #List of data references that will be used
+
+  def inputToInternal(self,currentInput):
+    return [(currentInput)]
+
+  def initialize(self, runInfo, inputs, initDict):
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    #print("runInfo",runInfo,"inputs",inputs,"initDict",initDict)
+
+  def _localReadMoreXML(self,xmlNode):
+    for child in xmlNode:
+      if child.tag == 'data':
+        dataName = child.text
+        splitName = dataName.split("|")
+        name, kind = splitName[:2]
+        rest = splitName[2:]
+        self.dataPulls.append([name, kind, rest])
+        #print("xml dataName",dataName,self.dataPulls[-1])
+
+
+  def run(self, Input): # inObj,workingDir=None):
+    '''
+     Function to finalize the filter => execute the filtering
+     @ Out, None      : Print of the CSV file
+    '''
+    self.dataDict[Input.name] = Input
+    #print("input",Input,"input name",Input.name,"input input",Input.getParametersValues('inputs'),
+    #      "input output",Input.getParametersValues('outputs'))
+
+  def collectOutput(self,finishedjob,output):
+    #print("finishedjob",finishedjob,"output",output)
+    dataToProcess = []
+    for dataPull in self.dataPulls:
+      name, kind, rest = dataPull
+      data = self.dataDict[name].getParametersValues(kind)
+      #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
+      if len(rest) == 1:
+        #print("dataPart",data[rest[0]])
+        dataToProcess.append((dataPull,data[rest[0]]))
+    #print("dataToProcess",dataToProcess)
+    for dataPull, data in dataToProcess:
+      print("data",dataPull,"average",sum(data)/len(data))
+
 class PrintCSV(BasePostProcessor):
   '''
   PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
@@ -1168,6 +1220,7 @@ __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
+__interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __knownTypes                                 = __interFaceDict.keys()
 
 def knonwnTypes():
