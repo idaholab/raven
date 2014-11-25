@@ -3,15 +3,15 @@ The $RunInfo$ block is the place where the user specifiy how the calculation nee
 In the following, all the keywords are explained in detail.
 \begin{itemize}
 \item $<WorkingDir>$, in this block the user needs to specify the absolute or relative (with respect to the location where RAVEN is run from) path to a directory that is going to be used to store all the results of the calculations and where RAVEN looks for the files specified in the block $<Files>$;
-\item $<ParallelCommand>$: the command that should be used to submit jobs in parallel
-\item $<quequingSoftware>$: quequing software name
-\item $<ThreadingCommand>$: The command should be used to submit multi-threaded jobs?????
-\item $<NumThreads>$: number of threads by run
-\item $<NumNode>$: number of nodes used in the HPC 
-\item $<procByNode>*$: number of processors used in a single node 
-\item $NumCoresUsed>*$: total number of cores used
-\item $<NumMPI>*$: number of MPI processes by run
-\item $<MaxLogFileSize>*$ :**********
+%\item $<ParallelCommand>$, in RAVEN the default command for running in parallel is ``mpiexec''. If the system does use a different protocol, the user can specify the command needs to be used in this section;
+%\item $<ThreadingCommand>$, in RAVEN the default command for running codes is ``mpiexec''. If the system does use a different protocol, the user can specify the command needs to be used in this section;The command should be used to submit multi-threaded jobs?????
+\item $<quequingSoftware>$, RAVEN has support for PBS quequing system. If the platform provides a different quequing system, the user can specify its name here (e.g., PBS PROFESSIONAL, etc.);
+\item $<NumThreads>$, this section can be used to specify the number of threads RAVEN should associate when running the driven software. For example, if RAVEN is driving a code named "FOO", and this code has multi-threading support, in here the user specify how many threads each instance of FOO should use (e.g. FOO --n-threads=$NumThreads$);
+\item $<NumNode>$, this xml node is used to specify the number of nodes RAVEN should request when running in High Performance Computing (HPC) systems;
+\item $<procByNode>$, in this section the user specify the number of processor to be used in each HPC node;
+\item $<NumCoresUsed>$, global number of cpus RAVEN is going to use for performing the calculation;
+\item $<NumMPI>$, this section can be used to specify the number of MPI cpus RAVEN should associate when running the driven software. For example, if RAVEN is driving a code named "FOO", and this code has MPI support, in here the user specifies how many mpi cpus each instance of FOO should use (e.g. mpiexec FOO -np $NumMPI$);
+\item $<MaxLogFileSize>$, Every time RAVEN drives a code/software, it creates a logfile of the code screen output. In this block, the user can input the maximum size of log file in bytes. NB. This flag is not implemtend yet; 
 \item $<precommand>$: add before of the command that is used to run the external model
 \item $<postcommand>$: add after of the command that is used to run the external model
 \item $<deleteOutExtension>$:if a run of an external model has not failed delete the outut files with the listed extension
