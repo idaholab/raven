@@ -48,13 +48,13 @@ class Distribution(BaseType):
   '''
   def __init__(self):
     BaseType.__init__(self)
-    self.upperBoundUsed = False  # True if the distribution is right truncated
-    self.lowerBoundUsed = False  # True if the distribution is left truncated
-    self.upperBound       = 0.0  # Right bound
-    self.lowerBound       = 0.0  # Left bound
-    self.__adjustmentType   = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
-    self.dimensionality   = None # Dimensionality of the distribution (1D or ND)
-    self.printTag         = returnPrintTag('DISTRIBUTIONS')
+    self.upperBoundUsed       = False  # True if the distribution is right truncated
+    self.lowerBoundUsed       = False  # True if the distribution is left truncated
+    self.upperBound           = 0.0  # Right bound
+    self.lowerBound           = 0.0  # Left bound
+    self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
+    self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
+    self.printTag             = returnPrintTag('DISTRIBUTIONS')
     self.preferredPolynomials = None #best polynomial for probability-weighted norm of error
 
   def _readMoreXML(self,xmlNode):
@@ -116,22 +116,22 @@ class Distribution(BaseType):
     CDFlower = self._distribution.cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
-  def setQuad(self,quad,exp_order):
+  def setCollocation(self,collset,maxOrder):
     '''
     Function to set the quadrature rule
     @ In, quad, object -> quadrature
     @ In, exp_order, int -> expansion order
     @ Out,         , None
     '''
-    self.__distQuad=quad
-    self.__exp_order=exp_order
+    self.__collocationSet=collset
+    self.__maxPolynomialOrder=maxOrder
 
-  def quad(self):
-    try: return self.__distQuad
+  def collocationSet(self):
+    try: return self.__collocationSet
     except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No quadrature has been set for this distr. yet.')
 
-  def polyOrder(self):
-    try: return self.__exp_order
+  def maxPolyOrder(self):
+    try: return self.__maxPolynomialOrder
     except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Quadrature has not been set for this distr. yet.')
 
 def random():
@@ -268,7 +268,6 @@ class Uniform(BoostDistribution):
     self.low = 0.0
     self.hi = 0.0
     self.type = 'Uniform'
-    self.preferredPolynomials = 'Legendre'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -295,35 +294,15 @@ class Uniform(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
-    #assign associated polynomial types
-    self.polynomial = polys.legendre
-    #define functions locally, then point to them
-    def norm(n):
-      '''Returns normalization constant for polynomial type, given the poly ordeir'''
-      return np.sqrt((2.*n+1.)/2.)
 
-    def standardToActualPoint(x): #standard -> actual
-      '''Given a [-1,1] point, converts to parameter value.'''
-      return x*self.range/2.+self._distribution.mean()
+  def probabilityNorm(self,std=False):
+    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
+    return 0.5 #TODO is this just 1/sum(weights)?
 
-    def actualToStandardPoint(x): #actual -> standard
-      '''Given a parameter value, converts to [-1,1] point.'''
-      return (x-self._distribution.mean())/(self.range/2.)
-
-    def standardToActualWeight(x): #standard -> actual
-      '''Given normal quadrature weight, returns adjusted weight.'''
-      return x/(self.range/2.)
-
-    def probNorm(x): #normalizes probability if total != 1
-      '''Returns the poly factor to scale by so that sum(probability)=1.'''
-      return self.range
-
-    # point to functions
-    self.poly_norm = norm
-    self.actual_point = standardToActualPoint
-    self.std_point = actualToStandardPoint
-    self.actual_weight = standardToActualWeight
-    self.probability_norm = probNorm
+  def probabilityWeight(self,x,std=False):
+    '''Evaluates probability weighting factor for distribution type.'''
+    if std: return 1.0/2.0
+    else: return 1.0/self.range
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
@@ -333,6 +312,7 @@ class Uniform(BoostDistribution):
 
   def initializeDistribution(self):
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
+    self.preferredPolynomials = 'Legendre'
 
 
 class Normal(BoostDistribution):
@@ -341,7 +321,6 @@ class Normal(BoostDistribution):
     self.mean  = 0.0
     self.sigma = 0.0
     self.type = 'Normal'
-    self.preferredPolynomials = 'Hermite'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -369,31 +348,10 @@ class Normal(BoostDistribution):
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma)
-      self.polynomial = polys.hermitenorm
-      def norm(n):
-        return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
-
-      def standardToActualPoint(x): #standard -> actual
-        return x*self.sigma**2/2.+self._distribution.mean()
-
-      def actualToStandardPoint(x): #actual -> standard
-        return (x-self._distribution.mean())/(self.sigma**2/2.)
-
-      def standardToActualWeight(x): #standard -> actual
-        return x/(self.sigma**2/2.)
-
-      def probNorm(_): #normalizes if total prob. != 1
-        return 1.0
-
-      self.poly_norm = norm
-      self.actual_point = standardToActualPoint
-      self.std_point = actualToStandardPoint
-      self.actual_weight = standardToActualWeight
-      self.probability_norm = probNorm
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
+      self.prefferedPolynomials = 'Hermite'
     else:
-      if self.debug: print('FIXME: this should be removed.... :special case distribution for stochastic colocation')
       if self.lowerBoundUsed == False:
         a = -sys.float_info.max
         self.lowerBound = a
@@ -405,6 +363,18 @@ class Normal(BoostDistribution):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma,
                                                                   a,b)
+      self.preferredPolynomials = 'Jacobi'
+
+  def probabilityNorm(self,std=False): #TODO does this need to be fixed for truncated?
+    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
+    return 1.0/np.sqrt(2.*np.pi)
+    #else: return 1.0/self.sigma/np.sqrt(2.*np.pi)
+
+  def probabilityWeight(self,x,std=False):
+    '''Evaluates probability weighting factor for distribution type.'''
+    if std: return np.exp(-x**2/2.)
+    else: return np.exp(-(x-self.mean)**2/2./self.sigma**2)
+
 
 class Gamma(BoostDistribution):
   def __init__(self):
@@ -460,28 +430,17 @@ class Gamma(BoostDistribution):
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
+    self.preferredPolynomials = 'Laguerre'
 
-    self.polynomial = polys.genlaguerre
-    def norm(n):
-      return np.sqrt(factorial(n)/polys.gamma(n+self.alpha+1.0))
+  def probabilityNorm(self):
+    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
+    return self.beta**self.alpha/factorial(self.alpha-1)
 
-    def standardToActualPoint(x): #standard -> actual
-      return x/self.alpha+self.alpha+self.low #TODO these correct? no beta used
+  def probabilityWeight(self,x):
+    '''Evaluates probability weighting factor for distribution type.'''
+    #TODO is this the right form or is it the k-theta one? see wikipedia
+    return x**(self.alpha-1)*np.exp(-x/self.beta)
 
-    def actualToStandardPoint(x): #actual -> standard
-      return (x-self.low-self.alpha)*self.alpha
-
-    def standardToActualWeight(x): #standard -> actual
-      return x
-
-    def probNorm(_): #normalizes probability if total != 1
-      return 1.0
-
-    self.poly_norm=norm
-    self.actual_point = standardToActualPoint
-    self.std_point = actualToStandardPoint
-    self.actual_weight = standardToActualWeight
-    self.probability_norm = probNorm
 
 class Beta(BoostDistribution):
   def __init__(self):
@@ -492,8 +451,6 @@ class Beta(BoostDistribution):
     self.beta = 0.0
     self.type = 'Beta'
     if self.debug: print('FIXME: # TODO default to specific Beta distro?')
-    self.preferredPolynomials = 'Jacobi'
-    # TODO default to specific Beta distro?
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -544,6 +501,16 @@ class Beta(BoostDistribution):
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b)
+    self.preferredPolynomials = 'Jacobi'
+
+  def probabilityNorm(self):
+    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
+    return factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
+
+  def probabilityWeight(self,x):
+    '''Evaluates probability weighting factor for distribution type.'''
+    return x**(self.alpha-1)*(1-x)**(self.beta-1)
+
 
 #==========================================================\
 #    other distributions

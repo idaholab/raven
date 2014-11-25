@@ -4,6 +4,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
+import numpy as np
 import sys, os
 
 from utils import find_crow
@@ -12,6 +13,7 @@ find_crow(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 
 import Distributions
+import CollocationSets
 
 print (Distributions)
 def createElement(tag,attrib={},text={}):
@@ -32,81 +34,124 @@ def checkAnswer(comment,value,expected):
   else:
     results["pass"] += 1
 
-def checkCrowDist(comment,dist,expected_crow_dist):
-  crow_dist = dist.getCrowDistDict()
-  if crow_dist != expected_crow_dist:
-    print(comment,crow_dist,expected_crow_dist)
-    results["fail"] += 1
-  else:
-    results["pass"] += 1
+def checkObject(comment,value,expected):
+  if legendre!=uniform.collocationSet():
+    print(comment,value,"!=",expected)
+    results['fail']+=1
+  else: results['pass']+=1
+
 
 #Test Uniform
 
+def testPoly(n,y):
+  return (n+1)*y**n
+
 uniformElement = ET.Element("uniform")
 uniformElement.append(createElement("low",text="1.0"))
-uniformElement.append(createElement("hi",text="3.0"))
-
-#ET.dump(uniformElement)
+uniformElement.append(createElement("hi",text="5.0"))
 
 uniform = Distributions.Uniform()
 uniform._readMoreXML(uniformElement)
 uniform.initializeDistribution()
 
-checkCrowDist("uniform",uniform,{'xMin': 1.0, 'type': 'UniformDistribution', 'xMax': 3.0})
+legendre = CollocationSets.Legendre(uniform,1)
+uniform.setCollocation(legendre,1)
 
-checkAnswer("uniform cdf(1.0)",uniform.cdf(1.0),0.0)
-checkAnswer("uniform cdf(2.0)",uniform.cdf(2.0),0.5)
-checkAnswer("uniform cdf(3.0)",uniform.cdf(3.0),1.0)
+checkObject("setting legendre collocation in uniform",uniform.collocationSet(),legendre)
 
-checkAnswer("uniform ppf(0.0)",uniform.ppf(0.0),1.0)
-checkAnswer("uniform ppf(0.5)",uniform.ppf(0.5),2.0)
-checkAnswer("uniform ppf(1.0)",uniform.ppf(1.0),3.0)
+#test points and weights conversion
+stdpts=[-2,-1, 0, 1, 2]
+actpts=[-1, 1, 3, 5, 7]
+for s,std in enumerate(stdpts):
+  act=actpts[s]
+  checkAnswer("legendre std-to-act pt (%i)" %std,legendre.stdToActPoint(std),actpts[s])
+  checkAnswer("legendre act-to-std pt (%i)" %act,legendre.actToStdPoint(act),stdpts[s])
 
-checkAnswer("uniform probNorm",uniform.probabilityNorm(),0.5)
-for i in range(1,7):
-  checkAnswer("uniform probWeight standard",uniform.probabilityWeight(i,std=True),0.5)
-  checkAnswer("uniform probWeight arbitrary",uniform.probabilityWeight(i,std=False),0.5)
-#FIXME this is an unfortunate range choice for testing the probability weight function.
-#  Perhaps the uniform test should be changed to have a range different than 2.
+#stdwts=[0.9,0.5,0.1]
+#actwts=[0.45,0.25,0.05]
+#for s,std in enumerate(stdwts):
+#  checkAnswer("legendre std-to-act wt (%1.1f)" %std,legendre.stdToActWeight(std),actwts[s])
 
-print(uniform.rvs(5),uniform.rvs())
+#test probability weight function (probnorm) #THIS GOES TO TEST DISTRO
+#pts=range(1,6)
+#for p,pt in enumerate(pts):
+#  checkAnswer("unifrom prob wt function (%i)" %pt,legendre.probabilityWeight(pt),0.25)
+
+#test quadrature integration
+for i in range(1,6):
+  pts,wts = legendre.generatePtsAndWts(i,std=False)
+  totu=0
+  if i>=1.5:tot2=0
+  if i>=3  :tot5=0
+  for p,pt in enumerate(pts):
+    totu+=wts[p]*uniform.probabilityNorm(std=True)
+    if i>=1.5:tot2+=testPoly(2,pt)*wts[p]*uniform.probabilityNorm(std=True)
+    if i>=3  :tot5+=testPoly(5,pt)*wts[p]*uniform.probabilityNorm(std=True)
+  checkAnswer("legendre integrate weights with O(%i)" %i,totu,1.0)
+  if i>=1.5:checkAnswer("legendre integrate 3y^2 with O(%i)" %i,tot2,31.)
+  if i>=3  :checkAnswer("legendre integrate 6y^5 with O(%i)" %i,tot5,3906.)
+
 
 #Test Normal
-mean=1.0
-sigma=2.0
+
+def testPoly(n,x):
+  return x**n
+
 normalElement = ET.Element("normal")
-normalElement.append(createElement("mean",text="%f" %mean))
-normalElement.append(createElement("sigma",text="%f" %sigma))
+u=1.0
+sd=2.0
+normalElement.append(createElement("mean",text="%f"%u))
+normalElement.append(createElement("sigma",text="%f"%sd))
 
 normal = Distributions.Normal()
 normal._readMoreXML(normalElement)
-normal.initializeDistribution()
 
-checkCrowDist("normal",normal,{'mu': 1.0, 'sigma': 2.0, 'type': 'NormalDistribution'})
+hermite = CollocationSets.Hermite(normal,1)
+normal.setCollocation(hermite,1)
 
-checkAnswer("normal cdf(0.0)",normal.cdf(0.0),0.308537538726)
-checkAnswer("normal cdf(1.0)",normal.cdf(1.0),0.5)
-checkAnswer("normal cdf(2.0)",normal.cdf(2.0),0.691462461274)
+checkObject("setting hermite collocation in normal",normal.collocationSet(),hermite)
 
-checkAnswer("normal ppf(0.1)",normal.ppf(0.1),-1.56310313109)
-checkAnswer("normal ppf(0.5)",normal.ppf(0.5),1.0)
-checkAnswer("normal ppf(0.9)",normal.ppf(0.9),3.56310313109)
+#test points and weights conversion
+stdpts=[-2,-1, 0, 1, 2]
+actpts=[-3,-1, 1, 3, 5]
+for s,std in enumerate(stdpts):
+  act=actpts[s]
+  checkAnswer("hermite std-to-act pt (%i)" %std,hermite.stdToActPoint(std),actpts[s])
+  checkAnswer("hermite act-to-std pt (%i)" %act,hermite.actToStdPoint(act),stdpts[s])
 
-checkAnswer("normal mean()",normal.untruncatedMean(),1.0)
-checkAnswer("normal median()",normal.untruncatedMedian(),1.0)
-checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
+#stdwts=[0.9,0.5,0.1]
+#actwts=[0.45,0.25,0.05]
+#for s,std in enumerate(stdwts):
+#  checkAnswer("hermite std-to-act wt (%1.1f)" %std,hermite.stdToActWeight(std),actwts[s])
+#test probability weight function (probnorm) #TODO TO DISTRO
+#pts=[-9,-4, 1, 6,11]
+#for p,pt in enumerate(pts):
+#  #print (pt,'%1.11e' %normal.probability_norm(pt))
+#  checkAnswer("normal prob wt function (%i)" %pt,normal.probability_norm(pt),0.199471140201)
 
-checkAnswer("normal probNorm",normal.probabilityNorm(),0.3989422804014327)
-
-checkAnswer("normal probWeight act (-1)",normal.probabilityWeight(-1,std=False),0.60653065971263342)
-checkAnswer("normal probWeight act (1)" ,normal.probabilityWeight( 1,std=False),1.0)
-checkAnswer("normal probWeight act (5)" ,normal.probabilityWeight( 5,std=False),0.1353352832366127)
-
-checkAnswer("normal probWeight std (-2)",normal.probabilityWeight(-2,std=True),0.1353352832366127)
-checkAnswer("normal probWeight std (0)" ,normal.probabilityWeight( 0,std=True),1.0)
-checkAnswer("normal probWeight std (1)" ,normal.probabilityWeight( 1,std=True),0.60653065971263342)
-
-print(normal.rvs(5),normal.rvs())
+#test quadrature integration
+for i in range(1,6):
+  pts,wts = hermite.generatePtsAndWts(i)
+  totu=0
+  tot0=0
+  tot1=0
+  tot2=0
+  tot4=0
+  tot6=0
+  for p,pt in enumerate(pts):
+    totu+=wts[p]*normal.probabilityNorm()
+    tot0+=testPoly(0,pt)*wts[p]*normal.probabilityNorm()
+    tot1+=testPoly(1,pt)*wts[p]*normal.probabilityNorm()
+    tot2+=testPoly(2,pt)*wts[p]*normal.probabilityNorm()
+    tot4+=testPoly(3,pt)*wts[p]*normal.probabilityNorm()
+    tot6+=testPoly(4,pt)*wts[p]*normal.probabilityNorm()
+  checkAnswer(        "hermite integrate weights with O(%i)" %i,totu,1.0)
+  checkAnswer(        "hermite integrate x^0*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot0,1)
+  if i>=1:checkAnswer("hermite integrate x^1*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot1,1)
+  if i>=2:checkAnswer("hermite integrate x^2*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot2,5)
+  if i>=3:checkAnswer("hermite integrate x^3*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot4,13)
+  if i>=4:checkAnswer("hermite integrate x^4*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot6,73)
+sys.exit()
 
 #Test Truncated Normal
 
