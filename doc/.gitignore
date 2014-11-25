@@ -1,0 +1,9 @@
+*.aux
+*.bbl
+*.blg
+*.lof
+*.log
+*.lot
+*.out
+raven_user_manual.pdf
+*.toc
