@@ -120,7 +120,7 @@ class PBSDSHSimulationMode(SimulationMode):
         print(self.printTag+": " +returnPrintPostTag('Warning') + " -> changing batchsize from",oldBatchsize,"to",newBatchsize)
       print(self.printTag+": Message -> Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
       #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
-      self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(self.runInfoDict['logfileBuffer'])+" "+self.__simulation.runInfoDict['precommand']
+      self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(self.__simulation.runInfoDict['logfileBuffer'])+" "+self.__simulation.runInfoDict['precommand']
       self.__simulation.runInfoDict['logfilePBS'] = 'out_%CURRENT_ID%'
       if(self.__simulation.runInfoDict['NumThreads'] > 1):
         #Add the MOOSE --n-threads command afterwards
