@@ -1,30 +1,28 @@
 \section{RunInfo  \\ \vspace{2 mm} {\small }}
-
-General information of how the program is queried
+The $RunInfo$ block is the place where the user specifiy how the calculation needs to be performed. In this input block, several settings can be inputted, in order to define how to drive the calculation and set up, when needed, particular settings for the machine the code needs to run on (queue system if not PBS, etc.).
+In the following, all the keywords are explained in detail.
 \begin{itemize}
-%\item [Simulation:] First and last lines of the input file, the whole input file must be written between these two lines
-
-\item  \textbf{WorkingDir}: the path to the directory where the output files are going to be located (starting from the same directory where the input file was located)
-\item \textbf{ParallelCommand*}: the command that should be used to submit jobs in parallel
-\item \textbf{quequingSoftware*?}: quequing software name
-\item \textbf{ThreadingCommand*}: The command should be used to submit multi-threaded jobs?????
-\item \textbf{NumThreads*}: number of threads by run
-\item \textbf{NumNode*}: number of nodes used in the HPC 
-\item \textbf{procByNode*}: number of processors used in a single node 
-\item \textbf{NumCoresUsed*}: total number of cores used
-\item \textbf{NumMPI*}: number of MPI processes by run
-\item \textbf{MaxLogFileSize*} :**********
-\item \textbf{precommand}: add before of the command that is used to run the external model
-\item \textbf{postcommand}: add after of the command that is used to run the external model
-\item \textbf{deleteOutExtension}:if a run of an external model has not failed delete the outut files with the listed extension
-\item \textbf{delSucLogFiles}:if a run of an external model has not failed delete the log files with the listed extension
-\item \textbf{Files}: these are the paths to the files required by the code, string from the working directory 
-\item \textbf{Sequence}: ordered list of the step name that the simulation will run
-\item \textbf{mode}: these refers to the way in which the parallel environment is set up (currently the only modes supported are pbsdsh and mpi). When the user is running the code on his own machine \textit{no mode should be set}. On the contrary, when the user wants to run the code on the cluster, he should specify the mode. Additional info can be found in the readme file. 
-\item \textbf{batchSize}: number of contemporaneous processors used when the code is running on the cluster. It is good pratice to try to run the input a first time using a batchSize=1 to see if there are no faults inside the RAVEN input and/or any code that is coupled with RAVEN. If there are no faults then the user can input batchSize= to as many processors are needed to be used.
-\item \textbf{expectedTime*}: how much time the simulation is expected to run. After this period of time the cluster will automatically stop the simulation (even if the simulation is not competed) so be sure that the time is overestimated.
-\item \textbf{DefaultInputFile}: default input file to be read*******
-\item \textbf{CustomMode}: **********
+\item $<WorkingDir>$, in this block the user needs to specify the absolute or relative (with respect to the location where RAVEN is run from) path to a directory that is going to be used to store all the results of the calculations and where RAVEN looks for the files specified in the block $<Files>$;
+\item $<ParallelCommand>$: the command that should be used to submit jobs in parallel
+\item $<quequingSoftware>$: quequing software name
+\item $<ThreadingCommand>$: The command should be used to submit multi-threaded jobs?????
+\item $<NumThreads>$: number of threads by run
+\item $<NumNode>$: number of nodes used in the HPC 
+\item $<procByNode>*$: number of processors used in a single node 
+\item $NumCoresUsed>*$: total number of cores used
+\item $<NumMPI>*$: number of MPI processes by run
+\item $<MaxLogFileSize>*$ :**********
+\item $<precommand>$: add before of the command that is used to run the external model
+\item $<postcommand>$: add after of the command that is used to run the external model
+\item $<deleteOutExtension>$:if a run of an external model has not failed delete the outut files with the listed extension
+\item $<delSucLogFiles>$:if a run of an external model has not failed delete the log files with the listed extension
+\item $<Files>$: these are the paths to the files required by the code, string from the working directory 
+\item $<Sequence>$: ordered list of the step name that the simulation will run
+\item $<mode>$: these refers to the way in which the parallel environment is set up (currently the only modes supported are pbsdsh and mpi). When the user is running the code on his own machine \textit{no mode should be set}. On the contrary, when the user wants to run the code on the cluster, he should specify the mode. Additional info can be found in the readme file. 
+\item $<batchSize>$: number of contemporaneous processors used when the code is running on the cluster. It is good pratice to try to run the input a first time using a batchSize=1 to see if there are no faults inside the RAVEN input and/or any code that is coupled with RAVEN. If there are no faults then the user can input batchSize= to as many processors are needed to be used.
+\item $<expectedTime>$*: how much time the simulation is expected to run. After this period of time the cluster will automatically stop the simulation (even if the simulation is not competed) so be sure that the time is overestimated.
+\item $<DefaultInputFile>$: default input file to be read*******
+\item $<CustomMode>$: **********
 \end{itemize}
 % source: Simulation.py
 

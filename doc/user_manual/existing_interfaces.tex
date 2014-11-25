@@ -154,13 +154,106 @@ We then need to define which model it is used:
 \begin{lstlisting}[style=XML]
     <Model  class='Models' type='Code'>MyRELAP</Model>
 \end{lstlisting}
+We then need to specify which Sampler is used, and this can be done as follows:
+\begin{lstlisting}[style=XML]
+    <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
+\end{lstlisting}
+And lastly we need to specify what kind of Output the used wants. For example the user might want to make a DataBase (in RAVEn the DataBase crated is a HDF5 file. Here is a classical example:
+\begin{lstlisting}[style=XML]
+    <Output  class='DataBases' type='HDF5'>MC_out</Output>
+\end{lstlisting}
+Following is the example of two MultiRun steps which use different sampling methods (grid and montecarlo), and creating two different DataBases for each one:
+\begin{lstlisting}[style=XML]
+    <Steps debug='True'>
+    <MultiRun name='Grid_Sampler' debug='True' re-seeding='210491'>
+        <Input   class='Files'            type=''                >X10.i</Input>
+        <Input   class='Files'            type=''                >RELAP5run.py</Input>
+        <Input   class='Files'            type=''                >relapdata.py</Input>
+        <Input   class='Files'            type=''                >tpfh2o</Input>
+        <Model   class='Models'           type='Code'            >MyRELAP</Model>
+        <Sampler class='Samplers'         type='Grid'             >Grid_Sampler</Sampler>
+        <Output  class='DataBases'      type='HDF5'  >Grid_out</Output>
+    </MultiRun>
+	<MultiRun name='MC_Sampler' debug='True' re-seeding='210491'>
+        <Input   class='Files'            type=''                >X10.i</Input>
+        <Input   class='Files'            type=''                >RELAP5run.py</Input>
+        <Input   class='Files'            type=''                >relapdata.py</Input>
+        <Input   class='Files'            type=''                >tpfh2o</Input>
+        <Model   class='Models'           type='Code'            >MyRELAP</Model>
+        <Sampler class='Samplers'         type='MonteCarlo'             >MC_Sampler</Sampler>
+        <Output  class='DataBases'      type='HDF5'  >MC_out</Output>
+    </MultiRun>
+</Steps>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{DataBases}
+As shown in the $<Steps>$ block, the code is creating two DataBases called Grid\_out and MC\_out. So the user needs to input the following
+\begin{lstlisting}[style=XML]
+<DataBases>
+        <HDF5 name="Grid_out"/> 
+        <HDF5 name="MC_out"/> 
+</DataBases>
+\end{lstlisting}
+As listed before, this will create two DataBases. The files are .h5 extension files. 
 
-
-
-
-
-
-
+\subsection{RELAP7 Interface}
+\subsubsection{Files}
+In the $<Files>$ section, as specified before, there should be specified all the files needed for the code to run. In the case of RELAP7 most of the times the files needed are the following:
+\begin{itemize}
+\item RELAP7 Input file
+\item Control Logic file
+\end{itemize}
+Example:
+\begin{lstlisting}[style=XML]
+<Files>nat_circ,control_logic.py</Files>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Models}
+For the $<Models>$ block RELAP7 uses the RAVEN executable. Here is a standard example of what can be used to use RELAP7 as the model:
+\begin{lstlisting}[style=XML]
+<Models>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>~path/to/RAVEN-opt</executable></Code>
+</Models>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Distributions}
+The $<Distributions>$ block, when using RELAP7 has to be specified also through the control logic.
+Given the names of the distributions, and their parameters, a python file should be used for the control logic.
+For example, it is required the sampling of a normal distribution for the primary pressure in RELAP7. 
+\begin{lstlisting}[style=XML]
+<Distributions>
+ <Normal name="Prim_Pres">
+ <mean>1000000</mean>
+ <sigma>100<sigma/>
+ </Normal>
+</Distributions>
+\end{lstlisting}
+The python file associated to it should look like this:
+%\lstset{margin=1.5cm}
+\begin{lstlisting}[language=Python]
+def initial_function(monitored, controlled, auxiliary)
+    print("monitored",monitored,"controlled",
+    controlled,"auxiliary",auxiliary)  
+    
+    controlled.pressure_in_pressurizer =
+     distributions.Prim_Pres.getDistributionRandom()
+    return
+\end{lstlisting} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Samplers}
+In the $<Samplers>$ block there are going to be defined both which kind of sampling method used, the variables not sampled inside the control logic and of course which distributions will follow the chosen sampling method.
+For the example it was chosen a MonteCarlo sampling with a 500 runs. The global initial pressure wasn't specified in the control logic so it is sampled in this block. It is also specified that such initial pressure has to follow the same distribution as the primary pressure. 
+\begin{lstlisting}[style=XML]
+<Samplers>
+ <MonteCarlo name="MC_samp" limit="500"> 
+  <variable name="GlobalParams|global_init_P">
+   <distribution>Prim_Pres</distribution>
+  </variable>
+ </MonteCarlo>
+</Samplers>
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Steps}
 
 
 
