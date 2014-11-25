@@ -15,7 +15,7 @@ def convertMultipleToBytes(number,sitype=None):
   '''
   try   : converted = int(number)
   except: raise IOError(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '->  can not cast the string '+str(number)+' to integer!')
-  
+
   if sitype == None          : return converted
   if sitype.lower()   == 'mb': return converted*10**6
   elif sitype.lower() == 'kb': return converted*10**3
