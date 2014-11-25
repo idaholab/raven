@@ -472,12 +472,7 @@ class Simulation(object):
       elif element.tag == 'delSucLogFiles'    :
         if element.text.lower() in stringsThatMeanTrue(): self.runInfoDict['delSucLogFiles'    ] = True
         else                                            : self.runInfoDict['delSucLogFiles'    ] = False
-      elif element.tag == 'logfileBuffer'      :
-        bufflog = element.text.lower()
-        if   'kb' in bufflog: self.runInfoDict['logfileBuffer'] = convertMultipleToBytes(bufflog.replace('kb',''),'kb')
-        elif 'mb' in bufflog: self.runInfoDict['logfileBuffer'] = convertMultipleToBytes(bufflog.replace('mb',''),'mb')
-        elif 'gb' in bufflog: self.runInfoDict['logfileBuffer'] = convertMultipleToBytes(bufflog.replace('gb',''),'gb')
-        else                : self.runInfoDict['logfileBuffer'] = convertMultipleToBytes(bufflog)
+      elif element.tag == 'logfileBuffer'      : self.runInfoDict['logfileBuffer'] = convertMultipleToBytes(element.text.lower())
       elif element.tag == 'mode'              :
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
