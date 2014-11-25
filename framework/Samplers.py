@@ -1878,8 +1878,8 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       else:  raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
       if xmlNode.attrib['updateGrid'].lower() in stringsThatMeanTrue(): self.insertAdaptBPb = True
-  
-  def _generateDistributions(self,availableDist): 
+
+  def _generateDistributions(self,availableDist):
     DynamicEventTree._generateDistributions(self,availableDist)
 
   def localInitialize(self,solutionExport = None,goalFunction = None,ROM = None):

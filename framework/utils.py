@@ -10,7 +10,7 @@ def returnPrintPostTag(intag): return intag.ljust(getPrintTagLenght()-15)[0:(get
 
 def convertMultipleToBytes(number,sitype=None):
   '''
-  Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes 
+  Convert multiple (e.g. Mbytes, Gbytes,Kbytes) in bytes
   International system type (e.g., 1 Mb = 10^6)
   '''
   try   : converted = int(number)
