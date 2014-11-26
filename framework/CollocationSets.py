@@ -93,7 +93,7 @@ class Hermite(CollocationSet):
     #return (x-self.distr.untruncatedMean())/(self.distr.sigma**2/2.) #old
 
 
-class Laguerre(CollocationSet):
+class Laguerre(CollocationSet): #TODO tests and such
   def setPolynomial(self):
     self._polynomial = polys.genlaguerre
     self._quad = quads.la_roots
@@ -154,4 +154,39 @@ class Jacobi(CollocationSet):
   def evaluatePolynomial(self,order,x):
     '''Overwritten to use alpha, beta factors'''
     return self._polynomial(order,self.alpha,self.beta)(x)*self.polyNorm(order)
+
+
+class Irregular(CollocationSet):
+  '''This covers all the collocation sets that don't fit in the regular 4.
+     It uses the CDF and inverse CDF to map onto U[0,1].'''
+  def setPolynomial(self):
+    self._polynomial = polys.legendre
+    self._quad = quads.p_roots
+
+  def polyNorm(self,n):
+    return np.sqrt((2.*n+1.)/2.)
+
+  #def stdToActPoint(self,x):
+  #  return 0.5*(x+1.0)
+  
+  #def stdToActWeight(self,x):
+  #  return 0.5*x
+
+  #def actToStdPoint(self,x):
+  #  return 2.*x-1.
+
+  def stdToActPoint(self,x):
+    return BasisDomainToCdfDomainPoint(cdfDomainToInputDomainPoint(x))
+  def actToStdPoint(self,x):
+    return InputDomainToCdfDomainPoint(cdfDomainToBasisDomainPoint(x))
+
+  def cdfDomainToInputDomainPoint(self,x):
+    return self.distr.ppf(x)
+  def InputDomainToCdfPoint(self,x):
+    return self.distr.cdf(x)
+
+  def cdfDomainToBasisDomainPoint(self,x):
+    return 2.0*x-1.0
+  def BasisDomainToCdfDomainPoint(self,x):
+    return 0.5*(x+1.0)
 

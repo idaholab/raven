@@ -67,16 +67,6 @@ for s,std in enumerate(stdpts):
   checkAnswer("legendre std-to-act pt (%i)" %std,legendre.stdToActPoint(std),actpts[s])
   checkAnswer("legendre act-to-std pt (%i)" %act,legendre.actToStdPoint(act),stdpts[s])
 
-#stdwts=[0.9,0.5,0.1]
-#actwts=[0.45,0.25,0.05]
-#for s,std in enumerate(stdwts):
-#  checkAnswer("legendre std-to-act wt (%1.1f)" %std,legendre.stdToActWeight(std),actwts[s])
-
-#test probability weight function (probnorm) #THIS GOES TO TEST DISTRO
-#pts=range(1,6)
-#for p,pt in enumerate(pts):
-#  checkAnswer("unifrom prob wt function (%i)" %pt,legendre.probabilityWeight(pt),0.25)
-
 #test quadrature integration
 for i in range(1,6):
   pts,wts = legendre.generatePtsAndWts(i,std=False)
@@ -119,16 +109,6 @@ for s,std in enumerate(stdpts):
   checkAnswer("hermite std-to-act pt (%i)" %std,hermite.stdToActPoint(std),actpts[s])
   checkAnswer("hermite act-to-std pt (%i)" %act,hermite.actToStdPoint(act),stdpts[s])
 
-#stdwts=[0.9,0.5,0.1]
-#actwts=[0.45,0.25,0.05]
-#for s,std in enumerate(stdwts):
-#  checkAnswer("hermite std-to-act wt (%1.1f)" %std,hermite.stdToActWeight(std),actwts[s])
-#test probability weight function (probnorm) #TODO TO DISTRO
-#pts=[-9,-4, 1, 6,11]
-#for p,pt in enumerate(pts):
-#  #print (pt,'%1.11e' %normal.probability_norm(pt))
-#  checkAnswer("normal prob wt function (%i)" %pt,normal.probability_norm(pt),0.199471140201)
-
 #test quadrature integration
 for i in range(1,6):
   pts,wts = hermite.generatePtsAndWts(i)
@@ -151,10 +131,30 @@ for i in range(1,6):
   if i>=2:checkAnswer("hermite integrate x^2*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot2,5)
   if i>=3:checkAnswer("hermite integrate x^3*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot4,13)
   if i>=4:checkAnswer("hermite integrate x^4*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot6,73)
+
+#Test Truncated Normal-like Beta
+
+tbn=normal._constructBeta(numStdDev=5)
+print('Beta low,hi,mean:',tbn.low,tbn.hi,tbn.untruncatedMean())
+checkAnswer("Beta-truncated Normal mean",tbn.untruncatedMean(),normal.untruncatedMean())
+
+print(tbn.lowerBound,tbn.upperBound)
+print('')
+print(tbn.pdf(0))
+print(tbn.pdf(5))
+print(tbn.pdf(9.999))
+print(tbn.pdf(10))
+print(tbn.pdf(10.001))
+print(tbn.pdf(15))
+print(tbn.pdf(20))
+#checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
+#checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
+#checkAnswer("scaled beta ppf(0.1)",beta.ppf(0.1),2.52382937792)
+#checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
+#checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
+
+
 sys.exit()
-
-#Test Truncated Normal
-
 truncNormalElement = ET.Element("truncnorm")
 truncNormalElement.append(createElement("mean",text="1.0"))
 truncNormalElement.append(createElement("sigma",text="2.0"))
