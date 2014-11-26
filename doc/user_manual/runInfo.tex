@@ -1,15 +1,46 @@
 \section{RunInfo  \\ \vspace{2 mm} {\small }}
 The $RunInfo$ block is the place where the user specifiy how the calculation needs to be performed. In this input block, several settings can be inputted, in order to define how to drive the calculation and set up, when needed, particular settings for the machine the code needs to run on (queue system if not PBS, etc.).
 In the following subsections, all the keywords are explained in detail.
-\subsection{RunInfo: input of queue modes.}
-\label{subsec:runinfoModes}
-  
 \subsection{RunInfo: input of calculation flow.}
 \label{subsec:runinfoCalcFlow}
+AAGKBAGKHAGKHHGAKAGAG
 
 \begin{itemize}
 \item $<WorkingDir>$\textbf{\textit{, string, required field.}} in this block the user needs to specify the absolute or relative (with respect to the location where RAVEN is run from) path to a directory that is going to be used to store all the results of the calculations and where RAVEN looks for the files specified in the block $<Files>$. \textit{Default = None};
 
+\item $<NumNode>$\textbf{\textit{, integer, optional field.}}  this xml node is used to specify the number of nodes RAVEN should request when running in High Performance Computing (HPC) systems. \textit{Default = None};
+
+\item $<batchSize>$\textbf{\textit{, integer, required field.}}. This parameter specifies the number of parallel runs need to be run simultaneously (e.g., the number of driven code instances, e.g. RELAP5-3D, that RAVEN will spoon at the same time). \textit{Default = 1};
+
+\item $<NumThreads>$\textbf{\textit{, integer, optional field.}} this section can be used to specify the number of threads RAVEN should associate when running the driven software. For example, if RAVEN is driving a code named "FOO", and this code has multi-threading support, in here the user specify how many threads each instance of FOO should use (e.g. FOO --n-threads=$NumThreads$). \textit{Default = 1 (or None when the driven code does not have multi-threading support)};
+
+\item $<totalNumCoresUsed>$\textbf{\textit{, integer, optional field.}}  global number of cpus RAVEN is going to use for performing the calculation. When the driven code has MPI and/or  Multi-threading support and the user decides to input $NumThreads > 1$  and $NumMPI > 1$, the totalNumCoresUsed = NumThreads*NumMPI*batchSize. \textit{Default = 1};
+
+\item $<NumMPI>$\textbf{\textit{, integer, optional field.}}  this section can be used to specify the number of MPI cpus RAVEN should associate when running the driven software. For example, if RAVEN is driving a code named "FOO", and this code has MPI support, in here the user specifies how many mpi cpus each instance of FOO should use (e.g. mpiexec FOO -np $NumMPI$). \textit{Default = 1 (or None when the driven code does not have MPI support)};
+
+\item $<precommand>$\textbf{\textit{, string, optional field.}} in here the user can specifies a command that needs to be inserted before the actual command that is used to run the external model (e.g., mpiexec -n 8 $precommand$ ./externalModel.exe (...)). \textit{Default = None};  
+
+\item $<postcommand>$\textbf{\textit{, string, optional field.}} in here the user can specifies a command that needs to be appended after the actual command that is used to run the external model (e.g., mpiexec -n 8  ./externalModel.exe (...) $postcommand$). \textit{Default = None};
+
+\item $<MaxLogFileSize>$\textbf{\textit{, integer, optional field.}}  every time RAVEN drives a code/software, it creates a logfile of the code screen output. In this block, the user can input the maximum size of log file in bytes. \textit{Defautl = Inf}. NB. This flag is not implemtend yet; 
+
+\item $<deleteOutExtension>$\textbf{\textit{, comma separated string, optional field.}} if a run of an external model has not failed delete the outut files with the listed extension (e.g., $<deleteOutExtension>txt,pdf</deleteOutExtension>$). \textit{Default = None}.
+
+\item $<delSucLogFiles>$\textbf{\textit{, boolean, optional field.}} if a run of an external model has not failed (return code = 0), delete the associated log files. \textit{Default = False};
+
+\item $<Files>$\textbf{\textit{, comma separated string, required field.}} these are the paths to the files required by the code, string from the $WorkingDir$; 
+
+\item $<Sequence>$\textbf{\textit{, comma separated string, required field.}} ordered list of the step names that RAVEN will run (see Section~\ref{sec:steps});
+
+\item $<DefaultInputFile>$\textbf{\textit{, string, optional field.}} In this block the user can change the default xml input file RAVEN is going to look for if none has been provided as command-line argument. \textit{Default = ``test.xml''}.
+
+\end{itemize}
+
+\subsection{RunInfo: input of queue modes.}
+\label{subsec:runinfoModes}
+In this sub-section all  the keyword (xml nodes) for setting the queue system are reported.
+\begin{itemize}
+%%%%%% MODE
 \item $<mode>$\textbf{\textit{, string, optional field.}} In this xml block, the user might specify which kind of protocol the parallel enviroment should use. By instance, RAVEN currently supports two pre-defined ``modes'':
   \begin{itemize}
     \item pbsdsh: this ``mode'' uses the pbsdsh protocol to distribute the program running; more information regarding this protocol can be found in ~ref{}. 
@@ -30,11 +61,24 @@ Both methods can submit a qsub command or can be run from an already submitted i
      \end{itemize}
      NB. Mode ``MPI'' can be used without any PBS support.
 
+%%%%%% CUSTOM MODE
 \item $<CustomMode>$\textbf{\textit{, xml node, optional field.}} In this xml node, the ``advanced'' users can implement a newer ``mode''. Please refer to sub-section~\ref{subsec:runinfoadvanced} for advanced users.
 
-\item $<expectedTime>$\textbf{\textit{colum separated string, requested field (pbsdsh mode) }}. In this block the user specifies the time the whole calculation is expected to last. The syntax of this node is $hours:minutes:seconds$ (e.g. 40:10:30 => 40 hours, 10 minutes, 30 seconds). After this period of time the HPC system will automatically stop the simulation (even if the simulation is not completed). It is preferable to rationally overstimate the needed time. \textit{Default = None};
-
+%%%%%% QUEUE SOFTWARE
 \item $<quequingSoftware>$\textbf{\textit{, string, optional field.}} RAVEN has support for PBS quequing system. If the platform provides a different quequing system, the user can specify its name here (e.g., PBS PROFESSIONAL, etc.). \textit{Default = PBS PROFESSIONAL};
+
+%%%%%% EXPECTED TIME
+\item $<expectedTime>$\textbf{\textit{colum separated string, requested field (pbsdsh mode) }}. In this block the user specifies the time the whole calculation is expected to last. The syntax of this node is $hours:minutes:seconds$ (e.g. 40:10:30 => 40 hours, 10 minutes, 30 seconds). After this period of time the HPC system will automatically stop the simulation (even if the simulation is not completed). It is preferable to rationally overstimate the needed time. \textit{Default = None};
+\end{itemize}
+
+\begin{itemize}
+\item $<WorkingDir>$\textbf{\textit{, string, required field.}} in this block the user needs to specify the absolute or relative (with respect to the location where RAVEN is run from) path to a directory that is going to be used to store all the results of the calculations and where RAVEN looks for the files specified in the block $<Files>$. \textit{Default = None};
+
+
+
+\item $<CustomMode>$\textbf{\textit{, xml node, optional field.}} In this xml node, the ``advanced'' users can implement a newer ``mode''. Please refer to sub-section~\ref{subsec:runinfoadvanced} for advanced users.
+
+
 
 \item $<NumNode>$\textbf{\textit{, integer, optional field.}}  this xml node is used to specify the number of nodes RAVEN should request when running in High Performance Computing (HPC) systems. \textit{Default = None};
 

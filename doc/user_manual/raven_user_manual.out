@@ -2,8 +2,8 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 2
 \BOOKMARK [1][-]{section.2}{Raven Input Structure \0402 mm }{}% 3
 \BOOKMARK [1][-]{section.3}{RunInfo \0402 mm }{}% 4
-\BOOKMARK [2][-]{subsection.3.1}{RunInfo: input of queue modes.}{section.3}% 5
-\BOOKMARK [2][-]{subsection.3.2}{RunInfo: input of calculation flow.}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.1}{RunInfo: input of calculation flow.}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.2}{RunInfo: input of queue modes.}{section.3}% 6
 \BOOKMARK [2][-]{subsection.3.3}{RunInfo for Advanced Users.}{section.3}% 7
 \BOOKMARK [2][-]{subsection.3.4}{RunInfo examples.}{section.3}% 8
 \BOOKMARK [1][-]{section.4}{Distributions 2em}{}% 9
