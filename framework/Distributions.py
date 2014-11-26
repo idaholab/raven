@@ -11,6 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import sys
+import xml.etree.ElementTree as ET #used for creating Beta in Normal distribution
 import copy
 import numpy as np
 import scipy.special as polys
@@ -328,7 +329,6 @@ class Normal(BoostDistribution):
     retDict['sigma'] = self.sigma
     return retDict
 
-
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
     mean_find = xmlNode.find('mean' )
@@ -374,6 +374,33 @@ class Normal(BoostDistribution):
     '''Evaluates probability weighting factor for distribution type.'''
     if std: return np.exp(-x**2/2.)
     else: return np.exp(-(x-self.mean)**2/2./self.sigma**2)
+
+  def _constructBeta(self,numStdDev=5):
+    '''Using data from normal distribution and the number of standard deviations
+    to include, constructs a Beta distribution with the same mean, variance, and
+    skewness as the initial normal distribution.  Effectively simulates a truncated
+    Gaussian.'''
+    L = self.mean-numStdDev*self.sigma
+    R = self.mean+numStdDev*self.sigma
+    d = R-L
+    a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
+    b = a
+    print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
+    #TODO best way to construct variable?  Import XML tools to read it in?
+    def createElement(tag,attrib={},text={}):
+      element = ET.Element(tag,attrib)
+      element.text = text
+      return element
+    betaElement = ET.Element("beta")
+    betaElement.append(createElement("low"  ,text="%f" %L))
+    betaElement.append(createElement("hi"   ,text="%f" %R))
+    betaElement.append(createElement("alpha",text="%f" %a))
+    betaElement.append(createElement("beta" ,text="%f" %b))
+    beta = Beta()
+    beta._readMoreXML(betaElement)
+    beta.initializeDistribution()
+    return beta
+
 
 
 class Gamma(BoostDistribution):
@@ -456,6 +483,9 @@ class Beta(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['alpha'] = self.alpha
     retDict['beta'] = self.beta
+    #TODO I think we need a location here -Paul
+    # On further investigation, it appears Boost might not natively support
+    # shifting domains for Beta distributions.  This could be problamatic.
     retDict['scale'] = self.hi-self.low
     return retDict
 
@@ -854,6 +884,21 @@ class Weibull(BoostDistribution):
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
+
+
+class UnfriendlyForCollocation(object):
+  def initializeDistribution(self):
+    self.preferredPolynomials='Legendre'
+    self.zerooneMean = 0.5
+    self.zerooneRange = 1.0
+  
+  def probabilityNorm(self):
+    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
+    return 0.5;
+
+  def probabilityWeight(self,x):
+    '''Evaluates probability weighting factor for distribution type.'''
+    return 1.;
 
 
 class NDimensionalDistributions(Distribution):
