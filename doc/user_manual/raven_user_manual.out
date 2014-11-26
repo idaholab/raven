@@ -2,42 +2,46 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}% 2
 \BOOKMARK [1][-]{section.2}{Raven Input Structure \0402 mm }{}% 3
 \BOOKMARK [1][-]{section.3}{RunInfo \0402 mm }{}% 4
-\BOOKMARK [1][-]{section.4}{Distributions 2em}{}% 5
-\BOOKMARK [1][-]{section.5}{Samplers \0402 mm }{}% 6
-\BOOKMARK [1][-]{section.6}{Functions \0402 mm }{}% 7
-\BOOKMARK [1][-]{section.7}{Models \0402 mm }{}% 8
-\BOOKMARK [2][-]{subsection.7.1}{Dummy}{section.7}% 9
-\BOOKMARK [2][-]{subsection.7.2}{ROM}{section.7}% 10
-\BOOKMARK [2][-]{subsection.7.3}{External Model}{section.7}% 11
-\BOOKMARK [2][-]{subsection.7.4}{Code}{section.7}% 12
-\BOOKMARK [2][-]{subsection.7.5}{Projector}{section.7}% 13
-\BOOKMARK [2][-]{subsection.7.6}{PostProcessor}{section.7}% 14
-\BOOKMARK [1][-]{section.8}{Steps \0402 mm }{}% 15
-\BOOKMARK [1][-]{section.9}{Datas \0402 mm }{}% 16
-\BOOKMARK [1][-]{section.10}{Databases}{}% 17
-\BOOKMARK [1][-]{section.11}{OutStream system \0402 mm Author: Andrea Alfonsi}{}% 18
-\BOOKMARK [2][-]{subsection.11.1}{Printing system }{section.11}% 19
-\BOOKMARK [2][-]{subsection.11.2}{Plotting system }{section.11}% 20
-\BOOKMARK [3][-]{subsubsection.11.2.1}{Plot input structure }{subsection.11.2}% 21
-\BOOKMARK [4][-]{paragraph.11.2.1.1}{``Actions'' input block }{subsubsection.11.2.1}% 22
-\BOOKMARK [4][-]{paragraph.11.2.1.2}{``plot\137settings'' input block }{subsubsection.11.2.1}% 23
-\BOOKMARK [4][-]{paragraph.11.2.1.3}{Predefined Plotting System: 2D/3D }{subsubsection.11.2.1}% 24
-\BOOKMARK [3][-]{subsubsection.11.2.2}{Interpreted Plotting instruction }{subsection.11.2}% 25
-\BOOKMARK [1][-]{section.12}{Existing Interfaces \0402 mm }{}% 26
-\BOOKMARK [2][-]{subsection.12.1}{RELAP5 Interface}{section.12}% 27
-\BOOKMARK [3][-]{subsubsection.12.1.1}{Files}{subsection.12.1}% 28
-\BOOKMARK [3][-]{subsubsection.12.1.2}{Sequence}{subsection.12.1}% 29
-\BOOKMARK [3][-]{subsubsection.12.1.3}{batchSize and mode}{subsection.12.1}% 30
-\BOOKMARK [3][-]{subsubsection.12.1.4}{RunInfo}{subsection.12.1}% 31
-\BOOKMARK [3][-]{subsubsection.12.1.5}{Models}{subsection.12.1}% 32
-\BOOKMARK [3][-]{subsubsection.12.1.6}{Distributions}{subsection.12.1}% 33
-\BOOKMARK [3][-]{subsubsection.12.1.7}{Samplers}{subsection.12.1}% 34
-\BOOKMARK [3][-]{subsubsection.12.1.8}{Steps}{subsection.12.1}% 35
-\BOOKMARK [3][-]{subsubsection.12.1.9}{DataBases}{subsection.12.1}% 36
-\BOOKMARK [2][-]{subsection.12.2}{RELAP7 Interface}{section.12}% 37
-\BOOKMARK [3][-]{subsubsection.12.2.1}{Files}{subsection.12.2}% 38
-\BOOKMARK [3][-]{subsubsection.12.2.2}{Models}{subsection.12.2}% 39
-\BOOKMARK [3][-]{subsubsection.12.2.3}{Distributions}{subsection.12.2}% 40
-\BOOKMARK [3][-]{subsubsection.12.2.4}{Samplers}{subsection.12.2}% 41
-\BOOKMARK [3][-]{subsubsection.12.2.5}{Steps}{subsection.12.2}% 42
-\BOOKMARK [1][-]{section*.5}{References}{}% 43
+\BOOKMARK [2][-]{subsection.3.1}{RunInfo: input of queue modes.}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.2}{RunInfo: input of calculation flow.}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.3}{RunInfo for Advanced Users.}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.4}{RunInfo examples.}{section.3}% 8
+\BOOKMARK [1][-]{section.4}{Distributions 2em}{}% 9
+\BOOKMARK [1][-]{section.5}{Samplers \0402 mm }{}% 10
+\BOOKMARK [1][-]{section.6}{Functions \0402 mm }{}% 11
+\BOOKMARK [1][-]{section.7}{Models \0402 mm }{}% 12
+\BOOKMARK [2][-]{subsection.7.1}{Dummy}{section.7}% 13
+\BOOKMARK [2][-]{subsection.7.2}{ROM}{section.7}% 14
+\BOOKMARK [2][-]{subsection.7.3}{External Model}{section.7}% 15
+\BOOKMARK [2][-]{subsection.7.4}{Code}{section.7}% 16
+\BOOKMARK [2][-]{subsection.7.5}{Projector}{section.7}% 17
+\BOOKMARK [2][-]{subsection.7.6}{PostProcessor}{section.7}% 18
+\BOOKMARK [1][-]{section.8}{Steps \0402 mm }{}% 19
+\BOOKMARK [1][-]{section.9}{Datas \0402 mm }{}% 20
+\BOOKMARK [1][-]{section.10}{Databases}{}% 21
+\BOOKMARK [1][-]{section.11}{OutStream system \0402 mm Author: Andrea Alfonsi}{}% 22
+\BOOKMARK [2][-]{subsection.11.1}{Printing system }{section.11}% 23
+\BOOKMARK [2][-]{subsection.11.2}{Plotting system }{section.11}% 24
+\BOOKMARK [3][-]{subsubsection.11.2.1}{Plot input structure }{subsection.11.2}% 25
+\BOOKMARK [4][-]{paragraph.11.2.1.1}{``Actions'' input block }{subsubsection.11.2.1}% 26
+\BOOKMARK [4][-]{paragraph.11.2.1.2}{``plot\137settings'' input block }{subsubsection.11.2.1}% 27
+\BOOKMARK [4][-]{paragraph.11.2.1.3}{Predefined Plotting System: 2D/3D }{subsubsection.11.2.1}% 28
+\BOOKMARK [3][-]{subsubsection.11.2.2}{Interpreted Plotting instruction }{subsection.11.2}% 29
+\BOOKMARK [1][-]{section.12}{Existing Interfaces \0402 mm }{}% 30
+\BOOKMARK [2][-]{subsection.12.1}{RELAP5 Interface}{section.12}% 31
+\BOOKMARK [3][-]{subsubsection.12.1.1}{Files}{subsection.12.1}% 32
+\BOOKMARK [3][-]{subsubsection.12.1.2}{Sequence}{subsection.12.1}% 33
+\BOOKMARK [3][-]{subsubsection.12.1.3}{batchSize and mode}{subsection.12.1}% 34
+\BOOKMARK [3][-]{subsubsection.12.1.4}{RunInfo}{subsection.12.1}% 35
+\BOOKMARK [3][-]{subsubsection.12.1.5}{Models}{subsection.12.1}% 36
+\BOOKMARK [3][-]{subsubsection.12.1.6}{Distributions}{subsection.12.1}% 37
+\BOOKMARK [3][-]{subsubsection.12.1.7}{Samplers}{subsection.12.1}% 38
+\BOOKMARK [3][-]{subsubsection.12.1.8}{Steps}{subsection.12.1}% 39
+\BOOKMARK [3][-]{subsubsection.12.1.9}{DataBases}{subsection.12.1}% 40
+\BOOKMARK [2][-]{subsection.12.2}{RELAP7 Interface}{section.12}% 41
+\BOOKMARK [3][-]{subsubsection.12.2.1}{Files}{subsection.12.2}% 42
+\BOOKMARK [3][-]{subsubsection.12.2.2}{Models}{subsection.12.2}% 43
+\BOOKMARK [3][-]{subsubsection.12.2.3}{Distributions}{subsection.12.2}% 44
+\BOOKMARK [3][-]{subsubsection.12.2.4}{Samplers}{subsection.12.2}% 45
+\BOOKMARK [3][-]{subsubsection.12.2.5}{Steps}{subsection.12.2}% 46
+\BOOKMARK [1][-]{section*.5}{References}{}% 47
