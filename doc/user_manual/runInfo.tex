@@ -1,8 +1,13 @@
 \section{RunInfo  \\ \vspace{2 mm} {\small }}
 The $RunInfo$ block is the place where the user specifiy how the calculation needs to be performed. In this input block, several settings can be inputted, in order to define how to drive the calculation and set up, when needed, particular settings for the machine the code needs to run on (queue system if not PBS, etc.).
-In the following, all the keywords are explained in detail.
-\begin{itemize}
+In the following subsections, all the keywords are explained in detail.
+\subsection{RunInfo: input of queue modes.}
+\label{subsec:runinfoModes}
+  
+\subsection{RunInfo: input of calculation flow.}
+\label{subsec:runinfoCalcFlow}
 
+\begin{itemize}
 \item $<WorkingDir>$\textbf{\textit{, string, required field.}} in this block the user needs to specify the absolute or relative (with respect to the location where RAVEN is run from) path to a directory that is going to be used to store all the results of the calculations and where RAVEN looks for the files specified in the block $<Files>$. \textit{Default = None};
 
 \item $<mode>$\textbf{\textit{, string, optional field.}} In this xml block, the user might specify which kind of protocol the parallel enviroment should use. By instance, RAVEN currently supports two pre-defined ``modes'':
@@ -25,9 +30,9 @@ Both methods can submit a qsub command or can be run from an already submitted i
      \end{itemize}
      NB. Mode ``MPI'' can be used without any PBS support.
 
-\item $<CustomMode>$\textbf{\textit{,xml node, optional field.}} In this xml node, the ``advanced'' users can 
+\item $<CustomMode>$\textbf{\textit{, xml node, optional field.}} In this xml node, the ``advanced'' users can implement a newer ``mode''. Please refer to sub-section~\ref{subsec:runinfoadvanced} for advanced users.
 
-\item $<expectedTime>$\textbf{\textit{, }} how much time the simulation is expected to run. After this period of time the cluster will automatically stop the simulation (even if the simulation is not competed) so be sure that the time is overestimated. \textit{Default = None};
+\item $<expectedTime>$\textbf{\textit{colum separated string, requested field (pbsdsh mode) }}. In this block the user specifies the time the whole calculation is expected to last. The syntax of this node is $hours:minutes:seconds$ (e.g. 40:10:30 => 40 hours, 10 minutes, 30 seconds). After this period of time the HPC system will automatically stop the simulation (even if the simulation is not completed). It is preferable to rationally overstimate the needed time. \textit{Default = None};
 
 \item $<quequingSoftware>$\textbf{\textit{, string, optional field.}} RAVEN has support for PBS quequing system. If the platform provides a different quequing system, the user can specify its name here (e.g., PBS PROFESSIONAL, etc.). \textit{Default = PBS PROFESSIONAL};
 
@@ -59,6 +64,13 @@ Both methods can submit a qsub command or can be run from an already submitted i
 
 \end{itemize}
 % source: Simulation.py
+
+\subsection{RunInfo for Advanced Users.}
+\label{subsec:runinfoadvanced}
+aaaaaaaaaaaaaaaa
+
+\subsection{RunInfo examples.}
+eccolo:
 
 The example:
 \begin{lstlisting}[style=XML]
