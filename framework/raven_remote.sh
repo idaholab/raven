@@ -27,5 +27,4 @@ BUFFER_SIZE=$3
 cd $WORKING_DIR
 
 shift 2
-#$@ > $OUTPUT 2>&1
-$@ 2>&1 | tail -c $BUFFER_SIZE > $OUTPUT
+$@ 2>&1 | dd ibs=$BUFFER_SIZE > $OUTPUT
