@@ -19,7 +19,7 @@ import os
 import signal
 import copy
 #import logging, logging.handlers
-import threading 
+import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -31,11 +31,12 @@ class ExternalRunner:
   '''
   Class for running external codes
   '''
-  def __init__(self,command,workingDir,output=None,metadata=None):
+  def __init__(self,command,workingDir,bufsize,output=None,metadata=None):
     ''' Initialize command variable'''
     self.command    = command
+    self.bufsize    = bufsize
     workingDirI     = None
-    if    output!=None: 
+    if    output!=None:
       self.output   = output
       if os.path.split(output)[0] != workingDir: workingDirI = os.path.split(output)[0]
       if len(str(output).split("~")) > 1:
@@ -56,13 +57,13 @@ class ExternalRunner:
             else:
               path = parts[0]
               allparts.insert(0, parts[1])
-          return allparts 
-        splitted = splitall(str(output))     
+          return allparts
+        splitted = splitall(str(output))
         if len(splitted) >= 2: self.identifier= splitted[-2]
-        else: self.identifier= 'generalOut'  
-    else: 
+        else: self.identifier= 'generalOut'
+    else:
       self.output   = os.path.join(workingDir,'generalOut')
-      self.identifier = 'generalOut'  
+      self.identifier = 'generalOut'
     if workingDirI: self.__workingDir = workingDirI
     else          : self.__workingDir = workingDir
     self.__metadata   = metadata
@@ -73,10 +74,10 @@ class ExternalRunner:
 #     '''
 #     Function to create a logging object
 #     @ In, name: name of the logging object
-#     @ Out, logging object 
+#     @ Out, logging object
 #     '''
 #     return logging.getLogger(name)
-#     
+#
 #   def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
 #     '''
 #     Function to create a logging object
@@ -84,19 +85,19 @@ class ExternalRunner:
 #     @ In, filename        : log file name (with path)
 #     @ In, max_size        : maximum file size (bytes)
 #     @ In, max_number_files: maximum number of files to be created
-#     @ Out, None 
+#     @ Out, None
 #     '''
 #     hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
 #     logging.getLogger(logger_name).addHandler(hadler)
 #     logging.getLogger(logger_name).setLevel(logging.INFO)
-#     return 
-# 
+#     return
+#
 #   def outStreamReader(self, out_stream):
 #     '''
 #     Function that logs every line received from the out stream
 #     @ In, out_stream: output stream
 #     @ In, logger    : the instance of the logger object
-#     @ Out, logger   : the logger itself 
+#     @ Out, logger   : the logger itself
 #     '''
 #     while True:
 #       line = out_stream.readline()
@@ -112,24 +113,24 @@ class ExternalRunner:
     self.__process.poll()
     return self.__process.returncode != None
 
-  def getReturnCode(self): 
+  def getReturnCode(self):
     '''
     Function to inquire the process to get the return code
     '''
     return self.__process.returncode
 
-  def returnEvaluation(self): 
+  def returnEvaluation(self):
     '''
     Function to return the External runner evaluation (outcome/s). Since in process, return None
     '''
     return None
-  
-  def returnMetadata(self): 
+
+  def returnMetadata(self):
     '''
-    Function to return the External runner metadata 
+    Function to return the External runner metadata
     '''
     return self.__metadata
-  
+
   def start(self):
     '''
     Function to run the driven code
@@ -138,29 +139,29 @@ class ExternalRunner:
     os.chdir(self.__workingDir)
     localenv = dict(os.environ)
     localenv['PYTHONPATH'] = ''
-    outFile = open(self.output,'w')
+    outFile = open(self.output,'w', self.bufsize)
     self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     os.chdir(oldDir)
     #self.__process = subprocess.Popen(self.command,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,cwd=self.__workingDir,env=localenv)
-    #self.thread = threading.Thread(target=self.outStreamReader, args=(self.__process.stdout,)) 
+    #self.thread = threading.Thread(target=self.outStreamReader, args=(self.__process.stdout,))
     #self.thread.daemon = True
     #self.thread.start()
-  
+
   def kill(self):
     '''
     Function to kill the subprocess of the driven code
     '''
     #In python 2.6 this could be self.process.terminate()
     print(returnPrintTag('JOB HANDLER')+ ": Terminating ",self.__process.pid,self.command)
-    os.kill(self.__process.pid,signal.SIGTERM)    
+    os.kill(self.__process.pid,signal.SIGTERM)
 
-  def getWorkingDir(self): 
+  def getWorkingDir(self):
     '''
     Function to get the working directory path
     '''
     return self.__workingDir
 
-  def getOutputFilename(self): 
+  def getOutputFilename(self):
     '''
     Function to get the output filenames
     '''
@@ -174,7 +175,7 @@ class InternalRunner:
   def __init__(self,Input,functionToRun,identifier=None,metadata=None):
     # we keep the command here, in order to have the hook for running exec code into internal models
     self.command = "internal"
-    if    identifier!=None: 
+    if    identifier!=None:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
@@ -184,7 +185,7 @@ class InternalRunner:
     self.functionToRun   = functionToRun
     if len(Input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
     else              : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
-    self.__thread.daemon = True 
+    self.__thread.daemon = True
     self.__runReturn     = None
     self.__hasBeenAdded  = False
     try:   self.__input         = copy.deepcopy(Input[0])
@@ -196,26 +197,26 @@ class InternalRunner:
     return not self.__thread.is_alive()
 
   def getReturnCode(self): return self.retcode
-  
+
   def returnEvaluation(self):
-    if self.isDone(): 
+    if self.isDone():
       if not self.__hasBeenAdded:
-        self.__runReturn = copy.deepcopy(self.subque.get(timeout=1))   
+        self.__runReturn = copy.deepcopy(self.subque.get(timeout=1))
         self.__hasBeenAdded = True
       return (self.__input,self.__runReturn)
-    else: return -1 #control return code   
-  
+    else: return -1 #control return code
+
   def returnMetadata(self): return self.__metadata
-  
-  def start(self): 
+
+  def start(self):
     try: self.__thread.start()
     except Exception as ae:
       print(returnPrintTag('JOB HADLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
       self.retcode = -1
-  
-  def kill(self): 
+
+  def kill(self):
     print(returnPrintTag('JOB HADLER')+": Terminating ",self.__thread.ident(), " Identifier " + self.identifier)
-    os.kill(self.__thread.ident(),signal.SIGTERM)    
+    os.kill(self.__thread.ident(),signal.SIGTERM)
 
 class JobHandler:
   def __init__(self):
@@ -233,7 +234,7 @@ class JobHandler:
     self.__numSubmitted = 0
     self.__numFailed = 0
     self.__failedJobs = []
-    
+
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
     if self.runInfoDict['NumMPI'] !=1 and len(self.runInfoDict['ParallelCommand']) > 0:
@@ -252,10 +253,10 @@ class JobHandler:
       command +=self.threadingCommand+' '
     command += executeCommand
     command += self.runInfoDict['postcommand']
-    self.__queue.put(ExternalRunner(command,workingDir,outputFile,metadata))
+    self.__queue.put(ExternalRunner(command,workingDir,self.runInfoDict['logfileBuffer'],outputFile,metadata))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
-    
+
   def addInternal(self,Input,functionToRun,identifier,metadata=None):
     self.__queue.put(InternalRunner(Input,functionToRun,identifier,metadata))
     self.__numSubmitted += 1
@@ -268,13 +269,13 @@ class JobHandler:
       if self.__running[i] and not self.__running[i].isDone():
         return False
     return True
-  
+
   def getNumberOfFailures(self):
     return self.__numFailed
-  
+
   def getListOfFailedJobs(self):
     return self.__failedJobs
-  
+
   def howManyFreeSpots(self):
     cnt_free_spots = 0
     if self.__queue.empty():
@@ -312,16 +313,16 @@ class JobHandler:
               for fileExt in self.runInfoDict['deleteOutExtension']:
                 if not fileExt.startswith("."): fileExt = "." + fileExt
                 filelist = [ f for f in os.listdir(running.getWorkingDir()) if f.endswith(fileExt) ]
-                for f in filelist: os.remove(f)                           
+                for f in filelist: os.remove(f)
           self.__running[i] = None
     if not self.__queue.empty(): self.addRuns()
     return finished
 
   def addRuns(self):
     for i in range(len(self.__running)):
-      if self.__running[i] == None and not self.__queue.empty(): 
-        item = self.__queue.get() 
-        if "External" in item.__class__.__name__ :         
+      if self.__running[i] == None and not self.__queue.empty():
+        item = self.__queue.get()
+        if "External" in item.__class__.__name__ :
           command = item.command
           command = command.replace("%INDEX%",str(i))
           command = command.replace("%INDEX1%",str(i+1))
@@ -346,7 +347,7 @@ class JobHandler:
 
   def startingNewStep(self):
     self.__numSubmitted = 0
-  
+
   def terminateAll(self):
     #clear out the queue
     while not self.__queue.empty(): self.__queue.get()

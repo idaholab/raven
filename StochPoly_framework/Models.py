@@ -60,7 +60,7 @@ class Code(Model):
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
-    self.infoForOut         = {}   #it contains the information needed for outputting 
+    self.infoForOut         = {}   #it contains the information needed for outputting
 
   def readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
@@ -74,13 +74,13 @@ class Code(Model):
         self.executable = abspath
     except: raise IOError('not found executable '+xmlNode.text)
     self.interface = CodeInterfaces.returnCodeInterface(self.subType)
-    
+
   def addInitParams(self,tempDict):
     '''extension of addInitParams for the Code(model)'''
     Model.addInitParams(self, tempDict)
     tempDict['executable']=self.executable
-  
-  
+
+
   def addCurrentSetting(self,originalDict):
     '''extension of addInitParams for the Code(model)'''
     originalDict['current working directory'] = self.workingDir
@@ -89,12 +89,12 @@ class Code(Model):
     originalDict['original input file']       = self.oriInputFiles
 
   def reset(self,runInfoDict,inputFiles):
-    '''initialize some of the current setting for the runs and generate the working 
+    '''initialize some of the current setting for the runs and generate the working
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-                   
+
     except: print('MODEL CODE    : warning current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles:
       shutil.copy(inputFile,self.workingDir)
@@ -140,9 +140,9 @@ class Code(Model):
       pass
     #print('this:',output)
     output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv")
-    
+
     return
-  
+
   def finalizeOutput(self,output):
     output.finalizeOut()
 
@@ -176,10 +176,10 @@ class ROM(Model):
     self.SupervisedEngine = self.test(**self.initializzationOptionDict)
     #self.test.
     #self.SupervisedEngine = SupervisedLearning.returnInstance(self.subType)(self.initializzationOptionDict) #create an instance of the ROM
-  
+
   def addLoadingSource(self,loadFrom):
     self.toLoadFrom = loadFrom
-  
+
   def addInitParams(self,originalDict):
     ROMdict = self.SupervisedEngine.returnInitialParamters()
     for key in ROMdict.keys():
@@ -216,18 +216,18 @@ class ROM(Model):
         it support string input
         dictionary input and datas input'''
     import itertools
-    
+
     if len(currentInput)>1: raise IOError('ROM accepts only one input not a list of inputs')
     else: currentInput =currentInput[0]
     if  type(currentInput)==str:#one input point requested a as a string
       inputNames  = [component.split('=')[0] for component in currentInput.split(',')]
       inputValues = [component.split('=')[1] for component in currentInput.split(',')]
-      for name, newValue in itertools.izip(Kwargs['sampledVars'].keys(),Kwargs['sampledVars'].values()): 
+      for name, newValue in itertools.izip(Kwargs['sampledVars'].keys(),Kwargs['sampledVars'].values()):
         inputValues[inputNames.index(name)] = newValue
       newInput = [inputNames[i]+'='+inputValues[i] for i in range(inputNames)]
       newInput = newInput.join(',')
     elif type(currentInput)==dict:#as a dictionary providing either one or several values as lists or numpy arrays
-      for name, newValue in itertools.izip(Kwargs['sampledVars'].keys(),Kwargs['sampledVars'].values()): 
+      for name, newValue in itertools.izip(Kwargs['sampledVars'].keys(),Kwargs['sampledVars'].values()):
         currentInput[name] = newValue
       newInput = copy.deepcopy(currentInput)
     else:#as a internal data type
@@ -281,7 +281,7 @@ class ROM(Model):
     # we need to submit self.ROM.evaluate(self.request) to the job handler
     self.output = self.SupervisedEngine.evaluate(self.request)
 #    raise IOError('the multi treading is not yet in place neither the appending')
-  
+
   def collectOutput(self,finishedJob,output):
     '''This method append the ROM evaluation into the output'''
     try: #try is used to be sure input.type exist
@@ -316,13 +316,13 @@ class Filter(Model):
     Model.readMoreXML(self, xmlNode)
     self.interface = returnFilterInterface(self.subType)
     self.interface.readMoreXML(xmlNode)
-    
- 
+
+
   def addInitParams(self,tempDict):
     Model.addInitParams(self, tempDict)
 
   def reset(self,runInfoDict,inputFiles):
-    '''initialize some of the current setting for the runs and generate the working 
+    '''initialize some of the current setting for the runs and generate the working
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
@@ -345,17 +345,17 @@ class ExternalModel(Model):
     self.counter=0
     if 'initialize' in dir(self.sim):
       self.sim.initialize(self,runInfo,inputs)
-  
+
   def createNewInput(self,myInput,samplerType,**Kwargs):
     if 'createNewInput' in dir(self.sim):
       newInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
-      return [newInput] 
+      return [newInput]
     else:
       return [None]
-  
+
   def readMoreXML(self,xmlNode):
     Model.readMoreXML(self, xmlNode)
-    if 'ModuleToLoad' in xmlNode.attrib.keys(): 
+    if 'ModuleToLoad' in xmlNode.attrib.keys():
       self.ModuleToLoad = os.path.split(str(xmlNode.attrib['ModuleToLoad']))[1]
       if (os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0] != ''):
         abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
@@ -374,32 +374,32 @@ class ExternalModel(Model):
           if not (son.attrib['type'].lower() in self.__availableVariableTypes):
             raise IOError('MODEL EXTERNAL: ERROR -> the "type" of variable ' + son.text + 'not')
           self.modelVariableType[son.text] = son.attrib['type']
-        else                          : 
+        else                          :
           raise IOError('MODEL EXTERNAL: ERROR -> the attribute "type" for variable '+son.text+' is missed')
     # check if there are other information that the external module wants to load
     if 'readMoreXML' in dir(self.sim):
       self.sim.readMoreXML(self,xmlNode)
 
- 
+
   def run(self,Input,output,jobHandler):
     self.sim.run(self,Input,jobHandler)
-    
+
   def collectOutput(self,finisishedjob,output):
     if 'collectOutput' in dir(self.sim):
       self.sim.collectOutput(self,finisishedjob,output)
     self.__pointSolution()
-    if 'HDF5' in output.type: raise NotImplementedError('MODEL EXTERNAL: ERROR -> output type HDF5 not implemented yet for externalModel') 
+    if 'HDF5' in output.type: raise NotImplementedError('MODEL EXTERNAL: ERROR -> output type HDF5 not implemented yet for externalModel')
 
     if output.type not in ['TimePoint','TimePointSet','History','Histories']: raise RuntimeError('MODEL EXTERNAL: ERROR -> output type ' + output.type + ' unknown')
     for inputName in output.dataParameters['inParam']:
       exec('if not (type(self.modelVariableValues[inputName]) == ' + self.modelVariableType[inputName] + '):raise RuntimeError("MODEL EXTERNAL: ERROR -> type of variable '+ inputName + ' mismatches with respect to the inputted one!!!")')
       output.updateInputValue(inputName,self.modelVariableValues[inputName])
     for outName in output.dataParameters['outParam']:
-      output.updateOutputValue(outName,self.modelVariableValues[outName])   
-    
+      output.updateOutputValue(outName,self.modelVariableValues[outName])
+
   def __pointSolution(self):
     for variable in self.modelVariableValues.keys(): exec('self.modelVariableValues[variable] = self.'+  variable)
-    
+
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
   base = 'model'
@@ -410,4 +410,3 @@ def returnInstance(Type):
   InterfaceDict['ExternalModel'] = ExternalModel
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
-  

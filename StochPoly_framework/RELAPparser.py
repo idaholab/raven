@@ -36,10 +36,10 @@ class RELAPparser:
       if not re.match('^\s*\n',line):
         if line.split()[0] in modiDictionaryList:
             temp1 = self.replaceword(line,modiDictionaryList[line.split()[0]]['position'],modiDictionaryList[line.split()[0]]['value'])
-      temp.append(temp1)  
-    if save: 
+      temp.append(temp1)
+    if save:
       self.lines=temp
-    return self.lines     
+    return self.lines
 
   def replaceword(self,line,position,value):
     temp=line.split()
@@ -50,7 +50,7 @@ class RELAPparser:
     newline=newline+'\n'
     return newline
 
-      
+
 if __name__=='__main__':
   file=RELAPparser('restart.i')
   dictlist={}

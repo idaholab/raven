@@ -50,7 +50,7 @@ class Quadrature():
     return result*mult
 
   def integrateArray(self,arr,mult=1.0):
-    '''Uses weights to integrate given array of values, 
+    '''Uses weights to integrate given array of values,
        assuming they are on quad_pts.'''
     # same for individual quads or multiquad
     assert(len(arr) == len(self.weights))
@@ -69,7 +69,7 @@ class Legendre(Quadrature):
     self.a = a #lower bound, default -1
     self.b = b #upper bound, default  1
     Quadrature.__init__(self,order=order)
-    
+
   def setQuad(self):
     self.type='Legendre'
     self.quad_pts,self.weights = orth.p_roots(self.order) #points and weights from scipy
@@ -138,7 +138,7 @@ class StatHermite(Quadrature):
       o=np.real(o)
       x=np.real(x)
     except:
-      print(self,'.evNormPoly tried to convert to real but it failed.  Moving on.')    
+      print(self,'.evNormPoly tried to convert to real but it failed.  Moving on.')
     return sps.eval_hermitenorm(o,x)/np.sqrt(np.sqrt(2.*np.pi)*factorial(o))
 
 
@@ -252,7 +252,7 @@ class MultiQuad(Quadrature):
 def part_ndenum(arr,lvl):
   '''Enumerates a multi-D array at a particular depth of dimension.
      For example, let arr be a 4D hypercube array of arrays of arrays of arrays.
-     part_ndenum(arr,2) would enumerate over all the 2D arrays in all the possible 
+     part_ndenum(arr,2) would enumerate over all the 2D arrays in all the possible
      1st and 2nd dimension combinations.'''
   try:
     arr=np.array(arr)
@@ -273,7 +273,7 @@ def returnInstance(Type):
   InterfaceDict['Laguerre'       ] = Laguerre
   InterfaceDict['StatHermite'    ] = StatHermite
   InterfaceDict['Hermite'        ] = Hermite
-  InterfaceDict['ShiftLegendre'  ] = ShiftLegendre  
+  InterfaceDict['ShiftLegendre'  ] = ShiftLegendre
   print(Type)
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)

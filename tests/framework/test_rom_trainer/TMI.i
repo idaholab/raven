@@ -53,7 +53,7 @@
 []
 
 [Components]
-  # Core region components 
+  # Core region components
   # [./high_pressure_seconday_A]
   # T_bc = 537.15
   # p_bc = '152.19e5'
@@ -787,7 +787,7 @@
 [Monitored]
   # [./sec_inlet_density]
   # operator = ElementAverageValue
-  # path = 
+  # path =
   # data_type = double
   # component_name = pipe1-SC-A
   # [../]
@@ -1098,7 +1098,7 @@
  delta = 0.5
  [../]
  []
- 
+
  [RavenTools]
  [./PumpCoastDown]
  type = pumpCoastdownExponential

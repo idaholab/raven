@@ -3,17 +3,17 @@
 # 3=3 eqn, 1D non-isothermal flow
 # 7=7 eqn, 1D 2-phase flow
  model_type = 3
- 
+
  global_init_P = 15.17e6
  global_init_V = 1.
  global_init_T = 564.15
- 
+
 #  scaling_factor_var = '1. 1.e-6 1.e-7'
  scaling_factor_var   = '1e-3 1e-4 1e-8'
  temperature_sf = '1e-4'
  stabilization_type = 'LAPIDUS'
  []
- 
+
 [EoS]
  [./eos]
  e_0 = 3290122.80 # J/kg
@@ -26,7 +26,7 @@
  p_0 = 15.17e6 # Pa
  [../]
  []
- 
+
 [Materials]
  [./fuel-mat]
  type = SolidMaterialProperties
@@ -59,14 +59,14 @@
  Cp = 6.6e3 # 100.0
  [../]
  []
- 
- 
+
+
 [Components]
  [./reactor]
  type = Reactor
  initial_power = 2.77199979e9
  [../]
- 
+
 #Core region components #############################################################
  [./CH1]
  type = CoreChannel
@@ -77,13 +77,13 @@
  Dh = 0.01332254
  length = 3.6576
  n_elems = 16 #8
- 
+
  f = 0.01
  Hw = 5.33e4
 # aw = 276.5737513
  Phf = 321.341084980423
  Ts_init = 564.15
- 
+
  dim_hs = 1
  n_heatstruct = 3
  name_of_hs = 'FUEL GAP CLAD'
@@ -94,7 +94,7 @@
 #peak_power = '6.127004e8 0. 0.'
  power_fraction = '3.33672612e-1 0 0'
  [../]
- 
+
  [./CH2]
  type = CoreChannel
  eos = eos
@@ -104,13 +104,13 @@
  Dh = 0.01332254
  length = 3.6576
  n_elems = 16 #8
- 
+
  f = 0.01
  Hw = 5.33e4
 # aw = 276.5737513
  Phf = 428.454929876871
  Ts_init = 564.15
- 
+
  dim_hs = 1
  n_heatstruct = 3
  name_of_hs = 'FUEL GAP CLAD'
@@ -121,7 +121,7 @@
 #peak_power = '5.094461e8 0. 0.'
  power_fraction = '3.69921461e-1 0 0'
  [../]
- 
+
  [./CH3]
  type = CoreChannel
  eos = eos
@@ -131,13 +131,13 @@
  Dh = 0.01332254
  length = 3.6576
  n_elems = 16 #8
- 
+
  f = 0.01
  Hw = 5.33e4
 # aw = 276.5737513
  Phf = 514.145916018189
  Ts_init = 564.15
- 
+
  dim_hs = 1
  n_heatstruct = 3
  name_of_hs = 'FUEL GAP CLAD'
@@ -148,7 +148,7 @@
 #peak_power = '3.401687e8 0. 0.'
  power_fraction = '2.96405926e-1 0 0'
  [../]
- 
+
  [./bypass_pipe]
  type = Pipe
  eos = eos
@@ -158,11 +158,11 @@
  Dh = 1.42264
  length = 3.6576
  n_elems = 5
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./LowerPlenum]
  type = Branch
  eos = eos
@@ -171,7 +171,7 @@
  K = '0.2 0.2 0.2 0.2 0.4 40.0'
  Area = 3.618573408
  [../]
- 
+
  [./UpperPlenum]
  type = Branch
  eos = eos
@@ -181,7 +181,7 @@
  Area = 7.562307456
  [../]
 ##############################################################################################
- 
+
 #Loop A components ###########################################################################
  [./DownComer-A]
  type = Pipe
@@ -192,11 +192,11 @@
  Dh = 1.74724302
  length = 4
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.
  [../]
- 
+
  [./pipe1-HL-A]
  type = Pipe
  eos = eos
@@ -206,11 +206,11 @@
  Dh = 3.103003207
  length = 4.
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe2-HL-A]
  type = Pipe
  eos = eos
@@ -220,11 +220,11 @@
  Dh = 1.828
  length = 3.5
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe1-CL-A]
  type = Pipe
  eos = eos
@@ -234,11 +234,11 @@
  Dh = 1.828
  length = 1.
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe2-CL-A]
  type = Pipe
  eos = eos
@@ -248,11 +248,11 @@
  Dh = 1.828
  length = 0.8
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe1-SC-A]
  type = Pipe
  eos = eos
@@ -262,11 +262,11 @@
  Dh = 1.828
  length = 1.
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe2-SC-A]
  type = Pipe
  eos = eos
@@ -276,11 +276,11 @@
  Dh = 1.828
  length = 1.
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./Branch1-A]
  type = Branch
  eos = eos
@@ -289,7 +289,7 @@
  K = '0.5 0.7 80.'
  Area = 7.562307456
  [../]
- 
+
  [./Branch2-A]
  type = Branch
  eos = eos
@@ -297,9 +297,9 @@
  outputs = 'DownComer-A(in)'
  K = '0.5 0.7'
  Area = 3.6185734
- 
+
  [../]
- 
+
  [./Branch3-A]
  type = Branch
  eos = eos
@@ -308,7 +308,7 @@
  K = '0.5 0.7'
  Area = 2.624474
  [../]
- 
+
  [./Pump-A]
  inputs = pipe2-CL-A(out)
  Head = 8.9
@@ -319,7 +319,7 @@
  K_reverse = '2000 2000'
  type = Pump
  [../]
- 
+
  [./HX-A]
  type = HeatExchanger
  eos = eos
@@ -332,25 +332,25 @@
  Dh_secondary = 0.01
  length = 4.
  n_elems = 10
- 
+
  Hw = 1.e4
  Hw_secondary = 1.e4
- 
+
 # aw = 539.02
 # aw_secondary = 539.02
  Phf = 2695.100000000000
  Phf_secondary = 2695.100000000000
- 
+
  f = 0.01
  f_secondary = 0.01
- 
+
  dim_wall = 1
  Twall_init = 564.15
  wall_thickness = 0.001
  n_wall_elems = 2
  material_wall = wall-mat
  [../]
- 
+
  [./Branch4-A]
  type = Branch
  eos = eos
@@ -359,7 +359,7 @@
  K = '0.5 0.7'
  Area = 2.624474e2
  [../]
- 
+
  [./Branch5-A]
  type = Branch
  eos = eos
@@ -368,7 +368,7 @@
  K = '0.5 0.7'
  Area = 2.624474e2
  [../]
- 
+
  [./Branch6-A]
  type = Branch
  eos = eos
@@ -377,7 +377,7 @@
  K = '0.5 0.7'
  Area = 2.624474e2
  [../]
- 
+
  [./MassFlowRateIn-SC-A]
 #type = TDM
  type = TimeDependentJunction
@@ -395,7 +395,7 @@
  eos = eos
  [../]
 ##############################################################################################
- 
+
 #Loop B components ###########################################################################
  [./DownComer-B]
  type = Pipe
@@ -406,11 +406,11 @@
  Dh = 1.74724302
  length = 4
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.
  [../]
- 
+
  [./pipe1-HL-B]
  type = Pipe
  eos = eos
@@ -420,11 +420,11 @@
  Dh = 3.103003207
  length = 4.
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe2-HL-B]
  type = Pipe
  eos = eos
@@ -434,11 +434,11 @@
  Dh = 1.828
  length = 3.5
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe1-CL-B]
  type = Pipe
  eos = eos
@@ -448,11 +448,11 @@
  Dh = 1.828
  length = 1.
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe2-CL-B]
  type = Pipe
  eos = eos
@@ -462,11 +462,11 @@
  Dh = 1.828
  length = 0.8
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe1-SC-B]
  type = Pipe
  eos = eos
@@ -476,11 +476,11 @@
  Dh = 1.828
  length = 1.
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./pipe2-SC-B]
  type = Pipe
  eos = eos
@@ -490,11 +490,11 @@
  Dh = 1.828
  length = 1.
  n_elems = 3
- 
+
  f = 0.001
  Hw = 0.0
  [../]
- 
+
  [./Branch1-B]
  type = Branch
  eos = eos
@@ -503,7 +503,7 @@
  K = '0.5 0.7'
  Area = 7.562307456
  [../]
- 
+
  [./Branch2-B]
  type = Branch
  eos = eos
@@ -512,7 +512,7 @@
  K = '0.5 0.7'
  Area = 3.6185734
  [../]
- 
+
  [./Branch3-B]
  type = Branch
  eos = eos
@@ -521,7 +521,7 @@
  K = '0.5 0.7'
  Area = 2.624474
  [../]
- 
+
  [./Pump-B]
  inputs = pipe2-CL-B(out)
  Head = 8.9
@@ -532,7 +532,7 @@
  K_reverse = '2000 2000'
  type = Pump
  [../]
- 
+
  [./HX-B]
  type = HeatExchanger
  eos = eos
@@ -545,27 +545,27 @@
  Dh_secondary = 0.01
  length = 4.
  n_elems = 10
- 
+
  Hw = 1.e4
  Hw_secondary = 1.e4
- 
+
 # aw = 539.02
 # aw_secondary = 539.02
  Phf = 2695.100000000000
  Phf_secondary = 2695.100000000000
- 
+
  f = 0.01
  f_secondary = 0.01
- 
+
  dim_wall = 1
  Twall_init = 564.15
  wall_thickness = 0.001
  material_wall = wall-mat
  n_wall_elems = 2
- 
+
  disp_mode = -1.0
  [../]
- 
+
  [./Branch4-B]
  type = Branch
  eos = eos
@@ -574,7 +574,7 @@
  K = '0.5 0.7'
  Area = 2.624474e2
  [../]
- 
+
  [./Branch5-B]
  type = Branch
  eos = eos
@@ -583,7 +583,7 @@
  K = '0.5 0.7'
  Area = 2.624474e2
  [../]
- 
+
  [./Branch6-B]
  type = Branch
  eos = eos
@@ -592,7 +592,7 @@
  K = '0.5 0.7'
  Area = 2.624474e2
  [../]
- 
+
  [./MassFlowRateIn-SC-B]
 #type = TDM
  type = TimeDependentJunction
@@ -610,8 +610,8 @@
  eos = eos
  [../]
 ##############################################################################################
- 
- 
+
+
 # Pressurizer ################################################################################
  [./pipe-to-Pressurizer]
  type = Pipe
@@ -622,11 +622,11 @@
  Dh = 1.828
  length = 0.5
  n_elems = 3
- 
+
  f = 10.
  Hw = 0.0
  [../]
- 
+
  [./Pressurizer]
  type = TimeDependentVolume
  input = 'pipe-to-Pressurizer(out)'
@@ -642,28 +642,28 @@
  active = 'SMP_PJFNK'
 # active = 'FDP_PJFNK'
 # active = 'FDP_Newton'
- 
+
 # The definitions of the above-named blocks follow.
  [./SMP_PJFNK]
  type = SMP
  full = true
- 
+
 # Preconditioned JFNK (default)
  solve_type = 'PJFNK'
  petsc_options_iname = '-mat_fd_type  -mat_mffd_type'
  petsc_options_value = 'ds             ds'
  [../]
- 
+
  [./SMP_Newton]
  type = SMP
  full = true
  solve_type = 'NEWTON'
  [../]
- 
+
  [./FDP_PJFNK]
  type = FDP
  full = true
- 
+
 # Preconditioned JFNK (default)
  solve_type = 'PJFNK'
  petsc_options_iname = '-mat_fd_coloring_err'
@@ -671,12 +671,12 @@
  petsc_options_iname = '-mat_fd_type'
  petsc_options_value = 'ds'
  [../]
- 
+
  [./FDP_Newton]
  type = FDP
  full = true
  solve_type = 'NEWTON'
- 
+
  petsc_options_iname = '-mat_fd_coloring_err'
  petsc_options_value = '1.e-10'
  petsc_options_iname = '-mat_fd_type'
@@ -713,7 +713,7 @@
 # type = SolutionTimeAdaptiveDT
 # dt = 1.0
 # [../]
- 
+
 [./TimeStepper]
     type = FunctionDT
     time_t = ' 0      1.0        3.0         5.01       9.5       9.75    14          17        120.0  2501.23 1.0e5'
@@ -729,7 +729,7 @@
   # xda = true
   # num_restart_files = 1
   output_initial = true
-  exodus = false 
+  exodus = false
   file_base = TMI_test_PRA_transient_less_w_out
   csv = true
 []
@@ -1094,7 +1094,7 @@
 # delta = 0.5
 # [../]
 # []
- 
+
  [RavenTools]
  [./PumpCoastDown]
  type = pumpCoastdownExponential

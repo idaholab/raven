@@ -22,8 +22,10 @@ echo $@
 
 OUTPUT=$1
 WORKING_DIR=$2
+BUFFER_SIZE=$3
 
 cd $WORKING_DIR
 
 shift 2
-$@ > $OUTPUT 2>&1
+#$@ > $OUTPUT 2>&1
+$@ 2>&1 | tail -c $BUFFER_SIZE > $OUTPUT

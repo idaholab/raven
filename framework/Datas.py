@@ -92,7 +92,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     except KeyError:self._dataParameters['inputTs'] = None
     # check if this data needs to be in hierarchical fashion
     if 'hierarchical' in xmlNode.attrib.keys():
-      if xmlNode.attrib['hierarchical'].lower() in ['true','t','1','yes','y']: self._dataParameters['hierarchical'] = True
+      if xmlNode.attrib['hierarchical'].lower() in utils.stringsThatMeanTrue(): self._dataParameters['hierarchical'] = True
       else: self._dataParameters['hierarchical'] = False
       if self._dataParameters['hierarchical'] and not self.acceptHierarchical():
         print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> hierarchical fashion is not available (No Sense) for Data named '+ self.name + 'of type ' + self.type + '!!!')
@@ -283,7 +283,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, filenameLocal, file name
     @ In, fileType, file type (csv, xml)
     @ In, inpKeys, list, input keys
-    @ In, outKeys, list, output keys   
+    @ In, outKeys, list, output keys
     '''
     myXMLFile = open(filenameLocal + '.xml', 'w')
     root = ET.Element('data',{'name':filenameLocal,'type':fileType})
@@ -626,10 +626,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         #b = TSDat.iterWholeBackTrace(a)
         nodelist = []
         for node in TSDat.iter(nodeid):
-          if serialize: 
+          if serialize:
             for se in list(TSDat.iterWholeBackTrace(node)): nodelist.append(se)
-          else: nodelist.append(node)  
-          break  
+          else: nodelist.append(node)
+          break
         #nodelist = list(TSDat.iterWholeBackTrace(TSDat.iter(nodeid)[0]))
         if len(nodelist) > 0:
           found = True
@@ -702,7 +702,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
 class TimePoint(Data):
   '''
-  TimePoint is an object that stores a set of inputs and outputs for a particular point in time!  
+  TimePoint is an object that stores a set of inputs and outputs for a particular point in time!
   '''
   def acceptHierarchical(self):
     ''' Overwritten from baseclass'''
@@ -860,7 +860,7 @@ class TimePoint(Data):
 
 class TimePointSet(Data):
   '''
-  TimePointSet is an object that stores multiple sets of inputs and outputs for a particular point in time!  
+  TimePointSet is an object that stores multiple sets of inputs and outputs for a particular point in time!
   '''
   def acceptHierarchical(self):
     ''' Overwritten from baseclass'''
@@ -1210,7 +1210,7 @@ class TimePointSet(Data):
 
 class History(Data):
   '''
-  History is an object that stores a set of inputs and associated history for output parameters. 
+  History is an object that stores a set of inputs and associated history for output parameters.
   '''
   def acceptHierarchical(self):
     ''' Overwritten from baseclass'''
@@ -1401,7 +1401,7 @@ class History(Data):
 
 class Histories(Data):
   '''
-  Histories is an object that stores multiple sets of inputs and associated history for output parameters. 
+  Histories is an object that stores multiple sets of inputs and associated history for output parameters.
   '''
   def acceptHierarchical(self):
     '''

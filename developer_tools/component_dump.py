@@ -37,6 +37,6 @@ for key in component_dict:
   for parameter in parameters:
     print("<dt>"+parameter+" ("+escape(parameters[parameter]["cpp_type"])+")</dt><dd>"+
           parameters[parameter]["description"]+"</dd>",
-          file=output_file)    
+          file=output_file)
   print("</dl>",file=output_file)
 print("</body></html>",file=output_file)

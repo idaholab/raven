@@ -22,26 +22,26 @@ class ExternalRunner:
     ''' Initialize command variable'''
     self.command    = command
 
-    if    output!=None: 
+    if    output!=None:
       self.output = output
       self.identifier =  str(output).split("~")[1]
-    else: 
+    else:
       self.output = os.path.join(workingDir,'generalOut')
       self.identifier = 'generalOut'
     # Initialize logger
     #self.logger     = self.createLogger(self.identifier)
     #self.addLoggerHandler(self.identifier, self.output, 100000, 1)
-    
+
     self.__workingDir = workingDir
 
   def createLogger(self,name):
     '''
     Function to create a logging object
     @ In, name: name of the logging object
-    @ Out, logging object 
+    @ Out, logging object
     '''
     return logging.getLogger(name)
-    
+
   def addLoggerHandler(self,logger_name,filename,max_size,max_number_files):
     '''
     Function to create a logging object
@@ -49,19 +49,19 @@ class ExternalRunner:
     @ In, filename        : log file name (with path)
     @ In, max_size        : maximum file size (bytes)
     @ In, max_number_files: maximum number of files to be created
-    @ Out, None 
+    @ Out, None
     '''
     hadler = logging.handlers.RotatingFileHandler(filename,'a',max_size,max_number_files)
     logging.getLogger(logger_name).addHandler(hadler)
     logging.getLogger(logger_name).setLevel(logging.INFO)
-    return 
+    return
 
   def outStreamReader(self, out_stream):
     '''
     Function that logs every line received from the out stream
     @ In, out_stream: output stream
     @ In, logger    : the instance of the logger object
-    @ Out, logger   : the logger itself 
+    @ Out, logger   : the logger itself
     '''
     while True:
       line = out_stream.readline()
@@ -76,7 +76,7 @@ class ExternalRunner:
 
   def getReturnCode(self):
     return self.__process.returncode
-  
+
   def start(self):
     oldDir = os.getcwd()
     os.chdir(self.__workingDir)
@@ -85,17 +85,17 @@ class ExternalRunner:
     outFile = open(self.output,'w')
     self.__process = subprocess.Popen(self.command,shell=True,stdout=outFile,stderr=outFile,cwd=self.__workingDir,env=localenv)
     #self.__process = subprocess.Popen(self.command,shell=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,cwd=self.__workingDir,env=localenv)
-    #self.thread = threading.Thread(target=self.outStreamReader, args=(self.__process.stdout,)) 
+    #self.thread = threading.Thread(target=self.outStreamReader, args=(self.__process.stdout,))
     #self.thread.daemon = True
     #self.thread.start()
 
     os.chdir(oldDir)
-  
+
   def kill(self):
     #In python 2.6 this could be self.process.terminate()
-           
+
     print("JOB HANDLER   : Terminating ",self.__process.pid,self.command)
-    os.kill(self.__process.pid,signal.SIGTERM)    
+    os.kill(self.__process.pid,signal.SIGTERM)
 
   def getWorkingDir(self):
     return self.__workingDir
@@ -116,7 +116,7 @@ class JobHandler:
     self.__queue = queue.Queue()
     self.__nextId = 0
     self.__numSubmitted = 0
-    
+
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
     if self.runInfoDict['NumMPI'] !=1 and len(self.runInfoDict['ParallelCommand']) > 0:
@@ -156,7 +156,7 @@ class JobHandler:
         else:
           cnt_free_spots += 1
     return cnt_free_spots
-    
+
 
   def getFinished(self, removeFinished=True):
     #print("getFinished "+str(self.__running)+" "+str(self.__queue.qsize()))
@@ -173,8 +173,8 @@ class JobHandler:
     if self.__queue.empty():
       return finished
     for i in range(len(self.__running)):
-      if self.__running[i] == None and not self.__queue.empty(): 
-        item = self.__queue.get()          
+      if self.__running[i] == None and not self.__queue.empty():
+        item = self.__queue.get()
         command = item.command
         command = command.replace("%INDEX%",str(i))
         command = command.replace("%INDEX1%",str(i+1))
@@ -201,7 +201,7 @@ class JobHandler:
 
   def addInternal(self):
     return
-  
+
   def terminateAll(self):
     #clear out the queue
     while not self.__queue.empty():

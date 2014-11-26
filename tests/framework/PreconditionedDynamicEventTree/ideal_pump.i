@@ -116,7 +116,7 @@
   [../]
 []
 [Executioner]
-  # These options *should* append to any options set in Preconditioning blocks above  
+  # These options *should* append to any options set in Preconditioning blocks above
   # nl_abs_step_tol = 1e-15
   # close Executioner section
   type = RavenExecutioner

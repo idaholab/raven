@@ -86,7 +86,7 @@ class Distribution(BaseType):
     '''
     Function to get the input params that belong to this class
     @ In, tempDict, temporary dictionary
-    '''    
+    '''
     tempDict['upperBoundUsed'] = self.upperBoundUsed
     tempDict['lowerBoundUsed'] = self.lowerBoundUsed
     tempDict['upperBound'    ] = self.upperBound
@@ -120,7 +120,7 @@ class Distribution(BaseType):
     Function to set the quadrature rule
     @ In, quad, object -> quadrature
     @ In, exp_order, int -> expansion order
-    @ Out,         , None 
+    @ Out,         , None
     '''
     self.__distQuad=quad
     self.__exp_order=exp_order
@@ -136,25 +136,25 @@ class Distribution(BaseType):
 def random():
   '''
   Function to get a random number <1<
-  @ In, None, None 
-  @ Out, float, random number         
+  @ In, None, None
+  @ Out, float, random number
   '''
   return stochasticEnv.random()
 
 def randomSeed(value):
   '''
   Function to get a random seed
-  @ In, None, None 
-  @ Out, integer, random seed        
+  @ In, None, None
+  @ Out, integer, random seed
   '''
   return stochasticEnv.seedRandom(value)
 
 def randomIntegers(low,high):
   '''
   Function to get a random integer
-  @ In, low, integer -> low boundary 
-  @ In, high, integer -> upper boundary 
-  @ Out, integer, random int        
+  @ In, low, integer -> low boundary
+  @ In, high, integer -> upper boundary
+  @ Out, integer, random int
   '''
   int_range = high-low
   raw_num = low + random()*int_range
@@ -168,7 +168,7 @@ def randomPermutation(l):
   '''
   Function to get a random permutation
   @ In, l, list -> list to be permuted
-  @ Out, list, randomly permuted list         
+  @ Out, list, randomly permuted list
   '''
   new_list = []
   old_list = l[:]
@@ -189,7 +189,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the cdf at a provided coordinate
     @ In, x, float -> value to get the cdf at
-    @ Out, flaot, requested cdf     
+    @ Out, flaot, requested cdf
     '''
     return self._distribution.Cdf(x)
 
@@ -197,7 +197,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the inverse cdf at a provided coordinate
     @ In, x, float -> value to get the inverse cdf at
-    @ Out, flaot, requested inverse cdf     
+    @ Out, flaot, requested inverse cdf
     '''
     return self._distribution.InverseCdf(x)
 
@@ -205,7 +205,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the pdf at a provided coordinate
     @ In, x, float -> value to get the pdf at
-    @ Out, flaot, requested pdf     
+    @ Out, flaot, requested pdf
     '''
     return self._distribution.Pdf(x)
 
@@ -213,7 +213,7 @@ class BoostDistribution(Distribution):
     '''
     Function to get the untruncated  cdf complement at a provided coordinate
     @ In, x, float -> value to get the untruncated  cdf complement  at
-    @ Out, flaot, requested untruncated  cdf complement    
+    @ Out, flaot, requested untruncated  cdf complement
     '''
     return self._distribution.untrCdfComplement(x)
 
@@ -221,40 +221,40 @@ class BoostDistribution(Distribution):
     '''
     Function to get the untruncated  Hazard  at a provided coordinate
     @ In, x, float -> value to get the untruncated  Hazard   at
-    @ Out, flaot, requested untruncated  Hazard     
+    @ Out, flaot, requested untruncated  Hazard
     '''
     return self._distribution.untrHazard(x)
 
   def untruncatedMean(self):
     '''
-    Function to get the untruncated  Mean 
-    @ In, None 
-    @ Out, flaot, requested Mean  
+    Function to get the untruncated  Mean
+    @ In, None
+    @ Out, flaot, requested Mean
     '''
     return self._distribution.untrMean()
 
   def untruncatedMedian(self):
     '''
-    Function to get the untruncated  Median 
-    @ In, None 
-    @ Out, flaot, requested Median  
+    Function to get the untruncated  Median
+    @ In, None
+    @ Out, flaot, requested Median
     '''
     return self._distribution.untrMedian()
 
   def untruncatedMode(self):
     '''
-    Function to get the untruncated  Mode 
-    @ In, None 
-    @ Out, flaot, requested Mode  
+    Function to get the untruncated  Mode
+    @ In, None
+    @ Out, flaot, requested Mode
     '''
     return self._distribution.untrMode()
 
   def rvs(self,*args):
     '''
     Function to get random numbers
-    @ In, args, dictionary, args 
-    @ Out, flaot or list, requested random number or numbers  
-    '''    
+    @ In, args, dictionary, args
+    @ Out, flaot or list, requested random number or numbers
+    '''
     if len(args) == 0: return self.ppf(random())
     else             : return [self.rvs() for _ in range(args[0])]
 #==============================================================\
@@ -690,7 +690,7 @@ class Bernoulli(BoostDistribution):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self._distribution = distribution1D.BasicBernoulliDistribution(self.p)
     else:  raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated Bernoulli not yet implemented')
-  
+
   def cdf(self,x):
     if x <= 0.5: return self._distribution.Cdf(self.lowerBound)
     else       : return self._distribution.Cdf(self.upperBound)

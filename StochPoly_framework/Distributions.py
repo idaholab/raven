@@ -17,7 +17,7 @@ from scipy.misc import factorial
 import Quadrature
 
 class Distribution(BaseType):
-  ''' 
+  '''
   a general class containing the distributions
   '''
   def __init__(self):
@@ -28,7 +28,7 @@ class Distribution(BaseType):
     self.lowerBound       = 0.0
     self.adjustmentType   = ''
     self.bestQuad = None
-    
+
   def readMoreXML(self,xmlNode):
     try:
       self.bestQuad = Quadrature.returnInstance(xmlNode.attrib['ExpansionQuadrature'])
@@ -38,7 +38,7 @@ class Distribution(BaseType):
     if xmlNode.find('upperBound') !=None:
       self.upperBound = float(xmlNode.find('upperBound').text)
       self.upperBoundUsed = True
-        
+
     if xmlNode.find('lowerBound')!=None:
       self.lowerBound = float(xmlNode.find('lowerBound').text)
       self.lowerBoundUsed = True
@@ -132,7 +132,7 @@ class Uniform(Distribution):
     def getMeGaussPoint(pointIndex):
       '''for a given index of the quadrature it return the point value in the standard system'''
       return standardToActualPoint(self.distQuad.quad_pts[pointIndex])
-    
+
     def actualWeights(pointIndex):
       '''returns the weights on the actual reference system'''
       return self.distQuad.weights[pointIndex]*np.sqrt(self.range/2.)
@@ -145,7 +145,7 @@ class Uniform(Distribution):
 
     def measure():
       return 1./(self.range)
-      
+
     self.gaussPoint         = getMeGaussPoint
     self.actualWeights      = actualWeights
     self.evNormPolyonGauss  = evNormPolyonGauss
@@ -160,7 +160,7 @@ class Uniform(Distribution):
 #    # point to functions
 #    self.poly_norm = norm
 #    self.probability_norm = probNorm
-    
+
 
 
 
@@ -197,7 +197,7 @@ class Normal(Distribution):
 #
 #      def probNorm(x): #normalizes if total prob. != 1
 #        return 1.0/(np.sqrt(2*np.pi)*self.sigma)
-      
+
 #from here up to .......
       def standardToActualPoint(x): #standard -> actual
         print('standard '+str(x))
@@ -206,11 +206,11 @@ class Normal(Distribution):
 
       def actualToStandardPoint(x): #actual -> standard
         return (x-self.distribution.mean())/(self.sigma)*np.sqrt(2.)
-        
+
       def getMeGaussPoint(pointIndex):
         return standardToActualPoint(self.distQuad.quad_pts[pointIndex])
-    
-    
+
+
       def actualWeights(pointIndex):
         print('self.distQuad.weights[pointIndex]/np.sqrt(2.*np.pi*self.sigma*np.sqrt(2.)) '+str(self.distQuad.weights[pointIndex]/np.sqrt(2.*np.pi*self.sigma*np.sqrt(2.))))
         return self.distQuad.weights[pointIndex]*np.sqrt(self.sigma/np.sqrt(2))
@@ -222,11 +222,11 @@ class Normal(Distribution):
       def evNormPolyonInterp(order,coord):
         a=np.exp(  -(coord-self.distribution.mean())**2/((self.sigma)**2)/2. )*np.sqrt(np.sqrt(2)/self.sigma)
         return self.distQuad.evNormPoly(order,actualToStandardPoint(coord))*a
-      
+
       def measure():
         return 1./self.sigma/2./np.sqrt(np.pi)
 
-      
+
       self.gaussPoint          = getMeGaussPoint
       self.actualWeights       = actualWeights
       self.evNormPolyonGauss   = evNormPolyonGauss
@@ -234,7 +234,7 @@ class Normal(Distribution):
       self.std_Point           = actualToStandardPoint
       self.actual_Point        = standardToActualPoint
       self.measure             = measure
-      
+
 #here, this are the only function used.......
 
     else:
@@ -244,7 +244,7 @@ class Normal(Distribution):
       if self.upperBoundUsed == False: b = sys.float_info[max]
       else:b = (self.upperBound - self.mean) / self.sigma
       self.distribution = dist.truncnorm(a,b,loc=self.mean,scale=self.sigma)
-    
+
 class Gamma(Distribution):
   def __init__(self):
     Distribution.__init__(self)
@@ -339,22 +339,22 @@ class Poisson(Distribution):
     Distribution.__init__(self)
     self.mu  = 0.0
     self.type = 'Poisson'
-    
+
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
     try: self.mu = float(xmlNode.find('mu').text)
     except: raise Exception('mu value needed for poisson distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['mu'  ] = self.mu
-    
+
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self.distribution = dist.poisson(self.mu)
     else:
-      raise IOError ('Truncated poisson not yet implemented') 
+      raise IOError ('Truncated poisson not yet implemented')
   def inDistr(self):
     pass
 
@@ -396,7 +396,7 @@ class Binomial(Distribution):
     self.n  = 0.0
     self.p  = 0.0
     self.type = 'Binomial'
-    
+
   def readMoreXML(self,xmlNode):
     Distribution.readMoreXML(self, xmlNode)
     try: self.n = float(xmlNode.find('n').text)
@@ -404,17 +404,17 @@ class Binomial(Distribution):
     try: self.p = float(xmlNode.find('p').text)
     except: raise Exception('p value needed for Binomial distribution')
     self.initializeDistribution()
-    
+
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['n'  ] = self.n
     tempDict['p'  ] = self.p
-    
+
   def initializeDistribution(self):
     if self.lowerBoundUsed == False and self.upperBoundUsed == False:
       self.distribution = dist.binom(n=self.n,p=self.p)
     else:
-      raise IOError ('Truncated Binomial not yet implemented')   
+      raise IOError ('Truncated Binomial not yet implemented')
   def inDistr(self):
     pass
 

@@ -10,7 +10,7 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils    import returnPrintTag, metaclass_insert
+from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stringsThatMeanFalse
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -22,7 +22,7 @@ class BaseType(object):
     self.name             = ''      # name of this istance (alias)
     self.type             = ''      # specific type within this class
     self.debug            = False   #set up the debug status of the code
-    self.globalAttributes = None    #this is a dictionary that contains parameters that are set at the level of the base classes defining the types    
+    self.globalAttributes = None    #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
     self._knownAttribute  = []      #this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','debug']
     self.printTag         = returnPrintTag('BaseType')
@@ -37,8 +37,8 @@ class BaseType(object):
     self.type     = xmlNode.tag
     if self.globalAttributes!= None: self.globalAttributes = globalAttributes
     if 'debug' in xmlNode.attrib:
-      if   xmlNode.attrib['debug'].lower() in ['true','t','yes'] : self.debug = True
-      elif xmlNode.attrib['debug'].lower() in ['false','f','no']: self.debug = False
+      if   xmlNode.attrib['debug'].lower() in stringsThatMeanTrue() : self.debug = True
+      elif xmlNode.attrib['debug'].lower() in stringsThatMeanFalse(): self.debug = False
       else                                   : raise IOError('For the attribute debug '+ xmlNode.attrib['debug']+' is not a recognized keyword')
     else                                     : self.debug = debug
     self._readMoreXML(xmlNode)
@@ -98,9 +98,9 @@ class BaseType(object):
     print(self.printTag+'Current Setting:')
     for key in tempDict.keys(): print('{0:15}: {1}'.format(key,str(tempDict[key])))
     print('\n')
-#    
-#    
-#  
+#
+#
+#
 #
 class Assembler(metaclass_insert(abc.ABCMeta,object)):
   '''
@@ -110,20 +110,20 @@ class Assembler(metaclass_insert(abc.ABCMeta,object)):
   @abc.abstractmethod
   def whatDoINeed(self):
     '''
-    This method is used mainly by the Simulation class at the Step construction stage. 
+    This method is used mainly by the Simulation class at the Step construction stage.
     It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
     be initialize. It is an abstract method -> It must be implemented in the derived class!
     @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name)) 
+    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     '''
     pass
   @abc.abstractmethod
   def generateAssembler(self,initDict):
     '''
-    This method is used mainly by the Simulation class at the Step construction stage. 
+    This method is used mainly by the Simulation class at the Step construction stage.
     It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
     It is an abstract method -> It must be implemented in the derived class!
     @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
     @ Out, None, None
     '''
-    pass    
+    pass

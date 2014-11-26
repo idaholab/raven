@@ -5,10 +5,10 @@ warnings.simplefilter('default',DeprecationWarning)
 
 def get_component_dict(yaml_data):
     components_yaml = [x for x in yaml_data if x["name"].endswith("Components")][0]
-    
+
     #print [x["name"].split("/")[-1] for x in components_yaml["subblocks"]]
     #print [x for x in components_yaml["subblocks"][1]["parameters"] if x["name"] == "controlled"]
-    
+
     component_dict = {}
     for component_block in components_yaml["subblocks"]:
         join_non_nulls = lambda y:(" ".join([x for x in y if x])).split()
@@ -27,7 +27,7 @@ def get_component_dict(yaml_data):
             sub_dict["monitored"] = monitored
             #component_set.update(monitored)
         if len(operators) > 0:
-            sub_dict["operators"] = operators            
+            sub_dict["operators"] = operators
         name = component_block["name"].split("/")[-1]
         parameters_dict = {}
         for parameter in component_block["parameters"]:
@@ -38,12 +38,12 @@ def get_component_dict(yaml_data):
           #property_type = {}
           #  descriptions = {}
           #  for var in component_set:
-          #    var_list = [(x["cpp_type"],x["description"]) 
+          #    var_list = [(x["cpp_type"],x["description"])
           #                for x in component_block["parameters"]
           #                if x["name"] == var]
           #    var_type = [x[0] for x in var_list]
           #    var_description = [x[1] for x in var_list]
-          #    if len(var_type) != 1:                
+          #    if len(var_type) != 1:
           #      print("WARNING unexpected property type",name,var,var_type)
           #    else:
           #      property_type[var] = var_type[0]

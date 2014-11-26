@@ -103,10 +103,10 @@ def print_gpnode(node, depth = 0, output = sys.stdout):
         output.write(prefix+"["+node.name+"]\n")
     else:
         output.write(prefix+"[./"+node.name+"]\n")
-    
+
     for line in node.comments:
         output.write(prefix + indent + "# " + line+"\n")
-    
+
     for param_name in node.params_list:
         param_value = node.params[param_name]
         if not re.match("^[0-9a-zA-Z.-]*$",param_value):
@@ -116,10 +116,10 @@ def print_gpnode(node, depth = 0, output = sys.stdout):
         if param_name in node.param_comments:
             param_comment = " # "+node.param_comments[param_name]
         output.write(prefix + indent + param_name + " = " + param_value + param_comment+"\n")
-    
+
     for child_name in node.children_list:
         print_gpnode(node.children[child_name],depth+1,output)
-    
+
     if depth == 0:
         pass
     elif depth == 1:
@@ -152,7 +152,7 @@ def split_parameter_name(name, hs_names = [], pipe_names = []):
     # Name can be something like inlet|outlet:K_reverse
     # which means that there is two possibilities inlet:K_reverse,outlet:K_reverse
     # There is a special name hs_name:foo, which means that all the heat structures need to be returned.
-    # There is a special name pipe_name:foo, which means that all the pipe names need to 
+    # There is a special name pipe_name:foo, which means that all the pipe names need to
     # be returned
     if name.startswith("hs_name:"):
         tail = name.split(":")[1]
@@ -187,7 +187,7 @@ for component_name in component_list:
     if outputs:
         #pipe_names += outputs.split()
         pipe_names += re.subn("\([a-z]*\)","",outputs)[0].split()
-        
+
     type_dict = component_dict.get(component_type,{})
     for monitored_combo in type_dict.get("monitored",[]):
         for monitored in split_parameter_name(monitored_combo,name_of_hs,pipe_names):
@@ -226,7 +226,7 @@ for component_name in component_list:
               print("NOT controllable",name,"component_name="+component_name,"property_name="+controlled)
 
     print(component_name,component_type,type_dict,name_of_hs)
-    
+
 
 def change_executioner(data):
     data.children["Executioner"].params["type"] = "RavenExecutioner"

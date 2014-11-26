@@ -20,4 +20,3 @@ class ExternalTest:
   def appendLoadFileExtension(self,fileRoot):
     return fileRoot
 
-    

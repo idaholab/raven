@@ -22,7 +22,7 @@ class RavenInterface:
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
+    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' +
     ' Output/file_base='+ outputfile)
     return executeCommand,outputfile
 
@@ -81,7 +81,7 @@ class RavenInterface:
     except: raise IOError('a counter is needed for the Monte Carlo sampler for RAVEN')
     try: init_seed = Kwargs['initial_seed']
     except: init_seed = 1
-    
+
     listDict = []
     modifDict = {}
     modifDict['name'] = ['Distributions']
@@ -89,7 +89,7 @@ class RavenInterface:
     modifDict['RNG_seed'] = str(RNG_seed)
     listDict.append(modifDict)
     return listDict
-  
+
   def DynamicEventTreeForRAVEN(self,**Kwargs):
     listDict = []
     # Check the initiator distributions and add the next threshold
@@ -123,7 +123,7 @@ class RavenInterface:
             end_ts_str = "0" + end_ts_str
         splitted = Kwargs['outfile'].split('~')
         output_parent = splitted[0] + '~' + Kwargs['parent_id'] + '~' + splitted[1]
-        restart_file_base = output_parent + "_restart_" + end_ts_str      
+        restart_file_base = output_parent + "_restart_" + end_ts_str
         modifDict['name'] = ['Executioner']
         modifDict['restart_file_base'] = restart_file_base
         print('CODE INTERFACE: Restart file name base is "' + restart_file_base + '"')
@@ -137,7 +137,7 @@ class RavenInterface:
       modifDict['end_time'] = end_time
       listDict.append(modifDict)
       del modifDict
-      
+
     modifDict = {}
     modifDict['name'] = ['Output']
     modifDict['num_restart_files'] = 1
@@ -149,25 +149,25 @@ class RavenInterface:
     modifDict['name'] = ['RestartInitialize']
     modifDict['erase_block'] = True
     listDict.append(modifDict)
-    
-    del modifDict    
+
+    del modifDict
     # check and add the variables that have been changed by a distribution trigger
     # add them into the RestartInitialize block
     if 'branch_changed_param' in Kwargs.keys():
-      if Kwargs['branch_changed_param'][0] not in ('None',b'None'): 
+      if Kwargs['branch_changed_param'][0] not in ('None',b'None'):
         for i in range(len(Kwargs['branch_changed_param'])):
           modifDict = {}
           modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
           modifDict['value'] = Kwargs['branch_changed_param_value'][i]
           listDict.append(modifDict)
           del modifDict
-    return listDict  
+    return listDict
 
   def EquallySpacedForRAVEN(self,**Kwargs):
     raise IOError('EquallySpacedForRAVEN not yet implemented')
     listDict = []
     return listDict
-  
+
   def LatinHyperCubeForRAVEN(self,**Kwargs):
     raise IOError('LatinHyperCubeForRAVEN not yet implemented')
     listDict = []
@@ -180,7 +180,7 @@ class MooseBasedAppInterface:
     if inputFiles[0].endswith('.i'): index = 0
     else: index = 1
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
-    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' + 
+    executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1]+' Output/postprocessor_csv=true' +
     ' Output/file_base='+ outputfile)
     return executeCommand,outputfile
 
@@ -236,7 +236,7 @@ class MooseBasedAppInterface:
         listDict.append({'name':['Postprocessors',key[0]],'default':Kwargs['sampledVars'][var]})
         #print (listDict)
     return listDict
-  
+
   def DynamicEventTreeForMooseBasedApp(self,**Kwargs):
     raise IOError('DynamicEventTreeForMooseBasedApp not yet implemented')
     listDict = []
@@ -246,12 +246,12 @@ class MooseBasedAppInterface:
     raise IOError('EquallySpacedForMooseBasedApp not yet implemented')
     listDict = []
     return listDict
-  
+
   def LatinHyperCubeForMooseBasedApp(self,**Kwargs):
     raise IOError('LatinHyperCubeForMooseBasedApp not yet implemented')
     listDict = []
     return listDict
-  
+
 
 class RelapInterface:
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
@@ -262,7 +262,7 @@ class RelapInterface:
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     #   executeCommand will consist of a simple RELAP script that runs relap for inputfile
     #   extracts data and stores in csv file format
-    executeCommand = (executable+' '+os.path.split(inputFiles[index])[1]+' ' + 
+    executeCommand = (executable+' '+os.path.split(inputFiles[index])[1]+' ' +
     outputfile)
     return executeCommand,outputfile
 
@@ -290,7 +290,7 @@ class RelapInterface:
     newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
     parser.printInput(newInputFiles[index])
     return newInputFiles
-    
+
   def MonteCarloForRELAP(self,**Kwargs):
     modifDict = {}
     for keys in Kwargs['sampledVars']:
@@ -299,7 +299,7 @@ class RelapInterface:
       except: Kwargs['sampledVars'][keys]['position'] = 0
       modifDict[key[0]]=Kwargs['sampledVars'][keys]
     return modifDict
-    
+
   def DynamicEventTreeForRELAP(self,**Kwargs):
     raise IOError('DynamicEventTreeForRELAP not yet implemented')
     listDict = []
@@ -309,20 +309,20 @@ class RelapInterface:
     raise IOError('EquallySpacedForRAVEN not yet implemented')
     listDict = []
     return listDict
-  
+
   def LatinHyperCubeForRELAP(self,**Kwargs):
     raise IOError('LatinHyperCubeForRAVEN not yet implemented')
     listDict = []
     return listDict
 
-  
+
 class ExternalTest:
   def generateCommand(self,inputFiles,executable):
     return '', ''
 
   def findOutputFile(self,command):
     return ''
-  
+
 def returnCodeInterface(Type):
   '''this allow to the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module'''

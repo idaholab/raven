@@ -12,7 +12,7 @@ from BaseType import BaseType
 
 
 class Test(BaseType):
-  ''' 
+  '''
   a genral class containing the distributions
   '''
   def __init__(self):
@@ -64,8 +64,3 @@ def returnInstance(Type):
   InterfaceDict['Integral'] = Integral
   try: return InterfaceDict[Type]()
   except: raise NameError('not known '+base+' type '+Type)
-  
-  
-  
-  
-  

@@ -24,7 +24,7 @@ class HOBOInterface:
     # here the developer generates the command...
     # for this particular code, we have to retrieve the path of the executable contained into the generated input files
     # (remember..it is not needed if the code gives the possibility to chose the filenames for outputs and inputs)
-    
+
     pathOfExectuable = os.path.split(inputFiles[0])[0]
     nameOfExecutable = os.path.split(executable)[1]
     executeCommand = (os.path.join(pathOfExectuable,nameOfExecutable))
@@ -54,7 +54,7 @@ class HOBOInterface:
     historiesFiles = None
     if 'strategy1' in modifDict.keys(): historiesFiles = ['2_temperature.txt','3_fissionrate.txt']
     else: fileNameBody = Kwargs['SampledVars'].keys()[0].split('|')[0]
-    
+
     index = -1
     if not historiesFiles:
       for cnt,inputF in enumerate(currentInputFiles):
@@ -66,9 +66,9 @@ class HOBOInterface:
     else:
       historiesFilesPaths = []
       for filenamei in historiesFiles:
-        for cnt,inputF in enumerate(currentInputFiles): 
+        for cnt,inputF in enumerate(currentInputFiles):
          if filenamei == os.path.basename(inputF): historiesFilesPaths.append(copy.deepcopy(currentInputFiles[cnt]))
-      parser = HOBOInputParser.HOBOInputParser(historiesFilesPaths)  
+      parser = HOBOInputParser.HOBOInputParser(historiesFilesPaths)
     parser.modifyOrAdd(modifDict,True)
     temp = str(oriInputFiles[index][:])
     newInputFiles = copy.deepcopy(currentInputFiles)
@@ -78,11 +78,11 @@ class HOBOInterface:
     # for a code that lets the user provide the filenames for the inputs and outputs, it is not needed to copy the inputs not perturbed into the directory
     # here we need to do that because the framework copies those files into the working directory (it is not aware of the newer directory we just created)
     for cnt,filenameToCopy in enumerate(oriInputFiles):
-      if cnt != index: 
+      if cnt != index:
         shutil.copyfile(filenameToCopy, os.path.join(os.path.split(str(oriInputFiles[cnt][:]))[0],Kwargs['prefix'],os.path.split(str(oriInputFiles[cnt][:]))[1]))
     # copy the executable (remember..it is not needed if the code gives the possibility to chose the filenames for outputs and inputs)
     try: os.remove(os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.basename(Kwargs['executable'])))
-    except:pass 
+    except:pass
     shutil.copyfile(Kwargs['executable'],os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.basename(Kwargs['executable'])))
     if not historiesFiles:
       newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.split(temp)[1]))
@@ -99,7 +99,7 @@ class HOBOInterface:
     if not historiesFiles:
       parser.printInput(newInputFiles[index])
     else:
-      parser.printInput(ciccio)   
+      parser.printInput(ciccio)
     return newInputFiles
 
   def pointSamplerForHOBO(self,**Kwargs):
@@ -114,15 +114,15 @@ class HOBOInterface:
     for key in Kwargs['SampledVars']:
       if key.split('|')[0] not in knownParams['strategy1']:
         #1_settings|row|12
-        # pathToVariable = list that represents the path to the variable that needs to be changed 
+        # pathToVariable = list that represents the path to the variable that needs to be changed
         # what we have inside (remember that this syntax is decided by the the developer is coupling the new code):
         # first entry is the inputfile name that needs to be perturbed (for this simple example, the only file name that is supported is 1_settings.txt)
         # second entry, for this syntax, is only a convinient keyword (row)
         # third entry is the row number that is going to be pertorbed
-        pathToVariable = key.split("|") 
+        pathToVariable = key.split("|")
         if len(pathToVariable) != 3: raise IOError('HOBOInterface: ERROR -> This interface expects a variable with the format'+
                                                    ' "filename(no extension)|row|rowNumber". Got' + key)
-        # we add the perturebed values into a dictionary (or whatever object the developer wants to use) 
+        # we add the perturebed values into a dictionary (or whatever object the developer wants to use)
         # in a format that is understandable by the input parser (for this particular code) that is provided in another module (or whitin this one)
         modifDict[key] = {'row':int(pathToVariable[2]),'value':Kwargs['SampledVars'][key]}
       else:
@@ -138,15 +138,14 @@ class HOBOInterface:
             T.append(float(Kwargs['SampledVars'][key]))
           elif key.split('|')[0] == 'FissionRate':
             if not FissionRate: FissionRate = []
-            FissionRate.append(float(Kwargs['SampledVars'][key]))      
+            FissionRate.append(float(Kwargs['SampledVars'][key]))
           elif key.split('|')[0] == 'delta_t':
             if not Time: Time = []
             if len(Time) == 0:Time.append(float(Kwargs['SampledVars'][key]))
             else:Time.append(float(Kwargs['SampledVars'][key])+Time[-1])
-          
+
     if foundKnownParameters: modifDict['strategy1'] = {'T':T,'FissionRate':FissionRate,'time':Time}
-    return copy.deepcopy(modifDict)  
+    return copy.deepcopy(modifDict)
 
   def DynamicEventTreeForHOBO(self,**Kwargs):
     raise NotYetImplemented("DynamicEventTreeForHOBO not yet implemented")
-  

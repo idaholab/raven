@@ -27,7 +27,7 @@ class RELAPparser:
     and modifies the word from modiDictionaryList at needed'''
     temp=[]
     modiDictionaryList = {}
-    for i in DictionaryList: 
+    for i in DictionaryList:
       if 'cards' in i.keys():  modiDictionaryList.update(i['cards'])
     temp.append('*RAVEN INPUT VALUES\n')
     for j in modiDictionaryList: temp.append('*'+j+'    '+str(modiDictionaryList[j]['position'])+'   '+str(modiDictionaryList[j]['value'])+'\n')
@@ -36,9 +36,9 @@ class RELAPparser:
       temp1=line
       if not re.match('^\s*\n',line):
         if line.split()[0] in modiDictionaryList: temp1 = self.replaceword(line,modiDictionaryList[line.split()[0]]['position'],modiDictionaryList[line.split()[0]]['value'])
-      temp.append(temp1)  
+      temp.append(temp1)
     if save: self.lines=temp
-    return self.lines     
+    return self.lines
 
   def replaceword(self,line,position,value):
     temp=line.split()

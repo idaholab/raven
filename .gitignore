@@ -1,3 +1,16 @@
+.libs
+*.la
+*.lo
+*.d
+*.o
+*.a
+*-opt
+*-dbg
+*-oprof
+*-devel
+*.e
+*.csv
+*.so
 tests/core_example/PWR_CoreChannel_controlled_var_restart_test_out_restart_0020.ravenaux
 tests/core_example/PWR_CoreChannel_controlled_var_test_out_restart_0020.ravenaux
 *.ravencntr
@@ -34,3 +47,10 @@ work_in_progress/remote_tools/time
 framework/DataBaseStorage/
 tests/framework/LHStestFerret/myLHS/
 tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
+
+# eclipse
+.project
+.cproject
+
+# python
+*.pyc

@@ -116,7 +116,7 @@
   [../]
 []
 [Executioner]
-  # These options *should* append to any options set in Preconditioning blocks above  
+  # These options *should* append to any options set in Preconditioning blocks above
   # nl_abs_step_tol = 1e-15
   # close Executioner section
   type = RavenExecutioner
@@ -236,6 +236,6 @@ print_csv = True
  xMin = 0.0
  xMax = 1.0
  ProbabilityThreshold = 0.1
-  
+
  [../]
 []

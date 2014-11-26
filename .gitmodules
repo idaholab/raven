@@ -1,0 +1,6 @@
+[submodule "moose"]
+	path = moose
+	url = https://github.com/idaholab/moose.git
+[submodule "crow"]
+	path = crow
+	url = git@hpcgitlab.inl.gov:idaholab/crow.git

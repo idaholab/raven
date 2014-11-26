@@ -13,9 +13,9 @@ warnings.simplefilter('default',DeprecationWarning)
 class Node(object):
   def __init__(self, name, valuesin={}):
     '''
-      Initialize Tree, 
+      Initialize Tree,
       @ In, name, String, is the node name
-      @ In, valuesin, is a dictionary of values 
+      @ In, valuesin, is a dictionary of values
     '''
     values         = valuesin.copy()
     self.name      = name
@@ -40,11 +40,11 @@ class Node(object):
     node = self.__class__(self.name, self.values)
     node[:] = self
     return node
-  
+
   def isAnActualBranch(self,branchName):
     isHere = False
     for branchv in self._branches:
-      if branchName.strip() == branchv.name: isHere = True  
+      if branchName.strip() == branchv.name: isHere = True
     return isHere
 
   def numberBranches(self):
@@ -70,16 +70,16 @@ class Node(object):
       Method used to append subnodes from a sequence of them
       @ In, list of NodeTree, nodes
     '''
-    for nod in nodes: 
+    for nod in nodes:
       nod.parentname = self.name
-      nod.parent     = self 
+      nod.parent     = self
     self._branches.extend(nodes)
 
   def insertBranch(self, pos, node):
     '''
       Method used to insert a new branch in a given position
       @ In, node, NodeTree, the newer node
-      @ In, pos, integer, the position  
+      @ In, pos, integer, the position
     '''
     node.parentname = self.name
     node.parent     = self
@@ -95,7 +95,7 @@ class Node(object):
   def findBranch(self, path):
     '''
       Method used to find the first matching branch (subnode)
-      @ In, path, string, is the name of the branch or the path 
+      @ In, path, string, is the name of the branch or the path
       @ Out, the matching subnode
     '''
     return NodePath().find(self, path)
@@ -103,7 +103,7 @@ class Node(object):
   def findallBranch(self, path):
     '''
       Method used to find all the matching branches (subnodes)
-      @ In, path, string, is the name of the branch or the path 
+      @ In, path, string, is the name of the branch or the path
       @ Out, all the matching subnodes
     '''
     return NodePath().findall(self, path)
@@ -111,7 +111,7 @@ class Node(object):
   def iterfind(self, path):
     '''
       Method used to find all the matching branches (subnodes)
-      @ In, path, string, is the name of the branch or the path 
+      @ In, path, string, is the name of the branch or the path
       @ Out, iterator containing all matching nodes
     '''
     return NodePath().iterfind(self, path)
@@ -127,7 +127,7 @@ class Node(object):
   def clearBranch(self):
     '''
       Method used clear this node
-      @ In, None 
+      @ In, None
       @ Out, None
     '''
     self.values.clear()
@@ -146,7 +146,7 @@ class Node(object):
   def add(self, key, value):
     '''
       Method to add a new value into this node
-      If the key is already present, the corresponding value gets updated 
+      If the key is already present, the corresponding value gets updated
       @ In, key, string, id name of this value
       @ In, value, whatever type, the newer value
     '''
@@ -170,7 +170,7 @@ class Node(object):
     '''
        Creates a tree iterator.  The iterator loops over this node
        and all subnodes and returns all nodes with a matching name.
-       @ In, string, name of the branch wanted        
+       @ In, string, name of the branch wanted
     '''
     if name == "*":
       name = None
@@ -184,7 +184,7 @@ class Node(object):
     '''
        Creates a tree iterator.  The iterator loops over this node
        and all subnodes and returns all nodes for which the providedFunction returns True
-       @ In, string, name of the branch wanted        
+       @ In, string, name of the branch wanted
     '''
     if  providedFunction(self.values):
       yield self
@@ -195,7 +195,7 @@ class Node(object):
   def iterEnding(self):
     '''
        Creates a tree iterator for ending branches.  The iterator loops over this node
-       and all subnodes and returns all nodes without branches      
+       and all subnodes and returns all nodes without branches
     '''
     if len(self._branches) == 0:
       yield self
@@ -205,8 +205,8 @@ class Node(object):
 
   def iterWholeBackTrace(self,startnode):
     '''
-      Method for creating a sorted list (backward) of nodes starting from node named "name" 
-      @ In, startnode, Node, the node 
+      Method for creating a sorted list (backward) of nodes starting from node named "name"
+      @ In, startnode, Node, the node
       @ Out, the list
     '''
     result    =  []
@@ -217,7 +217,7 @@ class Node(object):
       parent, ego  =  parent.parent, parent
     if ego.parentname == 'root': result.insert (0, ego)
     return result
-  
+
   def writeNode(self,dumpFileObj):
     '''
       This method is used to write the content of the node into a file (it recorsevely prints all the sub-nodes and sub-sub-nodes, etc)
@@ -229,7 +229,7 @@ class Node(object):
     if len(self.values.keys()) >0: dumpFileObj.write(' '+'  '*self.depth +'  </attributes>\n')
     for e in self._branches: e.writeNode(dumpFileObj)
     if self.numberBranches()>0: dumpFileObj.write(' '+'  '*self.depth + '</branch>\n')
-  
+
 #################
 #   NODE TREE   #
 #################
@@ -237,7 +237,7 @@ class NodeTree(object):
   def __init__(self, node=None):
       self._rootnode = node
       if node: node.parentname='root'
-  
+
   def getrootnode(self):
       return self._rootnode
 
@@ -256,7 +256,7 @@ class NodeTree(object):
     '''
     if name == 'root': return self.__rootnode
     else:              return self._rootnode.iter(name)
-  
+
   def iterEnding(self):
     '''
       Method for creating a tree iterator for the root node (ending branches)
@@ -269,12 +269,12 @@ class NodeTree(object):
       Method for creating a tree iterator for the root node (depending on returning of provided function)
       @ Out, the iterator
     '''
-    return self._rootnode.iterProvidedFunction(providedFunction)  
+    return self._rootnode.iterProvidedFunction(providedFunction)
 
   def iterWholeBackTrace(self,startnode):
     '''
-      Method for creating a sorted list (backward) of nodes starting from node named "name" 
-      @ In, startnode, Node, the node 
+      Method for creating a sorted list (backward) of nodes starting from node named "name"
+      @ In, startnode, Node, the node
       @ Out, the list
     '''
     return self._rootnode.iterWholeBackTrace(startnode)
@@ -308,7 +308,7 @@ class NodeTree(object):
     if path[:1] == "/":
       path = "." + path
     return self._rootnode.iterfind(path)
-  
+
   def writeNodeTree(self,dumpFile):
     '''
       This method is used to write the content of the whole tree into a file

@@ -3,7 +3,7 @@ Created on April 14, 2014
 
 @author: alfoa
 
-comment: The CodeInterface Module is an Handler. 
+comment: The CodeInterface Module is an Handler.
          It inquires all the modules contained in the folder './CodeInterfaces'
          and load them, constructing a '__interFaceDict' on the fly
 '''
@@ -16,7 +16,7 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import os
 from glob import glob
-import inspect 
+import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -36,8 +36,8 @@ __interFaceDict                 = {}
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
     __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex]))
-    for key,modClass in inspect.getmembers(__moduleImportedList[moduleIndex], inspect.isclass): 
-      if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass 
+    for key,modClass in inspect.getmembers(__moduleImportedList[moduleIndex], inspect.isclass):
+      if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass
 __knownTypes      = list(__interFaceDict.keys())
 
 def knonwnTypes():

@@ -36,19 +36,19 @@ class BasePostProcessor(Assembler):
     self.type              = self.__class__.__name__  # pp type
     self.name              = self.__class__.__name__  # pp name
     self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    self.requiredAssObject = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for assembler objects; 
+    self.requiredAssObject = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
                                                       # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
     self.debug             = False
-    
 
-  def whatDoINeed(self): 
+
+  def whatDoINeed(self):
     '''
-    This method is used mainly by the Simulation class at the Step construction stage. 
+    This method is used mainly by the Simulation class at the Step construction stage.
     It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
     be initialize. It is an abstract method -> It must be implemented in the derived class!
     NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
     @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name)) 
+    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     '''
     needDict = self._localWhatDoINeed()
     for val in self.assemblerObjects.values():
@@ -56,18 +56,18 @@ class BasePostProcessor(Assembler):
         if value[0] not in needDict.keys(): needDict[value[0]] = []
         needDict[value[0]].append((value[1],value[2]))
     return needDict
-  
+
   def _localWhatDoINeed(self):
-    ''' 
+    '''
     local whatDoINeed method.
-    In here there is the common implementation if the  self.assemblerObjects dictionary has the form: 
+    In here there is the common implementation if the  self.assemblerObjects dictionary has the form:
     {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
     '''
     return {}
 
   def generateAssembler(self,initDict):
     '''
-    This method is used mainly by the Simulation class at the Step construction stage. 
+    This method is used mainly by the Simulation class at the Step construction stage.
     It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
     It is an abstract method -> It must be implemented in the derived class!
     NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
@@ -92,14 +92,14 @@ class BasePostProcessor(Assembler):
     if self.requiredAssObject[0]:
       testObjects = {}
       assemblerNode = xmlNode.find('Assembler')
-      if assemblerNode == None: 
+      if assemblerNode == None:
         for tofto in self.requiredAssObject[1][1]:
           if not str(tofto).strip().startswith('-'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the node Assembler is missed in the definition of the '+self.type+' PostProcessor!')
       else:
         for to in self.requiredAssObject[1][0]: testObjects[to] = 0
         for subNode in assemblerNode:
-          if subNode.tag in self.requiredAssObject[1][0]: 
-            if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!') 
+          if subNode.tag in self.requiredAssObject[1][0]:
+            if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
           if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
           self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
           testObjects[subNode.tag]+=1
@@ -112,11 +112,11 @@ class BasePostProcessor(Assembler):
               numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
               if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
           else:
-            # required    
+            # required
             if tofto not in testObjects.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
             else:
               numerosity = numerosity.replace('n',str(testObjects[tofto]))
-              if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')  
+              if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
     self._localReadMoreXML(xmlNode)
 
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
@@ -128,14 +128,14 @@ class SafestPoint(BasePostProcessor):
   It searches for the probability-weighted safest point inside the space of the system controllable variables
   '''
   def __init__(self):
-    BasePostProcessor.__init__(self)    
+    BasePostProcessor.__init__(self)
     self.controllableDist = {}                                    #dictionary created upon the .xml input file reading. It stores the distributions for each controllale variable.
     self.nonControllableDist = {}                                 #dictionary created upon the .xml input file reading. It stores the distributions for each non-controllale variable.
     self.controllableGrid = {}                                    #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
     self.nonControllableGrid = {}                                 #dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each non-controllale variable.
     self.gridInfo = {}                                            #dictionary contaning the grid type ('value' or 'CDF'), the grid construction type ('equal', set by default) and the list of sampled points for each variable.
-    self.controllableOrd = []                                     #list contaning the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace) 
-    self.nonControllableOrd = []                                  #list contaning the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)  
+    self.controllableOrd = []                                     #list contaning the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
+    self.nonControllableOrd = []                                  #list contaning the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None                                  #2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = returnInstance('BasicStatistics')                 #instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.stat.what = ['expectedValue']
@@ -145,14 +145,14 @@ class SafestPoint(BasePostProcessor):
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
     for varName, distName in self.controllableDist.items():
-      if distName not in initDict['Distributions'].keys(): 
+      if distName not in initDict['Distributions'].keys():
         raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> distribution ' +distName+ ' not found.')
       self.controllableDist[varName] = initDict['Distributions'][distName]
     for varName, distName in self.nonControllableDist.items():
-      if distName not in initDict['Distributions'].keys(): 
+      if distName not in initDict['Distributions'].keys():
         raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> distribution ' +distName+ ' not found.')
       self.nonControllableDist[varName] = initDict['Distributions'][distName]
- 
+
   def _localReadMoreXML(self,xmlNode):
     for child in xmlNode:
       if child.tag == 'controllable':
@@ -161,7 +161,7 @@ class SafestPoint(BasePostProcessor):
             varName = childChild.attrib['name']
             for childChildChild in childChild:
               if childChildChild.tag == 'distribution':
-                self.controllableDist[varName] = childChildChild.text              
+                self.controllableDist[varName] = childChildChild.text
               elif childChildChild.tag == 'grid':
                 if 'type' in childChildChild.attrib.keys():
                   if 'steps' in childChildChild.attrib.keys():
@@ -173,20 +173,20 @@ class SafestPoint(BasePostProcessor):
               else:
                 raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
           else:
-            raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the controllable variables call. Only "variable" is accepted.')  
-      elif child.tag == 'non-controllable':  
+            raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
+      elif child.tag == 'non-controllable':
         for childChild in child:
           if childChild.tag == 'variable':
             varName = childChild.attrib['name']
             for childChildChild in childChild:
               if childChildChild.tag == 'distribution':
-                self.nonControllableDist[varName] = childChildChild.text              
+                self.nonControllableDist[varName] = childChildChild.text
               elif childChildChild.tag == 'grid':
                 if 'type' in childChildChild.attrib.keys():
                   if 'steps' in childChildChild.attrib.keys():
                     self.nonControllableGrid[varName] = (childChildChild.attrib['type'], int(childChildChild.attrib['steps']), float(childChildChild.text))
                   else:
-                    raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> number of steps missing after the grid call.')            
+                    raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> number of steps missing after the grid call.')
                 else:
                   raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> grid type missing after the grid call.')
               else:
@@ -194,7 +194,7 @@ class SafestPoint(BasePostProcessor):
           else:
             raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
       else:
-        if child.tag != 'Assembler': raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only "controllable", "non-controllable" and "Assembler" are accepted.')  
+        if child.tag != 'Assembler': raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only "controllable", "non-controllable" and "Assembler" are accepted.')
     if self.debug:
       print('CONTROLLABLE DISTRIBUTIONS:')
       print(self.controllableDist)
@@ -204,7 +204,7 @@ class SafestPoint(BasePostProcessor):
       print(self.nonControllableDist)
       print('NON-CONTROLLABLE GRID:')
       print(self.nonControllableGrid)
-       
+
   def initialize(self,runInfo,inputs,initDict):
     self.__gridSetting__()
     self.__gridGeneration__()
@@ -224,7 +224,7 @@ class SafestPoint(BasePostProcessor):
       print(self.nonControllableOrd)
       print('SURFACE POINTS MATRIX:')
       print(self.surfPointsMatrix)
-        
+
   def __gridSetting__(self,constrType='equal'):
     for varName in self.controllableGrid.keys():
       if self.controllableGrid[varName][0] == 'value':
@@ -232,7 +232,7 @@ class SafestPoint(BasePostProcessor):
         self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [float(self.controllableDist[varName].lowerBound)+self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
       elif self.controllableGrid[varName][0] == 'CDF':
         self.__stepError__(0,1,self.controllableGrid[varName][1],self.controllableGrid[varName][2],varName)
-        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])      
+        self.gridInfo[varName] = (self.controllableGrid[varName][0], constrType, [self.controllableGrid[varName][2]*i for i in range(self.controllableGrid[varName][1]+1)])
       else:
         raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inserted invalid grid type. Only "value" and "CDF" are accepted.')
     for varName in self.nonControllableGrid.keys():
@@ -241,22 +241,22 @@ class SafestPoint(BasePostProcessor):
         self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [float(self.nonControllableDist[varName].lowerBound)+self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
       elif self.nonControllableGrid[varName][0] == 'CDF':
         self.__stepError__(0,1,self.nonControllableGrid[varName][1],self.nonControllableGrid[varName][2],varName)
-        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])      
+        self.gridInfo[varName] = (self.nonControllableGrid[varName][0], constrType, [self.nonControllableGrid[varName][2]*i for i in range(self.nonControllableGrid[varName][1]+1)])
       else:
-        raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inserted invalid grid type. Only "value" and "CDF" are accepted.') 
-       
+        raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inserted invalid grid type. Only "value" and "CDF" are accepted.')
+
   def __stepError__(self,lowerBound,upperBound,steps,tol,varName):
     if upperBound-lowerBound<steps*tol:
       raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inserted number of steps or tolerance for variable ' +varName+ ' exceeds its limit.')
-  
-  def __gridGeneration__(self): 
+
+  def __gridGeneration__(self):
     NotchesByVar = [None]*len(self.controllableGrid.keys())
     controllableSpaceSize = None
     for varId, varName in enumerate(self.controllableGrid.keys()):
       NotchesByVar[varId] = self.controllableGrid[varName][1]+1
       self.controllableOrd.append(varName)
     controllableSpaceSize = tuple(NotchesByVar+[len(self.controllableGrid.keys())])
-    self.controllableSpace = np.zeros(controllableSpaceSize) 
+    self.controllableSpace = np.zeros(controllableSpaceSize)
     iterIndex = np.nditer(self.controllableSpace,flags=['multi_index'])
     while not iterIndex.finished:
       coordIndex = iterIndex.multi_index[-1]
@@ -267,9 +267,9 @@ class SafestPoint(BasePostProcessor):
         for probVal in self.gridInfo[varName][2]:
           valList.append(self.controllableDist[varName].cdf(probVal))
         self.controllableSpace[iterIndex.multi_index] = valList[notchPos]
-      else:    
+      else:
         self.controllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
-      iterIndex.iternext()   
+      iterIndex.iternext()
     NotchesByVar = [None]*len(self.nonControllableGrid.keys())
     nonControllableSpaceSize = None
     for varId, varName in enumerate(self.nonControllableGrid.keys()):
@@ -287,10 +287,10 @@ class SafestPoint(BasePostProcessor):
         for probVal in self.gridInfo[varName][2]:
           valList.append(self.nonControllableDist[varName].cdf(probVal))
         self.nonControllableSpace[iterIndex.multi_index] = valList[notchPos]
-      else:       
+      else:
         self.nonControllableSpace[iterIndex.multi_index] = self.gridInfo[varName][2][notchPos]
       iterIndex.iternext()
-           
+
   def inputToInternal(self,currentInput):
     for item in currentInput:
       if item.type == 'TimePointSet':
@@ -303,12 +303,12 @@ class SafestPoint(BasePostProcessor):
           self.surfPointsMatrix[:,k] = item.getParam('input',varName)
           k+=1
         self.surfPointsMatrix[:,k] = item.getParam('output',item.getParaKeys('outputs')[-1])
-        
+
   def run(self,Input):
     nearestPointsInd = []
     dataCollector = Datas.returnInstance('TimePointSet')
     dataCollector.type = 'TimePointSet'
-    surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1]))     
+    surfTree = spatial.KDTree(copy.copy(self.surfPointsMatrix[:,0:self.surfPointsMatrix.shape[-1]-1]))
     self.controllableSpace.shape = (np.prod(self.controllableSpace.shape[0:len(self.controllableSpace.shape)-1]),self.controllableSpace.shape[-1])
     self.nonControllableSpace.shape = (np.prod(self.nonControllableSpace.shape[0:len(self.nonControllableSpace.shape)-1]),self.nonControllableSpace.shape[-1])
     if self.debug:
@@ -334,11 +334,11 @@ class SafestPoint(BasePostProcessor):
         for cVarIndex in range(len(self.controllableOrd)):
           dataCollector.updateInputValue(self.controllableOrd[cVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],cVarIndex]))
         for ncVarIndex in range(len(self.nonControllableOrd)):
-          dataCollector.updateInputValue(self.nonControllableOrd[ncVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]))            
-          if queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:  
+          dataCollector.updateInputValue(self.nonControllableOrd[ncVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]))
+          if queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:
             if self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].type == 'Bernoulli':
               prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].p
-            else:                     
+            else:
               if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
                 prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
               else:
@@ -350,15 +350,15 @@ class SafestPoint(BasePostProcessor):
               if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
                 prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
               else:
-                prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))         
-          else: 
+                prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
+          else:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
               prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]
             else:
               prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
-          probList.append(prob)      
+          probList.append(prob)
       dataCollector.updateOutputValue('Probability',np.prod(probList))
-      dataCollector.updateMetadata('ProbabilityWeight',np.prod(probList))   
+      dataCollector.updateMetadata('ProbabilityWeight',np.prod(probList))
     dataCollector.updateMetadata('ExpectedSafestPointCoordinates',self.stat.run(dataCollector)['expectedValue'])
     if self.debug:
       print(dataCollector.getParametersValues('input'))
@@ -377,12 +377,64 @@ class SafestPoint(BasePostProcessor):
         if not output.isItEmpty():
           raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> output item must be empty.')
         else:
-          for key,value in dataCollector.getParametersValues('input').items(): 
+          for key,value in dataCollector.getParametersValues('input').items():
             for val in value: output.updateInputValue(key, val)
-          for key,value in dataCollector.getParametersValues('output').items(): 
+          for key,value in dataCollector.getParametersValues('output').items():
             for val in value: output.updateOutputValue(key,val)
           for key,value in dataCollector.getAllMetadata().items(): output.updateMetadata(key,value)
-     
+
+class ComparisonStatistics(BasePostProcessor):
+  '''
+  ComparisonStatistics is to calculate statistics that compare
+  two different codes or code to experimental data.
+  '''
+
+  def __init__(self):
+    BasePostProcessor.__init__(self)
+    self.dataDict = {} #Dictionary of all the input data, keyed by the name
+    self.dataPulls = [] #List of data references that will be used
+
+  def inputToInternal(self,currentInput):
+    return [(currentInput)]
+
+  def initialize(self, runInfo, inputs, initDict):
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    #print("runInfo",runInfo,"inputs",inputs,"initDict",initDict)
+
+  def _localReadMoreXML(self,xmlNode):
+    for child in xmlNode:
+      if child.tag == 'data':
+        dataName = child.text
+        splitName = dataName.split("|")
+        name, kind = splitName[:2]
+        rest = splitName[2:]
+        self.dataPulls.append([name, kind, rest])
+        #print("xml dataName",dataName,self.dataPulls[-1])
+
+
+  def run(self, Input): # inObj,workingDir=None):
+    '''
+     Function to finalize the filter => execute the filtering
+     @ Out, None      : Print of the CSV file
+    '''
+    self.dataDict[Input.name] = Input
+    #print("input",Input,"input name",Input.name,"input input",Input.getParametersValues('inputs'),
+    #      "input output",Input.getParametersValues('outputs'))
+
+  def collectOutput(self,finishedjob,output):
+    #print("finishedjob",finishedjob,"output",output)
+    dataToProcess = []
+    for dataPull in self.dataPulls:
+      name, kind, rest = dataPull
+      data = self.dataDict[name].getParametersValues(kind)
+      #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
+      if len(rest) == 1:
+        #print("dataPart",data[rest[0]])
+        dataToProcess.append((dataPull,data[rest[0]]))
+    #print("dataToProcess",dataToProcess)
+    for dataPull, data in dataToProcess:
+      print("data",dataPull,"average",sum(data)/len(data))
+
 class PrintCSV(BasePostProcessor):
   '''
   PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
@@ -561,7 +613,7 @@ class BasicStatistics(BasePostProcessor):
     self.externalFunction  = None
     self.printTag = returnPrintTag('POSTPROCESSOR BASIC STATISTIC')
     self.requiredAssObject = (True,(['Function'],[-1]))
-  
+
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
     for key, value in self.assemblerObjects.items():
@@ -570,7 +622,7 @@ class BasicStatistics(BasePostProcessor):
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInp) == list  : currentInput = currentInp [-1]
-    else                         : currentInput = currentInp  
+    else                         : currentInput = currentInp
     if type(currentInput) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{},'metadata':{}}
@@ -933,7 +985,7 @@ class LimitSurface(BasePostProcessor):
     self.subGridTol        = 1.0e-4
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = returnPrintTag('POSTPROCESSOR LIMITSURFACE')
-  
+
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
     for key, value in self.assemblerObjects.items():
@@ -941,13 +993,13 @@ class LimitSurface(BasePostProcessor):
       if key in 'Function'         : self.externalFunction = initDict[value[0][0]][value[0][2]]
     if self.ROM==None:
       mySrting= ','.join(list(self.parameters['targets']))
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.externalFunction.name})     
+      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.externalFunction.name})
     self.ROM.reset()
 
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInp) == list: currentInput = currentInp[-1]
-    else                         : currentInput = currentInp 
+    else                         : currentInput = currentInp
     if type(currentInp) == dict:
       if 'targets' in currentInput.keys(): return
     inputDict = {'targets':{},'metadata':{}}
@@ -1168,6 +1220,7 @@ __interFaceDict['PrintCSV'                 ] = PrintCSV
 __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
+__interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
 __knownTypes                                 = __interFaceDict.keys()
 
 def knonwnTypes():

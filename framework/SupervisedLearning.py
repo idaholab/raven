@@ -1,6 +1,6 @@
 '''
 Module containing all supported type of ROM aka Surrogate Models etc
-here we intend ROM as super-visioned learning, 
+here we intend ROM as super-visioned learning,
 where we try to understand the underlying model by a set of labeled sample
 a sample is composed by (feature,label) that is easy translated in (input,output)
 '''
@@ -41,7 +41,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
   qualityEstType  = [] #this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
   ROMtype         = '' #the broad class of the interpolator
 
-  @staticmethod 
+  @staticmethod
   def checkArrayConsistency(arrayin):
     '''
     This method checks the consistency of the in-array
@@ -49,9 +49,9 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     @ Out, tuple, tuple[0] is a bool (True -> everything is ok, False -> something wrong), tuple[1], string ,the error mesg
     '''
     if type(arrayin) != numpy.ndarray: return (False,' The object is not a numpy array')
-    if len(arrayin.shape) > 1: return(False, ' The array must be 1-d')  
+    if len(arrayin.shape) > 1: return(False, ' The array must be 1-d')
     return (True,'')
-  
+
   def __init__(self,**kwargs):
     self.printTag = returnPrintTag('Super Visioned')
     if kwargs != None: self.initOptionDict = kwargs
@@ -61,7 +61,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
-    self.initOptionDict.pop('Features')    
+    self.initOptionDict.pop('Features')
     if self.features.count(self.target) > 0: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The target and one of the features have the same name!!!!')
     #average value and sigma are used for normalization of the feature data
     self.muAndSigmaFeatures = {} #a dictionary where for each feature a tuple (average value, sigma)
@@ -79,15 +79,15 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     if type(tdict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = list(tdict.keys()), list(tdict.values())
     if self.target in names: targetValues = values[names.index(self.target)]
-    else                   : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The output sought '+self.target+' is not in the training set')    
+    else                   : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The output sought '+self.target+' is not in the training set')
     # check if the targetValues are consistent with the expected structure
     resp = self.checkArrayConsistency(targetValues)
     if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for target '+self.target+':'+resp[1])
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the training set')   
-      else: 
+      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the training set')
+      else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
@@ -97,44 +97,44 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
-  
+
   def confidence(self,edict):
     '''
     This call is used to get an estimate of the confidence in the prediction.
     The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
     '''
     if type(edict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "confidence". The inquiring set needs to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
-    names, values   = list(edict.keys()), list(edict.values()) 
-    for index in range(len(values)): 
+    names, values   = list(edict.keys()), list(edict.values())
+    for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
       if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In evaluate request for feature '+names[index]+':'+resp[1])
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the evaluate set')   
-      else: 
+      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the evaluate set')
+      else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
-    
+
   def evaluate(self,edict):
     '''
-    Method to perform the evaluation of a point or a set of points through the previous trained superVisedLearning algorithm 
+    Method to perform the evaluation of a point or a set of points through the previous trained superVisedLearning algorithm
     NB.the superVisedLearning object is committed to convert the dictionary that is passed (in), into the local format
     the interface with the kernels requires.
     @ In, tdict, evaluation dictionary
     @ Out, numpy array of evaluated points
     '''
     if type(edict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
-    names, values  = list(edict.keys()), list(edict.values()) 
-    for index in range(len(values)): 
+    names, values  = list(edict.keys()), list(edict.values())
+    for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index])
       if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the evaluate set')   
-      else: 
+      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the evaluate set')
+      else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
@@ -154,7 +154,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
   def returnCurrentSetting(self):
     '''return the set of parameters of the ROM that can change during simulation'''
     return dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
-    
+
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):
     '''@ In, featureVals, 2-D numpy array [n_samples,n_features]'''
@@ -173,7 +173,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     @ In,  featureVals, 2-D numpy array [n_samples,n_features]
     @ Out, targetVals , 1-D numpy array [n_samples]
     '''
-    
+
   @abc.abstractmethod
   def __resetLocal__(self,featureVals):
     '''After this method the ROM should be described only by the initial parameter settings'''
@@ -212,7 +212,7 @@ class NDinterpolatorRom(superVisedLearning):
     '''
     Perform regression on samples in featureVals.
     For an one-class model, +1 or -1 is returned.
-    @ In, numpy.array 2-D, features 
+    @ In, numpy.array 2-D, features
     @ Out, numpy.array 1-D, predicted values
     '''
     prediction = np.zeros(featureVals.shape[0])
@@ -221,7 +221,7 @@ class NDinterpolatorRom(superVisedLearning):
       prediction[n_sample] = self.interpolator.interpolateAt(featv)
       print('NDinterpRom   : Prediction by ' + self.__class__.ROMtype + '. Predicted value is ' + str(prediction[n_sample]))
     return prediction
-    
+
   def __returnInitialParametersLocal__(self):
     '''there are no possible default parameters to report'''
     localInitParam = {}
@@ -238,7 +238,7 @@ class NDsplineRom(NDinterpolatorRom):
     NDinterpolatorRom.__init__(self,**kwargs)
     self.printTag = returnPrintTag('ND-SPLINE ROM')
     self.interpolator = interpolationND.NDspline()
-    
+
   def __resetLocal__(self):
     ''' The reset here erase the Interpolator while keeping the instance'''
     self.interpolator.reset()
@@ -273,7 +273,7 @@ class NDmicroSphere(NDinterpolatorRom):
 
 class SciKitLearn(superVisedLearning):
   ROMtype = 'SciKitLearn'
-  availImpl = {}  
+  availImpl = {}
   availImpl['lda'] = {}
   availImpl['lda']['LDA'] = (lda.LDA, 'integer') #Quadratic Discriminant Analysis (QDA)
   availImpl['linear_model'] = {} #Generalized Linear Models
@@ -308,7 +308,7 @@ class SciKitLearn(superVisedLearning):
   availImpl['linear_model']['lars_path'                   ] = (linear_model.lars_path                   , 'float'  ) #Compute Least Angle Regression or Lasso path using LARS algorithm [1]
   availImpl['linear_model']['lasso_path'                  ] = (linear_model.lasso_path                  , 'float'  ) #Compute Lasso path with coordinate descent
   availImpl['linear_model']['lasso_stability_path'        ] = (linear_model.lasso_stability_path        , 'float'  ) #Stabiliy path based on randomized Lasso estimates
-  availImpl['linear_model']['orthogonal_mp_gram'          ] = (linear_model.orthogonal_mp_gram          , 'float'  ) #Gram Orthogonal Matching Pursuit (OMP)    
+  availImpl['linear_model']['orthogonal_mp_gram'          ] = (linear_model.orthogonal_mp_gram          , 'float'  ) #Gram Orthogonal Matching Pursuit (OMP)
 
   availImpl['svm'] = {} #support Vector Machines
   availImpl['svm']['LinearSVC'] = (svm.LinearSVC, 'boolean')
@@ -317,15 +317,15 @@ class SciKitLearn(superVisedLearning):
   availImpl['svm']['SVR'      ] = (svm.SVR      , 'boolean')
 
   availImpl['multiClass'] = {} #Multiclass and multilabel classification
-  availImpl['multiClass']['OneVsRestClassifier' ] = (multiclass.OneVsRestClassifier , 'integer') # One-vs-the-rest (OvR) multiclass/multilabel strategy              
-  availImpl['multiClass']['OneVsOneClassifier'  ] = (multiclass.OneVsOneClassifier  , 'integer') # One-vs-one multiclass strategy                                    
-  availImpl['multiClass']['OutputCodeClassifier'] = (multiclass.OutputCodeClassifier, 'integer') # (Error-Correcting) Output-Code multiclass strategy                
-  availImpl['multiClass']['fit_ovr'             ] = (multiclass.fit_ovr             , 'integer') # Fit a one-vs-the-rest strategy.                                   
-  availImpl['multiClass']['predict_ovr'         ] = (multiclass.predict_ovr         , 'integer') # Make predictions using the one-vs-the-rest strategy.              
-  availImpl['multiClass']['fit_ovo'             ] = (multiclass.fit_ovo             , 'integer') # Fit a one-vs-one strategy.                                        
-  availImpl['multiClass']['predict_ovo'         ] = (multiclass.predict_ovo         , 'integer') # Make predictions using the one-vs-one strategy.                   
-  availImpl['multiClass']['fit_ecoc'            ] = (multiclass.fit_ecoc            , 'integer') # Fit an error-correcting output-code strategy.                     
-  availImpl['multiClass']['predict_ecoc'        ] = (multiclass.predict_ecoc        , 'integer') # Make predictions using the error-correcting output-code strategy. 
+  availImpl['multiClass']['OneVsRestClassifier' ] = (multiclass.OneVsRestClassifier , 'integer') # One-vs-the-rest (OvR) multiclass/multilabel strategy
+  availImpl['multiClass']['OneVsOneClassifier'  ] = (multiclass.OneVsOneClassifier  , 'integer') # One-vs-one multiclass strategy
+  availImpl['multiClass']['OutputCodeClassifier'] = (multiclass.OutputCodeClassifier, 'integer') # (Error-Correcting) Output-Code multiclass strategy
+  availImpl['multiClass']['fit_ovr'             ] = (multiclass.fit_ovr             , 'integer') # Fit a one-vs-the-rest strategy.
+  availImpl['multiClass']['predict_ovr'         ] = (multiclass.predict_ovr         , 'integer') # Make predictions using the one-vs-the-rest strategy.
+  availImpl['multiClass']['fit_ovo'             ] = (multiclass.fit_ovo             , 'integer') # Fit a one-vs-one strategy.
+  availImpl['multiClass']['predict_ovo'         ] = (multiclass.predict_ovo         , 'integer') # Make predictions using the one-vs-one strategy.
+  availImpl['multiClass']['fit_ecoc'            ] = (multiclass.fit_ecoc            , 'integer') # Fit an error-correcting output-code strategy.
+  availImpl['multiClass']['predict_ecoc'        ] = (multiclass.predict_ecoc        , 'integer') # Make predictions using the error-correcting output-code strategy.
 
   availImpl['naiveBayes'] = {}
   availImpl['naiveBayes']['GaussianNB'   ] = (naive_bayes.GaussianNB   , 'float')
@@ -350,7 +350,7 @@ class SciKitLearn(superVisedLearning):
   availImpl['tree']['DecisionTreeRegressor' ] = (tree.DecisionTreeRegressor , 'float'  )# A tree regressor.
   availImpl['tree']['ExtraTreeClassifier'   ] = (tree.ExtraTreeClassifier   , 'integer')# An extremely randomized tree classifier.
   availImpl['tree']['ExtraTreeRegressor'    ] = (tree.ExtraTreeRegressor    , 'float'  )# An extremely randomized tree regressor.
- 
+
   availImpl['GaussianProcess'] = {}
   availImpl['GaussianProcess']['GaussianProcess'] = (gaussian_process.GaussianProcess    , 'float'  )
   #test if a method to estimate the probability of the prediction is available
@@ -360,9 +360,9 @@ class SciKitLearn(superVisedLearning):
     for key2 in myDict:
       qualityEstTypeDict[key1][key2] = []
       if  callable(getattr(myDict[key2][0], "predict_proba", None))  : qualityEstTypeDict[key1][key2] += ['probability']
-      elif  callable(getattr(myDict[key2][0], "score"        , None)): qualityEstTypeDict[key1][key2] += ['score']      
+      elif  callable(getattr(myDict[key2][0], "score"        , None)): qualityEstTypeDict[key1][key2] += ['score']
       else                                                           : qualityEstTypeDict[key1][key2] = False
-  
+
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.printTag = returnPrintTag('SCIKITLEARN')
@@ -420,7 +420,7 @@ class SciKitLearn(superVisedLearning):
 #
 __interfaceDict                      = {}
 __interfaceDict['NDspline'         ] = NDsplineRom
-__interfaceDict['NDinvDistWeigth'  ] = NDinvDistWeigth  
+__interfaceDict['NDinvDistWeigth'  ] = NDinvDistWeigth
 __interfaceDict['microSphere'      ] = NDmicroSphere
 __interfaceDict['SciKitLearn'      ] = SciKitLearn
 __base                               = 'superVisedLearning'
@@ -434,4 +434,3 @@ def returnClass(ROMclass):
   '''This function return an instance of the request model type'''
   try: return __interfaceDict[ROMclass]
   except KeyError: raise NameError('not known '+__base+' type '+ROMclass)
-  

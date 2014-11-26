@@ -10,11 +10,11 @@ def __residuum(self):
 
 def __gradient(self):
   print('variables in function '+str(self.__varType__))
-  return 
+  return
 
 def __supportBoundingTest(self):
   print('variables in function '+str(self.__varType__))
-  return 
+  return
 
 
 def __residuumSign(self):

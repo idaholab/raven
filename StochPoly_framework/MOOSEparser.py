@@ -57,13 +57,13 @@ class MOOSEparser:
       try:
         for string in child.tail:IOfile.write(b'  '+string+b'\n')
       except: pass
-      for key in child.attrib.keys(): 
+      for key in child.attrib.keys():
         IOfile.write(b'  '+key+b' = '+toBytes(str(child.attrib[key]))+b'\n')
       for childChild in child:
         IOfile.write(b'  '+b'[./'+toBytes(childChild.tag)+b']\n')
         for string in childChild.tail if childChild.tail else []:
           IOfile.write(b'    '+string+b'\n')
-        for key in childChild.attrib.keys(): 
+        for key in childChild.attrib.keys():
           IOfile.write(b'    '+toBytes(str(key))+b' = '+toBytes(str(childChild.attrib[key]))+b'\n')
         IOfile.write(b'  [../]\n')
       IOfile.write(b'[]\n')

@@ -24,7 +24,7 @@ class OutStream(BaseType):
   '''
   def __init__(self):
     '''
-      Init of Base class 
+      Init of Base class
     '''
     BaseType.__init__(self)
 
@@ -56,7 +56,7 @@ class OutStream(BaseType):
       self.variables = ['all']
     else:
       self.variables = var.split(',')
-      
+
     try:
       var = xmlNode.find('fileNameRoot').text
       self.fileNameRoot = var.replace(" ","")
@@ -68,7 +68,7 @@ class OutStream(BaseType):
     '''
     Function adds the initial parameter in a temporary dictionary
     @ In, tempDict
-    @ Out, tempDict 
+    @ Out, tempDict
     '''
     for i in range(len(self.variables)):
       tempDict['Variables_'+str(i)] = self.variables[i]
@@ -80,35 +80,35 @@ class OutStream(BaseType):
     '''
     Function to finalize the outstream.Each outstream specialized class must implement it
     @ In, None
-    @ Out, None 
+    @ Out, None
     '''
-    pass 
+    pass
 
   def addOutput(self,toLoadFrom):
     '''
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
-    @ Out, None 
+    @ Out, None
     '''
     # this function adds the file name/names to the
     # filename list
 
     print('OUTSTREAM     : toLoadFrom :')
     print(toLoadFrom)
-    
+
     self.toLoadFromList.append(toLoadFrom)
     return
 #  def getInpParametersValues(self):
-#    return self.inpParametersValues  
+#    return self.inpParametersValues
 #
 #  def getOutParametersValues(self):
-#    return self.outParametersValues 
+#    return self.outParametersValues
 
   def retrieveHistories(self):
     '''
     Function to retrieve histories from th toLoadFromList object
     @ In, None
-    @ Out, None 
+    @ Out, None
     '''
     # Check type of source
     try:
@@ -122,7 +122,7 @@ class OutStream(BaseType):
             self.histories[endGroupNames[index]] = self.toLoadFromList[0].returnHistory({'history':endGroupNames[index],'filter':'whole'})
             self.alreadyRead.append(endGroupNames[index])
     except:
-      # loading from file (csv) 
+      # loading from file (csv)
       # Retrieve histories from CSV files
       for index in xrange(len(self.toLoadFromList)):
         groupname = self.toLoadFromList[index].split('~')[1]
@@ -131,10 +131,10 @@ class OutStream(BaseType):
           myFile = open (self.toLoadFromList[index],'rb')
           # read the field names
           all_field_names = myFile.readline().split(',')
-          # load the table data (from the csv file) into a numpy nd array 
+          # load the table data (from the csv file) into a numpy nd array
           data = np.loadtxt(myFile,dtype='float',delimiter=',',ndmin=2)
           # close file
-          myFile.close()  
+          myFile.close()
           self.histories[groupname] = (data,{'headers':all_field_names})
           self.alreadyRead.append(groupname)
     return
@@ -143,7 +143,7 @@ class OutStream(BaseType):
     '''
     Function to get a Parameter in this function
     @ In, typeVar : Variable type (string)
-    @ In, keyword: Keyword to retrieve 
+    @ In, keyword: Keyword to retrieve
     @ Out,param  : Requested parameter
     '''
     pass
@@ -165,22 +165,22 @@ class ScreenPlot(OutStream):
     '''
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
-    @ Out, None 
+    @ Out, None
     '''
     # this function adds the file name/names to the
     # filename list
-                
-           
+
+
     print('FILTER SCREENPLOT: toLoadFrom :')
     print(toLoadFrom)
     # Append loading object in the list
     self.toLoadFromList.append(toLoadFrom)
     # Retrieve histories
-    # NB. The finalization of the class is performed here since we want to have the screen output 
+    # NB. The finalization of the class is performed here since we want to have the screen output
     #   during the calculation runs
     try:
       self.retrieveHistories()
-    except:  
+    except:
       OutStream.retrieveHistories(self)
     # Retrieve the headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
@@ -198,8 +198,8 @@ class ScreenPlot(OutStream):
           if headers[index] in self.variables:
             plot_it = True
           else:
-            plot_it = False  
-        else:    
+            plot_it = False
+        else:
           plot_it = True
         if plot_it:
           self.plt.figure(index)
@@ -214,7 +214,7 @@ class ScreenPlot(OutStream):
     '''
     Function to finalize the ScreenPlot. In this case it is not needed
     @ In, None
-    @ Out, None 
+    @ Out, None
     '''
     self.plt.show()
 
@@ -238,7 +238,7 @@ class PdfPlot(OutStream):
     '''
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
-    @ Out, None 
+    @ Out, None
     '''
     # this function adds the file name/names to the
     # filename list
@@ -246,8 +246,8 @@ class PdfPlot(OutStream):
       from matplotlib.backends.backend_pdf import PdfPages
       fileName = self.fileNameRoot + '.pdf'
       self.pp = PdfPages(fileName)
-                
-           
+
+
     print('FILTER SCREENPLOT: toLoadFrom :')
     print(toLoadFrom)
     # Append loading object in the list
@@ -255,7 +255,7 @@ class PdfPlot(OutStream):
     # Retrieve histories
     try:
       self.retrieveHistories()
-    except:  
+    except:
       OutStream.retrieveHistories(self)
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
@@ -273,8 +273,8 @@ class PdfPlot(OutStream):
           if headers[index] in self.variables:
             plot_it = True
           else:
-            plot_it = False  
-        else:    
+            plot_it = False
+        else:
           plot_it = True
         if plot_it:
           if self.matplotlib.get_backend().lower() != "pdf":
@@ -288,7 +288,7 @@ class PdfPlot(OutStream):
           self.fileCount += 1
           self.pp.savefig()
     return
-    
+
 
   def finalize(self):
     '''
@@ -315,9 +315,9 @@ class PngPlot(OutStream):
     '''
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
-    @ Out, None 
-    '''                
-           
+    @ Out, None
+    '''
+
     print('FILTER SCREENPLOT: toLoadFrom :')
     print(toLoadFrom)
     # Append loading object in the list
@@ -325,7 +325,7 @@ class PngPlot(OutStream):
     # Retrieve Histories
     try:
       self.retrieveHistories()
-    except:  
+    except:
       OutStream.retrieveHistories(self)
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
@@ -344,7 +344,7 @@ class PngPlot(OutStream):
             plot_it = True
           else:
             plot_it = False
-        else:    
+        else:
           plot_it = True
         if plot_it:
           self.plt.figure()
@@ -366,7 +366,7 @@ class PngPlot(OutStream):
     '''
     Function to finalize the PngPlot. It does nothing now
     @ In, None
-    @ Out, None 
+    @ Out, None
     '''
     return
 
@@ -387,9 +387,9 @@ class JpegPlot(OutStream):
     '''
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
-    @ Out, None 
-    '''                
-           
+    @ Out, None
+    '''
+
     print('FILTER SCREENPLOT: toLoadFrom :')
     print(toLoadFrom)
     # Append loading object in the list
@@ -397,7 +397,7 @@ class JpegPlot(OutStream):
     # Retrieve Histories
     try:
       self.retrieveHistories()
-    except:  
+    except:
       OutStream.retrieveHistories(self)
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
@@ -417,7 +417,7 @@ class JpegPlot(OutStream):
             plot_it = True
           else:
             plot_it = False
-        else:    
+        else:
           plot_it = True
         if plot_it:
           self.plt.figure()
@@ -439,7 +439,7 @@ class JpegPlot(OutStream):
     '''
     Function to finalize the PngPlot. It does nothing now
     @ In, None
-    @ Out, None 
+    @ Out, None
     '''
     return
 
@@ -460,9 +460,9 @@ class EpsPlot(OutStream):
     '''
     Function to add a new output source (for example a CSV file or a HDF5 object)
     @ In, toLoadFrom, source object
-    @ Out, None 
-    '''                
-           
+    @ Out, None
+    '''
+
     print('FILTER SCREENPLOT: toLoadFrom :')
     print(toLoadFrom)
     # Append loading object in the list
@@ -470,7 +470,7 @@ class EpsPlot(OutStream):
     # Retrieve Histories
     try:
       self.retrieveHistories()
-    except:  
+    except:
       OutStream.retrieveHistories(self)
     # Retrieve headers
     headers = self.histories[self.alreadyRead[0]][1]['headers']
@@ -489,7 +489,7 @@ class EpsPlot(OutStream):
             plot_it = True
           else:
             plot_it = False
-        else:    
+        else:
           plot_it = True
         if plot_it:
           self.plt.figure()
@@ -509,7 +509,7 @@ class EpsPlot(OutStream):
     '''
     Function to finalize the EpsPlot. It currently does nothing
     @ In, None
-    @ Out, None 
+    @ Out, None
     '''
     return
 

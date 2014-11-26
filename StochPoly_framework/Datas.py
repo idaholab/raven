@@ -27,20 +27,20 @@ class ConstructError(Exception):
 class Data(BaseType):
   def __init__(self,inParamValues = None, outParamValues = None):
     BaseType.__init__(self)
-    self.dataParameters = {}                # in here we store all the data parameters (inputs params, output params,etc) 
-    if inParamValues: 
+    self.dataParameters = {}                # in here we store all the data parameters (inputs params, output params,etc)
+    if inParamValues:
       if type(inParamValues) != 'dict':
         raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . inParamValues is not a dictionary')
       self.inpParametersValues = inParamValues
     else:
-      self.inpParametersValues   = {}         # input parameters as keys, corresponding values 
-    if outParamValues: 
+      self.inpParametersValues   = {}         # input parameters as keys, corresponding values
+    if outParamValues:
       if type(outParamValues) != 'dict':
         raise ConstructError('DATAS     : ERROR ->  in __init__  in Datas of type ' + self.type + ' . outParamValues is not a dictionary')
       self.outParametersValues = outParamValues
     self.outParametersValues   = {}         # output variables as keys, corresponding values
     self.toLoadFromList = []                # loading source
-    
+
   def readMoreXML(self,xmlNode):
     print('here!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
     # retrieve input parameters' keywords
@@ -53,7 +53,7 @@ class Data(BaseType):
     try:
       # check if time information are present... in case, store it
       time = xmlNode.attrib['time']
-      if time == 'end' or time == 'all': self.dataParameters['time'] = time 
+      if time == 'end' or time == 'all': self.dataParameters['time'] = time
       else:
         try:   self.dataParameters['time'] = float(time)
         except:self.dataParameters['time'] = float(time.split(','))
@@ -66,9 +66,9 @@ class Data(BaseType):
     try:
       self.print_CSV = bool(xmlNode.attrib['printCSV'])
     except:self.print_CSV = False
-    
+
     try:
-      self.CSVfilename = xmlNode.attrib['CSVfilename']    
+      self.CSVfilename = xmlNode.attrib['CSVfilename']
     except:self.CSVfilename = None
 
   def addInitParams(self,tempDict):
@@ -76,13 +76,13 @@ class Data(BaseType):
     for i in range(len(self.dataParameters['outParam'])): tempDict['Output_'+str(i)] = self.dataParameters['outParam'][i]
     tempDict['Time'] = self.dataParameters['time']
     return tempDict
-  
+
   def removeInputValue(self,name,value):
     if name in self.inpParametersValues.keys(): self.inpParametersValues.pop(name)
-   
+
   def removeOutputValue(self,name,value):
     if name in self.outParametersValues.keys(): self.outParametersValues.pop(name)
-  
+
   def updateInputValue(self,name,value):
     self.updateSpecializedInputValue(name,value)
 
@@ -116,7 +116,7 @@ class Data(BaseType):
     self.specializedPrintCSV(filenameLocal)
 
   def addOutput(self,toLoadFrom):
-    ''' 
+    '''
         this function adds the file name/names/object to the
         filename list + it calls the specialized functions to retrieve the different data
     '''
@@ -127,38 +127,38 @@ class Data(BaseType):
     #sourceType = None
     #try:    sourceType =  self.toLoadFromList[0].type
     #except: pass
-        
+
     #if(sourceType == 'HDF5'): tupleVar = self.toLoadFromList[0].retrieveData(self.dataParameters)
-    #else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters) 
+    #else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters)
     #self.inpParametersValues = copy.deepcopy(tupleVar[0])
     #self.outParametersValues = copy.deepcopy(tupleVar[1])
     #self.checkConsistency()
     return
-  
+
   def finalizeOut(self):
     self.addSpecializedReadingSettings()
     sourceType = None
     try:    sourceType =  self.toLoadFromList[0].type
     except: pass
-        
+
     if(sourceType == 'HDF5'): tupleVar = self.toLoadFromList[0].retrieveData(self.dataParameters)
-    else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters) 
+    else:                     tupleVar = ld().csvLoadData(self.toLoadFromList,self.dataParameters)
     self.inpParametersValues = copy.deepcopy(tupleVar[0])
     self.outParametersValues = copy.deepcopy(tupleVar[1])
     self.checkConsistency()
-    
+
   def getInpParametersValues(self):
-    return self.inpParametersValues  
+    return self.inpParametersValues
 
   def getOutParametersValues(self):
-    return self.outParametersValues 
-  
+    return self.outParametersValues
+
   def getParam(self,typeVar,keyword):
     if typeVar == "input":
       if keyword in self.inpParametersValues.keys(): return self.inpParametersValues[keyword]
-      else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in inpParametersValues dictionary. Function: Data.getParam")    
+      else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in inpParametersValues dictionary. Function: Data.getParam")
     elif typeVar == "output":
-      if keyword in self.outParametersValues.keys(): return self.outParametersValues[keyword]    
+      if keyword in self.outParametersValues.keys(): return self.outParametersValues[keyword]
       else: raise Exception("DATAS     : ERROR -> parameter " + keyword + " not found in outParametersValues dictionary. Function: Data.getParam")
     else: raise Exception("DATAS     : ERROR -> type " + typeVar + " is not a valid type. Function: Data.getParam")
 
@@ -194,31 +194,31 @@ class TimePoint(Data):
 
   def specializedPrintCSV(self,filenameLocal):
     file = open(filenameLocal + '.csv', 'wb')
-    
+
     #Print input values
     inpKeys   = self.inpParametersValues.keys()
     inpValues = self.inpParametersValues.values()
     for i in range(len(inpKeys)):
       file.write(',' + inpKeys[i])
     file.write('\n')
-    
+
     for i in range(len(inpKeys)):
       file.write(',' + str(inpValues[i][0]))
     file.write('\n')
-    
+
     #Print time + output values
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
     for i in range(len(outKeys)):
       file.write(',' + outKeys[i])
     file.write('\n')
-    
+
     for i in range(len(outKeys)):
       file.write(',' + str(outValues[i][0]))
     file.write('\n')
-    
+
     file.close()
-    
+
 class TimePointSet(Data):
   def addSpecializedReadingSettings(self):
     self.dataParameters['type'] = self.type # store the type into the dataParameters dictionary
@@ -232,7 +232,7 @@ class TimePointSet(Data):
     '''
       Here we perform the consistency check for the structured data TimePointSet
     '''
-    
+
     try:   sourceType = self.toLoadFromList[0].type
     except:sourceType = None
     if('HDF5' == sourceType):
@@ -243,7 +243,7 @@ class TimePointSet(Data):
       for key in self.outParametersValues.keys():
         if (self.outParametersValues[key].size) != len(eg):
           raise NotConsistentData('DATAS     : ERROR -> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self.outParametersValues[key].size))
-    else: 
+    else:
       for key in self.inpParametersValues.keys():
         if (self.inpParametersValues[key].size) != len(self.toLoadFromList):
           raise NotConsistentData('DATAS     : ERROR -> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(self.toLoadFromList)) + '.Actual size is ' + str(self.inParametersValues[key].size))
@@ -265,8 +265,8 @@ class TimePointSet(Data):
     else:
       self.outParametersValues[name] = copy.deepcopy(np.atleast_1d(np.array(value)))
 
-  def specializedPrintCSV(self,filenameLocal): 
-    
+  def specializedPrintCSV(self,filenameLocal):
+
     inpKeys   = self.inpParametersValues.keys()
     inpValues = self.inpParametersValues.values()
     print('DATAS NAME ' + self.name)
@@ -276,7 +276,7 @@ class TimePointSet(Data):
     print('DATAS outputs ')
     print(self.outParametersValues.keys())
     print(self.outParametersValues.values())
-    
+
 
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
@@ -292,7 +292,7 @@ class TimePointSet(Data):
     print(outValues)
     print('OUTVALUES[0]')
     print(str(type(outValues[0])))
-   
+
     print(outValues[0])
     for j in range(outValues[0].size):
       myFile.write(str(j+1))
@@ -301,7 +301,7 @@ class TimePointSet(Data):
       for i in range(len(outKeys)):
         myFile.write(',' + str(outValues[i][j]))
       myFile.write('\n')
-      
+
     myFile.close()
 
 class History(Data):
@@ -336,18 +336,18 @@ class History(Data):
 
   def specializedPrintCSV(self,filenameLocal):
     file = open(filenameLocal + '.csv', 'wb')
-    
+
     #Print input values
     inpKeys   = self.inpParametersValues.keys()
     inpValues = self.inpParametersValues.values()
     for i in range(len(inpKeys)):
       file.write(',' + inpKeys[i])
     file.write('\n')
-    
+
     for i in range(len(inpKeys)):
       file.write(',' + str(inpValues[i][0]))
     file.write('\n')
-    
+
     #Print time + output values
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
@@ -359,7 +359,7 @@ class History(Data):
       for i in range(len(outKeys)):
         file.write(',' + str(outValues[i][j]))
       file.write('\n')
-    
+
     file.close()
 
 class Histories(Data):
@@ -376,7 +376,7 @@ class Histories(Data):
     '''
     try: sourceType = self.toLoadFromList[0].type
     except: sourceType = None
-    
+
     if('HDF5' == sourceType):
       eg = self.toLoadFromList[0].getEndingGroupNames()
       if(len(eg) != len(self.inpParametersValues.keys())):
@@ -396,9 +396,9 @@ class Histories(Data):
   def updateSpecializedInputValue(self,name,value):
     if (not isinstance(value,(float,int,bool,np.ndarray))):
       raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array (dim 1) or a single value for method "updateSpecializedInputValue". Got type ' + str(type(value)))
-    if isinstance(value,np.ndarray): 
+    if isinstance(value,np.ndarray):
       if value.size != 1: raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only a numpy array of dim 1 or a single value for method "updateSpecializedInputValue". Size is ' + str(value.size))
-    
+
     if type(name) == 'list':
       # there are info regarding the history number
       if name[0] in self.inpParametersValues.keys():
@@ -416,7 +416,7 @@ class Histories(Data):
       self.inpParametersValues[hisn] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
 
   def updateSpecializedOutputValue(self,name,value):
-    if not isinstance(value,np.ndarray): 
+    if not isinstance(value,np.ndarray):
       print ('value is',value)
       raise NotConsistentData('DATAS     : ERROR -> Histories Data accepts only numpy array as type for method "updateSpecializedOutputValue". Got ' + str(type(value)))
     if type(name) == 'list':
@@ -434,17 +434,17 @@ class Histories(Data):
       if len(self.outParametersValues.keys()) == 0: hisn = 1
       else: hisn = max(self.outParametersValues.keys())
       self.outParametersValues[hisn] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
-      
+
   def specializedPrintCSV(self,filenameLocal):
-    
+
     inpKeys   = self.inpParametersValues.keys()
     inpValues = self.inpParametersValues.values()
     outKeys   = self.outParametersValues.keys()
     outValues = self.outParametersValues.values()
-    
+
     for n in range(len(outKeys)):
       file = open(filenameLocal + '_'+ str(n) + '.csv', 'wb')
-  
+
       inpKeys_h   = inpValues[n].keys()
       inpValues_h = inpValues[n].values()
       outKeys_h   = outValues[n].keys()
@@ -456,29 +456,29 @@ class Histories(Data):
         else:       prefix = ','
         file.write(prefix + inpKeys_h[i])
       file.write('\n')
-      
+
       for i in range(len(inpKeys_h)):
         if i == 0 : prefix = ''
         else:       prefix = ','
         file.write(prefix + str(inpValues_h[i][0]))
       file.write('\n')
-      
+
       #Print time + output values
       for i in range(len(outKeys_h)):
         if i == 0 : prefix = ''
         else:       prefix = ','
         file.write(outKeys_h[i] + ',')
       file.write('\n')
-  
+
       for j in range(outValues_h[0].size):
         for i in range(len(outKeys_h)):
           if i == 0 : prefix = ''
           else:       prefix = ','
           file.write(prefix+ str(outValues_h[i][j]))
-        file.write('\n')    
-      
+        file.write('\n')
+
       file.close()
-   
+
 '''
  Interface Dictionary (factory) (private)
 '''
@@ -495,7 +495,7 @@ def knonwnTypes():
 
 def returnInstance(Type):
   try: return __interFaceDict[Type]()
-  except: raise NameError('not known '+__base+' type '+Type)  
+  except: raise NameError('not known '+__base+' type '+Type)
 
 
 
@@ -503,4 +503,4 @@ def returnInstance(Type):
 
 
 
-  
+

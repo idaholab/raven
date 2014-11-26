@@ -10,7 +10,7 @@ This module contains interfaces to import external functions
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
- 
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ class Function(BaseType):
     self.__inputVariables                = []                                # list of variables' names' given in input (xml)
     self.__inputFromWhat                 = {}                                # dictionary of input data type
     self.__inputFromWhat['dict']         = self.__inputFromDict
-    self.__inputFromWhat['Data']         = self.__inputFromData    
+    self.__inputFromWhat['Data']         = self.__inputFromData
     self.printTag                        = utils.returnPrintTag('FUNCTIONS')
   def _readMoreXML(self,xmlNode,debug=False):
     if 'file' in xmlNode.attrib.keys():
@@ -72,7 +72,7 @@ class Function(BaseType):
         else:
           #custom
           self.__actionDictionary[method]                    = importedModule.__dict__[method]
-          self.__actionImplemented[method]                   = True 
+          self.__actionImplemented[method]                   = True
     else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> No file name for the external function has been provided for external function '+self.name+' of type '+self.type)
     cnt = 0
     for child in xmlNode:
@@ -82,7 +82,7 @@ class Function(BaseType):
         cnt +=1
         if len(child.attrib.keys()) > 0: raise IOError( self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> variable block in the definition of the function '+self.name + ' should not have any attribute!')
     if cnt == 0: raise IOError( self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not variable found in the definition of the function '+self.name)
-        
+
   def addInitParams(self,tempDict):
     '''
     This function is called from the base class to print some of the information inside the class.
@@ -104,9 +104,9 @@ class Function(BaseType):
     The information is passed back in the dictionary
     Function adds the current settings in a temporary dictionary
     @ In, tempDict
-    @ Out, tempDict 
+    @ Out, tempDict
     '''
-    for key in self.__inputVariables: execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=tempDict) 
+    for key in self.__inputVariables: execCommand("object['variable "+str(key)+" has value']=self."+key,self=self,object=tempDict)
 
   def __importValues(self,myInput):
     '''this makes available the variable values sent in as self.key'''
@@ -127,20 +127,20 @@ class Function(BaseType):
       if not foundperfectly:
         for index in range(len(inputData.dataParameters['outParam'])):
           if key == inputData.dataParameters['outParam'][index]: foundperfectly = True
-      if foundperfectly: execCommand('self.'+key+'=object.extractValue(myType,"'+key+'")',self=self,object=inputData) 
+      if foundperfectly: execCommand('self.'+key+'=object.extractValue(myType,"'+key+'")',self=self,object=inputData)
       if not foundperfectly:
         semifound = False
         for index in range(len(inputData.dataParameters['inParam'])):
-          if key in inputData.dataParameters['inParam'][index]: 
+          if key in inputData.dataParameters['inParam'][index]:
             similarVariable = inputData.dataParameters['inParam'][index]
             semifound = True
         if not semifound:
           for index in range(len(inputData.dataParameters['outParam'])):
-            if key in inputData.dataParameters['outParam'][index]: 
+            if key in inputData.dataParameters['outParam'][index]:
               similarVariable = inputData.dataParameters['outParam'][index]
               semifound = True
-        if semifound: execCommand('self.'+key+'=object.extractValue(myType,"'+similarVariable+'")',self=self,object=inputData)      
-        
+        if semifound: execCommand('self.'+key+'=object.extractValue(myType,"'+similarVariable+'")',self=self,object=inputData)
+
   def __inputFromDict(self,myInputDict):
     '''
     This is meant to be used to collect the input directly from a sampler generated input or simply from a generic dictionary
@@ -150,7 +150,7 @@ class Function(BaseType):
     if 'SampledVars' in myInputDict.keys(): inDict = myInputDict['SampledVars']
     else                                  : inDict = myInputDict
     for name in self.__inputVariables:
-      if name in inDict.keys(): execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict) 
+      if name in inDict.keys(): execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict)
       else                    : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):
@@ -158,9 +158,9 @@ class Function(BaseType):
     self.__importValues(myInput)
     toBeReturned=self.__actionDictionary[what](self)
     return toBeReturned
-  
-    
-    
+
+
+
 '''
  Interface Dictionary (factory) (private)
 '''
@@ -178,18 +178,3 @@ def returnInstance(Type):
   '''This function return an instance of the request model type'''
   if Type in knonwnTypes():return __interFaceDict[Type]()
   else: raise NameError('not known '+__base+' type '+Type)
-  
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
-  

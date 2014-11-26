@@ -16,7 +16,7 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import metaclass_insert, returnPrintTag, returnPrintPostTag
+from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, stringsThatMeanTrue, stringsThatMeanFalse
 import Models
 from OutStreamManager import OutStreamManager
 from Datas import Data
@@ -91,8 +91,8 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys():
-      if   xmlNode.attrib['pauseAtEnd'].lower() in ['yes','true','t','y']: self.pauseEndStep = True
-      elif xmlNode.attrib['pauseAtEnd'].lower() in ['no','false','f','n']: self.pauseEndStep = False
+      if   xmlNode.attrib['pauseAtEnd'].lower() in stringsThatMeanTrue(): self.pauseEndStep = True
+      elif xmlNode.attrib['pauseAtEnd'].lower() in stringsThatMeanFalse(): self.pauseEndStep = False
       else: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['pauseAtEnd'],'pauseAtEnd'))
     self._localInputAndChecks(xmlNode)
     if None in self.parList: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> A problem was found in  the definition of the step '+str(self.name))
@@ -193,7 +193,7 @@ class SingleRun(Step):
     for  myInput in self.parList:
       if myInput[0] in rolesItem: toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
     #use the models static testing of roles compatibility
-    for role in roles: 
+    for role in roles:
       if role not in self._excludeFromModelValidation:
         Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
     if self.FIXME: print(self.printTag+': ' +returnPrintPostTag('FIXME') + '-> reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!!!!')
@@ -356,7 +356,7 @@ class MultiRun(SingleRun):
 #     if solExportCounter>1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one output to export the solution of the goal function, found in step '+self.name)
 #     if functionCounter >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one function defined in the step '                                     +self.name)
 #     if ROMCounter      >1  : raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> More than one ROM defined in the step '                                          +self.name)
-# 
+#
 #   def _localInitializeStep(self,inDictionary):
 #     '''this is the initialization for a generic step performing runs '''
 #     #self._samplerInitDict['goalFunction'] = inDictionary['Function']
@@ -402,7 +402,7 @@ class RomTrainer(Step):
 #     self.ROMCounter      = 0
 #     self.foundROM        = False
 #     self.printTag = returnPrintTag('STEP POSTPROCESS')
-# 
+#
 #   def _localInputAndChecks(self,xmlNode):
 #     found     = 0
 #     rolesItem = []
@@ -433,7 +433,7 @@ class RomTrainer(Step):
 #         self.ROMCounter+=1
 #         self.foundROM   = True
 #         if role[2] != 'ROM' : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The optional ROM in "PostProcess" step must be of type ROM, in step ' + self.name)
-# 
+#
 #   def _localInitializeStep(self,inDictionary):
 #     functionExt = None
 #     ROMExt      = None
@@ -448,7 +448,7 @@ class RomTrainer(Step):
 #         if 'HDF5' in inDictionary['Output'][i].type: inDictionary['Output'][i].initialize(self.name)
 #         elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']: inDictionary['Output'][i].initialize(inDictionary)
 #         if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
-# 
+#
 #   def _localTakeAstepRun(self,inDictionary):
 #     SingleRun._localTakeAstepRun(self, inDictionary)
 #

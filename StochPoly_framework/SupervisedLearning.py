@@ -19,7 +19,7 @@ except:
   import pickle as pk
 
 #import DataBases #TODO shouldn't need this, see StochPoly.train() for instance check
-'''here we intend ROM as super-visioned learning, 
+'''here we intend ROM as super-visioned learning,
    where we try to understand the underlying model by a set of labeled sample
    a sample is composed by (feature,label) that is easy translated in (input,output)
    '''
@@ -42,10 +42,10 @@ except:
 class superVisioned():
   def __init__(self,**kwargs):
     self.initializzationOptionDict = kwargs
-  
+
   def fillDist(self,distributions):
     self.distDict = distributions
-  
+
   def train(self,obj):
     '''override this method to train the ROM'''
     return
@@ -74,11 +74,11 @@ class StochasticPolynomials(superVisioned):
     self.poly_coeffs={}
 
   def train(self,inDictionary):
-    
+
     data=inDictionary['Input'][0]
     print('\n\n\ndata:',data,'\n\n\n')
     self.solns={}
-    
+
     if data.type=='HDF5':
       attr={}
       hists=data.getEndingGroupNames()
@@ -87,7 +87,7 @@ class StochasticPolynomials(superVisioned):
         if h=='':continue
         attr['history']=h
         M.append(data.returnHistory(attr))
-      
+
       if data.targetParam:
         self.targetParam = data.targetParam
       else:
@@ -105,8 +105,8 @@ class StochasticPolynomials(superVisioned):
       # the partial coefficients for that _quad point_.  Here, for each of those,
       # we simply need to sum over each partCoeff[quad_pt][ord]*soln[quad_pt]
       # to construct poly_coeff[ord]
- 
-      
+
+
       for varName in inDictionary['Sampler'].varList:
         print('[inDictionary[Sampler].var_poly_order[varName]+1'+str(inDictionary['Sampler'].var_poly_order[varName]+1))
       orderList  = [inDictionary['Sampler'].var_poly_order[varName]+1   for varName in inDictionary['Sampler'].varList]
@@ -115,18 +115,18 @@ class StochasticPolynomials(superVisioned):
       totNumMatrixEntries = 1
       for i in orderTuple: totNumMatrixEntries *=i
       self.moments.shape= (totNumMatrixEntries)
-      
+
       for history in M:   #loop over the sampled point
         pointIndex = int(history[1]['exp_order'])-1#     history[1]['exp_order'][0] #get the cumulative id of the point
         #get the solution
         # here no sense the operator....
         if self.operator.lower() == 'max':
           temp = history[0][:,self.solnIndex]
-          maximum = max(temp)     
-          ans = float(maximum) 
-        elif self.operator.lower() == 'min':   ans = float(min(history[0][:][self.solnIndex])) 
-        elif self.operator.lower() == 'begin': ans = float(history[0][0][self.solnIndex])  
-        else:                                  ans = float(history[0][history[0][:,0].size - 1][self.solnIndex]) 
+          maximum = max(temp)
+          ans = float(maximum)
+        elif self.operator.lower() == 'min':   ans = float(min(history[0][:][self.solnIndex]))
+        elif self.operator.lower() == 'begin': ans = float(history[0][0][self.solnIndex])
+        else:                                  ans = float(history[0][history[0][:,0].size - 1][self.solnIndex])
         for absIndex in range(totNumMatrixEntries): #loop over all moments
           left         = absIndex
           pointContrib = inDictionary['Sampler'].pointInfo[pointIndex]['Total Weight']*ans
@@ -135,20 +135,20 @@ class StochasticPolynomials(superVisioned):
             left, myPolyOrder = divmod(left,inDictionary['Sampler'].var_poly_order[varName]+1)
             varValue = inDictionary['Sampler'].pointInfo[pointIndex]['Coordinate'][indexVar]
             pointContrib *= inDictionary['Sampler'].distDict[varName].evNormPolyonGauss(myPolyOrder,varValue)
-            
+
           self.moments[absIndex] += pointContrib
-      
+
       avg = self.moments[0]
       for indexVar in range(len(inDictionary['Sampler'].varList)):
         varName = inDictionary['Sampler'].varList[indexVar]
         avg *= np.sqrt(inDictionary['Sampler'].distDict[varName].measure())
       print('The mean value is '+str(avg))
- 
+
       self.moments.shape = orderTuple
       self.totNumMatrixEntries = totNumMatrixEntries
       self.varList = inDictionary['Sampler'].varList
       print(self.moments)
-      
+
 
   def evaluate(self,data):
     # valDict is dict of values to evaluate at, keyed on var
@@ -177,7 +177,7 @@ class StochasticPolynomials(superVisioned):
         contribution *= self.distDict[varName].evNormPolyonInterp(myPolyOrder,valDict[varName])
       tot += contribution*self.moments[absIndex]
     self.moments.shape = matrixStructure
-    
+
     print('returned value from the sampling of the StPoly .....................')
     print('input requested .....................'+str(data))
     print('output computed .....................'+str(tot))
@@ -236,7 +236,7 @@ class SVMsciKitLearn(superVisioned):
     print('SVM           : Training ' + self.initializzationOptionDict['SVMtype'])
     self.SVM.fit(X,y)
     print('SVM           : '+ self.initializzationOptionDict['SVMtype'] + ' trained!')
-    
+
     return
 
   def returnInitialParamters(self):
@@ -272,4 +272,3 @@ def returnInstance(Type):
   InterfaceDict['StochasticPolynomials'] = StochasticPolynomials
   try: return InterfaceDict[Type]
   except: raise NameError('not known '+base+' type '+Type)
-  
