@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  25 NOV 2014 13:50
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  26 NOV 2014 08:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -899,32 +899,22 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-
-Overfull \hbox (0.1905pt too wide) in paragraph at lines 9--10
-\OT1/ptm/m/n/12 RAVEN should as-so-ciate when run-ning the driven soft-ware. Fo
-r ex-am-ple, if RAVEN
- []
-
-
-Overfull \hbox (0.1905pt too wide) in paragraph at lines 13--14
-\OT1/ptm/m/n/12 RAVEN should as-so-ciate when run-ning the driven soft-ware. Fo
-r ex-am-ple, if RAVEN
- []
-
+LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 6.
 [13
 
-] (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
+] [14] (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2014/03/04 1.5c listings language file
 )
 (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2014/03/04 1.5c (Carsten Heinz)
-)
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 30.
+) [15]
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 64.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-LaTeX Font Info:    Try loading font information for OML+ptm on input line 31.
+LaTeX Font Info:    Try loading font information for OML+ptm on input line 65.
 
 (/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/omlptm.fd
 File: omlptm.fd 
@@ -932,13 +922,13 @@ File: omlptm.fd
 
 LaTeX Font Warning: Font shape `OML/ptm/bx/n' undefined
 (Font)              using `OML/ptm/m/it' instead
-(Font)              for symbol `textless' on input line 31.
+(Font)              for symbol `textless' on input line 65.
 
 LaTeX Font Info:    Font shape `OML/ptm/m/it' in size <12> not available
-(Font)              Font shape `OML/cmm/m/it' tried instead on input line 31.
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 65.
 LaTeX Font Info:    Font shape `OML/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OML/cmm/m/it' tried instead on input line 31.
-[14]) (./ProbabilityDistributions.tex [15]
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 65.
+) (./ProbabilityDistributions.tex [16]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -949,7 +939,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 
 LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <12> not available
 (Font)              Font shape `OT1/pcr/b/n' tried instead on input line 24.
-[16
+[17
 
 ]
 Overfull \hbox (2.77011pt too wide) in paragraph at lines 115--120
@@ -957,7 +947,7 @@ Overfull \hbox (2.77011pt too wide) in paragraph at lines 115--120
 or Gaus-sian) dis-tri-bu-tion is a con-tin-u-ous dis-tri-bu-tion which
  []
 
-[17]) (./sampler.tex [18]
+[18]) (./sampler.tex [19]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -966,9 +956,9 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[19
+[20
 
-] [20] [21] [22]) (./functions.tex [23]
+] [21] [22] [23]) (./functions.tex [24]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -977,7 +967,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-) (./model.tex [24
+) (./model.tex [25
 
 ]
 
@@ -988,7 +978,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[25
+[26
 
 ]
 Overfull \hbox (7.23274pt too wide) in paragraph at lines 33--34
@@ -1014,10 +1004,10 @@ Overfull \hbox (61.66597pt too wide) in paragraph at lines 67--68
 put(self,myInput,samplerType,**Kwargs) 
  []
 
-[26] (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
+[27] (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2014/03/04 1.5c listings language file
 )
-[27]) (./step.tex [28]
+[28]) (./step.tex [29]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1026,7 +1016,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[29
+[30
 
 ]
 
@@ -1048,7 +1038,7 @@ Overfull \hbox (15.95877pt too wide) in paragraph at lines 84--85
 if Datas:timepoint,
  []
 
-[30]) (./database_data.tex [31]
+[31]) (./database_data.tex [32]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1057,9 +1047,9 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[32
+[33
 
-]) (./OutStreamSystem.tex [33
+]) (./OutStreamSystem.tex [34
 
 ]
 
@@ -1071,59 +1061,56 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
 
-LaTeX Warning: Citation `MatPlotLib' on page 34 undefined on input line 7.
+LaTeX Warning: Citation `MatPlotLib' on page 35 undefined on input line 7.
 
 
-LaTeX Warning: Reference `sec:Datas' on page 34 undefined on input line 11.
+LaTeX Warning: Reference `sec:Datas' on page 35 undefined on input line 11.
 
-[34
+[35
 
-]
-LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/it' tried instead on input line 34.
- [35]
+] [36]
 Overfull \hbox (2.95032pt too wide) in paragraph at lines 70--71
 \OT1/ptm/m/n/12 name-in'' and ``var-name-out'' will be re-ported in the out-put
  file (see ``forth-example'') 
  []
 
 
-LaTeX Warning: Citation `MatPlotLib' on page 36 undefined on input line 80.
+LaTeX Warning: Citation `MatPlotLib' on page 37 undefined on input line 80.
 
-[36] [37]
+[37] [38]
 
-LaTeX Warning: Citation `MatPlotLib' on page 38 undefined on input line 142.
-
-[38]
-
-LaTeX Warning: Citation `MatPlotLib' on page 39 undefined on input line 157.
-
-
-LaTeX Warning: Citation `MatPlotLib' on page 39 undefined on input line 158.
+LaTeX Warning: Citation `MatPlotLib' on page 39 undefined on input line 142.
 
 [39]
 
-LaTeX Warning: Citation `MatPlotLib' on page 40 undefined on input line 209.
+LaTeX Warning: Citation `MatPlotLib' on page 40 undefined on input line 157.
+
+
+LaTeX Warning: Citation `MatPlotLib' on page 40 undefined on input line 158.
 
 [40]
 
-LaTeX Warning: Citation `MatPlotLib' on page 41 undefined on input line 227.
+LaTeX Warning: Citation `MatPlotLib' on page 41 undefined on input line 209.
 
 [41]
 
-LaTeX Warning: Citation `MatPlotLib' on page 42 undefined on input line 246.
-
-
-LaTeX Warning: Citation `MatPlotLib' on page 42 undefined on input line 265.
+LaTeX Warning: Citation `MatPlotLib' on page 42 undefined on input line 227.
 
 [42]
 
-LaTeX Warning: Citation `MatPlotLib' on page 43 undefined on input line 270.
+LaTeX Warning: Citation `MatPlotLib' on page 43 undefined on input line 246.
 
 
-LaTeX Warning: Citation `MatPlotLib' on page 43 undefined on input line 285.
+LaTeX Warning: Citation `MatPlotLib' on page 43 undefined on input line 265.
 
-[43] [44] [45]) (./existing_interfaces.tex [46]
+[43]
+
+LaTeX Warning: Citation `MatPlotLib' on page 44 undefined on input line 270.
+
+
+LaTeX Warning: Citation `MatPlotLib' on page 44 undefined on input line 285.
+
+[44] [45] [46]) (./existing_interfaces.tex [47]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1132,14 +1119,14 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[47
+[48
 
 ]
 Overfull \hbox (32.28522pt too wide) in paragraph at lines 41--42
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][]  
  []
 
-[48] [49] [50]
+[49] [50] [51]
 Underfull \hbox (badness 10000) in paragraph at lines 129--134
 
  []
@@ -1150,18 +1137,18 @@ Overfull \hbox (1.16702pt too wide) in paragraph at lines 135--137
 o be used are the $\OML/cmm/m/it/12 < MultiRun >$\OT1/ptm/m/n/12 .
  []
 
-[51] [52]
+[52] [53]
 Overfull \hbox (44.14415pt too wide) in paragraph at lines 215--216
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  
  []
 
-[53] [54]) [55]
+[54] [55]) [56]
 No file raven_user_manual.bbl.
-[56
+[57
 
 
-] [57]
+]
 File: pics/inl-left_black.pdf Graphic file (type pdf)
  <use pics/inl-left_black.pdf>
 Package pdftex.def Info: pics/inl-left_black.pdf used on input line 330.
@@ -1181,16 +1168,13 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 330.
  ) 
 Here is how much of TeX's memory you used:
- 10705 strings out of 493117
- 149519 string characters out of 6135433
- 282464 words of memory out of 5000000
- 13373 multiletter control sequences out of 15000+600000
+ 10706 strings out of 493117
+ 149530 string characters out of 6135433
+ 283212 words of memory out of 5000000
+ 13374 multiletter control sequences out of 15000+600000
  52398 words of font info for 116 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  33i,9n,58p,1027b,2038s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1209,10 +1193,10 @@ k/uncr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmb8a.p
 fb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/
 local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texl
 ive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on raven_user_manual.pdf (58 pages, 330502 bytes).
+Output written on raven_user_manual.pdf (58 pages, 336039 bytes).
 PDF statistics:
- 1086 PDF objects out of 1200 (max. 8388607)
- 997 compressed objects within 10 object streams
+ 1087 PDF objects out of 1200 (max. 8388607)
+ 998 compressed objects within 10 object streams
  522 named destinations out of 1000 (max. 500000)
  355 words of extra memory for PDF output out of 10000 (max. 10000000)
 
