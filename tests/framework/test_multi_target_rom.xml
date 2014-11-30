@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>test_rom_trainer</WorkingDir>
+    <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
+    <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
+    <batchSize>3</batchSize>
+</RunInfo>
+<Distributions>
+    <Uniform name='auxbackup'>
+        <low>0</low>
+        <hi>2000</hi>
+    </Uniform>
+    <Uniform name='DG1backup'>
+        <low>0</low>
+        <hi>1000</hi>
+    </Uniform>
+</Distributions>
+<Models>
+    <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
+    <ROM  name='ROM1' subType='SciKitLearn'>
+      <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
+      <Target>CladTempTreshold,UpperPlenum:energy</Target>
+      <SKLtype>svm|LinearSVC</SKLtype>
+      <C>10.0</C>
+      <tol>0.0001</tol>
+    </ROM>
+    <ROM  name='ROM2' subType='NDinvDistWeigth'>
+        <Features>DeltaTimeScramToAux,DG1recoveryTime</Features>
+        <Target>CladTempTreshold,UpperPlenum:energy</Target>
+        <p>3</p>
+    </ROM>
+</Models>
+<Samplers>
+  <MonteCarlo     name='RAVENmc3'  limit='3'>
+    <variable name='DeltaTimeScramToAux'>
+      <distribution  >auxbackup</distribution>
+    </variable>
+    <variable name='DG1recoveryTime'>
+      <distribution >DG1backup</distribution>
+    </variable>
+  </MonteCarlo>
+  <MonteCarlo     name='RAVENmcCode3'  limit='3'>
+  </MonteCarlo>
+    <MonteCarlo     name='RAVENmcND'  limit='3' initial_seed='200286'>
+        <variable name='DeltaTimeScramToAux'>
+            <distribution  >auxbackup</distribution>
+        </variable>
+        <variable name='DG1recoveryTime'>
+            <distribution  >DG1backup</distribution>
+        </variable>
+    </MonteCarlo>
+</Samplers>
+<Steps debug='True'> 
+    <MultiRun name='MC_for_rom_trainer' debug='True'>
+        <Input   class='Files'      type=''                >TMI.i</Input>
+        <Input   class='Files'      type=''                >TMI_PRA_trans_MC_control.py</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.rd-0</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863.xdr.0000</Input>
+        <Input   class='Files'      type=''                >TMI_steady_restart/1863_mesh.cpr</Input>
+        <Model   class='Models'     type='Code'            >MyRAVEN</Model>
+        <Sampler class='Samplers'   type='MonteCarlo'      >RAVENmcCode3</Sampler>
+        <Output  class='DataBases'  type='HDF5'            >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
+    </MultiRun>  
+    <IOStep name='test_extract_for_rom_trainer' debug='True'>
+        <Input   class='DataBases' type='HDF5'        >MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+        <Output  class='Datas'     type='TimePointSet'>timepointset_from_database_for_rom_trainer</Output>
+        <Output  class='OutStreamManager' type='Print'>ciccio</Output>
+    </IOStep>  
+    <RomTrainer name='test_rom_trainer' debug='True'>
+        <Input   class='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Output  class='Models' type='ROM'         >ROM1</Output>
+    </RomTrainer>
+    <RomTrainer name='test_rom_trainer_nd_interp'>
+        <Input   class='Datas'  type='TimePointSet'>timepointset_from_database_for_rom_trainer</Input>
+        <Output  class='Models' type='ROM'         >ROM2</Output>
+    </RomTrainer>
+    <MultiRun name='rom_MC' re-seeding='200286'>
+        <Input   class='Datas'    type='TimePoint'   >data_for_sampling_empty_at_begin</Input>
+        <Model   class='Models'   type='ROM'         >ROM1</Model>
+        <Sampler class='Samplers' type='MonteCarlo'  >RAVENmc3</Sampler>
+        <Output  class='Datas'    type='TimePointSet'>outputMontecarloRom</Output>
+        <Output  class='OutStreamManager' type='Print'>outputMontecarloMultiTargetRom_dump</Output>
+    </MultiRun>
+    <MultiRun name='rom_MC_nd_interpolator'>
+        <Input   class='Datas'    type='TimePoint'   >data_for_sampling_empty_at_begin_nd</Input>
+        <Model   class='Models'   type='ROM'         >ROM2</Model>
+        <Sampler class='Samplers' type='MonteCarlo'  >RAVENmcND</Sampler>
+        <Output  class='Datas'    type='TimePointSet'>outputMontecarloRomND</Output>
+        <Output  class='OutStreamManager' type='Print'>outputMontecarloMultiTargetRomND_dump</Output>
+    </MultiRun>
+</Steps>
+
+<OutStreamManager>
+  <Print name='outputMontecarloMultiTargetRom_dump'>
+    <type>csv</type>
+    <source>outputMontecarloRom</source>
+  </Print>
+  <Print name='outputMontecarloMultiTargetRomND_dump'>
+    <type>csv</type>
+    <source>outputMontecarloRomND</source>
+  </Print>
+  <Print name='ciccio'>
+    <type>csv</type>
+    <source>timepointset_from_database_for_rom_trainer</source>
+  </Print>
+</OutStreamManager>
+    
+<DataBases>
+  <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER"/> 
+</DataBases>
+<Datas>
+   <TimePointSet name='timepointset_from_database_for_rom_trainer' inputTs='2'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>CladTempTreshold,UpperPlenum:energy</Output>
+   </TimePointSet>
+   <TimePoint name='data_for_sampling_empty_at_begin' inputTs='2'>
+        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>OutputPlaceHolder</Output>
+   </TimePoint>
+    <TimePoint name='data_for_sampling_empty_at_begin_nd' inputTs='2'>
+        <Input name="1">DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>OutputPlaceHolder</Output>
+    </TimePoint>
+   <TimePointSet name='outputMontecarloRom' inputTs='2'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>CladTempTreshold,UpperPlenum:energy</Output>
+   </TimePointSet>
+    <TimePointSet name='outputMontecarloRomND' inputTs='2'>
+        <Input>DeltaTimeScramToAux,DG1recoveryTime</Input>
+        <Output>CladTempTreshold,UpperPlenum:energy</Output>
+    </TimePointSet>
+</Datas>
+</Simulation>
+
+
+
