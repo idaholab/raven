@@ -273,28 +273,42 @@ class ROM(Dummy):
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
 
   def __init__(self):
-    Dummy.__init__(self)
-    self.initializzationOptionDict = {}
-    self.amITrained   = False
+    Dummy.__init__(self) 
+    self.initializationOptionDict = {}          # ROM initialization options
+    self.amITrained                = False      # boolean flag, is the ROM trained?
+    self.howManyTargets            = 0          # how many targets?
+    self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = returnPrintTag('MODEL ROM')
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      try: self.initializzationOptionDict[child.tag] = int(child.text)
+      try: self.initializationOptionDict[child.tag] = int(child.text)
       except ValueError:
-        try: self.initializzationOptionDict[child.tag] = float(child.text)
-        except ValueError: self.initializzationOptionDict[child.tag] = child.text
+        try: self.initializationOptionDict[child.tag] = float(child.text)
+        except ValueError: self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
-    self.SupervisedEngine = SupervisedLearning.returnInstance(self.subType,**self.initializzationOptionDict)
+    # check how many targets
+    if not 'Target' in self.initializationOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
+    targets = self.initializationOptionDict['Target'].split(',')
+    self.howManyTargets = len(targets)
+    for target in targets:
+      self.initializationOptionDict['Target'] = target
+      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
 
   def reset(self):
-    self.SupervisedEngine.reset()
+    '''
+    Reset the ROM
+    @ In,  None
+    @ Out, None
+    '''
+    for instrom in self.SupervisedEngine.values(): instrom.reset()
     self.amITrained   = False
 
   def addInitParams(self,originalDict):
     '''the ROM setting parameters are added'''
-    ROMdict = self.SupervisedEngine.returnInitialParameters()
+    ROMdict = {}
+    for target, instrom in self.SupervisedEngine.items(): ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
     for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
 
   def train(self,trainingSet):
@@ -304,28 +318,41 @@ class ROM(Dummy):
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
     self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-    self.SupervisedEngine.train(self.trainingSet)
-    self.amITrained = self.SupervisedEngine.amITrained
+    self.amITrained = True
+    for instrom in self.SupervisedEngine.values(): 
+      instrom.train(self.trainingSet)
+      self.aimITrained = self.amITrained and instrom.amITrained
     if self.debug:print('FIXME: add self.amITrained to currentParamters')
 
-  def confidence(self,request):
+  def confidence(self,request,target = None):
     '''
     This is to get a value that is inversely proportional to the confidence that we have
     forecasting the target value for the given set of features. The reason to chose the inverse is because
     in case of normal distance this would be 1/distance that could be infinity
+    @ In, request, datatype, feature coordinates (request)
+    @ In, target, string, optional, target name (by default the first target entered in the input file)
     '''
     inputToROM = self._inputToInternal(request)
-    return self.SupervisedEngine.confidence(inputToROM)
+    if target != None: return self.SupervisedEngine[target].confidence(inputToROM)
+    else             : return self.SupervisedEngine.values()[0].confidence(inputToROM)
 
-  def evaluate(self,request):
-    '''when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used'''
+  def evaluate(self,request, target = None):
+    '''
+    when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
+    @ In, request, datatype, feature coordinates (request)
+    @ In, target, string, optional, target name (by default the first target entered in the input file)
+    '''
     inputToROM = self._inputToInternal(request)
-    return self.SupervisedEngine.evaluate(inputToROM)
+    if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
+    else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
 
   def run(self,Input,jobHandler):
     '''This call run a ROM as a model'''
+    def lambdaReturnOut(inRun):
+      returnDict = {}
+      for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
+      return returnDict
     inRun = self._manipulateInput(Input[0])
-    lambdaReturnOut = lambda inRun: {self.SupervisedEngine.target:self.evaluate(inRun)}
     jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
 #
 #

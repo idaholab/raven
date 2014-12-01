@@ -85,6 +85,17 @@
   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
+ [./test_multi_target_rom]
+  type = 'RavenFramework'
+  input = 'test_multi_target_rom.xml'
+  output = 'test_rom_trainer/MC_for_rom_trainer/out~1~TMI test_rom_trainer/MC_for_rom_trainer/out~2~TMI.csv'
+  csv = 'test_rom_trainer/outputMontecarloMultiTargetRom_dump.csv test_rom_trainer/outputMontecarloMultiTargetRomND_dump.csv'
+  max_time = 1500
+  rel_err = 0.001
+  required_executable = '../../RAVEN-%METHOD%'
+ [../]
+
+
  [./test_rom_train_from_already_dumped_HDF5]
   type = 'RavenFramework'
   input = 'test_rom_train_from_already_dumped_HDF5.xml'
