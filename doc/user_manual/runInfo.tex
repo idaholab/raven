@@ -187,6 +187,22 @@ class NewMode(Simulation.SimulationMode):
     # instead of running the simulation normally.  
     # This method should call simulation.run somehow 
     return True
+
+  def runOverride(self):
+    # this can completely override the Simulation's run method
+    pass
+
+  def modifySimulation(self):
+    # modifySimulation is called after the runInfoDict has been setup.
+    # This allows the mode to change any parameters that need changing.
+    # This typically modifies the precommand and the postcommand that
+    # are put infront of the command and after the command.
+    pass
+
+  def XMLread(self,xmlNode):
+    # XMLread is called with the mode node, and can be used to
+    # get extra parameters needed for the simulation mode.
+    pass
 -------------------------------------------------------
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
