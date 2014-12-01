@@ -690,7 +690,7 @@ class OutStreamPlot(OutStreamManager):
       elif self.outStreamTypes[pltindex] == 'line':
         for key in self.xValues[pltindex].keys():
           for x_index in range(len(self.xValues[pltindex][key])):
-            if self.colorMapCoordinates: self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = str(max(100,len(self.xValues[pltindex][key][x_index])))
+            if self.colorMapCoordinates: self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = str(max(200,len(self.xValues[pltindex][key][x_index])))
             if self.xValues[pltindex][key][x_index].size <= 2: xi = self.xValues[pltindex][key][x_index]
             else: xi = np.linspace(self.xValues[pltindex][key][x_index].min(),self.xValues[pltindex][key][x_index].max(),ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['interpPointsX']))
             for y_index in range(len(self.yValues[pltindex][key])):
