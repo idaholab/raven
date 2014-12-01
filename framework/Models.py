@@ -273,8 +273,8 @@ class ROM(Dummy):
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
 
   def __init__(self):
-    Dummy.__init__(self)
-    self.initializzationOptionDict = {}         # ROM initialization options
+    Dummy.__init__(self) 
+    self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
@@ -283,18 +283,18 @@ class ROM(Dummy):
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      try: self.initializzationOptionDict[child.tag] = int(child.text)
+      try: self.initializationOptionDict[child.tag] = int(child.text)
       except ValueError:
-        try: self.initializzationOptionDict[child.tag] = float(child.text)
-        except ValueError: self.initializzationOptionDict[child.tag] = child.text
+        try: self.initializationOptionDict[child.tag] = float(child.text)
+        except ValueError: self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
-    if not 'Target' in self.initializzationOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
-    targets = self.initializzationOptionDict['Target'].split(',')
+    if not 'Target' in self.initializationOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
+    targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
     for target in targets:
-      self.initializzationOptionDict['Target'] = target
-      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializzationOptionDict)
+      self.initializationOptionDict['Target'] = target
+      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
 
   def reset(self):
     '''
@@ -318,8 +318,10 @@ class ROM(Dummy):
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
     self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-    for instrom in self.SupervisedEngine.values(): instrom.train(self.trainingSet)
     self.amITrained = True
+    for instrom in self.SupervisedEngine.values(): 
+      instrom.train(self.trainingSet)
+      self.aimITrained = self.amITrained and instrom.amITrained
     if self.debug:print('FIXME: add self.amITrained to currentParamters')
 
   def confidence(self,request,target = None):
