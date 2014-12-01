@@ -10,7 +10,7 @@
 []
 [EoS]
   [./eos]
-    type = NonIsothermalEquationOfState
+    type = LinearEquationOfState
     p_0 = 1.e5 # Pa
     rho_0 = 1.e3 # kg/m^3
     a2 = 1.e7 # m^2/s^2
