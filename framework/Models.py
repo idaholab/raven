@@ -273,7 +273,7 @@ class ROM(Dummy):
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
 
   def __init__(self):
-    Dummy.__init__(self) 
+    Dummy.__init__(self)
     self.initializationOptionDict = {}          # ROM initialization options
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.howManyTargets            = 0          # how many targets?
@@ -319,7 +319,7 @@ class ROM(Dummy):
             are supposed to have weight one.'''
     self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
     self.amITrained = True
-    for instrom in self.SupervisedEngine.values(): 
+    for instrom in self.SupervisedEngine.values():
       instrom.train(self.trainingSet)
       self.aimITrained = self.amITrained and instrom.amITrained
     if self.debug:print('FIXME: add self.amITrained to currentParamters')
