@@ -13,7 +13,7 @@ find_crow(os.path.dirname(os.path.abspath(sys.argv[0])))
 
 
 import Distributions
-import CollocationSets
+import Quadrature
 
 print (Distributions)
 def createElement(tag,attrib={},text={}):
@@ -35,17 +35,18 @@ def checkAnswer(comment,value,expected):
     results["pass"] += 1
 
 def checkObject(comment,value,expected):
-  if legendre!=uniform.collocationSet():
+  if value!=expected:
     print(comment,value,"!=",expected)
     results['fail']+=1
   else: results['pass']+=1
 
-
-#Test Uniform
-
 def testPoly(n,y):
-  return (n+1)*y**n
+  return y**n
 
+
+#Test Legendre for Uniform
+
+#make distribution
 uniformElement = ET.Element("uniform")
 uniformElement.append(createElement("low",text="1.0"))
 uniformElement.append(createElement("hi",text="5.0"))
@@ -54,22 +55,28 @@ uniform = Distributions.Uniform()
 uniform._readMoreXML(uniformElement)
 uniform.initializeDistribution()
 
-legendre = CollocationSets.Legendre(uniform,1)
-uniform.setCollocation(legendre,1)
+#make quadrature
+legendreElement = ET.Element("legendre")
+legendre = Quadrature.Legendre()
+legendre._readMoreXML(uniformElement)
+legendre.initialize()
 
-checkObject("setting legendre collocation in uniform",uniform.collocationSet(),legendre)
+#link quadrature to distr
+uniform.setQuadrature(legendre)
+checkObject("setting legendre collocation in uniform",uniform.quadratureSet(),legendre)
 
 #test points and weights conversion
 stdpts=[-2,-1, 0, 1, 2]
 actpts=[-1, 1, 3, 5, 7]
 for s,std in enumerate(stdpts):
   act=actpts[s]
-  checkAnswer("legendre std-to-act pt (%i)" %std,legendre.stdToActPoint(std),actpts[s])
-  checkAnswer("legendre act-to-std pt (%i)" %act,legendre.actToStdPoint(act),stdpts[s])
+  checkAnswer("uniform-legendre std-to-act pt (%i)" %std,uniform.convertStdPointsToDistr(std),actpts[s])
+  checkAnswer("uniform-legendre act-to-std pt (%i)" %act,uniform.convertDistrPointsToStd(act),stdpts[s])
 
 #test quadrature integration
 for i in range(1,6):
-  pts,wts = legendre.generatePtsAndWts(i,std=False)
+  pts,wts = legendre(i)
+  pts = uniform.convertStdPointsToDistr(pts)
   totu=0
   if i>=1.5:tot2=0
   if i>=3  :tot5=0
@@ -78,40 +85,48 @@ for i in range(1,6):
     if i>=1.5:tot2+=testPoly(2,pt)*wts[p]*uniform.probabilityNorm(std=True)
     if i>=3  :tot5+=testPoly(5,pt)*wts[p]*uniform.probabilityNorm(std=True)
   checkAnswer("legendre integrate weights with O(%i)" %i,totu,1.0)
-  if i>=1.5:checkAnswer("legendre integrate 3y^2 with O(%i)" %i,tot2,31.)
-  if i>=3  :checkAnswer("legendre integrate 6y^5 with O(%i)" %i,tot5,3906.)
+  if i>=1.5:checkAnswer("uniform-legendre integrate y^2 with O(%i)" %i,tot2,31./3.)
+  if i>=3  :checkAnswer("uniform-legendre integrate y^5 with O(%i)" %i,tot5,3906./6.)
 
 
-#Test Normal
 
-def testPoly(n,x):
-  return x**n
 
+
+#Test Hermite for Normals
+
+#make distrubtion
 normalElement = ET.Element("normal")
-u=1.0
-sd=2.0
-normalElement.append(createElement("mean",text="%f"%u))
-normalElement.append(createElement("sigma",text="%f"%sd))
+mean=1.0
+stdv=2.0
+normalElement.append(createElement("mean",text="%f"%mean))
+normalElement.append(createElement("sigma",text="%f"%stdv))
 
 normal = Distributions.Normal()
 normal._readMoreXML(normalElement)
+normal.initializeDistribution()
 
-hermite = CollocationSets.Hermite(normal,1)
-normal.setCollocation(hermite,1)
+#make quadrature
+hermiteElement = ET.Element('hermite')
+hermite = Quadrature.Hermite()
+hermite._readMoreXML(hermiteElement)
+hermite.initialize()
 
-checkObject("setting hermite collocation in normal",normal.collocationSet(),hermite)
+#link quadrature to distr
+normal.setQuadrature(hermite)
+checkObject("setting hermite collocation in normal",normal.quadratureSet(),hermite)
 
 #test points and weights conversion
 stdpts=[-2,-1, 0, 1, 2]
 actpts=[-3,-1, 1, 3, 5]
 for s,std in enumerate(stdpts):
   act=actpts[s]
-  checkAnswer("hermite std-to-act pt (%i)" %std,hermite.stdToActPoint(std),actpts[s])
-  checkAnswer("hermite act-to-std pt (%i)" %act,hermite.actToStdPoint(act),stdpts[s])
+  checkAnswer("normal-hermite std-to-act pt (%i)" %std,normal.convertStdPointsToDistr(std),actpts[s])
+  checkAnswer("normal-hermite act-to-std pt (%i)" %act,normal.convertDistrPointsToStd(act),stdpts[s])
 
 #test quadrature integration
 for i in range(1,6):
-  pts,wts = hermite.generatePtsAndWts(i)
+  pts,wts = hermite(i)
+  pts = normal.convertStdPointsToDistr(pts)
   totu=0
   tot0=0
   tot1=0
@@ -125,157 +140,223 @@ for i in range(1,6):
     tot2+=testPoly(2,pt)*wts[p]*normal.probabilityNorm()
     tot4+=testPoly(3,pt)*wts[p]*normal.probabilityNorm()
     tot6+=testPoly(4,pt)*wts[p]*normal.probabilityNorm()
-  checkAnswer(        "hermite integrate weights with O(%i)" %i,totu,1.0)
-  checkAnswer(        "hermite integrate x^0*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot0,1)
-  if i>=1:checkAnswer("hermite integrate x^1*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot1,1)
-  if i>=2:checkAnswer("hermite integrate x^2*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot2,5)
-  if i>=3:checkAnswer("hermite integrate x^3*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot4,13)
-  if i>=4:checkAnswer("hermite integrate x^4*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(u,sd,i),tot6,73)
+  checkAnswer(        "normal-hermite integrate weights with O(%i)" %i,totu,1.0)
+  checkAnswer(        "normal-hermite integrate x^0*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(mean,stdv,i),tot0,1)
+  if i>=1:checkAnswer("normal-hermite integrate x^1*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(mean,stdv,i),tot1,1)
+  if i>=2:checkAnswer("normal-hermite integrate x^2*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(mean,stdv,i),tot2,5)
+  if i>=3:checkAnswer("normal-hermite integrate x^3*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(mean,stdv,i),tot4,13)
+  if i>=4:checkAnswer("normal-hermite integrate x^4*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(mean,stdv,i),tot6,73)
 
-#Test Truncated Normal-like Beta
+#Test Truncated Norm as Non-Standard
+#TODO
+#truncNormalElement = ET.Element("truncnorm")
+#truncNormalElement.append(createElement("mean",text="1.0"))
+#truncNormalElement.append(createElement("sigma",text="2.0"))
+#truncNormalElement.append(createElement("lowerBound",text="-1.0"))
+#truncNormalElement.append(createElement("upperBound",text="3.0"))
+#
+#truncNormal = Distributions.Normal()
+#truncNormal._readMoreXML(truncNormalElement)
+#truncNormal.initializeDistribution()
+#
+#checkCrowDist("truncNormal",truncNormal,{'xMin': -1.0, 'mu': 1.0, 'type': 'NormalDistribution', 'sigma': 2.0, 'xMax': 3.0})
+#
+#checkAnswer("truncNormal cdf(0.0)",truncNormal.cdf(0.0),0.219546787406)
+#checkAnswer("truncNormal cdf(1.0)",truncNormal.cdf(1.0),0.5)
+#checkAnswer("truncNormal cdf(2.0)",truncNormal.cdf(2.0),0.780453212594)
+#
+#checkAnswer("truncNormal ppf(0.1)",truncNormal.ppf(0.1),-0.498029197939)
+#checkAnswer("truncNormal ppf(0.5)",truncNormal.ppf(0.5),1.0)
+#checkAnswer("truncNormal ppf(0.9)",truncNormal.ppf(0.9),2.49802919794)
 
-tbn=normal._constructBeta(numStdDev=5)
-print('Beta low,hi,mean:',tbn.low,tbn.hi,tbn.untruncatedMean())
-checkAnswer("Beta-truncated Normal mean",tbn.untruncatedMean(),normal.untruncatedMean())
+#Test Gamma - Laguerre
 
-print(tbn.lowerBound,tbn.upperBound)
-print('')
-print(tbn.pdf(0))
-print(tbn.pdf(5))
-print(tbn.pdf(9.999))
-print(tbn.pdf(10))
-print(tbn.pdf(10.001))
-print(tbn.pdf(15))
-print(tbn.pdf(20))
-#checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
-#checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
-#checkAnswer("scaled beta ppf(0.1)",beta.ppf(0.1),2.52382937792)
-#checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
-#checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
-
-
-sys.exit()
-truncNormalElement = ET.Element("truncnorm")
-truncNormalElement.append(createElement("mean",text="1.0"))
-truncNormalElement.append(createElement("sigma",text="2.0"))
-truncNormalElement.append(createElement("lowerBound",text="-1.0"))
-truncNormalElement.append(createElement("upperBound",text="3.0"))
-
-truncNormal = Distributions.Normal()
-truncNormal._readMoreXML(truncNormalElement)
-truncNormal.initializeDistribution()
-
-checkCrowDist("truncNormal",truncNormal,{'xMin': -1.0, 'mu': 1.0, 'type': 'NormalDistribution', 'sigma': 2.0, 'xMax': 3.0})
-
-checkAnswer("truncNormal cdf(0.0)",truncNormal.cdf(0.0),0.219546787406)
-checkAnswer("truncNormal cdf(1.0)",truncNormal.cdf(1.0),0.5)
-checkAnswer("truncNormal cdf(2.0)",truncNormal.cdf(2.0),0.780453212594)
-
-checkAnswer("truncNormal ppf(0.1)",truncNormal.ppf(0.1),-0.498029197939)
-checkAnswer("truncNormal ppf(0.5)",truncNormal.ppf(0.5),1.0)
-checkAnswer("truncNormal ppf(0.9)",truncNormal.ppf(0.9),2.49802919794)
-
-#Test Gamma
-
+#make distribution
 gammaElement = ET.Element("gamma")
-gammaElement.append(createElement("low",text="0.0"))
-gammaElement.append(createElement("alpha",text="1.0"))
-gammaElement.append(createElement("beta",text="0.5"))
+low = -2.0
+alpha = 2.0
+beta = 3.0
+gammaElement.append(createElement("low",text="%f" %low))
+gammaElement.append(createElement("alpha",text="%f" %alpha))
+gammaElement.append(createElement("beta",text="%f" %beta))
 
 gamma = Distributions.Gamma()
 gamma._readMoreXML(gammaElement)
 gamma.initializeDistribution()
 
-checkCrowDist("gamma",gamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
+#make quadrature
+laguerreElement = ET.Element('laguerre')
+laguerreElement.append(createElement("alpha",text="%f" %alpha)) #TODO should these be set independently?
+laguerre = Quadrature.Laguerre()
+laguerre._readMoreXML(laguerreElement)
+laguerre.initialize()
 
-checkAnswer("gamma cdf(0.0)",gamma.cdf(0.0),0.0)
-checkAnswer("gamma cdf(1.0)",gamma.cdf(1.0),0.393469340287)
-checkAnswer("gamma cdf(10.0)",gamma.cdf(10.0),0.993262053001)
+#set quadrature to distr
+gamma.setQuadrature(laguerre)
+checkObject("setting laguerre collocation in gamma",gamma.quadratureSet(),laguerre)
 
-checkAnswer("gamma ppf(0.1)",gamma.ppf(0.1),0.210721031316)
-checkAnswer("gamma ppf(0.5)",gamma.ppf(0.5),1.38629436112)
-checkAnswer("gamma ppf(0.9)",gamma.ppf(0.9),4.60517018599)
+#test points and weights conversion
+stdpts=[ 0, 3, 6, 9, 12]
+actpts=[-2,-1, 0, 1,  2]
+for s,std in enumerate(stdpts):
+  act=actpts[s]
+  checkAnswer("gamma-laguerre std-to-act pt (%i)" %std,gamma.convertStdPointsToDistr(std),actpts[s])
+  checkAnswer("gamma-laguerre act-to-std pt (%i)" %act,gamma.convertDistrPointsToStd(act),stdpts[s])
 
+#test quadrature integration
+for i in range(1,6):
+  pts,wts = laguerre(i)
+  pts = gamma.convertStdPointsToDistr(pts)
+  totu=0
+  tot0=0
+  tot1=0
+  tot2=0
+  tot3=0
+  tot4=0
+  for p,pt in enumerate(pts):
+    totu+=wts[p]*gamma.probabilityNorm()
+    tot0+=testPoly(0,pt)*wts[p]*gamma.probabilityNorm()
+    tot1+=testPoly(1,pt)*wts[p]*gamma.probabilityNorm()
+    tot2+=testPoly(2,pt)*wts[p]*gamma.probabilityNorm()
+    tot3+=testPoly(3,pt)*wts[p]*gamma.probabilityNorm()
+    tot4+=testPoly(4,pt)*wts[p]*gamma.probabilityNorm()
+  checkAnswer(        "gamma-laguerre integrate weights with O(%i)" %i,totu,1.0)
+  checkAnswer(        "gamma-laguerre integrate x^0*x^%1.2f exp(-%1.2fx) with O(%i)" %(gamma.alpha,gamma.beta,i),tot0,1)
+  if i>=1:checkAnswer("gamma-laguerre integrate x^1*x^%1.2f exp(-%1.2fx) with O(%i)" %(gamma.alpha,gamma.beta,i),tot1,-4./3.)
+  if i>=2:checkAnswer("gamma-laguerre integrate x^2*x^%1.2f exp(-%1.2fx) with O(%i)" %(gamma.alpha,gamma.beta,i),tot2,2)
+  if i>=3:checkAnswer("gamma-laguerre integrate x^3*x^%1.2f exp(-%1.2fx) with O(%i)" %(gamma.alpha,gamma.beta,i),tot3,-28./9.)
+  if i>=4:checkAnswer("gamma-laguerre integrate x^4*x^%1.2f exp(-%1.2fx) with O(%i)" %(gamma.alpha,gamma.beta,i),tot4,136./27.)
+
+#
+#checkCrowDist("gamma",gamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
+#
+#checkAnswer("gamma cdf(0.0)",gamma.cdf(0.0),0.0)
+#checkAnswer("gamma cdf(1.0)",gamma.cdf(1.0),0.393469340287)
+#checkAnswer("gamma cdf(10.0)",gamma.cdf(10.0),0.993262053001)
+#
+#checkAnswer("gamma ppf(0.1)",gamma.ppf(0.1),0.210721031316)
+#checkAnswer("gamma ppf(0.5)",gamma.ppf(0.5),1.38629436112)
+#checkAnswer("gamma ppf(0.9)",gamma.ppf(0.9),4.60517018599)
+#
 #print(gamma.rvs(5),gamma.rvs())
 
 #Test Beta
+#TODO
+#betaElement = ET.Element("beta")
+#betaElement.append(createElement("low",text="0.0"))
+#betaElement.append(createElement("hi",text="1.0"))
+#betaElement.append(createElement("alpha",text="5.0"))
+#betaElement.append(createElement("beta",text="2.0"))
+#
+#beta = Distributions.Beta()
+#beta._readMoreXML(betaElement)
+#beta.initializeDistribution()
+#
+#checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+#
+#checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
+#checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
+#checkAnswer("beta cdf(0.9)",beta.cdf(0.9),0.885735)
+#
+#checkAnswer("beta ppf(0.1)",beta.ppf(0.1),0.489683693449)
+#checkAnswer("beta ppf(0.5)",beta.ppf(0.5),0.735550016704)
+#checkAnswer("beta ppf(0.9)",beta.ppf(0.9),0.907404741087)
+#
+#checkAnswer("beta mean()",beta.untruncatedMean(),5.0/(5.0+2.0))
+#checkAnswer("beta median()",beta.untruncatedMedian(),0.735550016704)
+#checkAnswer("beta mode()",beta.untruncatedMode(),(5.0-1)/(5.0+2.0-2))
+#
+#checkAnswer("beta pdf(0.25)",beta.pdf(0.25),0.087890625)
+#checkAnswer("beta cdfComplement(0.25)",beta.untruncatedCdfComplement(0.25),0.995361328125)
+#checkAnswer("beta hazard(0.25)",beta.untruncatedHazard(0.25),0.0883002207506)
+#
+#print(beta.rvs(5),beta.rvs())
+#
+##Test Beta Scaled
+#
+#betaElement = ET.Element("beta")
+#betaElement.append(createElement("low",text="0.0"))
+#betaElement.append(createElement("hi",text="4.0"))
+#betaElement.append(createElement("alpha",text="5.0"))
+#betaElement.append(createElement("beta",text="1.0"))
+#
+#beta = Distributions.Beta()
+#beta._readMoreXML(betaElement)
+#beta.initializeDistribution()
+#
+#checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+#
+#checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
+#checkAnswer("scaled beta cdf(0.5)",beta.cdf(0.5),3.0517578125e-05)
+#checkAnswer("scaled beta cdf(0.9)",beta.cdf(0.9),0.000576650390625)
+#
+#checkAnswer("scaled beta ppf(0.1)",beta.ppf(0.1),2.52382937792)
+#checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
+#checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
+#
+#print(beta.rvs(5),beta.rvs())
 
-betaElement = ET.Element("beta")
-betaElement.append(createElement("low",text="0.0"))
-betaElement.append(createElement("hi",text="1.0"))
-betaElement.append(createElement("alpha",text="5.0"))
-betaElement.append(createElement("beta",text="2.0"))
+#Test Triangular - Legendre (through Irregular)
 
-beta = Distributions.Beta()
-beta._readMoreXML(betaElement)
-beta.initializeDistribution()
-
-checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
-
-checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
-checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
-checkAnswer("beta cdf(0.9)",beta.cdf(0.9),0.885735)
-
-checkAnswer("beta ppf(0.1)",beta.ppf(0.1),0.489683693449)
-checkAnswer("beta ppf(0.5)",beta.ppf(0.5),0.735550016704)
-checkAnswer("beta ppf(0.9)",beta.ppf(0.9),0.907404741087)
-
-checkAnswer("beta mean()",beta.untruncatedMean(),5.0/(5.0+2.0))
-checkAnswer("beta median()",beta.untruncatedMedian(),0.735550016704)
-checkAnswer("beta mode()",beta.untruncatedMode(),(5.0-1)/(5.0+2.0-2))
-
-checkAnswer("beta pdf(0.25)",beta.pdf(0.25),0.087890625)
-checkAnswer("beta cdfComplement(0.25)",beta.untruncatedCdfComplement(0.25),0.995361328125)
-checkAnswer("beta hazard(0.25)",beta.untruncatedHazard(0.25),0.0883002207506)
-
-print(beta.rvs(5),beta.rvs())
-
-#Test Beta Scaled
-
-betaElement = ET.Element("beta")
-betaElement.append(createElement("low",text="0.0"))
-betaElement.append(createElement("hi",text="4.0"))
-betaElement.append(createElement("alpha",text="5.0"))
-betaElement.append(createElement("beta",text="1.0"))
-
-beta = Distributions.Beta()
-beta._readMoreXML(betaElement)
-beta.initializeDistribution()
-
-checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
-
-checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
-checkAnswer("scaled beta cdf(0.5)",beta.cdf(0.5),3.0517578125e-05)
-checkAnswer("scaled beta cdf(0.9)",beta.cdf(0.9),0.000576650390625)
-
-checkAnswer("scaled beta ppf(0.1)",beta.ppf(0.1),2.52382937792)
-checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
-checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
-
-print(beta.rvs(5),beta.rvs())
-
-#Test Triangular
-
+#make distribution
 triangularElement = ET.Element("triangular")
-triangularElement.append(createElement("min",text="0.0"))
-triangularElement.append(createElement("apex",text="3.0"))
-triangularElement.append(createElement("max",text="4.0"))
+triangularElement.append(createElement("min",text="1.0"))
+triangularElement.append(createElement("apex",text="4.0"))
+triangularElement.append(createElement("max",text="5.0"))
 
 triangular = Distributions.Triangular()
 triangular._readMoreXML(triangularElement)
 triangular.initializeDistribution()
 
-checkCrowDist("triangular",triangular,{'lowerBound': 0.0, 'type': 'TriangularDistribution', 'upperBound': 4.0, 'xMax': 4.0, 'xMin': 0.0, 'xPeak': 3.0})
+#make quadrature
+legendreElement = ET.Element("legendre")
+legendre = Quadrature.Legendre()
+legendre._readMoreXML(uniformElement)
+legendre.initialize()
 
-checkAnswer("triangular cdf(0.25)",triangular.cdf(0.25),0.00520833333333)
-checkAnswer("triangular cdf(3.0)",triangular.cdf(3.0),0.75)
-checkAnswer("triangular cdf(3.5)",triangular.cdf(3.5),0.9375)
+#link quad to distr
+triangular.setQuadrature(legendre)
+checkObject("setting irregular-legendre collocation in triangular",triangular.quadratureSet(),legendre)
 
-checkAnswer("triangular ppf(0.1)",triangular.ppf(0.1),1.09544511501)
-checkAnswer("triangular ppf(0.5)",triangular.ppf(0.5),2.44948974278)
-checkAnswer("triangular ppf(0.9)",triangular.ppf(0.9),3.36754446797)
+ptset = [(-1, 1),
+         (-0.5, 2.73205080757),
+         (0, 3.44948974278),
+         (0.5, 4),
+         (1, 5)]
 
-print(triangular.rvs(5),triangular.rvs())
+for s,pt in enumerate(ptset):
+  checkAnswer("triangular-legendre std-to-act pt (%f)" %std,triangular.convertStdPointsToDistr(pt[0]),pt[1])
+  checkAnswer("triangular-legendre act-to-std pt (%i)" %act,triangular.convertDistrPointsToStd(pt[1]),pt[0])
+
+for i in range(1,100,5):
+  pts,wts = legendre(i)
+  pts = triangular.convertStdPointsToDistr(pts)
+  totu=0
+  tot0=0
+  tot1=0
+  tot2=0
+  tot3=0
+  tot4=0
+  for p,pt in enumerate(pts):
+    totu+=wts[p]*triangular.probabilityNorm()
+    tot0+=testPoly(0,pt)*wts[p]*triangular.probabilityNorm()
+    tot1+=testPoly(1,pt)*wts[p]*triangular.probabilityNorm()
+    tot2+=testPoly(2,pt)*wts[p]*triangular.probabilityNorm()
+    tot3+=testPoly(3,pt)*wts[p]*triangular.probabilityNorm()
+    tot4+=testPoly(4,pt)*wts[p]*triangular.probabilityNorm()
+  checkAnswer(        "irreg triang integrate weights with O(%i)" %i,totu,1.0)
+  checkAnswer(        "irreg triang integrate x^0 with O(%i)" %i,tot0,1.0)
+  #if i>=1:checkAnswer("irreg triang integrate x^1 with O(%i)" %i,tot1,10./3.)
+  print('Quad order %i, err: %1.5e' %(i,tot1-10./3.))
+  #if i>=1:checkAnswer("irreg triang integrate x^2 with O(%i)" %i,tot2,71./6.)
+  #if i>=1:checkAnswer("irreg triang integrate x^3 with O(%i)" %i,tot3,1760./40.)
+  #if i>=1:checkAnswer("irreg triang integrate x^4 with O(%i)" %i,tot4,847./5.)
+
+#FIXME problem for testing - this converges, but is by no means exact
+
+
+
+sys.exit()
 
 #Test Poisson
 
