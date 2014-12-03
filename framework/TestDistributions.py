@@ -35,7 +35,7 @@ def checkAnswer(comment,value,expected):
 def checkCrowDist(comment,dist,expected_crow_dist):
   crow_dist = dist.getCrowDistDict()
   if crow_dist != expected_crow_dist:
-    print(comment,crow_dist,expected_crow_dist)
+    print(comment,'\n',crow_dist,'\n',expected_crow_dist)
     results["fail"] += 1
   else:
     results["pass"] += 1
@@ -108,6 +108,17 @@ checkAnswer("normal probWeight std (1)" ,normal.probabilityWeight( 1,std=True),0
 
 print(normal.rvs(5),normal.rvs())
 
+#Test Truncated Normal as Beta
+
+tbn=normal._constructBeta(numStdDev=5)
+
+checkAnswer("Beta-truncated normal cdf(-5)",tbn.cdf(-5.0),5.97393708692e-4)
+checkAnswer("Beta-truncated normal cdf( 1)",tbn.cdf( 1.0),0.5)
+checkAnswer("Beta-truncated normal cdf( 7)",tbn.cdf( 7.0),0.999402606291)
+checkAnswer("Beta-truncated normal ppf(0.1)",tbn.ppf(0.1),-1.59767602774)
+checkAnswer("Beta-truncated normal ppf(0.5)",tbn.ppf(0.5),1.0)
+checkAnswer("Beta-truncated normal ppf(0.9)",tbn.ppf(0.9),3.59767602774)
+
 #Test Truncated Normal
 
 truncNormalElement = ET.Element("truncnorm")
@@ -165,7 +176,7 @@ beta = Distributions.Beta()
 beta._readMoreXML(betaElement)
 beta.initializeDistribution()
 
-checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'low':0.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
 checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
 checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
@@ -197,7 +208,7 @@ beta = Distributions.Beta()
 beta._readMoreXML(betaElement)
 beta.initializeDistribution()
 
-checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'low':0.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
 checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
 checkAnswer("scaled beta cdf(0.5)",beta.cdf(0.5),3.0517578125e-05)
@@ -206,6 +217,30 @@ checkAnswer("scaled beta cdf(0.9)",beta.cdf(0.9),0.000576650390625)
 checkAnswer("scaled beta ppf(0.1)",beta.ppf(0.1),2.52382937792)
 checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
 checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
+
+print(beta.rvs(5),beta.rvs())
+
+#Test Beta Shifted and Scaled
+
+betaElement = ET.Element("beta")
+betaElement.append(createElement("low",text="-1.0"))
+betaElement.append(createElement("hi",text="5.0"))
+betaElement.append(createElement("alpha",text="5.0"))
+betaElement.append(createElement("beta",text="2.0"))
+
+beta = Distributions.Beta()
+beta._readMoreXML(betaElement)
+beta.initializeDistribution()
+
+checkCrowDist("shifted beta",beta,{'scale': 6.0, 'beta': 2.0, 'low':-1.0, 'xMax': 5.0, 'xMin': -1.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+
+checkAnswer("shifted beta cdf(-0.5)",beta.cdf(-0.5),2.2438164437585733882e-5)
+checkAnswer("shifted beta cdf( 0.5)",beta.cdf( 0.5),4.638671875e-3)
+checkAnswer("shifted beta cdf( 3.5)",beta.cdf( 3.5),5.33935546875e-1)
+
+checkAnswer("shifted beta ppf(0.1)",beta.ppf(0.1),1.93810216069)
+checkAnswer("shifted beta ppf(0.5)",beta.ppf(0.5),3.41330010023)
+checkAnswer("shifted beta ppf(0.9)",beta.ppf(0.9),4.44442844652)
 
 print(beta.rvs(5),beta.rvs())
 

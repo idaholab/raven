@@ -56,7 +56,10 @@ class Distribution(BaseType):
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
     self.printTag             = returnPrintTag('DISTRIBUTIONS')
-    self.preferredPolynomials = None #best polynomial for probability-weighted norm of error
+    self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
+    self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
+    self.polyTypeSet          = False # flag for if polynomials have been set
+    self.quadTypeSet          = False # flag for if quadrature type has been set
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -117,23 +120,60 @@ class Distribution(BaseType):
     CDFlower = self._distribution.cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
-  def setCollocation(self,collset,maxOrder):
+  def setQuadrature(self,quadSet):
     '''
     Function to set the quadrature rule
-    @ In, quad, object -> quadrature
-    @ In, exp_order, int -> expansion order
-    @ Out,         , None
+    @ In, quadSet, object -> collocation quadrature constructor
+    @ Out,         , None 
     '''
-    self.__collocationSet=collset
+    self.__quadSet=quadSet
+    self.quadTypeSet = True
+
+  def setPolynomials(self,polySet,maxOrder):
+    '''
+    Function to set the quadrature rule
+    @ In, polySet, object -> collocation orthonormal polynomial constructor
+    @ In, maxOrder, int -> max polynomial expansion order for input
+    @ Out,         , None 
+    '''
+    self.__polySet=polySet
+    self.polyTypeSet = True
     self.__maxPolynomialOrder=maxOrder
 
-  def collocationSet(self):
-    try: return self.__collocationSet
+  def quadratureSet(self):
+    try: return self.__quadSet
     except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No quadrature has been set for this distr. yet.')
+
+  def polynomialSet(self):
+    try: return self.__polySet
+    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No polynomial has been set for this distr. yet.')
 
   def maxPolyOrder(self):
     try: return self.__maxPolynomialOrder
-    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Quadrature has not been set for this distr. yet.')
+    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Polynomials have not been set for this distr. yet.')
+
+  def _convertDistrPointsToCdf(self,pts):
+    try: return self.cdf(pts)
+    except TypeError: return list(self.cdf(x) for x in pts)
+
+  def _convertCdfPointsToDistr(self,pts):
+    try: return self.ppf(pts)
+    except TypeError: return list(self.ppf(x) for x in pts)
+
+  def _convertCdfPointsToStd(self,pts):
+    try: return 2.0*pts-1.0
+    except TypeError: return list(2.0*x-1.0 for x in pts)
+
+  def _convertStdPointsToCdf(self,pts):
+    try: return 0.5*(pts+1.0)
+    except TypeError: return list(0.5*(x+1.0) for x in pts)
+
+  # currently these get overwritten but can be called in overwrite
+  def convertDistrPointsToStd(self,pts):
+    return self._convertCdfPointsToStd(self._convertDistrPointsToCdf(pts))
+
+  def convertStdPointsToDistr(self,pts):
+    return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
 
 def random():
   '''
@@ -314,6 +354,21 @@ class Uniform(BoostDistribution):
   def initializeDistribution(self):
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
     self.preferredPolynomials = 'Legendre'
+    self.preferredQuadrature = 'Legendre'
+
+  def convertDistrPointsToStd(self,y):
+    quad=self.quadratureSet()
+    if quad.type=='Legendre':
+      return (y-self.untruncatedMean())/(self.range/2.)
+    else:
+      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+
+  def convertStdPointsToDistr(self,x):
+    quad=self.quadratureSet()
+    if quad.type=='Legendre':
+      return self.range/2.*x+self.untruncatedMean()
+    else:
+      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
 
 
 class Normal(BoostDistribution):
@@ -364,8 +419,9 @@ class Normal(BoostDistribution):
                                                                   self.sigma,
                                                                   a,b)
       self.preferredPolynomials = 'Jacobi'
+      self.preferredQuadrature = 'Jacobi'
 
-  def probabilityNorm(self,std=False): #TODO does this need to be fixed for truncated?
+  def probabilityNorm(self,std=False):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
     return 1.0/np.sqrt(2.*np.pi)
     #else: return 1.0/self.sigma/np.sqrt(2.*np.pi)
@@ -374,6 +430,20 @@ class Normal(BoostDistribution):
     '''Evaluates probability weighting factor for distribution type.'''
     if std: return np.exp(-x**2/2.)
     else: return np.exp(-(x-self.mean)**2/2./self.sigma**2)
+
+  def convertDistrPointsToStd(self,y):
+    quad=self.quadratureSet()
+    if quad.type=='Hermite':
+      return (y-self.untruncatedMean())/(self.sigma)
+    else:
+      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+
+  def convertStdPointsToDistr(self,x):
+    quad=self.quadratureSet()
+    if quad.type=='Hermite':
+      return self.sigma*x+self.untruncatedMean()
+    else:
+      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
 
   def _constructBeta(self,numStdDev=5):
     '''Using data from normal distribution and the number of standard deviations
@@ -400,6 +470,7 @@ class Normal(BoostDistribution):
     beta._readMoreXML(betaElement)
     beta.initializeDistribution()
     return beta
+
 
 
 
@@ -458,14 +529,29 @@ class Gamma(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
     self.preferredPolynomials = 'Laguerre'
+    self.preferredQuadrature = 'Laguerre'
+
+  def convertDistrPointsToStd(self,y):
+    quad=self.quadratureSet()
+    if quad.type=='Laguerre':
+      return (y-self.low)*(self.beta)
+    else:
+      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+
+  def convertStdPointsToDistr(self,x):
+    quad=self.quadratureSet()
+    if quad.type=='Laguerre':
+      return x/self.beta+self.low
+    else:
+      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
 
   def probabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
-    return self.beta**self.alpha/factorial(self.alpha-1)
+    #return self.beta**self.alpha/factorial(self.alpha-1.)
+    return 1./factorial(self.alpha-1)
 
   def probabilityWeight(self,x):
     '''Evaluates probability weighting factor for distribution type.'''
-    #TODO is this the right form or is it the k-theta one? see wikipedia
     return x**(self.alpha-1)*np.exp(-x/self.beta)
 
 
@@ -483,10 +569,8 @@ class Beta(BoostDistribution):
     retDict = Distribution.getCrowDistDict(self)
     retDict['alpha'] = self.alpha
     retDict['beta'] = self.beta
-    #TODO I think we need a location here -Paul
-    # On further investigation, it appears Boost might not natively support
-    # shifting domains for Beta distributions.  This could be problamatic.
     retDict['scale'] = self.hi-self.low
+    retDict['low'] = self.low
     return retDict
 
 
@@ -524,13 +608,13 @@ class Beta(BoostDistribution):
 
   def initializeDistribution(self):
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low)
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
     else:
       if self.lowerBoundUsed == False: a = 0.0
       else:a = self.lowerBound
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b)
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
     self.preferredPolynomials = 'Jacobi'
 
   def probabilityNorm(self):
@@ -594,6 +678,9 @@ class Triangular(BoostDistribution):
       self._distribution = distribution1D.BasicTriangularDistribution(self.apex,self.min,self.max)
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated triangular not yet implemented')
+
+  def probabilityNorm(self):
+    return 1.0/2.0;
 
 
 class Poisson(BoostDistribution):
