@@ -3,7 +3,7 @@
 ###############################################################################
 #
 # Optional Environment variables
-# MOOSE_DIR        - Root directory of the MOOSE project 
+# MOOSE_DIR        - Root directory of the MOOSE project
 # HERD_TRUNK_DIR   - Location of the HERD repository
 # FRAMEWORK_DIR    - Location of the MOOSE framework
 #
@@ -25,7 +25,6 @@ endif
 ###############################################################################
 
 CURR_DIR    := $(shell pwd)
-ROOT_DIR    := $(HERD_TRUNK_DIR)
 
 # framework
 include $(FRAMEWORK_DIR)/build.mk
@@ -38,17 +37,14 @@ MISC              := yes
 include           $(MOOSE_DIR)/modules/modules.mk
 ###############################################################################
 
-# dep apps
+# RELAP-7
 APPLICATION_DIR    := $(RELAP7_DIR)
 APPLICATION_NAME   := relap-7
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 include            $(FRAMEWORK_DIR)/app.mk
 
-#APPLICATION_DIR    := $(HERD_TRUNK_DIR)/crow
-#APPLICATION_NAME   := crow
-#DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
-
-CROW_SUBMODULE     := $(CURDIR)/crow
+# CROW
+CROW_SUBMODULE     := $(CURR_DIR)/crow
 ifneq ($(wildcard $(CROW_SUBMODULE)/Makefile),)
   CROW_DIR         ?= $(CROW_SUBMODULE)
 else
@@ -57,16 +53,14 @@ endif
 
 APPLICATION_DIR    := $(CROW_DIR)
 APPLICATION_NAME   := CROW
-
 include 	   $(CROW_DIR)/config.mk
 include            $(CROW_DIR)/crow.mk
 include            $(CROW_DIR)/crow_python_modules.mk
 
-APPLICATION_DIR    := $(HERD_TRUNK_DIR)/raven
+# RAVEN
+APPLICATION_DIR    := $(CURR_DIR)
 APPLICATION_NAME   := RAVEN
-
-include $(HERD_TRUNK_DIR)/raven/raven.mk
+include $(CURR_DIR)/raven.mk
 
 ###############################################################################
 # Additional special case targets should be added here
-
