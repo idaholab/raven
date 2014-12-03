@@ -105,7 +105,7 @@ def print_gpnode(node, depth = 0, output = sys.stdout):
         output.write(prefix+"[./"+node.name+"]\n")
 
     for line in node.comments:
-        output.write(prefix + indent + "# " + line+"\n")
+        output.write(prefix + indent + ("# " + line).rstrip()+"\n")
 
     for param_name in node.params_list:
         param_value = node.params[param_name]
