@@ -1,74 +1,166 @@
-\section{Distributions\\ \vspace{2em}}
-
+\section{Distributions \\ \vspace{2 mm} {\small Author: Andrea Alfonsi}}
+\label{sec:distributions}
 \newcommand{\distname}[1]{\textbf{#1}}
-
 \newcommand{\distattrib}[1]{\textit{#1}}
-
-%Bernoulli - BasicBernoulliDistribution - discrete
-%p
-
-All of the probability distributions fuctions could be truncated by using: 
+RAVEN provides support for several probability distributions. Currently, the user can choose among all the most important 1-Dimensional distributions and N-Dimensional ones, either custom or Multi-Variate.  
+\\ The user needs to specify the probability distributions, that need to be used during the simulation, within the $<Distributions>$ xml block:
 \begin{lstlisting}[style=XML]
-<low>***</low>
-<hi>***</hi>
+<Simulation>
+   ...
+  <Distributions>
+    <!-- here all the distributions, that need to be used, are listed -->
+  </Distributions>
+  ...
+</Simulation>
 \end{lstlisting}
-In case the probability distribution function demanded specific boundary values, those are set by default, and the user can change them.
+In the following two sub-sections, the input requirements for all of them are reported.
+%%%%%% 1-Dimensional Probability distributions
+\subsection{1-Dimensional Probability Distributions}
+\label{subsec:1dDist}
 
+In this sub-section, all the 1-D distributions', currently available in RAVEN, are reported. Firstly, all the probability distributions functions in the code can be truncated by the following keywords:
+\begin{lstlisting}[style=XML]
+<lowerBound>***</lowerBound>
+<upperBound>***</upperBound>
+\end{lstlisting}
+Obviously, each distribution already defines its validity domain (e.g. Normal distribution, [-inf,+inf]).
+\\ RAVEN currently provides support for 12 1-Dimensional distributions.  In the following paragraphs, all the input requirements are reported and commented.
+
+%%%%%% Bernoulli
+\subsubsection{Bernoulli Distribution}
+\label{subsubsec:Bernoulli}
+The \distname{Bernoulli} distribution is a discrete distribution of the outcome of a single trial with only two results, 0 (failure) or 1 (success), with a probability of success \distattrib{p}. It is the simplest building block on which other discrete distributions of sequences of independent Bernoulli trials can be based. Basically, it is the binomial distribution (k = 1, \distattrib{p}) with only one trial.
+\\ The specifications of this distribution must be defined within the xml block $<Bernoulli>$. This xml-node needs to contain the attribute:
+\vspace{-5mm}
 \begin{itemize}
-
-
-\item The \distname{Bernoulli} distribution is a discrete distribution of
-the outcome of a single experiment with success probability
-\distattrib{p}.
+\itemsep0em
+\item \textbf{name}, \textit{required integer attribute}, Name of this distribution. As for the other objects, this is the name that can be used to refer to this specific entity in other input blocks (xml).   
+\end{itemize}
+\vspace{-5mm}
+This distribution can be initialized through the following keyword/s:
+\begin{itemize}
+\item $<p>$, float, required parameter, probability of success.
+ \end{itemize}
 \begin{lstlisting}[style=XML]
-<Bernoulli name='...'>
-<p>***</p>
-\end{lstlisting}
-%binomial - BasicBinomialDistribution - discrete
-%p 
-%n
-
-\item The \distname{Beta} distribution is a continuous distribution.  It has
-four parameters, \distattrib{low} for the lowest value,
-\distattrib{high} for the highest value, \distattrib{alpha} and
-\distattrib{beta} for the shape parameters.
-
-\begin{lstlisting}[style=XML]
-<Beta name='...'>
-<low>***</low>
-<hi>***</hi>
-<alpha>***</alpha>
-<beta>***</beta>
+----------------------------
+Example:
+----------------------------
+<Distributions>
+  ...
+  <Bernoulli name='...'>
+    <p>***</p>
+  </Bernoulli>
+  ...
+</Distributions>
+----------------------------
 \end{lstlisting}
 
-\item The \distname{Binomial} distribution is a discrete distribution of the
-outcome of \distattrib{n} experiments with each experiment having the
-success probability \distattrib{p}.
+%%%%%% Beta
+\subsubsection{Beta Distribution}
+\label{subsubsec:Beta}
+The \distname{Beta} distribution is a continuous distribution  defined on the interval $[0, 1]$ parametrized by two positive shape parameters, denoted by $\alpha$ and $\beta$, that appear as exponents of the random variable and control the shape of the distribution. The distribution domain  can be changed,specifying new boundaries, to fit the user needs.
+\\ The specifications of this distribution must be defined within the xml block $<Beta>$. This xml-node needs to contain the attribute:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+\end{itemize}
+\vspace{-5mm}
+This distribution can be initialized through the following keyword/s:
+\begin{itemize}
+\item $<alpha>$, float, required parameter, first shape parameter;
+\item $<beta>$, float, required parameter, second shape parameter;
+\item $<low>$, float, optional parameter,  lower domain boundary;  
+\item $<high>$, float, required parameter, upper domain boundary.
+\end{itemize}
 
 \begin{lstlisting}[style=XML]
-<Binomial name='...'>
-<n>***</n>
-<p>***</p>
+----------------------------
+Example:
+----------------------------
+<Distributions>
+  ...
+  <Beta name='...'>
+     <low>***</low>
+     <high>***</high>
+     <alpha>***</alpha>
+     <beta>***</beta>
+  </Beta>
+  ...
+</Distributions>
+----------------------------
 \end{lstlisting}
 
-%exponential - BasicExponentialDistribution - continuous
-%lambda
-
-\item The \distname{Exponential} distribution is a continuous distribution
-of which can be used to model the time between independent events that
-happen at a constant average time.  It uses the rate parameter
-\distattrib{lambda}.
+%%%%%% Binomial
+\subsubsection{Binomial Distribution}
+\label{subsubsec:Binomial}
+The \distname{Binomial} distribution is the discrete probability distribution of the number of successes in a sequence of \distattrib{n} independent yes/no experiments, each of which yields success with probability \distattrib{p}. 
+\\ The specifications of this distribution must be defined within the xml block $<Binomial>$. This xml-node needs to contain the attribute:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+\end{itemize}
+\vspace{-5mm}
+This distribution can be initialized through the following keyword/s:
+\begin{itemize}
+\item $<p>$, float, required parameter,  probability of success;
+\item $<n>$, integer, required parameter, number of experiment.
+\end{itemize}
 
 \begin{lstlisting}[style=XML]
-<Exponential name='...'>
-<lambda>***</lambda>
+----------------------------
+Example:
+----------------------------
+<Distributions>
+  ...
+  <Binomial name='...'>
+    <n>***</n>
+    <p>***</p>
+  </Binomial>
+  ...
+</Distributions>
+----------------------------
 \end{lstlisting}
+
+%%%%%% Binomial
+\subsubsection{Exponential Distribution}
+\label{subsubsec:Exponential}
+The \distname{Exponential} distribution is a continuous distribution that can be used to model the time between independent events that
+happen at a constant average time. 
+\\ The specifications of this distribution must be defined within the xml block $<Exponential>$. This xml-node needs to contain the attribute:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this distribution. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml).   
+\end{itemize}
+\vspace{-5mm}
+This distribution can be initialized through the following keyword/s:
+\begin{itemize}
+\item $<lambda>$, float, required parameter,  rate parameter.
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+----------------------------
+Example:
+----------------------------
+<Distributions>
+  ...
+  <Exponential name='...'>
+    <lambda>***</lambda>
+  </Exponential>
+  ...
+</Distributions>
+----------------------------
+\end{lstlisting}
+
+
 
 %logistic - BasicLogisticDistribution - continuous
 %location
 %scale
 
-\item The \distname{Gamma} distribution is a continuous distribution.  It
+ The \distname{Gamma} distribution is a continuous distribution.  It
 has three parameters, \distattrib{low} for the lowest value,
 \distattrib{alpha} is the shape parameter, and \distattrib{beta} which
 is 1/scale or the inverse scale parameter.
@@ -81,7 +173,7 @@ is 1/scale or the inverse scale parameter.
 \end{lstlisting}
 
 
-\item The \distname{Logistic} distribution is a continuous distribution
+The \distname{Logistic} distribution is a continuous distribution
 similar to the normal distribution with a CDF that is an instance of a
 logistic function.  It has two parameters, \distattrib{location} with
 is the most common value and the center, and \distattrib{scale} which
@@ -97,7 +189,7 @@ determines the shape.
 %mean
 %sigma
 
-\item The \distname{LogNormal} distribution is a continuous distribution
+The \distname{LogNormal} distribution is a continuous distribution
 with the logarithm of the random variable being normally distributed.
 It has two parameters, \distattrib{mean} which is the expected value,
 and \distattrib{sigma} which is the standard deviation.
@@ -112,7 +204,7 @@ and \distattrib{sigma} which is the standard deviation.
 %mean
 %sigma
 
-\item The \distname{Normal} distribution (or Gaussian) distribution is a
+The \distname{Normal} distribution (or Gaussian) distribution is a
 continuous distribution which because of the central limit theorem,
 the mean of many distributions approximates a normal distribution.  It
 has two parameters, \distattrib{mean} which is the middle value, and
@@ -128,7 +220,7 @@ has two parameters, \distattrib{mean} which is the middle value, and
 %Poisson - BasicPoissonDistribution - discrete
 %mu
 
-\item The \distname{Poisson} distribution is a discrete distribution that
+The \distname{Poisson} distribution is a discrete distribution that
 expresses the probability of the number of events occurring in a fixed
 period of time.  It has one parameter, \distattrib{mu} the mean rate
 of events/time.
@@ -143,7 +235,7 @@ of events/time.
 %min
 %max
 
-\item The \distname{Triangular} distribution is a continuous distribution
+The \distname{Triangular} distribution is a continuous distribution
 that has a triangular shape for the PDF.  The peak falls at the
 \distattrib{apex} and the values run from \distattrib{min} to
 \distattrib{max}.
@@ -160,7 +252,7 @@ that has a triangular shape for the PDF.  The peak falls at the
 %low
 %high
 
-\item The \distname{Uniform} distribution is a continuous distribution with
+The \distname{Uniform} distribution is a continuous distribution with
 a rectangular shaped PDF.  It goes from \distattrib{low} to
 \distattrib{high}.
 
@@ -174,7 +266,7 @@ a rectangular shaped PDF.  It goes from \distattrib{low} to
 %k
 %lambda
 
-\item The \distname{Weibull} distribution is a continuous distribution that
+The \distname{Weibull} distribution is a continuous distribution that
 can be used is failure analysis.  It takes two parameters,
 \distattrib{k} or the shape parameter, and \distattrib{lambda} or the
 scale parameter.
@@ -185,7 +277,6 @@ scale parameter.
 <k>***</k>
 \end{lstlisting}
 
-\end{itemize}
 %gamma - BasicGammaDistribution - continuous 
 %low
 %alpha

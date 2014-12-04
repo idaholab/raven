@@ -483,7 +483,7 @@ class Beta(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.low = 0.0
-    self.hi = 0.0
+    self.hi = 1.0
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
