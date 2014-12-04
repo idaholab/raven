@@ -1,4 +1,27 @@
 \section{Samplers  \\ \vspace{2 mm} {\small }}
+\label{sec:Samplers}
+The sampler is probably the most important entity in the RAVEN framework. Indeed, it performs the driving of the specific sampling strategy and, hence, determines the effectiveness of the analysis, from both an accuracy and computational point of view.  The samplers, that are available in RAVEN, can be categorized in three main classes:
+\begin{itemize}
+\item \textbf{Once-through}
+\item \textbf{Dynamic Event Tree (DET)}
+\item \textbf{Adaptive}
+\end{itemize}
+%%% Once-Through Samplers
+\subsection{Once-through Samplers.}
+The once-through sampler category collects all the strategies that perform the sampling of the input space without exploiting, through dynamic learning approaches, the information made available from the outcomes of calculation previously performed (adaptive sampling) and the common system evolution (patterns) that different sampled calculations can generate in the phase space (dynamic event tree). 
+In the RAVEN framework, three different and well-known “once-through” samplers are available: 
+\begin{itemize}
+\item \textbf{Monte Carlo (MC)}
+\item \textbf{Stratified}
+\item \textbf{Grid Based}
+\end{itemize}
+From a pratical point of view, 
+
+
+
+
+
+
 
 Samplers own the sampling strategy (Type) and they generate the input values using the associate distribution. They do not have distributions inside.
 
