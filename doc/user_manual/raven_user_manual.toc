@@ -1,52 +1,64 @@
 \contentsline {section}{\numberline {1}Introduction}{9}{section.1}
 \contentsline {section}{\numberline {2}Installing and running RAVEN \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{10}{section.2}
-\contentsline {section}{\numberline {3}Raven Input Structure \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{11}{section.3}
-\contentsline {section}{\numberline {4}RunInfo \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{12}{section.4}
-\contentsline {subsection}{\numberline {4.1}RunInfo: input of calculation flow.}{12}{subsection.4.1}
-\contentsline {subsection}{\numberline {4.2}RunInfo: input of queue modes.}{13}{subsection.4.2}
-\contentsline {subsection}{\numberline {4.3}RunInfo: Advanced Users.}{15}{subsection.4.3}
-\contentsline {subsection}{\numberline {4.4}RunInfo: Examples.}{17}{subsection.4.4}
-\contentsline {section}{\numberline {5}Distributions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip Author: Andrea Alfonsi}}{18}{section.5}
-\contentsline {subsection}{\numberline {5.1}1-Dimensional Probability Distributions}{18}{subsection.5.1}
-\contentsline {subsubsection}{\numberline {5.1.1}Bernoulli Distribution}{19}{subsubsection.5.1.1}
-\contentsline {subsubsection}{\numberline {5.1.2}Beta Distribution}{19}{subsubsection.5.1.2}
-\contentsline {subsubsection}{\numberline {5.1.3}Binomial Distribution}{20}{subsubsection.5.1.3}
-\contentsline {subsubsection}{\numberline {5.1.4}Exponential Distribution}{21}{subsubsection.5.1.4}
-\contentsline {section}{\numberline {6}Samplers \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{24}{section.6}
-\contentsline {section}{\numberline {7}Functions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{29}{section.7}
-\contentsline {section}{\numberline {8}Models \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{30}{section.8}
-\contentsline {subsection}{\numberline {8.1}Dummy}{30}{subsection.8.1}
-\contentsline {subsection}{\numberline {8.2}ROM}{30}{subsection.8.2}
-\contentsline {subsection}{\numberline {8.3}External Model}{31}{subsection.8.3}
-\contentsline {subsection}{\numberline {8.4}Code}{32}{subsection.8.4}
-\contentsline {subsection}{\numberline {8.5}Projector}{33}{subsection.8.5}
-\contentsline {subsection}{\numberline {8.6}PostProcessor}{33}{subsection.8.6}
-\contentsline {section}{\numberline {9}Steps \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{34}{section.9}
-\contentsline {section}{\numberline {10}Datas \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{37}{section.10}
-\contentsline {section}{\numberline {11}Databases}{38}{section.11}
-\contentsline {section}{\numberline {12}OutStream system \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip Author: Andrea Alfonsi}}{39}{section.12}
-\contentsline {subsection}{\numberline {12.1}Printing system }{39}{subsection.12.1}
-\contentsline {subsection}{\numberline {12.2}Plotting system }{41}{subsection.12.2}
-\contentsline {subsubsection}{\numberline {12.2.1}Plot input structure }{41}{subsubsection.12.2.1}
-\contentsline {paragraph}{\numberline {12.2.1.1}``Actions'' input block }{42}{paragraph.12.2.1.1}
-\contentsline {paragraph}{\numberline {12.2.1.2}``plot\_settings'' input block }{48}{paragraph.12.2.1.2}
-\contentsline {paragraph}{\numberline {12.2.1.3}Predefined Plotting System: 2D/3D }{50}{paragraph.12.2.1.3}
-\contentsline {subsubsection}{\numberline {12.2.2}Interpreted Plotting instruction }{51}{subsubsection.12.2.2}
-\contentsline {section}{\numberline {13}Existing Interfaces \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{52}{section.13}
-\contentsline {subsection}{\numberline {13.1}RELAP5 Interface}{52}{subsection.13.1}
-\contentsline {subsubsection}{\numberline {13.1.1}Files}{52}{subsubsection.13.1.1}
-\contentsline {subsubsection}{\numberline {13.1.2}Sequence}{52}{subsubsection.13.1.2}
-\contentsline {subsubsection}{\numberline {13.1.3}batchSize and mode}{53}{subsubsection.13.1.3}
-\contentsline {subsubsection}{\numberline {13.1.4}RunInfo}{53}{subsubsection.13.1.4}
-\contentsline {subsubsection}{\numberline {13.1.5}Models}{53}{subsubsection.13.1.5}
-\contentsline {subsubsection}{\numberline {13.1.6}Distributions}{53}{subsubsection.13.1.6}
-\contentsline {subsubsection}{\numberline {13.1.7}Samplers}{54}{subsubsection.13.1.7}
-\contentsline {subsubsection}{\numberline {13.1.8}Steps}{56}{subsubsection.13.1.8}
-\contentsline {subsubsection}{\numberline {13.1.9}DataBases}{57}{subsubsection.13.1.9}
-\contentsline {subsection}{\numberline {13.2}RELAP7 Interface}{58}{subsection.13.2}
-\contentsline {subsubsection}{\numberline {13.2.1}Files}{58}{subsubsection.13.2.1}
-\contentsline {subsubsection}{\numberline {13.2.2}Models}{58}{subsubsection.13.2.2}
-\contentsline {subsubsection}{\numberline {13.2.3}Distributions}{59}{subsubsection.13.2.3}
-\contentsline {subsubsection}{\numberline {13.2.4}Samplers}{59}{subsubsection.13.2.4}
-\contentsline {subsubsection}{\numberline {13.2.5}Steps}{60}{subsubsection.13.2.5}
-\contentsline {section}{References}{61}{section*.4}
+\contentsline {section}{\numberline {3}Raven Input Structure \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{10}{section.3}
+\contentsline {section}{\numberline {4}RunInfo \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{11}{section.4}
+\contentsline {subsection}{\numberline {4.1}RunInfo: input of calculation flow.}{11}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}RunInfo: input of queue modes.}{12}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}RunInfo: Advanced Users.}{14}{subsection.4.3}
+\contentsline {subsection}{\numberline {4.4}RunInfo: Examples.}{16}{subsection.4.4}
+\contentsline {section}{\numberline {5}Distributions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip Author: Andrea Alfonsi}}{17}{section.5}
+\contentsline {subsection}{\numberline {5.1}1-Dimensional Probability Distributions}{17}{subsection.5.1}
+\contentsline {subsubsection}{\numberline {5.1.1}1-Dimensional Continuous Distributions.}{18}{subsubsection.5.1.1}
+\contentsline {paragraph}{\numberline {5.1.1.1}Beta Distribution}{18}{paragraph.5.1.1.1}
+\contentsline {paragraph}{\numberline {5.1.1.2}Exponential Distribution}{19}{paragraph.5.1.1.2}
+\contentsline {paragraph}{\numberline {5.1.1.3}Gamma Distribution}{20}{paragraph.5.1.1.3}
+\contentsline {paragraph}{\numberline {5.1.1.4}Logistic Distribution}{21}{paragraph.5.1.1.4}
+\contentsline {paragraph}{\numberline {5.1.1.5}LogNormal Distribution}{21}{paragraph.5.1.1.5}
+\contentsline {paragraph}{\numberline {5.1.1.6}Normal Distribution}{22}{paragraph.5.1.1.6}
+\contentsline {paragraph}{\numberline {5.1.1.7}Triangular Distribution}{23}{paragraph.5.1.1.7}
+\contentsline {paragraph}{\numberline {5.1.1.8}Uniform Distribution}{24}{paragraph.5.1.1.8}
+\contentsline {paragraph}{\numberline {5.1.1.9}Weibull Distribution}{25}{paragraph.5.1.1.9}
+\contentsline {subsubsection}{\numberline {5.1.2}1-Dimensional Discrete Distributions.}{26}{subsubsection.5.1.2}
+\contentsline {paragraph}{\numberline {5.1.2.1}Bernoulli Distribution}{26}{paragraph.5.1.2.1}
+\contentsline {paragraph}{\numberline {5.1.2.2}Binomial Distribution}{27}{paragraph.5.1.2.2}
+\contentsline {paragraph}{\numberline {5.1.2.3}Poisson Distribution}{28}{paragraph.5.1.2.3}
+\contentsline {subsection}{\numberline {5.2}N-Dimensional Probability Distributions}{28}{subsection.5.2}
+\contentsline {section}{\numberline {6}Samplers \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{29}{section.6}
+\contentsline {subsection}{\numberline {6.1}Once-through Samplers.}{29}{subsection.6.1}
+\contentsline {section}{\numberline {7}Functions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{34}{section.7}
+\contentsline {section}{\numberline {8}Models \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{35}{section.8}
+\contentsline {subsection}{\numberline {8.1}Dummy}{35}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.2}ROM}{35}{subsection.8.2}
+\contentsline {subsection}{\numberline {8.3}External Model}{36}{subsection.8.3}
+\contentsline {subsection}{\numberline {8.4}Code}{37}{subsection.8.4}
+\contentsline {subsection}{\numberline {8.5}Projector}{38}{subsection.8.5}
+\contentsline {subsection}{\numberline {8.6}PostProcessor}{38}{subsection.8.6}
+\contentsline {section}{\numberline {9}Steps \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{38}{section.9}
+\contentsline {section}{\numberline {10}Datas \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{41}{section.10}
+\contentsline {section}{\numberline {11}Databases}{41}{section.11}
+\contentsline {section}{\numberline {12}OutStream system \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip Author: Andrea Alfonsi}}{42}{section.12}
+\contentsline {subsection}{\numberline {12.1}Printing system }{43}{subsection.12.1}
+\contentsline {subsection}{\numberline {12.2}Plotting system }{44}{subsection.12.2}
+\contentsline {subsubsection}{\numberline {12.2.1}Plot input structure }{45}{subsubsection.12.2.1}
+\contentsline {paragraph}{\numberline {12.2.1.1}``Actions'' input block }{45}{paragraph.12.2.1.1}
+\contentsline {paragraph}{\numberline {12.2.1.2}``plot\_settings'' input block }{52}{paragraph.12.2.1.2}
+\contentsline {paragraph}{\numberline {12.2.1.3}Predefined Plotting System: 2D/3D }{53}{paragraph.12.2.1.3}
+\contentsline {subsubsection}{\numberline {12.2.2}Interpreted Plotting instruction }{54}{subsubsection.12.2.2}
+\contentsline {section}{\numberline {13}Existing Interfaces \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{54}{section.13}
+\contentsline {subsection}{\numberline {13.1}RELAP5 Interface}{54}{subsection.13.1}
+\contentsline {subsubsection}{\numberline {13.1.1}Files}{54}{subsubsection.13.1.1}
+\contentsline {subsubsection}{\numberline {13.1.2}Sequence}{55}{subsubsection.13.1.2}
+\contentsline {subsubsection}{\numberline {13.1.3}batchSize and mode}{55}{subsubsection.13.1.3}
+\contentsline {subsubsection}{\numberline {13.1.4}RunInfo}{56}{subsubsection.13.1.4}
+\contentsline {subsubsection}{\numberline {13.1.5}Models}{56}{subsubsection.13.1.5}
+\contentsline {subsubsection}{\numberline {13.1.6}Distributions}{56}{subsubsection.13.1.6}
+\contentsline {subsubsection}{\numberline {13.1.7}Samplers}{57}{subsubsection.13.1.7}
+\contentsline {subsubsection}{\numberline {13.1.8}Steps}{59}{subsubsection.13.1.8}
+\contentsline {subsubsection}{\numberline {13.1.9}DataBases}{60}{subsubsection.13.1.9}
+\contentsline {subsection}{\numberline {13.2}RELAP7 Interface}{61}{subsection.13.2}
+\contentsline {subsubsection}{\numberline {13.2.1}Files}{61}{subsubsection.13.2.1}
+\contentsline {subsubsection}{\numberline {13.2.2}Models}{61}{subsubsection.13.2.2}
+\contentsline {subsubsection}{\numberline {13.2.3}Distributions}{61}{subsubsection.13.2.3}
+\contentsline {subsubsection}{\numberline {13.2.4}Samplers}{62}{subsubsection.13.2.4}
+\contentsline {subsubsection}{\numberline {13.2.5}Steps}{62}{subsubsection.13.2.5}
+\contentsline {section}{References}{63}{section*.1}
