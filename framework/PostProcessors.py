@@ -417,7 +417,8 @@ class ComparisonStatistics(BasePostProcessor):
      Function to finalize the filter => execute the filtering
      @ Out, None      : Print of the CSV file
     '''
-    self.dataDict[Input.name] = Input
+    for aInput in Input:
+      self.dataDict[aInput.name] = aInput
     #print("input",Input,"input name",Input.name,"input input",Input.getParametersValues('inputs'),
     #      "input output",Input.getParametersValues('outputs'))
 
