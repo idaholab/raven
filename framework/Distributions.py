@@ -128,6 +128,11 @@ class Distribution(BaseType):
     '''
     self.__quadSet=quadSet
     self.quadTypeSet = True
+    if quadSet.type=='CDF': #needs Legendre normalization
+      self.probabilityNorm = self.cdfProbabilityNorm
+    else:
+      try: self.probabilityNorm = self.stdProbabilityNorm
+      except AttributeError: self.probabilityNorm = self.cdfProbabilityNorm
 
   def setPolynomials(self,polySet,maxOrder):
     '''
@@ -170,10 +175,33 @@ class Distribution(BaseType):
 
   # currently these get overwritten but can be called in overwrite
   def convertDistrPointsToStd(self,pts):
-    return self._convertCdfPointsToStd(self._convertDistrPointsToCdf(pts))
+    quad=self.quadratureSet()
+    if quad.type=='CDF':
+      return self._convertCdfPointsToStd(self._convertDistrPointsToCdf(pts))
+    elif quad.type=='ClenshawCurtis': #this might need to be overwritten in each
+      return self._convertCdfPointsToStd(self._convertDistrPointsToCdf(pts))
+    else:
+      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
 
   def convertStdPointsToDistr(self,pts):
-    return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
+    quad=self.quadratureSet()
+    if quad.type=='CDF':
+      return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
+    elif quad.type=='ClenshawCurtis':
+      return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
+    else:
+      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+
+  def cdfProbabilityNorm(self):
+    return 1.0/2.0;
+
+  def handleMeasure(self,pt):
+    if self.quadratureSet().type in ['CDF',self.preferredQuadrature]:
+      #print('unmodded')
+      return 1
+    else:
+      #print('modded')
+      return 1.0/self.probabilityWeight(pt)
 
 def random():
   '''
@@ -336,7 +364,7 @@ class Uniform(BoostDistribution):
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
 
-  def probabilityNorm(self,std=False):
+  def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
     return 0.5 #TODO is this just 1/sum(weights)?
 
@@ -360,15 +388,20 @@ class Uniform(BoostDistribution):
     quad=self.quadratureSet()
     if quad.type=='Legendre':
       return (y-self.untruncatedMean())/(self.range/2.)
+    elif quad.type=='ClenshawCurtis':
+      return (y-self.untruncatedMean())/(self.range/2.)
     else:
-      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+      return Distribution.convertDistrPointsToStd(self,y)
 
   def convertStdPointsToDistr(self,x):
     quad=self.quadratureSet()
     if quad.type=='Legendre':
       return self.range/2.*x+self.untruncatedMean()
+    elif quad.type=='ClenshawCurtis':
+      return self.range/2.*x+self.untruncatedMean()
     else:
-      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+      return Distribution.convertStdPointsToDistr(self,x)
+
 
 
 class Normal(BoostDistribution):
@@ -421,7 +454,7 @@ class Normal(BoostDistribution):
       self.preferredPolynomials = 'Jacobi'
       self.preferredQuadrature = 'Jacobi'
 
-  def probabilityNorm(self,std=False):
+  def stdProbabilityNorm(self,std=False):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
     return 1.0/np.sqrt(2.*np.pi)
     #else: return 1.0/self.sigma/np.sqrt(2.*np.pi)
@@ -436,14 +469,14 @@ class Normal(BoostDistribution):
     if quad.type=='Hermite':
       return (y-self.untruncatedMean())/(self.sigma)
     else:
-      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+      return Distribution.convertDistrPointsToStd(self,y)
 
   def convertStdPointsToDistr(self,x):
     quad=self.quadratureSet()
     if quad.type=='Hermite':
       return self.sigma*x+self.untruncatedMean()
     else:
-      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+      return Distribution.convertStdPointsToDistr(self,x)
 
   def _constructBeta(self,numStdDev=5):
     '''Using data from normal distribution and the number of standard deviations
@@ -536,16 +569,16 @@ class Gamma(BoostDistribution):
     if quad.type=='Laguerre':
       return (y-self.low)*(self.beta)
     else:
-      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+      return Distribution.convertDistrPointsToStd(self,y)
 
   def convertStdPointsToDistr(self,x):
     quad=self.quadratureSet()
     if quad.type=='Laguerre':
       return x/self.beta+self.low
     else:
-      raise AttributeError(self.printTag + ' No change-of-variable implemented for',quad.type,'and',self.type)
+      return Distribution.convertStdPointsToDistr(self,x)
 
-  def probabilityNorm(self):
+  def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
     #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
@@ -617,7 +650,7 @@ class Beta(BoostDistribution):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
     self.preferredPolynomials = 'Jacobi'
 
-  def probabilityNorm(self):
+  def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
     return factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
 
@@ -679,8 +712,6 @@ class Triangular(BoostDistribution):
     else:
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated triangular not yet implemented')
 
-  def probabilityNorm(self):
-    return 1.0/2.0;
 
 
 class Poisson(BoostDistribution):
@@ -878,6 +909,20 @@ class Exponential(BoostDistribution):
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b)
+
+  def convertDistrPointsToStd(self,y):
+    quad=self.quadratureSet()
+    if quad.type=='Laguerre':
+      return (y-self.low)*(self.lambda_var)
+    else:
+      return Distribution.convertDistrPointsToStd(self,y)
+
+  def convertStdPointsToDistr(self,x):
+    quad=self.quadratureSet()
+    if quad.type=='Laguerre':
+      return x/self.lambda_var+self.low
+    else:
+      return Distribution.convertStdPointsToDistr(self,x)
 
 
 class LogNormal(BoostDistribution):
