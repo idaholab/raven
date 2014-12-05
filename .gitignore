@@ -11,6 +11,7 @@
 *.e
 *.csv
 *.so
+*~
 tests/core_example/PWR_CoreChannel_controlled_var_restart_test_out_restart_0020.ravenaux
 tests/core_example/PWR_CoreChannel_controlled_var_test_out_restart_0020.ravenaux
 *.ravencntr
