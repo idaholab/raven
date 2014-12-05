@@ -220,9 +220,14 @@ def find_crow(framework_dir):
       pmoduleDir = os.path.join(ravenDir,"crow","crow_modules")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
-
     #print("pmoduleDir",pmoduleDir)
-    if not os.path.exists(pmoduleDir): raise IOError('The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
+    if not os.path.exists(pmoduleDir): raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
+
+def add_contrib(framework_dir):
+  """ Add contrib path is in the python path. """
+  if not os.path.exists(os.path.join(framework_dir,"contrib")): 
+    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "contrib" directory in framework folder has not been found!')
+  sys.path.append(os.path.join(framework_dir,"contrib"))
 
 def find_distribution1D():
   """ find the crow distribution1D module and return it. """
