@@ -84,6 +84,9 @@ class Legendre(QuadratureSet):
     self.rule   = quads.p_roots
     self.params = []
 
+class CDF(Legendre): #added just for name distinguish; equiv to Legendre
+  pass
+
 class Hermite(QuadratureSet):
   def initialize(self):
     self.rule   = quads.he_roots
@@ -122,10 +125,11 @@ class ClenshawCurtis(QuadratureSet):
 
   def cc_roots(self,o):
     '''Computes Clenshaw Curtis nodes and weights for given order n=2^o+1'''
+    n1=2**o+1 #assures nested
     if o==1:
       return np.array([np.array([0]),np.array([2])])
     else:
-      n1=2**o+1 #assures nested
+      #n1=2**o+1 #assures nested
       n = n1-1
       C = np.zeros((n1,2))
       k = 2*(1+np.arange(np.floor(n/2)))
@@ -145,6 +149,7 @@ class ClenshawCurtis(QuadratureSet):
 __base = 'QuadratureSet'
 __interFaceDict = {}
 __interFaceDict['Legendre'] = Legendre
+__interFaceDict['Cdf'] = CDF
 __interFaceDict['Hermite'] = Hermite
 __interFaceDict['Laguerre'] = Laguerre
 __interFaceDict['Jacobi'] = Jacobi
