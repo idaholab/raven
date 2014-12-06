@@ -18,6 +18,7 @@ import json
 from operator import mul
 from functools import reduce
 from scipy import spatial
+from scipy.interpolate import InterpolatedUnivariateSpline
 import xml.etree.ElementTree as ET
 import itertools
 from sklearn import neighbors
@@ -950,6 +951,7 @@ class Grid(Sampler):
 #
 #
 #
+#
 class LHS(Grid):
   '''
   Latin hyper Cube based sampler. Currently no special filling method are implemented
@@ -1019,6 +1021,7 @@ class LHS(Grid):
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Stratified'
+#
 #
 #
 #
@@ -1590,7 +1593,10 @@ class DynamicEventTree(Grid):
       #kk = self.toBeSampled.values().index(key)
       self.branchProbabilities[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
     return
-
+#
+#
+#
+#
 class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
   def __init__(self):
     DynamicEventTree.__init__(self)  # init DET
@@ -1920,7 +1926,7 @@ class FactorialDesign(Grid):
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'FactorialSettings xml node not found!!!')
     facttype = factsettings.find("type")
     if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in FactorialSettings xml node!!!')
-    elif not facttype.text.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + str(self.acceptedTypes).replace("[","").replace("]", ""))
+    elif not facttype.text.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
     self.factOpt['type'] = facttype.text.lower()
     if self.factOpt['type'] == '2levelfract':
       self.factOpt['options'] = {}
@@ -1982,32 +1988,100 @@ class ResponseSurfaceDesign(Grid):
   Samples the model on a given (by input) set of points
   '''
   def __init__(self):
-    Sampler.__init__(self)
-    self.printTag = returnPrintTag('SAMPLER GRID')
-    self.gridCoordinate       = [] #the grid point to be used for each distribution (changes at each step)
-    self.axisName             = [] #the name of each axis (variable)
-    self.gridInfo             = {} # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
-    #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
+    Grid.__init__(self)
+    self.limit    = 1
+    self.printTag = returnPrintTag('SAMPLER RESPONSE SURF DESIGN')
+    self.respOpt         = {}                                    # response surface design options (type,etc) 
+    self.designMatrix    = None                                  # matrix container
+    self.bounds          = {}                                    # dictionary of lower and upper
+    self.mapping         = {}                                    # mapping between designmatrix coordinates and position in grid
+    self.minNumbVars     = {'boxbehnken':3,'centralcomposite':2} # minimum number of variables
+    # dictionary of accepted types and options (required True, optional False)
+    self.acceptedOptions = {'boxbehnken':['ncenters'],
+                            'centralcomposite':['centers','alpha','face']}
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
-    pass
+    # here we call the input reader of the grid, even if the grid is definded in a different way, just to collect the variable names
+    # Grid.localInputAndChecks(self,xmlNode)
+    factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
+    if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'ResponseSurfaceDesignSettings xml node not found!!!')
+    facttype = factsettings.find("type")
+    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in ResponseSurfaceDesignSettings xml node!!!')
+    elif not facttype.text.lower() in self.acceptedOptions.keys():raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
+    self.respOpt['type'] = facttype.text.lower()
+    # set defaults
+    if self.respOpt['type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
+    else                                   : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
+    for child in factsettings: 
+      if child.tag not in 'type': self.respOpt['options'][child.tag] = child.text.lower()
+    # start checking
+    for key,value in self.respOpt['options'].items():
+      if key not in self.acceptedOptions[facttype.text.lower()]: 
+        raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
+      if self.respOpt['type'] == 'boxbehnken':
+        if key == 'ncenters': 
+          try   : self.respOpt['options'][key] = int(value)
+          except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'"'+key+'" is not an integer!')
+      else:
+        if key == 'centers':
+          if len(value.split(',')) != 2: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'"'+key+'" must be a comma separated string of 2 values only!')
+          centers = value.split(',')
+          try: self.respOpt['options'][key] = (int(centers[0]),int(centers[1]))
+          except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'"'+key+'" values must be integers!!')
+        if key == 'alpha': 
+          if value not in ['orthogonal','rotatable']: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Not recognized options for node ' +'"'+key+'". Available are "orthogonal","rotatable"!')
+        if key == 'face':
+          if value not in ['circumscribed','faced','inscribed']: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Not recognized options for node ' +'"'+key+'". Available are "circumscribed","faced","inscribed"!')
+    # fill in the grid
+    if 'limit' in xmlNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> limit is not used in' +self.type+' sampler!')
+    if not self.axisName: self.axisName = []
+    for child in xmlNode:
+      if child.tag == "Distribution": varName = "<distribution>"+child.attrib['name']
+      elif child.tag == "variable"  : varName = child.attrib['name']
+      for childChild in child:
+        if childChild.tag =='boundaries':
+          self.axisName.append(varName)
+          if 'type' not in childChild.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> in block '+ childChild.tag + ' attribute type not found!')
+          self.gridInfo[varName] = [childChild.attrib['type'],'custom',[]]
+          lower = childChild.find("lower")
+          upper = childChild.find("upper")
+          if lower == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> node "lower" not found in '+childChild.tag+' block!')
+          if upper == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> node "upper" not found in '+childChild.tag+' block!')
+          try: self.bounds[varName] = (float(lower.text),float(upper.text))
+          except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> node "upper" or "lower" must be float')
+    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
+    self.gridCoordinate = [None]*len(self.axisName)
+    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['type']]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
+    self.externalgGridCoord = True
 
   def localAddInitParams(self,tempDict):
-    pass
-
-  def localAddCurrentSetting(self,tempDict):
-    pass
+    Grid.localAddInitParams(self,tempDict)
+    for key,value in self.respOpt.items(): 
+      if key != 'options': tempDict['Response Design '+key] = value
+      else:
+        for kk,val in value.items(): tempDict['Response Design options '+kk] = val
 
   def localInitialize(self):
     '''
-    This is used to check if the points and bounds are compatible with the distribution provided.
-    It could not have been done earlier since the distribution might not have been initialized first
+    This method initialize the response matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     '''
-    pass
+    if   self.respOpt['type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
+    elif self.respOpt['type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
+    for cnt, varName in enumerate(self.axisName):
+      column = np.unique(self.designMatrix[:,cnt])
+      yi = np.array([self.bounds[varName][0], self.bounds[varName][1]])
+      xi = np.array([min(column), max(column)])
+      s = InterpolatedUnivariateSpline(xi, yi, k=1)
+      self.gridInfo[varName][2] = s(column).tolist()
+      self.mapping[varName] = column.tolist()
+    Grid.localInitialize(self)
+    self.limit = self.designMatrix.shape[0]
 
   def localGenerateInput(self,model,myInput):
-    pass
+    gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
+    for cnt, varName in enumerate(self.axisName): self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
+    Grid.localGenerateInput(self,model, myInput)
 #
 #
 #
