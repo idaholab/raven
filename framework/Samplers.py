@@ -1906,7 +1906,7 @@ class FactorialDesign(Grid):
   Samples the model on a given (by input) set of points
   '''
   def __init__(self):
-    Sampler.__init__(self)
+    Grid.__init__(self)
     self.printTag = returnPrintTag('SAMPLER FACTORIAL DESIGN')
     # accepted types. full = full factorial, 2levelfract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
     self.acceptedTypes = ['full','2levelfract','pb'] # accepted factorial types
@@ -1915,21 +1915,21 @@ class FactorialDesign(Grid):
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
-    Grid.localInputAndChecks(xmlNode)
+    Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'FactorialSettings xml node not found!!!')
     facttype = factsettings.find("type")
     if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in FactorialSettings xml node!!!')
-    elif not facttype.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype+' unknown! Available are ' + str(self.acceptedTypes).replace("[","").replace("]", ""))
-    self.factOpt['type'] = facttype
+    elif not facttype.text.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + str(self.acceptedTypes).replace("[","").replace("]", ""))
+    self.factOpt['type'] = facttype.text.lower()
     if self.factOpt['type'] == '2levelfract':
       self.factOpt['options'] = {}
       self.factOpt['options']['gen'] = factsettings.find("gen")
       self.factOpt['options']['genMap'] = factsettings.find("genMap")
       if self.factOpt['options']['gen'] == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "gen" not found in FactorialSettings xml node!!!')
       if self.factOpt['options']['genMap'] == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "genMap" not found in FactorialSettings xml node!!!')
-      self.factOpt['options']['gen'] = self.factOpt['options']['gen'].split(',')
-      self.factOpt['options']['genMap'] = self.factOpt['options']['genMap'].split(',')
+      self.factOpt['options']['gen'] = self.factOpt['options']['gen'].text.split(',')
+      self.factOpt['options']['genMap'] = self.factOpt['options']['genMap'].text.split(',')
       if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'number of variable in genMap != number of variables !!!')
       if len(self.factOpt['options']['gen']) != len(self.gridInfo.keys())   : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'number of variable in gen != number of variables !!!')
       rightOrder = [None]*len(self.gridInfo.keys())
@@ -1949,7 +1949,7 @@ class FactorialDesign(Grid):
     else: self.externalgGridCoord = False
 
   def localAddInitParams(self,tempDict):
-    Grid.localAddInitParams(tempDict)
+    Grid.localAddInitParams(self,tempDict)
     for key,value in self.factOpt.items(): 
       if key != 'options': tempDict['Factorial '+key] = value
       else:
@@ -1959,20 +1959,20 @@ class FactorialDesign(Grid):
     '''
     This method initialize the factorial matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     '''
-    Grid.localInitialize()
-    if   self.factOpt['type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen']))
-    elif self.factOpt['type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys()))
-    if self.designMatrix:
+    Grid.localInitialize(self)
+    if   self.factOpt['type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
+    elif self.factOpt['type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
+    if self.designMatrix != None:
       # convert all -1 in 0 => we can access to the grid info directly
       self.designMatrix[self.designMatrix == -1] = 0
       # the limit is the number of rows
       self.limit = self.designMatrix.shape[0]
 
   def localGenerateInput(self,model,myInput):
-    if self.factOpt['type'] == 'full':  Grid.localGenerateInput(model, myInput)
+    if self.factOpt['type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
-      Grid.localGenerateInput(model, myInput)
+      Grid.localGenerateInput(self,model, myInput)
 #
 #
 #

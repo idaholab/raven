@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug='True'>
+
+<RunInfo>
+    <WorkingDir>Factorial</WorkingDir>
+    <Sequence>2levelFractFactorialStep,pbFactorialStep,fullFactStep</Sequence>
+    <batchSize>2</batchSize>
+</RunInfo>
+
+<Models>
+    <Dummy name='MyDummy1' subType='' print='True'/>
+    <Dummy name='MyDummy2' subType='' print='True'/>
+    <Dummy name='MyDummy3' subType='' print='True'/>
+</Models>
+
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='Gauss2'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='DistTri1'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>4</max>
+    </Triangular>
+</Distributions>
+
+<Samplers>
+    <FactorialDesign name='fullFactorial'>
+        <FactorialSettings>
+            <type>full</type>
+        </FactorialSettings>
+        <variable name='VarGauss1' >
+            <distribution >Gauss1</distribution>
+            <grid         type='value' construction='custom' >0.02 0.03 0.5</grid>
+        </variable>
+        <variable name='VarGauss2' >
+            <distribution  >Gauss2</distribution>
+            <grid         type='CDF'    construction='custom'>0.5 0.7 1.0</grid>
+        </variable>
+        <variable name='VarTri1'>
+            <distribution  >DistTri1</distribution>
+            <grid type='value' upperBound='4' construction='equal' steps='2'>0.5</grid>
+        </variable>
+    </FactorialDesign>
+    <FactorialDesign name='2levelFractFactorial'>
+        <FactorialSettings>
+            <type>2levelFract</type>
+            <gen>a,b,ab</gen>
+            <genMap>VarGauss1,VarGauss2,VarTri1</genMap>
+        </FactorialSettings>
+        <variable name='VarGauss1' >
+            <distribution >Gauss1</distribution>
+            <grid         type='value' construction='custom' >0.02 0.5</grid>
+        </variable>
+        <variable name='VarGauss2' >
+            <distribution  >Gauss2</distribution>
+            <grid         type='CDF'    construction='custom'>0.5 1.0</grid>
+        </variable>
+        <variable name='VarTri1'>
+            <distribution  >DistTri1</distribution>
+            <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+        </variable>
+    </FactorialDesign>
+    <FactorialDesign name='pbFactorial'>
+        <FactorialSettings><type>pb</type></FactorialSettings>
+        <variable name='VarGauss1' >
+            <distribution >Gauss1</distribution>
+            <grid         type='value' construction='custom' >0.02 0.5</grid>
+        </variable>
+        <variable name='VarGauss2' >
+            <distribution  >Gauss2</distribution>
+            <grid         type='CDF'    construction='custom'>0.5 1.0</grid>
+        </variable>
+        <variable name='VarTri1'>
+            <distribution  >DistTri1</distribution>
+            <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+        </variable>
+    </FactorialDesign>
+</Samplers>
+
+<Datas>
+     <TimePointSet name='2levelFactData'>
+        <Input>VarGauss1,VarGauss2,VarTri1</Input>
+        <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+   <TimePointSet name='2levelFactdummyIN'>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+   <TimePointSet name='pbData'>
+       <Input>VarGauss1,VarGauss2,VarTri1</Input>
+       <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+   <TimePointSet name='pbDatadummyIN'>
+       <Input>VarGauss1,VarGauss2,VarTri1</Input>
+       <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+   <TimePointSet name='fullFactData'>
+       <Input>VarGauss1,VarGauss2,VarTri1</Input>
+       <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+   <TimePointSet name='fullFactDatadummyIN'>
+       <Input>VarGauss1,VarGauss2,VarTri1</Input>
+       <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+</Datas>
+    
+<OutStreamManager>
+    <Print name='2levelFact_dump'>
+        <type>csv</type>
+        <source>2levelFactData</source>
+    </Print>
+    <Print name='pb_dump'>
+        <type>csv</type>
+        <source>pbData</source>
+    </Print>
+    <Print name='fullFact_dump'>
+        <type>csv</type>
+        <source>fullFactData</source>
+    </Print>
+</OutStreamManager>
+
+<Steps>
+     <MultiRun name='2levelFractFactorialStep'>
+        <Input   class='Datas'     type='TimePointSet'    >2levelFactdummyIN</Input>
+        <Model   class='Models'    type='Dummy'           >MyDummy1</Model>
+        <Sampler class='Samplers'  type='FactorialDesign' >2levelFractFactorial</Sampler>
+        <Output  class='Datas'     type='TimePointSet'    >2levelFactData</Output>
+        <Output  class='DataBases' type='HDF5'            >test_DummyModelFactorial_db</Output>
+        <Output  class='OutStreamManager' type='Print'    >2levelFact_dump</Output>
+    </MultiRun >
+     <MultiRun name='pbFactorialStep'>
+         <Input   class='Datas'     type='TimePointSet'    >pbDatadummyIN</Input>
+         <Model   class='Models'    type='Dummy'           >MyDummy2</Model>
+         <Sampler class='Samplers'  type='FactorialDesign' >pbFactorial</Sampler>
+         <Output  class='Datas'     type='TimePointSet'    >pbData</Output>
+         <Output  class='DataBases' type='HDF5'            >test_DummyModelFactorial_db</Output>
+         <Output  class='OutStreamManager' type='Print'    >pb_dump</Output>
+     </MultiRun >
+     <MultiRun name='fullFactStep'>
+         <Input   class='Datas'     type='TimePointSet'    >fullFactDatadummyIN</Input>
+         <Model   class='Models'    type='Dummy'           >MyDummy3</Model>
+         <Sampler class='Samplers'  type='FactorialDesign' >fullFactorial</Sampler>
+         <Output  class='Datas'     type='TimePointSet'    >fullFactData</Output>
+         <Output  class='DataBases' type='HDF5'            >test_DummyModelFactorial_db</Output>
+         <Output  class='OutStreamManager' type='Print'    >fullFact_dump</Output>
+     </MultiRun >
+</Steps>
+<DataBases>
+        <HDF5 name="test_DummyModelFactorial_db"/>
+</DataBases>
+</Simulation>
+
+
+
