@@ -24,11 +24,12 @@ from sklearn import neighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert,find_le,find_lt,index,find_le_index,returnPrintTag,returnPrintPostTag,stringsThatMeanTrue
+from utils import metaclass_insert,find_le,index,find_le_index,returnPrintTag,returnPrintPostTag,stringsThatMeanTrue
 from BaseClasses import BaseType, Assembler
 import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
+import pyDOE as doe
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -839,9 +840,10 @@ class Grid(Sampler):
   def __init__(self):
     Sampler.__init__(self)
     self.printTag = returnPrintTag('SAMPLER GRID')
-    self.gridCoordinate       = [] #the grid point to be used for each distribution (changes at each step)
-    self.axisName             = [] #the name of each axis (variable)
-    self.gridInfo             = {} # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
+    self.gridCoordinate       = []    # the grid point to be used for each distribution (changes at each step)
+    self.axisName             = []    # the name of each axis (variable)
+    self.gridInfo             = {}    # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
+    self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
 
   def localInputAndChecks(self,xmlNode):
@@ -917,12 +919,13 @@ class Grid(Sampler):
     weight = 1.0
     for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
+      if not self.externalgGridCoord:
+        stride = stride // len(self.gridInfo[varName][2])
+        #index is the index into the array self.gridInfo[varName][2]
+        index, remainder = divmod(remainder, stride )
+        self.gridCoordinate[i] = index
       # check if the varName is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      stride = stride // len(self.gridInfo[varName][2])
-      #index is the index into the array self.gridInfo[varName][2]
-      index, remainder = divmod(remainder, stride )
-      self.gridCoordinate[i] = index
       for kkey in varName.strip().split(','):
         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
         self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
@@ -1894,10 +1897,121 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     returncode = DynamicEventTree.localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=False)
     if returncode: self._createRunningQueue(model,myInput)
+#
+#
+#
+#
+class FactorialDesign(Grid):
+  '''
+  Samples the model on a given (by input) set of points
+  '''
+  def __init__(self):
+    Sampler.__init__(self)
+    self.printTag = returnPrintTag('SAMPLER FACTORIAL DESIGN')
+    # accepted types. full = full factorial, 2levelfract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
+    self.acceptedTypes = ['full','2levelfract','pb'] # accepted factorial types
+    self.factOpt       = {}                          # factorial options (type,etc) 
+    self.designMatrix  = None                        # matrix container
 
+  def localInputAndChecks(self,xmlNode):
+    '''reading and construction of the grid'''
+    Grid.localInputAndChecks(xmlNode)
+    factsettings = xmlNode.find("FactorialSettings")
+    if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'FactorialSettings xml node not found!!!')
+    facttype = factsettings.find("type")
+    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in FactorialSettings xml node!!!')
+    elif not facttype.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype+' unknown! Available are ' + str(self.acceptedTypes).replace("[","").replace("]", ""))
+    self.factOpt['type'] = facttype
+    if self.factOpt['type'] == '2levelfract':
+      self.factOpt['options'] = {}
+      self.factOpt['options']['gen'] = factsettings.find("gen")
+      self.factOpt['options']['genMap'] = factsettings.find("genMap")
+      if self.factOpt['options']['gen'] == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "gen" not found in FactorialSettings xml node!!!')
+      if self.factOpt['options']['genMap'] == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "genMap" not found in FactorialSettings xml node!!!')
+      self.factOpt['options']['gen'] = self.factOpt['options']['gen'].split(',')
+      self.factOpt['options']['genMap'] = self.factOpt['options']['genMap'].split(',')
+      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'number of variable in genMap != number of variables !!!')
+      if len(self.factOpt['options']['gen']) != len(self.gridInfo.keys())   : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'number of variable in gen != number of variables !!!')
+      rightOrder = [None]*len(self.gridInfo.keys())
+      if len(self.factOpt['options']['genMap']) != len(self.factOpt['options']['gen']): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> gen and genMap different size!')
+      if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> number of gen attributes and variables different!')
+      for ii,var in enumerate(self.factOpt['options']['genMap']):
+        if var not in self.gridInfo.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' variable "'+var+'" defined in genMap block not among the inputted variables!') 
+        rightOrder[self.axisName.index(var)] = self.factOpt['options']['gen'][ii]
+      self.factOpt['options']['orderedGen'] = rightOrder
+    if self.factOpt['type'] != 'full':
+      self.externalgGridCoord = True
+      for varname in self.gridInfo.keys():
+        if len(self.gridInfo[varname][2]) != 2: 
+          raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' The number of levels for type '+
+                        self.factOpt['type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
+                        str(len(self.gridInfo[varname][2])))
+    else: self.externalgGridCoord = False
 
+  def localAddInitParams(self,tempDict):
+    Grid.localAddInitParams(tempDict)
+    for key,value in self.factOpt.items(): 
+      if key != 'options': tempDict['Factorial '+key] = value
+      else:
+        for kk,val in value.items(): tempDict['Factorial options '+kk] = val
 
+  def localInitialize(self):
+    '''
+    This method initialize the factorial matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
+    '''
+    Grid.localInitialize()
+    if   self.factOpt['type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen']))
+    elif self.factOpt['type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys()))
+    if self.designMatrix:
+      # convert all -1 in 0 => we can access to the grid info directly
+      self.designMatrix[self.designMatrix == -1] = 0
+      # the limit is the number of rows
+      self.limit = self.designMatrix.shape[0]
 
+  def localGenerateInput(self,model,myInput):
+    if self.factOpt['type'] == 'full':  Grid.localGenerateInput(model, myInput)
+    else:
+      self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
+      Grid.localGenerateInput(model, myInput)
+#
+#
+#
+#
+class ResponseSurfaceDesign(Grid):
+  '''
+  Samples the model on a given (by input) set of points
+  '''
+  def __init__(self):
+    Sampler.__init__(self)
+    self.printTag = returnPrintTag('SAMPLER GRID')
+    self.gridCoordinate       = [] #the grid point to be used for each distribution (changes at each step)
+    self.axisName             = [] #the name of each axis (variable)
+    self.gridInfo             = {} # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
+    #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
+
+  def localInputAndChecks(self,xmlNode):
+    '''reading and construction of the grid'''
+    pass
+
+  def localAddInitParams(self,tempDict):
+    pass
+
+  def localAddCurrentSetting(self,tempDict):
+    pass
+
+  def localInitialize(self):
+    '''
+    This is used to check if the points and bounds are compatible with the distribution provided.
+    It could not have been done earlier since the distribution might not have been initialized first
+    '''
+    pass
+
+  def localGenerateInput(self,model,myInput):
+    pass
+#
+#
+#
+#
 '''
  Interface Dictionary (factory) (private)
 '''
@@ -1909,6 +2023,8 @@ __interFaceDict['LHS'                     ] = LHS
 __interFaceDict['Grid'                    ] = Grid
 __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
+__interFaceDict['FactorialDesign'         ] = FactorialDesign
+__interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
 __knownTypes = list(__interFaceDict.keys())
 
 def knonwnTypes():

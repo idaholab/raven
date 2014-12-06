@@ -47,6 +47,8 @@ class HOBOInterface:
     self._samplersDictionary['LHS'                  ] = self.pointSamplerForHOBO
     self._samplersDictionary['Adaptive'             ] = self.pointSamplerForHOBO
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForHOBO
+    self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForHOBO
+    self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForHOBO
     self._samplersDictionary['DynamicEventTree'     ] = self.DynamicEventTreeForHOBO
     # currentInputFiles is a list of all originals input files...
     # we need to find the right one. We decided a syntax where the first variable entry is the input file name... so let's look for it
