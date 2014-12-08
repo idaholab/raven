@@ -225,7 +225,7 @@ def find_crow(framework_dir):
 
 def add_contrib(framework_dir):
   """ Add contrib path is in the python path. """
-  if not os.path.exists(os.path.join(framework_dir,"contrib")): 
+  if not os.path.exists(os.path.join(framework_dir,"contrib")):
     raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "contrib" directory in framework folder has not been found!')
   sys.path.append(os.path.join(framework_dir,"contrib"))
 

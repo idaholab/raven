@@ -1916,7 +1916,7 @@ class FactorialDesign(Grid):
     self.printTag = returnPrintTag('SAMPLER FACTORIAL DESIGN')
     # accepted types. full = full factorial, 2levelfract = 2-level fracional factorial, pb = Plackett-Burman design. NB. full factorial is equivalent to Grid sampling
     self.acceptedTypes = ['full','2levelfract','pb'] # accepted factorial types
-    self.factOpt       = {}                          # factorial options (type,etc) 
+    self.factOpt       = {}                          # factorial options (type,etc)
     self.designMatrix  = None                        # matrix container
 
   def localInputAndChecks(self,xmlNode):
@@ -1942,13 +1942,13 @@ class FactorialDesign(Grid):
       if len(self.factOpt['options']['genMap']) != len(self.factOpt['options']['gen']): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> gen and genMap different size!')
       if len(self.factOpt['options']['genMap']) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> number of gen attributes and variables different!')
       for ii,var in enumerate(self.factOpt['options']['genMap']):
-        if var not in self.gridInfo.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' variable "'+var+'" defined in genMap block not among the inputted variables!') 
+        if var not in self.gridInfo.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' variable "'+var+'" defined in genMap block not among the inputted variables!')
         rightOrder[self.axisName.index(var)] = self.factOpt['options']['gen'][ii]
       self.factOpt['options']['orderedGen'] = rightOrder
     if self.factOpt['type'] != 'full':
       self.externalgGridCoord = True
       for varname in self.gridInfo.keys():
-        if len(self.gridInfo[varname][2]) != 2: 
+        if len(self.gridInfo[varname][2]) != 2:
           raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' The number of levels for type '+
                         self.factOpt['type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
                         str(len(self.gridInfo[varname][2])))
@@ -1956,7 +1956,7 @@ class FactorialDesign(Grid):
 
   def localAddInitParams(self,tempDict):
     Grid.localAddInitParams(self,tempDict)
-    for key,value in self.factOpt.items(): 
+    for key,value in self.factOpt.items():
       if key != 'options': tempDict['Factorial '+key] = value
       else:
         for kk,val in value.items(): tempDict['Factorial options '+kk] = val
@@ -1991,7 +1991,7 @@ class ResponseSurfaceDesign(Grid):
     Grid.__init__(self)
     self.limit    = 1
     self.printTag = returnPrintTag('SAMPLER RESPONSE SURF DESIGN')
-    self.respOpt         = {}                                    # response surface design options (type,etc) 
+    self.respOpt         = {}                                    # response surface design options (type,etc)
     self.designMatrix    = None                                  # matrix container
     self.bounds          = {}                                    # dictionary of lower and upper
     self.mapping         = {}                                    # mapping between designmatrix coordinates and position in grid
@@ -2013,14 +2013,14 @@ class ResponseSurfaceDesign(Grid):
     # set defaults
     if self.respOpt['type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
     else                                   : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
-    for child in factsettings: 
+    for child in factsettings:
       if child.tag not in 'type': self.respOpt['options'][child.tag] = child.text.lower()
     # start checking
     for key,value in self.respOpt['options'].items():
-      if key not in self.acceptedOptions[facttype.text.lower()]: 
+      if key not in self.acceptedOptions[facttype.text.lower()]:
         raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
       if self.respOpt['type'] == 'boxbehnken':
-        if key == 'ncenters': 
+        if key == 'ncenters':
           try   : self.respOpt['options'][key] = int(value)
           except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'"'+key+'" is not an integer!')
       else:
@@ -2029,7 +2029,7 @@ class ResponseSurfaceDesign(Grid):
           centers = value.split(',')
           try: self.respOpt['options'][key] = (int(centers[0]),int(centers[1]))
           except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'"'+key+'" values must be integers!!')
-        if key == 'alpha': 
+        if key == 'alpha':
           if value not in ['orthogonal','rotatable']: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Not recognized options for node ' +'"'+key+'". Available are "orthogonal","rotatable"!')
         if key == 'face':
           if value not in ['circumscribed','faced','inscribed']: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Not recognized options for node ' +'"'+key+'". Available are "circumscribed","faced","inscribed"!')
@@ -2057,7 +2057,7 @@ class ResponseSurfaceDesign(Grid):
 
   def localAddInitParams(self,tempDict):
     Grid.localAddInitParams(self,tempDict)
-    for key,value in self.respOpt.items(): 
+    for key,value in self.respOpt.items():
       if key != 'options': tempDict['Response Design '+key] = value
       else:
         for kk,val in value.items(): tempDict['Response Design options '+kk] = val
