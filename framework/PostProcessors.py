@@ -434,7 +434,23 @@ class ComparisonStatistics(BasePostProcessor):
         dataToProcess.append((dataPull,data[rest[0]]))
     #print("dataToProcess",dataToProcess)
     for dataPull, data in dataToProcess:
-      print("data",dataPull,"average",sum(data)/len(data))
+      process_data(dataPull,data)
+
+def count_bins(sorted_data, bin_boundaries):
+  """counts the number of data items in the sorted_data
+  Returns an array with the number.  ret[0] is the number of data
+  points <= bin_boundaries[0], ret[len(bin_boundaries)] is the number
+  of points > bin_boundaries[len(bin_boundaries)-1]
+  """
+
+def process_data(dataPull, data):
+  sorted_data = data.tolist()
+  sorted_data.sort()
+  low = sorted_data[0]
+  high = sorted_data[-1]
+  print("data",dataPull,"average",sum(data)/len(data))
+  print("low",low,"high",high)
+
 
 class PrintCSV(BasePostProcessor):
   '''
