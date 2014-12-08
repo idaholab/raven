@@ -62,7 +62,7 @@ checkAnswer("uniform ppf(0.0)",uniform.ppf(0.0),1.0)
 checkAnswer("uniform ppf(0.5)",uniform.ppf(0.5),2.0)
 checkAnswer("uniform ppf(1.0)",uniform.ppf(1.0),3.0)
 
-checkAnswer("uniform probNorm",uniform.probabilityNorm(),0.5)
+checkAnswer("uniform probNorm",uniform.stdProbabilityNorm(),0.5)
 for i in range(1,7):
   checkAnswer("uniform probWeight standard",uniform.probabilityWeight(i,std=True),0.5)
   checkAnswer("uniform probWeight arbitrary",uniform.probabilityWeight(i,std=False),0.5)
@@ -96,7 +96,7 @@ checkAnswer("normal mean()",normal.untruncatedMean(),1.0)
 checkAnswer("normal median()",normal.untruncatedMedian(),1.0)
 checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
 
-checkAnswer("normal probNorm",normal.probabilityNorm(),0.3989422804014327)
+checkAnswer("normal probNorm",normal.stdProbabilityNorm(),0.3989422804014327)
 
 checkAnswer("normal probWeight act (-1)",normal.probabilityWeight(-1,std=False),0.60653065971263342)
 checkAnswer("normal probWeight act (1)" ,normal.probabilityWeight( 1,std=False),1.0)
@@ -356,7 +356,7 @@ exponential = Distributions.Exponential()
 exponential._readMoreXML(exponentialElement)
 exponential.initializeDistribution()
 
-checkCrowDist("exponential",exponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'lambda': 5.0})
+checkCrowDist("exponential",exponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low':0.0})
 
 checkAnswer("exponential cdf(0.3)",exponential.cdf(0.3),0.7768698399)
 checkAnswer("exponential cdf(1.0)",exponential.cdf(1.0),0.993262053001)
@@ -365,6 +365,26 @@ checkAnswer("exponential cdf(3.0)",exponential.cdf(3.0),0.999999694098)
 checkAnswer("exponential ppf(0.7768698399)",exponential.ppf(0.7768698399),0.3)
 checkAnswer("exponential ppf(0.2)",exponential.ppf(0.2),0.0446287102628)
 checkAnswer("exponential ppf(0.5)",exponential.ppf(0.5),0.138629436112)
+
+#Test shifted Exponential
+shExponentialElement = ET.Element("shExponential")
+shExponentialElement.append(createElement("lambda",text="5.0"))
+shExponentialElement.append(createElement("low",text="2.0"))
+
+shExponential = Distributions.Exponential()
+shExponential._readMoreXML(shExponentialElement)
+shExponential.initializeDistribution()
+
+checkCrowDist("shExponential",shExponential,{'xMin': 2.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low': 2.0})
+
+checkAnswer("shExponential cdf(2.0)",shExponential.cdf(2.0),0.0)
+checkAnswer("shExponential cdf(2.1)",shExponential.cdf(2.1),0.393469340288)
+checkAnswer("shExponential cdf(3.0)",shExponential.cdf(3.0),0.993262053002)
+checkAnswer("shExponential cdf(4.0)",shExponential.cdf(4.0),0.999954600071)
+
+checkAnswer("shExponential ppf(0.1)",shExponential.ppf(0.1),2.02107210313)
+checkAnswer("shExponential ppf(0.5)",shExponential.ppf(0.5),2.13862943611)
+checkAnswer("shExponential ppf(0.9)",shExponential.ppf(0.9),2.4605170186)
 
 #Test truncated exponential
 
@@ -377,7 +397,7 @@ truncExponential = Distributions.Exponential()
 truncExponential._readMoreXML(truncExponentialElement)
 truncExponential.initializeDistribution()
 
-checkCrowDist("truncExponential",truncExponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'xMax': 10.0, 'lambda': 5.0})
+checkCrowDist("truncExponential",truncExponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'xMax': 10.0, 'lambda': 5.0, 'low':0.0})
 
 checkAnswer("truncExponential cdf(0.1)",truncExponential.cdf(0.1),0.393469340287)
 checkAnswer("truncExponential cdf(5.0)",truncExponential.cdf(5.0),0.999999999986)

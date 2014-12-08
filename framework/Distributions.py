@@ -51,6 +51,7 @@ class Distribution(BaseType):
     BaseType.__init__(self)
     self.upperBoundUsed       = False  # True if the distribution is right truncated
     self.lowerBoundUsed       = False  # True if the distribution is left truncated
+    self.hasInfiniteBound     = False  # True if the untruncated distribution has bounds of +- system max
     self.upperBound           = 0.0  # Right bound
     self.lowerBound           = 0.0  # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
@@ -126,9 +127,12 @@ class Distribution(BaseType):
     @ In, quadSet, object -> collocation quadrature constructor
     @ Out,         , None 
     '''
+    if self.hasInfiniteBound and quadSet.type=='ClenshawCurtis:':
+      raise IOError('Tried to set ClenshawCurtis quad for distribution with an infinite bound!')
+
     self.__quadSet=quadSet
     self.quadTypeSet = True
-    if quadSet.type=='CDF': #needs Legendre normalization
+    if quadSet.type in ['CDF','ClenshawCurtis']: #needs CC/Legendre normalization
       self.probabilityNorm = self.cdfProbabilityNorm
     else:
       try: self.probabilityNorm = self.stdProbabilityNorm
@@ -327,9 +331,7 @@ class BoostDistribution(Distribution):
     '''
     if len(args) == 0: return self.ppf(random())
     else             : return [self.rvs() for _ in range(args[0])]
-#==============================================================\
-#    Distributions convenient for stochastic collocation
-#==============================================================\
+
 
 class Uniform(BoostDistribution):
   def __init__(self):
@@ -409,6 +411,7 @@ class Normal(BoostDistribution):
     BoostDistribution.__init__(self)
     self.mean  = 0.0
     self.sigma = 0.0
+    self.hasInfiniteBound = True
     self.type = 'Normal'
 
   def getCrowDistDict(self):
@@ -514,6 +517,7 @@ class Gamma(BoostDistribution):
     self.alpha = 0.0
     self.beta = 1.0
     self.type = 'Gamma'
+    self.hasInfiniteBound = True
     self.preferredPolynomials = 'Laguerre'
 
   def getCrowDistDict(self):
@@ -596,6 +600,7 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
+    self.hasInfiniteBound = True
     if self.debug: print('FIXME: # TODO default to specific Beta distro?')
 
   def getCrowDistDict(self):
@@ -650,21 +655,36 @@ class Beta(BoostDistribution):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
     self.preferredPolynomials = 'Jacobi'
 
+  def convertDistrPointsToStd(self,y):
+    quad=self.quadratureSet()
+    if quad.type=='Jacobi':
+      u = 0.5*(self.hi-self.low)
+      s = 0.5*(self.hi-self.low)
+      return (y-u)/(s)
+    else:
+      return Distribution.convertDistrPointsToStd(self,y)
+
+  def convertStdPointsToDistr(self,x):
+    quad=self.quadratureSet()
+    if quad.type=='Laguerre':
+      u = 0.5*(self.hi-self.low)
+      s = 0.5*(self.hi-self.low)
+      return s*x+u
+    else:
+      return Distribution.convertStdPointsToDistr(self,x)
+
   def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
-    return factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
+    #return factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
+    B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
+    return 1.0/(2**(self.alpha+self.beta-1)*B)
 
   def probabilityWeight(self,x):
     '''Evaluates probability weighting factor for distribution type.'''
-    return x**(self.alpha-1)*(1-x)**(self.beta-1)
+    return x**(self.alpha-1)*(1.-x)**(self.beta-1)
 
 
-#==========================================================\
-#    other distributions
-#==========================================================\
 
-
-# Add polynomials, shifting, zero-to-one to these!
 class Triangular(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
@@ -719,6 +739,7 @@ class Poisson(BoostDistribution):
     BoostDistribution.__init__(self)
     self.mu  = 0.0
     self.type = 'Poisson'
+    self.hasInfiniteBound = True
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -751,6 +772,7 @@ class Binomial(BoostDistribution):
     self.n       = 0.0
     self.p       = 0.0
     self.type     = 'Binomial'
+    self.hasInfiniteBound = True
     self.disttype = 'Descrete'
 
   def getCrowDistDict(self):
@@ -835,6 +857,7 @@ class Logistic(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
+    self.hasInfiniteBound = True
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -872,11 +895,14 @@ class Exponential(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.lambda_var = 1.0
+    self.low        = 0.0
     self.type = 'Exponential'
+    self.hasInfiniteBound = True
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['lambda'] = self.lambda_var
+    retDict['low'] = self.low
     return retDict
 
   def _readMoreXML(self,xmlNode):
@@ -884,31 +910,37 @@ class Exponential(BoostDistribution):
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> lambda value needed for Exponential distribution')
+    low  = xmlNode.find('low')
+    if low != None:
+      self.low = float(low.text)
+    else:
+      self.low = 0.0
     # check if lower bound is set, otherwise default
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
-      self.lowerBound     = 0.0
+      self.lowerBound     = self.low
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
+    tempDict['low'] = self.low
 
   def initializeDistribution(self):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var)
+      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,self.low)
       self.lowerBound = 0.0
       self.upperBound = sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
-        a = 0.0
+        a = self.low
         self.lowerBound = a
       else:a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b)
+      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b,self.low)
 
   def convertDistrPointsToStd(self,y):
     quad=self.quadratureSet()
@@ -931,6 +963,7 @@ class LogNormal(BoostDistribution):
     self.mean = 1.0
     self.sigma = 1.0
     self.type = 'LogNormal'
+    self.hasInfiniteBound = True
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -976,6 +1009,7 @@ class Weibull(BoostDistribution):
     self.lambda_var = 1.0
     self.k = 1.0
     self.type = 'Weibull'
+    self.hasInfiniteBound = True
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -1017,20 +1051,6 @@ class Weibull(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
 
-
-class UnfriendlyForCollocation(object):
-  def initializeDistribution(self):
-    self.preferredPolynomials='Legendre'
-    self.zerooneMean = 0.5
-    self.zerooneRange = 1.0
-  
-  def probabilityNorm(self):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
-    return 0.5;
-
-  def probabilityWeight(self,x):
-    '''Evaluates probability weighting factor for distribution type.'''
-    return 1.;
 
 
 class NDimensionalDistributions(Distribution):
