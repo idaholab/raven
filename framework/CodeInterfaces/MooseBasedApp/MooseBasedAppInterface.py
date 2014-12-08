@@ -36,6 +36,8 @@ class MooseBasedAppInterface:
     self._samplersDictionary['LHS'                  ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForMooseBasedApp
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
