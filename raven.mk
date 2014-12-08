@@ -64,6 +64,14 @@ $(RAVEN_LIB): $(RAVEN_objects) $(RAVEN_plugin_deps)
 # Clang static analyzer
 sa:: $(RAVEN_analyzer)
 
+################################################################################
+# Swig for Approximate Morse-Smale Complex (AMSC)
+amsc:: _amsc.so
+	@echo "Building "$@"..."
+	swig -c++ -python $(SWIG_PY_FLAGS)  -I$(RAVEN_DIR)/include/postprocessors/ $(RAVEN_DIR)/src/postprocessors/amsc.i
+	g++ -fPIC -shared $(RAVEN_DIR)/src/postprocessors/amsc_wrap.cxx -I$(RAVEN_DIR)/include/postprocessors -I/usr/include/python2.7 $(RAVEN_DIR)/src/postprocessors/AMSC.cpp $(RAVEN_DIR)/src/postprocessors/DenseVector.cpp $(RAVEN_DIR)/src/postprocessors/DenseMatrix.cpp $(RAVEN_DIR)/src/postprocessors/UnionFind.cpp -lpython2.7 -lann -o $(RAVEN_DIR)/src/postprocessors/_amsc.so
+################################################################################
+
 # include RAVEN dep files
 -include $(RAVEN_deps)
 
@@ -86,7 +94,6 @@ $(APPLICATION_DIR)/src/executioners/RavenExecutioner.$(obj-suffix): $(APPLICATIO
 	@echo "Override RavenExecutioner Compile"
 	$(RAVEN_MODULE_COMPILE_LINE)
 
-
 endif
 
 delete_list := $(RAVEN_APP) $(RAVEN_LIB) $(RAVEN_DIR)/libRAVEN-$(METHOD).*
@@ -99,6 +106,9 @@ clean::
           $(RAVEN_DIR)/control_modules/distribution1D.py \
           $(RAVEN_DIR)/control_modules/libdistribution1D.* \
           $(RAVEN_DIR)/control_modules/raventools.py \
+          $(RAVEN_DIR)/src/postprocessors/_amsc.so \
+          $(RAVEN_DIR)/src/postprocessors/amsc_wrap.cxx \
+          $(RAVEN_DIR)/src/postprocessors/amsc.py \
           $(RAVEN_DIR)/control_modules/*.so*
 
 clobber::
