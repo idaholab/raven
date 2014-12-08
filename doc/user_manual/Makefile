@@ -2,7 +2,7 @@ SRCFILE = raven_user_manual
 
 all: raven_user_manual.pdf
 
-raven_user_manual.pdf: database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex
+raven_user_manual.pdf: database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex install.tex
 
 	pdflatex $(SRCFILE).tex
 	bibtex $(SRCFILE)
