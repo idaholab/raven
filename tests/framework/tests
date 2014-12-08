@@ -107,6 +107,24 @@
   prereq = test_rom_trainer
  [../]
 
+ [./testFactorials]
+  type = 'RavenFramework'
+  input = 'test_FullFactorial_Sampler.xml'
+  output = 'Factorial/2levelFact_dump.csv Factorial/fullFact_dump.csv Factorial/pb_dump.csv'
+  csv = 'Factorial/2levelFact_dump.csv Factorial/fullFact_dump.csv Factorial/pb_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./testResponseSurfaceDesigns]
+  type = 'RavenFramework'
+  input = 'test_ResponseSurfaceDesign_Sampler.xml'
+  output = 'ResponseDesign/BoxBehnkenRespDesign_dump.csv ResponseDesign/CentralCompositeRespDesign_dump.csv'
+  csv = 'ResponseDesign/BoxBehnkenRespDesign_dump.csv ResponseDesign/CentralCompositeRespDesign_dump.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
  [./testGrid]
   type = 'RavenFramework'
   input = 'test_Grid_Sampler.xml'

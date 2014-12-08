@@ -56,6 +56,8 @@ class RAVENInterface:
     self._samplersDictionary['Adaptive'                ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
     self._samplersDictionary['LHS'                     ] = self.latinHyperCubeForRAVEN
     self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRAVEN
+    self._samplersDictionary['FactorialDesign'         ] = self.gridForRAVEN
+    self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
     self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRAVEN
     self._samplersDictionary['StochasticCollocation'   ] = self.stochasticCollocationForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0
