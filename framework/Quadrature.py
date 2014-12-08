@@ -85,7 +85,7 @@ class Legendre(QuadratureSet):
     self.params = []
 
 class CDF(Legendre): #added just for name distinguish; equiv to Legendre
-  pass
+  pass #TODO why don't I want this to be ClenshawCurtis by default?
 
 class Hermite(QuadratureSet):
   def initialize(self):
@@ -129,7 +129,7 @@ class ClenshawCurtis(QuadratureSet):
     if o==1:
       return np.array([np.array([0]),np.array([2])])
     else:
-      #n1=2**o+1 #assures nested
+      #n1=2**o+1 #assures nested, but this grows much faster than others (obv)
       n = n1-1
       C = np.zeros((n1,2))
       k = 2*(1+np.arange(np.floor(n/2)))
