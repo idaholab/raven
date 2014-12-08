@@ -11,6 +11,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys
 import numpy as np
 from sklearn import tree
+from sklearn import neighbors
 from scipy import spatial
 import os
 from glob import glob
@@ -30,7 +31,6 @@ import SupervisedLearning
   ***************************************
 '''
 
-class BasePostProcessor(Assembler):
   '''This is the base class for postprocessors'''
   def __init__(self):
     self.type              = self.__class__.__name__  # pp type
@@ -1208,7 +1208,78 @@ class LimitSurface(BasePostProcessor):
     return self.surfPoint,outputPlaceOrder
 
 
+#
+#
+#
+class TopologicalDecomposition(BasePostProcessor):
+  '''
+    TopologicalDecomposition class - Computes an approximated hierarchical 
+    Morse-Smale decomposition from an input point cloud consisting of an 
+    arbitrary number of input parameters and a response value per input point
+  '''
+  def __init__(self):
+    TopologicalDecomposition.__init__(self)
+    pass
 
+  def _localGenerateAssembler(self,initDict):
+    ''' see generateAssembler method '''
+    for key, value in self.assemblerObjects.items():
+      if key in 'Function': 
+        self.externalFunction = initDict[value[0]][value[2]]
+
+  def inputToInternal(self,currentInp):
+    # each post processor knows how to handle the coming inputs. The 
+    # TopologicalDecomposition postprocessor accepts all the input types:
+    # (files (csv only), hdf5, and datas
+    pass
+
+  def initialize(self, runInfo, inputs, initDict):
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.__workingDir = runInfo['WorkingDir']
+
+  def _localReadMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this
+      specialized class and initialize some stuff based on the inputs got
+      @ In, xmlNode    : Xml element node
+      @ Out, None
+    '''
+    pass
+
+  def run(self, InputIn):
+    '''
+     Function to finalize the filter => execute the filtering
+     @ In , dictionary       : dictionary of data to process
+     @ Out, dictionary       : Dictionary with results
+    '''
+    inputData = np.zeros((10,3))
+    outputData = np.zeros(10)
+    names = ['x','y','z']
+    graphType = 'bskeleton'
+    gradientEstimationMethod = 'steepest'
+    k = -1
+    beta = 1.
+
+    self.__amsc = AMSC(inputData, outputData, names, graphType, \
+                       gradientEstimationMethod,k,beta)
+
+    print('========== Min/Max labels: ==========')
+    for i in xrange(0,self.__amsc.Size()):
+      print((self.__amsc.MinLabel(i),self.__amsc.MaxLabel(i));    
+
+    print('========== Persistence Chart: ==========')
+    pers = []
+    exts = []
+    merges = []
+    self.__amsc.GetPersistence(pers)
+    self.__amsc.GetExtrema(exts)
+    self.__amsc.GetMerges(merges)
+    for i in xrange(0,len(pers)):
+      print("%d -> %d (%f)" % (exts[i],merges[exts[i]],pers[i])
+#
+#
+#
+#
 
 '''
  Interface Dictionary (factory) (private)
@@ -1221,6 +1292,7 @@ __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
+__interFaceDict['TopologicalDecomposition' ] = TopologicalDecomposition
 __knownTypes                                 = __interFaceDict.keys()
 
 def knonwnTypes():
