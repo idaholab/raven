@@ -6,6 +6,46 @@ The sampler is probably the most important entity in the RAVEN framework. Indeed
 \item \textbf{Dynamic Event Tree (DET)}
 \item \textbf{Adaptive}
 \end{itemize}
+Before analyzing  each sampler in details, it is important to mention that each type has a similar syntax to input the variables that need to be ``sampled''. In the example below the variable ``variableName'' is going to be sampled by the Sampler ``WhatEverSampler'' using the distribution ``aDistribution''. 
+\begin{lstlisting}[style=XML]
+--------------------------------------------
+<Simulation>
+  ...
+  <Samplers>
+    ...
+    <WhatEverSampler name='whatever'>
+      ...
+     <variable name='variableName'> 
+       ...
+       <distribution>aDistribution</distribution>
+       ...
+     </variable>
+      ... 
+    </WhatEverSampler>
+    ...
+  </Samplers>
+  ...
+</Simulation>
+--------------------------------------------
+\end{lstlisting}
+As reported in section \ref{sec:existingInterface}, the variable naming syntax, for external driven codes, depends on the way the ``code interface'' has been implemented. For example, if the code has an input structure like the one reported below, the variable name would be ``$I-Level|II-Level|variable$''; in this way, the relative code interface (and input parser) will know which variable needs to be perturbed and the ``recipe'' to access to it. As reported in \ref{sec:existingInterface}, its syntax is  chosen by the developer of the ``code interface'' and is implemented in the interface only (no modifications are needed in the RAVEN code).
+
+\begin{lstlisting}[style=XML]
+--------------------------------------------
+Example Input:
+[I-Level]
+  [./II-Level]
+    variable = xxx
+  [../]
+[]
+XML relative 
+----------
+Example XML block:
+<variable name=''I-Level|II-Level|variable''> 
+  <distribution>exampleDistribution</distribution>
+</variable>
+--------------------------------------------
+\end{lstlisting}
 %%% Once-Through Samplers
 \subsection{Once-through Samplers.}
 \label{subsec:onceThroughSamplers}
@@ -18,57 +58,116 @@ In the RAVEN framework, five different and well-known “once-through” sampler
 \item \textbf{Response Surface Design of Experiment}
 \item \textbf{Factorial Design of Experiment}
 \end{itemize}
-From a pratical point of view, these sampling strategies represent different ways to perturb the input space. In the following paragraphs, the input requirements and a small explaination of the different sampling methodologies are reported.
+From a practical point of view, these sampling strategies represent different ways to perturb the input space. In the following paragraphs, the input requirements and a small explaination of the different sampling methodologies are reported.
 %%% Once-Through Samplers: MonteCarlo
 \subsubsection{Monte Carlo.}
 \label{subsubsubsec:MC}
-
-
-
-
-
-
-
-Samplers own the sampling strategy (Type) and they generate the input values using the associate distribution. They do not have distributions inside.
-
-There are different kind of samplers:
+\textbf{Monte-Carlo} sampling approach is one of the most well-known and used approaches to perform exploration of the input space. The main idea, behind it, is the random perturbation of the input space accordingly with uniform or parameter-based probability density functions. 
+\\ The specifications of this Sampler must be defined within the xml block $<MonteCarlo>$. This xml-node needs to contain the attribute:
+\vspace{-5mm}
 \begin{itemize}
-\item \textbf{MonteCarlo}
-\item \textbf{Grid}
-\item \textbf{LHS}
-\item \textbf{Adaptive}
-\item \textbf{DynamicEventTree}
-\item \textbf{AdaptiveDynamicEventTree}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \textbf{limit}, \textit{required integer attribute}, number of MonteCarlo samples needs to be generated;
+\item \textbf{initial\_seed}, \textit{optional integer attribute}, initial seeding of random number generator. \textit{Default = random seed};
+\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t, si, dajie). \textit{Default = False}; 
 \end{itemize}
-
-For MonteCarlo method: 
+\vspace{-5mm}
+In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
 \begin{itemize}
-\item \textbf{MonteCarlo}
+\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
 \begin{itemize}
-\item name: name of sampling method used
-\item limit: number of samplings the MonteCarlo method will use
-\item initial seed: (optional) initial number of the iterations
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
 \end{itemize}
-\item variable 
-\begin{itemize}
-\item name: name of the variable that the code will do the sampling of
+ In the variable node, the following xml-nodes need to be specified:
+ \begin{itemize}
+    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions}.
+  \end{itemize}
 \end{itemize}
-\item distribution: 
-\begin{itemize}
-\item what kind of distribution the variable follows (it is chosen from the distribution block)
-\end{itemize}
-\end{itemize}
-
-Example:
 
 \begin{lstlisting}[style=XML]
-<MonteCarlo name='MC_Sampler' limit='1000'> 
- <variable name='pressure'> 
-  <distribution>***</distribution> 	
- </variable> 
-</MonteCarlo> 
+---------------------------------------------------------
+Example:
+---------------------------------------------------------
+<Samplers>
+  ...
+  <MonteCarlo name='MCname' limit='10' initial_seed='200286' reseedAtEachIteration='false'> 
+    <variable name='var1'> 
+      <distribution>***</distribution> 	
+    </variable> 
+  </MonteCarlo>
+  ...
+</Samplers>
+---------------------------------------------------------
 \end{lstlisting}
-In the example the code is sampling 1000 times (limit) the variable "pressure" with a distribution taken from the distribution block.
+%%% Once-Through Samplers: Grid
+\subsubsection{Grid.}
+\label{subsubsubsec:Grid}
+\textbf{Grid} sampling approach is probably the simplest exploration approach that can be employed to explore the uncertain domain. The main idea, behind it, is the construction of a N-Dimensional grid, where each dimension is represented by the uncertain variables. This approach performs the sampling of each node of the grid.  The sampling of the grid consists in evaluating the answer of the system under all the possible combinations among the different variables' values, with respect a predefined discretization metric.  In RAVEN two discretization metrics are available: 1) Cumulative Distribution Function, and 2) Value. Thus, the grid meshing can be inputted either in probability or in absolute values.
+\\ The specifications of this Sampler must be defined within the xml block $<Grid>$. This xml-node needs to contain the attribute:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\end{itemize}
+\vspace{-5mm}
+In the \textbf{Grid} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+\begin{itemize}
+\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\begin{itemize}
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+ \end{itemize}
+ In the variable node, the following xml-nodes need to be specified:
+ \begin{itemize}
+    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
+    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this xml node depends on the definition of the attributes associated:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
+
+\end{itemize}
+\vspace{-5mm}
+  \end{itemize}
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+---------------------------------------------------------
+Example:
+---------------------------------------------------------
+<Samplers>
+  ...
+  <Grid name='Gridname'> 
+    <variable name='var1'> 
+      <distribution>***</distribution>
+      <grid	type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>	
+    </variable> 
+    <variable name='var2'> 
+      <distribution>***</distribution>
+      <grid	type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>	
+    </variable>
+    <variable name='var3'> 
+      <distribution>***</distribution>
+      <grid	type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>	
+    </variable> 
+    <variable name='var4'> 
+      <distribution>***</distribution>
+      <grid	type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>	
+    </variable>
+    <variable name='var5'> 
+      <distribution>***</distribution>
+      <grid	type='value' construction='custom'>0.2 0.5 10.0</grid>	
+    </variable> 
+    <variable name='var6'> 
+      <distribution>***</distribution>
+      <grid	type='CDF' construction='custom'>0.2 0.5 1.0</grid>	
+    </variable>
+  </Grid>
+  ...
+</Samplers>
+---------------------------------------------------------
+\end{lstlisting}
+ 
 
 For the Grid method:
 \begin{itemize}
