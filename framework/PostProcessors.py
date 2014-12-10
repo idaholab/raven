@@ -442,14 +442,29 @@ def count_bins(sorted_data, bin_boundaries):
   points <= bin_boundaries[0], ret[len(bin_boundaries)] is the number
   of points > bin_boundaries[len(bin_boundaries)-1]
   """
+  bin_index = 0
+  sorted_index = 0
+  ret = [0]*(len(bin_boundaries)+1)
+  while sorted_index < len(sorted_data):
+    while not bin_index >= len(bin_boundaries) and \
+          sorted_data[sorted_index] > bin_boundaries[bin_index]:
+      bin_index += 1
+    ret[bin_index] += 1
+    sorted_index += 1
+  return ret
 
 def process_data(dataPull, data):
   sorted_data = data.tolist()
   sorted_data.sort()
   low = sorted_data[0]
   high = sorted_data[-1]
+  data_range = high - low
   print("data",dataPull,"average",sum(data)/len(data))
   print("low",low,"high",high)
+  num_bins = 5
+  bins = [low+x*data_range/num_bins for x in range(1,num_bins)]
+  counts = count_bins(sorted_data,bins)
+  print("bins",bins,"counts",counts)
 
 
 class PrintCSV(BasePostProcessor):
