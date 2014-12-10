@@ -393,6 +393,7 @@ class ComparisonStatistics(BasePostProcessor):
     BasePostProcessor.__init__(self)
     self.dataDict = {} #Dictionary of all the input data, keyed by the name
     self.dataPulls = [] #List of data references that will be used
+    self.methodInfo = {} #Information on what stuff to do.
 
   def inputToInternal(self,currentInput):
     return [(currentInput)]
@@ -410,6 +411,10 @@ class ComparisonStatistics(BasePostProcessor):
         rest = splitName[2:]
         self.dataPulls.append([name, kind, rest])
         #print("xml dataName",dataName,self.dataPulls[-1])
+      if child.tag == 'kind':
+        self.methodInfo['kind'] = child.text
+        if 'num_bins' in child.attrib:
+          self.methodInfo['num_bins'] = int(child.attrib['num_bins'])
 
 
   def run(self, Input): # inObj,workingDir=None):
@@ -434,7 +439,7 @@ class ComparisonStatistics(BasePostProcessor):
         dataToProcess.append((dataPull,data[rest[0]]))
     #print("dataToProcess",dataToProcess)
     for dataPull, data in dataToProcess:
-      process_data(dataPull,data)
+      process_data(dataPull, data, self.methodInfo)
 
 def count_bins(sorted_data, bin_boundaries):
   """counts the number of data items in the sorted_data
@@ -453,7 +458,7 @@ def count_bins(sorted_data, bin_boundaries):
     sorted_index += 1
   return ret
 
-def process_data(dataPull, data):
+def process_data(dataPull, data, methodInfo):
   sorted_data = data.tolist()
   sorted_data.sort()
   low = sorted_data[0]
@@ -461,8 +466,13 @@ def process_data(dataPull, data):
   data_range = high - low
   print("data",dataPull,"average",sum(data)/len(data))
   print("low",low,"high",high)
-  num_bins = 5
-  bins = [low+x*data_range/num_bins for x in range(1,num_bins)]
+  num_bins = methodInfo.get("num_bins",10)
+  kind = methodInfo.get("kind","uniform_bins")
+  if kind == "uniform_bins":
+    bins = [low+x*data_range/num_bins for x in range(1,num_bins)]
+  elif kind == "equal_probability":
+    stride = len(sorted_data)//num_bins
+    bins = [sorted_data[x] for x in range(stride-1,len(sorted_data)-stride+1,stride)]
   counts = count_bins(sorted_data,bins)
   print("bins",bins,"counts",counts)
 
