@@ -25,12 +25,15 @@ from BaseClasses import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
+sys.path.append('../src/postprocessors/')
+from amsc import *
+
 '''
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
   ***************************************
 '''
-
+class BasePostProcessor(Assembler):
   '''This is the base class for postprocessors'''
   def __init__(self):
     self.type              = self.__class__.__name__  # pp type
@@ -1218,8 +1221,10 @@ class TopologicalDecomposition(BasePostProcessor):
     arbitrary number of input parameters and a response value per input point
   '''
   def __init__(self):
-    TopologicalDecomposition.__init__(self)
-    pass
+    BasePostProcessor.__init__(self)
+    self.acceptedGraphParam = ['Approximate KNN','Delaunay','Beta Skeleton',\
+                               'Relaxed Beta Skeleton']
+    self.acceptedGradientParam = ['Steepest','MaxFlow']
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
@@ -1231,7 +1236,43 @@ class TopologicalDecomposition(BasePostProcessor):
     # each post processor knows how to handle the coming inputs. The 
     # TopologicalDecomposition postprocessor accepts all the input types:
     # (files (csv only), hdf5, and datas
-    pass
+    if type(currentInp) == list:
+      currentInput = currentInp [-1]
+    else:
+      currentInput = currentInp
+    if type(currentInput) == dict:
+        return
+    inputDict = {}
+    if hasattr(currentInput, 'type'):
+      inType = currentInput.type
+    elif type(currentInput) in [str,bytes,unicode]:
+      inType = "file"
+    elif type(currentInput) in [list]:
+      inType = "list"
+    else:
+      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
+                    + '-> ' + self.__class__.__name__ /
+                    + ' postprocessor accepts files, HDF5, Data(s) only. '/
+                    + ' Requested: ' + str(type(currentInput)))
+
+    if inType == 'file':
+      if currentInput.endswith('csv'):
+        pass
+    elif inType == 'HDF5':
+      pass 
+    elif inType in ['TimePointSet']:
+      for targetP in self.inputs:
+        if targetP in currentInput.getParaKeys('input' ):
+          inputDict[targetP] = currentInput.getParam('input' ,targetP)
+        elif targetP in currentInput.getParaKeys('output'):
+          inputDict[targetP] = currentInput.getParam('output',targetP)
+    else:
+      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
+                    + '-> ' + self.__class__.__name__ /
+                    + ' postprocessor accepts files, HDF5, Data(s) only. '/
+                    + ' Requested: ' + str(type(currentInput)))
+    print('currentInp' + str(currentInp))
+    return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
@@ -1244,7 +1285,106 @@ class TopologicalDecomposition(BasePostProcessor):
       @ In, xmlNode    : Xml element node
       @ Out, None
     '''
-    pass
+    for child in xmlNode:
+      if child.tag =="graph":
+        self.graph = child.text
+        if self.graph not in self.acceptedGraphParam: 
+          raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
+                + '-> ' + self.__class__.__name__ /
+                + ' postprocessor requested unknown graph type: ' + self.graph /
+                + '. Available '+str(self.acceptedGraphParam))
+      elif child.tag =="gradient":
+        self.gradient = child.text
+        if self.gradient not in self.acceptedGradientParam:
+          raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
+                + '-> ' + self.__class__.__name__ /
+                + ' postprocessor requested unknown gradient method: ' /
+                + self.gradient + '. Available '/
+                + str(self.acceptedGradientParam))
+      elif child.tag =="beta":
+        self.beta = float(child.text)
+        if self.beta <= 0 or self.beta > 2:
+          raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
+                + '-> ' + self.__class__.__name__ /
+                + ' postprocessor requested invalid beta value: ' + self.beta
+                + '. Allowable range: (0,2]')
+      elif child.tag =="knn":
+        self.knn = int(child.text)
+      elif child.tag =="parameters": 
+        self.params = child.text.strip().split(',')
+        for i,param in enumerate(self.params):
+          self.params[i] = self.params[i].encode('ascii')
+      elif child.tag =='response':
+        self.response = child.text
+
+  def collectOutput(self,finishedjob,output):
+    #output
+    if finishedjob.returnEvaluation() == -1:
+      raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") /
+                      + '->  No available Output to collect (Run probabably ' /
+                      + 'is not finished yet)')
+    outputDict = finishedjob.returnEvaluation()[1]
+    if type(output) in [str,unicode,bytes]:
+      availextens = ['csv','txt']
+      outputextension = output.split('.')[-1].lower()
+      if outputextension not in availextens:
+        print(self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '/
+              + self.__class__.__name__ /
+              + ' postprocessor output extension you input is ' /
+              + outputextension)
+        print('                     Available are ' + str(availextens) / 
+              + '. Convertint extension to '+str(availextens[0]))
+        outputextension = availextens[0]
+      if outputextension != 'csv':
+        separator = ' '
+      else:
+        separator = ','
+      outFilename = os.path.join(self.__workingDir,
+                                 output[:output.rfind('.')]+'.'+outputextension)
+      if self.debug:
+        print(self.printTag+': ' +returnPrintPostTag('Message') + '->' /
+              + "workingDir",self.__workingDir,"output",output.split('.'))
+        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' /
+              + self.__class__.__name__ /
+              + ' postprocessor: dumping output in file named ' + outFilename)
+      with open(outFilename, 'wb') as outdump:
+        outdump.write('========== Persistence Chart: ==========\n')
+        outdump.write(myObj.PrintHierarchy())
+        outdump.write('\n========== Data Labels: ==========\n')
+        line = 'Index'
+        sep = ','
+        for lbl in self.params:
+          line += sep + lbl
+        line += sep + self.response + sep + 'Minimum' + sep + 'Maximum\n'
+        outdump.write(line)
+        for i in xrange(0,myObj.Size()):
+          line = str(i)
+          for d in xrange(0,myObj.Dimension()):
+            line += '%s%d' % (sep,inputData[i,d])
+          line += '%s%d' % (sep,outputData[i])
+          line += '%s%d%s%d\n' % (sep,myObj.MinLabel(i),sep,myObj.MaxLabel(i))
+          outdump.write(line)
+    elif output.type == 'Datas':
+      if self.debug:
+        print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> ' /
+              + self.__class__.__name__ /
+              + ' postprocessor: dumping output in data object named ' 
+              + output.name)
+#      for what in outputDict.keys():
+#        if self.debug: 
+#          print(self.printTag + ': ' + returnPrintPostTag('Message') + ' -> ' /
+#                + self.__class__.__name__ + ' postprocessor: dumping matrix ' /
+#                + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
+#          output.updateMetadata('targets|'+what,parameterSet)
+#          output.updateMetadata(what,outputDict[what])
+    elif output.type == 'HDF5':
+      print(self.printTag + ': ' + returnPrintPostTag('Warning') + '-> ' /
+            + self.__class__.__name__ + ' postprocessor: Output type ' /
+            + str(output.type) + ' not yet implemented. Skipping this output.')
+    else:
+      raise IOError(self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> ' /
+                    + self.__class__.__name__ + ' postprocessor: Output type ' /
+                    + str(output.type) + ' unknown!')
 
   def run(self, InputIn):
     '''
@@ -1252,30 +1392,61 @@ class TopologicalDecomposition(BasePostProcessor):
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
     '''
-    inputData = np.zeros((10,3))
-    outputData = np.zeros(10)
-    names = ['x','y','z']
-    graphType = 'bskeleton'
-    gradientEstimationMethod = 'steepest'
-    k = -1
-    beta = 1.
+    Input  = self.inputToInternal(InputIn)
+    outputDict = {}
 
-    self.__amsc = AMSC(inputData, outputData, names, graphType, \
-                       gradientEstimationMethod,k,beta)
+    myDataIn = self.inputs[0].getParametersValues('inputs')
+    myDataOut = self.inputs[0].getParametersValues('outputs')
+    outputData = myDataOut[self.response.encode('UTF-8')]
+    self.pointCount = len(outputData)
+    self.dimensionCount = len(self.params)
 
-    print('========== Min/Max labels: ==========')
-    for i in xrange(0,self.__amsc.Size()):
-      print((self.__amsc.MinLabel(i),self.__amsc.MaxLabel(i));    
+    inputData = np.zeros((self.pointCount,self.dimensionCount))
+    for i,lbl in enumerate(self.params):
+      inputData[:,i] = myDataIn[lbl.encode('UTF-8')]
 
+    names = self.params + [self.response]
+    print('==================== Debug Print ====================')
+#    print(inputData.shape)
+#    print(inputData)
+#    print(len(outputData))
+#    print(outputData)
+    print('==================== End Debug Print ====================')
+
+    self.__amsc = AMSCFloat(vectorFloat(inputData.flatten()), \
+                            vectorFloat(outputData), \
+                            vectorString(names), \
+                            self.graph, self.gradient, self.knn, self.beta)
+
+    outputDict['minLabel'] = np.zeros(self.pointCount)
+    outputDict['maxLabel'] = np.zeros(self.pointCount)
+
+    print('========== Data Labels: ==========')
+    line = 'Index'
+    sep = ','
+    for lbl in names:
+      line += sep + lbl
+    line += sep + 'Minimum' + sep + 'Maximum'
+    print(line)
+    for i in xrange(0,myObj.Size()):
+      line = str(i)
+      for d in xrange(0,myObj.Dimension()):
+        line += sep + str(inputData[i,d])
+      line += sep + str(outputData[i])
+      line += sep + str(myObj.MinLabel(i)) + sep + str(myObj.MaxLabel(i))
+      print(line)
     print('========== Persistence Chart: ==========')
-    pers = []
-    exts = []
-    merges = []
-    self.__amsc.GetPersistence(pers)
-    self.__amsc.GetExtrema(exts)
-    self.__amsc.GetMerges(merges)
-    for i in xrange(0,len(pers)):
-      print("%d -> %d (%f)" % (exts[i],merges[exts[i]],pers[i])
+    print(myObj.PrintHierarchy())
+
+    #setting some convenience values
+    parameterSet = self.inputs
+    N = [np.asarray(Input[targetP]).size for targetP in parameterSet]
+
+#    for myIndex, targetP in enumerate(self.inputs):
+#      outputDict['inputs'][targetP] = Input[targetP]
+#      outputDict['inputs'][targetP] = Input[targetP]
+
+    return outputDict
 #
 #
 #
