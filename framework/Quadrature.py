@@ -92,6 +92,7 @@ class Hermite(QuadratureSet):
     self.rule   = quads.he_roots
     self.params = []
 
+
 class Laguerre(QuadratureSet):
   def initialize(self):
     self.rule   = quads.la_roots
@@ -103,19 +104,24 @@ class Laguerre(QuadratureSet):
     else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Laguerre quadrature requires alpha keyword; not found.')
     self.params = [alpha-1]
 
+
 class Jacobi(QuadratureSet):
   def initialize(self):
     self.rule   = quads.j_roots
-    self.params = []
 
   def _localReadMoreXML(self,xmlNode):
+    self.params = []
     if xmlNode.find('alpha') != None:
-      self.params.append(float(xmlNode.find('alpha').text))
-    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Laguerre quadrature requires alpha keyword; not found.')
+      alpha=float(xmlNode.find('alpha').text)
+    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi quadrature requires alpha keyword; not found.')
     if xmlNode.find('beta') != None:
-      self.params.append(float(xmlNode.find('beta').text))
-    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Laguerre quadrature requires beta keyword; not found.')
-    self.params = [alpha,beta]
+      beta=float(xmlNode.find('beta').text)
+    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi quadrature requires beta keyword; not found.')
+    self.params = [beta-1,alpha-1]
+    #NOTE this looks totally backward, BUT it is right!
+    #The Jacobi measure switches the exponent naming convention
+    #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
+    #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
 
 
 class ClenshawCurtis(QuadratureSet):
