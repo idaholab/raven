@@ -127,8 +127,9 @@ class Distribution(BaseType):
     @ In, quadSet, object -> collocation quadrature constructor
     @ Out,         , None 
     '''
-    if self.hasInfiniteBound and quadSet.type=='ClenshawCurtis:':
-      raise IOError('Tried to set ClenshawCurtis quad for distribution with an infinite bound!')
+    if self.hasInfiniteBound and quadSet.type=='ClenshawCurtis':
+      if self.ppf(0) <= -1e50 or self.ppf(1) >= 1e50:
+        raise IOError('Tried to set ClenshawCurtis quad for distribution with endpoints outside +- 1e50')
 
     self.__quadSet=quadSet
     self.quadTypeSet = True
@@ -137,6 +138,9 @@ class Distribution(BaseType):
     else:
       try: self.probabilityNorm = self.stdProbabilityNorm
       except AttributeError: self.probabilityNorm = self.cdfProbabilityNorm
+
+    if self.polyTypeSet:
+      self.polynomialSet().setMeasures(self.quadratureSet())
 
   def setPolynomials(self,polySet,maxOrder):
     '''
@@ -148,6 +152,9 @@ class Distribution(BaseType):
     self.__polySet=polySet
     self.polyTypeSet = True
     self.__maxPolynomialOrder=maxOrder
+
+    if self.quadTypeSet:
+      self.polynomialSet().setMeasures(self.quadratureSet())
 
   def quadratureSet(self):
     try: return self.__quadSet
@@ -658,7 +665,7 @@ class Beta(BoostDistribution):
   def convertDistrPointsToStd(self,y):
     quad=self.quadratureSet()
     if quad.type=='Jacobi':
-      u = 0.5*(self.hi-self.low)
+      u = 0.5*(self.hi+self.low)
       s = 0.5*(self.hi-self.low)
       return (y-u)/(s)
     else:
@@ -666,8 +673,8 @@ class Beta(BoostDistribution):
 
   def convertStdPointsToDistr(self,x):
     quad=self.quadratureSet()
-    if quad.type=='Laguerre':
-      u = 0.5*(self.hi-self.low)
+    if quad.type=='Jacobi':
+      u = 0.5*(self.hi+self.low)
       s = 0.5*(self.hi-self.low)
       return s*x+u
     else:
@@ -678,6 +685,7 @@ class Beta(BoostDistribution):
     #return factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     return 1.0/(2**(self.alpha+self.beta-1)*B)
+    #return 1.0/(B*(self.hi-self.low))
 
   def probabilityWeight(self,x):
     '''Evaluates probability weighting factor for distribution type.'''

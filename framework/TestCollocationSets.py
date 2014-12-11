@@ -11,18 +11,26 @@ from utils import find_crow
 
 find_crow(os.path.dirname(os.path.abspath(sys.argv[0])))
 
-
 import Distributions
 import Quadrature
+import OrthoPolynomials
 
-print (Distributions)
+
+
+## Flag for by-section print statements ##
+#debug = False
+debug = True
+
+## XML tools ##
 def createElement(tag,attrib={},text={}):
   element = ET.Element(tag,attrib)
   element.text = text
   return element
 
+## Record for tests ##
 results = {"pass":0,"fail":0}
 
+## Compare floats ##
 def floatNotEqual(a,b):
   if b<1e1 and a<1e1:
     denom=1.0
@@ -35,7 +43,7 @@ def floatNotEqual(a,b):
     denom=b
   return abs(a - b)/denom > 1e-10
 
-
+## Compare expected/obtained results ##
 def checkAnswer(comment,value,expected):
   if floatNotEqual(value, expected):
     print(comment,value,"!=",expected)
@@ -43,17 +51,27 @@ def checkAnswer(comment,value,expected):
   else:
     results["pass"] += 1
 
+## Compare expected/obtained objects ##
 def checkObject(comment,value,expected):
   if value!=expected:
     print(comment,value,"!=",expected)
     results['fail']+=1
   else: results['pass']+=1
 
+## Polynomial for moment testing ##
 def testPoly(n,y):
   return y**n
 
+#
+# OUTLINE
+#  - Test quadrature integration of monomials
+#  - Test orthogonality of polynomials using quadratures
+#
+
 ## shared shape parameters ##
 laguerre_alpha = 2.0
+jacobi_alpha = 5.0
+jacobi_beta  = 2.0
 
 ## generate quadratures ##
 quads={}
@@ -88,13 +106,54 @@ laguerre = Quadrature.Laguerre()
 laguerre._readMoreXML(laguerreElement)
 laguerre.initialize()
 quads['Laguerre']=laguerre
+
+jacobiElement = ET.Element('jacobi')
+jacobiElement.append(createElement("alpha",text="%f" %jacobi_alpha))
+jacobiElement.append(createElement("beta",text="%f" %jacobi_beta))
+jacobi = Quadrature.Jacobi()
+jacobi._readMoreXML(jacobiElement)
+jacobi.initialize()
+quads['Jacobi']=jacobi
+
 ## END make quadratures ##
+
+## generate polynomials ##
+polys={}
+
+plegendreElement = ET.Element("plegendre")
+plegendre = OrthoPolynomials.Legendre()
+plegendre._readMoreXML(plegendreElement)
+plegendre.initialize()
+polys['Legendre']=plegendre
+
+phermiteElement = ET.Element('phermite')
+phermite = OrthoPolynomials.Hermite()
+phermite._readMoreXML(phermiteElement)
+phermite.initialize()
+polys['Hermite']=phermite
+
+plaguerreElement = ET.Element('plaguerre')
+plaguerreElement.append(createElement("alpha",text="%f" %laguerre_alpha))
+plaguerre = OrthoPolynomials.Laguerre()
+plaguerre._readMoreXML(plaguerreElement)
+plaguerre.initialize()
+polys['Laguerre']=plaguerre
+
+pjacobiElement = ET.Element('pjacobi')
+pjacobiElement.append(createElement("alpha",text="%f" %jacobi_alpha))
+pjacobiElement.append(createElement("beta",text="%f" %jacobi_beta))
+pjacobi = OrthoPolynomials.Jacobi()
+pjacobi._readMoreXML(pjacobiElement)
+pjacobi.initialize()
+polys['Jacobi']=pjacobi
+## END make polynomials ##
 
 ###########################################
 #            Tests for Uniform            #
 ###########################################
 
 #make distribution
+if debug: print('Testing Uniform...')
 uniformElement = ET.Element("uniform")
 L = 1.0
 R = 5.0
@@ -114,9 +173,12 @@ ptset = [(-1  , 1),
 doQuads = ['Legendre','CDF','ClenshawCurtis']
 
 ## perform tests ##
+uniform.setPolynomials(polys['Legendre'],1)
+checkObject("setting Legendre as poly in uniform",uniform.polynomialSet(),polys['Legendre'])
+
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Uniform-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
   #link quadrature to distr
   uniform.setQuadrature(quad)
   checkObject("setting %s collocation in uniform" %quadname,uniform.quadratureSet(),quad)
@@ -128,26 +190,46 @@ for quadname,quad in quads.iteritems():
 
   #test quadrature integration
   for i in range(1,6):
-    pts,wts = quad(i)
-    pts = uniform.convertStdPointsToDistr(pts)
+    opts,wts = quad(i)
+    pts = uniform.convertStdPointsToDistr(opts)
     totu=0
-    if i>=2  :tot2=0
-    if i>=3  :tot5=0
+    if i>=2:
+      tot2=0
+      orth1_1=0
+      orth1_2=0
+    if i>=3:
+      tot5=0
+      orth2_2=0
+      orth1_3=0
     for p,pt in enumerate(pts):
       totu+=wts[p]*uniform.probabilityNorm()
-      if i>=2  :tot2+=testPoly(2,pt)*wts[p]*uniform.probabilityNorm()
-      if i>=3  :tot5+=testPoly(5,pt)*wts[p]*uniform.probabilityNorm()
+      if i>=2:
+        tot2+=testPoly(2,pt)*wts[p]*uniform.probabilityNorm()
+        orth1_1+=polys['Legendre'](1,opts[p])*polys['Legendre'](1,opts[p])*wts[p]*uniform.probabilityNorm()
+        orth1_2+=polys['Legendre'](1,opts[p])*polys['Legendre'](2,opts[p])*wts[p]*uniform.probabilityNorm()
+      if i>=3:
+        orth2_2+=polys['Legendre'](2,opts[p])*polys['Legendre'](2,opts[p])*wts[p]*uniform.probabilityNorm()
+        orth1_3+=polys['Legendre'](1,opts[p])*polys['Legendre'](3,opts[p])*wts[p]*uniform.probabilityNorm()
+        tot5+=testPoly(5,pt)*wts[p]*uniform.probabilityNorm()
     checkAnswer("%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
-    if i>=2  :checkAnswer("uniform-%s integrate y^2 P(y)dy with O(%i)" %(quadname,i),tot2,31./3.)
-    if i>=3  :checkAnswer("uniform-%s integrate y^5 P(y)dy with O(%i)" %(quadname,i),tot5,3906./6.)
+    if i>=2:
+      checkAnswer("uniform-%s integrate y^2 P(y)dy with O(%i)" %(quadname,i),tot2,31./3.)
+      checkAnswer("uniform-%s integrate Legendre polys (1,1) with O(%i)" %(quadname,i),orth1_1,1)
+      checkAnswer("uniform-%s integrate Legendre polys (1,2) with O(%i)" %(quadname,i),orth1_2,0)
+    if i>=3:
+      checkAnswer("uniform-%s integrate y^5 P(y)dy with O(%i)" %(quadname,i),tot5,3906./6.)
+      checkAnswer("uniform-%s integrate Legendre polys (2,2) with O(%i)" %(quadname,i),orth1_1,1)
+      checkAnswer("uniform-%s integrate Legendre polys (1,3) with O(%i)" %(quadname,i),orth1_2,0)
 
-## END Uniform tests ##
+del uniform
+
 
 ##########################################
 #            Tests for Normal            #
 ##########################################
 
 #make distrubtion
+if debug: print('Testing Normal...')
 normalElement = ET.Element("normal")
 mean=1.0
 stdv=2.0
@@ -166,31 +248,57 @@ ptset = [(-2,-3),
          ( 1, 3),
          ( 2, 5)]
 
-doQuads = ['Hermite','CDF']#,'ClenshawCurtis']
+doQuads = ['Hermite','CDF']
+solns={}
+solns['Hermite']=[1,5,13,73]
+solns['CDF']    =[1,4.95557166321,12.8667149896,69.1169629063]
 
+orthslns={}
+orthslns['Hermite']={1:0,
+                     2:0,
+                     3:0,
+                     (1,1):1,
+                     (1,2):0,
+                     (1,3):0,
+                     (2,2):1,
+                     (3,3):1}
+orthslns['CDF']={1:0,
+                 2:0,
+                 3:0,
+                 (1,1):0.997455547486,
+                 (1,2):0,
+                 (1,3):-0.0238010251601,
+                 (2,2):0.969577590244,
+                 (3,3):0.850051194319}
 ## perform tests ##
+# make sure CC fails on untruncated normal
+try:
+  normal.setQuadrature(quads['ClenshawCurtis'])
+  prevented=False
+except IOError:
+  prevented=True
+checkAnswer('Prevent full Normal from using ClenshawCurtis',prevented,True)
+
+normal.setPolynomials(polys['Hermite'],1)
+checkObject("setting Hermite as poly in normal",normal.polynomialSet(),polys['Hermite'])
+
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Normal-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
   #link quadrature to distr
   normal.setQuadrature(quad)
   checkObject("setting %s collocation in normal",normal.quadratureSet(),quad)
 
   #test points and weights conversion
   if quadname not in ['CDF','ClenshawCurtis']:
-    #TODO CDF and CC use 0..1 point set, so can't do this check
-    #  Maybe should each quadrature know its own test set?
     for p,pt in enumerate(ptset):
       checkAnswer("normal-%s std-to-act pt (%i)" %(quadname,pt[0]),normal.convertStdPointsToDistr(pt[0]),pt[1])
       checkAnswer("normal-%s act-to-std pt (%i)" %(quadname,pt[1]),normal.convertDistrPointsToStd(pt[1]),pt[0])
 
   #test quadrature integration
-  for i in range(1,6):
+  for i in [14]:
     pts,wts = quad(i)
     pts = normal.convertStdPointsToDistr(pts)
-    #print('\norder',i)
-    #for p,pt in enumerate(pts):
-    #  print (pt,wts[p])
     totu=0
     tot0=0
     tot1=0
@@ -198,24 +306,62 @@ for quadname,quad in quads.iteritems():
     tot4=0
     tot6=0
     for p,pt in enumerate(pts):
-      #print('pt',pt)
       totu+=wts[p]*normal.probabilityNorm()
       tot0+=testPoly(0,pt)*wts[p]*normal.probabilityNorm()
       tot1+=testPoly(1,pt)*wts[p]*normal.probabilityNorm()
       tot2+=testPoly(2,pt)*wts[p]*normal.probabilityNorm()
       tot4+=testPoly(3,pt)*wts[p]*normal.probabilityNorm()
       tot6+=testPoly(4,pt)*wts[p]*normal.probabilityNorm()
-    checkAnswer(        "normal-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
-    checkAnswer(        "normal-%s integrate x^0*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot0,1)
-    if i>=1:checkAnswer("normal-%s integrate x^1*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot1,1)
-    #TODO CDF case, this converges but isn't exact
-    #if i>=2:checkAnswer("normal-%s integrate x^2*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot2,5)
-    #if i>=3:checkAnswer("normal-%s integrate x^3*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot4,13)
-    #if i>=4:checkAnswer("normal-%s integrate x^4*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot6,73)
+    checkAnswer("normal-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
+    checkAnswer("normal-%s integrate x^0*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot0,1)
+    checkAnswer("normal-%s integrate x^1*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot1,solns[quadname][0])
+    checkAnswer("normal-%s integrate x^2*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot2,solns[quadname][1])
+    checkAnswer("normal-%s integrate x^3*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot4,solns[quadname][2])
+    checkAnswer("normal-%s integrate x^4*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot6,solns[quadname][3])
+    
+  for i in [30]:
+    pts,wts = quad(i)
+    orth1=0
+    orth2=0
+    orth3=0
+    orth1_1=0
+    orth1_2=0
+    orth2_2=0
+    orth1_3=0
+    orth3_3=0
+    for p,pt in enumerate(pts):
+      orth1+=polys['Hermite'](1,pts[p])*wts[p]
+      orth2+=polys['Hermite'](2,pts[p])*wts[p]
+      orth3+=polys['Hermite'](3,pts[p])*wts[p]
+      orth1_1+=polys['Hermite'](1,pts[p])*polys['Hermite'](1,pts[p])*wts[p]
+      orth1_2+=polys['Hermite'](1,pts[p])*polys['Hermite'](2,pts[p])*wts[p]
+      orth2_2+=polys['Hermite'](2,pts[p])*polys['Hermite'](2,pts[p])*wts[p]
+      orth1_3+=polys['Hermite'](1,pts[p])*polys['Hermite'](3,pts[p])*wts[p]
+      orth3_3+=polys['Hermite'](3,pts[p])*polys['Hermite'](3,pts[p])*wts[p]
+    orth1*=normal.probabilityNorm()
+    orth2*=normal.probabilityNorm()
+    orth3*=normal.probabilityNorm()
+    orth1_1*=normal.probabilityNorm()
+    orth1_2*=normal.probabilityNorm()
+    orth2_2*=normal.probabilityNorm()
+    orth1_3*=normal.probabilityNorm()
+    orth3_3*=normal.probabilityNorm()
+    checkAnswer("normal-%s integrate Hermite poly(1) with O(%i)" %(quadname,i),orth1,orthslns[quadname][1])
+    checkAnswer("normal-%s integrate Hermite poly(2) with O(%i)" %(quadname,i),orth1,orthslns[quadname][2])
+    checkAnswer("normal-%s integrate Hermite poly(3) with O(%i)" %(quadname,i),orth1,orthslns[quadname][3])
+    checkAnswer("normal-%s integrate Hermite polys (1,1) with O(%i)" %(quadname,i),orth1_1,orthslns[quadname][(1,1)])
+    checkAnswer("normal-%s integrate Hermite polys (1,2) with O(%i)" %(quadname,i),orth1_2,orthslns[quadname][(1,2)])
+    checkAnswer("normal-%s integrate Hermite polys (2,2) with O(%i)" %(quadname,i),orth2_2,orthslns[quadname][(2,2)])
+    checkAnswer("normal-%s integrate Hermite polys (1,3) with O(%i)" %(quadname,i),orth1_3,orthslns[quadname][(1,3)])
+    checkAnswer("normal-%s integrate Hermite polys (3,3) with O(%i)" %(quadname,i),orth3_3,orthslns[quadname][(3,3)])
+    
+  #test orthogonal polynomials TODO
+del normal
 
 ##################################################
 #            Tests for Truncated Norm            #
 ##################################################
+if debug: print('Testing Truncated Normal...')
 truncNormalElement = ET.Element("truncnorm")
 truncNormalElement.append(createElement("mean",text="1.0"))
 truncNormalElement.append(createElement("sigma",text="2.0"))
@@ -239,33 +385,49 @@ solns['Hermite']=       [1,5            ,13           ,73]
 solns['CDF']=           [1,2.16450037909,4.49350113726,10.6190083398]
 solns['ClenshawCurtis']=[1,2.16450037909,4.49350113727,10.6190083398]
 
+orthslns['Hermite']={1:0,
+                     2:0,
+                     3:0,
+                     (1,1):1,
+                     (1,2):0,
+                     (1,3):0,
+                     (2,2):1,
+                     (3,3):1}
+orthslns['CDF']={1:0,
+                 2:0,
+                 3:0,
+                 (1,1):1,
+                 (1,2):0,
+                 (1,3):0,
+                 (2,2):1,
+                 (3,3):1}
+orthslns['ClenshawCurtis']={1:0,
+                            2:0,
+                            3:0,
+                            (1,1):1,
+                            (1,2):0,
+                            (1,3):0,
+                            (2,2):1,
+                            (3,3):1}
+
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing TruncNormal-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
   #link quadrature to distr
   truncNormal.setQuadrature(quad)
   checkObject("setting %s collocation in truncNormal",truncNormal.quadratureSet(),quad)
 
   #test points and weights conversion
   if quadname not in ['CDF','ClenshawCurtis']:
-    #TODO CDF and CC use 0..1 point set, so can't do this check
-    #  Maybe should each quadrature know its own test set?
     for p,pt in enumerate(ptset):
       checkAnswer("truncNormal-%s std-to-act pt (%i)" %(quadname,pt[0]),truncNormal.convertStdPointsToDistr(pt[0]),pt[1])
       checkAnswer("truncNormal-%s act-to-std pt (%i)" %(quadname,pt[1]),truncNormal.convertDistrPointsToStd(pt[1]),pt[0])
 
-  #test quadrature integration
+  #test quadrature integration of monomials
   for i in [14]:
     pts,wts = quad(i)
-    #print('order',i)
-    #print('prepts',i)
-    #for p,pt in enumerate(pts):
-    #  print (pt,wts[p])
     pts = truncNormal.convertStdPointsToDistr(pts)
-    #print('postpts',i)
-    #for p,pt in enumerate(pts):
-    #  print (pt,wts[p])
     totu=0
     tot0=0
     tot1=0
@@ -273,7 +435,6 @@ for quadname,quad in quads.iteritems():
     tot4=0
     tot6=0
     for p,pt in enumerate(pts):
-      #print('pt',pt)
       totu+=wts[p]*truncNormal.probabilityNorm()
       tot0+=testPoly(0,pt)*wts[p]*truncNormal.probabilityNorm()
       tot1+=testPoly(1,pt)*wts[p]*truncNormal.probabilityNorm()
@@ -283,15 +444,17 @@ for quadname,quad in quads.iteritems():
     checkAnswer(        "truncNormal-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
     checkAnswer(        "truncNormal-%s integrate x^0*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot0,1)
     if i>=1:checkAnswer("truncNormal-%s integrate x^1*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot1,solns[quadname][0])
-    #TODO ClenshawCurtis gets 0.797884560803, which looks like the actual integral of the truncated portion
     if i>=2:checkAnswer("truncNormal-%s integrate x^2*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot2,solns[quadname][1])
     if i>=3:checkAnswer("truncNormal-%s integrate x^3*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot4,solns[quadname][2])
     if i>=4:checkAnswer("truncNormal-%s integrate x^4*exp(-(x-%i)^2/2*%i^2) with O(%i)" %(quadname,mean,stdv,i),tot6,solns[quadname][3])
+
+del truncNormal
 
 #########################################
 #            Tests for Gamma            #
 #########################################
 
+if debug: print('Testing Gamma...')
 #make distribution
 gammaElement = ET.Element("gamma")
 low = -2.0
@@ -310,15 +473,40 @@ ptset = [( 0,-2),
          ( 9, 1),
          (12, 2)]
 
-doQuads=['Laguerre','CDF']#,'ClenshawCurtis']
+doQuads=['Laguerre','CDF']
 solns={}
 solns['Laguerre']=[-4./3.,2.,-28./9.,136./27.]
 solns['CDF']=[-1.33541433856,1.99568160194,-3.11623304332,5.02760429874]
 
+orthslns={}
+orthslns['CDF']={1:0,
+                 2:0,
+                 3:0,
+                 (1,1):1,
+                 (1,2):0,
+                 (1,3):0,
+                 (2,2):1,
+                 (3,3):1}
+orthslns['Laguerre']={1:0,
+                      2:0,
+                      3:0,
+                      (1,1):1,
+                      (1,2):0,
+                      (1,3):0,
+                      (2,2):1,
+                      (3,3):1}
+# make sure CC fails
+try:
+  gamma.setQuadrature(quads['ClenshawCurtis'])
+  prevented=False
+except IOError:
+  prevented=True
+checkAnswer('Prevent full Gamma from using ClenshawCurtis',prevented,True)
+
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads:continue
-  print('Testing Gamma-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
   #set quadrature to distr
   gamma.setQuadrature(quad)
   checkObject("setting %s collocation in gamma" %quadname,gamma.quadratureSet(),quad)
@@ -348,74 +536,178 @@ for quadname,quad in quads.iteritems():
       tot4+=testPoly(4,pt)*wts[p]*gamma.probabilityNorm()
     checkAnswer(        "Gamma-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
     checkAnswer(        "Gamma-%s integrate x^0*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot0,1)
-    if i>=1:checkAnswer("Gamma-%s integrate x^1*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot1,solns[quadname][0])
-    if i>=2:checkAnswer("Gamma-%s integrate x^2*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot2,solns[quadname][1])
-    if i>=3:checkAnswer("Gamma-%s integrate x^3*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot3,solns[quadname][2])
-    if i>=4:checkAnswer("Gamma-%s integrate x^4*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot4,solns[quadname][3])
+    checkAnswer("Gamma-%s integrate x^1*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot1,solns[quadname][0])
+    checkAnswer("Gamma-%s integrate x^2*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot2,solns[quadname][1])
+    checkAnswer("Gamma-%s integrate x^3*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot3,solns[quadname][2])
+    checkAnswer("Gamma-%s integrate x^4*x^%1.2f exp(-%1.2fx) with O(%i)" %(quadname,gamma.alpha,gamma.beta,i),tot4,solns[quadname][3])
+
+  for i in [30]:
+    pts,wts = quad(i)
+    orth1=0
+    orth2=0
+    orth3=0
+    orth1_1=0
+    orth1_2=0
+    orth2_2=0
+    orth1_3=0
+    orth3_3=0
+    for p,pt in enumerate(pts):
+      orth1+=polys['Laguerre'](1,pts[p])*wts[p]
+      orth2+=polys['Laguerre'](2,pts[p])*wts[p]
+      orth3+=polys['Laguerre'](3,pts[p])*wts[p]
+      orth1_1+=polys['Laguerre'](1,pts[p])*polys['Laguerre'](1,pts[p])*wts[p]
+      orth1_2+=polys['Laguerre'](1,pts[p])*polys['Laguerre'](2,pts[p])*wts[p]
+      orth2_2+=polys['Laguerre'](2,pts[p])*polys['Laguerre'](2,pts[p])*wts[p]
+      orth1_3+=polys['Laguerre'](1,pts[p])*polys['Laguerre'](3,pts[p])*wts[p]
+      orth3_3+=polys['Laguerre'](3,pts[p])*polys['Laguerre'](3,pts[p])*wts[p]
+    orth1*=gamma.probabilityNorm()
+    orth2*=gamma.probabilityNorm()
+    orth3*=gamma.probabilityNorm()
+    orth1_1*=gamma.probabilityNorm()
+    orth1_2*=gamma.probabilityNorm()
+    orth2_2*=gamma.probabilityNorm()
+    orth1_3*=gamma.probabilityNorm()
+    orth3_3*=gamma.probabilityNorm()
+    checkAnswer("gamma-%s integrate Laguerre poly(1) with O(%i)" %(quadname,i),orth1,orthslns[quadname][1])
+    checkAnswer("gamma-%s integrate Laguerre poly(2) with O(%i)" %(quadname,i),orth1,orthslns[quadname][2])
+    checkAnswer("gamma-%s integrate Laguerre poly(3) with O(%i)" %(quadname,i),orth1,orthslns[quadname][3])
+    checkAnswer("gamma-%s integrate Laguerre polys (1,1) with O(%i)" %(quadname,i),orth1_1,orthslns[quadname][(1,1)])
+    checkAnswer("gamma-%s integrate Laguerre polys (1,2) with O(%i)" %(quadname,i),orth1_2,orthslns[quadname][(1,2)])
+    checkAnswer("gamma-%s integrate Laguerre polys (2,2) with O(%i)" %(quadname,i),orth2_2,orthslns[quadname][(2,2)])
+    checkAnswer("gamma-%s integrate Laguerre polys (1,3) with O(%i)" %(quadname,i),orth1_3,orthslns[quadname][(1,3)])
+    checkAnswer("gamma-%s integrate Laguerre polys (3,3) with O(%i)" %(quadname,i),orth3_3,orthslns[quadname][(3,3)])
+  #test orthogonal polynomials TODO
+del gamma
+
 
 ##############################################
 #            Test Jacobi for Beta            #
 ##############################################
-#Test Beta
+if debug: print('Testing Beta...')
+betaElement = ET.Element("beta")
+betaElement.append(createElement("low",text="-1.0"))
+betaElement.append(createElement("hi",text="5.0"))
+betaElement.append(createElement("alpha",text="%f" %jacobi_alpha))
+betaElement.append(createElement("beta" ,text="%f" %jacobi_beta))
 
-#betaElement = ET.Element("beta")
-#betaElement.append(createElement("low",text="0.0"))
-#betaElement.append(createElement("hi",text="1.0"))
-#betaElement.append(createElement("alpha",text="5.0"))
-#betaElement.append(createElement("beta",text="2.0"))
-#
-#beta = Distributions.Beta()
-#beta._readMoreXML(betaElement)
-#beta.initializeDistribution()
-#
-#checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
-#
-#checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
-#checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
-#checkAnswer("beta cdf(0.9)",beta.cdf(0.9),0.885735)
-#
-#checkAnswer("beta ppf(0.1)",beta.ppf(0.1),0.489683693449)
-#checkAnswer("beta ppf(0.5)",beta.ppf(0.5),0.735550016704)
-#checkAnswer("beta ppf(0.9)",beta.ppf(0.9),0.907404741087)
-#
-#checkAnswer("beta mean()",beta.untruncatedMean(),5.0/(5.0+2.0))
-#checkAnswer("beta median()",beta.untruncatedMedian(),0.735550016704)
-#checkAnswer("beta mode()",beta.untruncatedMode(),(5.0-1)/(5.0+2.0-2))
-#
-#checkAnswer("beta pdf(0.25)",beta.pdf(0.25),0.087890625)
-#checkAnswer("beta cdfComplement(0.25)",beta.untruncatedCdfComplement(0.25),0.995361328125)
-#checkAnswer("beta hazard(0.25)",beta.untruncatedHazard(0.25),0.0883002207506)
-#
-#print(beta.rvs(5),beta.rvs())
-#
-##Test Beta Scaled
-#
-#betaElement = ET.Element("beta")
-#betaElement.append(createElement("low",text="0.0"))
-#betaElement.append(createElement("hi",text="4.0"))
-#betaElement.append(createElement("alpha",text="5.0"))
-#betaElement.append(createElement("beta",text="1.0"))
-#
-#beta = Distributions.Beta()
-#beta._readMoreXML(betaElement)
-#beta.initializeDistribution()
-#
-#checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
-#
-#checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
-#checkAnswer("scaled beta cdf(0.5)",beta.cdf(0.5),3.0517578125e-05)
-#checkAnswer("scaled beta cdf(0.9)",beta.cdf(0.9),0.000576650390625)
-#
-#checkAnswer("scaled beta ppf(0.1)",beta.ppf(0.1),2.52382937792)
-#checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
-#checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
-#
-#print(beta.rvs(5),beta.rvs())
+beta = Distributions.Beta()
+beta._readMoreXML(betaElement)
+beta.initializeDistribution()
+
+ptset = [(-1  ,-1  ),
+         (-0.5, 0.5),
+         ( 0  , 2  ),
+         ( 0.5, 3.5),
+         ( 1  , 5  )]
+
+doQuads = ['Jacobi']#,'CDF','ClenshawCurtis']
+
+solns={}
+solns['Jacobi']=[23./7., 82./7., 44., 1201./7.]
+solns['CDF']=[3.28627676273,11.713670989,43.9958588608,171.545083074]
+solns['ClenshawCurtis']=[3.28571431915,11.7142873238,44.0000445579,171.572749292]
+
+orthslns={}
+orthslns['CDF']={1:0,
+                 2:0,
+                 3:0,
+                 (1,1):1,
+                 (1,2):0,
+                 (1,3):0,
+                 (2,2):1,
+                 (3,3):1}
+orthslns['Jacobi']={1:0,
+                    2:0,
+                    3:0,
+                    (1,1):1,
+                    (1,2):0,
+                    (1,3):0,
+                    (2,2):1,
+                    (3,3):1}
+## perform tests ##
+for quadname,quad in quads.iteritems():
+  if quadname not in doQuads: continue
+  if debug: print('    ...testing %s...' %quadname)
+  #link quad to distr
+  beta.setQuadrature(quad)
+  checkObject("setting %s collocation in beta" %quadname,beta.quadratureSet(),quad)
+
+  for s,pt in enumerate(ptset):
+    checkAnswer("beta-%s std-to-act pt (%f)" %(quadname,pt[0]),beta.convertStdPointsToDistr(pt[0]),pt[1])
+    checkAnswer("beta-%s act-to-std pt (%i)" %(quadname,pt[1]),beta.convertDistrPointsToStd(pt[1]),pt[0])
+
+  for i in [14]:
+    pts,wts = quad(i)
+    pts = beta.convertStdPointsToDistr(pts)
+    totu=0
+    tot0=0
+    tot1=0
+    tot2=0
+    tot3=0
+    tot4=0
+    for p,pt in enumerate(pts):
+      totu+=wts[p]*beta.probabilityNorm()
+      tot0+=testPoly(0,pt)*wts[p]*beta.probabilityNorm()
+      tot1+=testPoly(1,pt)*wts[p]*beta.probabilityNorm()
+      tot2+=testPoly(2,pt)*wts[p]*beta.probabilityNorm()
+      tot3+=testPoly(3,pt)*wts[p]*beta.probabilityNorm()
+      tot4+=testPoly(4,pt)*wts[p]*beta.probabilityNorm()
+    checkAnswer("Beta-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
+    checkAnswer("Beta-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
+    checkAnswer("Beta-%s integrate x^1 with O(%i)" %(quadname,i),tot1,solns[quadname][0])
+    checkAnswer("Beta-%s integrate x^2 with O(%i)" %(quadname,i),tot2,solns[quadname][1])
+    checkAnswer("Beta-%s integrate x^3 with O(%i)" %(quadname,i),tot3,solns[quadname][2])
+    checkAnswer("Beta-%s integrate x^4 with O(%i)" %(quadname,i),tot4,solns[quadname][3])
+
+  for i in [2]:
+    pts,wts = quad(i)
+    orth1=0
+    orth2=0
+    orth3=0
+    orth1_1=0
+    orth1_2=0
+    orth2_2=0
+    orth1_3=0
+    orth3_3=0
+    print('pts',pts,wts)
+    for p,pt in enumerate(pts):
+      orth1+=polys['Jacobi'](1,pts[p])*wts[p]
+      orth2+=polys['Jacobi'](2,pts[p])*wts[p]
+      orth3+=polys['Jacobi'](3,pts[p])*wts[p]
+      orth1_1+=polys['Jacobi'](1,pts[p])*polys['Jacobi'](1,pts[p])*wts[p]
+      orth1_2+=polys['Jacobi'](1,pts[p])*polys['Jacobi'](2,pts[p])*wts[p]
+      orth2_2+=polys['Jacobi'](2,pts[p])*polys['Jacobi'](2,pts[p])*wts[p]
+      orth1_3+=polys['Jacobi'](1,pts[p])*polys['Jacobi'](3,pts[p])*wts[p]
+      orth3_3+=polys['Jacobi'](3,pts[p])*polys['Jacobi'](3,pts[p])*wts[p]
+    orth1*=beta.probabilityNorm()
+    orth2*=beta.probabilityNorm()
+    orth3*=beta.probabilityNorm()
+    orth1_1*=beta.probabilityNorm()
+    orth1_2*=beta.probabilityNorm()
+    orth2_2*=beta.probabilityNorm()
+    orth1_3*=beta.probabilityNorm()
+    orth3_3*=beta.probabilityNorm()
+    checkAnswer("beta-%s integrate Jacobi poly(1) with O(%i)" %(quadname,i),orth1,orthslns[quadname][1])
+    checkAnswer("beta-%s integrate Jacobi poly(2) with O(%i)" %(quadname,i),orth1,orthslns[quadname][2])
+    checkAnswer("beta-%s integrate Jacobi poly(3) with O(%i)" %(quadname,i),orth1,orthslns[quadname][3])
+    checkAnswer("beta-%s integrate Jacobi polys (1,1) with O(%i)" %(quadname,i),orth1_1,orthslns[quadname][(1,1)])
+    checkAnswer("beta-%s integrate Jacobi polys (1,2) with O(%i)" %(quadname,i),orth1_2,orthslns[quadname][(1,2)])
+    checkAnswer("beta-%s integrate Jacobi polys (2,2) with O(%i)" %(quadname,i),orth2_2,orthslns[quadname][(2,2)])
+    checkAnswer("beta-%s integrate Jacobi polys (1,3) with O(%i)" %(quadname,i),orth1_3,orthslns[quadname][(1,3)])
+    checkAnswer("beta-%s integrate Jacobi polys (3,3) with O(%i)" %(quadname,i),orth3_3,orthslns[quadname][(3,3)])
+  #test orthogonal polynomials TODO
+print('DEBUG params',polys['Jacobi'].params)
+print('DEBUG poly1',polys['Jacobi']._poly(1,1,4)(2./3.)*polys['Jacobi'].norm(1))
+print('DEBUG poly2',polys['Jacobi']._evPoly(1,1,4,2./3.)*polys['Jacobi'].norm(1))
+print('DEBUG jacobi(1)(2/3)',polys['Jacobi'](1,2./3.))
+print('DEBUG jacobi(1)(1) ptmod',polys['Jacobi'].orderMod(1))
+del beta
 
 ##############################################
 #            Tests for Triangular            #
 ##############################################
 
+if debug: print('Testing Triangular...')
 #make distribution
 triangularElement = ET.Element("triangular")
 a=1.0
@@ -444,7 +736,7 @@ solns['ClenshawCurtis']=[10./3.,71./6.,1760./40.,847./5.]
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Triangular-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
   #link quad to distr
   triangular.setQuadrature(quad)
   checkObject("setting %s collocation in triangular" %quadname,triangular.quadratureSet(),quad)
@@ -471,14 +763,16 @@ for quadname,quad in quads.iteritems():
       tot4+=testPoly(4,pt)*wts[p]*triangular.probabilityNorm()
     checkAnswer(        "Triangular-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
     checkAnswer(        "Triangular-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
-    if i>=1:checkAnswer("Triangular-%s integrate x^1 with O(%i)" %(quadname,i),tot1,solns[quadname][0])#10./3.) #CC needs p(12)==O(2**12+1)
-    if i>=1:checkAnswer("Triangular-%s integrate x^2 with O(%i)" %(quadname,i),tot2,solns[quadname][1])#71./6.) #CC needs p(13)
-    if i>=1:checkAnswer("Triangular-%s integrate x^3 with O(%i)" %(quadname,i),tot3,solns[quadname][2])#1760./40.) #CC needs p(13)
-    if i>=1:checkAnswer("Triangular-%s integrate x^4 with O(%i)" %(quadname,i),tot4,solns[quadname][3])#847./5.) #CC needs p(14)
+    checkAnswer("Triangular-%s integrate x^1 with O(%i)" %(quadname,i),tot1,solns[quadname][0])#10./3.) #CC needs p(12)==O(2**12+1)
+    checkAnswer("Triangular-%s integrate x^2 with O(%i)" %(quadname,i),tot2,solns[quadname][1])#71./6.) #CC needs p(13)
+    checkAnswer("Triangular-%s integrate x^3 with O(%i)" %(quadname,i),tot3,solns[quadname][2])#1760./40.) #CC needs p(13)
+    checkAnswer("Triangular-%s integrate x^4 with O(%i)" %(quadname,i),tot4,solns[quadname][3])#847./5.) #CC needs p(14)
+del triangular
 
 ###########################################
 #            Tests for Poisson            #
 ###########################################
+if debug: print('Testing Poisson...')
 #make distribution
 poissonElement = ET.Element("poisson")
 poissonElement.append(createElement("mu",text="4.0"))
@@ -486,29 +780,37 @@ poisson = Distributions.Poisson()
 poisson._readMoreXML(poissonElement)
 poisson.initializeDistribution()
 
-#TODO confirm these
-ptset = [(-1  , 0),
-         (-0.5, 2),
-         ( 0  , 4),
-         ( 0.5, 5),
-         ( 0.9, 8)] #1.0 is system max
+ptset = [(-1  , 0, -0.963368722223),
+         (-0.5, 2, -0.523793388893),
+         ( 0  , 4,  0.25767387036 ),
+         ( 0.5, 5,  0.570260774061),
+         ( 0.9, 8,  0.957273131024)]
 
-doQuads = []#'CDF','ClenshawCurtis']
-#doQuads = ['CDF']#,'ClenshawCurtis']
+#doQuads = []
+doQuads = ['CDF']
+
+# make sure CC fails
+try:
+  poisson.setQuadrature(quads['ClenshawCurtis'])
+  prevented=False
+except IOError:
+  prevented=True
+checkAnswer('Prevent full Poisson from using ClenshawCurtis',prevented,True)
+
 
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Poisson-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
   #link quad to distr
   poisson.setQuadrature(quad)
   checkObject("setting %s collocation in poisson" %quadname,poisson.quadratureSet(),quad)
 
   for s,pt in enumerate(ptset):
     checkAnswer("poisson-%s std-to-act pt (%f)" %(quadname,pt[0]),poisson.convertStdPointsToDistr(pt[0]),pt[1])
-    #checkAnswer("poisson-%s act-to-std pt (%i)" %(quadname,pt[1]),poisson.convertDistrPointsToStd(pt[1]),pt[0])
+    checkAnswer("poisson-%s act-to-std pt (%i)" %(quadname,pt[1]),poisson.convertDistrPointsToStd(pt[1]),pt[2])
 
-  for i in [20]:#range(1,6):
+  for i in [20]:
     pts,wts = quad(i)
     pts = poisson.convertStdPointsToDistr(pts)
     totu=0
@@ -524,18 +826,18 @@ for quadname,quad in quads.iteritems():
       tot2+=testPoly(2,pt)*wts[p]*poisson.probabilityNorm()
       tot3+=testPoly(3,pt)*wts[p]*poisson.probabilityNorm()
       tot4+=testPoly(4,pt)*wts[p]*poisson.probabilityNorm()
-    checkAnswer(        "Poisson-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
-    checkAnswer(        "Poisson-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
-    #if i>=1:checkAnswer("Poisson-%s integrate x^1 with O(%i)" %(quadname,i),tot1,4.0) #CC needs p(12)==O(2**12+1)
-    #print('Poisson-CDF, Quad order %i, err: %1.5e' %(i,tot1-10./3.))
-    if i>=1:checkAnswer("Poisson-%s integrate x^2 with O(%i)" %(quadname,i),tot2,20.) #CC needs p(13)
-    #if i>=1:checkAnswer("Poisson-%s integrate x^3 with O(%i)" %(quadname,i),tot3,116.) #CC needs p(13)
-    #if i>=1:checkAnswer("Poisson-%s integrate x^4 with O(%i)" %(quadname,i),tot4,756.) #CC needs p(14)
-    #TODO fix these
+    checkAnswer("Poisson-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
+    checkAnswer("Poisson-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
+    checkAnswer("Poisson-%s integrate x^1 with O(%i)" %(quadname,i),tot1,3.52377197144) #analytic 4
+    checkAnswer("Poisson-%s integrate x^2 with O(%i)" %(quadname,i),tot2,18.0141760836) #20
+    checkAnswer("Poisson-%s integrate x^3 with O(%i)" %(quadname,i),tot3,108.342947358) #116
+    checkAnswer("Poisson-%s integrate x^4 with O(%i)" %(quadname,i),tot4,726.114429637) #756
+del poisson
 
 ############################################
 #            Tests for Binomial            #
 ############################################
+if debug: print('Testing Binomial...')
 #make distribution
 binomialElement = ET.Element("binomial")
 binomialElement.append(createElement("n",text="10"))
@@ -544,28 +846,30 @@ binomial = Distributions.Binomial()
 binomial._readMoreXML(binomialElement)
 binomial.initializeDistribution()
 
-#TODO fix these
-ptset = [(-1, 1),
-         (-0.5, 2.73205080757),
-         (0, 3.44948974278),
-         (0.5, 4),
-         (1, 5)]
+ptset = [(-1  ,  0, -0.887372970581),
+         (-0.5,  1, -0.511949539185),
+         ( 0  ,  2, 0.0511856079102),
+         ( 0.5,  3, 0.551750183105),
+         ( 1  , 10, 1)]
 
-doQuads = []#'CDF','ClenshawCurtis']
+doQuads = ['CDF','ClenshawCurtis']
+solns={}
+solns['CDF']=[1.98242930517,6.80113465281,26.1131185809,108.236455079]
+solns['ClenshawCurtis']=[2.05622115673,7.16871201528,28.6411699694,125.008305221]
 
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Binomial-%s...' %quadname)
-#link quad to distr
+  if debug: print('    ...testing %s...' %quadname)
+  #link quad to distr
   binomial.setQuadrature(quad)
   checkObject("setting %s collocation in binomial" %quadname,binomial.quadratureSet(),quad)
 
   for s,pt in enumerate(ptset):
     checkAnswer("binomial-%s std-to-act pt (%f)" %(quadname,pt[0]),binomial.convertStdPointsToDistr(pt[0]),pt[1])
-    checkAnswer("binomial-%s act-to-std pt (%i)" %(quadname,pt[1]),binomial.convertDistrPointsToStd(pt[1]),pt[0])
+    checkAnswer("binomial-%s act-to-std pt (%i)" %(quadname,pt[1]),binomial.convertDistrPointsToStd(pt[1]),pt[2])
 
-  for i in range(1,6):
+  for i in [14]:
     pts,wts = quad(i)
     pts = binomial.convertStdPointsToDistr(pts)
     totu=0
@@ -574,7 +878,6 @@ for quadname,quad in quads.iteritems():
     tot2=0
     tot3=0
     tot4=0
-    print('pts:',pts)
     for p,pt in enumerate(pts):
       totu+=wts[p]*binomial.probabilityNorm()
       tot0+=testPoly(0,pt)*wts[p]*binomial.probabilityNorm()
@@ -584,17 +887,17 @@ for quadname,quad in quads.iteritems():
       tot4+=testPoly(4,pt)*wts[p]*binomial.probabilityNorm()
     checkAnswer(        "Binomial-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
     checkAnswer(        "Binomial-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
-    if i>=1:checkAnswer("Binomial-%s integrate x^1 with O(%i)" %(quadname,i),tot1,10./3.) #CC needs p(12)==O(2**12+1)
-    #print('Binomial-CDF, Quad order %i, err: %1.5e' %(i,tot1-10./3.))
-    if i>=1:checkAnswer("Binomial-%s integrate x^2 with O(%i)" %(quadname,i),tot2,71./6.) #CC needs p(13)
-    if i>=1:checkAnswer("Binomial-%s integrate x^3 with O(%i)" %(quadname,i),tot3,1760./40.) #CC needs p(13)
-    if i>=1:checkAnswer("Binomial-%s integrate x^4 with O(%i)" %(quadname,i),tot4,847./5.) #CC needs p(14)
-    #TODO fix these
+    checkAnswer("Binomial-%s integrate x^1 with O(%i)" %(quadname,i),tot1,solns[quadname][0])
+    checkAnswer("Binomial-%s integrate x^2 with O(%i)" %(quadname,i),tot2,solns[quadname][1])
+    checkAnswer("Binomial-%s integrate x^3 with O(%i)" %(quadname,i),tot3,solns[quadname][2])
+    checkAnswer("Binomial-%s integrate x^4 with O(%i)" %(quadname,i),tot4,solns[quadname][3])
 
+del binomial
 
 #############################################
 #            Tests for Bernoulli            #
 #############################################
+if debug: print('Testing Bernoulli...')
 #make distribution
 bernoulliElement = ET.Element("bernoulli")
 bernoulliElement.append(createElement("p",text="0.4"))
@@ -602,26 +905,28 @@ bernoulli = Distributions.Bernoulli()
 bernoulli._readMoreXML(bernoulliElement)
 bernoulli.initializeDistribution()
 
-#TODO fix these
-ptset = [(-1, 1),
-         (-0.5, 2.73205080757),
-         (0, 3.44948974278),
-         (0.5, 4),
-         (1, 5)]
+ptset = [(-1  , 0, 0.2),
+         (-0.5, 0, 0.2),
+         ( 0  , 0, 0.2),
+         ( 0.5, 1, 1  ),
+         ( 1  , 1, 1  )]
 
-doQuads = []#'CDF','ClenshawCurtis']
+doQuads = ['CDF','ClenshawCurtis']
+solns={}
+solns['CDF']=0.392368073268
+solns['ClenshawCurtis']=0.39996427116
 
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Bernoulli-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
 #link quad to distr
   bernoulli.setQuadrature(quad)
   checkObject("setting %s collocation in bernoulli" %quadname,bernoulli.quadratureSet(),quad)
 
   for s,pt in enumerate(ptset):
     checkAnswer("bernoulli-%s std-to-act pt (%f)" %(quadname,pt[0]),bernoulli.convertStdPointsToDistr(pt[0]),pt[1])
-    checkAnswer("bernoulli-%s act-to-std pt (%i)" %(quadname,pt[1]),bernoulli.convertDistrPointsToStd(pt[1]),pt[0])
+    checkAnswer("bernoulli-%s act-to-std pt (%f)" %(quadname,pt[1]),bernoulli.convertDistrPointsToStd(pt[1]),pt[2])
 
   for i in [14]:
     pts,wts = quad(i)
@@ -632,7 +937,6 @@ for quadname,quad in quads.iteritems():
     tot2=0
     tot3=0
     tot4=0
-    print('pts:',pts)
     for p,pt in enumerate(pts):
       totu+=wts[p]*bernoulli.probabilityNorm()
       tot0+=testPoly(0,pt)*wts[p]*bernoulli.probabilityNorm()
@@ -640,16 +944,18 @@ for quadname,quad in quads.iteritems():
       tot2+=testPoly(2,pt)*wts[p]*bernoulli.probabilityNorm()
       tot3+=testPoly(3,pt)*wts[p]*bernoulli.probabilityNorm()
       tot4+=testPoly(4,pt)*wts[p]*bernoulli.probabilityNorm()
-    checkAnswer(        "Bernoulli-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
-    checkAnswer(        "Bernoulli-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
-    if i>=1:checkAnswer("Bernoulli-%s integrate x^1 with O(%i)" %(quadname,i),tot1,1)#10./3.) #CC needs p(12)==O(2**12+1)
-    if i>=1:checkAnswer("Bernoulli-%s integrate x^2 with O(%i)" %(quadname,i),tot2,1)#71./6.) #CC needs p(13)
-    if i>=1:checkAnswer("Bernoulli-%s integrate x^3 with O(%i)" %(quadname,i),tot3,1)#1760./40.) #CC needs p(13)
-    if i>=1:checkAnswer("Bernoulli-%s integrate x^4 with O(%i)" %(quadname,i),tot4,1)#847./5.) #CC needs p(14)
+    checkAnswer("Bernoulli-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
+    checkAnswer("Bernoulli-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
+    checkAnswer("Bernoulli-%s integrate x^1 with O(%i)" %(quadname,i),tot1,solns[quadname]) # analytic nth moment is p for n>=1
+    checkAnswer("Bernoulli-%s integrate x^2 with O(%i)" %(quadname,i),tot2,solns[quadname])
+    checkAnswer("Bernoulli-%s integrate x^3 with O(%i)" %(quadname,i),tot3,solns[quadname])
+    checkAnswer("Bernoulli-%s integrate x^4 with O(%i)" %(quadname,i),tot4,solns[quadname])
+del bernoulli
 
 #############################################
 #            Tests for Logistic            #
 #############################################
+if debug: print('Testing Logistic...')
 #make distribution
 logisticElement = ET.Element("logistic")
 logisticElement.append(createElement("location",text="4.0"))
@@ -658,19 +964,26 @@ logistic = Distributions.Logistic()
 logistic._readMoreXML(logisticElement)
 logistic.initializeDistribution()
 
-#TODO fix these
 ptset = [(-0.9, 1.05556102083),
          (-0.5, 2.90138771133),
          (   0, 4.0          ),
          ( 0.5, 5.09861228867),
          ( 0.9, 6.94443897917)]
 
-doQuads = ['CDF']#,'ClenshawCurtis']
+doQuads = ['CDF']
+
+# make sure CC fails
+try:
+  logistic.setQuadrature(quads['ClenshawCurtis'])
+  prevented=False
+except IOError:
+  prevented=True
+checkAnswer('Prevent full Logistic from using ClenshawCurtis',prevented,True)
 
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Logistic-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
 #link quad to distr
   logistic.setQuadrature(quad)
   checkObject("setting %s collocation in logistic" %quadname,logistic.quadratureSet(),quad)
@@ -697,44 +1010,55 @@ for quadname,quad in quads.iteritems():
       tot4+=testPoly(4,pt)*wts[p]*logistic.probabilityNorm()
     checkAnswer(        "Logistic-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
     checkAnswer(        "Logistic-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
-    if i>=1:checkAnswer("Logistic-%s integrate x^1 with O(%i)" %(quadname,i),tot1,4.)
-    if i>=1:checkAnswer("Logistic-%s integrate x^2 with O(%i)" %(quadname,i),tot2,19.202490836)
-    if i>=1:checkAnswer("Logistic-%s integrate x^3 with O(%i)" %(quadname,i),tot3,102.429890032)
-    if i>=1:checkAnswer("Logistic-%s integrate x^4 with O(%i)" %(quadname,i),tot4,599.777557399)
+    checkAnswer("Logistic-%s integrate x^1 with O(%i)" %(quadname,i),tot1,4.)
+    checkAnswer("Logistic-%s integrate x^2 with O(%i)" %(quadname,i),tot2,19.202490836)
+    checkAnswer("Logistic-%s integrate x^3 with O(%i)" %(quadname,i),tot3,102.429890032)
+    checkAnswer("Logistic-%s integrate x^4 with O(%i)" %(quadname,i),tot4,599.777557399)
+del logistic
 
 ###############################################
 #            Tests for Exponential            #
 ###############################################
+if debug: print('Testing Exponential...')
 #TODO this is a subset of gamma, so use laguerre quad
 #make distribution
 exponentialElement = ET.Element("exponential")
 exponentialElement.append(createElement("lambda",text="5.0"))
+exponentialElement.append(createElement("low",text="2.0"))
 exponential = Distributions.Exponential()
 exponential._readMoreXML(exponentialElement)
 exponential.initializeDistribution()
 
 #TODO fix these
-ptset = [(-1, 1),
-         (-0.5, 2.73205080757),
-         (0, 3.44948974278),
-         (0.5, 4),
-         (1, 5)]
+ptset = [(-1  , 2),
+         (-0.5, 2.0575364144904),
+         ( 0  , 2.138629436112),
+         ( 0.5, 2.277258872224),
+         ( 0.9, 2.599146454711)]
 
 #TODO need to implement shifted exponential with self.low like I did for gamma
 #doQuads = ['Laguerre','CDF']#,'ClenshawCurtis']
-doQuads = []#'Laguerre','CDF']#,'ClenshawCurtis']
+doQuads = ['CDF']#,'ClenshawCurtis']
+
+# make sure CC fails on untruncated normal
+try:
+  exponential.setQuadrature(quads['ClenshawCurtis'])
+  prevented=False
+except IOError:
+  prevented=True
+checkAnswer('Prevent full Exponential from using ClenshawCurtis',prevented,True)
 
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Exponential-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
 #link quad to distr
   exponential.setQuadrature(quad)
   checkObject("setting %s collocation in exponential" %quadname,exponential.quadratureSet(),quad)
 
   for s,pt in enumerate(ptset):
     checkAnswer("exponential-%s std-to-act pt (%f)" %(quadname,pt[0]),exponential.convertStdPointsToDistr(pt[0]),pt[1])
-    checkAnswer("exponential-%s act-to-std pt (%i)" %(quadname,pt[1]),exponential.convertDistrPointsToStd(pt[1]),pt[0])
+   # checkAnswer("exponential-%s act-to-std pt (%i)" %(quadname,pt[1]),exponential.convertDistrPointsToStd(pt[1]),pt[0])
 
   for i in [14]:
     pts,wts = quad(i)
@@ -745,7 +1069,6 @@ for quadname,quad in quads.iteritems():
     tot2=0
     tot3=0
     tot4=0
-    print('pts:',pts)
     for p,pt in enumerate(pts):
       totu+=wts[p]*exponential.probabilityNorm()
       tot0+=testPoly(0,pt)*wts[p]*exponential.probabilityNorm()
@@ -753,17 +1076,19 @@ for quadname,quad in quads.iteritems():
       tot2+=testPoly(2,pt)*wts[p]*exponential.probabilityNorm()
       tot3+=testPoly(3,pt)*wts[p]*exponential.probabilityNorm()
       tot4+=testPoly(4,pt)*wts[p]*exponential.probabilityNorm()
-    checkAnswer(        "Exponential-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
-    checkAnswer(        "Exponential-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
-    if i>=1:checkAnswer("Exponential-%s integrate x^1 with O(%i)" %(quadname,i),tot1,10./3.)
-    if i>=1:checkAnswer("Exponential-%s integrate x^2 with O(%i)" %(quadname,i),tot2,71./6.)
-    if i>=1:checkAnswer("Exponential-%s integrate x^3 with O(%i)" %(quadname,i),tot3,1760./40.)
-    if i>=1:checkAnswer("Exponential-%s integrate x^4 with O(%i)" %(quadname,i),tot4,847./5.)
+    checkAnswer("Exponential-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
+    checkAnswer("Exponential-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
+    checkAnswer("Exponential-%s integrate x^1 with O(%i)" %(quadname,i),tot1,2.19939887826) #analytic 11/5
+    checkAnswer("Exponential-%s integrate x^2 with O(%i)" %(quadname,i),tot2,4.87584842263) #122/25
+    checkAnswer("Exponential-%s integrate x^3 with O(%i)" %(quadname,i),tot3,10.9065252234) #1366/125
+    checkAnswer("Exponential-%s integrate x^4 with O(%i)" %(quadname,i),tot4,24.6437115563) #15464/625
 
+del exponential
 
 #############################################
 #            Tests for Lognormal            #
 #############################################
+if debug: print('Testing Lognormal...')
 #make distribution
 lognormalElement = ET.Element("logNormal")
 lognormalElement.append(createElement("mean",text="3.0"))
@@ -777,15 +1102,23 @@ ptset = [(-1  ,  0),
          (   0, 20.0855369232),
          ( 0.5, 77.3994365143)]
 
-doQuads = ['CDF']#,'ClenshawCurtis']
+doQuads = ['CDF']
 
 solns={}
 solns['CDF']=[123.878109959,140453.114261,274870509.467,597275620136.0]
 
+# make sure CC fails
+try:
+  lognormal.setQuadrature(quads['ClenshawCurtis'])
+  prevented=False
+except IOError:
+  prevented=True
+checkAnswer('Prevent full Lognormal from using ClenshawCurtis',prevented,True)
+
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Lognormal-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
   #link quad to distr
   lognormal.setQuadrature(quad)
   checkObject("setting %s collocation in lognormal" %quadname,lognormal.quadratureSet(),quad)
@@ -810,18 +1143,20 @@ for quadname,quad in quads.iteritems():
       tot2+=testPoly(2,pt)*wts[p]*lognormal.probabilityNorm()
       tot3+=testPoly(3,pt)*wts[p]*lognormal.probabilityNorm()
       tot4+=testPoly(4,pt)*wts[p]*lognormal.probabilityNorm()
-    checkAnswer(        "Lognormal-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
-    checkAnswer(        "Lognormal-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
-    if i>=1:checkAnswer("Lognormal-%s integrate x^1 with O(%i)" %(quadname,i),tot1,solns[quadname][0]) #analytic=np.exp(5.))
-    if i>=1:checkAnswer("Lognormal-%s integrate x^2 with O(%i)" %(quadname,i),tot2,solns[quadname][1]) #np.exp(14.))
-    if i>=1:checkAnswer("Lognormal-%s integrate x^3 with O(%i)" %(quadname,i),tot3,solns[quadname][2]) #np.exp(27.))
-    if i>=1:checkAnswer("Lognormal-%s integrate x^4 with O(%i)" %(quadname,i),tot4,solns[quadname][3]) #np.exp(44.))
+    checkAnswer("Lognormal-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
+    checkAnswer("Lognormal-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
+    checkAnswer("Lognormal-%s integrate x^1 with O(%i)" %(quadname,i),tot1,solns[quadname][0]) #analytic=np.exp(5.))
+    checkAnswer("Lognormal-%s integrate x^2 with O(%i)" %(quadname,i),tot2,solns[quadname][1]) #np.exp(14.))
+    checkAnswer("Lognormal-%s integrate x^3 with O(%i)" %(quadname,i),tot3,solns[quadname][2]) #np.exp(27.))
+    checkAnswer("Lognormal-%s integrate x^4 with O(%i)" %(quadname,i),tot4,solns[quadname][3]) #np.exp(44.))
 
+del lognormal
 
 
 ###########################################
 #            Tests for Weibull            #
 ###########################################
+if debug: print('Testing Weibull...')
 #make distribution
 weibullElement = ET.Element("weibull")
 weibullElement.append(createElement("k", text="1.5"))
@@ -836,12 +1171,20 @@ ptset = [(-1  , 0),
          ( 0.5, 1.24328388488),
          ( 0.9, 2.07811063753)]
 
-doQuads = ['CDF']#,'ClenshawCurtis']
+doQuads = ['CDF']
+
+# make sure CC fails on untruncated normal
+try:
+  weibull.setQuadrature(quads['ClenshawCurtis'])
+  prevented=False
+except IOError:
+  prevented=True
+checkAnswer('Prevent full Weibull from using ClenshawCurtis',prevented,True)
 
 ## perform tests ##
 for quadname,quad in quads.iteritems():
   if quadname not in doQuads: continue
-  print('Testing Weibull-%s...' %quadname)
+  if debug: print('    ...testing %s...' %quadname)
   #link quad to distr
   weibull.setQuadrature(quad)
   checkObject("setting %s collocation in weibull" %quadname,weibull.quadratureSet(),quad)
@@ -866,11 +1209,13 @@ for quadname,quad in quads.iteritems():
       tot2+=testPoly(2,pt)*wts[p]*weibull.probabilityNorm()
       tot3+=testPoly(3,pt)*wts[p]*weibull.probabilityNorm()
       tot4+=testPoly(4,pt)*wts[p]*weibull.probabilityNorm()
-    checkAnswer(        "Weibull-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
-    checkAnswer(        "Weibull-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
-    if i>=1:checkAnswer("Weibull-%s integrate x^1 with O(%i)" %(quadname,i),tot1,0.901725320721) #analytic=0.902745292951
-    if i>=1:checkAnswer("Weibull-%s integrate x^2 with O(%i)" %(quadname,i),tot2,1.18286480485) #analytic=1.190639348759
-    if i>=1:checkAnswer("Weibull-%s integrate x^3 with O(%i)" %(quadname,i),tot3,1.95632274001) #analytic = 2.0
-    if i>=1:checkAnswer("Weibull-%s integrate x^4 with O(%i)" %(quadname,i),tot4,3.79483016062) #analytic=4.01220130200415
+    checkAnswer("Weibull-%s integrate weights with O(%i)" %(quadname,i),totu,1.0)
+    checkAnswer("Weibull-%s integrate x^0 with O(%i)" %(quadname,i),tot0,1.0)
+    checkAnswer("Weibull-%s integrate x^1 with O(%i)" %(quadname,i),tot1,0.901725320721) #analytic=0.902745292951
+    checkAnswer("Weibull-%s integrate x^2 with O(%i)" %(quadname,i),tot2,1.18286480485) #analytic=1.190639348759
+    checkAnswer("Weibull-%s integrate x^3 with O(%i)" %(quadname,i),tot3,1.95632274001) #analytic = 2.0
+    checkAnswer("Weibull-%s integrate x^4 with O(%i)" %(quadname,i),tot4,3.79483016062) #analytic=4.01220130200415
+del weibull
 
+print(results)
 sys.exit(results["fail"])
