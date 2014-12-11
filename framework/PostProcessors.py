@@ -16,6 +16,7 @@ import os
 from glob import glob
 import copy
 import Datas
+import math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -415,6 +416,8 @@ class ComparisonStatistics(BasePostProcessor):
         self.methodInfo['kind'] = child.text
         if 'num_bins' in child.attrib:
           self.methodInfo['num_bins'] = int(child.attrib['num_bins'])
+        if 'bin_method' in child.attrib:
+          self.methodInfo['bin_method'] = child.attrib['bin_method'].lower()
 
 
   def run(self, Input): # inObj,workingDir=None):
@@ -458,6 +461,9 @@ def count_bins(sorted_data, bin_boundaries):
     sorted_index += 1
   return ret
 
+def log2(x):
+  return math.log(x)/math.log(2.0)
+
 def process_data(dataPull, data, methodInfo):
   sorted_data = data.tolist()
   sorted_data.sort()
@@ -465,8 +471,20 @@ def process_data(dataPull, data, methodInfo):
   high = sorted_data[-1]
   data_range = high - low
   print("data",dataPull,"average",sum(data)/len(data))
-  print("low",low,"high",high)
-  num_bins = methodInfo.get("num_bins",10)
+  print("low",low,"high",high,end=' ')
+  if not 'bin_method' in methodInfo:
+    num_bins = methodInfo.get("num_bins",10)
+  else:
+    bin_method = methodInfo['bin_method']
+    data_n = len(sorted_data)
+    if bin_method == 'square-root':
+      num_bins = int(math.ceil(math.sqrt(data_n)))
+    elif bin_method == 'sturges':
+      num_bins = int(math.ceil(log2(data_n)+1))
+    else:
+      print(returnPrintPostTag('ERROR')+"Unknown bin_method "+bin_method)
+      num_bins = 5
+  print("num_bins",num_bins)
   kind = methodInfo.get("kind","uniform_bins")
   if kind == "uniform_bins":
     bins = [low+x*data_range/num_bins for x in range(1,num_bins)]
