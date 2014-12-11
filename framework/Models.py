@@ -353,6 +353,7 @@ class ROM(Dummy):
       for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
       return returnDict
     inRun = self._manipulateInput(Input[0])
+    print(inRun)
     jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
 #
 #

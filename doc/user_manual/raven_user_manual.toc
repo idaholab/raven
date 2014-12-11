@@ -31,41 +31,43 @@
 \contentsline {subsubsection}{\numberline {6.1.4}Response Surface Design.}{38}{subsubsection.6.1.4}
 \contentsline {subsubsection}{\numberline {6.1.5}Factorial Design.}{42}{subsubsection.6.1.5}
 \contentsline {subsection}{\numberline {6.2}Dynamic Event Tree (DET) Samplers.}{47}{subsection.6.2}
-\contentsline {subsection}{\numberline {6.3}Adaptive Samplers.}{47}{subsection.6.3}
-\contentsline {section}{\numberline {7}Functions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{49}{section.7}
-\contentsline {section}{\numberline {8}Models \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{50}{section.8}
-\contentsline {subsection}{\numberline {8.1}Dummy}{50}{subsection.8.1}
-\contentsline {subsection}{\numberline {8.2}ROM}{50}{subsection.8.2}
-\contentsline {subsection}{\numberline {8.3}External Model}{51}{subsection.8.3}
-\contentsline {subsection}{\numberline {8.4}Code}{52}{subsection.8.4}
-\contentsline {subsection}{\numberline {8.5}Projector}{53}{subsection.8.5}
-\contentsline {subsection}{\numberline {8.6}PostProcessor}{53}{subsection.8.6}
-\contentsline {section}{\numberline {9}Steps \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{53}{section.9}
-\contentsline {section}{\numberline {10}Datas \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{56}{section.10}
-\contentsline {section}{\numberline {11}Databases}{56}{section.11}
-\contentsline {section}{\numberline {12}OutStream system \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip Author: Andrea Alfonsi}}{57}{section.12}
-\contentsline {subsection}{\numberline {12.1}Printing system }{58}{subsection.12.1}
-\contentsline {subsection}{\numberline {12.2}Plotting system }{59}{subsection.12.2}
-\contentsline {subsubsection}{\numberline {12.2.1}Plot input structure }{60}{subsubsection.12.2.1}
-\contentsline {paragraph}{\numberline {12.2.1.1}``Actions'' input block }{60}{paragraph.12.2.1.1}
-\contentsline {paragraph}{\numberline {12.2.1.2}``plot\_settings'' input block }{67}{paragraph.12.2.1.2}
-\contentsline {paragraph}{\numberline {12.2.1.3}Predefined Plotting System: 2D/3D }{68}{paragraph.12.2.1.3}
-\contentsline {subsubsection}{\numberline {12.2.2}Interpreted Plotting instruction }{69}{subsubsection.12.2.2}
-\contentsline {section}{\numberline {13}Existing Interfaces \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{69}{section.13}
-\contentsline {subsection}{\numberline {13.1}RELAP5 Interface}{69}{subsection.13.1}
-\contentsline {subsubsection}{\numberline {13.1.1}Files}{69}{subsubsection.13.1.1}
-\contentsline {subsubsection}{\numberline {13.1.2}Sequence}{70}{subsubsection.13.1.2}
-\contentsline {subsubsection}{\numberline {13.1.3}batchSize and mode}{70}{subsubsection.13.1.3}
-\contentsline {subsubsection}{\numberline {13.1.4}RunInfo}{71}{subsubsection.13.1.4}
-\contentsline {subsubsection}{\numberline {13.1.5}Models}{71}{subsubsection.13.1.5}
-\contentsline {subsubsection}{\numberline {13.1.6}Distributions}{71}{subsubsection.13.1.6}
-\contentsline {subsubsection}{\numberline {13.1.7}Samplers}{72}{subsubsection.13.1.7}
-\contentsline {subsubsection}{\numberline {13.1.8}Steps}{74}{subsubsection.13.1.8}
-\contentsline {subsubsection}{\numberline {13.1.9}DataBases}{75}{subsubsection.13.1.9}
-\contentsline {subsection}{\numberline {13.2}RELAP7 Interface}{76}{subsection.13.2}
-\contentsline {subsubsection}{\numberline {13.2.1}Files}{76}{subsubsection.13.2.1}
-\contentsline {subsubsection}{\numberline {13.2.2}Models}{76}{subsubsection.13.2.2}
-\contentsline {subsubsection}{\numberline {13.2.3}Distributions}{76}{subsubsection.13.2.3}
-\contentsline {subsubsection}{\numberline {13.2.4}Samplers}{77}{subsubsection.13.2.4}
-\contentsline {subsubsection}{\numberline {13.2.5}Steps}{77}{subsubsection.13.2.5}
-\contentsline {section}{References}{78}{section*.1}
+\contentsline {subsubsection}{\numberline {6.2.1}Dynamic Event Tree.}{47}{subsubsection.6.2.1}
+\contentsline {subsubsection}{\numberline {6.2.2}Hybrid Dynamic Event Tree.}{50}{subsubsection.6.2.2}
+\contentsline {subsection}{\numberline {6.3}Adaptive Samplers.}{56}{subsection.6.3}
+\contentsline {section}{\numberline {7}Functions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{58}{section.7}
+\contentsline {section}{\numberline {8}Models \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{59}{section.8}
+\contentsline {subsection}{\numberline {8.1}Dummy}{59}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.2}ROM}{59}{subsection.8.2}
+\contentsline {subsection}{\numberline {8.3}External Model}{60}{subsection.8.3}
+\contentsline {subsection}{\numberline {8.4}Code}{61}{subsection.8.4}
+\contentsline {subsection}{\numberline {8.5}Projector}{62}{subsection.8.5}
+\contentsline {subsection}{\numberline {8.6}PostProcessor}{62}{subsection.8.6}
+\contentsline {section}{\numberline {9}Steps \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{62}{section.9}
+\contentsline {section}{\numberline {10}Datas \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{65}{section.10}
+\contentsline {section}{\numberline {11}Databases}{65}{section.11}
+\contentsline {section}{\numberline {12}OutStream system \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip Author: Andrea Alfonsi}}{66}{section.12}
+\contentsline {subsection}{\numberline {12.1}Printing system }{67}{subsection.12.1}
+\contentsline {subsection}{\numberline {12.2}Plotting system }{68}{subsection.12.2}
+\contentsline {subsubsection}{\numberline {12.2.1}Plot input structure }{69}{subsubsection.12.2.1}
+\contentsline {paragraph}{\numberline {12.2.1.1}``Actions'' input block }{69}{paragraph.12.2.1.1}
+\contentsline {paragraph}{\numberline {12.2.1.2}``plot\_settings'' input block }{76}{paragraph.12.2.1.2}
+\contentsline {paragraph}{\numberline {12.2.1.3}Predefined Plotting System: 2D/3D }{77}{paragraph.12.2.1.3}
+\contentsline {subsubsection}{\numberline {12.2.2}Interpreted Plotting instruction }{78}{subsubsection.12.2.2}
+\contentsline {section}{\numberline {13}Existing Interfaces \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{78}{section.13}
+\contentsline {subsection}{\numberline {13.1}RELAP5 Interface}{78}{subsection.13.1}
+\contentsline {subsubsection}{\numberline {13.1.1}Files}{78}{subsubsection.13.1.1}
+\contentsline {subsubsection}{\numberline {13.1.2}Sequence}{79}{subsubsection.13.1.2}
+\contentsline {subsubsection}{\numberline {13.1.3}batchSize and mode}{79}{subsubsection.13.1.3}
+\contentsline {subsubsection}{\numberline {13.1.4}RunInfo}{80}{subsubsection.13.1.4}
+\contentsline {subsubsection}{\numberline {13.1.5}Models}{80}{subsubsection.13.1.5}
+\contentsline {subsubsection}{\numberline {13.1.6}Distributions}{80}{subsubsection.13.1.6}
+\contentsline {subsubsection}{\numberline {13.1.7}Samplers}{81}{subsubsection.13.1.7}
+\contentsline {subsubsection}{\numberline {13.1.8}Steps}{83}{subsubsection.13.1.8}
+\contentsline {subsubsection}{\numberline {13.1.9}DataBases}{84}{subsubsection.13.1.9}
+\contentsline {subsection}{\numberline {13.2}RELAP7 Interface}{85}{subsection.13.2}
+\contentsline {subsubsection}{\numberline {13.2.1}Files}{85}{subsubsection.13.2.1}
+\contentsline {subsubsection}{\numberline {13.2.2}Models}{85}{subsubsection.13.2.2}
+\contentsline {subsubsection}{\numberline {13.2.3}Distributions}{85}{subsubsection.13.2.3}
+\contentsline {subsubsection}{\numberline {13.2.4}Samplers}{86}{subsubsection.13.2.4}
+\contentsline {subsubsection}{\numberline {13.2.5}Steps}{86}{subsubsection.13.2.5}
+\contentsline {section}{References}{87}{section*.1}
