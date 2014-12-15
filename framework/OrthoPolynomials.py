@@ -43,7 +43,7 @@ class OrthogonalPolynomial(BaseType):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.
        Has to be overwritten if parameters are required.'''
     inps=self.params+[self.pointMod(pt)]
-    print ('DEBUG inps',inps)
+    #print ('DEBUG inps',inps)
     #print ('DEBUG',order,pt,self._evPoly(self.orderMod(order),*inps) * self.norm(order))
     return self._evPoly(self.orderMod(order),*inps) * self.norm(order)
     #return self._evPoly(self.orderMod(order),self.pointMod(pt)) * self.norm(order)
@@ -240,11 +240,15 @@ class Jacobi(OrthogonalPolynomial):
   def norm(self,n):
     a=self.params[0]
     b=self.params[1]
-    coeff1=1./np.sqrt(2.**(a+b+1)/(2.*n+a+b+1.))
-    coeff2=1./np.sqrt(factorial(n+a)*factorial(n+b)/(factorial(n)*factorial(n+a+b)))
-    #coeff3=1./np.sqrt(15./32.) #TODO this must be a factor of alpha,beta!
-    return coeff1*coeff2#*coeff3
-    #return 1.0/np.sqrt(factorial(n+a)/(factorial(n)*factorial(a)))**2
+    #WHAT I THOUGHT
+    #coeff1=1./np.sqrt(2.**(a+b+1)/(2.*n+a+b+1.))
+    #coeff2=1./np.sqrt(factorial(n+a)*factorial(n+b)/(factorial(n)*factorial(n+a+b)))
+    #return coeff1*coeff2
+    #WHAT WORKS = norm (from comment above) / beta standard norm
+    coeff=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
+    coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
+    coeff*=np.sqrt(2**(a+b+1)*factorial(a)*factorial(b)/factorial(a+b+1))
+    return coeff
 
 
 
