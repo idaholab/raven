@@ -16,10 +16,10 @@ def initial_function(monitored, controlled, auxiliary):
     controlled.pump_mass_flow_rate = mult*controlled.pump_mass_flow_rate
     controlled.inlet_TDV_p_bc = mult*controlled.inlet_TDV_p_bc
     controlled.inlet_TDV_T_bc = mult*controlled.inlet_TDV_T_bc
-    controlled.inlet_TDV_void_fraction_bc = mult*controlled.inlet_TDV_void_fraction_bc
+    #controlled.inlet_TDV_void_fraction_bc = mult*controlled.inlet_TDV_void_fraction_bc
     controlled.outlet_TDV_p_bc = mult*controlled.outlet_TDV_p_bc
     controlled.outlet_TDV_T_bc = mult*controlled.outlet_TDV_T_bc
-    controlled.outlet_TDV_void_fraction_bc = mult*controlled.outlet_TDV_void_fraction_bc
+    #controlled.outlet_TDV_void_fraction_bc = mult*controlled.outlet_TDV_void_fraction_bc
     auxiliary.dummy_for_branch = 0.0
 
     return
@@ -43,9 +43,9 @@ def control_function(monitored, controlled, auxiliary):
     controlled.pump_mass_flow_rate = mult*controlled.pump_mass_flow_rate
     controlled.inlet_TDV_p_bc = mult*controlled.inlet_TDV_p_bc
     controlled.inlet_TDV_T_bc = mult*controlled.inlet_TDV_T_bc
-    controlled.inlet_TDV_void_fraction_bc = mult*controlled.inlet_TDV_void_fraction_bc
+    #controlled.inlet_TDV_void_fraction_bc = mult*controlled.inlet_TDV_void_fraction_bc
     controlled.outlet_TDV_p_bc = mult*controlled.outlet_TDV_p_bc
     controlled.outlet_TDV_T_bc = mult*controlled.outlet_TDV_T_bc
-    controlled.outlet_TDV_void_fraction_bc = mult*controlled.outlet_TDV_void_fraction_bc
+    #controlled.outlet_TDV_void_fraction_bc = mult*controlled.outlet_TDV_void_fraction_bc
     return
 
