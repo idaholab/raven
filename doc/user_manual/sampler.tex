@@ -759,82 +759,247 @@ For this scope two classes of algorithms are considered:
 \end{itemize}
 In the first class, the built reduced order model aims to approximate the real response function of the system as function of the input parameters. Once it is built, it is used to search for the points that are in the proximity of the limit surface using contour reconstruction based algorithms. Response function can be built using Support Vector Machines or Kriging based interpolators.
 On the other side, data-based algorithms do not build a response function based reduced order model but determine the location of the limit surface directly from the neighborhood graph constructed from the training data, without any dependencies on a particular prediction model. 
-These algorithms begin the search of the limit surface by directly building a neighborhood structure as the surrogate model on the initial training data. It then creates a candidate set by first obtaining linearly interpolated points along spanning edges  of the graph, and introducing a random perturbation along all dimensions to these points. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-The Dynamic Event Tree methodologies are designed to take the timing of events explicitly into account, which can become very important especially when uncertainties in complex phenomena are considered. Hence, the main idea of this methodology is to let a system code determine the pathway of an accident scenario within a probabilistic “environment”. 
-From an application point of view, a N-Dimensional grid is built on the CDF space. A single simulation is spooned and a set of triggers is added to the system code control logic. Every time a trigger gets activated (one of the CDF thresholds in the grid is overpassed), a new set of simulations (branches) is spooned. Each branch carries its conditional probability. 
-As easily understandable, a continuous monitoring of the system evolution in the phase space is needed.  In order to use the DET method, the driven generic code needs to 
-
-In the RAVEN framework, five different and well-known “once-through” samplers are available: 
+These algorithms begin the search of the limit surface by directly building a neighborhood structure as the surrogate model on the initial training data. It then creates a candidate set by first obtaining linearly interpolated points along spanning edges  of the graph, and introducing a random perturbation along all dimensions to these points.
+\\ Currently, RAVEN provides support for two adaptive algorithm:
 \begin{itemize}
-\item \textbf{Monte Carlo (MC)}
-\item \textbf{Stratified}
-\item \textbf{Grid Based}
-\item \textbf{Response Surface Design of Experiment}
-\item \textbf{Factorial Design of Experiment}
+\item Adaptive Sampler for Limit Surface Search;
+\item Adaptive Dynamic Event Tree.
 \end{itemize}
-From a practical point of view, these sampling strategies represent different ways to perturb the input space. In the following paragraphs, the input requirements and a small explaination of the different sampling methodologies are reported.
-
-
-
-
-
-For the Adaptive method:
+In the following paragraphs, the input requirements and a small explanation of the different sampling methodologies are reported.
+%%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
+\subsubsection{Adaptive Sampler.}
+\label{subsubsubsec:AdaptiveSampling}
+\textbf{Adaptive Sampler} approach is an advanced methodology that employs a smart sampling around transition zones that determine a change in the status of the system (Limit Surface). To perform such sampling, RAVEN uses Reduced Order Models for predicting, in the input space, the location(s) of these transitions, in order to accelerate the exploration of the input space in proximity of the Limit Surface.
+\\ The specifications of this Sampler must be defined within the xml block $<Adaptive>$. This xml-node needs to contain the attribute:
 \begin{itemize}
-\item \textbf{Adaptive}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\end{itemize}
+In the \textbf{Adaptive} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
 \begin{itemize}
-\item name
-\item initial seed (optional)
-\end{itemize}
-\item Convergence
+\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
 \begin{itemize}
-\item limit: 'Integer'
-\item persistence: 'Integer'
-\item weight='probability' or 'None': 
-\item subGridTol='None' or 'Float' :This is the tolerance used to construct the testing sub grid
-\item forcelteration='True' or 'False': this flag control if at least a self.limit number of iteration should be done
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+ \end{itemize}
+ In the variable node, the following xml-node needs to be specified:
+ \begin{itemize}
+    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions}.
+  \end{itemize}
 \end{itemize}
-\item variable
-\item distribution
+ In addition to the $<variable>$ nodes,  the main xml node $<Adaptive>$ needs to contain two supplementary sub-nodes:
+\begin{itemize}
+  \item $<Convergence>$\textbf{\textit{, float, required field.}} Convergence tolerance. The meaning of this tolerance depends on the definition of other attributes that might be defined in this xml node:
+     \begin{itemize}
+         \item \textbf{limit}, \textit{optional integer attribute}, the maximum number of adaptive samples. \textit{Default = infinitive};
+         \item \textbf{forceIteration}, \textit{optional boolean attribute}, this attribute controls if at least a number of iterations equal to \textbf{limit} must be performed.  \textit{Default = False} ;
+         \item \textbf{weight}, \textit{optional string attribute}, this attribute defines on what the convergence check need to be performed.
+          \begin{itemize}
+             \item \textit{weight = probability}, the convergence is checked in terms of probability (Cumulative Distribution Function);
+             \item \textit{weight = none}, the convergence is checked on the hyper-volume in terms of absolute values.
+          \end{itemize} 
+          \textit{Default = probability};
+         \item \textbf{persistence}, \textit{optional integer attribute}, this option is an additional convergence check. It represents the number of times the computed error needs to be below the inputted tolerance, in order to consider the algorithm in converged condition.  \textit{Default = 0};
+         \item \textbf{subGridTol}, \textit{optional string attribute}, in this attribute the user can define a tolerance for constructing a sub-grid on which the acceleration ROM is going to be tested. \textit{Default = None};
+      \end{itemize}   
+   Summarizing,  this xml node contains the information that are needed in order to control this sampler convergence criterion.
+   \item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node contains a ``list'' of objects that are required (or optional) for the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
+   \begin{itemize}
+     \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from. For example, it can be ``Models'', ``Functions'', etc;
+     \item \textbf{type},  \textit{required string attribute}, it is the object identifier or sub-type. For example, it can be ``ROM'', ``External'', etc.
+    \end{itemize}
+The \textbf{Adaptive Sampler} approach requires or optionally accepts the following objects' types:
+   \begin{itemize}
+     \item $<ROM>$\textbf{\textit{, string, optional  field.}}. If inputted, the body of this xml node must contain the name of a ROM defined in the $<Models>$ block (see section \ref{subsec:models_ROM});
+       \item $<Function>$\textbf{\textit{, string, required field.}}.The body of this xml block needs to contain the name of an External Function defined within the $<Functions>$ main block (see section \ref{sec:functions}). This object represents the boolean function that defines the transition boundaries. This function must implement a method called \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on the system conditions (see section \ref{sec:functions};
+        \item $<TargetEvaluation>$\textbf{\textit{, string, required field.}}. The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this xml node must contain the name of a Data defined in the $<Datas>$ block (see section \ref{sec:sec:Datas}). The adaptive sampling accepts ``Datas'' of type ``TimePoint''  and ``TimePointSet'' only.
+    \end{itemize}
+    
 \end{itemize}
+
+
 
 \begin{lstlisting}[style=XML]
-<Adaptive name='***' initial_seed='***'> 
- <Convergence limit='***' persistence='***' weight='***' subGridTol='***' forcelteration='***'>***</Convergence>  
-  <variable name='***'>
-   <distribution>***</distribution>
-  </variable> 
-</Adaptive>   
-\end{lstlisting}
+---------------------------------------------------------
+Example:
+---------------------------------------------------------
+XML INPUT:
+--------------------------------------------------------- 
+<Samplers>
+  ...
+  <Adaptive name = 'AdaptiveName'>
+    <Assembler>
+        <ROM                   class = 'Models'    type = 'ROM'            >ROMname</ROM>
+        <Function             class = 'Functions' type = 'External'      >FunctionName</Function>
+        <TargetEvaluation class = 'Datas'     type = 'TimePointSet'>DataName</TargetEvaluation>
+    </Assembler>
+    <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
+      1e-2
+    </Convergence>
+    <variable name = 'var1'>
+        <distribution>***</distribution>
+    </variable>
+    <variable name = 'var2'>
+        <distribution>***</distribution>
+    </variable>
+    <variable name = 'var3'>
+        <distribution>***</distribution>
+    </variable>
+  </Adaptive>
+  ...
+</Samplers>
+\end{lstlisting} 
+\begin{lstlisting}[language=python]
+---------------------------------------------------------
+Example:
+---------------------------------------------------------
+EXTERNAL FUNCTION:
+---------------------------------------------------------
+def __residuumSign(self):
+  if self.whatEverValue < self.OtherValue : 
+    return  1
+  else: 
+    return -1
+---------------------------------------------------------
+\end{lstlisting} 
+
+%%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
+\subsubsection{Adaptive Dynamic Event Tree.}
+\label{subsubsubsec:ADET}
+\textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology that employs a smart sampling around transition zones that determine a change in the status of the system (Limit Surface), using the support of a Dynamic Event Tree methodology. 
+The main idea of the application of the previously explained adaptive sampling approach to the DET comes from the observation that the DET, when evaluated from a Limit Surface perspective, is intrinsically adaptive.
+For this reason, it appears natural to use the DET approach to perform a goal-function oriented pre-sampling of the input space. 
+\\To perform such sampling, RAVEN uses Reduced Order Models for predicting, in the input space, the location(s) of these transitions, in order to accelerate the exploration of the input space in proximity of the Limit Surface.
+\\ The specifications of this Sampler must be defined within the xml block $<AdaptiveDynamicEventTree>$. This xml-node needs to contain the attributes:
+\begin{itemize}
+  \itemsep0em
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+  \item \textbf{print\_end\_xml}, \textit{optional string/boolean attribute}, this attribute controls the dumping of a ``summary'' of the DET performed in an xml external output. \textit{Default = False};
+  \item \textbf{maxSimulationTime}, \textit{optional float attribute}, this attribute controls the maximum ``mission'' time of the simulation underneath. \textit{Default = None}.
+  \item \textbf{mode}, \textit{optional string attribute}, adaptive DET mode. This attribute controls when the adaptive search needs to begin. Two options are available:
+      \begin{itemize}
+         \item \textit{mode = post}, if this option is activated, the sampler firstly performs a standard Dynamic Event Tree. At end of it, it uses the outcomes to start the adaptive search in conjunction with the DET support;
+         \item \textit{mode = online},  if this option is activated, the adaptive search starts at begin, during the initial standard Dynamic Event Tree. Whenever a transition is detected, the \textbf{Adaptive Dynamic Event Tree} starts it goal-oriented search using the DET as support;
+      \end{itemize}
+      \textit{Default = post}.
+%  \item \textbf{noTransitionStrategy}, \textit{optional string attribute}, strategy if no transition detected. This attribute controls how to handle the case in which no transitions have been detected through the initial DET grid.  %Two options are available: 
+ %     \begin{itemize}
+  %       \item \textit{noTransitionStrategy = mc}, if this option is activated, when the initial DET grid did not detect any transition, a MC point in space is requested;
+   %      \item \textit{noTransitionStrategy = grid},  if this option is activated, the adaptive search starts at begin, during the initial standard Dynamic Event Tree. Whenever a transition is detected, the \textbf{Adaptive Dynamic Event Tree} starts it goal-oriented search using the DET as support;
+  %    \end{itemize}
+   %   \textit{Default = post}.
+  \item \textbf{updateGrid}, \textit{optional boolean attribute}, update DET grid flag. If it is true, each Adaptive Request is going to update the meshing of the initial DET grid.  \textit{Default = True}.
+\end{itemize}
+In the \textbf{AdaptiveDynamicEventTree} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+\begin{itemize}
+\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\begin{itemize}
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+ \end{itemize}
+ In the variable node, the following xml-nodes need to be specified:
+ \begin{itemize}
+    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
+    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this xml node depends on the definition of the associated attributes:
+\begin{itemize}
+\itemsep0em
+\item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
+\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$). 
+\end{itemize}
+Based on the $construction$ type, the content of the $<grid>$ xml node and the requirements for other attributes change:
+\begin{itemize}
+  \item \textit{construction = ``equal''}. The grid is going to be constructed equally-spaced ( type = ``value'') or equally-probable (type == ``CDF''). This construction type requires the definition of additional attributes:
+      \begin{itemize}
+         \item \textbf{steps}, \textit{required integer attribute}, number of equally-spaced/probable discretization steps.
+         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid. 
+        NB. This attribute must be specified if the \textbf{lowerBound} has not been defined;
+         \item \textbf{lowerBound}, \textit{required float attribute}, the lower limit of the grid.
+        NB. This attribute must be specified if the \textbf{upperBound} has not been defined;
+      \end{itemize}
+      This construction type requires that the content of the xml node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
+      \\ If the \textit{upperBound} is present, the grid lower bound is going to be at the $upperBound - steps*stepSize$
+      \\ If the \textit{lowerBound} is present, the grid upper bound is going to be at the $lowerBound + steps*stepSize$
+      The lower and upper bounds are checked against the associated $<distribution>$ bounds. If one or both of them fell/s outside the distribution's bounds, the code is going to raise an error.
+  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed. 
+     \\This construction type requires that the xml node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
+\end{itemize}
+  \end{itemize}
+\end{itemize}
+
+ In addition to the $<variable>$ nodes,  the main xml node $<AdaptiveDynamicEventTree>$ needs to contain two supplementary sub-nodes:
+\begin{itemize}
+  \item $<Convergence>$\textbf{\textit{, float, required field.}} Convergence tolerance. The meaning of this tolerance depends on the definition of other attributes that might be defined in this xml node:
+     \begin{itemize}
+         \item \textbf{limit}, \textit{optional integer attribute}, the maximum number of adaptive samples. \textit{Default = infinitive};
+         \item \textbf{forceIteration}, \textit{optional boolean attribute}, this attribute controls if at least a number of iterations equal to \textbf{limit} must be performed.  \textit{Default = False} ;
+         \item \textbf{weight}, \textit{optional string attribute}, this attribute defines on what the convergence check need to be performed.
+          \begin{itemize}
+             \item \textit{weight = probability}, the convergence is checked in terms of probability (Cumulative Distribution Function);
+             \item \textit{weight = none}, the convergence is checked on the hyper-volume in terms of absolute values.
+          \end{itemize} 
+          \textit{Default = probability};
+         \item \textbf{persistence}, \textit{optional integer attribute}, this option is an additional convergence check. It represents the number of times the computed error needs to be below the inputted tolerance, in order to consider the algorithm in converged condition.  \textit{Default = 0};
+         \item \textbf{subGridTol}, \textit{optional string attribute}, in this attribute the user can define a tolerance for constructing a sub-grid on which the acceleration ROM is going to be tested. \textit{Default = None};
+      \end{itemize}   
+   Summarizing,  this xml node contains the information that are needed in order to control this sampler convergence criterion.
+   \item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node contains a ``list'' of objects that are required (or optional) for the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
+   \begin{itemize}
+     \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from. For example, it can be ``Models'', ``Functions'', etc;
+     \item \textbf{type},  \textit{required string attribute}, it is the object identifier or sub-type. For example, it can be ``ROM'', ``External'', etc.
+    \end{itemize}
+The \textbf{Adaptive Sampler} approach requires or optionally accepts the following objects' types:
+   \begin{itemize}
+     \item $<ROM>$\textbf{\textit{, string, optional  field.}}. If inputted, the body of this xml node must contain the name of a ROM defined in the $<Models>$ block (see section \ref{subsec:models_ROM});
+       \item $<Function>$\textbf{\textit{, string, required field.}}.The body of this xml block needs to contain the name of an External Function defined within the $<Functions>$ main block (see section \ref{sec:functions}). This object represents the boolean function that defines the transition boundaries. This function must implement a method called \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on the system conditions (see section \ref{sec:functions};
+        \item $<TargetEvaluation>$\textbf{\textit{, string, required field.}}. The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this xml node must contain the name of a Data defined in the $<Datas>$ block (see section \ref{sec:sec:Datas}). The adaptive sampling accepts ``Datas'' of type ``TimePoint''  and ``TimePointSet'' only.
+    \end{itemize}
+    
+\end{itemize}
 
 
 
-For DynamicEventTree:
-***
+\begin{lstlisting}[style=XML]
+---------------------------------------------------------
+Example:
+---------------------------------------------------------
+XML INPUT:
+<Samplers>
+  ...
+  <AdaptiveDynamicEventTree name = 'AdaptiveName'>
+    <Assembler>
+        <ROM                   class = 'Models'    type = 'ROM'            >ROMname</ROM>
+        <Function             class = 'Functions' type = 'External'      >FunctionName</Function>
+        <TargetEvaluation class = 'Datas'     type = 'TimePointSet'>DataName</TargetEvaluation>
+    </Assembler>
+    <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
+      1e-2
+    </Convergence>
+    <variable name = 'var1'>
+        <distribution>***</distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+    <variable name = 'var2'>
+        <distribution>***</distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+    <variable name = 'var3'>
+        <distribution>***</distribution>
+        <grid type='CDF' construction='custom'>0.1 0.8</grid>
+    </variable>
+  </AdaptiveDynamicEventTree>
+  ...
+</Samplers>
+\end{lstlisting} 
+\begin{lstlisting}[language=python]
 
-For AdaptiveDynamicEventTree:
-***
-
+EXTERNAL FUNCTION:
+def __residuumSign(self):
+  if self.whatEverValue < self.OtherValue : 
+    return  1
+  else: 
+    return -1
+---------------------------------------------------------
+\end{lstlisting} 
 
 
 

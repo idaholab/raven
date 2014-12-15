@@ -141,7 +141,7 @@ class OutStreamPlot(OutStreamManager):
     self.type         = 'OutStreamPlot'
     self.printTag     = returnPrintTag('OUTSTREAM PLOT')
     # available 2D and 3D plot types
-    self.availableOutStreamTypes = {2:['scatter','line','histogram','stem','step','polar','pseudocolor'],
+    self.availableOutStreamTypes = {2:['scatter','line','histogram','stem','step','pseudocolor'],
                                     3:['scatter','line','stem','surface','wireframe','tri-surface',
                                        'contour','filledContour','contour3D','filledContour3D','histogram']}
     # default plot is 2D
@@ -896,7 +896,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'surface':
         if self.dim == 2:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> surface Plot is NOT available for 2D plots, IT IS A 2D!')
+          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> surface Plot is NOT available for 2D plots, IT IS A 3D!')
           return
         elif self.dim == 3:
           if 'rstride' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rstride'] = '1'

@@ -34,40 +34,53 @@
 \BOOKMARK [3][-]{subsubsection.6.2.1}{Dynamic Event Tree.}{subsection.6.2}% 34
 \BOOKMARK [3][-]{subsubsection.6.2.2}{Hybrid Dynamic Event Tree.}{subsection.6.2}% 35
 \BOOKMARK [2][-]{subsection.6.3}{Adaptive Samplers.}{section.6}% 36
-\BOOKMARK [1][-]{section.7}{Functions \0402 mm }{}% 37
-\BOOKMARK [1][-]{section.8}{Models \0402 mm }{}% 38
-\BOOKMARK [2][-]{subsection.8.1}{Dummy}{section.8}% 39
-\BOOKMARK [2][-]{subsection.8.2}{ROM}{section.8}% 40
-\BOOKMARK [2][-]{subsection.8.3}{External Model}{section.8}% 41
-\BOOKMARK [2][-]{subsection.8.4}{Code}{section.8}% 42
-\BOOKMARK [2][-]{subsection.8.5}{Projector}{section.8}% 43
-\BOOKMARK [2][-]{subsection.8.6}{PostProcessor}{section.8}% 44
-\BOOKMARK [1][-]{section.9}{Steps \0402 mm }{}% 45
-\BOOKMARK [1][-]{section.10}{Datas \0402 mm }{}% 46
-\BOOKMARK [1][-]{section.11}{Databases}{}% 47
-\BOOKMARK [1][-]{section.12}{OutStream system \0402 mm Author: Andrea Alfonsi}{}% 48
-\BOOKMARK [2][-]{subsection.12.1}{Printing system }{section.12}% 49
-\BOOKMARK [2][-]{subsection.12.2}{Plotting system }{section.12}% 50
-\BOOKMARK [3][-]{subsubsection.12.2.1}{Plot input structure }{subsection.12.2}% 51
-\BOOKMARK [4][-]{paragraph.12.2.1.1}{``Actions'' input block }{subsubsection.12.2.1}% 52
-\BOOKMARK [4][-]{paragraph.12.2.1.2}{``plot\137settings'' input block }{subsubsection.12.2.1}% 53
-\BOOKMARK [4][-]{paragraph.12.2.1.3}{Predefined Plotting System: 2D/3D }{subsubsection.12.2.1}% 54
-\BOOKMARK [3][-]{subsubsection.12.2.2}{Interpreted Plotting instruction }{subsection.12.2}% 55
-\BOOKMARK [1][-]{section.13}{Existing Interfaces \0402 mm }{}% 56
-\BOOKMARK [2][-]{subsection.13.1}{RELAP5 Interface}{section.13}% 57
-\BOOKMARK [3][-]{subsubsection.13.1.1}{Files}{subsection.13.1}% 58
-\BOOKMARK [3][-]{subsubsection.13.1.2}{Sequence}{subsection.13.1}% 59
-\BOOKMARK [3][-]{subsubsection.13.1.3}{batchSize and mode}{subsection.13.1}% 60
-\BOOKMARK [3][-]{subsubsection.13.1.4}{RunInfo}{subsection.13.1}% 61
-\BOOKMARK [3][-]{subsubsection.13.1.5}{Models}{subsection.13.1}% 62
-\BOOKMARK [3][-]{subsubsection.13.1.6}{Distributions}{subsection.13.1}% 63
-\BOOKMARK [3][-]{subsubsection.13.1.7}{Samplers}{subsection.13.1}% 64
-\BOOKMARK [3][-]{subsubsection.13.1.8}{Steps}{subsection.13.1}% 65
-\BOOKMARK [3][-]{subsubsection.13.1.9}{DataBases}{subsection.13.1}% 66
-\BOOKMARK [2][-]{subsection.13.2}{RELAP7 Interface}{section.13}% 67
-\BOOKMARK [3][-]{subsubsection.13.2.1}{Files}{subsection.13.2}% 68
-\BOOKMARK [3][-]{subsubsection.13.2.2}{Models}{subsection.13.2}% 69
-\BOOKMARK [3][-]{subsubsection.13.2.3}{Distributions}{subsection.13.2}% 70
-\BOOKMARK [3][-]{subsubsection.13.2.4}{Samplers}{subsection.13.2}% 71
-\BOOKMARK [3][-]{subsubsection.13.2.5}{Steps}{subsection.13.2}% 72
-\BOOKMARK [1][-]{section*.1}{References}{}% 73
+\BOOKMARK [3][-]{subsubsection.6.3.1}{Adaptive Sampler.}{subsection.6.3}% 37
+\BOOKMARK [3][-]{subsubsection.6.3.2}{Adaptive Dynamic Event Tree.}{subsection.6.3}% 38
+\BOOKMARK [1][-]{section.7}{Datas \0402 mm }{}% 39
+\BOOKMARK [1][-]{section.8}{Databases}{}% 40
+\BOOKMARK [1][-]{section.9}{Functions \0402 mm }{}% 41
+\BOOKMARK [1][-]{section.10}{Models \0402 mm }{}% 42
+\BOOKMARK [2][-]{subsection.10.1}{Dummy}{section.10}% 43
+\BOOKMARK [2][-]{subsection.10.2}{ROM}{section.10}% 44
+\BOOKMARK [2][-]{subsection.10.3}{External Model}{section.10}% 45
+\BOOKMARK [2][-]{subsection.10.4}{Code}{section.10}% 46
+\BOOKMARK [2][-]{subsection.10.5}{Projector}{section.10}% 47
+\BOOKMARK [2][-]{subsection.10.6}{PostProcessor}{section.10}% 48
+\BOOKMARK [1][-]{section.11}{OutStream system \0402 mm }{}% 49
+\BOOKMARK [2][-]{subsection.11.1}{Printing system }{section.11}% 50
+\BOOKMARK [2][-]{subsection.11.2}{Plotting system }{section.11}% 51
+\BOOKMARK [3][-]{subsubsection.11.2.1}{Plot input structure }{subsection.11.2}% 52
+\BOOKMARK [4][-]{paragraph.11.2.1.1}{``Actions'' input block }{subsubsection.11.2.1}% 53
+\BOOKMARK [4][-]{paragraph.11.2.1.2}{``plot\137settings'' input block }{subsubsection.11.2.1}% 54
+\BOOKMARK [4][-]{paragraph.11.2.1.3}{Predefined Plotting System: 2D/3D }{subsubsection.11.2.1}% 55
+\BOOKMARK [3][-]{subsubsection.11.2.2}{2D \046 3D Scatter plot.}{subsection.11.2}% 56
+\BOOKMARK [3][-]{subsubsection.11.2.3}{2D \046 3D Line plot.}{subsection.11.2}% 57
+\BOOKMARK [3][-]{subsubsection.11.2.4}{2D \046 3D Histogram plot.}{subsection.11.2}% 58
+\BOOKMARK [3][-]{subsubsection.11.2.5}{2D \046 3D Stem plot.}{subsection.11.2}% 59
+\BOOKMARK [3][-]{subsubsection.11.2.6}{2D Step plot}{subsection.11.2}% 60
+\BOOKMARK [3][-]{subsubsection.11.2.7}{2D Pseudocolor plot}{subsection.11.2}% 61
+\BOOKMARK [3][-]{subsubsection.11.2.8}{2D Contour or filledContour plots.}{subsection.11.2}% 62
+\BOOKMARK [3][-]{subsubsection.11.2.9}{3D Surface Plot.}{subsection.11.2}% 63
+\BOOKMARK [3][-]{subsubsection.11.2.10}{3D Wireframe Plot.}{subsection.11.2}% 64
+\BOOKMARK [3][-]{subsubsection.11.2.11}{3D Tri-surface Plot.}{subsection.11.2}% 65
+\BOOKMARK [3][-]{subsubsection.11.2.12}{3D Contour or filledContour plots.}{subsection.11.2}% 66
+\BOOKMARK [3][-]{subsubsection.11.2.13}{Example XML input.}{subsection.11.2}% 67
+\BOOKMARK [1][-]{section.12}{Steps \0402 mm }{}% 68
+\BOOKMARK [1][-]{section.13}{Existing Interfaces \0402 mm }{}% 69
+\BOOKMARK [2][-]{subsection.13.1}{RELAP5 Interface}{section.13}% 70
+\BOOKMARK [3][-]{subsubsection.13.1.1}{Files}{subsection.13.1}% 71
+\BOOKMARK [3][-]{subsubsection.13.1.2}{Sequence}{subsection.13.1}% 72
+\BOOKMARK [3][-]{subsubsection.13.1.3}{batchSize and mode}{subsection.13.1}% 73
+\BOOKMARK [3][-]{subsubsection.13.1.4}{RunInfo}{subsection.13.1}% 74
+\BOOKMARK [3][-]{subsubsection.13.1.5}{Models}{subsection.13.1}% 75
+\BOOKMARK [3][-]{subsubsection.13.1.6}{Distributions}{subsection.13.1}% 76
+\BOOKMARK [3][-]{subsubsection.13.1.7}{Samplers}{subsection.13.1}% 77
+\BOOKMARK [3][-]{subsubsection.13.1.8}{Steps}{subsection.13.1}% 78
+\BOOKMARK [3][-]{subsubsection.13.1.9}{DataBases}{subsection.13.1}% 79
+\BOOKMARK [2][-]{subsection.13.2}{RELAP7 Interface}{section.13}% 80
+\BOOKMARK [3][-]{subsubsection.13.2.1}{Files}{subsection.13.2}% 81
+\BOOKMARK [3][-]{subsubsection.13.2.2}{Models}{subsection.13.2}% 82
+\BOOKMARK [3][-]{subsubsection.13.2.3}{Distributions}{subsection.13.2}% 83
+\BOOKMARK [3][-]{subsubsection.13.2.4}{Samplers}{subsection.13.2}% 84
+\BOOKMARK [3][-]{subsubsection.13.2.5}{Steps}{subsection.13.2}% 85
+\BOOKMARK [1][-]{section*.1}{References}{}% 86
