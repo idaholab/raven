@@ -659,7 +659,7 @@ for quadname,quad in quads.iteritems():
     checkAnswer("Beta-%s integrate x^3 with O(%i)" %(quadname,i),tot3,solns[quadname][2])
     checkAnswer("Beta-%s integrate x^4 with O(%i)" %(quadname,i),tot4,solns[quadname][3])
 
-  for i in [2]:
+  for i in [4]:
     pts,wts = quad(i)
     orth1=0
     orth2=0
@@ -669,7 +669,6 @@ for quadname,quad in quads.iteritems():
     orth2_2=0
     orth1_3=0
     orth3_3=0
-    print('pts',pts,wts)
     for p,pt in enumerate(pts):
       orth1+=polys['Jacobi'](1,pts[p])*wts[p]
       orth2+=polys['Jacobi'](2,pts[p])*wts[p]
@@ -695,12 +694,19 @@ for quadname,quad in quads.iteritems():
     checkAnswer("beta-%s integrate Jacobi polys (2,2) with O(%i)" %(quadname,i),orth2_2,orthslns[quadname][(2,2)])
     checkAnswer("beta-%s integrate Jacobi polys (1,3) with O(%i)" %(quadname,i),orth1_3,orthslns[quadname][(1,3)])
     checkAnswer("beta-%s integrate Jacobi polys (3,3) with O(%i)" %(quadname,i),orth3_3,orthslns[quadname][(3,3)])
-  #test orthogonal polynomials TODO
-print('DEBUG params',polys['Jacobi'].params)
-print('DEBUG poly1',polys['Jacobi']._poly(1,1,4)(2./3.)*polys['Jacobi'].norm(1))
-print('DEBUG poly2',polys['Jacobi']._evPoly(1,1,4,2./3.)*polys['Jacobi'].norm(1))
-print('DEBUG jacobi(1)(2/3)',polys['Jacobi'](1,2./3.))
-print('DEBUG jacobi(1)(1) ptmod',polys['Jacobi'].orderMod(1))
+#print('DEBUG org point:',2./3.)
+#print('DEBUG poly:     \n',polys['Jacobi']._poly(2,1,4))
+#print('DEBUG norm:     ',polys['Jacobi'].norm(2))
+#print('DEBUG polynorm:\n',polys['Jacobi']._poly(2,1,4)*polys['Jacobi'].norm(1))
+#print('DEBUG poly1:    ',polys['Jacobi']._poly(2,1,4)(2./3.)*polys['Jacobi'].norm(1))
+#print('DEBUG poly2:    ',polys['Jacobi']._evPoly(2,1,4,2./3.)*polys['Jacobi'].norm(1))
+#print('')
+#print('DEBUG jacobi(2)(0)   ',polys['Jacobi'](2,0))
+#print('DEBUG jacobi(2)(2/3) ',polys['Jacobi'](2,2./3.))
+#print('DEBUG jacobi(0)^2    ',polys['Jacobi'](2,0)**2)
+#print('DEBUG jacobi(2/3)^2  ',polys['Jacobi'](2,2./3.)**2)
+#print('')
+#print('DEBUG beta norm:',beta.probabilityNorm())
 del beta
 
 ##############################################
