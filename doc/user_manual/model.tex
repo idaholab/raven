@@ -1,17 +1,16 @@
 \section{Models  \\ \vspace{2 mm} {\small }}
 \label{sec:models}
-In the RAVEN code a crucial entity is represented by a Model. A model is an object that employs a mathematical model used to re
+In the RAVEN code a crucial entity is represented by a Model. A model is an object that employs a mathematical representation of a phenomenology, either physical or of other nature (e.g. statistical operators, etc.). From a practical point of view, it can be seen, as a ``black box'' that, given an input, returns an output. 
+\\ In the RAVEN code, a strict  classification of the different models is present. As obviously, each ``class'' of models is represented by the definition reported above, but it can be further classified based on the peculiar functionalities:
+\begin{itemize}
+\item \textbf{Code}. This ``class'' is the representation of an external system code that employs an high fidelity physical model;
+\item \textbf{Dummy}. The ``Dummy'' object is a model that acts as ``transfer'' tool. The only action it performs is transferring the the information in the input space (inputs) into the output space (outputs). For example, it can be used to check the effect of a Sampling strategy, since its outputs are the sampled parameters' values (input space) and a counter that keeps track of the number of times an evaluation has been requested; 
+\item \textbf{ROM}. A ROM is a mathematical model of fast solution trained to predict a response of interest of a physical system. The ``training'' process is performed by “sampling” the response of a physical model with respect variation of its parameters subject to probabilistic behavior. The results (outcomes of the physical model) of those sampling are fed into the algorithm representing the ROM that tunes itself to replicate those results;
+\item \textbf{ExternalModel}. This ``class'' is  this model allows to interface with an external python module
 
-The xml section "models" contains the information regarding the code employed in the analysis (e.g., RAVEN/RELAP-7, RELAP-5 or an external model). A model is something that given an input will return an output reproducing some physical model it could be as complex as a stand alone code, a reduced order model trained somehow or something externally build and imported by the user.
-The available models are:
-\begin{description}
-\item [Dummy:] it is a dummy model that just return the effect of the sampler. The values reported as input in the output are the output of the sampler and the output is the counter of the performed sampling
-\item [ROM:] ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
-\item [ExternalModel:] this model allows to interface with an external python module
-\item [Code:] generic class that imports an external code into the framework
 \item [Projector:] generic data manipulator
 \item [PostProcessor:] an Action System. All the models here, take an input and perform an action
-\end{description}
+\end{itemize}
 
 \subsection{Dummy}
 \label{sec:models_dummy}

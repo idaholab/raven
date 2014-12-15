@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 DEC 2014 08:34
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  15 DEC 2014 15:10
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1133,20 +1133,9 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 
 [71
 
-] [72] [73]) (./functions.tex [74
+] [72] [73] [74
 
-]
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\\' on input line 1.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\new@ifnextchar' on input line 1.
-
-[75
-
-]) (./model.tex [76]
+]) (./functions.tex [75]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1155,33 +1144,44 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[77
+[76
+
+]) (./model.tex [77]
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\\' on input line 1.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\new@ifnextchar' on input line 1.
+
+[78
 
 ]
-Overfull \hbox (7.23274pt too wide) in paragraph at lines 35--36
+Overfull \hbox (7.23274pt too wide) in paragraph at lines 34--35
 []\OT1/ptm/m/n/12 SKLtype: in-put a model from http://scikit-learn.org/stable/m
 odules/classes.html (Lin-
  []
 
 
-Overfull \hbox (29.21375pt too wide) in paragraph at lines 37--38
+Overfull \hbox (29.21375pt too wide) in paragraph at lines 36--37
 []\OT1/ptm/m/n/12 Parameters: From the SKL-type class are de-fined all the pa-r
 am-e-ters re-quired ($\OML/cmm/m/it/12 fit[]intercept$
  []
 
-
-Overfull \hbox (1.16312pt too wide) in paragraph at lines 63--67
+[79]
+Overfull \hbox (1.16312pt too wide) in paragraph at lines 62--66
 \OT1/ptm/m/n/12 given the 3-dimensional ini-tial co-or-di-nates (x0, y0, z0), c
 al-cu-late the tra-jec-tory of a Lorentz
  []
 
-[78]
-Overfull \hbox (61.66597pt too wide) in paragraph at lines 69--70
+
+Overfull \hbox (61.66597pt too wide) in paragraph at lines 68--69
 []\OT1/ptm/m/n/12 the func-tion which cre-ate a new in-put: def cre-at-e-NewIn-
 put(self,myInput,samplerType,**Kwargs) 
  []
 
-[79]) (./OutStreamSystem.tex [80]
+[80]) (./OutStreamSystem.tex [81]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1190,20 +1190,20 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[81
+[82
 
-] [82]
+] [83]
 Overfull \hbox (2.95032pt too wide) in paragraph at lines 70--71
 \OT1/ptm/m/n/12 name-in'' and ``var-name-out'' will be re-ported in the out-put
  file (see ``forth-example'') 
  []
 
 
-LaTeX Warning: Reference `sec:Interpretedplotting' on page 83 undefined on inpu
+LaTeX Warning: Reference `sec:Interpretedplotting' on page 84 undefined on inpu
 t line 80.
 
-[83] [84] [85] [86] [87] [88] [89] [90] [91] [92] [93] [94] [95] [96] [97]
-[98] [99] [100] [101] [102] [103]) (./step.tex [104]
+[84] [85] [86] [87] [88] [89] [90] [91] [92] [93] [94] [95] [96] [97] [98]
+[99] [100] [101] [102] [103] [104]) (./step.tex [105]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1212,7 +1212,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[105
+[106
 
 ]
 Overfull \hbox (7.9549pt too wide) in paragraph at lines 83--84
@@ -1220,13 +1220,13 @@ Overfull \hbox (7.9549pt too wide) in paragraph at lines 83--84
 f Datas:timepoint,
  []
 
-[106]
+[107]
 Overfull \hbox (15.95877pt too wide) in paragraph at lines 84--85
 []\OT1/ptm/m/n/12 Output: class=(Datas or Databases) type=(if Databases, HDF5, 
 if Datas:timepoint,
  []
 
-) (./existing_interfaces.tex [107]
+) (./existing_interfaces.tex [108]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1235,14 +1235,14 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[108
+[109
 
 ]
 Overfull \hbox (32.28522pt too wide) in paragraph at lines 41--42
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][]  
  []
 
-[109] [110] [111]
+[110] [111] [112]
 Underfull \hbox (badness 10000) in paragraph at lines 129--134
 
  []
@@ -1253,18 +1253,18 @@ Overfull \hbox (1.16702pt too wide) in paragraph at lines 135--137
 o be used are the $\OML/cmm/m/it/12 < MultiRun >$\OT1/ptm/m/n/12 .
  []
 
-[112] [113]
+[113] [114]
 Overfull \hbox (44.14415pt too wide) in paragraph at lines 215--216
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  
  []
 
-[114] [115]) [116] (./raven_user_manual.bbl) [117
+[115] [116]) [117] (./raven_user_manual.bbl) [118
 
 
-] [118
+] [119
 
-] [119]
+]
 File: pics/inl-left_black.pdf Graphic file (type pdf)
 
 <use pics/inl-left_black.pdf>
@@ -1285,13 +1285,16 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 LaTeX Warning: There were undefined references.
 
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 333.
  ) 
 Here is how much of TeX's memory you used:
- 11880 strings out of 493117
- 166863 string characters out of 6135433
- 290087 words of memory out of 5000000
- 13826 multiletter control sequences out of 15000+600000
+ 11907 strings out of 493117
+ 167254 string characters out of 6135433
+ 290120 words of memory out of 5000000
+ 13837 multiletter control sequences out of 15000+600000
  49085 words of font info for 112 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  33i,6n,58p,1027b,2038s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1310,10 +1313,10 @@ k/uncr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmb8a.p
 fb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/
 local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texl
 ive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on raven_user_manual.pdf (120 pages, 491163 bytes).
+Output written on raven_user_manual.pdf (120 pages, 494409 bytes).
 PDF statistics:
- 2375 PDF objects out of 2487 (max. 8388607)
- 2211 compressed objects within 23 object streams
- 1240 named destinations out of 1440 (max. 500000)
+ 2394 PDF objects out of 2487 (max. 8388607)
+ 2230 compressed objects within 23 object streams
+ 1256 named destinations out of 1440 (max. 500000)
  699 words of extra memory for PDF output out of 10000 (max. 10000000)
 

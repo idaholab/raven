@@ -9,7 +9,7 @@ Currently, RAVEN support 4 different data types, each with a particular conceptu
 \item \textbf{Histories}:  The \textit{Histories} object is, obviously, a collection of single \textit{History(ies)}. t can be considered a mapping between multiple sets of parameters in the input space and the resulting sets of temporal evolutions in the output space.
 \end{itemize}
 As inferable  from the brief description reported above, each ``Data'' object represents a mapping between a set of parameters and the resulting outcomes.
-The Data objects are defined in within the main XML block called $<Datas>$:
+The Data objects are defined within the main XML block called $<Datas>$:
 \begin{lstlisting}[style=XML]
 -----------------------------
 <Simulation>
@@ -52,42 +52,65 @@ In each XML node (e.g. $<TimePoint>$ or $<Histories>$), the user needs to specif
 \begin{lstlisting}[style=XML]
 ----------------------------------------------------------
 <Datas> 
- <TimePoint name='***' inputTs='-1' operator='max' hierarchical='False'>  
-  <Input history='a_history_name'>***,***,***</Input>
-  <Output>***,***</Output>
- </TimePoint> 
- <TimePointSet name='***'>  
-  <Input>***,***,***</Input>
-  <Output>***,***</Output>
- </TimePointSet> 
- <History name='***'>  
-  <Input history='a_history_name'>***,***,***</Input>
-  <Output>***,***</Output>
- </History> 
- <Histories name='***'>  
-  <Input>***,***,***</Input>
-  <Output>***,***</Output>
- </Histories> 
+   <TimePoint name='***' inputTs='-1' operator='max' hierarchical='False'>  
+      <Input history='a_history_name'>***,***,***</Input>
+      <Output>***,***</Output>
+   </TimePoint> 
+   <TimePointSet name='***'>  
+      <Input>***,***,***</Input>
+      <Output>***,***</Output>
+    </TimePointSet> 
+    <History name='***'>  
+      <Input history='a_history_name'>***,***,***</Input>
+      <Output>***,***</Output>
+    </History> 
+    <Histories name='***'>  
+      <Input>***,***,***</Input>
+      <Output>***,***</Output>
+    </Histories> 
 </Datas>
 ----------------------------------------------------------
 \end{lstlisting}
 
 \section{Databases}
 \label{sec:Databases}
-\begin{itemize}
-\item name: database name
-\item directory:
-\begin{itemize}
-\item if it is not specified a directory, such directory will be created. It will be named DataBaseStorage in the working directory with inside the .h5 file containing the database. 
-\item if input directory name is given the code will look for DataBaseStorage folder and pick the file from filename from inside such directory
-\end{itemize}
-\item filename: input file to be read from, if not there such file will be created
-
-\end{itemize}
-Example:
+The RAVEN framework provides the capability to store and retrieve data to/from an external database. Currently RAVEN has support for only a database type called \textbf{HDF5}. This database, depending on the data format is receiving, will organize itself in a ``parallel'' or ``hierarchical'' fashion. The user can create as many database objects as needed.
+The DataBase objects are defined  within the main XML block called $<DataBases>$:
 \begin{lstlisting}[style=XML]
+-----------------------------
+<Simulation>
+   ...
+  <DataBases>
+        ...
+        <HDF5 name="***"/>
+        <HDF5 name="***"/>
+        ...
+  </DataBases>
+   ...
+</Simulation>
+-----------------------------
+\end{lstlisting}
+The specifications of each DataBase of type HDF5 needs to be defined within the XML block $<HDF5>$, that  needs (or not) to contain  the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Data. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \textbf{directory}, \textit{optional string attribute}, this attribute can be used to specify a particular directory path where to create the database, if no \textit{filename} is specified, or from where open an already existing one, if \textit{filename} is provided. \textit{Default = raven/framework/DataBaseStorage};
+\item \textbf{filename}, \textit{optional string attribute}, this attribute can be used to specified the filename of an HDF5 that already exists in the \textit{directory}. This is the only way to let RAVEN know that an HDF5 should be opened and not overwritten. NB. When this attribute is not specified, the newer database filename is going to be named \textit{name}.h5. \textit{Default = None};
+\item \textbf{compression}, \textit{optional string attribute}, compression algorithm to be used. Available are:
+   \begin{itemize}
+      \item \textit{compression = gzip}, best where portability is required. Good compression, moderate speed;
+      \item \textit{compression = lzf}, Low to moderate compression, very fast.
+   \end{itemize}
+  \textit{Default = no compression};
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+----------------------------------------------------------
 <DataBases> 
-     <HDF5 name="***" directory='***' filename='***'/>  
-</DataBases>   
+   <HDF5 name="***" directory=''path_to_a_dir'' compression=''lzf''/>
+   <HDF5 name="***" filename=''existing_hdf5.h5''/>
+</DataBases>
+----------------------------------------------------------
 \end{lstlisting}
 
