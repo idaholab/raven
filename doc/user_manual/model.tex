@@ -6,35 +6,360 @@ In the RAVEN code a crucial entity is represented by a Model. A model is an obje
 \item \textbf{Code}. This ``class'' is the representation of an external system code that employs an high fidelity physical model;
 \item \textbf{Dummy}. The ``Dummy'' object is a model that acts as ``transfer'' tool. The only action it performs is transferring the the information in the input space (inputs) into the output space (outputs). For example, it can be used to check the effect of a Sampling strategy, since its outputs are the sampled parameters' values (input space) and a counter that keeps track of the number of times an evaluation has been requested; 
 \item \textbf{ROM}. A ROM is a mathematical model of fast solution trained to predict a response of interest of a physical system. The ``training'' process is performed by “sampling” the response of a physical model with respect variation of its parameters subject to probabilistic behavior. The results (outcomes of the physical model) of those sampling are fed into the algorithm representing the ROM that tunes itself to replicate those results;
-\item \textbf{ExternalModel}. This ``class'' is  this model allows to interface with an external python module
-
-\item [Projector:] generic data manipulator
-\item [PostProcessor:] an Action System. All the models here, take an input and perform an action
+\item \textbf{ExternalModel}. As the name suggests, an external model  is an entity that is embedded in the RAVEN code at run time. This object allows the user to create a python module that is going to be treated as a predefined internal model object;
+%\item [Projector:] generic data manipulator
+\item \textbf{PostProcessor}.  The post-processor ``class'' of objects  is the container of all the actions that can be performed to manipulate and process the data in order to extract key information, such as statistical quantities, etc. 
 \end{itemize}
+Before analyzing  each model in details, it is important to mention that each type needs to be contained in the main XML node $<Models>$, as reported below:
 
-\subsection{Dummy}
-\label{sec:models_dummy}
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+------------------------------------------------------------
+<Simulation>
+  ...
+  <Models>
+    ...
+    <WhatEverModel name='whatever'>
+      ... 
+    </WhatEverModel>
+    ...
+  </Models>
+  ...
+</Simulation>
+------------------------------------------------------------
+\end{lstlisting}
+In the following sub-sections each \textbf{Model} type is fully analyzed and described.
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%  Code  Model   %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%
+%<Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
+%<alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
+\subsection{Code}
+\label{subsec:models_code}
+As already mentioned, the model \textbf{Code} is the representation of an external system software that employs an high fidelity physical model. The link between RAVEN and the driven code is performed at run time, through coded interfaces that are the responsible of transferring the information from the code to RAVEN and vice versa. In section \ref{sec:existingInterface} all the available interfaces are reported and, for advanced users, section \ref{sec:newCodeCoupling} explains how to couple a newer code.
+\\ The specifications of this Model must be defined within the xml block $<Code>$. This XML node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Model. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \textbf{subType}, \textit{required string attribute}, in this attribute the user selects the code that needs to be associated to this Model. NB. See section \ref{sec:existingInterface} to check which codes are currently supported.
+\end{itemize}
+\vspace{-5mm}
 
-Description
+In the \textbf{Code} input block, the following XML sub-nodes are available:
+\begin{itemize}
+   \item $<executable>$ \textbf{\textit{, string, required field.}}. In this node, the user needs to specify the path of the executable to be used. NB. In this node, either the absolute or relative path can be inputted;
+    \item $<alias>$ \textbf{\textit{, string, optional field.}}. In the $<alias>$ block the user can specify aliases for some variables of interest coming from the code this model refers to. These aliases can be used in the whole input to refer to the code variables. In the body of this node the user specifies the name of the variable that RAVEN will look for in the output files of the code. The actual alias, usable throughout the input, are instead defined in the attribute \textbf{variable}.
+ NB. The user can specify as many aliases as needed. \textit{Default = None}. 
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+------------------------------------------------------------
+<Simulation>
+  ...
+  <Models>
+    ...
+    <Code name='***' subType='RAVEN_Driven_code'>
+      <executable>path_to_executable</executable>
+      <alias variable='internal_variable_name1'>
+         External_Code_Variable_Name_1
+      </alias>
+      <alias variable='internal_variable_name2'>
+         External_Code_Variable_Name_2
+      </alias>
+    </Code>
+    ...
+  </Models>
+  ...
+</Simulation>
+------------------------------------------------------------
+\end{lstlisting}
 
-Summary
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Dummy Model  %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dummy.}
+\label{subsec:models_dummy}
+The model \textbf{Dummy} is an object that acts as ``transfer'' tool. The only action it performs is transferring the the information in the input space (inputs) into the output space (outputs). For example, it can be used to check the effect of a Sampling strategy, since its outputs are the sampled parameters' values (input space) and a counter that keeps track of the number of times an evaluation has been requested.
+\\ The specifications of this Model must be defined within the xml block $<Dummy>$. This XML node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Model. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \textbf{subType}, \textit{required string attribute}, this attribute must be kept empty.
+\end{itemize}
+\vspace{-5mm}
+If this model, in a \textit{Step}, is associated to a \textit{Data} with the role of \textbf{Output}, it expects that one of the output parameters of such \textit{Data} is identified by the keyword ``OutputPlaceHolder'' (see section \ref{sec:steps}).
 
-Example
-
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+------------------------------------------------------------
+<Simulation>
+  ...
+  <Models>
+    ...
+    <Dummy name='***' subType=''/>
+    ...
+  </Models>
+  ...
+</Simulation>
+------------------------------------------------------------
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%
+%%%%% ROM Model  %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
 \subsection{ROM}
 \label{subsec:models_ROM}
-
-Description
-
-Summary 
+A Reduced Order Model (ROM) is a mathematical model of fast solution trained to predict a response of interest of a physical system. The ``training'' process is performed by “sampling” the response of a physical model with respect variation of its parameters subject, for example, to probabilistic behavior. The results (outcomes of the physical model) of those sampling are fed into the algorithm representing the ROM that tunes itself to replicate those results.
+RAVEN supports several different types of ROMs, both internally developed and imported through an external library called ``SciKitLearn'' ~\cite{SciKitLearn}. Currently in RAVEN the Reduced Order Models are classified in 4 main ``classes'' that, once chosen, provide access to several different algorithms:
 \begin{itemize}
-\item name: name of the ROM model
-\item subType: 'SciKitLearn'. Imports the libraries from scikitlearn
-\item Features: input the variables set in the Samplers block separated by a comma
-\item SKLtype: input a model from http://scikit-learn.org/stable/modules/classes.html (LinearRegression in the example)
-\item Target: Input a set of variables inside the output space which the ROM has to be developed for. 
-\item Parameters: From the SKLtype class are defined all the parameters required ($fit\_intercept$ and $normalize$ in the exemple) 
+   \item \textbf{NDspline;}
+   \item \textbf{NDinvDistWeigth;}
+   \item \textbf{microSphere;}
+   \item \textbf{SciKitLearn.}
 \end{itemize}
+The specifications of this Model must be defined within the XML block $<ROM>$. This XML node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Model. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \textbf{subType}, \textit{required string attribute}, in this attribute the user defines which of the main ``classes'' needs to be used, choosing among the previously reported types. Obviously, this choice conditions the subsequent the required and/or optional $<ROM>$ sub nodes.
+\end{itemize}
+\vspace{-5mm}
+
+In the \textbf{ROM} input block, the following XML sub-nodes are required, independently on the ``main'' class inputted in the attribute \textit{subType}:
+\begin{itemize}
+   \item $<Features>$ \textbf{\textit{, comma separated string, required field.}}. In this node, the user needs to specify the names of the features of this ROM. NB. These parameters are going to be requested for the training of this object (see section \ref{subsec:stepTraining};
+    \item $<Target>$ \textbf{\textit{, comma separated string, required field.}}. This XML node contains a comma separated list of the targets of this ROM. By Instance, these parameters are the Figure of Merits this ROM is supposed to predict. NB. These parameters are going to be requested for the training of this object (see section \ref{subsec:stepTraining}.
+\end{itemize}
+As already mentioned, all the types and meaning of the remaining sub-nodes depend on the main ``class'' type specified in the attribute \textit{subType}. In the following sections the specifications of each type are reported.
+%%%%% ROM Model - NDspline  %%%%%%%
+\subsubsection{NDspline.}
+\label{subsubsec:NDspline}
+The main ``class'' NDspline contains a single ROM type, based on a N-Dimensional spline interpolation/extrapolation. The spline interpolation is a form of interpolation where the interpolant is a special type of piecewise polynomial called a spline. The interpolation error can be made small even when using low degree polynomials for the spline. Spline interpolation avoids the problem of Runge's phenomenon, in which oscillation can occur between points when interpolating using high degree polynomials.
+\\In order to use this Reduced Order Model, the $<ROM>$ attribute \textit{subType} needs to be ``NDspline'' (i.e. \textit{subType = ``NDspline''}). No further XML sub-nodes are required.
+\\NB. This ROM type must be trained from a Regular Cartesian Grid. By instance, it can only be trained from the outcomes of a Grid Sampling strategy. 
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+------------------------------------------------------------
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='***' subType='NDspline'>
+       <Features>***,***,***</Features> 
+       <Target>***,***</Target>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+------------------------------------------------------------
+\end{lstlisting}
+%%%%% ROM Model - NDinvDistWeigth  %%%%%%%
+\subsubsection{NDinvDistWeigth.}
+\label{subsubsec:NDinvDistWeigth}
+The main ``class'' NDinvDistWeigth contains a single ROM type, based on a N-Dimensional Inverse Distance Weighting formulation. Inverse Distance Weighting (IDW) is a type of deterministic method for multivariate interpolation with a known scattered set of points. The assigned values to unknown points are calculated with a weighted average of the values available at the known points. 
+\\In order to use this Reduced Order Model, the $<ROM>$ attribute \textit{subType} needs to be ``NDinvDistWeigth'' (i.e. \textit{subType = ``NDinvDistWeigth''}). The specification of the ROM \textit{``NDinvDistWeigth''} needs to be completed inputting, within the main XML node $<ROM>$, of the following sub-node:
+\begin{itemize}
+\item $<p>$ \textbf{\textit{, integer, required field.}}. This node contains an $integer > 0$ that represents the ``power parameter'. For the choice of value for $<p>$,it is necessary to consider the degree of smoothing desired in the interpolation/extrapolation, the density and distribution of samples being interpolated, and the maximum distance over which an individual sample is allowed to influence the surrounding ones (lower p means greater importance for points faraway).
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+------------------------------------------------------------
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='***' subType='NDinvDistWeigth'>
+       <Features>***,***,***</Features> 
+       <Target>***</Target>
+       <p>3</p>
+     </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+------------------------------------------------------------
+\end{lstlisting}
+%%%%% ROM Model - MicroSphere  %%%%%%%
+\subsubsection{MicroSphere.}
+\label{subsubsec:microSphere}
+Not yet functional. Its validity for prediction purposes  needs to be still assessed.
+%%%%% ROM Model - SciKitLearn  %%%%%%%
+\subsubsection{SciKitLearn.}
+\label{subsubsec:SciKitLearn}
+The main ``class'' SciKitLearn represents the container of several Reduced Order Models that are available in RAVEN through the external library SciKitLearn~\cite{SciKitLearn}.
+\\In order to use this Reduced Order Model, the $<ROM>$ attribute \textit{subType} needs to be ``SciKitLearn'' (i.e. \textit{subType = ``SciKitLearn''}). The specifications of the ROM \textit{``SciKitLearn''} depends on value assumed by the following sub-node within the main XML node $<ROM>$:
+\begin{itemize}
+\item $<SKLtype>$ \textbf{\textit{, vertical bar ($\vert$) separated string , required field.}}. This nodes contains a string that represents the ROM type that needs to be used. As mentioned, its format is, for example, $<SKLtype>$\textit{mainSKLclass}~$\vert$~\textit{algorithm} $</SKLtype>$: the first word (before symbol $\vert$) represents the main class of algorithms; the second word (after symbol $\vert$) represents the specific algorithm.
+\end{itemize}
+Based on the $<SKLtype>$ several different algorithms are available. In the following paragraphs a brief explanation and the input requirements are reported for each of them.
+%%%%% ROM Model - SciKitLearn: Linear Models %%%%%%%
+\paragraph{Linear Models.}
+\label{LinearModels}
+The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+In the following, all the linear models available in RAVEN are reported.
+\subparagraph{Linear Model: Automatic Relevance Determination regression}
+The \textit{Automatic Relevance Determination} regressor is a hierarchical Bayesian approach where there are hyperparameters which explicitly represent the rele- vance of different input features. These relevance hy- perparameters determine the range of variation for the parameters relating to a particular input, usually by modelling the width of a zero-mean Gaussian prior on those parameters. If the width of that Gaussian is zero, then those parameters are constrained to be zero, and the corresponding input cannot have any effect on the predictions, therefore making it irrelevant. ARD opti- mizes these hyperparameters to discover which inputs are relevant. 1
+\subparagraph{Linear Model: Bayesian ridge regression}
+pass
+\subparagraph{Linear Model: Elastic Net}
+pass
+\subparagraph{Linear Model: Elastic Net CV}
+pass
+\subparagraph{Least Angle Regression model}
+pass
+\subparagraph{Cross-validated Least Angle Regression model}
+pass
+\subparagraph{Linear Model trained with L1 prior as regularizer (aka the Lasso)}
+pass
+\subparagraph{Lasso linear model with iterative fitting along a regularization path}
+pass
+\subparagraph{Lasso model fit with Least Angle Regression }
+pass
+\subparagraph{Cross-validated Lasso, using the LARS algorithm}
+pass
+\subparagraph{Lasso model fit with Lars using BIC or AIC for model selection}
+pass
+\subparagraph{Ordinary least squares Linear Regression}
+pass
+\subparagraph{Logistic Regression }
+pass
+\subparagraph{Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer }
+pass
+\subparagraph{Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer}
+pass
+\subparagraph{Orthogonal Mathching Pursuit model (OMP)}
+pass
+\subparagraph{Cross-validated Orthogonal Mathching Pursuit model (OMP)}
+pass
+\subparagraph{Passive Aggressive Classifier}
+pass
+\subparagraph{Passive Aggressive Regressor}
+pass
+\subparagraph{Perceptron}
+pass
+\subparagraph{Randomized Lasso}
+pass
+\subparagraph{Randomized Logistic Regression}
+pass
+\subparagraph{Linear least squares with l2 regularization}
+pass
+\subparagraph{Classifier using Ridge regression}
+pass
+\subparagraph{Ridge classifier with built-in cross-validation}
+pass
+\subparagraph{Ridge regression with built-in cross-validation}
+pass
+\subparagraph{Linear classifiers (SVM, logistic regression, a.o.) with SGD training}
+pass
+\subparagraph{Linear model fitted by minimizing a regularized empirical loss with SGD}
+pass
+\subparagraph{Compute Least Angle Regression or Lasso path using LARS algorithm}
+pass
+\subparagraph{Compute Lasso path with coordinate descent}
+pass
+\subparagraph{Stabiliy path based on randomized Lasso estimates}
+pass
+\subparagraph{Gram Orthogonal Matching Pursuit (OMP)}
+pass
+%%%%% ROM Model - SciKitLearn: Support Vector Machineas %%%%%%%
+\paragraph{Support Vector Machines.}
+\label{SVM}
+The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+In the following, all the linear models available in RAVEN are reported.
+\subparagraph{Linear Support Vector Classifier}
+pass
+\subparagraph{C-Support Vector Classification}
+pass
+\subparagraph{Nu-Support Vector Classification}
+pass
+\subparagraph{Support Vector Regression}
+pass
+ %%%%% ROM Model - SciKitLearn: MultiClass %%%%%%%
+\paragraph{Multi Class.}
+\label{Multiclass}
+The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+In the following, all the linear models available in RAVEN are reported.
+\subparagraph{One-vs-the-rest (OvR) multiclass/multilabel strategy}
+pass
+\subparagraph{One-vs-one multiclass strategy}
+pass
+\subparagraph{ (Error-Correcting) Output-Code multiclass strategy}
+pass
+\subparagraph{fit a one-vs-the-rest strategy}
+pass
+\subparagraph{Make predictions using the one-vs-the-rest strategy}
+pass
+\subparagraph{ Fit a one-vs-one strategy}
+pass
+\subparagraph{Make predictions using the one-vs-one strategy}
+pass
+\subparagraph{Fit an error-correcting output-code strategy}
+pass
+\subparagraph{Make predictions using the error-correcting output-code strategy}
+pass
+ %%%%% ROM Model - SciKitLearn: naiveBayes %%%%%%%
+\paragraph{Naive Bayes.}
+\label{naiveBayes}
+The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+In the following, all the linear models available in RAVEN are reported.
+\subparagraph{Gaussian Naive Bayes}
+pass
+\subparagraph{Multinomial Naive Bayes}
+pass
+\subparagraph{Bernoulli Naive Bayes}
+pass
+ %%%%% ROM Model - SciKitLearn: Neighbors %%%%%%%
+\paragraph{Neighbors.}
+\label{Neighbors}
+The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+In the following, all the linear models available in RAVEN are reported.
+\subparagraph{Nearest Neighbors}
+pass
+\subparagraph{K Neighbors Classifier }
+pass
+\subparagraph{Radius Neighbors Classifier}
+pass
+\subparagraph{K Neighbors Regressor}
+pass
+\subparagraph{Radius Neighbors Regressor}
+pass
+\subparagraph{Nearest Centroid}
+pass
+\subparagraph{Ball Tree}
+pass
+\subparagraph{K-D Tree}
+pass
+
+ %%%%% ROM Model - SciKitLearn: Quadratic Discriminant Analysis %%%%%%%
+\paragraph{Quadratic Discriminant Analysis.}
+\label{QDA}
+The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+In the following, all the linear models available in RAVEN are reported.
+
+ %%%%% ROM Model - SciKitLearn: Quadratic Discriminant Analysis %%%%%%%
+\paragraph{Tree.}
+\label{tree}
+The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+In the following, all the linear models available in RAVEN are reported.
+\subparagraph{Decision Tree Classifier}
+pass
+\subparagraph{Decision Tree Regressor}
+pass
+\subparagraph{Extra Tree Classifier}
+pass
+\subparagraph{Extra Tree Regressor}
+pass
+
+ %%%%% ROM Model - SciKitLearn: Gaussian Process %%%%%%%
+\paragraph{Gaussian Process.}
+\label{GP}
+The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+In the following, all the linear models available in RAVEN are reported.  
 
 Example
 
@@ -102,23 +427,16 @@ def run(self,Input):
 </Models> 
 \end{lstlisting}
 
-\subsection{Code}
-\label{sec:models_code}
 
-Description: This is the generic class that import an external code into the framework
 
-Summary
+%\subsection{Projector}
+%\label{sec:models_projector}
+%
+%Description
 
-Example
+%Summary
 
-\subsection{Projector}
-\label{sec:models_projector}
-
-Description
-
-Summary
-
-Example
+%Example
 
 \subsection{PostProcessor}
 \label{sec:models_postProcessor}
