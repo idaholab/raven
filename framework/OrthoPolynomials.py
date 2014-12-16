@@ -86,6 +86,11 @@ class OrthogonalPolynomial(BaseType):
     if quadSet.type in ['CDF','ClenshawCurtis']:
       self.__distr=self.makeDistribution()
       self.pointMod = self.cdfPoint
+    else:
+      raise IOError('OrthoPolynomials: No implementation for',quadSet,'quadrature and',self.type,'polynomials.')
+
+  def _getDistr(self):
+    return self.__distr
 
   def cdfPoint(self,x):
     '''ppf() converts to from [0,1] to distribution range,
@@ -191,7 +196,7 @@ class Laguerre(OrthogonalPolynomial):
     element.text = "0"
     gammaElement.append(element)
     element = ET.Element("alpha",{})
-    element.text = "%s" %self.params[0]+1
+    element.text = "%s" %(self.params[0]+1)
     gammaElement.append(element)
     gamma = Distributions.Gamma()
     gamma._readMoreXML(gammaElement)
@@ -199,8 +204,10 @@ class Laguerre(OrthogonalPolynomial):
     return gamma
 
   def norm(self,order):
-    return np.sqrt(factorial(order)/polys.gamma(order+self.params[0]+1.0))
+    return np.sqrt(factorial(order)/factorial(order+self.params[0]))
 
+  #def scipyNorm(self):
+  #  return np.sqrt(2)
 
 
 class Jacobi(OrthogonalPolynomial):

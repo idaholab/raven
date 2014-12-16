@@ -14,6 +14,7 @@ import numpy as np
 import scipy.special.orthogonal as quads
 from scipy.fftpack import ifft
 from scipy.misc import factorial
+from itertools import product
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
@@ -21,6 +22,30 @@ from BaseClasses import BaseType
 from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 #Internal Modules End-----------------------------------------------------------------
 
+
+class SparseQuad(BaseType):
+  '''Base class to produce sparse-grid multiple-dimension quadrature.
+     Requires: dimension N, max polynomial level L, quadrature generation rules for each dimension, distributions?
+  '''
+  def __init__(self):
+    self.c = [] #array of coefficient terms for smaller tensor grid entries
+
+  def initialize(self,numDim, maxPoly, indexSet, quadRule, distrList):
+    self.c = np.array(self.makeCoeffs(numDim,indexSet))
+  
+  def makeCoeffs(self,N,indexSet):
+    self.c=np.zeros(len(indexSet))
+    iSet = indexSet[:] #preents overwriting
+    jIter = product([0,1],repeat=N) #all possible combinations in the sum #TODO implement Mohammed's method
+    SG=[] #sparse grid list (multiquad point, weight)
+    for j,cof in enumerate(c):
+      idx = indexSet[j]
+      m = quadrule(idx)+1
+      new = self.tensorGrid(N,m,distrList,idx)
+
+
+  def tensorGrid(self,N,m,distrList,idx):
+    pass
 
 class QuadratureSet(BaseType):
   '''Base class to produce standard quadrature points and weights.
@@ -77,6 +102,7 @@ class QuadratureSet(BaseType):
 
   def _localReadMoreXML(self,xmlNode):
     pass
+
 
 
 class Legendre(QuadratureSet):
@@ -146,6 +172,7 @@ class ClenshawCurtis(QuadratureSet):
       x = F[0:n1,1]
       w = np.hstack((F[0,0],2*F[1:n,0],F[n,0]))
     return x,w
+
 
 
 
