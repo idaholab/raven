@@ -702,15 +702,15 @@ class BasicStatistics(BasePostProcessor):
             if what not in ['covariance','pearson','NormalizedSensitivity','sensitivity'] + methodToTest:
               if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing variable '+ targetP + '. Parameter: '+ what)
               basicStatdump.write(what+ separator + '%.8E' % outputDict[what][targetP]+'\n')
-        maxLenght = max(len(max(parameterSet, key=len))+5,16)
+        maxLength = max(len(max(parameterSet, key=len))+5,16)
         for what in outputDict.keys():
           if what in ['covariance','pearson','NormalizedSensitivity','sensitivity']:
             if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing parameter matrix '+ what )
             basicStatdump.write(what+' \n')
-            if outputextension != 'csv': basicStatdump.write(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet])+'\n')
+            if outputextension != 'csv': basicStatdump.write(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet])+'\n')
             else                       : basicStatdump.write('matrix' + separator+''.join([str(item) + separator for item in parameterSet])+'\n')
             for index in range(len(parameterSet)):
-              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict[what][index]])+'\n')
+              if outputextension != 'csv': basicStatdump.write(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict[what][index]])+'\n')
               else                       : basicStatdump.write(parameterSet[index] + ''.join([separator +'%.8E' % item for item in outputDict[what][index]])+'\n')
         if self.externalFunction:
           if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> BasicStatistics postprocessor: writing External Function results')
@@ -873,41 +873,41 @@ class BasicStatistics(BasePostProcessor):
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
           print('              ','* '+what+' * ' + '%.8E' % outputDict[what][targetP]+'  *')
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
-    maxLenght = max(len(max(parameterSet, key=len))+5,16)
+    maxLength = max(len(max(parameterSet, key=len))+5,16)
     if 'covariance' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*         Covariance        *')
-      print(' '*maxLenght,'*****************************')
+      print(' '*maxLength,'*****************************')
+      print(' '*maxLength,'*         Covariance        *')
+      print(' '*maxLength,'*****************************')
 
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      print(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]))
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['covariance'][index]]))
+        print(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['covariance'][index]]))
     if 'pearson' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*    Pearson/Correlation    *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      print(' '*maxLength,'*****************************')
+      print(' '*maxLength,'*    Pearson/Correlation    *')
+      print(' '*maxLength,'*****************************')
+      print(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]))
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['pearson'][index]]))
+        print(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['pearson'][index]]))
     if 'sensitivity' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*        Sensitivity        *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      print(' '*maxLength,'*****************************')
+      print(' '*maxLength,'*        Sensitivity        *')
+      print(' '*maxLength,'*****************************')
+      print(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]))
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['sensitivity'][index]]))
+        print(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['sensitivity'][index]]))
     if 'NormalizedSensitivity' in outputDict.keys():
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght,'*   Normalized Sensitivity  *')
-      print(' '*maxLenght,'*****************************')
-      print(' '*maxLenght+''.join([str(item) + ' '*(maxLenght-len(item)) for item in parameterSet]))
+      print(' '*maxLength,'*****************************')
+      print(' '*maxLength,'*   Normalized Sensitivity  *')
+      print(' '*maxLength,'*****************************')
+      print(' '*maxLength+''.join([str(item) + ' '*(maxLength-len(item)) for item in parameterSet]))
       for index in range(len(parameterSet)):
-        print(parameterSet[index] + ' '*(maxLenght-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLenght-14) for item in outputDict['NormalizedSensitivity'][index]]))
+        print(parameterSet[index] + ' '*(maxLength-len(parameterSet[index])) + ''.join(['%.8E' % item + ' '*(maxLength-14) for item in outputDict['NormalizedSensitivity'][index]]))
 
     if self.externalFunction:
-      print(' '*maxLenght,'+++++++++++++++++++++++++++++')
-      print(' '*maxLenght,'+ OUTCOME FROM EXT FUNCTION +')
-      print(' '*maxLenght,'+++++++++++++++++++++++++++++')
+      print(' '*maxLength,'+++++++++++++++++++++++++++++')
+      print(' '*maxLength,'+ OUTCOME FROM EXT FUNCTION +')
+      print(' '*maxLength,'+++++++++++++++++++++++++++++')
       for what in self.methodsToRun:
         if what not in self.acceptedCalcParam:
           print('              ','**'+'*'*len(what)+ '***'+6*'*'+'*'*8+'***')
@@ -1224,7 +1224,14 @@ class TopologicalDecomposition(BasePostProcessor):
     BasePostProcessor.__init__(self)
     self.acceptedGraphParam = ['Approximate KNN','Delaunay','Beta Skeleton',\
                                'Relaxed Beta Skeleton']
-    self.acceptedGradientParam = ['Steepest','MaxFlow']
+    self.acceptedGradientParam = ['steepest','MaxFlow']
+
+    # Some default arguments
+    self.gradient = 'steepest'
+    self.graph = 'Beta Skeleton'
+    self.beta = 1
+    self.knn = -1
+    self.persistence = 0
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
@@ -1287,14 +1294,14 @@ class TopologicalDecomposition(BasePostProcessor):
     '''
     for child in xmlNode:
       if child.tag =="graph":
-        self.graph = child.text
+        self.graph = child.text.encode('ascii')
         if self.graph not in self.acceptedGraphParam: 
           raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
                 + '-> ' + self.__class__.__name__ /
                 + ' postprocessor requested unknown graph type: ' + self.graph /
                 + '. Available '+str(self.acceptedGraphParam))
       elif child.tag =="gradient":
-        self.gradient = child.text
+        self.gradient = child.text.encode('ascii')
         if self.gradient not in self.acceptedGradientParam:
           raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
                 + '-> ' + self.__class__.__name__ /
@@ -1310,6 +1317,8 @@ class TopologicalDecomposition(BasePostProcessor):
                 + '. Allowable range: (0,2]')
       elif child.tag =="knn":
         self.knn = int(child.text)
+      elif child.tag =="persistence":
+        self.persistence = float(child.text)
       elif child.tag =="parameters": 
         self.params = child.text.strip().split(',')
         for i,param in enumerate(self.params):
@@ -1318,73 +1327,9 @@ class TopologicalDecomposition(BasePostProcessor):
         self.response = child.text
 
   def collectOutput(self,finishedjob,output):
-    #output
-    if finishedjob.returnEvaluation() == -1:
-      raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") /
-                      + '->  No available Output to collect (Run probabably ' /
-                      + 'is not finished yet)')
-    outputDict = finishedjob.returnEvaluation()[1]
-    if type(output) in [str,unicode,bytes]:
-      availextens = ['csv','txt']
-      outputextension = output.split('.')[-1].lower()
-      if outputextension not in availextens:
-        print(self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '/
-              + self.__class__.__name__ /
-              + ' postprocessor output extension you input is ' /
-              + outputextension)
-        print('                     Available are ' + str(availextens) / 
-              + '. Convertint extension to '+str(availextens[0]))
-        outputextension = availextens[0]
-      if outputextension != 'csv':
-        separator = ' '
-      else:
-        separator = ','
-      outFilename = os.path.join(self.__workingDir,
-                                 output[:output.rfind('.')]+'.'+outputextension)
-      if self.debug:
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '->' /
-              + "workingDir",self.__workingDir,"output",output.split('.'))
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' /
-              + self.__class__.__name__ /
-              + ' postprocessor: dumping output in file named ' + outFilename)
-      with open(outFilename, 'wb') as outdump:
-        outdump.write('========== Persistence Chart: ==========\n')
-        outdump.write(myObj.PrintHierarchy())
-        outdump.write('\n========== Data Labels: ==========\n')
-        line = 'Index'
-        sep = ','
-        for lbl in self.params:
-          line += sep + lbl
-        line += sep + self.response + sep + 'Minimum' + sep + 'Maximum\n'
-        outdump.write(line)
-        for i in xrange(0,myObj.Size()):
-          line = str(i)
-          for d in xrange(0,myObj.Dimension()):
-            line += '%s%d' % (sep,inputData[i,d])
-          line += '%s%d' % (sep,outputData[i])
-          line += '%s%d%s%d\n' % (sep,myObj.MinLabel(i),sep,myObj.MaxLabel(i))
-          outdump.write(line)
-    elif output.type == 'Datas':
-      if self.debug:
-        print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> ' /
-              + self.__class__.__name__ /
-              + ' postprocessor: dumping output in data object named ' 
-              + output.name)
-#      for what in outputDict.keys():
-#        if self.debug: 
-#          print(self.printTag + ': ' + returnPrintPostTag('Message') + ' -> ' /
-#                + self.__class__.__name__ + ' postprocessor: dumping matrix ' /
-#                + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
-#          output.updateMetadata('targets|'+what,parameterSet)
-#          output.updateMetadata(what,outputDict[what])
-    elif output.type == 'HDF5':
-      print(self.printTag + ': ' + returnPrintPostTag('Warning') + '-> ' /
-            + self.__class__.__name__ + ' postprocessor: Output type ' /
-            + str(output.type) + ' not yet implemented. Skipping this output.')
-    else:
-      raise IOError(self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> ' /
-                    + self.__class__.__name__ + ' postprocessor: Output type ' /
-                    + str(output.type) + ' unknown!')
+#    print("finishedjob",dir(finishedjob))
+#    print("output",dir(output))
+    pass
 
   def run(self, InputIn):
     '''
@@ -1406,17 +1351,28 @@ class TopologicalDecomposition(BasePostProcessor):
       inputData[:,i] = myDataIn[lbl.encode('UTF-8')]
 
     names = self.params + [self.response]
-    print('==================== Debug Print ====================')
-#    print(inputData.shape)
-#    print(inputData)
-#    print(len(outputData))
-#    print(outputData)
-    print('==================== End Debug Print ====================')
+
+### NGL will perform a brute force search unless we give it a starting set, 
+###  but I still need to figure out how to inject a pre-built graph into
+###  NGL. It may be easier just to write my own code for pruning edges.
+#    knnAlgorithm = neighbors.NearestNeighbors(n_neighbors=self.knn+1)
+#    knnAlgorithm.fit(inputData)
+#    distances,edges = knnAlgorithm.kneighbors(inputData)
+
+#    graph = []
+#    for row in xrange(0,edges.shape[0]):
+#      for col in xrange(0,edges.shape[1]):
+#        graph.append(row)
+#        graph.append(col)
+#    self.__amsc = AMSCFloat(vectorFloat(inputData.flatten()), \
+#                            vectorFloat(outputData), \
+#                            vectorString(names), \
+#                            graph,self.gradient)
 
     self.__amsc = AMSCFloat(vectorFloat(inputData.flatten()), \
                             vectorFloat(outputData), \
                             vectorString(names), \
-                            self.graph, self.gradient, self.knn, self.beta)
+                            self.graph,self.gradient, self.knn,self.beta)
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
@@ -1428,23 +1384,32 @@ class TopologicalDecomposition(BasePostProcessor):
       line += sep + lbl
     line += sep + 'Minimum' + sep + 'Maximum'
     print(line)
-    for i in xrange(0,myObj.Size()):
+    for i in xrange(0,self.__amsc.Size()):
       line = str(i)
-      for d in xrange(0,myObj.Dimension()):
+      for d in xrange(0,self.__amsc.Dimension()):
         line += sep + str(inputData[i,d])
       line += sep + str(outputData[i])
-      line += sep + str(myObj.MinLabel(i)) + sep + str(myObj.MaxLabel(i))
+      line += sep + str(self.__amsc.MinLabel(i)) 
+      line += sep + str(self.__amsc.MaxLabel(i))
+      outputDict['minLabel'][i] = self.__amsc.MinLabel(i)
+      outputDict['maxLabel'][i] = self.__amsc.MaxLabel(i)
       print(line)
     print('========== Persistence Chart: ==========')
-    print(myObj.PrintHierarchy())
+    print(self.__amsc.PrintHierarchy())
+    print('========== Linear Regressors: ==========')
+    partitions = self.__amsc.GetPartitions(self.persistence)
+    fits = {}    
 
-    #setting some convenience values
-    parameterSet = self.inputs
-    N = [np.asarray(Input[targetP]).size for targetP in parameterSet]
-
-#    for myIndex, targetP in enumerate(self.inputs):
-#      outputDict['inputs'][targetP] = Input[targetP]
-#      outputDict['inputs'][targetP] = Input[targetP]
+    for key,items in partitions.iteritems():
+      X = inputData[np.array(items),:]
+      y = outputData[np.array(items)]
+      beta_hat,residuals,rank,s = np.linalg.lstsq(X,y)
+#      print((residuals,rank,s))
+      yHat = X.dot(beta_hat)
+      rSquared = 1 - np.sum((yHat - y)**2)/np.sum((y - np.mean(y))**2)
+      fits[key] = (beta_hat,rSquared)
+      print("Coefficients and R^2:")
+      print(fits[key])
 
     return outputDict
 #
