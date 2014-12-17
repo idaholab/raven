@@ -807,39 +807,24 @@ The disadvantages of Gaussian Processes for Machine Learning include:
 \item It loses efficiency in high dimensional spaces – namely when the number of features exceeds a few dozens. It might indeed give poor performance and it loses computational efficiency;
 \item Classification is only a post-processing, meaning that one first need to solve a regression problem by providing the complete scalar float precision output y of the experiment one attempt to model.
 \end{itemize}
-\\In order to use the \textit{Gaussian Process Regressor}, the user needs to set the sub-node $<SKLtype>GaussianProcess~\vert~GaussianProcess</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+In order to use the \textit{Gaussian Process Regressor}, the user needs to set the sub-node $<SKLtype>GaussianProcess~\vert~GaussianProcess</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
 \item $<regr>$ \textbf{\textit{, string, optional field.}}.  A regression function returning an array of outputs of the linear regression functional basis. The number of observations n\_samples should be greater than the size p of this basis. Available built-in regression models are:
 'constant', 'linear', 'quadratic'. \textit{Default = constant};
 \item $<corr>$ \textbf{\textit{, string, optional field.}}. A stationary autocorrelation function returning the autocorrelation between two points x and x’. Default assumes a squared-exponential autocorrelation model. Built-in correlation models are:
 'absolute\_exponential', 'squared\_exponential','generalized\_exponential', 'cubic', 'linear'. \textit{Default = squared\_exponential};
 \item $<beta0>$ \textbf{\textit{, float, array-like, optional field.}}. The regression weight vector to perform Ordinary Kriging (OK). \textit{Default = Universal Kriging};
-\item $<storage_mode0>$ \textbf{\textit{, string, optional field.}}. The regression weight vector to perform Ordinary Kriging (OK). \textit{Default = Universal Kriging};
+\item $<storage\textunderscore~mode>$ \textbf{\textit{, string, optional field.}}. A string specifying whether the Cholesky decomposition of the correlation matrix should be stored in the class (storage\_mode = ‘full’) or not (storage\_mode = ‘light’). \textit{Default = full};
+\item $<verbose>$ \textbf{\textit{, boolean, optional field.}}.  boolean specifying the verbose level. \textit{Default = False};
+\item $<theta0>$ \textbf{\textit{, float, array-like, optional field.}}.  An array with shape (n\_features, ) or (1, ). The parameters in the autocorrelation model. If thetaL and thetaU are also specified, theta0 is considered as the starting point for the maximum likelihood estimation of the best set of parameters. \textit{Default = [1e-1]};
+\item $<thetaL>$ \textbf{\textit{, float, array-like, optional field.}}. An array with shape matching theta0’s. Lower bound on the autocorrelation parameters for maximum likelihood estimation. \textit{Default = None};
+\item $<thetaU>$ \textbf{\textit{, float, array-like, optional field.}}. An array with shape matching theta0’s. Upper bound on the autocorrelation parameters for maximum likelihood estimation. \textit{Default = None};
+\item $<normalize>$ \textbf{\textit{, boolean, optional field.}}.  Input X and observations y are centered and reduced wrt means and standard deviations estimated from the n\_samples observations provided. \textit{Default = True};
+\item $<nugget>$ \textbf{\textit{, float, optional field.}}.  Introduce a nugget effect to allow smooth predictions from noisy data.The nugget is added to the diagonal of the assumed training covariance; in this way it acts as a Tikhonov regularization in the problem. In the special case of the squared exponential correlation function, the nugget mathematically represents the variance of the input values. \textit{Default = 10. * MACHINE\_EPSILON};
+\item $<optimizer>$ \textbf{\textit{, string, optional field.}}.  A string specifying the optimization algorithm to be used. Available optimizers are: 'fmin\_cobyla', 'Welch'. \textit{Default = fmin\_cobyla};
+\item $<random\textunderscore~start>$ \textbf{\textit{, integer, optional field.}}. The number of times the Maximum Likelihood Estimation should be performed from a random starting point. The first MLE always uses the specified starting point (theta0), the next starting points are picked at random according to an exponential distribution (log-uniform on [thetaL, thetaU]). \textit{Default = 1};
+\item $<random\textunderscore~state>$ \textbf{\textit{, integer, optional field.}}. Seed of the internal random number generator. \textit{Default = random}.
 \end{itemize}
-
-storage_mode : string, optional
-A string specifying whether the Cholesky decomposition of the correlation matrix should be stored in the class (storage_mode = ‘full’) or not (storage_mode = ‘light’). Default assumes storage_mode = ‘full’, so that the Cholesky decomposition of the correlation matrix is stored. This might be a useful parameter when one is not interested in the MSE and only plan to estimate the BLUP, for which the correlation matrix is not required.
-verbose : boolean, optional
-A boolean specifying the verbose level. Default is verbose = False.
-theta0 : double array_like, optional
-An array with shape (n_features, ) or (1, ). The parameters in the autocorrelation model. If thetaL and thetaU are also specified, theta0 is considered as the starting point for the maximum likelihood estimation of the best set of parameters. Default assumes isotropic autocorrelation model with theta0 = 1e-1.
-thetaL : double array_like, optional
-An array with shape matching theta0’s. Lower bound on the autocorrelation parameters for maximum likelihood estimation. Default is None, so that it skips maximum likelihood estimation and it uses theta0.
-thetaU : double array_like, optional
-An array with shape matching theta0’s. Upper bound on the autocorrelation parameters for maximum likelihood estimation. Default is None, so that it skips maximum likelihood estimation and it uses theta0.
-normalize : boolean, optional
-Input X and observations y are centered and reduced wrt means and standard deviations estimated from the n_samples observations provided. Default is normalize = True so that data is normalized to ease maximum likelihood estimation.
-nugget : double or ndarray, optional
-Introduce a nugget effect to allow smooth predictions from noisy data. If nugget is an ndarray, it must be the same length as the number of data points used for the fit. The nugget is added to the diagonal of the assumed training covariance; in this way it acts as a Tikhonov regularization in the problem. In the special case of the squared exponential correlation function, the nugget mathematically represents the variance of the input values. Default assumes a nugget close to machine precision for the sake of robustness (nugget = 10. * MACHINE_EPSILON).
-optimizer : string, optional
-A string specifying the optimization algorithm to be used. Default uses ‘fmin_cobyla’ algorithm from scipy.optimize. Available optimizers are:
-'fmin_cobyla', 'Welch'
-‘Welch’ optimizer is dued to Welch et al., see reference [WBSWM1992]. It consists in iterating over several one-dimensional optimizations instead of running one single multi-dimensional optimization.
-random_start : int, optional
-The number of times the Maximum Likelihood Estimation should be performed from a random starting point. The first MLE always uses the specified starting point (theta0), the next starting points are picked at random according to an exponential distribution (log-uniform on [thetaL, thetaU]). Default does not use random starting point (random_start = 1).
-random_state: integer or numpy.RandomState, optional :
-The generator used to shuffle the sequence of coordinates of theta in the Welch optimizer. If an integer is given, it fixes the seed. Defaults to the global numpy random number generator.
-
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML]
@@ -862,57 +847,162 @@ The generator used to shuffle the sequence of coordinates of theta in the Welch 
 ------------------------------------------------------------
 \end{lstlisting}
 
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%  External  Model   %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{External Model}
 \label{subsec:models_externalModel}
-
-Description
-
-Summary
-
-Example
-As an example we use the external model shown in lorentzAttractor.py which, given the 3-dimensional initial coordinates (x0, y0, z0), calculate the trajectory of a Lorentz attractor in the time interval $[0.0,0.03]$ seconds.
-We want to perform sampling of the 3-dimensional initial conditions of the attractor using classical Monte-Carlo sampling.
-The user is required to specify:
+As the name suggests, an external model  is an entity that is embedded in the RAVEN code at run time. This object allows the user to create a python module that is going to be treated as a predefined internal model object. 
+In other words, the \textbf{External Model} is going to be treated by RAVEN as a normal external Code (e.g. it is going to be called in order to compute a whatever quantity, based on a whatever input).
+\\The specifications of an External Model must be defined within the XML block $<ExternalModel>$. This XML node needs to contain the attributes:
+\vspace{-5mm}
 \begin{itemize}
-\item the initialize function: def initialize(self,runInfoDict,inputFiles)
-\item the function which create a new input: def createNewInput(self,myInput,samplerType,**Kwargs)
-\item the function which perform the actual calculation: def run(self,Input)
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this External Model. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (XML);
+\item \textbf{subType}, \textit{required string attribute}, This string must be kept empty;
+\item \textbf{ModuleToLoad}, \textit{required string attribute}, file name with its absolute or relative path. NB. If a relative path is specified, it must be noticed it is relative with respect to where the user runs the code.
 \end{itemize}
-
-\begin{python}
-def initialize(self,runInfoDict,inputFiles):
-  self.SampledVars = None
+\vspace{-5mm}
+In order to make the RAVEN code aware of the variables the user is going to manipulate/use in its own python Module, the variables need to be specified in the \textbf{$<ExternalModel>$} input block. The user needs to input, within this block, only the variables that RAVEN needs to be aware of (i.e. the variables are going to directly be used by the code) and not the local variables that the user does not want to, for example, store in a RAVEN internal object. These variables are inputted within consecutive XML blocks called $<variable>$:
+\begin{itemize}
+\item $<variable>$, string, required parameter. In the body of this XML node, the user needs to specify the name of the variable. This variable needs to match a variable used/defined in the external python model.
+\end{itemize}
+When the external function variables are defined, at run time, RAVEN initialize those and take track of their values during the simulation. Each variable defined in the $<ExternalModel>$ block is available in the module (each method implemented) as a python ``self''. 
+\\ In the External Python module, the user can implement all the methods that are needed for the functionality of the model, but only the following methods are going, if present, called by the framework:
+\begin{itemize}
+\item \textit{\textbf{def \textunderscore~readMoreXML}, OPTIONAL METHOD}, This method can be implemented by the user if the XML input that belongs to this External Model needs to be extended to contain other information. The information read needs to be stored in ``self'' in order to be available to all the other methods (e.g. if the user needs to add a couple of newer XML nodes with information needed by the algorithm implemented in the ``run'' method);
+\item \textit{\textbf{def initialize}, OPTIONAL METHOD}, Initialization method. In this function the user can implement all the actions need to be performed at the initialization stage;
+\item \textit{\textbf{def createNewInput}, OPTIONAL METHOD}, Method to create a new input with the information coming from the RAVEN framework. In this function the user can retrieve the information coming from the RAVEN framework, during the employment of a calculation flow, and use them to construct a new input that is going to be transferred to the ``run'' method;
+\item \textit{\textbf{def run}, REQUIRED METHOD}, This is the actual location where the user needs to implement the model action (e.g. resolution of a set of equations, etc.). This function is going to receive the Input(or Inputs) generated either by  the External Model ``createNewInput'' method or the internal RAVEN one;
+\end{itemize}
+In the following sub-sections, all the methods are going to be analyzed in detail.
+\subsubsection{Method: def \textunderscore~readMoreXML.}
+\label{subsubsec:externalReadMoreXML}
+As already mentioned, the \textbf{readMoreXML} method can be implemented by the user if the XML input that belongs to this External Model needs to be extended to contain other information. The information read needs to be stored in ``self'' in order to be available to all the other methods (e.g. if the user needs to add a couple of newer XML nodes with information needed by the algorithm implemented in the ``run'' method).
+If this method is implemented in the \textbf{External Model}, RAVEN is going to call it when the node $<ExternalModel>$ is found parsing XML input file. The method receives from RAVEN an attribute of type ``xml.etree.ElementTree'', containing all the sub-nodes and attribute of the XML block $<ExternalModel>$.
+\\In the following an example is reported:
+\begin{lstlisting}[style=XML]
+------------------------------------
+<Simulation> 
+  ...
+  <Models>
+     ...
+    <ExternalModel name='AnExtModule' 
+                              subType='' 
+                              ModuleToLoad='path_to_external_module'>  
+       <variable>sigma</variable>
+       <variable>rho</variable>
+       <variable>outcome</variable>
+       <!-- 
+          here we define other nodes RAVEN does not read automatically 
+          => We need to implement, in the external module ``AnExtModule''
+          the readMoreXML method
+        -->
+        <newNodeWeNeedToRead>
+            whatNeedsToBeRead
+        </newNodeWeNeedToRead>
+    </ExternalModel>
+     ...
+  </Models> 
+  ...
+</Simulation> 
+\end{lstlisting}
+\begin{lstlisting}[language=python]
+------------------------------------
+def _readMoreXML(self,xmlNode):
+  # the xmlNode is passed in by RAVEN framework
+  # <newNodeWeNeedToRead> is unknown (in the RAVEN framework)
+  # we have to read it on our own
+  # get the node
+  ourNode = xmlNode.find(``newNodeWeNeedToRead'')
+  # get the information in the node
+  self.ourNewVariable = ourNode.text
+  # end function
+------------------------------------
+\end{lstlisting}
+\subsubsection{Method: def initialize.}
+\label{subsubsec:externalInitialize}
+The \textbf{initialize} method can be implemented in the  \textbf{External Model} in order to initialize some variables needed by it. For example, it can be used to compute a quantity needed by the ``run'' method before performing the actual calculation).
+If this method is implemented in the \textbf{External Model}, RAVEN is going to call it at the initialization stage of each ``Step'' (see section \ref{sec:steps}. RAVEN will communicate, thorough a set of method attributes, all the information that are generally needed to perform a initialization:
+\begin{itemize}
+\item runInfo, a dictionary containing information regarding how the calculation is set up (e.g. number of processors, etc.). It contains the following attributes:
+    \begin{itemize}
+       \item \textit{DefaultInputFile},  Default input file to use
+       \item \textit{SimulationFiles}, the xml input file
+       \item \textit{ScriptDir}, the location of the pbs script interfaces
+       \item \textit{FrameworkDir}, the directory where the framework is located
+       \item \textit{WorkingDir}, the directory where the framework should be running
+       \item \textit{TempWorkingDir}, the temporary directory where a simulation step is run
+       \item \textit{NumMPI}, the number of mpi process by run
+       \item \textit{NumThreads}, Number of Threads by run
+       \item \textit{numProcByRun}, Total number of core used by one run (number of threads by number of mpi)
+       \item \textit{batchSize}, number of contemporaneous runs
+       \item \textit{ParallelCommand}, the command that should be used to submit jobs in parallel (mpi)
+       \item \textit{numNode},  number of nodes
+       \item \textit{procByNode},  number of processors by node
+       \item \textit{totalNumCoresUsed}, total number of cores used by driver
+       \item \textit{quequingSoftware}, quequing software name
+       \item \textit{stepName}, the name of the step currently running
+       \item \textit{precommand}, Add to the front of the command that is run
+       \item \textit{postcommand}, Added after the command that is run
+       \item \textit{delSucLogFiles}, If a simulation (code run) has not failed, delete the relative log file (if True) 
+       \item \textit{deleteOutExtension}, If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
+       \item \textit{mode},  Running mode.  Curently the only modes supported are pbsdsh and mpi
+       \item \textit{expectedTime}, How long the complete input is expected to run
+       \item \textit{logfileBuffer}, logfile buffer size in bytes
+    \end{itemize}
+\item inputs, a list of all the inputs that have been specified in the ``Step'' is using this model.
+\end{itemize}
+In the following an example is reported:
+\begin{lstlisting}[language=python]
+------------------------------------
+def initialize(self,runInfo,inputs):
+ # Let's suppose we just need to initialize some variables
   self.sigma = 10.0
   self.rho   = 28.0
-  self.beta  = 8.0/3.0
-  return
-
-def createNewInput(self,myInput,samplerType,**Kwargs):
-  return Kwargs['SampledVars']
-
-def run(self,Input):
-   ...
-\end{python}
-
-
-\begin{lstlisting}[style=XML]
-<Models>
-    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
-       <variable type='float'>sigma</variable>
-       <variable type='float'>rho</variable>
-       <variable type='float'>beta</variable>
-       <variable type='numpy.ndarray'>x</variable>
-       <variable type='numpy.ndarray'>y</variable>
-       <variable type='numpy.ndarray'>z</variable>
-       <variable type='numpy.ndarray'>time</variable>
-       <variable type='float'>x0</variable>
-       <variable type='float'>y0</variable>
-       <variable type='float'>z0</variable>
-    </ExternalModel>
-</Models> 
+  # end function
+------------------------------------
 \end{lstlisting}
+\subsubsection{Method: def createNewInput.}
+\label{subsubsec:externalcreateNewInput}
+The \textbf{createNewInput} method can be implemented by the user to create a new input with the information coming from the RAVEN framework. In this function the user can retrieve the information coming from the RAVEN framework, during the employment of a calculation flow, and use them to construct a new input that is going to be transferred to the ``run'' method.
+The new input created needs to be returned to RAVEN (i.e. ``return NewInput'').
+RAVEN communicates, thorough a set of method attributes, all the information that are generally needed to create a new input:
+myInput,samplerType,**Kwargs
+\begin{itemize}
+\item inputs, python list, a list of all the inputs that have been defined in the ``Step'' is using this model;
+\item samplerType, string, the type of Sampler, if a Sampling strategy is employed; None otherwise;
+\item Kwargs, dictionary, a dictionary containing several informations (that can change based on the ``Step'' type). If a Sampling strategy is employed, this dictionary contains another one identified by the keyword ``SampledVars'', in which the variables perturbed by the sampler are reported;
+\end{itemize}
+NB. If the ``Step'' that is using this Model has as input(s) an object of main class type ``Datas'' (see section \ref{datas}), the internal ``createNewInput'' method is going to convert it in a dictionary of values.
+\\In the following an example is reported:
+\begin{lstlisting}[language=python]
+------------------------------------
+def createNewInput(self,inputs,samplerType,**Kwargs):
+  # in here the actual createNewInput of the 
+  # model is implemented
+  if samplerType == ``MonteCarlo'':
+    avariable = inputs[``something'']*inputs[``something2'']
+  else:
+    avariable = inputs[``something'']/inputs[``something2'']
+  return avariable*Kwargs[``SampledVars''][``aSampledVar'']
+------------------------------------
+\end{lstlisting} 
+\subsubsection{Method: def run.}
+\label{subsubsec:externalRun}
+As stated previously, the only method the MUST be present in an External Module is the \textbf{run} function. In this function , the user needs to implement the algorithm that RAVEN has to execute. The  \textbf{run} method is generally called after having inquired the ``createNewInput'' method (either the internal  or the user-implemented one). The only attribute this method is going to receive by is a Python list of inputs (the inputs coming from the ``createNewInput'' method).
+If the user wants RAVEN to collect the results of this method, the outcomes of interest need to be stored in ``self''. NB. RAVEN is trying to collect the values of the variables listed in the XML  block $<ExternalModel>$ only.
+\\In the following an example is reported:
 
-
+\begin{lstlisting}[language=python]
+------------------------------------
+def run(self,Input):
+  # in here the actual run of the 
+  # model is implemented
+  input = Input[0]
+  self.outcome = self.sigma*self.rho*input[``whatEver'']
+------------------------------------
+\end{lstlisting} 
 
 %\subsection{Projector}
 %\label{sec:models_projector}
@@ -922,15 +1012,202 @@ def run(self,Input):
 %Summary
 
 %Example
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%  External  PostProcessor   %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{PostProcessor}
 \label{sec:models_postProcessor}
+A Post-Processor (PP) can be considered as an Action performed on a set of data or other type of objects. Most of the post-processors contained in RAVEN, employ a mathematical operation on the data given as ``input''/
+RAVEN supports several different types of PPs. Currently in RAVEN the following Post-Processors are available:
+\begin{itemize}
+   \item \textbf{BasicStatistics;}
+   \item \textbf{ComparisonStatistics;}
+   \item \textbf{SafestPoint;}
+   \item \textbf{LimitSurface;}
+   \item \textbf{PrintCSV;}
+   \item \textbf{LoadCsvIntoInternalObject.}
+\end{itemize}
+The specifications of this Model must be defined within the XML block $<PostProcessor>$. This XML node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Model. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \textbf{subType}, \textit{required string attribute}, in this attribute the user defines which of the post-processors needs to be used, choosing among the previously reported types. Obviously, this choice conditions the subsequent the required and/or optional $<PostProcessor>$ sub nodes.
+\end{itemize}
+\vspace{-5mm}
+As already mentioned, all the types and meaning of the remaining sub-nodes depend on the post-processor type specified in the attribute \textit{subType}. In the following sections the specifications of each type are reported.
+%%%%% PP BasicStatistics %%%%%%%
+\paragraph{BasicStatistics.}
+\label{BasicStatistics}
+The \textbf{BasicStatistics} post-processor is the container of the algorithms to compute all the most important statistical quantities. 
+\\In order to use the   \textit{BasicStatistics} post-processor, the user needs to set the sub-node $<subType>BasicStatistics</subType>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<what>$ \textbf{\textit{, comma separated string, required field.}}.  List of quantities need to be computed. Currently the quantities available are:
+\begin{itemize}
+   \item \textbf{covariance matrix,} Covariance matrix;
+   \item \textbf{NormalizedSensitivity,} Matrix of normalized sensitivity coefficients;
+   \item \textbf{sensitivity,} Matrix of sensitivity coefficients;
+   \item \textbf{pearson,} Matrix of sensitivity coefficients;
+   \item \textbf{expectedValue}, Expected value;
+   \item \textbf{sigma,} Standard deviation;
+   \item \textbf{variationCoefficient,} Coefficient of variation (sigma/expected value);
+   \item \textbf{variance,} Variance;
+   \item \textbf{skewness,} Skewness;
+   \item \textbf{kurtois,} Kurtois;
+   \item \textbf{median,} Data median;
+   \item \textbf{percentile,} 95 percentile.
+\end{itemize}
+If all the quantities need to be computed, the user can input in the body of $<what>$ the string ``all''.
+\item $<parameters>$ \textbf{\textit{, comma separated string, required field.}}. List of the parameters on which the previous operations need to be applied on (e.g., massFlow, Temperature);
+\item $<methodsToRun>$ \textbf{\textit{, comma separated string, optional field.}}.  The method names of an external Function that need to be run before computing any of the predefined quantities If this XML node is inputted, the $<Assembler>$ node must be present. \textit{Default = None};
+\item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node contains a ``list'' of objects that are  optional for the functionality of the  \textbf{BasicStatistics} post-processor. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
+   \begin{itemize}
+     \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from;
+     \item \textbf{type},  \textit{required string attribute}, it is the object identifier or sub-type.
+    \end{itemize}
+The  \textbf{BasicStatistics} post-processor approach  optionally accepts the following object type:
+   \begin{itemize}
+       \item $<Function>$\textbf{\textit{, string, required field.}}.The body of this xml block needs to contain the name of an External Function defined within the $<Functions>$ main block (see section \ref{sec:functions}). This object needs to containt the methods listed in the node $<methodsToRun>$.;
+    \end{itemize}
+\end{itemize}
+\textbf{Example:}
+----------------------------------------------
+\begin{lstlisting}[style=XML]
+<Simulation>
+   ...
+   <Models>
+      ...
+      <PostProcessor name="***" subType='BasicStatistics'  debug='true'>
+          <!-- => you can here specify what type of figure of merit
+              you need to compute
+             <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what> 
+           -->
+          <what>expectedValue</what>
+          <parameters>x01,x02</parameters>
+          <methodsToRun>failureProbability</methodsToRun>
+      </PostProcessor>
+      ...
+   <Models>
+   ...
+<Simulation>
+----------------------------------------------
+\end{lstlisting}
 
-Description
+%%%%% PP ComparisonStatistics %%%%%%%
+\paragraph{ComparisonStatistics.}
+\label{ComparisonStatistics}
+To be finalized.
 
-List variable, Input Data, 
-Keyword sul tipo analisi statistica!!
+%%%%% PP SafestPoint %%%%%%%
+\paragraph{SafestPoint.}
+\label{SafestPoint}
+The \textbf{SafestPoint} post-processor provides the coordinates of the farthest point from the limit surface that is given as an input.
+The safest point coordinates are expected values of the coordinates of the farthest points from the limit surface in the space of the ''controllable'' variables based on the probability distributions of the ''non-controllable'' variables.
+\\The term ''controllable'' identifies those variables that are under control during the system operation, while the ''non-controllable'' variables are stochastic parameters affecting the system behaviour randomly. 
+\\The ''SafestPoint'' post-processor requires the set of points belonging to the limit surface, which must be given as an input. The ''Assembler'' subsection requires the probability distributions of both ''controllable'' and ''non-controllable'' variables.
+\\The sampling method used by the ''SafestPoint'' is a ''value'' or ''CDF'' grid. At present only the ''equal'' grid type is available.
+\begin{itemize}
+	\item $<Assembler>$: the probability distributions of the ''controllable'' and ''non-controllable'' variables are required.
+	\item $<controllable>$: the list of the controllable variables is given here. Each variable is associated with its name and the two items below:
+		\begin{itemize}
+			\item $<distribution>$: the name of the probability distribution associated with the controllable variable is specified here.
+			\item $<grid>$: type, number of steps and tolerance of the sampling grid are defined here.
+		\end{itemize}
+	\item $<non-controllable>$: the list of the non-controllable variables is given here. Each variable is associated with its name and the two items below:
+		\begin{itemize}
+			\item $<distribution>$: the name of the probability distribution associated with the non-controllable variable is specified here.
+			\item $<grid>$: type, number of steps and tolerance of the sampling grid are defined here.
+		\end{itemize}
+\end{itemize}
 
-Summary
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+----------------------------------------------
+<Simulation>
+   ...
+   <Models>
+      ...
+  <PostProcessor name='SP' subType='SafestPoint'>
+      <Assembler>
+        <Distribution  class = 'Distributions'  type = 'Normal'>x1_dst</Distribution>
+        <Distribution  class = 'Distributions'  type = 'Normal'>x2_dst</Distribution>
+        <Distribution  class = 'Distributions'  type = 'Normal'>gammay_dst</Distribution>
+      </Assembler>
+      <controllable>
+        <variable name = 'x1'>
+          <distribution>x1_dst</distribution>
+          <grid type = 'value' steps = '20'>1</grid>   		
+        </variable>
+        <variable name = 'x2'>
+          <distribution>x2_dst</distribution>
+          <grid type = 'value' steps = '20'>1</grid>   		
+        </variable>
+        </controllable>
+        <non-controllable>
+          <variable name = 'gammay'>
+            <distribution>gammay_dst</distribution>
+            <grid type = 'value' steps = '20'>2</grid>
+          </variable> 	
+        </non-controllable>
+    </PostProcessor>
+      ...
+   </Models>
+   ...
+</Simulation>
+----------------------------------------------
+\end{lstlisting}
+%%%%% PP LimitSurface %%%%%%%
+\paragraph{LimitSurface.}
+\label{LimitSurface}
+The \textbf{LimitSurface} post-processor is aimed to identify the transition zones that determine a change in the status of the system (Limit Surface). 
+\\In order to use the   \textit{LimitSurface}, the user needs to set the sub-node $<subType>LimitSurface</subType>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<parameters>$ \textbf{\textit{, comma separated string, required field.}}. List of the parameters that define the uncertain domain and from which the LS needs to be computed;
+\item $<tollerance>$ \textbf{\textit{, float, optional field.}}. Absolute value converge tollerance. This value defines the coarsens  of the evaluation grid. \textit{Default= 1.e-4};
+ \item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node contains a ``list'' of objects that are required (or optional) for the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
+   \begin{itemize}
+     \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from. For example, it can be ``Models'', ``Functions'', etc;
+     \item \textbf{type},  \textit{required string attribute}, it is the object identifier or sub-type. For example, it can be ``ROM'', ``External'', etc.
+    \end{itemize}
+   The \textbf{LimitSurface} post-processor requires or optionally accepts the following objects' types:
+   \begin{itemize}
+     \item $<ROM>$\textbf{\textit{, string, optional  field.}}. If inputted, the body of this xml node must contain the name of a ROM defined in the $<Models>$ block (see section \ref{subsec:models_ROM});
+       \item $<Function>$\textbf{\textit{, string, required field.}}.The body of this xml block needs to contain the name of an External Function defined within the $<Functions>$ main block (see section \ref{sec:functions}). This object represents the boolean function that defines the transition boundaries. This function must implement a method called \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on the system conditions (see section \ref{sec:functions}.
+    \end{itemize}
+\end{itemize}
 
-Example
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+----------------------------------------------
+<Simulation>
+   ...
+   <Models>
+      ...
+    <PostProcessor name="computeLimitSurface" subType='LimitSurface' debug='True'>
+        <what>all</what>
+        <parameters>x0,y0</parameters>
+        <parameters>x0,y0</parameters>
+        <Assembler>
+            <ROM      class='Models'           type='ROM'             >Acc</ROM> 
+            <!--You can add here a ROM defined in Models block.If not Present, 
+                    a nearest algorithm is going to be used
+              -->
+            <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+        </Assembler>
+    </PostProcessor>
+      ...
+   </Models>
+   ...
+</Simulation>
+----------------------------------------------
+\end{lstlisting}
+%%%%% PP PrintCSV %%%%%%%
+\paragraph{PrintCSV.}
+\label{PrintCSV}
+TO BE MOVED TO STEP ``IOSTEP''
+%%%%% PP LoadCsvIntoInternalObject %%%%%%%
+\paragraph{LoadCsvIntoInternalObject.}
+\label{LoadCsvIntoInternalObject}
+TO BE MOVED TO STEP ``IOSTEP''

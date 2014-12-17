@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  16 DEC 2014 23:46
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  17 DEC 2014 16:17
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -815,7 +815,7 @@ Overfull \hbox (3.61537pt too wide) in paragraph at lines 219--219
 [][] 
  []
 
-<pics/inl-left_black.pdf, id=602, 280.04625pt x 55.20625pt>
+<pics/inl-left_black.pdf, id=643, 280.04625pt x 55.20625pt>
 File: pics/inl-left_black.pdf Graphic file (type pdf)
 
 <use pics/inl-left_black.pdf>
@@ -836,7 +836,7 @@ LaTeX Font Info:    Try loading font information for OT1+pnc on input line 219.
 (/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/ot1pnc.fd
 File: ot1pnc.fd 2001/06/04 font definitions for OT1/pnc.
 )
-<pics/DOEbwlogo.pdf, id=614, 286.06876pt x 286.06876pt>
+<pics/DOEbwlogo.pdf, id=654, 286.06876pt x 286.06876pt>
 File: pics/DOEbwlogo.pdf Graphic file (type pdf)
 
 <use pics/DOEbwlogo.pdf>
@@ -888,22 +888,21 @@ Overfull \hbox (3.82875pt too wide) in paragraph at lines 91--91
 \tf@toc=\write4
 \openout4 = `raven_user_manual.toc'.
 
- [9] (./raven_user_manual.lof)
+ [9] [10] (./raven_user_manual.lof)
 \tf@lof=\write5
 \openout5 = `raven_user_manual.lof'.
 
- [10
+ [11
 
 ] (./raven_user_manual.lot)
 \tf@lot=\write6
 \openout6 = `raven_user_manual.lot'.
 
- [11
-
-] [12
+ [12
 
 ]
 (./introduction.tex) (./HowToRun.tex [13
+
 
 ]
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
@@ -1467,19 +1466,100 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 791.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 791.
 
+
+Overfull \hbox (1.64246pt too wide) in paragraph at lines 797--799
+\OT1/ptm/m/n/12 Gaussian Pro-cesses for Ma-chine Learn-ing (GPML) is a generic 
+su-per-vised learn-ing method
+ []
+
 [115]
-Overfull \hbox (1.16312pt too wide) in paragraph at lines 822--826
-\OT1/ptm/m/n/12 given the 3-dimensional ini-tial co-or-di-nates (x0, y0, z0), c
-al-cu-late the tra-jec-tory of a Lorentz
+Overfull \hbox (32.16937pt too wide) in paragraph at lines 814--816
+\OT1/ptm/m/n/12 exponential au-to-cor-re-la-tion model. Built-in cor-re-la-tion
+ mod-els are: 'ab-so-lute[]exponential',
  []
 
 
-Overfull \hbox (61.66597pt too wide) in paragraph at lines 828--829
-[]\OT1/ptm/m/n/12 the func-tion which cre-ate a new in-put: def cre-at-e-NewIn-
-put(self,myInput,samplerType,**Kwargs) 
+Overfull \hbox (66.54974pt too wide) in paragraph at lines 814--816
+\OT1/ptm/m/n/12 'squared[]exponential','generalized[]exponential', 'cu-bic', 'l
+in-ear'. \OT1/ptm/m/it/12 De-fault = squared[]exponential\OT1/ptm/m/n/12 ; 
  []
 
-[116]) (./OutStreamSystem.tex [117]
+
+LaTeX Warning: Command \textunderscore invalid in math mode on input line 817.
+
+[116]
+
+LaTeX Warning: Command \textunderscore invalid in math mode on input line 825.
+
+
+LaTeX Warning: Command \textunderscore invalid in math mode on input line 826.
+
+
+Overfull \hbox (1.9952pt too wide) in paragraph at lines 831--832
+[][][][]  
+ []
+
+[117]
+Overfull \hbox (1.9952pt too wide) in paragraph at lines 847--848
+[][][][]  
+ []
+
+
+Overfull \hbox (55.45428pt too wide) in paragraph at lines 855--859
+\OT1/ptm/m/n/12 The spec-i-fi-ca-tions of an Ex-ter-nal Model must be de-fined 
+within the XML block $\OML/cmm/m/it/12 < ExternalModel >$\OT1/ptm/m/n/12 .
+ []
+
+
+Overfull \hbox (27.83093pt too wide) in paragraph at lines 866--867
+\OT1/ptm/m/n/12 late/use in its own python Mod-ule, the vari-ables need to be s
+pec-i-fied in the $\OML/cmm/m/it/12 < ExternalModel >$
+ []
+
+[118] [119] [120]
+Overfull \hbox (9.19984pt too wide) in paragraph at lines 914--915
+[][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+[121] [122]
+
+LaTeX Warning: Reference `datas' on page 123 undefined on input line 977.
+
+
+Overfull \hbox (1.99977pt too wide) in paragraph at lines 985--986
+[][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (1.99977pt too wide) in paragraph at lines 987--988
+[][][][][][][][][][][][][][][][][][][][] 
+ []
+
+[123]
+Overfull \hbox (14.56093pt too wide) in paragraph at lines 1030--1032
+\OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this Model must be de-fined within th
+e XML block $\OML/cmm/m/it/12 < PostProcessor >$\OT1/ptm/m/n/12 .
+ []
+
+[124]
+
+Package hyperref Warning: Difference (2) between bookmark levels is greater 
+(hyperref)                than one, level fixed on input line 1040.
+
+[125] [126]
+Overfull \hbox (129.7947pt too wide) in paragraph at lines 1084--1085
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
+][][][][][][][][][][][][][][][]  
+ []
+
+[127] [128]
+Overfull \hbox (41.8944pt too wide) in paragraph at lines 1163--1165
+\OT1/ptm/m/n/12 In or-der to use the \OT1/ptm/m/it/12 Lim-it-Sur-face\OT1/ptm/m
+/n/12 , the user needs to set the sub-node $\OML/cmm/m/it/12 < subType > LimitS
+urface <
+ []
+
+[129] [130]) (./OutStreamSystem.tex [131]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1488,20 +1568,20 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[118
+[132
 
-] [119]
+] [133]
 Overfull \hbox (2.95032pt too wide) in paragraph at lines 70--71
 \OT1/ptm/m/n/12 name-in'' and ``var-name-out'' will be re-ported in the out-put
  file (see ``forth-example'') 
  []
 
 
-LaTeX Warning: Reference `sec:Interpretedplotting' on page 120 undefined on inp
+LaTeX Warning: Reference `sec:Interpretedplotting' on page 134 undefined on inp
 ut line 80.
 
-[120] [121] [122] [123] [124] [125] [126] [127] [128] [129] [130] [131]
-[132] [133] [134] [135] [136] [137] [138] [139] [140]) (./step.tex [141]
+[134] [135] [136] [137] [138] [139] [140] [141] [142] [143] [144] [145]
+[146] [147] [148] [149] [150] [151] [152] [153] [154]) (./step.tex [155]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1510,7 +1590,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[142
+[156
 
 ]
 Overfull \hbox (7.9549pt too wide) in paragraph at lines 83--84
@@ -1518,13 +1598,13 @@ Overfull \hbox (7.9549pt too wide) in paragraph at lines 83--84
 f Datas:timepoint,
  []
 
-[143]
+[157]
 Overfull \hbox (15.95877pt too wide) in paragraph at lines 84--85
 []\OT1/ptm/m/n/12 Output: class=(Datas or Databases) type=(if Databases, HDF5, 
 if Datas:timepoint,
  []
 
-) (./existing_interfaces.tex [144]
+) (./existing_interfaces.tex [158]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1533,14 +1613,14 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[145
+[159
 
 ]
 Overfull \hbox (32.28522pt too wide) in paragraph at lines 41--42
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][]  
  []
 
-[146] [147] [148]
+[160] [161] [162]
 Underfull \hbox (badness 10000) in paragraph at lines 129--134
 
  []
@@ -1551,16 +1631,16 @@ Overfull \hbox (1.16702pt too wide) in paragraph at lines 135--137
 o be used are the $\OML/cmm/m/it/12 < MultiRun >$\OT1/ptm/m/n/12 .
  []
 
-[149] [150]
+[163] [164]
 Overfull \hbox (44.14415pt too wide) in paragraph at lines 215--216
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  
  []
 
-[151] [152]) [153] (./raven_user_manual.bbl) [154
+[165] [166]) [167] (./raven_user_manual.bbl) [168
 
 
-] [155
+] [169
 
 ]
 File: pics/inl-left_black.pdf Graphic file (type pdf)
@@ -1569,13 +1649,13 @@ File: pics/inl-left_black.pdf Graphic file (type pdf)
 Package pdftex.def Info: pics/inl-left_black.pdf used on input line 333.
 (pdftex.def)             Requested size: 280.04555pt x 55.2061pt.
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 333.
- [156]
+ [170]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 333.
  (./raven_user_manual.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 333.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 333.
 Package rerunfilecheck Info: File `raven_user_manual.out' has not changed.
-(rerunfilecheck)             Checksum: F475AB112E9717674214C17ED4EC2BDC;12902.
+(rerunfilecheck)             Checksum: 3D6C36B4FF27C47587AE2829679F4576;13727.
 
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
@@ -1583,13 +1663,16 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 LaTeX Warning: There were undefined references.
 
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 333.
  ) 
 Here is how much of TeX's memory you used:
- 12184 strings out of 493117
- 172244 string characters out of 6135433
- 293766 words of memory out of 5000000
- 13927 multiletter control sequences out of 15000+600000
+ 12376 strings out of 493117
+ 175253 string characters out of 6135433
+ 294363 words of memory out of 5000000
+ 13974 multiletter control sequences out of 15000+600000
  49085 words of font info for 112 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  33i,6n,58p,1027b,2038s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1603,20 +1686,18 @@ e/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/
 14/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2014/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2014/tex
-mf-dist/fonts/type1/public/txfonts/t1xbtt.pfb></usr/local/texlive/2014/texmf-di
-st/fonts/type1/public/txfonts/t1xtt.pfb></usr/local/texlive/2014/texmf-dist/fon
-ts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1
-/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/he
-lvetic/uhvr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/ncntrsbk/
-uncb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/ncntrsbk/uncr8a.
-pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/
-local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/local/tex
-live/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2014/
-texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on raven_user_manual.pdf (156 pages, 630359 bytes).
+mf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/
+fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
+ype1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/ur
+w/ncntrsbk/uncb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/ncntr
+sbk/uncr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmb8a
+.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></us
+r/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/te
+xlive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on raven_user_manual.pdf (170 pages, 656559 bytes).
 PDF statistics:
- 3036 PDF objects out of 3580 (max. 8388607)
- 2825 compressed objects within 29 object streams
- 1443 named destinations out of 1728 (max. 500000)
- 1203 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 3294 PDF objects out of 3580 (max. 8388607)
+ 3069 compressed objects within 31 object streams
+ 1588 named destinations out of 1728 (max. 500000)
+ 1283 words of extra memory for PDF output out of 10000 (max. 10000000)
 

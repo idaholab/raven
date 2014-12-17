@@ -6,7 +6,7 @@ The RAVEN code provides support for the usage of user-defined external functions
 \begin{itemize}
 \itemsep0em
 \item \textbf{name}, \textit{required string attribute}, user-defined name of this Function. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (XML);
-\item \textbf{file}, \textit{required string attribute}, file name with its absolute or relative path. NB. If a relative path is specified, it must be notice it is relative with respect to where the user runs the code.
+\item \textbf{file}, \textit{required string attribute}, file name with its absolute or relative path. NB. If a relative path is specified, it must be noticed it is relative with respect to where the user runs the code.
 \end{itemize}
 \vspace{-5mm}
 In order to make the RAVEN code aware of the variables the user is going to manipulate/use in its own python function, the variables need to be specified in the \textbf{$<External>$} input block. The user needs to input, within this block, only the variables that RAVEN needs to be aware of (i.e. the variables are going to directly be used by the code) and not the local variables that the user does not want to, for example, store in a RAVEN internal object. These variables are inputted within consecutive XML blocks called $<variable>$:
