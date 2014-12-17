@@ -48,12 +48,12 @@
 \BOOKMARK [3][-]{subsubsection.10.3.3}{MicroSphere.}{subsection.10.3}% 48
 \BOOKMARK [3][-]{subsubsection.10.3.4}{SciKitLearn.}{subsection.10.3}% 49
 \BOOKMARK [4][-]{paragraph.10.3.4.1}{Linear Models.}{subsubsection.10.3.4}% 50
-\BOOKMARK [5][-]{subparagraph.10.3.4.1.1}{Linear Model: Bayesian ARD regression}{paragraph.10.3.4.1}% 51
+\BOOKMARK [5][-]{subparagraph.10.3.4.1.1}{Linear Model: Automatic Relevance Determination regression}{paragraph.10.3.4.1}% 51
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.2}{Linear Model: Bayesian ridge regression}{paragraph.10.3.4.1}% 52
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.3}{Linear Model: Elastic Net}{paragraph.10.3.4.1}% 53
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.4}{Linear Model: Elastic Net CV}{paragraph.10.3.4.1}% 54
-\BOOKMARK [5][-]{subparagraph.10.3.4.1.5}{Least Angle Regression model}{paragraph.10.3.4.1}% 55
-\BOOKMARK [5][-]{subparagraph.10.3.4.1.6}{Cross-validated Least Angle Regression model}{paragraph.10.3.4.1}% 56
+\BOOKMARK [5][-]{subparagraph.10.3.4.1.5}{Linear Model: Least Angle Regression model}{paragraph.10.3.4.1}% 55
+\BOOKMARK [5][-]{subparagraph.10.3.4.1.6}{Linear Model: Cross-validated Least Angle Regression model}{paragraph.10.3.4.1}% 56
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.7}{Linear Model trained with L1 prior as regularizer \(aka the Lasso\)}{paragraph.10.3.4.1}% 57
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.8}{Lasso linear model with iterative fitting along a regularization path}{paragraph.10.3.4.1}% 58
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.9}{Lasso model fit with Least Angle Regression }{paragraph.10.3.4.1}% 59
@@ -88,70 +88,62 @@
 \BOOKMARK [4][-]{paragraph.10.3.4.3}{Multi Class.}{subsubsection.10.3.4}% 88
 \BOOKMARK [5][-]{subparagraph.10.3.4.3.1}{One-vs-the-rest \(OvR\) multiclass/multilabel strategy}{paragraph.10.3.4.3}% 89
 \BOOKMARK [5][-]{subparagraph.10.3.4.3.2}{One-vs-one multiclass strategy}{paragraph.10.3.4.3}% 90
-\BOOKMARK [5][-]{subparagraph.10.3.4.3.3}{ \(Error-Correcting\) Output-Code multiclass strategy}{paragraph.10.3.4.3}% 91
-\BOOKMARK [5][-]{subparagraph.10.3.4.3.4}{fit a one-vs-the-rest strategy}{paragraph.10.3.4.3}% 92
-\BOOKMARK [5][-]{subparagraph.10.3.4.3.5}{Make predictions using the one-vs-the-rest strategy}{paragraph.10.3.4.3}% 93
-\BOOKMARK [5][-]{subparagraph.10.3.4.3.6}{ Fit a one-vs-one strategy}{paragraph.10.3.4.3}% 94
-\BOOKMARK [5][-]{subparagraph.10.3.4.3.7}{Make predictions using the one-vs-one strategy}{paragraph.10.3.4.3}% 95
-\BOOKMARK [5][-]{subparagraph.10.3.4.3.8}{Fit an error-correcting output-code strategy}{paragraph.10.3.4.3}% 96
-\BOOKMARK [5][-]{subparagraph.10.3.4.3.9}{Make predictions using the error-correcting output-code strategy}{paragraph.10.3.4.3}% 97
-\BOOKMARK [4][-]{paragraph.10.3.4.4}{Naive Bayes.}{subsubsection.10.3.4}% 98
-\BOOKMARK [5][-]{subparagraph.10.3.4.4.1}{Gaussian Naive Bayes}{paragraph.10.3.4.4}% 99
-\BOOKMARK [5][-]{subparagraph.10.3.4.4.2}{Multinomial Naive Bayes}{paragraph.10.3.4.4}% 100
-\BOOKMARK [5][-]{subparagraph.10.3.4.4.3}{Bernoulli Naive Bayes}{paragraph.10.3.4.4}% 101
-\BOOKMARK [4][-]{paragraph.10.3.4.5}{Neighbors.}{subsubsection.10.3.4}% 102
-\BOOKMARK [5][-]{subparagraph.10.3.4.5.1}{Nearest Neighbors}{paragraph.10.3.4.5}% 103
-\BOOKMARK [5][-]{subparagraph.10.3.4.5.2}{K Neighbors Classifier }{paragraph.10.3.4.5}% 104
-\BOOKMARK [5][-]{subparagraph.10.3.4.5.3}{Radius Neighbors Classifier}{paragraph.10.3.4.5}% 105
-\BOOKMARK [5][-]{subparagraph.10.3.4.5.4}{K Neighbors Regressor}{paragraph.10.3.4.5}% 106
-\BOOKMARK [5][-]{subparagraph.10.3.4.5.5}{Radius Neighbors Regressor}{paragraph.10.3.4.5}% 107
-\BOOKMARK [5][-]{subparagraph.10.3.4.5.6}{Nearest Centroid}{paragraph.10.3.4.5}% 108
-\BOOKMARK [5][-]{subparagraph.10.3.4.5.7}{Ball Tree}{paragraph.10.3.4.5}% 109
-\BOOKMARK [5][-]{subparagraph.10.3.4.5.8}{K-D Tree}{paragraph.10.3.4.5}% 110
-\BOOKMARK [4][-]{paragraph.10.3.4.6}{Quadratic Discriminant Analysis.}{subsubsection.10.3.4}% 111
-\BOOKMARK [4][-]{paragraph.10.3.4.7}{Tree.}{subsubsection.10.3.4}% 112
-\BOOKMARK [5][-]{subparagraph.10.3.4.7.1}{Decision Tree Classifier}{paragraph.10.3.4.7}% 113
-\BOOKMARK [5][-]{subparagraph.10.3.4.7.2}{Decision Tree Regressor}{paragraph.10.3.4.7}% 114
-\BOOKMARK [5][-]{subparagraph.10.3.4.7.3}{Extra Tree Classifier}{paragraph.10.3.4.7}% 115
-\BOOKMARK [5][-]{subparagraph.10.3.4.7.4}{Extra Tree Regressor}{paragraph.10.3.4.7}% 116
-\BOOKMARK [4][-]{paragraph.10.3.4.8}{Gaussian Process.}{subsubsection.10.3.4}% 117
-\BOOKMARK [2][-]{subsection.10.4}{External Model}{section.10}% 118
-\BOOKMARK [2][-]{subsection.10.5}{PostProcessor}{section.10}% 119
-\BOOKMARK [1][-]{section.11}{OutStream system \0402 mm }{}% 120
-\BOOKMARK [2][-]{subsection.11.1}{Printing system }{section.11}% 121
-\BOOKMARK [2][-]{subsection.11.2}{Plotting system }{section.11}% 122
-\BOOKMARK [3][-]{subsubsection.11.2.1}{Plot input structure }{subsection.11.2}% 123
-\BOOKMARK [4][-]{paragraph.11.2.1.1}{``Actions'' input block }{subsubsection.11.2.1}% 124
-\BOOKMARK [4][-]{paragraph.11.2.1.2}{``plot\137settings'' input block }{subsubsection.11.2.1}% 125
-\BOOKMARK [4][-]{paragraph.11.2.1.3}{Predefined Plotting System: 2D/3D }{subsubsection.11.2.1}% 126
-\BOOKMARK [3][-]{subsubsection.11.2.2}{2D \046 3D Scatter plot.}{subsection.11.2}% 127
-\BOOKMARK [3][-]{subsubsection.11.2.3}{2D \046 3D Line plot.}{subsection.11.2}% 128
-\BOOKMARK [3][-]{subsubsection.11.2.4}{2D \046 3D Histogram plot.}{subsection.11.2}% 129
-\BOOKMARK [3][-]{subsubsection.11.2.5}{2D \046 3D Stem plot.}{subsection.11.2}% 130
-\BOOKMARK [3][-]{subsubsection.11.2.6}{2D Step plot}{subsection.11.2}% 131
-\BOOKMARK [3][-]{subsubsection.11.2.7}{2D Pseudocolor plot}{subsection.11.2}% 132
-\BOOKMARK [3][-]{subsubsection.11.2.8}{2D Contour or filledContour plots.}{subsection.11.2}% 133
-\BOOKMARK [3][-]{subsubsection.11.2.9}{3D Surface Plot.}{subsection.11.2}% 134
-\BOOKMARK [3][-]{subsubsection.11.2.10}{3D Wireframe Plot.}{subsection.11.2}% 135
-\BOOKMARK [3][-]{subsubsection.11.2.11}{3D Tri-surface Plot.}{subsection.11.2}% 136
-\BOOKMARK [3][-]{subsubsection.11.2.12}{3D Contour or filledContour plots.}{subsection.11.2}% 137
-\BOOKMARK [3][-]{subsubsection.11.2.13}{Example XML input.}{subsection.11.2}% 138
-\BOOKMARK [1][-]{section.12}{Steps \0402 mm }{}% 139
-\BOOKMARK [1][-]{section.13}{Existing Interfaces \0402 mm }{}% 140
-\BOOKMARK [2][-]{subsection.13.1}{RELAP5 Interface}{section.13}% 141
-\BOOKMARK [3][-]{subsubsection.13.1.1}{Files}{subsection.13.1}% 142
-\BOOKMARK [3][-]{subsubsection.13.1.2}{Sequence}{subsection.13.1}% 143
-\BOOKMARK [3][-]{subsubsection.13.1.3}{batchSize and mode}{subsection.13.1}% 144
-\BOOKMARK [3][-]{subsubsection.13.1.4}{RunInfo}{subsection.13.1}% 145
-\BOOKMARK [3][-]{subsubsection.13.1.5}{Models}{subsection.13.1}% 146
-\BOOKMARK [3][-]{subsubsection.13.1.6}{Distributions}{subsection.13.1}% 147
-\BOOKMARK [3][-]{subsubsection.13.1.7}{Samplers}{subsection.13.1}% 148
-\BOOKMARK [3][-]{subsubsection.13.1.8}{Steps}{subsection.13.1}% 149
-\BOOKMARK [3][-]{subsubsection.13.1.9}{DataBases}{subsection.13.1}% 150
-\BOOKMARK [2][-]{subsection.13.2}{RELAP7 Interface}{section.13}% 151
-\BOOKMARK [3][-]{subsubsection.13.2.1}{Files}{subsection.13.2}% 152
-\BOOKMARK [3][-]{subsubsection.13.2.2}{Models}{subsection.13.2}% 153
-\BOOKMARK [3][-]{subsubsection.13.2.3}{Distributions}{subsection.13.2}% 154
-\BOOKMARK [3][-]{subsubsection.13.2.4}{Samplers}{subsection.13.2}% 155
-\BOOKMARK [3][-]{subsubsection.13.2.5}{Steps}{subsection.13.2}% 156
-\BOOKMARK [1][-]{section*.1}{References}{}% 157
+\BOOKMARK [5][-]{subparagraph.10.3.4.3.3}{Error-Correcting Output-Code multiclass strategy}{paragraph.10.3.4.3}% 91
+\BOOKMARK [4][-]{paragraph.10.3.4.4}{Naive Bayes.}{subsubsection.10.3.4}% 92
+\BOOKMARK [5][-]{subparagraph.10.3.4.4.1}{Gaussian Naive Bayes}{paragraph.10.3.4.4}% 93
+\BOOKMARK [5][-]{subparagraph.10.3.4.4.2}{Multinomial Naive Bayes}{paragraph.10.3.4.4}% 94
+\BOOKMARK [5][-]{subparagraph.10.3.4.4.3}{Bernoulli Naive Bayes}{paragraph.10.3.4.4}% 95
+\BOOKMARK [4][-]{paragraph.10.3.4.5}{Neighbors.}{subsubsection.10.3.4}% 96
+\BOOKMARK [5][-]{subparagraph.10.3.4.5.1}{Nearest Neighbors}{paragraph.10.3.4.5}% 97
+\BOOKMARK [5][-]{subparagraph.10.3.4.5.2}{K Neighbors Classifier }{paragraph.10.3.4.5}% 98
+\BOOKMARK [5][-]{subparagraph.10.3.4.5.3}{Radius Neighbors Classifier}{paragraph.10.3.4.5}% 99
+\BOOKMARK [5][-]{subparagraph.10.3.4.5.4}{K Neighbors Regressor}{paragraph.10.3.4.5}% 100
+\BOOKMARK [5][-]{subparagraph.10.3.4.5.5}{Radius Neighbors Regressor}{paragraph.10.3.4.5}% 101
+\BOOKMARK [5][-]{subparagraph.10.3.4.5.6}{Nearest Centroid Classifier}{paragraph.10.3.4.5}% 102
+\BOOKMARK [4][-]{paragraph.10.3.4.6}{Quadratic Discriminant Analysis.}{subsubsection.10.3.4}% 103
+\BOOKMARK [4][-]{paragraph.10.3.4.7}{Tree.}{subsubsection.10.3.4}% 104
+\BOOKMARK [5][-]{subparagraph.10.3.4.7.1}{Decision Tree Classifier}{paragraph.10.3.4.7}% 105
+\BOOKMARK [5][-]{subparagraph.10.3.4.7.2}{Decision Tree Regressor}{paragraph.10.3.4.7}% 106
+\BOOKMARK [5][-]{subparagraph.10.3.4.7.3}{Extra Tree Classifier}{paragraph.10.3.4.7}% 107
+\BOOKMARK [5][-]{subparagraph.10.3.4.7.4}{Extra Tree Regressor}{paragraph.10.3.4.7}% 108
+\BOOKMARK [4][-]{paragraph.10.3.4.8}{Gaussian Process.}{subsubsection.10.3.4}% 109
+\BOOKMARK [2][-]{subsection.10.4}{External Model}{section.10}% 110
+\BOOKMARK [2][-]{subsection.10.5}{PostProcessor}{section.10}% 111
+\BOOKMARK [1][-]{section.11}{OutStream system \0402 mm }{}% 112
+\BOOKMARK [2][-]{subsection.11.1}{Printing system }{section.11}% 113
+\BOOKMARK [2][-]{subsection.11.2}{Plotting system }{section.11}% 114
+\BOOKMARK [3][-]{subsubsection.11.2.1}{Plot input structure }{subsection.11.2}% 115
+\BOOKMARK [4][-]{paragraph.11.2.1.1}{``Actions'' input block }{subsubsection.11.2.1}% 116
+\BOOKMARK [4][-]{paragraph.11.2.1.2}{``plot\137settings'' input block }{subsubsection.11.2.1}% 117
+\BOOKMARK [4][-]{paragraph.11.2.1.3}{Predefined Plotting System: 2D/3D }{subsubsection.11.2.1}% 118
+\BOOKMARK [3][-]{subsubsection.11.2.2}{2D \046 3D Scatter plot.}{subsection.11.2}% 119
+\BOOKMARK [3][-]{subsubsection.11.2.3}{2D \046 3D Line plot.}{subsection.11.2}% 120
+\BOOKMARK [3][-]{subsubsection.11.2.4}{2D \046 3D Histogram plot.}{subsection.11.2}% 121
+\BOOKMARK [3][-]{subsubsection.11.2.5}{2D \046 3D Stem plot.}{subsection.11.2}% 122
+\BOOKMARK [3][-]{subsubsection.11.2.6}{2D Step plot}{subsection.11.2}% 123
+\BOOKMARK [3][-]{subsubsection.11.2.7}{2D Pseudocolor plot}{subsection.11.2}% 124
+\BOOKMARK [3][-]{subsubsection.11.2.8}{2D Contour or filledContour plots.}{subsection.11.2}% 125
+\BOOKMARK [3][-]{subsubsection.11.2.9}{3D Surface Plot.}{subsection.11.2}% 126
+\BOOKMARK [3][-]{subsubsection.11.2.10}{3D Wireframe Plot.}{subsection.11.2}% 127
+\BOOKMARK [3][-]{subsubsection.11.2.11}{3D Tri-surface Plot.}{subsection.11.2}% 128
+\BOOKMARK [3][-]{subsubsection.11.2.12}{3D Contour or filledContour plots.}{subsection.11.2}% 129
+\BOOKMARK [3][-]{subsubsection.11.2.13}{Example XML input.}{subsection.11.2}% 130
+\BOOKMARK [1][-]{section.12}{Steps \0402 mm }{}% 131
+\BOOKMARK [1][-]{section.13}{Existing Interfaces \0402 mm }{}% 132
+\BOOKMARK [2][-]{subsection.13.1}{RELAP5 Interface}{section.13}% 133
+\BOOKMARK [3][-]{subsubsection.13.1.1}{Files}{subsection.13.1}% 134
+\BOOKMARK [3][-]{subsubsection.13.1.2}{Sequence}{subsection.13.1}% 135
+\BOOKMARK [3][-]{subsubsection.13.1.3}{batchSize and mode}{subsection.13.1}% 136
+\BOOKMARK [3][-]{subsubsection.13.1.4}{RunInfo}{subsection.13.1}% 137
+\BOOKMARK [3][-]{subsubsection.13.1.5}{Models}{subsection.13.1}% 138
+\BOOKMARK [3][-]{subsubsection.13.1.6}{Distributions}{subsection.13.1}% 139
+\BOOKMARK [3][-]{subsubsection.13.1.7}{Samplers}{subsection.13.1}% 140
+\BOOKMARK [3][-]{subsubsection.13.1.8}{Steps}{subsection.13.1}% 141
+\BOOKMARK [3][-]{subsubsection.13.1.9}{DataBases}{subsection.13.1}% 142
+\BOOKMARK [2][-]{subsection.13.2}{RELAP7 Interface}{section.13}% 143
+\BOOKMARK [3][-]{subsubsection.13.2.1}{Files}{subsection.13.2}% 144
+\BOOKMARK [3][-]{subsubsection.13.2.2}{Models}{subsection.13.2}% 145
+\BOOKMARK [3][-]{subsubsection.13.2.3}{Distributions}{subsection.13.2}% 146
+\BOOKMARK [3][-]{subsubsection.13.2.4}{Samplers}{subsection.13.2}% 147
+\BOOKMARK [3][-]{subsubsection.13.2.5}{Steps}{subsection.13.2}% 148
+\BOOKMARK [1][-]{section*.1}{References}{}% 149

@@ -203,17 +203,107 @@ Based on the $<SKLtype>$ several different algorithms are available. In the foll
 The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
 In the following, all the linear models available in RAVEN are reported.
 \subparagraph{Linear Model: Automatic Relevance Determination regression}
-The \textit{Automatic Relevance Determination} regressor is a hierarchical Bayesian approach where there are hyperparameters which explicitly represent the rele- vance of different input features. These relevance hy- perparameters determine the range of variation for the parameters relating to a particular input, usually by modelling the width of a zero-mean Gaussian prior on those parameters. If the width of that Gaussian is zero, then those parameters are constrained to be zero, and the corresponding input cannot have any effect on the predictions, therefore making it irrelevant. ARD opti- mizes these hyperparameters to discover which inputs are relevant. 1
+\mbox{}
+\\The \textit{Automatic Relevance Determination} regressor is a hierarchical Bayesian approach where there are hyperparameters which explicitly represent the relevance of different input features. These relevance hyperparameters determine the range of variation for the parameters relating to a particular input, usually by modelling the width of a zero-mean Gaussian prior on those parameters. If the width of that Gaussian is zero, then those parameters are constrained to be zero, and the corresponding input cannot have any effect on the predictions, therefore making it irrelevant. ARD optimizes these hyperparameters to discover which inputs are relevant.
+In order to use the  \textit{Automatic Relevance Determination} regressor, the user needs to set the sub-node $<SKLtype>ARDRegression</SKLtype>$. In addition to this XML node, several other need (or not) be inputted:
+\begin{itemize}
+\item $<n_iter>$ \textbf{\textit{, integer, optional field.}}.  Maximum number of iterations. \textit{Default = 300};
+\item $<tol>$ \textbf{\textit{, float, optional field.}}.  Stop the algorithm if w has converged. \textit{Default = 1.e-3};
+\item $<alpha_1>$ \textbf{\textit{, float, optional field.}}.  Hyper-parameter : shape parameter for the Gamma distribution prior over the alpha parameter. \textit{Default =  1.e-6};
+\item $<alpha_2>$ \textbf{\textit{, float, optional field.}}.  Hyper-parameter : inverse scale parameter (rate parameter) for the Gamma distribution prior over the alpha parameter. \textit{Default =  1.e-6};
+\item $<lambda_1>$ \textbf{\textit{, float, optional field.}}.  Hyper-parameter : shape parameter for the Gamma distribution prior over the lambda parameter. \textit{Default =  1.e-6};
+\item $<lambda_2>$ \textbf{\textit{, float, optional field.}}.  Hyper-parameter : inverse scale parameter (rate parameter) for the Gamma distribution prior over the lambda parameter. \textit{Default =  1.e-6};
+\item $<compute_score>$ \textbf{\textit{, boolean, optional field.}}.  If True, compute the objective function at each step of the model. \textit{Default =  False};
+\item $<threshold_lambda>$ \textbf{\textit{, float, optional field.}}.  Threshold for removing (pruning) weights with high precision from the computation. \textit{Default =  1.e+4};
+\item $<fit_intercept>$ \textbf{\textit{, float, optional field.}}.  whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered). \textit{Default =  True};
+\item $<normalize>$ \textbf{\textit{, boolean, optional field.}}.  If True, the regressors X will be normalized before regression. \textit{Default =  False};
+\item $<verbose>$ \textbf{\textit{, boolean, optional field.}}.  Verbose mode when fitting the model. \textit{Default =  False};
+\end{itemize}
+%%%%%%%%
 \subparagraph{Linear Model: Bayesian ridge regression}
-pass
+\mbox{}
+\\The \textit{Bayesian ridge regression}  estimates a probabilistic model of the regression problem as described above. The prior for the parameter w is given by a spherical Gaussian:
+\begin{equation}
+p(w|\lambda) =\mathcal{N}(w|0,\lambda^{-1}\bold{I_{p}})
+\end{equation}
+The priors over $\alpha$ and $\lambda$ are chosen to be gamma distributions, the conjugate prior for the precision of the Gaussian.
+The resulting model is called Bayesian Ridge Regression, and is similar to the classical Ridge. The parameters $w, \alpha$ and $\lambda$ are estimated jointly during the fit of the model. The remaining hyperparameters are the parameters of the gamma priors over $\alpha$ and $\lambda$. These are usually chosen to be non-informative. The parameters are estimated by maximizing the marginal log likelihood.
+In order to use the  \textit{Bayesian ridge regression} regressor, the user needs to set the sub-node $<SKLtype>BayesianRidge</SKLtype>$.  In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<n_iter>$ \textbf{\textit{, integer, optional field.}}.  Maximum number of iterations. \textit{Default = 300};
+\item $<tol>$ \textbf{\textit{, float, optional field.}}.  Stop the algorithm if w has converged. \textit{Default = 1.e-3};
+\item $<alpha_1>$ \textbf{\textit{, float, optional field.}}.  Hyper-parameter : shape parameter for the Gamma distribution prior over the alpha parameter. \textit{Default =  1.e-6};
+\item $<alpha_2>$ \textbf{\textit{, float, optional field.}}.  Hyper-parameter : inverse scale parameter (rate parameter) for the Gamma distribution prior over the alpha parameter. \textit{Default =  1.e-6};
+\item $<lambda_1>$ \textbf{\textit{, float, optional field.}}.  Hyper-parameter : shape parameter for the Gamma distribution prior over the lambda parameter. \textit{Default =  1.e-6};
+\item $<lambda_2>$ \textbf{\textit{, float, optional field.}}.  Hyper-parameter : inverse scale parameter (rate parameter) for the Gamma distribution prior over the lambda parameter. \textit{Default =  1.e-6};
+\item $<compute_score>$ \textbf{\textit{, boolean, optional field.}}.  If True, compute the objective function at each step of the model. \textit{Default =  False};
+\item $<threshold_lambda>$ \textbf{\textit{, float, optional field.}}.  Threshold for removing (pruning) weights with high precision from the computation. \textit{Default =  1.e+4};
+\item $<fit_intercept>$ \textbf{\textit{, float, optional field.}}.  whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered). \textit{Default =  True};
+\item $<normalize>$ \textbf{\textit{, boolean, optional field.}}.  If True, the regressors X will be normalized before regression. \textit{Default =  False};
+\item $<verbose>$ \textbf{\textit{, boolean, optional field.}}.  Verbose mode when fitting the model. \textit{Default =  False};
+\end{itemize}
+%%%%%%%
 \subparagraph{Linear Model: Elastic Net}
-pass
+\mbox{}
+\\The \textit{Elastic Net} is a linear regression with combined L1 and L2 priors as regularizer.
+It minimizes the objective function:
+\begin{equation}
+1/(2*n_samples) *||y - Xw||^2_2+alpha*l1_ratio*||w||_1 + 0.5 *alpha*(1 - l1_ratio)*||w||^2_2
+\end{equation}
+In order to use the  \textit{Elastic Net} regressor, the user needs to set the sub-node $<SKLtype>ElasticNet</SKLtype>$.  In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<alpha>$ \textbf{\textit{, float, optional field.}}.  Constant that multiplies the penalty terms. alpha = 0 is equivalent to an ordinary least square, solved by the LinearRegression object. \textit{Default = 1.0};
+\item $<l1_ratio>$ \textbf{\textit{, float, optional field.}}.  The ElasticNet mixing parameter, with $0 <= l1_ratio <= 1$. For $l1_ratio = 0$ the penalty is an L2 penalty. For $l1_ratio = 1$ it is an L1 penalty. For $0 < l1_ratio < 1$, the penalty is a combination of L1 and L2. \textit{Default = 0.5};
+\item $<fit_intercept>$ \textbf{\textit{, boolean, optional field.}}.  Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. \textit{Default =  True};
+\item $<normalize>$ \textbf{\textit{, boolean, optional field.}}.  If True, the regressors X will be normalized before regression. \textit{Default =  False};
+\item $<max_iter>$ \textbf{\textit{, integer, optional field.}}.  The maximum number of iterations. \textit{Default = 300};
+\item $<tol>$ \textbf{\textit{, float, optional field.}}.  The tolerance for the optimization: if the updates are smaller than tol, the optimization code checks the dual gap for optimality and continues until it is smaller than tol.. \textit{Default = 1.0e-4};
+\item $<warm_start >$ \textbf{\textit{, boolean, optional field.}}.  When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.. \textit{Default =  False};
+\item $<positive>$ \textbf{\textit{, float, optional field.}}.  When set to True, forces the coefficients to be positive. \textit{Default =  False}.
+\end{itemize}
+%%%%%%%%
 \subparagraph{Linear Model: Elastic Net CV}
-pass
-\subparagraph{Least Angle Regression model}
-pass
-\subparagraph{Cross-validated Least Angle Regression model}
-pass
+\mbox{}
+\\The \textit{Elastic Net CV} is a linear regression similar to Elastic Net model but with an iterative fitting along a regularization path. The best model is selected by cross-validation.
+\\In order to use the  \textit{Elastic Net CV} regressor, the user needs to set the sub-node $<SKLtype>ElasticNetCV</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<l1_ratio>$ \textbf{\textit{, float, optional field.}}. Float flag between 0 and 1 passed to ElasticNet (scaling between l1 and l2 penalties). For $l1_ratio = 0$ the penalty is an L2 penalty. For $l1_ratio = 1$ it is an L1 penalty. For $0 < l1_ratio < 1$, the penalty is a combination of L1 and L2 This parameter can be a list, in which case the different values are tested by cross-validation and the one giving the best prediction score is used. Note that a good choice of list of values for $l1_ratio$ is often to put more values close to 1 (i.e. Lasso) and less close to 0 (i.e. Ridge), as in [.1, .5, .7, .9, .95, .99, 1]. \textit{Default = 0.5};
+\item $<eps>$ \textbf{\textit{, float, optional field.}}.  Length of the path. eps=1e-3 means that $alpha_min / alpha_max = 1e-3$. \textit{Default = 0.001};
+\item $<n_alphas>$ \textbf{\textit{, integer, optional field.}}.  Number of alphas along the regularization path, used for each $l1_ratio$. \textit{Default = 100};
+\item $<precompute>$ \textbf{\textit{, boolean or string, optional field.}}.  Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument. Available are [True | False | ‘auto’ | array-like]. \textit{Default = 1.0};
+\item $<max_iter>$ \textbf{\textit{, integer, optional field.}}.  The maximum number of iterations. \textit{Default = 300};
+\item $<tol>$ \textbf{\textit{, float, optional field.}}.  The tolerance for the optimization: if the updates are smaller than tol, the optimization code checks the dual gap for optimality and continues until it is smaller than tol.. \textit{Default = 1.0e-4};
+\item $<positive>$ \textbf{\textit{, float, optional field.}}.  When set to True, forces the coefficients to be positive. \textit{Default =  False}.
+\end{itemize}
+%%%%%%
+\subparagraph{Linear Model: Least Angle Regression model}
+\mbox{}
+\\The \textit{Least Angle Regression model} (LARS)  is a regression algorithm for high-dimensional data. LARS algorithm provides a means of producing an estimate of which variables to include, as well as their coefficients, when a  response variable is determined by a linear combination of a subset of potential covariate.
+\\In order to use the  \textit{Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>Lars</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<n_nonzero_coef>$ \textbf{\textit{, integer, optional field.}}. Target number of non-zero coefficients. \textit{Default = 500};
+\item $<fit_intercept>$ \textbf{\textit{, boolean, optional field.}}.  Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. \textit{Default =  True};
+\item $<verbose>$ \textbf{\textit{, boolean, optional field.}}.  Verbose mode when fitting the model. \textit{Default =  False};
+\item $<precompute>$ \textbf{\textit{, boolean or string, optional field.}}.  Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument. Available are [True | False | ‘auto’ | array-like]. \textit{Default = 1.0};
+\item $<normalize>$ \textbf{\textit{, boolean, optional field.}}.  If True, the regressors X will be normalized before regression. \textit{Default =  False};
+\item $<eps>$ \textbf{\textit{, float, optional field.}}.  The machine-precision regularization in the computation of the Cholesky diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol parameter in some iterative optimization-based algorithms, this parameter does not control the tolerance of the optimization. \textit{Default =2.22e-16};
+\item $<fit_path>$ \textbf{\textit{, boolean, optional field.}}.  f True the full path is stored in the coef\_path\_ attribute. If you compute the solution for a large problem or many targets, setting fit\_path to False will lead to a speedup, especially with a small alpha. \textit{Default =  True}.
+\end{itemize}
+%%%%%%
+\subparagraph{Linear Model: Cross-validated Least Angle Regression model}
+\mbox{}
+\\The \textit{Cross-validated Least Angle Regression model} is a regression algorithm for high-dimensional data. It is similar to LARS method, but the best model is selected by cross-validation.
+\\In order to use the  \textit{Cross-validated Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>LarsCV</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<fit_intercept>$ \textbf{\textit{, boolean, optional field.}}.  Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. \textit{Default =  True};
+\item $<verbose>$ \textbf{\textit{, boolean, optional field.}}.  Verbose mode when fitting the model. \textit{Default =  False};
+\item $<normalize>$ \textbf{\textit{, boolean, optional field.}}.  If True, the regressors X will be normalized before regression. \textit{Default =  False};
+\item $<precompute>$ \textbf{\textit{, boolean or string, optional field.}}.  Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument. Available are [True | False | ‘auto’ | array-like]. \textit{Default = 1.0};
+\item $<max\textunderscore~iter>$ \textbf{\textit{, integer, optional field.}}.  The maximum number of iterations. \textit{Default = 300};
+\item $<max\textunderscore~n\textunderscore~alphas>$ \textbf{\textit{, integer, optional field.}}. The maximum number of points on the path used to compute the residuals in the cross-validation. \textit{Default = 1000};
+\item $<eps>$ \textbf{\textit{, float, optional field.}}.  The machine-precision regularization in the computation of the Cholesky diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol parameter in some iterative optimization-based algorithms, this parameter does not control the tolerance of the optimization. \textit{Default =2.22e-16};
+\end{itemize}
+
 \subparagraph{Linear Model trained with L1 prior as regularizer (aka the Lasso)}
 pass
 \subparagraph{Lasso linear model with iterative fitting along a regularization path}
@@ -279,103 +369,498 @@ pass
 pass
 \subparagraph{Support Vector Regression}
 pass
+
+
+
+
  %%%%% ROM Model - SciKitLearn: MultiClass %%%%%%%
 \paragraph{Multi Class.}
 \label{Multiclass}
-The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
-In the following, all the linear models available in RAVEN are reported.
+Multiclass classification means a classification task with more than two classes; e.g., classify a set of images of fruits which may be oranges, apples, or pears. Multiclass classification makes the assumption that each sample is assigned to one and only one label: a fruit can be either an apple or a pear but not both at the same time.
+In the following, all the multi-class models available in RAVEN are reported.
+%%%%%%%%%
 \subparagraph{One-vs-the-rest (OvR) multiclass/multilabel strategy}
-pass
+\mbox{}
+\\The \textit{One-vs-the-rest (OvR) multiclass/multilabel strategy}, also known as one-vs-all, consists in fitting one classifier per class. For each classifier, the class is fitted against all the other classes. In addition to its computational efficiency (only n\_classes classifiers are needed), one advantage of this approach is its interpretability. Since each class is represented by one and one classifier only, it is possible to gain knowledge about the class by inspecting its corresponding classifier. This is the most commonly used strategy and is a fair default choice.
+\\In order to use the  \textit{One-vs-the-rest (OvR) multiclass/multilabel} classifier, the user needs to set the sub-node $<SKLtype>multiClass~\vert~OneVsRestClassifier</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<estimator>$ \textbf{\textit{, boolean, required field.}}.  An estimator object implementing fit and one of decision\_function or predict\_proba. This XML node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{estimatorType}, \textit{required string attribute}, this attribute an other reduced order mode type that needs to be used for the construction of the multi-class algorithms; each sub-sequential node depends on the chosen ROM;
+\end{itemize}
+\end{itemize}
+%%%%%%%%%%%%
 \subparagraph{One-vs-one multiclass strategy}
-pass
-\subparagraph{ (Error-Correcting) Output-Code multiclass strategy}
-pass
-\subparagraph{fit a one-vs-the-rest strategy}
-pass
-\subparagraph{Make predictions using the one-vs-the-rest strategy}
-pass
-\subparagraph{ Fit a one-vs-one strategy}
-pass
-\subparagraph{Make predictions using the one-vs-one strategy}
-pass
-\subparagraph{Fit an error-correcting output-code strategy}
-pass
-\subparagraph{Make predictions using the error-correcting output-code strategy}
-pass
+\mbox{}
+\\The \textit{One-vs-one multiclass strategy} consists in fitting one classifier per class pair. 
+At prediction time, the class which received the most votes is selected. Since it requires to fit n\_classes * (n\_classes - 1) / 2 classifiers, this method is usually slower than one-vs-the-rest, due to its O(n\_classes\^2) complexity. However, this method may be advantageous for algorithms such as kernel algorithms which do not scale well with n\_samples. This is because each individual learning problem only involves a small subset of the data whereas, with one-vs-the-rest, the complete dataset is used n\_classes times.
+\\In order to use the   \textit{One-vs-one multiclass} classifier, the user needs to set the sub-node $<SKLtype>multiClass~\vert~OneVsOneClassifier</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<estimator>$ \textbf{\textit{, boolean, required field.}}.  An estimator object implementing fit and one of decision\_function or predict\_proba. This XML node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{estimatorType}, \textit{required string attribute}, this attribute an other reduced order mode type that needs to be used for the construction of the multi-class algorithms; each sub-sequential node depends on the chosen ROM;
+\end{itemize}
+\end{itemize}
+%%%%%%%%%%%%%
+\subparagraph{Error-Correcting Output-Code multiclass strategy}
+\mbox{}
+\\The \textit{Error-Correcting Output-Code multiclass strategy} consists in representing each class with a binary code (an array of 0s and 1s). At fitting time, one binary classifier per bit in the code book is fitted. At prediction time, the classifiers are used to project new points in the class space and the class closest to the points is chosen. The main advantage of these strategies is that the number of classifiers used can be controlled by the user, either for compressing the model ($0 < code_size < 1$) or for making the model more robust to errors ($code_size > 1$).
+\\In order to use the   \textit{Error-Correcting Output-Code multiclass} classifier, the user needs to set the sub-node $<SKLtype>multiClass~\vert~OutputCodeClassifier</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<estimator>$ \textbf{\textit{, xml node, required field.}}.  An estimator object implementing fit and one of decision\_function or predict\_proba.  This XML node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{estimatorType}, \textit{required string attribute}, this attribute an other reduced order mode type that needs to be used for the construction of the multi-class algorithms; each sub-sequential node depends on the chosen ROM;
+\end{itemize}
+\item $<code_size>$ \textbf{\textit{, float, required field.}}.  ercentage of the number of classes to be used to create the code book. A number between 0 and 1 will require fewer classifiers than one-vs-the-rest. A number greater than 1 will require more classifiers than one-vs-the-rest.
+\end{itemize}
+%%%%%%%%%%%%%
+%\subparagraph{fit a one-vs-the-rest strategy}
+%pass
+%\subparagraph{Make predictions using the one-vs-the-rest strategy}
+%pass
+%\subparagraph{ Fit a one-vs-one strategy}
+%pass
+%\subparagraph{Make predictions using the one-vs-one strategy}
+%pass
+%\subparagraph{Fit an error-correcting output-code strategy}
+%pass
+%\subparagraph{Make predictions using the error-correcting output-code strategy}
+%pass
+
+
+
  %%%%% ROM Model - SciKitLearn: naiveBayes %%%%%%%
 \paragraph{Naive Bayes.}
 \label{naiveBayes}
-The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
-In the following, all the linear models available in RAVEN are reported.
+Naive Bayes methods are a set of supervised learning algorithms based on applying Bayes’ theorem with the “naive” assumption of independence between every pair of features. Given a class variable y and a dependent feature vector x\_1 through x\_n, Bayes’ theorem states the following relationship:
+\begin{equation}
+P(y \mid x_1, \dots, x_n) = \frac{P(y) P(x_1, \dots x_n \mid y)}
+                                 {P(x_1, \dots, x_n)}
+\end{equation}
+Using the naive independence assumption that
+\begin{equation}
+P(x_i | y, x_1, \dots, x_{i-1}, x_{i+1}, \dots, x_n) = P(x_i | y),
+\end{equation}
+for all i, this relationship is simplified to
+\begin{equation}
+P(y \mid x_1, \dots, x_n) = \frac{P(y) \prod_{i=1}^{n} P(x_i \mid y)}
+                                 {P(x_1, \dots, x_n)}
+\end{equation}
+Since $P(x_1, \dots, x_n)$ is constant given the input, we can use the following classification rule:
+\begin{equation}
+P(y \mid x_1, \dots, x_n) \propto P(y) \prod_{i=1}^{n} P(x_i \mid y)
+\Downarrow
+\end{equation}
+\begin{equation}
+\hat{y} = \arg\max_y P(y) \prod_{i=1}^{n} P(x_i \mid y),
+\end{equation}
+and we can use Maximum A Posteriori (MAP) estimation to estimate $P(y)$ and $P(x_i \mid y)$; the former is then the relative frequency of class $y$ in the training set.
+The different naive Bayes classifiers differ mainly by the assumptions they make regarding the distribution of $P(x_i \mid y)$.
+In spite of their apparently over-simplified assumptions, naive Bayes classifiers have worked quite well in many real-world situations, famously document classification and spam filtering. They require a small amount of training data to estimate the necessary parameters. (For theoretical reasons why naive Bayes works well, and on which types of data it does, see the references below.)
+Naive Bayes learners and classifiers can be extremely fast compared to more sophisticated methods. The decoupling of the class conditional feature distributions means that each distribution can be independently estimated as a one dimensional distribution. This in turn helps to alleviate problems stemming from the curse of dimensionality.
+On the flip side, although naive Bayes is known as a decent classifier, it is known to be a bad estimator, so the probability outputs from predict\_proba are not to be taken too seriously.
+In the following, all the Naive Bayes available in RAVEN are reported.
+%%%%%%%
 \subparagraph{Gaussian Naive Bayes}
-pass
+\mbox{}
+\\The \textit{Gaussian Naive Bayes strategy} implements the Gaussian Naive Bayes algorithm for classification. The likelihood of the features is assumed to be Gaussian:
+\begin{equation}
+P(x_i \mid y) = \frac{1}{\sqrt{2\pi\sigma^2_y}} \exp\left(-\frac{(x_i - \mu_y)^2}{2\sigma^2_y}\right)
+\end{equation}
+The parameters $\sigma_y$ and $\mu_y$ are estimated using maximum likelihood.
+\\In order to use the   \textit{Gaussian Naive Bayes strategy}, the user needs to set the sub-node $<SKLtype>naiveBayes~\vert~GaussianNB</SKLtype>$. No additional XML nodes are needed to be inputted.
+%%%%%%%%%%%%
 \subparagraph{Multinomial Naive Bayes}
-pass
+\mbox{}
+\\The \textit{Multinomial Naive Bayes} implements the naive Bayes algorithm for multinomially distributed data, and is one of the two classic naive Bayes variants used in text classification (where the data are typically represented as word vector counts, although tf-idf vectors are also known to work well in practice). The distribution is parametrized by vectors $\theta_y = (\theta_{y1},\ldots,\theta_{yn})$ for each class $y$, where n is the number of features (in text classification, the size of the vocabulary) and $\theta_{yi}$ is the probability $P(x_i \mid y)$ of feature i appearing in a sample belonging to class y.
+The parameters $\theta_y$ is estimated by a smoothed version of maximum likelihood, i.e. relative frequency counting:
+\begin{equation}
+\hat{\theta}_{yi} = \frac{ N_{yi} + \alpha}{N_y + \alpha n}
+\end{equation}
+where $N_{yi} = \sum_{x \in T} x_i$ is the number of times feature i appears in a sample of class y in the training set T, and $N_{y} = \sum_{i=1}^{|T|} N_{yi}$ is the total count of all features for class y.
+The smoothing priors $\alpha \ge 0$ accounts for features not present in the learning samples and prevents zero probabilities in further computations. Setting $\alpha = 1$ is called Laplace smoothing, while $\alpha < 1$ is called Lidstone smoothing.
+\\In order to use the   \textit{Multinomial Naive Bayes} strategy, the user needs to set the sub-node $<SKLtype>naiveBayes~\vert~MultinomialNB</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<alpha>$ \textbf{\textit{, float, optional field.}}.  Additive (Laplace/Lidstone) smoothing parameter (0 for no smoothing). \textit{Default = 1.0};
+\item $<fit\textunderscore~prior>$ \textbf{\textit{, boolean, required field.}}.  Whether to learn class prior probabilities or not. If false, a uniform prior will be used. \textit{Default = False};
+\item $<class\textunderscore~prior>$ \textbf{\textit{, array-like float (n\_classes), optional field.}}.  Prior probabilities of the classes. If specified the priors are not adjusted according to the data. \textit{Default = None}.
+\end{itemize}
+
+%%%%%%%%%%%% 
 \subparagraph{Bernoulli Naive Bayes}
-pass
+\mbox{}
+\\The \textit{Bernoulli Naive Bayes} implements the naive Bayes training and classification algorithms for data that is distributed according to multivariate Bernoulli distributions; i.e., there may be multiple features but each one is assumed to be a binary-valued (Bernoulli, boolean) variable. Therefore, this class requires samples to be represented as binary-valued feature vectors; if handed any other kind of data, a  \textit{Bernoulli Naive Bayes} instance may binarize its input (depending on the binarize parameter).
+The decision rule for Bernoulli naive Bayes is based on
+\begin{equation}
+P(x_i \mid y) = P(i \mid y) x_i + (1 - P(i \mid y)) (1 - x_i)
+\end{equation}
+which differs from multinomial NB’s rule in that it explicitly penalizes the non-occurrence of a feature i that is an indicator for class y, where the multinomial variant would simply ignore a non-occurring feature.
+In the case of text classification, word occurrence vectors (rather than word count vectors) may be used to train and use this classifier.  \textit{Bernoulli Naive Bayes} might perform better on some datasets, especially those with shorter documents. It is advisable to evaluate both models, if time permits.
+\\In order to use the   \textit{Bernoulli Naive Bayes} strategy, the user needs to set the sub-node $<SKLtype>naiveBayes~\vert~BernoulliNB</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<alpha>$ \textbf{\textit{, float, optional field.}}.  Additive (Laplace/Lidstone) smoothing parameter (0 for no smoothing). \textit{Default = 1.0};
+\item $<binarize>$ \textbf{\textit{, float, optional field.}}.  Threshold for binarizing (mapping to booleans) of sample features. If None, input is presumed to already consist of binary vectors.. \textit{Default = None};
+\item $<fit_prior>$ \textbf{\textit{, boolean, optional field.}}.  Whether to learn class prior probabilities or not. If false, a uniform prior will be used. \textit{Default = False};
+\item $<class_prior>$ \textbf{\textit{, array-like float (n\_classes), optional field.}}.  Prior probabilities of the classes. If specified the priors are not adjusted according to the data. \textit{Default = None}.
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%% ROM Model - SciKitLearn: Neighbors %%%%%%%
 \paragraph{Neighbors.}
 \label{Neighbors}
-The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
-In the following, all the linear models available in RAVEN are reported.
+The \textit{Neighbors} class provides functionality for unsupervised and supervised neighbors-based learning methods. Unsupervised nearest neighbors is the foundation of many other learning methods, notably manifold learning and spectral clustering. Supervised neighbors-based learning comes in two flavors: classification for data with discrete labels, and regression for data with continuous labels.
+The principle behind nearest neighbor methods is to find a predefined number of training samples closest in distance to the new point, and predict the label from these. The number of samples can be a user-defined constant (k-nearest neighbor learning), or vary based on the local density of points (radius-based neighbor learning). The distance can, in general, be any metric measure: standard Euclidean distance is the most common choice. Neighbors-based methods are known as non-generalizing machine learning methods, since they simply “remember” all of its training data (possibly transformed into a fast indexing structure such as a Ball Tree or KD Tree.).
+\\In the following, all the Neighbors' models available in RAVEN are reported.
+%%%%%%%%%%%%%%%
 \subparagraph{Nearest Neighbors}
-pass
+\mbox{}
+\\The \textit{Nearest Neighbors} implements unsupervised nearest neighbors learning. It acts as a uniform interface to three different nearest neighbors algorithms: BallTree, KDTree, and a brute-force algorithm. 
+%The choice of neighbors search algorithm is controlled through the keyword 'algorithm', which must be one of ['auto', 'ball_tree', 'kd_tree', 'brute']. When the default value 'auto' is passed, the algorithm attempts to determine the best approach from the training data. 
+\\In order to use the   \textit{Nearest Neighbors} strategy, the user needs to set the sub-node $<SKLtype>neighbors~\vert~NearestNeighbors</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<n_neighbors>$ \textbf{\textit{, integer, optional field.}}.  Number of neighbors to use by default for k\_neighbors queries.. \textit{Default = 5};
+\item $<radius>$ \textbf{\textit{, float, optional field.}}.  Range of parameter space to use by default for :meth`radius\_neighbors` queries. \textit{Default = 1.0};
+\item $<algorithm>$ \textbf{\textit{, string, optional field.}}.  Algorithm used to compute the nearest neighbors:
+\begin{itemize}
+\item \textit{ball\textunderscore~tree} will use BallTree;
+\item \textit{kd\textunderscore~tree} will use KDtree;
+\item \textit{brute} will use a brute-force search;
+\item \textit{auto} will attempt to decide the most appropriate algorithm based on the values passed to fit method.
+\end{itemize}
+NB. fitting on sparse input will override the setting of this parameter, using brute force. \textit{Default = auto};
+\item $<leaf\textunderscore~size>$ \textbf{\textit{, integer, optional field.}}.  Leaf size passed to BallTree or KDTree. This can affect the speed of the construction and query, as well as the memory required to store the tree. The optimal value depends on the nature of the problem. \textit{Default = 30};
+\item $<p>$ \textbf{\textit{, integer, optional field.}}.  Parameter for the Minkowski metric. When $p = 1$, this is equivalent to using manhattan distance (L1), and euclidean distance (L2) for $p = 2$. For arbitrary p, minkowski distance (L\_p) is used. \textit{Default = 2}.
+\end{itemize}
+%%%%%%%%%%%%%%%
 \subparagraph{K Neighbors Classifier }
-pass
+\mbox{}
+\\The \textit{K Neighbors Classifier} is a type of instance-based learning or non-generalizing learning: it does not attempt to construct a general internal model, but simply stores instances of the training data. Classification is computed from a simple majority vote of the nearest neighbors of each point: a query point is assigned the data class which has the most representatives within the nearest neighbors of the point. It implements learning based on the k nearest neighbors of each query point, where k is an integer value specified by the user.
+\\In order to use the   \textit{K Neighbors Classifier}, the user needs to set the sub-node $<SKLtype>neighbors~\vert~KNeighborsClassifier</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<n\textunderscore~neighbors>$ \textbf{\textit{, integer, optional field.}}.  Number of neighbors to use by default for k\_neighbors queries.. \textit{Default = 5};
+\item $<weights>$ \textbf{\textit{, string, optional field.}}. Weight function used in prediction. Possible values:
+\begin{itemize}
+\item \textit{uniform} : uniform weights. All points in each neighborhood are weighted equally;
+\item \textit{distance} : weight points by the inverse of their distance. in this case, closer neighbors of a query point will have a greater influence than neighbors which are further away.
+\end{itemize}
+\textit{Default = uniform};
+
+\item $<radius>$ \textbf{\textit{, float, optional field.}}.  Range of parameter space to use by default for :meth`radius\_neighbors` queries. \textit{Default = 1.0};
+\item $<algorithm>$ \textbf{\textit{, string, optional field.}}.  Algorithm used to compute the nearest neighbors:
+\begin{itemize}
+\item \textit{ball\_tree} will use BallTree;
+\item \textit{kd\_tree} will use KDtree;
+\item \textit{brute} will use a brute-force search;
+\item \textit{auto} will attempt to decide the most appropriate algorithm based on the values passed to fit method.
+\end{itemize}
+NB. fitting on sparse input will override the setting of this parameter, using brute force. \textit{Default = auto};
+\item $<metric>$ \textbf{\textit{, string, optional field.}}.  the distance metric to use for the tree. The default metric is minkowski, and with p=2 is equivalent to the standard Euclidean metric. \textit{Default = minkowski};
+\item $<leaf\textunderscore~size>$ \textbf{\textit{, integer, optional field.}}.  Leaf size passed to BallTree or KDTree. This can affect the speed of the construction and query, as well as the memory required to store the tree. The optimal value depends on the nature of the problem. \textit{Default = 30};
+\item $<p>$ \textbf{\textit{, integer, optional field.}}.  Parameter for the Minkowski metric. When $p = 1$, this is equivalent to using manhattan distance (L1), and euclidean distance (L2) for $p = 2$. For arbitrary p, minkowski distance (L\_p) is used. \textit{Default = 2}.
+\end{itemize}
+%%%%%%%%%%%%%%%
 \subparagraph{Radius Neighbors Classifier}
-pass
+\mbox{}
+\\The \textit{Radius Neighbors Classifier} is a type of instance-based learning or non-generalizing learning: it does not attempt to construct a general internal model, but simply stores instances of the training data. Classification is computed from a simple majority vote of the nearest neighbors of each point: a query point is assigned the data class which has the most representatives within the nearest neighbors of the point. It implements learning based on the number of neighbors within a fixed radius r of each training point, where r is a floating-point value specified by the user.
+\\In order to use the   \textit{Radius Neighbors Classifier}, the user needs to set the sub-node $<SKLtype>neighbors~\vert~RadiusNeighbors</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<n\textunderscore~neighbors>$ \textbf{\textit{, integer, optional field.}}.  Number of neighbors to use by default for k\_neighbors queries.. \textit{Default = 5};
+\item $<weights>$ \textbf{\textit{, string, optional field.}}. Weight function used in prediction. Possible values:
+\begin{itemize}
+\item \textit{uniform} : uniform weights. All points in each neighborhood are weighted equally;
+\item \textit{distance} : weight points by the inverse of their distance. in this case, closer neighbors of a query point will have a greater influence than neighbors which are further away.
+\end{itemize}
+\textit{Default = uniform};
+\item $<radius>$ \textbf{\textit{, float, optional field.}}.  Range of parameter space to use by default for :meth`radius\_neighbors` queries. \textit{Default = 1.0};
+\item $<algorithm>$ \textbf{\textit{, string, optional field.}}.  Algorithm used to compute the nearest neighbors:
+\begin{itemize}
+\item \textit{ball\_tree} will use BallTree;
+\item \textit{kd\_tree} will use KDtree;
+\item \textit{brute} will use a brute-force search;
+\item \textit{auto} will attempt to decide the most appropriate algorithm based on the values passed to fit method.
+\end{itemize}
+NB. fitting on sparse input will override the setting of this parameter, using brute force. \textit{Default = auto};
+\item $<metric>$ \textbf{\textit{, string, optional field.}}.  the distance metric to use for the tree. The default metric is minkowski, and with p=2 is equivalent to the standard Euclidean metric. \textit{Default = minkowski};
+\item $<leaf\textunderscore~size>$ \textbf{\textit{, integer, optional field.}}.  Leaf size passed to BallTree or KDTree. This can affect the speed of the construction and query, as well as the memory required to store the tree. The optimal value depends on the nature of the problem. \textit{Default = 30};
+\item $<p>$ \textbf{\textit{, integer, optional field.}}.  Parameter for the Minkowski metric. When $p = 1$, this is equivalent to using manhattan distance (L1), and euclidean distance (L2) for $p = 2$. For arbitrary p, minkowski distance (L\_p) is used. \textit{Default = 2};
+\item $<outlier\textunderscore~label>$ \textbf{\textit{, integer, optional field.}}.  Label, which is given for outlier samples (samples with no neighbors on given radius). If set to None, ValueError is raised, when outlier is detected. \textit{Default = None}.
+\end{itemize}
+%%%%%%%%%%%%%%%
 \subparagraph{K Neighbors Regressor}
-pass
+\mbox{}
+\\The \textit{K Neighbors Regressor}  can be used in cases where the data labels are continuous rather than discrete variables. The label assigned to a query point is computed based the mean of the labels of its nearest neighbors. It implements learning based on the k nearest neighbors of each query point, where k is an integer value specified by the user.
+\\In order to use the   \textit{K Neighbors Regressor}, the user needs to set the sub-node $<SKLtype>neighbors~\vert~KNeighborsRegressor</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<n_neighbors>$ \textbf{\textit{, integer, optional field.}}.  Number of neighbors to use by default for k\_neighbors queries.. \textit{Default = 5};
+\item $<weights>$ \textbf{\textit{, string, optional field.}}. Weight function used in prediction. Possible values:
+\begin{itemize}
+\item \textit{uniform} : uniform weights. All points in each neighborhood are weighted equally;
+\item \textit{distance} : weight points by the inverse of their distance. in this case, closer neighbors of a query point will have a greater influence than neighbors which are further away.
+\end{itemize}
+\textit{Default = uniform};
+
+\item $<radius>$ \textbf{\textit{, float, optional field.}}.  Range of parameter space to use by default for :meth`radius\_neighbors` queries. \textit{Default = 1.0};
+\item $<algorithm>$ \textbf{\textit{, string, optional field.}}.  Algorithm used to compute the nearest neighbors:
+\begin{itemize}
+\item \textit{ball\_tree} will use BallTree;
+\item \textit{kd\_tree} will use KDtree;
+\item \textit{brute} will use a brute-force search;
+\item \textit{auto} will attempt to decide the most appropriate algorithm based on the values passed to fit method.
+\end{itemize}
+NB. fitting on sparse input will override the setting of this parameter, using brute force. \textit{Default = auto};
+\item $<metric>$ \textbf{\textit{, string, optional field.}}.  the distance metric to use for the tree. The default metric is minkowski, and with p=2 is equivalent to the standard Euclidean metric. \textit{Default = minkowski};
+\item $<leaf\textunderscore~size>$ \textbf{\textit{, integer, optional field.}}.  Leaf size passed to BallTree or KDTree. This can affect the speed of the construction and query, as well as the memory required to store the tree. The optimal value depends on the nature of the problem. \textit{Default = 30};
+\item $<p>$ \textbf{\textit{, integer, optional field.}}.  Parameter for the Minkowski metric. When $p = 1$, this is equivalent to using manhattan distance (L1), and euclidean distance (L2) for $p = 2$. For arbitrary p, minkowski distance (L\_p) is used. \textit{Default = 2}.
+\end{itemize}
+%%%%%%%%%%%%%%%
 \subparagraph{Radius Neighbors Regressor}
-pass
-\subparagraph{Nearest Centroid}
-pass
-\subparagraph{Ball Tree}
-pass
-\subparagraph{K-D Tree}
-pass
+\mbox{}
+\\The \textit{Radius Neighbors Regressor}  can be used in cases where the data labels are continuous rather than discrete variables. The label assigned to a query point is computed based the mean of the labels of its nearest neighbors. It implements learning based on the neighbors within a fixed radius r of the query point, where r is a floating-point value specified by the user.
+\\In order to use the   \textit{Radius Neighbors Regressor}, the user needs to set the sub-node $<SKLtype>neighbors~\vert~RadiusNeighborsRegressor</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<n\textunderscore~neighbors>$ \textbf{\textit{, integer, optional field.}}.  Number of neighbors to use by default for k\_neighbors queries.. \textit{Default = 5};
+\item $<weights>$ \textbf{\textit{, string, optional field.}}. Weight function used in prediction. Possible values:
+\begin{itemize}
+\item \textit{uniform} : uniform weights. All points in each neighborhood are weighted equally;
+\item \textit{distance} : weight points by the inverse of their distance. in this case, closer neighbors of a query point will have a greater influence than neighbors which are further away.
+\end{itemize}
+\textit{Default = uniform};
+\item $<radius>$ \textbf{\textit{, float, optional field.}}.  Range of parameter space to use by default for :meth`radius\_neighbors` queries. \textit{Default = 1.0};
+\item $<algorithm>$ \textbf{\textit{, string, optional field.}}.  Algorithm used to compute the nearest neighbors:
+\begin{itemize}
+\item \textit{ball\_tree} will use BallTree;
+\item \textit{kd\_tree} will use KDtree;
+\item \textit{brute} will use a brute-force search;
+\item \textit{auto} will attempt to decide the most appropriate algorithm based on the values passed to fit method.
+\end{itemize}
+NB. fitting on sparse input will override the setting of this parameter, using brute force. \textit{Default = auto};
+\item $<metric>$ \textbf{\textit{, string, optional field.}}.  the distance metric to use for the tree. The default metric is minkowski, and with p=2 is equivalent to the standard Euclidean metric. \textit{Default = minkowski};
+\item $<leaf\textunderscore~size>$ \textbf{\textit{, integer, optional field.}}.  Leaf size passed to BallTree or KDTree. This can affect the speed of the construction and query, as well as the memory required to store the tree. The optimal value depends on the nature of the problem. \textit{Default = 30};
+\item $<p>$ \textbf{\textit{, integer, optional field.}}.  Parameter for the Minkowski metric. When $p = 1$, this is equivalent to using manhattan distance (L1), and euclidean distance (L2) for $p = 2$. For arbitrary p, minkowski distance (L\_p) is used. \textit{Default = 2};
+\item $<outlier\textunderscore~label>$ \textbf{\textit{, integer, optional field.}}.  Label, which is given for outlier samples (samples with no neighbors on given radius). If set to None, ValueError is raised, when outlier is detected. \textit{Default = None}.
+\end{itemize}
+%%%%%%%%%%%%%%%
+\subparagraph{Nearest Centroid Classifier}
+\mbox{}
+\\The \textit{Nearest Centroid classifier} is a simple algorithm that represents each class by the centroid of its members. It also has no parameters to choose, making it a good baseline classifier. It does, however, suffer on non-convex classes, as well as when classes have drastically different variances, as equal variance in all dimensions is assumed.
+\\In order to use the   \textit{Nearest Centroid Classifier}, the user needs to set the sub-node $<SKLtype>neighbors~\vert~NearestCentroid</SKLtype>$. In addition to this XML node, another might be inputted:
+\begin{itemize}
+\item $<n\textunderscore~neighbors>$ \textbf{\textit{, float, optional field.}}.  Threshold for shrinking centroids to remove features. \textit{Default = None}.
+\end{itemize}
+%\subparagraph{Ball Tree}
+%pass
+%\subparagraph{K-D Tree}
+%pass
 
  %%%%% ROM Model - SciKitLearn: Quadratic Discriminant Analysis %%%%%%%
 \paragraph{Quadratic Discriminant Analysis.}
 \label{QDA}
-The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
-In the following, all the linear models available in RAVEN are reported.
+The \textit{Quadratic Discriminant Analysis} is a classifier with a quadratic decision boundary, generated by fitting class conditional densities to the data and using Bayes’ rule.The model fits a Gaussian density to each class.
+\\In order to use the   \textit{Quadratic Discriminant Analysis Classifier}, the user needs to set the sub-node $<SKLtype>qda~\vert~QDA</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<priors>$ \textbf{\textit{, array-like (n\_classes), optional field.}}.  Priors on classes. \textit{Default = None};
+\item $<reg\textunderscore~param>$ \textbf{\textit{, float, optional field.}}. Regularizes the covariance estimate as (1-reg\_param)*Sigma + reg\_param*Identity(n\_features). \textit{Default = 0.0}.
+\end{itemize}
 
- %%%%% ROM Model - SciKitLearn: Quadratic Discriminant Analysis %%%%%%%
+ %%%%% ROM Model - SciKitLearn: Tree %%%%%%%
 \paragraph{Tree.}
 \label{tree}
-The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
+Decision Trees (DTs) are a non-parametric supervised learning method used for classification and regression. The goal is to create a model that predicts the value of a target variable by learning simple decision rules inferred from the data features.
+\begin{itemize}
+\item Some advantages of decision trees are:
+\item  Simple to understand and to interpret. Trees can be visualized.
+\item Requires little data preparation. Other techniques often require data normalization, dummy variables need to be created and blank values to be removed. Note however that this module does not support missing values.
+\item The cost of using the tree (i.e., predicting data) is logarithmic in the number of data points used to train the tree.
+\item  Able to handle both numerical and categorical data. Other techniques are usually specialized in analyzing datasets that have only one type of variable. 
+\item Able to handle multi-output problems.
+\item  Uses a white box model. If a given situation is observable in a model, the explanation for the condition is easily explained by boolean logic. By contrast, in a black box model (e.g., in an artificial neural network), results may be more difficult to interpret.
+\item Possible to validate a model using statistical tests. That makes it possible to account for the reliability of the model.
+\item Performs well even if its assumptions are somewhat violated by the true model from which the data were generated.
+\end{itemize}
+The disadvantages of decision trees include:
+\begin{itemize}
+\item Decision-tree learners can create over-complex trees that do not generalise the data well. This is called overfitting. Mechanisms such as pruning (not currently supported), setting the minimum number of samples required at a leaf node or setting the maximum depth of the tree are necessary to avoid this problem.
+\item Decision trees can be unstable because small variations in the data might result in a completely different tree being generated. This problem is mitigated by using decision trees within an ensemble.
+\item The problem of learning an optimal decision tree is known to be NP-complete under several aspects of optimality and even for simple concepts. Consequently, practical decision-tree learning algorithms are based on heuristic algorithms such as the greedy algorithm where locally optimal decisions are made at each node. Such algorithms cannot guarantee to return the globally optimal decision tree. This can be mitigated by training multiple trees in an ensemble learner, where the features and samples are randomly sampled with replacement.
+\item There are concepts that are hard to learn because decision trees do not express them easily, such as XOR, parity or multiplexer problems.
+\item Decision tree learners create biased trees if some classes dominate. It is therefore recommended to balance the dataset prior to fitting with the decision tree.
+\end{itemize}
 In the following, all the linear models available in RAVEN are reported.
+%%%%%%%%%%%%%%%
 \subparagraph{Decision Tree Classifier}
-pass
+\mbox{}
+\\The \textit{Decision Tree Classifier} is a classifier that is based on the decision tree logic.
+\\In order to use the \textit{Decision Tree Classifier}, the user needs to set the sub-node $<SKLtype>tree~\vert~DecisionTreeClassifier</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<criterion>$ \textbf{\textit{, string, optional field.}}.  The function to measure the quality of a split. Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the information gain. \textit{Default = gini};
+\item $<splitter>$ \textbf{\textit{, string, optional field.}}. The strategy used to choose the split at each node. Supported strategies are ``best'' to choose the best split and ``random'' to choose the best random split. \textit{Default = best};
+\item $<max\textunderscore~features>$ \textbf{\textit{, int, float or string, optional field.}}. The number of features to consider when looking for the best split:
+\begin{itemize}
+\item If int, then consider max\_features features at each split.
+\item If float, then max\_features  is a percentage and int(max\_features * n\_features) features are considered at each split.
+\item If “auto”, then max\_features=sqrt(n\_features);
+\item If “sqrt”, then max\_features=sqrt(n\_features);
+\item If “log2”, then max\_features=log2(n\_features);
+\item If None, then max\_features=n\_features.
+\end{itemize}
+NB. The search for a split does not stop until at least one valid partition of the node samples is found, even if it requires to effectively inspect more than max\_features features. 
+\\\textit{Default = None};
+\item $<max\textunderscore~depth>$ \textbf{\textit{, integer, optional field.}}. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min\_samples\_split samples. Ignored if max\_samples\_leaf is not None. \textit{Default = None};
+\item $<min\textunderscore~samples\textunderscore~split>$ \textbf{\textit{, integer, optional field.}}. The minimum number of samples required to split an internal node. \textit{Default = 2};
+\item $<min\textunderscore~samples\textunderscore~leaf>$ \textbf{\textit{, integer, optional field.}}. The minimum number of samples required to be at a leaf node. \textit{Default = 1};
+\item $<max\textunderscore~leaf\textunderscore~nodes>$ \textbf{\textit{, integer, optional field.}}. Grow a tree with max\_leaf\_nodes in best-first fashion. Best nodes are defined as relative reduction in impurity. If None then unlimited number of leaf nodes. If not None then max\_depth will be ignored. \textit{Default = None}.
+\end{itemize}
+%%%%%%%%%%%%%%%%
 \subparagraph{Decision Tree Regressor}
-pass
+\mbox{}
+\\The \textit{Decision Tree Regressor} is a Regressor that is based on the decision tree logic.
+\\In order to use the \textit{Decision Tree Regressor}, the user needs to set the sub-node $<SKLtype>tree~\vert~DecisionTreeRegressor</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<criterion>$ \textbf{\textit{, string, optional field.}}.  The function to measure the quality of a split. Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the information gain. \textit{Default = gini};
+\item $<splitter>$ \textbf{\textit{, string, optional field.}}. The strategy used to choose the split at each node. Supported strategies are ``best'' to choose the best split and ``random'' to choose the best random split. \textit{Default = best};
+\item $<max\textunderscore~features>$ \textbf{\textit{, int, float or string, optional field.}}. The number of features to consider when looking for the best split:
+\begin{itemize}
+\item If int, then consider max\_features features at each split.
+\item If float, then max\_features  is a percentage and int(max\_features * n\_features) features are considered at each split.
+\item If “auto”, then max\_features=sqrt(n\_features);
+\item If “sqrt”, then max\_features=sqrt(n\_features);
+\item If “log2”, then max\_features=log2(n\_features);
+\item If None, then max\_features=n\_features.
+\end{itemize}
+NB. The search for a split does not stop until at least one valid partition of the node samples is found, even if it requires to effectively inspect more than max\_features features. 
+\\\textit{Default = None};
+\item $<max\textunderscore~depth>$ \textbf{\textit{, integer, optional field.}}. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min\_samples\_split samples. Ignored if max\_samples\_leaf is not None. \textit{Default = None};
+\item $<min\textunderscore~samples\textunderscore~split>$ \textbf{\textit{, integer, optional field.}}. The minimum number of samples required to split an internal node. \textit{Default = 2};
+\item $<min\textunderscore~samples\textunderscore~leaf>$ \textbf{\textit{, integer, optional field.}}. The minimum number of samples required to be at a leaf node. \textit{Default = 1};
+\item $<max\textunderscore~leaf\textunderscore~nodes>$ \textbf{\textit{, integer, optional field.}}. Grow a tree with max\_leaf\_nodes in best-first fashion. Best nodes are defined as relative reduction in impurity. If None then unlimited number of leaf nodes. If not None then max\_depth will be ignored. \textit{Default = None}.
+\end{itemize}
+%%%%%%%%%%%%%%%%
 \subparagraph{Extra Tree Classifier}
-pass
-\subparagraph{Extra Tree Regressor}
-pass
+\mbox{}
+\\The \textit{Extra Tree Classifier} is an extremely randomized tree classifier.
+Extra-trees differ from classic decision trees in the way they are built. When looking for the best split to separate the samples of a node into two groups, random splits are drawn for each of the max\_features randomly selected features and the best split among those is chosen. When max\_features is set 1, this amounts to building a totally random decision tree.
+\\In order to use the \textit{Extra Tree Classifier}, the user needs to set the sub-node $<SKLtype>tree~\vert~ExtraTreeClassifier</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
 
+\begin{itemize}
+\item $<criterion>$ \textbf{\textit{, string, optional field.}}.  The function to measure the quality of a split. Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the information gain. \textit{Default = gini};
+\item $<splitter>$ \textbf{\textit{, string, optional field.}}. The strategy used to choose the split at each node. Supported strategies are ``best'' to choose the best split and ``random'' to choose the best random split. \textit{Default = best};
+\item $<max\textunderscore~features>$ \textbf{\textit{, int, float or string, optional field.}}. The number of features to consider when looking for the best split:
+\begin{itemize}
+\item If int, then consider max\_features features at each split.
+\item If float, then max\_features  is a percentage and int(max\_features * n\_features) features are considered at each split.
+\item If “auto”, then max\_features=sqrt(n\_features);
+\item If “sqrt”, then max\_features=sqrt(n\_features);
+\item If “log2”, then max\_features=log2(n\_features);
+\item If None, then max\_features=n\_features.
+\end{itemize}
+NB. The search for a split does not stop until at least one valid partition of the node samples is found, even if it requires to effectively inspect more than max\_features features. 
+\\\textit{Default = None};
+\item $<max\textunderscore~depth>$ \textbf{\textit{, integer, optional field.}}. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min\_samples\_split samples. Ignored if max\_samples\_leaf is not None. \textit{Default = None};
+\item $<min\textunderscore~samples\textunderscore~split>$ \textbf{\textit{, integer, optional field.}}. The minimum number of samples required to split an internal node. \textit{Default = 2};
+\item $<min\textunderscore~samples\textunderscore~leaf>$ \textbf{\textit{, integer, optional field.}}. The minimum number of samples required to be at a leaf node. \textit{Default = 1};
+\item $<max\textunderscore~leaf\textunderscore~nodes>$ \textbf{\textit{, integer, optional field.}}. Grow a tree with max\_leaf\_nodes in best-first fashion. Best nodes are defined as relative reduction in impurity. If None then unlimited number of leaf nodes. If not None then max\_depth will be ignored. \textit{Default = None}.
+\end{itemize}
+%%%%%%%%%%%%
+\subparagraph{Extra Tree Regressor}
+\mbox{}
+\\The \textit{Extra Tree Regressor} is an extremely randomized tree regressor.
+Extra-trees differ from classic decision trees in the way they are built. When looking for the best split to separate the samples of a node into two groups, random splits are drawn for each of the max\_features randomly selected features and the best split among those is chosen. When max\_features is set 1, this amounts to building a totally random decision tree.
+\\In order to use the \textit{Extra Tree Regressor}, the user needs to set the sub-node $<SKLtype>tree~\vert~ExtraTreeRegressor</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<criterion>$ \textbf{\textit{, string, optional field.}}.  The function to measure the quality of a split. Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the information gain. \textit{Default = gini};
+\item $<splitter>$ \textbf{\textit{, string, optional field.}}. The strategy used to choose the split at each node. Supported strategies are ``best'' to choose the best split and ``random'' to choose the best random split. \textit{Default = best};
+\item $<max\textunderscore~features>$ \textbf{\textit{, int, float or string, optional field.}}. The number of features to consider when looking for the best split:
+\begin{itemize}
+\item If int, then consider max\_features features at each split.
+\item If float, then max\_features  is a percentage and int(max\_features * n\_features) features are considered at each split.
+\item If “auto”, then max\_features=sqrt(n\_features);
+\item If “sqrt”, then max\_features=sqrt(n\_features);
+\item If “log2”, then max\_features=log2(n\_features);
+\item If None, then max\_features=n\_features.
+\end{itemize}
+NB. The search for a split does not stop until at least one valid partition of the node samples is found, even if it requires to effectively inspect more than max\_features features. 
+\\\textit{Default = None};
+\item $<max\textunderscore~depth>$ \textbf{\textit{, integer, optional field.}}. The maximum depth of the tree. If None, then nodes are expanded until all leaves are pure or until all leaves contain less than min\_samples\_split samples. Ignored if max\_samples\_leaf is not None. \textit{Default = None};
+\item $<min\textunderscore~samples\textunderscore~split>$ \textbf{\textit{, integer, optional field.}}. The minimum number of samples required to split an internal node. \textit{Default = 2};
+\item $<min\textunderscore~samples\textunderscore~leaf>$ \textbf{\textit{, integer, optional field.}}. The minimum number of samples required to be at a leaf node. \textit{Default = 1};
+\item $<max\textunderscore~leaf\textunderscore~nodes>$ \textbf{\textit{, integer, optional field.}}. Grow a tree with max\_leaf\_nodes in best-first fashion. Best nodes are defined as relative reduction in impurity. If None then unlimited number of leaf nodes. If not None then max\_depth will be ignored. \textit{Default = None}.
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%% ROM Model - SciKitLearn: Gaussian Process %%%%%%%
 \paragraph{Gaussian Process.}
 \label{GP}
-The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
-In the following, all the linear models available in RAVEN are reported.  
+Gaussian Processes for Machine Learning (GPML) is a generic supervised learning method primarily designed to solve regression problems.
+The advantages of Gaussian Processes for Machine Learning are:
+\begin{itemize}
+\item The prediction interpolates the observations (at least for regular correlation models);
+\item The prediction is probabilistic (Gaussian) so that one can compute empirical confidence intervals and exceedance probabilities that might be used to refit (online fitting, adaptive fitting) the prediction in some region of interest;
+\item Versatile: different linear regression models and correlation models can be specified. Common models are provided, but it is also possible to specify custom models provided they are stationary.
+\end{itemize}
+The disadvantages of Gaussian Processes for Machine Learning include:
+\begin{itemize}
+\item It is not sparse. It uses the whole samples/features information to perform the prediction;
+\item It loses efficiency in high dimensional spaces – namely when the number of features exceeds a few dozens. It might indeed give poor performance and it loses computational efficiency;
+\item Classification is only a post-processing, meaning that one first need to solve a regression problem by providing the complete scalar float precision output y of the experiment one attempt to model.
+\end{itemize}
+\\In order to use the \textit{Gaussian Process Regressor}, the user needs to set the sub-node $<SKLtype>GaussianProcess~\vert~GaussianProcess</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+\item $<regr>$ \textbf{\textit{, string, optional field.}}.  A regression function returning an array of outputs of the linear regression functional basis. The number of observations n\_samples should be greater than the size p of this basis. Available built-in regression models are:
+'constant', 'linear', 'quadratic'. \textit{Default = constant};
+\item $<corr>$ \textbf{\textit{, string, optional field.}}. A stationary autocorrelation function returning the autocorrelation between two points x and x’. Default assumes a squared-exponential autocorrelation model. Built-in correlation models are:
+'absolute\_exponential', 'squared\_exponential','generalized\_exponential', 'cubic', 'linear'. \textit{Default = squared\_exponential};
+\item $<beta0>$ \textbf{\textit{, float, array-like, optional field.}}. The regression weight vector to perform Ordinary Kriging (OK). \textit{Default = Universal Kriging};
+\item $<storage_mode0>$ \textbf{\textit{, string, optional field.}}. The regression weight vector to perform Ordinary Kriging (OK). \textit{Default = Universal Kriging};
+\end{itemize}
 
-Example
+storage_mode : string, optional
+A string specifying whether the Cholesky decomposition of the correlation matrix should be stored in the class (storage_mode = ‘full’) or not (storage_mode = ‘light’). Default assumes storage_mode = ‘full’, so that the Cholesky decomposition of the correlation matrix is stored. This might be a useful parameter when one is not interested in the MSE and only plan to estimate the BLUP, for which the correlation matrix is not required.
+verbose : boolean, optional
+A boolean specifying the verbose level. Default is verbose = False.
+theta0 : double array_like, optional
+An array with shape (n_features, ) or (1, ). The parameters in the autocorrelation model. If thetaL and thetaU are also specified, theta0 is considered as the starting point for the maximum likelihood estimation of the best set of parameters. Default assumes isotropic autocorrelation model with theta0 = 1e-1.
+thetaL : double array_like, optional
+An array with shape matching theta0’s. Lower bound on the autocorrelation parameters for maximum likelihood estimation. Default is None, so that it skips maximum likelihood estimation and it uses theta0.
+thetaU : double array_like, optional
+An array with shape matching theta0’s. Upper bound on the autocorrelation parameters for maximum likelihood estimation. Default is None, so that it skips maximum likelihood estimation and it uses theta0.
+normalize : boolean, optional
+Input X and observations y are centered and reduced wrt means and standard deviations estimated from the n_samples observations provided. Default is normalize = True so that data is normalized to ease maximum likelihood estimation.
+nugget : double or ndarray, optional
+Introduce a nugget effect to allow smooth predictions from noisy data. If nugget is an ndarray, it must be the same length as the number of data points used for the fit. The nugget is added to the diagonal of the assumed training covariance; in this way it acts as a Tikhonov regularization in the problem. In the special case of the squared exponential correlation function, the nugget mathematically represents the variance of the input values. Default assumes a nugget close to machine precision for the sake of robustness (nugget = 10. * MACHINE_EPSILON).
+optimizer : string, optional
+A string specifying the optimization algorithm to be used. Default uses ‘fmin_cobyla’ algorithm from scipy.optimize. Available optimizers are:
+'fmin_cobyla', 'Welch'
+‘Welch’ optimizer is dued to Welch et al., see reference [WBSWM1992]. It consists in iterating over several one-dimensional optimizations instead of running one single multi-dimensional optimization.
+random_start : int, optional
+The number of times the Maximum Likelihood Estimation should be performed from a random starting point. The first MLE always uses the specified starting point (theta0), the next starting points are picked at random according to an exponential distribution (log-uniform on [thetaL, thetaU]). Default does not use random starting point (random_start = 1).
+random_state: integer or numpy.RandomState, optional :
+The generator used to shuffle the sequence of coordinates of theta in the Welch optimizer. If an integer is given, it fixes the seed. Defaults to the global numpy random number generator.
 
+
+\textbf{Example:}
 \begin{lstlisting}[style=XML]
-<Models>
- <ROM name='***' subType='***'>
-  <Features>***,***</Features>
-  <SKLtype>linear_model|LinearRegression</SKLtype>
-  <Target>***</Target>
-  <fit_intercept>***</fit_intercept>
-  <normalize>***</normalize>
- </ROM>
+------------------------------------------------------------
+<Simulation>
+  ...
+  <Models>
+    ...
+   <ROM name='***' subType='SciKitLearn'>
+     <Features>***,***</Features>
+     <SKLtype>linear_model|LinearRegression</SKLtype>
+     <Target>***</Target>
+     <fit_intercept>***</fit_intercept>
+     <normalize>***</normalize>
+   </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+------------------------------------------------------------
 \end{lstlisting}
-
-
-
 
 \subsection{External Model}
 \label{subsec:models_externalModel}

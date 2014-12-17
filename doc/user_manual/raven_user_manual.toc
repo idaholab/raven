@@ -1,157 +1,149 @@
-\contentsline {section}{\numberline {1}Introduction}{11}{section.1}
-\contentsline {section}{\numberline {2}Installing and running RAVEN \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{12}{section.2}
-\contentsline {section}{\numberline {3}Raven Input Structure \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{13}{section.3}
-\contentsline {section}{\numberline {4}RunInfo \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{14}{section.4}
-\contentsline {subsection}{\numberline {4.1}RunInfo: input of calculation flow.}{14}{subsection.4.1}
-\contentsline {subsection}{\numberline {4.2}RunInfo: input of queue modes.}{15}{subsection.4.2}
-\contentsline {subsection}{\numberline {4.3}RunInfo: Advanced Users.}{17}{subsection.4.3}
-\contentsline {subsection}{\numberline {4.4}RunInfo: Examples.}{19}{subsection.4.4}
-\contentsline {section}{\numberline {5}Distributions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip Author: Andrea Alfonsi}}{21}{section.5}
-\contentsline {subsection}{\numberline {5.1}1-Dimensional Probability Distributions}{21}{subsection.5.1}
-\contentsline {subsubsection}{\numberline {5.1.1}1-Dimensional Continuous Distributions.}{21}{subsubsection.5.1.1}
-\contentsline {paragraph}{\numberline {5.1.1.1}Beta Distribution}{22}{paragraph.5.1.1.1}
-\contentsline {paragraph}{\numberline {5.1.1.2}Exponential Distribution}{23}{paragraph.5.1.1.2}
-\contentsline {paragraph}{\numberline {5.1.1.3}Gamma Distribution}{23}{paragraph.5.1.1.3}
-\contentsline {paragraph}{\numberline {5.1.1.4}Logistic Distribution}{24}{paragraph.5.1.1.4}
-\contentsline {paragraph}{\numberline {5.1.1.5}LogNormal Distribution}{25}{paragraph.5.1.1.5}
-\contentsline {paragraph}{\numberline {5.1.1.6}Normal Distribution}{26}{paragraph.5.1.1.6}
-\contentsline {paragraph}{\numberline {5.1.1.7}Triangular Distribution}{27}{paragraph.5.1.1.7}
-\contentsline {paragraph}{\numberline {5.1.1.8}Uniform Distribution}{28}{paragraph.5.1.1.8}
-\contentsline {paragraph}{\numberline {5.1.1.9}Weibull Distribution}{29}{paragraph.5.1.1.9}
-\contentsline {subsubsection}{\numberline {5.1.2}1-Dimensional Discrete Distributions.}{30}{subsubsection.5.1.2}
-\contentsline {paragraph}{\numberline {5.1.2.1}Bernoulli Distribution}{30}{paragraph.5.1.2.1}
-\contentsline {paragraph}{\numberline {5.1.2.2}Binomial Distribution}{31}{paragraph.5.1.2.2}
-\contentsline {paragraph}{\numberline {5.1.2.3}Poisson Distribution}{31}{paragraph.5.1.2.3}
-\contentsline {subsection}{\numberline {5.2}N-Dimensional Probability Distributions}{32}{subsection.5.2}
-\contentsline {section}{\numberline {6}Samplers \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{33}{section.6}
-\contentsline {subsection}{\numberline {6.1}Once-through Samplers.}{34}{subsection.6.1}
-\contentsline {subsubsection}{\numberline {6.1.1}Monte Carlo.}{35}{subsubsection.6.1.1}
-\contentsline {subsubsection}{\numberline {6.1.2}Grid.}{36}{subsubsection.6.1.2}
-\contentsline {subsubsection}{\numberline {6.1.3}Stratified.}{39}{subsubsection.6.1.3}
-\contentsline {subsubsection}{\numberline {6.1.4}Response Surface Design.}{42}{subsubsection.6.1.4}
-\contentsline {subsubsection}{\numberline {6.1.5}Factorial Design.}{46}{subsubsection.6.1.5}
-\contentsline {subsection}{\numberline {6.2}Dynamic Event Tree (DET) Samplers.}{51}{subsection.6.2}
-\contentsline {subsubsection}{\numberline {6.2.1}Dynamic Event Tree.}{51}{subsubsection.6.2.1}
-\contentsline {subsubsection}{\numberline {6.2.2}Hybrid Dynamic Event Tree.}{54}{subsubsection.6.2.2}
-\contentsline {subsection}{\numberline {6.3}Adaptive Samplers.}{60}{subsection.6.3}
-\contentsline {subsubsection}{\numberline {6.3.1}Adaptive Sampler.}{61}{subsubsection.6.3.1}
-\contentsline {subsubsection}{\numberline {6.3.2}Adaptive Dynamic Event Tree.}{65}{subsubsection.6.3.2}
-\contentsline {section}{\numberline {7}Datas \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{71}{section.7}
-\contentsline {section}{\numberline {8}Databases}{74}{section.8}
-\contentsline {section}{\numberline {9}Functions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{76}{section.9}
-\contentsline {section}{\numberline {10}Models \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{78}{section.10}
-\contentsline {subsection}{\numberline {10.1}Code}{79}{subsection.10.1}
-\contentsline {subsection}{\numberline {10.2}Dummy.}{80}{subsection.10.2}
-\contentsline {subsection}{\numberline {10.3}ROM}{81}{subsection.10.3}
-\contentsline {subsubsection}{\numberline {10.3.1}NDspline.}{83}{subsubsection.10.3.1}
-\contentsline {subsubsection}{\numberline {10.3.2}NDinvDistWeigth.}{83}{subsubsection.10.3.2}
-\contentsline {subsubsection}{\numberline {10.3.3}MicroSphere.}{84}{subsubsection.10.3.3}
-\contentsline {subsubsection}{\numberline {10.3.4}SciKitLearn.}{85}{subsubsection.10.3.4}
-\contentsline {paragraph}{\numberline {10.3.4.1}Linear Models.}{85}{paragraph.10.3.4.1}
-\contentsline {subparagraph}{\numberline {10.3.4.1.1}Linear Model: Bayesian ARD regression}{85}{subparagraph.10.3.4.1.1}
-\contentsline {subparagraph}{\numberline {10.3.4.1.2}Linear Model: Bayesian ridge regression}{85}{subparagraph.10.3.4.1.2}
-\contentsline {subparagraph}{\numberline {10.3.4.1.3}Linear Model: Elastic Net}{85}{subparagraph.10.3.4.1.3}
-\contentsline {subparagraph}{\numberline {10.3.4.1.4}Linear Model: Elastic Net CV}{85}{subparagraph.10.3.4.1.4}
-\contentsline {subparagraph}{\numberline {10.3.4.1.5}Least Angle Regression model}{86}{subparagraph.10.3.4.1.5}
-\contentsline {subparagraph}{\numberline {10.3.4.1.6}Cross-validated Least Angle Regression model}{86}{subparagraph.10.3.4.1.6}
-\contentsline {subparagraph}{\numberline {10.3.4.1.7}Linear Model trained with L1 prior as regularizer (aka the Lasso)}{86}{subparagraph.10.3.4.1.7}
-\contentsline {subparagraph}{\numberline {10.3.4.1.8}Lasso linear model with iterative fitting along a regularization path}{86}{subparagraph.10.3.4.1.8}
-\contentsline {subparagraph}{\numberline {10.3.4.1.9}Lasso model fit with Least Angle Regression }{86}{subparagraph.10.3.4.1.9}
-\contentsline {subparagraph}{\numberline {10.3.4.1.10}Cross-validated Lasso, using the LARS algorithm}{86}{subparagraph.10.3.4.1.10}
-\contentsline {subparagraph}{\numberline {10.3.4.1.11}Lasso model fit with Lars using BIC or AIC for model selection}{86}{subparagraph.10.3.4.1.11}
-\contentsline {subparagraph}{\numberline {10.3.4.1.12}Ordinary least squares Linear Regression}{86}{subparagraph.10.3.4.1.12}
-\contentsline {subparagraph}{\numberline {10.3.4.1.13}Logistic Regression }{86}{subparagraph.10.3.4.1.13}
-\contentsline {subparagraph}{\numberline {10.3.4.1.14}Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer }{86}{subparagraph.10.3.4.1.14}
-\contentsline {subparagraph}{\numberline {10.3.4.1.15}Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer}{86}{subparagraph.10.3.4.1.15}
-\contentsline {subparagraph}{\numberline {10.3.4.1.16}Orthogonal Mathching Pursuit model (OMP)}{86}{subparagraph.10.3.4.1.16}
-\contentsline {subparagraph}{\numberline {10.3.4.1.17}Cross-validated Orthogonal Mathching Pursuit model (OMP)}{87}{subparagraph.10.3.4.1.17}
-\contentsline {subparagraph}{\numberline {10.3.4.1.18}Passive Aggressive Classifier}{87}{subparagraph.10.3.4.1.18}
-\contentsline {subparagraph}{\numberline {10.3.4.1.19}Passive Aggressive Regressor}{87}{subparagraph.10.3.4.1.19}
-\contentsline {subparagraph}{\numberline {10.3.4.1.20}Perceptron}{87}{subparagraph.10.3.4.1.20}
-\contentsline {subparagraph}{\numberline {10.3.4.1.21}Randomized Lasso}{87}{subparagraph.10.3.4.1.21}
-\contentsline {subparagraph}{\numberline {10.3.4.1.22}Randomized Logistic Regression}{87}{subparagraph.10.3.4.1.22}
-\contentsline {subparagraph}{\numberline {10.3.4.1.23}Linear least squares with l2 regularization}{87}{subparagraph.10.3.4.1.23}
-\contentsline {subparagraph}{\numberline {10.3.4.1.24}Classifier using Ridge regression}{87}{subparagraph.10.3.4.1.24}
-\contentsline {subparagraph}{\numberline {10.3.4.1.25}Ridge classifier with built-in cross-validation}{87}{subparagraph.10.3.4.1.25}
-\contentsline {subparagraph}{\numberline {10.3.4.1.26}Ridge regression with built-in cross-validation}{87}{subparagraph.10.3.4.1.26}
-\contentsline {subparagraph}{\numberline {10.3.4.1.27}Linear classifiers (SVM, logistic regression, a.o.) with SGD training}{87}{subparagraph.10.3.4.1.27}
-\contentsline {subparagraph}{\numberline {10.3.4.1.28}Linear model fitted by minimizing a regularized empirical loss with SGD}{87}{subparagraph.10.3.4.1.28}
-\contentsline {subparagraph}{\numberline {10.3.4.1.29}Compute Least Angle Regression or Lasso path using LARS algorithm}{87}{subparagraph.10.3.4.1.29}
-\contentsline {subparagraph}{\numberline {10.3.4.1.30}Compute Lasso path with coordinate descent}{88}{subparagraph.10.3.4.1.30}
-\contentsline {subparagraph}{\numberline {10.3.4.1.31}Stabiliy path based on randomized Lasso estimates}{88}{subparagraph.10.3.4.1.31}
-\contentsline {subparagraph}{\numberline {10.3.4.1.32}Gram Orthogonal Matching Pursuit (OMP)}{88}{subparagraph.10.3.4.1.32}
-\contentsline {paragraph}{\numberline {10.3.4.2}Support Vector Machines.}{88}{paragraph.10.3.4.2}
-\contentsline {subparagraph}{\numberline {10.3.4.2.1}Linear Support Vector Classifier}{88}{subparagraph.10.3.4.2.1}
-\contentsline {subparagraph}{\numberline {10.3.4.2.2}C-Support Vector Classification}{88}{subparagraph.10.3.4.2.2}
-\contentsline {subparagraph}{\numberline {10.3.4.2.3}Nu-Support Vector Classification}{88}{subparagraph.10.3.4.2.3}
-\contentsline {subparagraph}{\numberline {10.3.4.2.4}Support Vector Regression}{88}{subparagraph.10.3.4.2.4}
-\contentsline {paragraph}{\numberline {10.3.4.3}Multi Class.}{88}{paragraph.10.3.4.3}
-\contentsline {subparagraph}{\numberline {10.3.4.3.1}One-vs-the-rest (OvR) multiclass/multilabel strategy}{89}{subparagraph.10.3.4.3.1}
-\contentsline {subparagraph}{\numberline {10.3.4.3.2}One-vs-one multiclass strategy}{89}{subparagraph.10.3.4.3.2}
-\contentsline {subparagraph}{\numberline {10.3.4.3.3} (Error-Correcting) Output-Code multiclass strategy}{89}{subparagraph.10.3.4.3.3}
-\contentsline {subparagraph}{\numberline {10.3.4.3.4}fit a one-vs-the-rest strategy}{89}{subparagraph.10.3.4.3.4}
-\contentsline {subparagraph}{\numberline {10.3.4.3.5}Make predictions using the one-vs-the-rest strategy}{89}{subparagraph.10.3.4.3.5}
-\contentsline {subparagraph}{\numberline {10.3.4.3.6} Fit a one-vs-one strategy}{89}{subparagraph.10.3.4.3.6}
-\contentsline {subparagraph}{\numberline {10.3.4.3.7}Make predictions using the one-vs-one strategy}{89}{subparagraph.10.3.4.3.7}
-\contentsline {subparagraph}{\numberline {10.3.4.3.8}Fit an error-correcting output-code strategy}{89}{subparagraph.10.3.4.3.8}
-\contentsline {subparagraph}{\numberline {10.3.4.3.9}Make predictions using the error-correcting output-code strategy}{89}{subparagraph.10.3.4.3.9}
-\contentsline {paragraph}{\numberline {10.3.4.4}Naive Bayes.}{89}{paragraph.10.3.4.4}
-\contentsline {subparagraph}{\numberline {10.3.4.4.1}Gaussian Naive Bayes}{89}{subparagraph.10.3.4.4.1}
-\contentsline {subparagraph}{\numberline {10.3.4.4.2}Multinomial Naive Bayes}{90}{subparagraph.10.3.4.4.2}
-\contentsline {subparagraph}{\numberline {10.3.4.4.3}Bernoulli Naive Bayes}{90}{subparagraph.10.3.4.4.3}
-\contentsline {paragraph}{\numberline {10.3.4.5}Neighbors.}{90}{paragraph.10.3.4.5}
-\contentsline {subparagraph}{\numberline {10.3.4.5.1}Nearest Neighbors}{90}{subparagraph.10.3.4.5.1}
-\contentsline {subparagraph}{\numberline {10.3.4.5.2}K Neighbors Classifier }{90}{subparagraph.10.3.4.5.2}
-\contentsline {subparagraph}{\numberline {10.3.4.5.3}Radius Neighbors Classifier}{90}{subparagraph.10.3.4.5.3}
-\contentsline {subparagraph}{\numberline {10.3.4.5.4}K Neighbors Regressor}{90}{subparagraph.10.3.4.5.4}
-\contentsline {subparagraph}{\numberline {10.3.4.5.5}Radius Neighbors Regressor}{90}{subparagraph.10.3.4.5.5}
-\contentsline {subparagraph}{\numberline {10.3.4.5.6}Nearest Centroid}{90}{subparagraph.10.3.4.5.6}
-\contentsline {subparagraph}{\numberline {10.3.4.5.7}Ball Tree}{90}{subparagraph.10.3.4.5.7}
-\contentsline {subparagraph}{\numberline {10.3.4.5.8}K-D Tree}{90}{subparagraph.10.3.4.5.8}
-\contentsline {paragraph}{\numberline {10.3.4.6}Quadratic Discriminant Analysis.}{91}{paragraph.10.3.4.6}
-\contentsline {paragraph}{\numberline {10.3.4.7}Tree.}{91}{paragraph.10.3.4.7}
-\contentsline {subparagraph}{\numberline {10.3.4.7.1}Decision Tree Classifier}{91}{subparagraph.10.3.4.7.1}
-\contentsline {subparagraph}{\numberline {10.3.4.7.2}Decision Tree Regressor}{91}{subparagraph.10.3.4.7.2}
-\contentsline {subparagraph}{\numberline {10.3.4.7.3}Extra Tree Classifier}{91}{subparagraph.10.3.4.7.3}
-\contentsline {subparagraph}{\numberline {10.3.4.7.4}Extra Tree Regressor}{91}{subparagraph.10.3.4.7.4}
-\contentsline {paragraph}{\numberline {10.3.4.8}Gaussian Process.}{91}{paragraph.10.3.4.8}
-\contentsline {subsection}{\numberline {10.4}External Model}{92}{subsection.10.4}
-\contentsline {subsection}{\numberline {10.5}PostProcessor}{93}{subsection.10.5}
-\contentsline {section}{\numberline {11}OutStream system \\ \vspace {2 mm} }{94}{section.11}
-\contentsline {subsection}{\numberline {11.1}Printing system }{94}{subsection.11.1}
-\contentsline {subsection}{\numberline {11.2}Plotting system }{96}{subsection.11.2}
-\contentsline {subsubsection}{\numberline {11.2.1}Plot input structure }{96}{subsubsection.11.2.1}
-\contentsline {paragraph}{\numberline {11.2.1.1}``Actions'' input block }{97}{paragraph.11.2.1.1}
-\contentsline {paragraph}{\numberline {11.2.1.2}``plot\_settings'' input block }{103}{paragraph.11.2.1.2}
-\contentsline {paragraph}{\numberline {11.2.1.3}Predefined Plotting System: 2D/3D }{105}{paragraph.11.2.1.3}
-\contentsline {subsubsection}{\numberline {11.2.2}2D \& 3D Scatter plot.}{107}{subsubsection.11.2.2}
-\contentsline {subsubsection}{\numberline {11.2.3}2D \& 3D Line plot.}{108}{subsubsection.11.2.3}
-\contentsline {subsubsection}{\numberline {11.2.4}2D \& 3D Histogram plot.}{108}{subsubsection.11.2.4}
-\contentsline {subsubsection}{\numberline {11.2.5}2D \& 3D Stem plot.}{110}{subsubsection.11.2.5}
-\contentsline {subsubsection}{\numberline {11.2.6}2D Step plot}{111}{subsubsection.11.2.6}
-\contentsline {subsubsection}{\numberline {11.2.7}2D Pseudocolor plot}{111}{subsubsection.11.2.7}
-\contentsline {subsubsection}{\numberline {11.2.8}2D Contour or filledContour plots.}{112}{subsubsection.11.2.8}
-\contentsline {subsubsection}{\numberline {11.2.9}3D Surface Plot.}{113}{subsubsection.11.2.9}
-\contentsline {subsubsection}{\numberline {11.2.10}3D Wireframe Plot.}{114}{subsubsection.11.2.10}
-\contentsline {subsubsection}{\numberline {11.2.11}3D Tri-surface Plot.}{115}{subsubsection.11.2.11}
-\contentsline {subsubsection}{\numberline {11.2.12}3D Contour or filledContour plots.}{116}{subsubsection.11.2.12}
-\contentsline {subsubsection}{\numberline {11.2.13}Example XML input.}{117}{subsubsection.11.2.13}
-\contentsline {section}{\numberline {12}Steps \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{118}{section.12}
-\contentsline {section}{\numberline {13}Existing Interfaces \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{121}{section.13}
-\contentsline {subsection}{\numberline {13.1}RELAP5 Interface}{121}{subsection.13.1}
-\contentsline {subsubsection}{\numberline {13.1.1}Files}{121}{subsubsection.13.1.1}
-\contentsline {subsubsection}{\numberline {13.1.2}Sequence}{121}{subsubsection.13.1.2}
-\contentsline {subsubsection}{\numberline {13.1.3}batchSize and mode}{122}{subsubsection.13.1.3}
-\contentsline {subsubsection}{\numberline {13.1.4}RunInfo}{122}{subsubsection.13.1.4}
-\contentsline {subsubsection}{\numberline {13.1.5}Models}{122}{subsubsection.13.1.5}
-\contentsline {subsubsection}{\numberline {13.1.6}Distributions}{123}{subsubsection.13.1.6}
-\contentsline {subsubsection}{\numberline {13.1.7}Samplers}{123}{subsubsection.13.1.7}
-\contentsline {subsubsection}{\numberline {13.1.8}Steps}{125}{subsubsection.13.1.8}
-\contentsline {subsubsection}{\numberline {13.1.9}DataBases}{127}{subsubsection.13.1.9}
-\contentsline {subsection}{\numberline {13.2}RELAP7 Interface}{127}{subsection.13.2}
-\contentsline {subsubsection}{\numberline {13.2.1}Files}{127}{subsubsection.13.2.1}
-\contentsline {subsubsection}{\numberline {13.2.2}Models}{127}{subsubsection.13.2.2}
-\contentsline {subsubsection}{\numberline {13.2.3}Distributions}{128}{subsubsection.13.2.3}
-\contentsline {subsubsection}{\numberline {13.2.4}Samplers}{128}{subsubsection.13.2.4}
-\contentsline {subsubsection}{\numberline {13.2.5}Steps}{129}{subsubsection.13.2.5}
-\contentsline {section}{References}{130}{section*.1}
+\contentsline {section}{\numberline {1}Introduction}{13}{section.1}
+\contentsline {section}{\numberline {2}Installing and running RAVEN \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{14}{section.2}
+\contentsline {section}{\numberline {3}Raven Input Structure \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{15}{section.3}
+\contentsline {section}{\numberline {4}RunInfo \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{16}{section.4}
+\contentsline {subsection}{\numberline {4.1}RunInfo: input of calculation flow.}{16}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}RunInfo: input of queue modes.}{17}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}RunInfo: Advanced Users.}{19}{subsection.4.3}
+\contentsline {subsection}{\numberline {4.4}RunInfo: Examples.}{21}{subsection.4.4}
+\contentsline {section}{\numberline {5}Distributions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip Author: Andrea Alfonsi}}{23}{section.5}
+\contentsline {subsection}{\numberline {5.1}1-Dimensional Probability Distributions}{23}{subsection.5.1}
+\contentsline {subsubsection}{\numberline {5.1.1}1-Dimensional Continuous Distributions.}{23}{subsubsection.5.1.1}
+\contentsline {paragraph}{\numberline {5.1.1.1}Beta Distribution}{24}{paragraph.5.1.1.1}
+\contentsline {paragraph}{\numberline {5.1.1.2}Exponential Distribution}{25}{paragraph.5.1.1.2}
+\contentsline {paragraph}{\numberline {5.1.1.3}Gamma Distribution}{25}{paragraph.5.1.1.3}
+\contentsline {paragraph}{\numberline {5.1.1.4}Logistic Distribution}{26}{paragraph.5.1.1.4}
+\contentsline {paragraph}{\numberline {5.1.1.5}LogNormal Distribution}{27}{paragraph.5.1.1.5}
+\contentsline {paragraph}{\numberline {5.1.1.6}Normal Distribution}{28}{paragraph.5.1.1.6}
+\contentsline {paragraph}{\numberline {5.1.1.7}Triangular Distribution}{29}{paragraph.5.1.1.7}
+\contentsline {paragraph}{\numberline {5.1.1.8}Uniform Distribution}{30}{paragraph.5.1.1.8}
+\contentsline {paragraph}{\numberline {5.1.1.9}Weibull Distribution}{31}{paragraph.5.1.1.9}
+\contentsline {subsubsection}{\numberline {5.1.2}1-Dimensional Discrete Distributions.}{32}{subsubsection.5.1.2}
+\contentsline {paragraph}{\numberline {5.1.2.1}Bernoulli Distribution}{32}{paragraph.5.1.2.1}
+\contentsline {paragraph}{\numberline {5.1.2.2}Binomial Distribution}{33}{paragraph.5.1.2.2}
+\contentsline {paragraph}{\numberline {5.1.2.3}Poisson Distribution}{33}{paragraph.5.1.2.3}
+\contentsline {subsection}{\numberline {5.2}N-Dimensional Probability Distributions}{34}{subsection.5.2}
+\contentsline {section}{\numberline {6}Samplers \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{35}{section.6}
+\contentsline {subsection}{\numberline {6.1}Once-through Samplers.}{36}{subsection.6.1}
+\contentsline {subsubsection}{\numberline {6.1.1}Monte Carlo.}{37}{subsubsection.6.1.1}
+\contentsline {subsubsection}{\numberline {6.1.2}Grid.}{38}{subsubsection.6.1.2}
+\contentsline {subsubsection}{\numberline {6.1.3}Stratified.}{41}{subsubsection.6.1.3}
+\contentsline {subsubsection}{\numberline {6.1.4}Response Surface Design.}{44}{subsubsection.6.1.4}
+\contentsline {subsubsection}{\numberline {6.1.5}Factorial Design.}{48}{subsubsection.6.1.5}
+\contentsline {subsection}{\numberline {6.2}Dynamic Event Tree (DET) Samplers.}{53}{subsection.6.2}
+\contentsline {subsubsection}{\numberline {6.2.1}Dynamic Event Tree.}{53}{subsubsection.6.2.1}
+\contentsline {subsubsection}{\numberline {6.2.2}Hybrid Dynamic Event Tree.}{56}{subsubsection.6.2.2}
+\contentsline {subsection}{\numberline {6.3}Adaptive Samplers.}{62}{subsection.6.3}
+\contentsline {subsubsection}{\numberline {6.3.1}Adaptive Sampler.}{63}{subsubsection.6.3.1}
+\contentsline {subsubsection}{\numberline {6.3.2}Adaptive Dynamic Event Tree.}{67}{subsubsection.6.3.2}
+\contentsline {section}{\numberline {7}Datas \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{73}{section.7}
+\contentsline {section}{\numberline {8}Databases}{76}{section.8}
+\contentsline {section}{\numberline {9}Functions \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{78}{section.9}
+\contentsline {section}{\numberline {10}Models \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{80}{section.10}
+\contentsline {subsection}{\numberline {10.1}Code}{81}{subsection.10.1}
+\contentsline {subsection}{\numberline {10.2}Dummy.}{82}{subsection.10.2}
+\contentsline {subsection}{\numberline {10.3}ROM}{83}{subsection.10.3}
+\contentsline {subsubsection}{\numberline {10.3.1}NDspline.}{85}{subsubsection.10.3.1}
+\contentsline {subsubsection}{\numberline {10.3.2}NDinvDistWeigth.}{85}{subsubsection.10.3.2}
+\contentsline {subsubsection}{\numberline {10.3.3}MicroSphere.}{86}{subsubsection.10.3.3}
+\contentsline {subsubsection}{\numberline {10.3.4}SciKitLearn.}{87}{subsubsection.10.3.4}
+\contentsline {paragraph}{\numberline {10.3.4.1}Linear Models.}{87}{paragraph.10.3.4.1}
+\contentsline {subparagraph}{\numberline {10.3.4.1.1}Linear Model: Automatic Relevance Determination regression}{87}{subparagraph.10.3.4.1.1}
+\contentsline {subparagraph}{\numberline {10.3.4.1.2}Linear Model: Bayesian ridge regression}{89}{subparagraph.10.3.4.1.2}
+\contentsline {subparagraph}{\numberline {10.3.4.1.3}Linear Model: Elastic Net}{90}{subparagraph.10.3.4.1.3}
+\contentsline {subparagraph}{\numberline {10.3.4.1.4}Linear Model: Elastic Net CV}{91}{subparagraph.10.3.4.1.4}
+\contentsline {subparagraph}{\numberline {10.3.4.1.5}Linear Model: Least Angle Regression model}{92}{subparagraph.10.3.4.1.5}
+\contentsline {subparagraph}{\numberline {10.3.4.1.6}Linear Model: Cross-validated Least Angle Regression model}{93}{subparagraph.10.3.4.1.6}
+\contentsline {subparagraph}{\numberline {10.3.4.1.7}Linear Model trained with L1 prior as regularizer (aka the Lasso)}{93}{subparagraph.10.3.4.1.7}
+\contentsline {subparagraph}{\numberline {10.3.4.1.8}Lasso linear model with iterative fitting along a regularization path}{93}{subparagraph.10.3.4.1.8}
+\contentsline {subparagraph}{\numberline {10.3.4.1.9}Lasso model fit with Least Angle Regression }{94}{subparagraph.10.3.4.1.9}
+\contentsline {subparagraph}{\numberline {10.3.4.1.10}Cross-validated Lasso, using the LARS algorithm}{94}{subparagraph.10.3.4.1.10}
+\contentsline {subparagraph}{\numberline {10.3.4.1.11}Lasso model fit with Lars using BIC or AIC for model selection}{94}{subparagraph.10.3.4.1.11}
+\contentsline {subparagraph}{\numberline {10.3.4.1.12}Ordinary least squares Linear Regression}{94}{subparagraph.10.3.4.1.12}
+\contentsline {subparagraph}{\numberline {10.3.4.1.13}Logistic Regression }{94}{subparagraph.10.3.4.1.13}
+\contentsline {subparagraph}{\numberline {10.3.4.1.14}Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer }{94}{subparagraph.10.3.4.1.14}
+\contentsline {subparagraph}{\numberline {10.3.4.1.15}Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer}{94}{subparagraph.10.3.4.1.15}
+\contentsline {subparagraph}{\numberline {10.3.4.1.16}Orthogonal Mathching Pursuit model (OMP)}{94}{subparagraph.10.3.4.1.16}
+\contentsline {subparagraph}{\numberline {10.3.4.1.17}Cross-validated Orthogonal Mathching Pursuit model (OMP)}{94}{subparagraph.10.3.4.1.17}
+\contentsline {subparagraph}{\numberline {10.3.4.1.18}Passive Aggressive Classifier}{94}{subparagraph.10.3.4.1.18}
+\contentsline {subparagraph}{\numberline {10.3.4.1.19}Passive Aggressive Regressor}{94}{subparagraph.10.3.4.1.19}
+\contentsline {subparagraph}{\numberline {10.3.4.1.20}Perceptron}{94}{subparagraph.10.3.4.1.20}
+\contentsline {subparagraph}{\numberline {10.3.4.1.21}Randomized Lasso}{94}{subparagraph.10.3.4.1.21}
+\contentsline {subparagraph}{\numberline {10.3.4.1.22}Randomized Logistic Regression}{95}{subparagraph.10.3.4.1.22}
+\contentsline {subparagraph}{\numberline {10.3.4.1.23}Linear least squares with l2 regularization}{95}{subparagraph.10.3.4.1.23}
+\contentsline {subparagraph}{\numberline {10.3.4.1.24}Classifier using Ridge regression}{95}{subparagraph.10.3.4.1.24}
+\contentsline {subparagraph}{\numberline {10.3.4.1.25}Ridge classifier with built-in cross-validation}{95}{subparagraph.10.3.4.1.25}
+\contentsline {subparagraph}{\numberline {10.3.4.1.26}Ridge regression with built-in cross-validation}{95}{subparagraph.10.3.4.1.26}
+\contentsline {subparagraph}{\numberline {10.3.4.1.27}Linear classifiers (SVM, logistic regression, a.o.) with SGD training}{95}{subparagraph.10.3.4.1.27}
+\contentsline {subparagraph}{\numberline {10.3.4.1.28}Linear model fitted by minimizing a regularized empirical loss with SGD}{95}{subparagraph.10.3.4.1.28}
+\contentsline {subparagraph}{\numberline {10.3.4.1.29}Compute Least Angle Regression or Lasso path using LARS algorithm}{95}{subparagraph.10.3.4.1.29}
+\contentsline {subparagraph}{\numberline {10.3.4.1.30}Compute Lasso path with coordinate descent}{95}{subparagraph.10.3.4.1.30}
+\contentsline {subparagraph}{\numberline {10.3.4.1.31}Stabiliy path based on randomized Lasso estimates}{95}{subparagraph.10.3.4.1.31}
+\contentsline {subparagraph}{\numberline {10.3.4.1.32}Gram Orthogonal Matching Pursuit (OMP)}{95}{subparagraph.10.3.4.1.32}
+\contentsline {paragraph}{\numberline {10.3.4.2}Support Vector Machines.}{95}{paragraph.10.3.4.2}
+\contentsline {subparagraph}{\numberline {10.3.4.2.1}Linear Support Vector Classifier}{96}{subparagraph.10.3.4.2.1}
+\contentsline {subparagraph}{\numberline {10.3.4.2.2}C-Support Vector Classification}{96}{subparagraph.10.3.4.2.2}
+\contentsline {subparagraph}{\numberline {10.3.4.2.3}Nu-Support Vector Classification}{96}{subparagraph.10.3.4.2.3}
+\contentsline {subparagraph}{\numberline {10.3.4.2.4}Support Vector Regression}{96}{subparagraph.10.3.4.2.4}
+\contentsline {paragraph}{\numberline {10.3.4.3}Multi Class.}{96}{paragraph.10.3.4.3}
+\contentsline {subparagraph}{\numberline {10.3.4.3.1}One-vs-the-rest (OvR) multiclass/multilabel strategy}{96}{subparagraph.10.3.4.3.1}
+\contentsline {subparagraph}{\numberline {10.3.4.3.2}One-vs-one multiclass strategy}{97}{subparagraph.10.3.4.3.2}
+\contentsline {subparagraph}{\numberline {10.3.4.3.3}Error-Correcting Output-Code multiclass strategy}{97}{subparagraph.10.3.4.3.3}
+\contentsline {paragraph}{\numberline {10.3.4.4}Naive Bayes.}{98}{paragraph.10.3.4.4}
+\contentsline {subparagraph}{\numberline {10.3.4.4.1}Gaussian Naive Bayes}{99}{subparagraph.10.3.4.4.1}
+\contentsline {subparagraph}{\numberline {10.3.4.4.2}Multinomial Naive Bayes}{99}{subparagraph.10.3.4.4.2}
+\contentsline {subparagraph}{\numberline {10.3.4.4.3}Bernoulli Naive Bayes}{100}{subparagraph.10.3.4.4.3}
+\contentsline {paragraph}{\numberline {10.3.4.5}Neighbors.}{101}{paragraph.10.3.4.5}
+\contentsline {subparagraph}{\numberline {10.3.4.5.1}Nearest Neighbors}{101}{subparagraph.10.3.4.5.1}
+\contentsline {subparagraph}{\numberline {10.3.4.5.2}K Neighbors Classifier }{102}{subparagraph.10.3.4.5.2}
+\contentsline {subparagraph}{\numberline {10.3.4.5.3}Radius Neighbors Classifier}{104}{subparagraph.10.3.4.5.3}
+\contentsline {subparagraph}{\numberline {10.3.4.5.4}K Neighbors Regressor}{105}{subparagraph.10.3.4.5.4}
+\contentsline {subparagraph}{\numberline {10.3.4.5.5}Radius Neighbors Regressor}{106}{subparagraph.10.3.4.5.5}
+\contentsline {subparagraph}{\numberline {10.3.4.5.6}Nearest Centroid Classifier}{108}{subparagraph.10.3.4.5.6}
+\contentsline {paragraph}{\numberline {10.3.4.6}Quadratic Discriminant Analysis.}{108}{paragraph.10.3.4.6}
+\contentsline {paragraph}{\numberline {10.3.4.7}Tree.}{109}{paragraph.10.3.4.7}
+\contentsline {subparagraph}{\numberline {10.3.4.7.1}Decision Tree Classifier}{110}{subparagraph.10.3.4.7.1}
+\contentsline {subparagraph}{\numberline {10.3.4.7.2}Decision Tree Regressor}{111}{subparagraph.10.3.4.7.2}
+\contentsline {subparagraph}{\numberline {10.3.4.7.3}Extra Tree Classifier}{113}{subparagraph.10.3.4.7.3}
+\contentsline {subparagraph}{\numberline {10.3.4.7.4}Extra Tree Regressor}{114}{subparagraph.10.3.4.7.4}
+\contentsline {paragraph}{\numberline {10.3.4.8}Gaussian Process.}{115}{paragraph.10.3.4.8}
+\contentsline {subsection}{\numberline {10.4}External Model}{116}{subsection.10.4}
+\contentsline {subsection}{\numberline {10.5}PostProcessor}{117}{subsection.10.5}
+\contentsline {section}{\numberline {11}OutStream system \\ \vspace {2 mm} }{118}{section.11}
+\contentsline {subsection}{\numberline {11.1}Printing system }{118}{subsection.11.1}
+\contentsline {subsection}{\numberline {11.2}Plotting system }{120}{subsection.11.2}
+\contentsline {subsubsection}{\numberline {11.2.1}Plot input structure }{120}{subsubsection.11.2.1}
+\contentsline {paragraph}{\numberline {11.2.1.1}``Actions'' input block }{121}{paragraph.11.2.1.1}
+\contentsline {paragraph}{\numberline {11.2.1.2}``plot\_settings'' input block }{127}{paragraph.11.2.1.2}
+\contentsline {paragraph}{\numberline {11.2.1.3}Predefined Plotting System: 2D/3D }{129}{paragraph.11.2.1.3}
+\contentsline {subsubsection}{\numberline {11.2.2}2D \& 3D Scatter plot.}{131}{subsubsection.11.2.2}
+\contentsline {subsubsection}{\numberline {11.2.3}2D \& 3D Line plot.}{132}{subsubsection.11.2.3}
+\contentsline {subsubsection}{\numberline {11.2.4}2D \& 3D Histogram plot.}{132}{subsubsection.11.2.4}
+\contentsline {subsubsection}{\numberline {11.2.5}2D \& 3D Stem plot.}{134}{subsubsection.11.2.5}
+\contentsline {subsubsection}{\numberline {11.2.6}2D Step plot}{135}{subsubsection.11.2.6}
+\contentsline {subsubsection}{\numberline {11.2.7}2D Pseudocolor plot}{135}{subsubsection.11.2.7}
+\contentsline {subsubsection}{\numberline {11.2.8}2D Contour or filledContour plots.}{136}{subsubsection.11.2.8}
+\contentsline {subsubsection}{\numberline {11.2.9}3D Surface Plot.}{137}{subsubsection.11.2.9}
+\contentsline {subsubsection}{\numberline {11.2.10}3D Wireframe Plot.}{138}{subsubsection.11.2.10}
+\contentsline {subsubsection}{\numberline {11.2.11}3D Tri-surface Plot.}{139}{subsubsection.11.2.11}
+\contentsline {subsubsection}{\numberline {11.2.12}3D Contour or filledContour plots.}{140}{subsubsection.11.2.12}
+\contentsline {subsubsection}{\numberline {11.2.13}Example XML input.}{141}{subsubsection.11.2.13}
+\contentsline {section}{\numberline {12}Steps \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{142}{section.12}
+\contentsline {section}{\numberline {13}Existing Interfaces \\ \vspace {2 mm} {\relax \fontsize {10.95}{13.6}\selectfont \abovedisplayskip 11\p@ plus3\p@ minus6\p@ \abovedisplayshortskip \z@ plus3\p@ \belowdisplayshortskip 6.5\p@ plus3.5\p@ minus3\p@ \def \leftmargin \leftmargini \parsep 5\p@ plus2.5\p@ minus\p@ \topsep 10\p@ plus4\p@ minus6\p@ \itemsep 5\p@ plus2.5\p@ minus\p@ {\leftmargin \leftmargini \topsep 9\p@ plus3\p@ minus5\p@ \parsep 4.5\p@ plus2\p@ minus\p@ \itemsep \parsep }\belowdisplayskip \abovedisplayskip }}{145}{section.13}
+\contentsline {subsection}{\numberline {13.1}RELAP5 Interface}{145}{subsection.13.1}
+\contentsline {subsubsection}{\numberline {13.1.1}Files}{145}{subsubsection.13.1.1}
+\contentsline {subsubsection}{\numberline {13.1.2}Sequence}{145}{subsubsection.13.1.2}
+\contentsline {subsubsection}{\numberline {13.1.3}batchSize and mode}{146}{subsubsection.13.1.3}
+\contentsline {subsubsection}{\numberline {13.1.4}RunInfo}{146}{subsubsection.13.1.4}
+\contentsline {subsubsection}{\numberline {13.1.5}Models}{146}{subsubsection.13.1.5}
+\contentsline {subsubsection}{\numberline {13.1.6}Distributions}{147}{subsubsection.13.1.6}
+\contentsline {subsubsection}{\numberline {13.1.7}Samplers}{147}{subsubsection.13.1.7}
+\contentsline {subsubsection}{\numberline {13.1.8}Steps}{149}{subsubsection.13.1.8}
+\contentsline {subsubsection}{\numberline {13.1.9}DataBases}{151}{subsubsection.13.1.9}
+\contentsline {subsection}{\numberline {13.2}RELAP7 Interface}{151}{subsection.13.2}
+\contentsline {subsubsection}{\numberline {13.2.1}Files}{151}{subsubsection.13.2.1}
+\contentsline {subsubsection}{\numberline {13.2.2}Models}{151}{subsubsection.13.2.2}
+\contentsline {subsubsection}{\numberline {13.2.3}Distributions}{152}{subsubsection.13.2.3}
+\contentsline {subsubsection}{\numberline {13.2.4}Samplers}{152}{subsubsection.13.2.4}
+\contentsline {subsubsection}{\numberline {13.2.5}Steps}{153}{subsubsection.13.2.5}
+\contentsline {section}{References}{154}{section*.1}
