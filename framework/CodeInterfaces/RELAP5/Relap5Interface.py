@@ -40,7 +40,7 @@ class Relap5:
         @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     '''
-    outfile = os.path.join(workingDir,command.split('-o')[0].split('-i')[-1]+'.o')
+    outfile = os.path.join(workingDir,command.split('-o')[0].split('-i')[-1].strip()+'.o')
     outputobj=relapdata.relapdata(outfile)
     outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
 
