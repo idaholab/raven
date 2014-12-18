@@ -15,6 +15,7 @@ import scipy.special.orthogonal as quads
 from scipy.fftpack import ifft
 from scipy.misc import factorial
 from itertools import product
+from collections import OrderedDict as OrdDict
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
@@ -30,22 +31,125 @@ class SparseQuad(BaseType):
   def __init__(self):
     self.c = [] #array of coefficient terms for smaller tensor grid entries
 
-  def initialize(self,numDim, maxPoly, indexSet, quadRule, distrList):
-    self.c = np.array(self.makeCoeffs(numDim,indexSet))
+  def initialize(self, indexSet, quadRule, distrList):
+    self.indexSet = np.array(indexSet[:])
+    self.quadRule = quadRule
+    self.distrList = distrList
+    self.N= len(distrList.keys())
+    maxPoly = 0
+    for distr in self.distrList.values(): #TODO dict keys or values?  How are they stored?  Or list?
+      maxPoly = max(maxPoly,distr.maxPolyOrder())
+    #self.serialMakeCoeffs()
+    #we can cheat if it's tensor product index set
+    if indexSet.type=='Tensor Product':
+      self.c=[1]#np.zeros(len(self.indexSet))
+      self.indexSet=[self.indexSet[-1]]
+    else:
+      self.smarterMakeCoeffs()
+      survive = np.nonzero(self.c!=0)
+      self.c=self.c[survive]
+      self.indexSet=self.indexSet[survive]
+    self.SG=OrdDict() #keys on points, values on weights
+    for j,cof in enumerate(self.c):
+      idx = self.indexSet[j]
+      m = self.quadRule(idx)+1
+      new = self.tensorGrid(m,idx)
+      for i in range(len(new[0])):
+        newpt=tuple(new[0][i])
+        newwt=new[1][i]*self.c[j]
+        if newpt in self.SG.keys(): #possible point duplication
+          self.SG[newpt]+=newwt
+        else:
+          self.SG[newpt] = newwt
+
+  def __getitem__(self,n):
+    return self.points(n),self.weights(n)
+
+  def __len__(self):
+    return len(self.weights())
+
+  def __repr__(self):
+    msg='SparseQuad:\n'
+    for p in range(len(self)):
+      msg+='    '+str(self[p])+'\n'
+    return msg
+
+  def _extrema(self):
+    import matplotlib.pyplot as plt
+    #find lowest pt
+    points = self.point()
+    low= np.ones(len(points[0]))*1e300
+    hi = np.ones(len(points[0]))*(-1e300)
+    for pt in pts:
+      for i,p in enumerate(pt):
+        low[i]=min(low[i],p)
+        hi[i] =max(hi[i] ,p)
+    return low,hi
+
+  def _xy(self):
+    return zip(*self.points())
+
+  def _pointKey(self):
+    #return self.distrList.keys()
+    return list(d.type for d in self.distrList.values())
+
+  def points(self,n=None):
+    if n==None:
+      return self.SG.keys()
+    else:
+      return self.SG.keys()[n]
+
+  def weights(self,n=None):
+    if n==None:
+      return self.SG.values()
+    else:
+      return self.SG.values()[n]
   
-  def makeCoeffs(self,N,indexSet):
-    self.c=np.zeros(len(indexSet))
-    iSet = indexSet[:] #preents overwriting
-    jIter = product([0,1],repeat=N) #all possible combinations in the sum #TODO implement Mohammed's method
-    SG=[] #sparse grid list (multiquad point, weight)
-    for j,cof in enumerate(c):
-      idx = indexSet[j]
-      m = quadrule(idx)+1
-      new = self.tensorGrid(N,m,distrList,idx)
+  def serialMakeCoeffs(self):
+    '''Brute force method to create coefficients for each index set in the sparse grid approximation.
+      This particular implementation is faster for 2 dimensions, but slower for
+      more than 2 dimensions, than the smarterMakeCeoffs.'''
+    print('WARNING: serialMakeCoeffs may be broken.  smarterMakeCoeffs is better.')
+    self.c=np.zeros(len(self.indexSet))
+    jIter = product([0,1],repeat=self.N) #all possible combinations in the sum
+    for jx in jIter: #from here down goes in the paralellized bit
+      for i,ix in enumerate(self.indexSet):
+        ix = np.array(ix)
+        comb = tuple(jx+ix)
+        if comb in self.indexSet:
+          self.c[i]+=(-1)**sum(jx)
 
+  def smarterMakeCoeffs(self):
+    '''Somewhat optimized method to create coefficients for each index set in the sparse grid approximation.
+       This particular implementation is faster for any more than 2 dimensions in comparison with the
+       serialMakeCoeffs method.'''
+    N=len(self.indexSet)
+    #iSet = np.array(self.indexSet) #slower than looping
+    iSet = self.indexSet[:]
+    #for i,st in enumerate(iSet):
+    #  iSet[i]=np.array(st)
+    self.c=np.ones(N)
+    for i in range(N): #could be parallelized from here
+      idx = iSet[i]
+      for j in range(i+1,N):
+        jdx = iSet[j]
+        d = jdx-idx
+        if all(np.logical_and(d>=0,d<=1)):
+          self.c[i]+=(-1)**sum(d)
 
-  def tensorGrid(self,N,m,distrList,idx):
-    pass
+  def tensorGrid(self,m,idx):
+    pointLists=[]
+    weightLists=[]
+    for n,distr in enumerate(self.distrList.values()):
+      mn = m[n]
+      pts,wts=distr.quadratureSet()(mn)
+      pointLists.append(pts)
+      weightLists.append(wts)
+    points = list(product(*pointLists))
+    weights= list(product(*weightLists))
+    for k,wtset in enumerate(weights):
+      weights[k]=np.product(wtset)
+    return points,weights
 
 class QuadratureSet(BaseType):
   '''Base class to produce standard quadrature points and weights.
@@ -62,7 +166,7 @@ class QuadratureSet(BaseType):
   def __call__(self,order):
     '''Defines operations to return correct pts, wts'''
     pts,wts = self.rule(order,*self.params)
-    pts = np.around(pts,decimals=14) #helps with nesting, might not be desirable
+    pts = np.around(pts,decimals=15) #helps with nesting, might not be desirable
     if self.debug: print(self.printTag,'TODO this could probably be optimized further')
     return pts,wts
 
@@ -109,6 +213,7 @@ class Legendre(QuadratureSet):
   def initialize(self):
     self.rule   = quads.p_roots
     self.params = []
+    self.pointRule = GaussQuadRule
 
 class CDF(Legendre): #added just for name distinguish; equiv to Legendre
   pass #TODO why don't I want this to be ClenshawCurtis by default?
@@ -117,11 +222,13 @@ class Hermite(QuadratureSet):
   def initialize(self):
     self.rule   = quads.he_roots
     self.params = []
+    self.pointRule = GaussQuadRule
 
 
 class Laguerre(QuadratureSet):
   def initialize(self):
     self.rule   = quads.la_roots
+    self.pointRule = GaussQuadRule
 
   def _localReadMoreXML(self,xmlNode):
     self.params=[]
@@ -134,6 +241,7 @@ class Laguerre(QuadratureSet):
 class Jacobi(QuadratureSet):
   def initialize(self):
     self.rule   = quads.j_roots
+    self.pointRule = GaussQuadRule
 
   def _localReadMoreXML(self,xmlNode):
     self.params = []
@@ -154,14 +262,14 @@ class ClenshawCurtis(QuadratureSet):
   def initialize(self):
     self.rule = self.cc_roots
     self.params = []
+    self.pointRule = CCQuadRule
 
   def cc_roots(self,o):
     '''Computes Clenshaw Curtis nodes and weights for given order n=2^o+1'''
-    n1=2**o+1 #assures nested
+    n1=o #assures nested -> don't assume!
     if o==1:
       return np.array([np.array([0]),np.array([2])])
     else:
-      #n1=2**o+1 #assures nested, but this grows much faster than others (obv)
       n = n1-1
       C = np.zeros((n1,2))
       k = 2*(1+np.arange(np.floor(n/2)))
@@ -174,6 +282,13 @@ class ClenshawCurtis(QuadratureSet):
     return x,w
 
 
+def CCQuadRule(i):
+  try: return np.array(list((0 if p==0 else 2**p) for p in i))
+  except TypeError: return 0 if i==0 else 2**i
+
+
+def GaussQuadRule(i):
+  return i
 
 
 '''
