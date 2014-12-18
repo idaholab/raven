@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  18 DEC 2014 07:32
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  18 DEC 2014 08:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -815,7 +815,7 @@ Overfull \hbox (3.61537pt too wide) in paragraph at lines 219--219
 [][] 
  []
 
-<pics/inl-left_black.pdf, id=643, 280.04625pt x 55.20625pt>
+<pics/inl-left_black.pdf, id=663, 280.04625pt x 55.20625pt>
 File: pics/inl-left_black.pdf Graphic file (type pdf)
 
 <use pics/inl-left_black.pdf>
@@ -836,7 +836,7 @@ LaTeX Font Info:    Try loading font information for OT1+pnc on input line 219.
 (/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/ot1pnc.fd
 File: ot1pnc.fd 2001/06/04 font definitions for OT1/pnc.
 )
-<pics/DOEbwlogo.pdf, id=654, 286.06876pt x 286.06876pt>
+<pics/DOEbwlogo.pdf, id=674, 286.06876pt x 286.06876pt>
 File: pics/DOEbwlogo.pdf Graphic file (type pdf)
 
 <use pics/DOEbwlogo.pdf>
@@ -854,41 +854,41 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <17.28> not available
 (./raven_user_manual.toc [5
 
 ] [6]
-Overfull \hbox (20.74895pt too wide) in paragraph at lines 64--64
+Overfull \hbox (20.74895pt too wide) in paragraph at lines 70--70
  [][] [][][]\OT1/ptm/m/n/12 Multi-task Lasso model trained with L1/L2 mixed- 
  []
 
 
-Overfull \hbox (6.6486pt too wide) in paragraph at lines 65--65
+Overfull \hbox (6.6486pt too wide) in paragraph at lines 71--71
  [][] [][][]\OT1/ptm/m/n/12 Multi-task Elas-tic-Net model trained with L1/L2 
  []
 
 
-Overfull \hbox (3.12106pt too wide) in paragraph at lines 67--67
+Overfull \hbox (3.12106pt too wide) in paragraph at lines 73--73
  [][] [][][]\OT1/ptm/m/n/12 Cross-validated Or-thog-o-nal Mathch-ing Pur-suit 
  []
 
 
-Overfull \hbox (5.40141pt too wide) in paragraph at lines 79--79
+Overfull \hbox (5.40141pt too wide) in paragraph at lines 85--85
  [][] [][][]\OT1/ptm/m/n/12 Compute Least An-gle Re-gres-sion or Lasso path 
  []
 
-
-Overfull \hbox (18.07108pt too wide) in paragraph at lines 89--89
+[7]
+Overfull \hbox (18.07108pt too wide) in paragraph at lines 95--95
  [][] [][][]\OT1/ptm/m/n/12 One-vs-the-rest (OvR) mul-ti-class/-mul-ti-l-abel s
 trat- 
  []
 
-[7]
-Overfull \hbox (3.82875pt too wide) in paragraph at lines 91--91
+
+Overfull \hbox (3.82875pt too wide) in paragraph at lines 97--97
  [][] [][][]\OT1/ptm/m/n/12 Error-Correcting Output-Code mul-ti-class strat- 
  []
 
-[8])
+[8] [9])
 \tf@toc=\write4
 \openout4 = `raven_user_manual.toc'.
 
- [9] [10] (./raven_user_manual.lof)
+ [10] (./raven_user_manual.lof)
 \tf@lof=\write5
 \openout5 = `raven_user_manual.lof'.
 
@@ -901,10 +901,79 @@ Overfull \hbox (3.82875pt too wide) in paragraph at lines 91--91
  [12
 
 ]
-(./introduction.tex) (./HowToRun.tex [13
+(./introduction.tex) (./install.tex [13
 
 
 ]
+(/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2014/03/04 1.5c listings language file
+)
+(/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2014/03/04 1.5c listings language file
+)
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 21.
+
+(/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/omsptm.fd
+File: omsptm.fd 
+)
+LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 21.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 25.
+
+(/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/ot1pcr.fd
+File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
+)
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 28.
+ [14
+
+]
+Overfull \hbox (0.92235pt too wide) in paragraph at lines 56--59
+[]\OT1/ptm/m/n/12 There should be a line some-thing like: \OT1/pcr/m/n/12 8 pas
+sed, 19 skipped, 0 pending,
+ []
+
+
+Overfull \hbox (16.39992pt too wide) in paragraph at lines 66--67
+[][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (0.92235pt too wide) in paragraph at lines 84--87
+[]\OT1/ptm/m/n/12 There should be a line some-thing like: \OT1/pcr/m/n/12 8 pas
+sed, 19 skipped, 0 pending,
+ []
+
+
+Overfull \hbox (9.19984pt too wide) in paragraph at lines 93--94
+[][][][][][][][][][][][][][][][][][][][][][][][][] 
+ []
+
+[15]
+Overfull \hbox (0.92235pt too wide) in paragraph at lines 116--119
+[]\OT1/ptm/m/n/12 There should be a line some-thing like: \OT1/pcr/m/n/12 8 pas
+sed, 19 skipped, 0 pending,
+ []
+
+
+Overfull \hbox (47.28256pt too wide) in paragraph at lines 122--129
+\OT1/ptm/m/n/12 Open up the file []\OT1/pcr/m/n/12 raven_libs_framework_and_cro
+w.dmg \OT1/ptm/m/n/12 Open up the []\OT1/pcr/m/n/12 raven_libs.pkg
+ []
+
+
+Overfull \hbox (90.71066pt too wide) in paragraph at lines 122--129
+\OT1/ptm/m/n/12 your []\OT1/pcr/m/n/12 .bash_profile \OT1/ptm/m/n/12 to source 
+the []\OT1/pcr/m/n/12 /opt/raven_libs/environments/raven_libs_profile
+ []
+
+
+Overfull \hbox (49.81177pt too wide) in paragraph at lines 132--134
+\OT1/ptm/m/n/12 First, moose should be in-stalled. Fol-low the in-struc-tions f
+or moose: [][]$\OT1/pcr/m/n/12 http : / / mooseframework .
+ []
+
+[16]) (./HowToRun.tex [17]
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1.
 
@@ -916,7 +985,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-) (./ravenStructure.tex [14
+) (./ravenStructure.tex [18
 
 ]
 
@@ -927,15 +996,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 5.
-(/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/omsptm.fd
-File: omsptm.fd 
-)
-LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 5.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 5.
-) (./runInfo.tex [15
+) (./runInfo.tex [19
 
 ]
 
@@ -948,9 +1009,9 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <12> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 14.
-[16
+[20
 
-] [17] [18]
+] [21] [22]
 Overfull \hbox (16.36848pt too wide) in paragraph at lines 80--81
 \OML/cmm/m/it/12 < mode > mpi < nodefileenv > NODEFILE < =nodefileenv ><
  []
@@ -970,17 +1031,11 @@ T1/ptm/m/n/12 '' di-rec-tory (i.e. ``\OMS/cmsy/m/n/12 n\OT1/ptm/m/n/12 home\OMS
 OMS/cmsy/m/n/12 n\OT1/ptm/m/n/12 default[]runinfo.xml').
  []
 
-[19] (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
+[23] (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2014/03/04 1.5c listings language file
 )
 (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2014/03/04 1.5c (Carsten Heinz)
-)
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 165.
-
-
-(/usr/local/texlive/2014/texmf-dist/tex/latex/psnfss/ot1pcr.fd
-File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
 LaTeX Font Info:    Try loading font information for OML+ptm on input line 166.
 
@@ -1001,12 +1056,12 @@ LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <12> not available
 (Font)              Font shape `OT1/pcr/b/n' tried instead on input line 168.
 (/usr/local/texlive/2014/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2014/03/04 1.5c listings language file
-) [20]
+) [24]
 Overfull \hbox (16.39992pt too wide) in paragraph at lines 192--193
 [][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
-) (./ProbabilityDistributions.tex [21] [22]
+) (./ProbabilityDistributions.tex [25] [26]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1015,33 +1070,33 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[23
+[27
 
-] [24]
+] [28]
 Overfull \hbox (17.67265pt too wide) in paragraph at lines 76--80
 \OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this dis-tri-bu-tion must be de-fined
  within the xml block $\OML/cmm/m/it/12 < Exponential >$\OT1/ptm/m/n/12 .
  []
 
-[25] [26]
+[29] [30]
 Overfull \hbox (14.23369pt too wide) in paragraph at lines 176--180
 \OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this dis-tri-bu-tion must be de-fined
  within the xml block $\OML/cmm/m/it/12 < LogNormal >$\OT1/ptm/m/n/12 .
  []
 
-[27] [28]
+[31] [32]
 Overfull \hbox (12.01991pt too wide) in paragraph at lines 245--248
 \OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this dis-tri-bu-tion must be de-fined
  within the xml block $\OML/cmm/m/it/12 < Triangular >$\OT1/ptm/m/n/12 .
  []
 
-[29]
+[33]
 Overfull \hbox (1.26822pt too wide) in paragraph at lines 279--282
 \OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this dis-tri-bu-tion must be de-fined
  within the xml block $\OML/cmm/m/it/12 < Uniform >$\OT1/ptm/m/n/12 .
  []
 
-[30] [31]
+[34] [35]
 Overfull \hbox (3.87697pt too wide) in paragraph at lines 356--359
 \OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this dis-tri-bu-tion must be de-fined
  within the xml block $\OML/cmm/m/it/12 < Bernoulli >$\OT1/ptm/m/n/12 .
@@ -1053,7 +1108,7 @@ Overfull \hbox (2.81247pt too wide) in paragraph at lines 385--388
  within the xml block $\OML/cmm/m/it/12 < Binomial >$\OT1/ptm/m/n/12 .
  []
 
-[32] [33]) (./sampler.tex [34]
+[36] [37]) (./sampler.tex [38]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1062,7 +1117,7 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[35
+[39
 
 ]
 
@@ -1072,20 +1127,20 @@ LaTeX Font Warning: Font shape `OMS/ptm/bx/n' undefined
 
 LaTeX Font Info:    Font shape `OMS/ptm/bx/n' in size <12> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 44.
-[36]
+[40]
 Overfull \hbox (2.72614pt too wide) in paragraph at lines 67--70
 \OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this Sam-pler must be de-fined within
  the xml block $\OML/cmm/m/it/12 < MonteCarlo >$\OT1/ptm/m/n/12 .
  []
 
-[37] [38] [39] [40] [41] [42] [43] [44] [45] [46] [47] [48] [49] [50] [51]
-[52]
+[41] [42] [43] [44] [45] [46] [47] [48] [49] [50] [51] [52] [53] [54] [55]
+[56]
 Overfull \hbox (43.29733pt too wide) in paragraph at lines 518--522
 \OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this Sam-pler must be de-fined within
  the xml block $\OML/cmm/m/it/12 < DynamicEventTree >$\OT1/ptm/m/n/12 .
  []
 
-[53] [54] [55] [56]
+[57] [58] [59] [60]
 Overfull \hbox (57.81694pt too wide) in paragraph at lines 611--615
 \OT1/ptm/m/n/12 Regarding the in-put re-quire-ments, the HDET sam-pler is a ``s
 ub-type'' of the $\OML/cmm/m/it/12 < DynamicEventTree >$
@@ -1098,13 +1153,13 @@ ined within the xml block $\OML/cmm/m/it/12 < DynamicEventTree >$\OT1/ptm/m/n/1
 2 .
  []
 
-[57] [58]
+[61] [62]
 Overfull \hbox (58.20326pt too wide) in paragraph at lines 661--662
 \OT1/ptm/m/n/12 Independently on the type of ``pre-sampler'' that has been spec
 -i-fied, the $\OML/cmm/m/it/12 < HybridSamplerSettings >$
  []
 
-[59]
+[63]
 Overfull \hbox (1.6676pt too wide) in paragraph at lines 683--684
 []\OT1/ptm/b/n/12 steps\OT1/ptm/m/n/12 , \OT1/ptm/m/it/12 re-quired in-te-ger a
 t-tribute\OT1/ptm/m/n/12 , num-ber of equally-spaced/probable dis-cretiza-
@@ -1124,12 +1179,12 @@ Overfull \hbox (4.99924pt too wide) in paragraph at lines 689--693
 /cmr/m/n/12 +
  []
 
-[60] [61] [62] [63] [64]
+[64] [65] [66] [67] [68]
 
-LaTeX Warning: Reference `sec:sec:Datas' on page 65 undefined on input line 815
+LaTeX Warning: Reference `sec:sec:Datas' on page 69 undefined on input line 815
 .
 
-[65] [66]
+[69] [70]
 LaTeX Font Info:    Font shape `OML/ptm/m/n' in size <12> not available
 (Font)              Font shape `OML/cmm/m/it' tried instead on input line 859.
 
@@ -1139,19 +1194,19 @@ Overfull \hbox (90.08447pt too wide) in paragraph at lines 869--874
 
  []
 
-[67] [68]
+[71] [72]
 Overfull \hbox (40.52557pt too wide) in paragraph at lines 928--929
 []\OT1/ptm/m/n/12 In ad-di-tion to the $\OML/cmm/m/it/12 < variable >$ \OT1/ptm
 /m/n/12 nodes, the main xml node $\OML/cmm/m/it/12 < AdaptiveDynamicEventTree >
 $
  []
 
-[69] [70]
+[73] [74]
 
-LaTeX Warning: Reference `sec:sec:Datas' on page 71 undefined on input line 954
+LaTeX Warning: Reference `sec:sec:Datas' on page 75 undefined on input line 954
 .
 
-[71]) (./database_data.tex [72]
+[75]) (./database_data.tex [76]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1160,22 +1215,11 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[73
+[77
 
-] [74] [75] [76
+] [78] [79] [80
 
-]) (./functions.tex [77]
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\\' on input line 1.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
-(hyperref)                removing `\new@ifnextchar' on input line 1.
-
-[78
-
-]) (./model.tex [79]
+]) (./functions.tex [81]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -1184,7 +1228,18 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[80
+[82
+
+]) (./model.tex [83]
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\\' on input line 1.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
+(hyperref)                removing `\new@ifnextchar' on input line 1.
+
+[84
 
 ]
 Overfull \hbox (1.9952pt too wide) in paragraph at lines 17--18
@@ -1197,10 +1252,10 @@ Overfull \hbox (1.9952pt too wide) in paragraph at lines 29--30
  []
 
 
-LaTeX Warning: Reference `sec:newCodeCoupling' on page 81 undefined on input li
+LaTeX Warning: Reference `sec:newCodeCoupling' on page 85 undefined on input li
 ne 39.
 
-[81]
+[85]
 Overfull \hbox (1.9952pt too wide) in paragraph at lines 57--58
 [][][][]  
  []
@@ -1210,7 +1265,7 @@ Overfull \hbox (1.9952pt too wide) in paragraph at lines 75--76
 [][][][]  
  []
 
-[82]
+[86]
 Overfull \hbox (1.9952pt too wide) in paragraph at lines 96--97
 [][][][]  
  []
@@ -1220,7 +1275,7 @@ Overfull \hbox (1.9952pt too wide) in paragraph at lines 106--107
 [][][][]  
  []
 
-[83] [84]
+[87] [88]
 Overfull \hbox (1.9952pt too wide) in paragraph at lines 145--146
 [][][][]  
  []
@@ -1236,7 +1291,7 @@ Overfull \hbox (3.85048pt too wide) in paragraph at lines 163--165
 type, based on a N-Dimensional
  []
 
-[85]
+[89]
 Overfull \hbox (1.9952pt too wide) in paragraph at lines 171--172
 [][][][]  
  []
@@ -1246,12 +1301,12 @@ Overfull \hbox (1.9952pt too wide) in paragraph at lines 185--186
 [][][][]  
  []
 
-[86] [87]
+[90] [91]
 
 Package amsfonts Warning: Obsolete command \bold; \mathbf should be used instea
 d on input line 227.
 
-[88] [89] [90]
+[92] [93] [94]
 Overfull \hbox (11.28273pt too wide) in paragraph at lines 266--269
 \OT1/ptm/m/n/12 In or-der to use the \OT1/ptm/m/it/12 Elas-tic Net CV \OT1/ptm/
 m/n/12 re-gres-sor, the user needs to set the sub-node $\OML/cmm/m/it/12 < SKLt
@@ -1265,7 +1320,7 @@ Overfull \hbox (58.10252pt too wide) in paragraph at lines 271--272
 lpha[]ax \OT1/cmr/m/n/12 =
  []
 
-[91] [92]
+[95] [96]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 302.
 
@@ -1275,7 +1330,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 303.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 303.
 
-[93]
+[97]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 313.
 
@@ -1288,7 +1343,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 318.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 329.
 
-[94]
+[98]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 332.
 
@@ -1304,7 +1359,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 349.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 349.
 
-[95]
+[99]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 359.
 
@@ -1320,14 +1375,14 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 364.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 373.
 
-[96]
+[100]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 379.
 
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 383.
 
-[97]
+[101]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 393.
 
@@ -1340,7 +1395,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 407.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 408.
 
-[98]
+[102]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 409.
 
@@ -1371,7 +1426,7 @@ Overfull \hbox (4.41597pt too wide) in paragraph at lines 432--442
 b-node $\OML/cmm/m/it/12 < SKLtype > MultiTaskElasticNet <
  []
 
-[99]
+[103]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 444.
 
@@ -1396,7 +1451,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 447.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 449.
 
-[100]
+[104]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 458.
 
@@ -1412,7 +1467,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 471.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 473.
 
-[101]
+[105]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 485.
 
@@ -1425,7 +1480,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 488.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 491.
 
-[102]
+[106]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 502.
 
@@ -1438,7 +1493,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 505.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 508.
 
-[103]
+[107]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 519.
 
@@ -1454,7 +1509,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 525.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 526.
 
-[104]
+[108]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 537.
 
@@ -1479,7 +1534,7 @@ Overfull \hbox (4.31664pt too wide) in paragraph at lines 546--547
 -stance or None, op-tional (de-fault=None).\OT1/ptm/m/n/12 .
  []
 
-[105]
+[109]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 557.
 
@@ -1501,7 +1556,7 @@ Overfull \hbox (4.31664pt too wide) in paragraph at lines 564--565
 -stance or None, op-tional (de-fault=None).\OT1/ptm/m/n/12 .
  []
 
-[106]
+[110]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 574.
 
@@ -1520,7 +1575,7 @@ Overfull \hbox (9.34738pt too wide) in paragraph at lines 583--584
 tine scipy.sparse.linalg.lsqr.
  []
 
-[107]
+[111]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 595.
 
@@ -1530,7 +1585,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 596.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 597.
 
-[108]
+[112]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 610.
 
@@ -1549,7 +1604,7 @@ Overfull \hbox (2.2546pt too wide) in paragraph at lines 618--622
 idation \OT1/ptm/m/n/12 per-forms Gen-er-al-ized Cross-Validation,
  []
 
-[109]
+[113]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 624.
 
@@ -1568,7 +1623,7 @@ Overfull \hbox (15.21417pt too wide) in paragraph at lines 635--636
 ored in the cv[]values[]attribute
  []
 
-[110]
+[114]
 Overfull \hbox (72.77596pt too wide) in paragraph at lines 646--647
 \OT1/ptm/b/it/12 a re-gres-sion loss: `squared[]loss', `hu-ber', `ep-silon[]ins
 ensitive', or `squared[]epsilon[]insensitive'.\OT1/ptm/m/n/12 .
@@ -1586,7 +1641,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 651.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 653.
 
-[111]
+[115]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 656.
 
@@ -1608,7 +1663,7 @@ Overfull \hbox (52.87488pt too wide) in paragraph at lines 674--675
  `ep-silon[]insensitive', or `squared[]epsilon[]insensitive'.\OT1/ptm/m/n/12 .
  []
 
-[112]
+[116]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 677.
 
@@ -1627,7 +1682,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 684.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 686.
 
-[113]
+[117]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 687.
 
@@ -1658,7 +1713,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 714.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 718.
 
-[114]
+[118]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 724.
 
@@ -1674,7 +1729,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 735.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 735.
 
-[115]
+[119]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 741.
 
@@ -1699,7 +1754,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 757.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 757.
 
-[116]
+[120]
 Overfull \hbox (18.23508pt too wide) in paragraph at lines 758--759
 []$\OML/cmm/m/it/12 < tol >$ \OT1/ptm/b/it/12 , float.\OT1/ptm/m/n/12 . Max-i-m
 um norm of the resid-ual. If not None, over-rides n[]nonzero[]coefs. 
@@ -1708,7 +1763,7 @@ um norm of the resid-ual. If not None, over-rides n[]nonzero[]coefs.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 759.
 
-[117]
+[121]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 781.
 
@@ -1724,21 +1779,21 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 784.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 786.
 
-[118]
+[122]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 804.
 
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 805.
 
-[119]
+[123]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 807.
 
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 808.
 
-[120]
+[124]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 826.
 
@@ -1748,7 +1803,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 828.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 829.
 
-[121]
+[125]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 849.
 
@@ -1758,14 +1813,14 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 851.
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 852.
 
-[122] [123] [124] [125]
+[126] [127] [128] [129]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 969.
 
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 970.
 
-[126]
+[130]
 Overfull \hbox (1.1782pt too wide) in paragraph at lines 986--987
 []$\OML/cmm/m/it/12 < binarize >$ \OT1/ptm/b/it/12 , float, op-tional field.\OT
 1/ptm/m/n/12 . Thresh-old for bi-na-riz-ing (map-ping to booleans)
@@ -1777,12 +1832,12 @@ Overfull \hbox (3.13115pt too wide) in paragraph at lines 994--998
  clus-ter-ing. Su-per-vised neighbors-
  []
 
-[127]
+[131]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1014.
 
 
-[128]
+[132]
 Overfull \hbox (3.31471pt too wide) in paragraph at lines 1019--1022
 \OT1/ptm/m/n/12 In or-der to use the \OT1/ptm/m/it/12 K Neigh-bors Clas-si-fier
 \OT1/ptm/m/n/12 , the user needs to set the sub-node $\OML/cmm/m/it/12 < SKLtyp
@@ -1793,7 +1848,7 @@ e >
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1023.
 
 
-[129]
+[133]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1041.
 
@@ -1802,7 +1857,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 1041.
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1050.
 
 
-[130]
+[134]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1067.
 
@@ -1818,17 +1873,17 @@ OT1/ptm/m/n/12 , the user needs to set the sub-node $\OML/cmm/m/it/12 < SKLtype
  >
  []
 
-[131]
+[135]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1095.
 
 
-[132]
+[136]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1104.
 
 
-[133]
+[137]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1121.
 
@@ -1841,19 +1896,19 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 1123.
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1131.
 
 
-[134]
+[138]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1145.
 
 
-[135]
+[139]
 Overfull \hbox (8.97922pt too wide) in paragraph at lines 1174--1177
 \OT1/ptm/m/n/12 In or-der to use the \OT1/ptm/m/it/12 De-ci-sion Tree Clas-si-f
 ier\OT1/ptm/m/n/12 , the user needs to set the sub-node $\OML/cmm/m/it/12 < SKL
 type >
  []
 
-[136]
+[140]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1180.
 
@@ -1886,7 +1941,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 1194.
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1194.
 
 
-[137]
+[141]
 Overfull \hbox (10.70746pt too wide) in paragraph at lines 1198--1201
 \OT1/ptm/m/n/12 In or-der to use the \OT1/ptm/m/it/12 De-ci-sion Tree Re-gres-s
 or\OT1/ptm/m/n/12 , the user needs to set the sub-node $\OML/cmm/m/it/12 < SKLt
@@ -1901,7 +1956,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 1204.
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1215.
 
 
-[138]
+[142]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1216.
 
@@ -1930,7 +1985,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 1218.
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1230.
 
 
-[139]
+[143]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1241.
 
@@ -1959,7 +2014,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 1244.
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1244.
 
 
-[140]
+[144]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1255.
 
@@ -1998,7 +2053,7 @@ Overfull \hbox (1.64246pt too wide) in paragraph at lines 1275--1277
 su-per-vised learn-ing method
  []
 
-[141]
+[145]
 Overfull \hbox (32.16937pt too wide) in paragraph at lines 1292--1294
 \OT1/ptm/m/n/12 exponential au-to-cor-re-la-tion model. Built-in cor-re-la-tion
  mod-els are: 'ab-so-lute[]exponential',
@@ -2010,7 +2065,7 @@ Overfull \hbox (66.54974pt too wide) in paragraph at lines 1292--1294
 in-ear'. \OT1/ptm/m/it/12 De-fault = squared[]exponential\OT1/ptm/m/n/12 ; 
  []
 
-[142]
+[146]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1295.
 
@@ -2019,7 +2074,7 @@ LaTeX Warning: Command \textunderscore invalid in math mode on input line 1295.
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1303.
 
 
-[143]
+[147]
 
 LaTeX Warning: Command \textunderscore invalid in math mode on input line 1304.
 
@@ -2040,22 +2095,22 @@ Overfull \hbox (55.45428pt too wide) in paragraph at lines 1333--1337
 within the XML block $\OML/cmm/m/it/12 < ExternalModel >$\OT1/ptm/m/n/12 .
  []
 
-[144]
+[148]
 Overfull \hbox (27.83093pt too wide) in paragraph at lines 1344--1345
 \OT1/ptm/m/n/12 late/use in its own python Mod-ule, the vari-ables need to be s
 pec-i-fied in the $\OML/cmm/m/it/12 < ExternalModel >$
  []
 
-[145] [146]
+[149] [150]
 Overfull \hbox (9.19984pt too wide) in paragraph at lines 1392--1393
 [][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
-[147] [148]
+[151] [152]
 
-LaTeX Warning: Reference `datas' on page 149 undefined on input line 1455.
+LaTeX Warning: Reference `datas' on page 153 undefined on input line 1455.
 
-[149]
+[153]
 Overfull \hbox (1.99977pt too wide) in paragraph at lines 1463--1464
 [][][][][][][][][][][][][][][][][][][][] 
  []
@@ -2065,7 +2120,7 @@ Overfull \hbox (1.99977pt too wide) in paragraph at lines 1465--1466
 [][][][][][][][][][][][][][][][][][][][] 
  []
 
-[150]
+[154]
 Overfull \hbox (14.56093pt too wide) in paragraph at lines 1508--1510
 \OT1/ptm/m/n/12 The spec-i-fi-ca-tions of this Model must be de-fined within th
 e XML block $\OML/cmm/m/it/12 < PostProcessor >$\OT1/ptm/m/n/12 .
@@ -2075,20 +2130,20 @@ e XML block $\OML/cmm/m/it/12 < PostProcessor >$\OT1/ptm/m/n/12 .
 Package hyperref Warning: Difference (2) between bookmark levels is greater 
 (hyperref)                than one, level fixed on input line 1518.
 
-[151] [152]
+[155] [156]
 Overfull \hbox (129.7947pt too wide) in paragraph at lines 1562--1563
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][
 ][][][][][][][][][][][][][][][]  
  []
 
-[153] [154]
+[157] [158]
 Overfull \hbox (41.8944pt too wide) in paragraph at lines 1641--1643
 \OT1/ptm/m/n/12 In or-der to use the \OT1/ptm/m/it/12 Lim-it-Sur-face\OT1/ptm/m
 /n/12 , the user needs to set the sub-node $\OML/cmm/m/it/12 < subType > LimitS
 urface <
  []
 
-[155] [156]) (./OutStreamSystem.tex [157]
+[159] [160]) (./OutStreamSystem.tex [161]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -2097,20 +2152,20 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[158
+[162
 
-] [159]
+] [163]
 Overfull \hbox (2.95032pt too wide) in paragraph at lines 70--71
 \OT1/ptm/m/n/12 name-in'' and ``var-name-out'' will be re-ported in the out-put
  file (see ``forth-example'') 
  []
 
 
-LaTeX Warning: Reference `sec:Interpretedplotting' on page 160 undefined on inp
+LaTeX Warning: Reference `sec:Interpretedplotting' on page 164 undefined on inp
 ut line 80.
 
-[160] [161] [162] [163] [164] [165] [166] [167] [168] [169] [170] [171]
-[172] [173] [174] [175] [176] [177] [178] [179] [180]) (./step.tex [181]
+[164] [165] [166] [167] [168] [169] [170] [171] [172] [173] [174] [175]
+[176] [177] [178] [179] [180] [181] [182] [183] [184]) (./step.tex [185]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -2119,21 +2174,21 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[182
+[186
 
-]
-Overfull \hbox (7.9549pt too wide) in paragraph at lines 83--84
+] [187] [188] [189]
+Overfull \hbox (7.9549pt too wide) in paragraph at lines 146--147
 []\OT1/ptm/m/n/12 Input: class=(Datas or Databases) type=(if Databases, HDF5, i
 f Datas:timepoint,
  []
 
-[183]
-Overfull \hbox (15.95877pt too wide) in paragraph at lines 84--85
+
+Overfull \hbox (15.95877pt too wide) in paragraph at lines 147--148
 []\OT1/ptm/m/n/12 Output: class=(Datas or Databases) type=(if Databases, HDF5, 
 if Datas:timepoint,
  []
 
-) (./existing_interfaces.tex [184]
+) (./existing_interfaces.tex [190]
 
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\\' on input line 1.
@@ -2142,14 +2197,14 @@ Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 Package hyperref Warning: Token not allowed in a PDF string (PDFDocEncoding):
 (hyperref)                removing `\new@ifnextchar' on input line 1.
 
-[185
+[191
 
 ]
 Overfull \hbox (81.63199pt too wide) in paragraph at lines 52--53
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]  
  []
 
-[186] [187] [188]
+[192] [193] [194]
 Underfull \hbox (badness 10000) in paragraph at lines 127--132
 
  []
@@ -2160,79 +2215,73 @@ Overfull \hbox (1.16702pt too wide) in paragraph at lines 133--135
 o be used are the $\OML/cmm/m/it/12 < MultiRun >$\OT1/ptm/m/n/12 .
  []
 
-[189] [190]
+[195] [196]
 Overfull \hbox (44.14415pt too wide) in paragraph at lines 209--210
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  
  []
 
-[191]) [192] (./raven_user_manual.bbl) [193
+[197]) [198] (./raven_user_manual.bbl) [199
 
 
-] [194
+] [200
 
-] [195]
+] [201]
 File: pics/inl-left_black.pdf Graphic file (type pdf)
 
 <use pics/inl-left_black.pdf>
-Package pdftex.def Info: pics/inl-left_black.pdf used on input line 333.
+Package pdftex.def Info: pics/inl-left_black.pdf used on input line 335.
 (pdftex.def)             Requested size: 280.04555pt x 55.2061pt.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 333.
- [196]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 333.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 335.
+ [202]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 335.
  (./raven_user_manual.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 333.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 333.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 335.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 335.
+Package rerunfilecheck Info: File `raven_user_manual.out' has not changed.
+(rerunfilecheck)             Checksum: 415B9BFA09175263E4FE8AEDDC13B7A2;14046.
 
-
-Package rerunfilecheck Warning: File `raven_user_manual.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `raven_user_manual.out':
-(rerunfilecheck)             Before: 0BAF56D1CA8B7127D05F2B71FC74AF0F;13705
-(rerunfilecheck)             After:  F88B841FD6885581D6DC022F8E8B60C0;13637.
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 333.
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 335.
  ) 
 Here is how much of TeX's memory you used:
- 12397 strings out of 493117
- 175402 string characters out of 6135433
- 289339 words of memory out of 5000000
- 13974 multiletter control sequences out of 15000+600000
+ 12635 strings out of 493117
+ 178561 string characters out of 6135433
+ 290915 words of memory out of 5000000
+ 14109 multiletter control sequences out of 15000+600000
  46900 words of font info for 110 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 33i,6n,58p,1027b,2038s stack positions out of 5000i,500n,10000p,200000b,80000s
-pdfTeX warning (dest): name{subsubsection.13.2.5} has been referenced but doe
-s not exist, replaced by a fixed one
-
-{/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/tex
-live/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texl
-ive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texliv
-e/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texlive
-/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texlive/
-2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/20
-14/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/2014
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2014/te
-xmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2014/texmf
--dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/fo
-nts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/typ
-e1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/
-ncntrsbk/uncb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/ncntrsb
-k/uncr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmb8a.p
-fb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/
-local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texl
-ive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on raven_user_manual.pdf (196 pages, 730283 bytes).
+ 34i,6n,58p,1027b,2038s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2014/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
+exlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/te
+xlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pfb></usr/local/texl
+ive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/texli
+ve/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/local/texliv
+e/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/local/texlive/
+2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/local/texlive/20
+14/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/texlive/2014/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2014/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2014/tex
+mf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/local/texlive/2014/texmf-dist/
+fonts/type1/urw/helvetic/uhvb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/t
+ype1/urw/helvetic/uhvr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/ur
+w/ncntrsbk/uncb8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/ncntr
+sbk/uncr8a.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmb8a
+.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></us
+r/local/texlive/2014/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/te
+xlive/2014/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on raven_user_manual.pdf (202 pages, 744127 bytes).
 PDF statistics:
- 3405 PDF objects out of 3580 (max. 8388607)
- 3153 compressed objects within 32 object streams
- 1611 named destinations out of 1728 (max. 500000)
- 1283 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 3563 PDF objects out of 3580 (max. 8388607)
+ 3303 compressed objects within 34 object streams
+ 1707 named destinations out of 1728 (max. 500000)
+ 1323 words of extra memory for PDF output out of 10000 (max. 10000000)
 

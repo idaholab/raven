@@ -21,38 +21,20 @@ The core of the RAVEN calculation flow is employed in the so called \textbf{Step
 </Simulation>
 --------------------------------------------
 \end{lstlisting}
-As it can be noticed above, independently of the type, each textbf{Step} basically is constituted by a list of entities organized ``Roles''.  
-
-
-
-The sampler is probably the most important entity in the RAVEN framework. Indeed, it performs the driving of the specific sampling strategy and, hence, determines the effectiveness of the analysis, from both an accuracy and computational point of view.  The samplers, that are available in RAVEN, can be categorized in three main classes:
+As it can be noticed above, independently of the type, each textbf{Step} basically is constituted by a list of entities organized ``Roles''.  Each role represents a ``behavior'' the entity (object) is going to take during the evolution of the Step.
+In RAVEN several different ``roles'' are available:
 \begin{itemize}
-\item \textbf{Once-through}
-\item \textbf{Dynamic Event Tree (DET)}
-\item \textbf{Adaptive}
+\item \textbf{Input.} As the name suggests, it represents the input of the Step. The objects usable as Inputs depends on the type of \textbf{Model} in the Step;
+\item \textbf{Output.} The Output represents the container of an action performed by the \textbf{Model}. It can generally be of type \textbf{Datas}, \textbf{DataBases}, \textbf{OutStreamManager};
+\item \textbf{Model.} The Model is the actual entity that represents a physical or mathematical representation of a system or behavior. The object that is used in this role, defines the compatibility of the different Inputs and Outputs listed in this step;
+\item \textbf{Sampler.} It is the role that defines the Sampling strategy that needs to be performed. 
+\item \textbf{Function.} The Function role is extremely important, for example, when performing Adaptive Sampling to represent the metric of the transition regions. This role is the role used, for example, to collapse information coming from a Model.
+\item \textbf{ROM.} Acceleration Reduced Order Model;
+\item \textbf{SolutionExport,} It represents the container of the eventual output of a Sampler.
 \end{itemize}
-Before analyzing  each sampler in details, it is important to mention that each type has a similar syntax to input the variables that need to be ``sampled''. In the example below the variable ``variableName'' is going to be sampled by the Sampler ``WhatEverSampler'' using the distribution ``aDistribution''. 
-\begin{lstlisting}[style=XML]
---------------------------------------------
-<Simulation>
-  ...
-  <Samplers>
-    ...
-    <WhatEverSampler name='whatever'>
-      ...
-     <variable name='variableName'> 
-       ...
-       <distribution>aDistribution</distribution>
-       ...
-     </variable>
-      ... 
-    </WhatEverSampler>
-    ...
-  </Samplers>
-  ...
-</Simulation>
---------------------------------------------
-\end{lstlisting}
+As understandable, depending on the \textbf{Step} type, different combinations of these roles are allowed to be used.
+For this reason, it is important to analyze each \textbf{Step} type in details.
+
 
 \begin{itemize}
 \item SingleRun: This is the step that will perform just one evaluation
