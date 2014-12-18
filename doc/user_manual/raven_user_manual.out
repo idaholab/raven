@@ -6,7 +6,7 @@
 \BOOKMARK [2][-]{subsection.4.2}{RunInfo: input of queue modes.}{section.4}% 6
 \BOOKMARK [2][-]{subsection.4.3}{RunInfo: Advanced Users.}{section.4}% 7
 \BOOKMARK [2][-]{subsection.4.4}{RunInfo: Examples.}{section.4}% 8
-\BOOKMARK [1][-]{section.5}{Distributions \0402 mm Author: Andrea Alfonsi}{}% 9
+\BOOKMARK [1][-]{section.5}{Distributions \0402 mm}{}% 9
 \BOOKMARK [2][-]{subsection.5.1}{1-Dimensional Probability Distributions}{section.5}% 10
 \BOOKMARK [3][-]{subsubsection.5.1.1}{1-Dimensional Continuous Distributions.}{subsection.5.1}% 11
 \BOOKMARK [4][-]{paragraph.5.1.1.1}{Beta Distribution}{subsubsection.5.1.1}% 12
@@ -78,7 +78,7 @@
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.28}{Linear model fitted by minimizing a regularized empirical loss with SGD}{paragraph.10.3.4.1}% 78
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.29}{Compute Least Angle Regression or Lasso path using LARS algorithm}{paragraph.10.3.4.1}% 79
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.30}{Compute Lasso path with coordinate descent}{paragraph.10.3.4.1}% 80
-\BOOKMARK [5][-]{subparagraph.10.3.4.1.31}{Stabiliy path based on randomized Lasso estimates}{paragraph.10.3.4.1}% 81
+\BOOKMARK [5][-]{subparagraph.10.3.4.1.31}{Stability path based on randomized Lasso estimates}{paragraph.10.3.4.1}% 81
 \BOOKMARK [5][-]{subparagraph.10.3.4.1.32}{Gram Orthogonal Matching Pursuit \(OMP\)}{paragraph.10.3.4.1}% 82
 \BOOKMARK [4][-]{paragraph.10.3.4.2}{Support Vector Machines.}{subsubsection.10.3.4}% 83
 \BOOKMARK [5][-]{subparagraph.10.3.4.2.1}{Linear Support Vector Classifier}{paragraph.10.3.4.2}% 84
@@ -155,5 +155,4 @@
 \BOOKMARK [3][-]{subsubsection.13.2.2}{Models}{subsection.13.2}% 155
 \BOOKMARK [3][-]{subsubsection.13.2.3}{Distributions}{subsection.13.2}% 156
 \BOOKMARK [3][-]{subsubsection.13.2.4}{Samplers}{subsection.13.2}% 157
-\BOOKMARK [3][-]{subsubsection.13.2.5}{Steps}{subsection.13.2}% 158
-\BOOKMARK [1][-]{section*.1}{References}{}% 159
+\BOOKMARK [1][-]{section*.1}{References}{}% 158

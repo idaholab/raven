@@ -8,19 +8,17 @@ In the $<Files>$ section, as specified before, there should be specified all the
 \begin{itemize}
 \item RELAP5 Input file
 \item Table file or files that RELAP needs to run
-\item relapdata.py
-\item relap5run.py
+\item The Relap5 executable
 \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
-<Files>X10.i,tpfh2o,relapdata.py,RELAP5run.py</Files>
+<Files>X10.i,tpfh2o,r5executable.x</Files>
 \end{lstlisting}
 
 It is a good practice to put inside the working directory all of these files and also:
 \begin{itemize}
 \item the RAVEN input file
-\item the executable file for RELAP5
-\item the license for the executable for RELAP5
+\item the license for the executable of RELAP5
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Sequence}
@@ -38,7 +36,7 @@ After all of these blocks are filled out here is a standard example of what a Ru
 \begin{lstlisting}[style=XML]
 <RunInfo>
     <WorkingDir>~/working_dir</WorkingDir>
-    <Files>inputfilerelap.i,tpfh2o,relapdata.py,RELAP5run.py</Files>
+    <Files>inputfilerelap.i,tpfh2o,executablerelap5.x</Files>
     <Sequence>Grid_Sampler,MC_Sampler</Sequence>
     <batchSize>1</batchSize>
 	<mode>pbsdsh</mode>
@@ -51,7 +49,7 @@ After all of these blocks are filled out here is a standard example of what a Ru
 For the $<Models>$ block here is a standard example of what can be used to use RELAP5 as the external model:
 \begin{lstlisting}[style=XML]
 <Models>
-    <Code name='MyRELAP' subType='Relap5'><executable>python RELAP5run.py</executable></Code>
+    <Code name='MyRELAP' subType='Relap5'><executable>~/path_to_the_executable</executable></Code>
 </Models>
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,14 +138,12 @@ First we need to name the step: this name is one the ones used in the $<Sequence
 With this step with need to import all the files needed for the simulation:
 \begin{itemize}
 \item RELAP input file
-\item RELAP5run.py
-\item relapdata.py
+\item Relap 5 Executable
 \item elements tables -- tpfh2o 
 \end{itemize}
 \begin{lstlisting}[style=XML]
     <Input   class='Files' type=''>inputrelap.i</Input>
-    <Input   class='Files' type=''>RELAP5run.py</Input>
-    <Input   class='Files' type=''>relapdata.py</Input>
+    <Input   class='Files' type=''>r5executable.x</Input>
     <Input   class='Files' type=''>tpfh2o</Input>
 \end{lstlisting}
 We then need to define which model it is used:
@@ -167,8 +163,7 @@ Following is the example of two MultiRun steps which use different sampling meth
     <Steps debug='True'>
     <MultiRun name='Grid_Sampler' debug='True' re-seeding='210491'>
         <Input   class='Files'            type=''                >X10.i</Input>
-        <Input   class='Files'            type=''                >RELAP5run.py</Input>
-        <Input   class='Files'            type=''                >relapdata.py</Input>
+        <Input   class='Files'            type=''                >r5executable.x</Input>
         <Input   class='Files'            type=''                >tpfh2o</Input>
         <Model   class='Models'           type='Code'            >MyRELAP</Model>
         <Sampler class='Samplers'         type='Grid'             >Grid_Sampler</Sampler>
@@ -176,8 +171,7 @@ Following is the example of two MultiRun steps which use different sampling meth
     </MultiRun>
 	<MultiRun name='MC_Sampler' debug='True' re-seeding='210491'>
         <Input   class='Files'            type=''                >X10.i</Input>
-        <Input   class='Files'            type=''                >RELAP5run.py</Input>
-        <Input   class='Files'            type=''                >relapdata.py</Input>
+        <Input   class='Files'            type=''                >r5executable.x</Input>
         <Input   class='Files'            type=''                >tpfh2o</Input>
         <Model   class='Models'           type='Code'            >MyRELAP</Model>
         <Sampler class='Samplers'         type='MonteCarlo'             >MC_Sampler</Sampler>
@@ -252,8 +246,6 @@ For the example it was chosen a MonteCarlo sampling with a 500 runs. The global 
  </MonteCarlo>
 </Samplers>
 \end{lstlisting}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Steps}
 
 
 

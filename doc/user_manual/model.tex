@@ -303,76 +303,554 @@ In order to use the  \textit{Elastic Net} regressor, the user needs to set the s
 \item $<max\textunderscore~n\textunderscore~alphas>$ \textbf{\textit{, integer, optional field.}}. The maximum number of points on the path used to compute the residuals in the cross-validation. \textit{Default = 1000};
 \item $<eps>$ \textbf{\textit{, float, optional field.}}.  The machine-precision regularization in the computation of the Cholesky diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol parameter in some iterative optimization-based algorithms, this parameter does not control the tolerance of the optimization. \textit{Default =2.22e-16};
 \end{itemize}
-
 \subparagraph{Linear Model trained with L1 prior as regularizer (aka the Lasso)}
-pass
+\mbox{}
+\\The \textit{Linear Model trained with L1 prior as regularizer (Lasso)} is a shrinkage and selection method for linear regression. It minimizes the usual sum of squared errors, with a bound on the sum of the absolute values of the coefficients. 
+\\In order to use the \textit{Linear Model trained with L1 prior as regularizer (Lasso)} regressor, the user needs to set the sub-node $<SKLtype>Lasso</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<alpha>$ \textbf{\textit{, float, optional field.}}. Constant that multiplies the L1 term. Defaults to 1.0. alpha = 0 is equivalent to an ordinary least square, solved by the LinearRegression object. For numerical reasons, using alpha = 0 is with the Lasso object is not advised and you should prefer the LinearRegression object.
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<normalize>$ \textbf{\textit{, boolean, optional, default False.}}. If True, the regressors X will be normalized before regression.
+  \item $<precompute>$ \textbf{\textit{, True | False | ‘auto’ | array-like.}}. Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument. For sparse input this option is always True to preserve sparsity.
+  \item $<max \textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The maximum number of iterations
+  \item $<tol>$ \textbf{\textit{, float, optional field.}}. The tolerance for the optimization: if the updates are smaller than tol, the optimization code checks the dual gap for optimality and continues until it is smaller than tol.
+  \item $<warm \textunderscore start>$ \textbf{\textit{, boolean, optional field.}}. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+  \item $<positive>$ \textbf{\textit{, boolean, optional field.}}. When set to True, forces the coefficients to be positive.
+\end{itemize}
+
 \subparagraph{Lasso linear model with iterative fitting along a regularization path}
-pass
+\mbox{}
+\\The \textit{Lasso linear model with iterative fitting along a regularization path} is Lasso linear model with iterative fitting along a regularization path
+\\In order to use the \textit{Lasso linear model with iterative fitting along a regularization path} regressor, the user needs to set the sub-node $<SKLtype>LassoCV</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<eps>$ \textbf{\textit{, float, optional field.}}. Length of the path. eps=1e-3 means that alpha \textunderscore min / alpha \textunderscore max = 1e-3.
+  \item $<n \textunderscore alphas>$ \textbf{\textit{, int, optional field.}}. Number of alphas along the regularization path
+  \item $<alphas>$ \textbf{\textit{, numpy array, optional field.}}. List of alphas where to compute the models. If None alphas are set automatically
+  \item $<precompute>$ \textbf{\textit{, true | False | ‘auto’ | array-like.}}. Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument.
+  \item $<max \textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The maximum number of iterations
+  \item $<tol>$ \textbf{\textit{, float, optional field.}}. The tolerance for the optimization: if the updates are smaller than tol, the optimization code checks the dual gap for optimality and continues until it is smaller than tol.
+  \item $<verbose>$ \textbf{\textit{, boolean ot integer.}}. Amount of verbosity.
+  \item $<positive>$ \textbf{\textit{, boolean, optional field.}}. If positive, restrict regression coefficients to be positive
+\end{itemize}
+
 \subparagraph{Lasso model fit with Least Angle Regression }
-pass
+\mbox{}
+\\The \textit{Lasso model fit with Least Angle Regression} is a Cross-validated Least Angle Regression model
+\\In order to use the \textit{Cross-validated Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>LarsCV</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<verbose>$ \textbf{\textit{, boolean or integer, optional field.}}. Sets the verbosity amount
+  \item $<normalize>$ \textbf{\textit{, boolean, optional, default False.}}. If True, the regressors X will be normalized before regression.
+  \item $<precompute>$ \textbf{\textit{, True | False | ‘auto’ | array-like.}}. Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument.
+  \item $<max \textunderscore iter>$ \textbf{\textit{, integer, optional field.}}. Maximum number of iterations to perform.
+  \item $<max \textunderscore n \textunderscore alphas>$ \textbf{\textit{, integer, optional field.}}. The maximum number of points on the path used to compute the residuals in the cross-validation
+  \item $<eps>$ \textbf{\textit{, float, optional field.}}. The machine-precision regularization in the computation of the Cholesky diagonal factors. Increase this for very ill-conditioned systems.
+\end{itemize}
+
 \subparagraph{Cross-validated Lasso, using the LARS algorithm}
-pass
+p\mbox{}
+\\The \textit{Cross-validated Lasso, using the LARS algorithm} is a Cross-validated Lasso, using the LARS algorithm
+\\In order to use the \textit{Cross-validated Lasso, using the LARS algorithm} regressor, the user needs to set the sub-node $<SKLtype>LassoLarsCV</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<verbose>$ \textbf{\textit{, boolean or integer, optional field.}}. Sets the verbosity amount
+  \item $<normalize>$ \textbf{\textit{, boolean, optional, default False.}}. If True, the regressors X will be normalized before regression.
+  \item $<precompute>$ \textbf{\textit{, True | False | ‘auto’ | array-like.}}. Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument.
+  \item $<max \textunderscore iter>$ \textbf{\textit{, integer, optional field.}}. Maximum number of iterations to perform.
+  \item $<max \textunderscore n \textunderscore alphas>$ \textbf{\textit{, integer, optional field.}}. The maximum number of points on the path used to compute the residuals in the cross-validation
+  \item $<eps>$ \textbf{\textit{, float, optional field.}}. The machine-precision regularization in the computation of the Cholesky diagonal factors. Increase this for very ill-conditioned systems.
+\end{itemize}
+
+
 \subparagraph{Lasso model fit with Lars using BIC or AIC for model selection}
-pass
+\mbox{}
+\\The \textit{Lasso model fit with Lars using BIC or AIC for model selection} is Lasso model fit with Lars using BIC or AIC for model selection
+The optimization objective for Lasso is:
+$(1 / (2 * n \textunderscore samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
+AIC is the Akaike information criterion and BIC is the Bayes Information criterion. Such criteria are useful to select the value of the regularization parameter by making a trade-off between the goodness of fit and the complexity of the model. A good model should explain well the data while being simple.
+\\In order to use the \textit{Lasso model fit with Lars using BIC or AIC for model selection} regressor, the user needs to set the sub-node $<SKLtype>LassoLarsIC</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<criterion>$ \textbf{\textit{, ‘bic’ | ‘aic’ .}}. The type of criterion to use.
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<verbose>$ \textbf{\textit{, boolean or integer, optional field.}}. Sets the verbosity amount
+  \item $<normalize>$ \textbf{\textit{, boolean, optional, default False.}}. If True, the regressors X will be normalized before regression.
+  \item $<precompute>$ \textbf{\textit{, True | False | ‘auto’ | array-like.}}. Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument.
+  \item $<max \textunderscore iter>$ \textbf{\textit{, integer, optional field.}}. Maximum number of iterations to perform. Can be used for early stopping.
+  \item $<eps>$ \textbf{\textit{, float, optional field.}}. The machine-precision regularization in the computation of the Cholesky diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol parameter in some iterative optimization-based algorithms, this parameter does not control the tolerance of the optimization.
+\end{itemize}
+
 \subparagraph{Ordinary least squares Linear Regression}
-pass
+\mbox{}
+\\The \textit{Ordinary least squares Linear Regression} is a method for estimating the unknown parameters in a linear regression model, with the goal of minimizing the differences between the observed responses in some arbitrary dataset and the responses predicted by the linear approximation of the data
+\\In order to use the \textit{Ordinary least squares Linear Regression} regressor, the user needs to set the sub-node $<SKLtype>LinearRegression</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean, optional field.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field, default False.}}. If True, the regressors X will be normalized before regression.
+\end{itemize}
+
 \subparagraph{Logistic Regression }
-pass
+\mbox{}
+\\The \textit{Logistic Regression} implements L1 and L2 regularized logistic regression using the liblinear library. It can handle both dense and sparse input. Use C-ordered arrays or CSR matrices containing 64-bit floats for optimal performance; any other input format will be converted (and copied).
+\\In order to use the \textit{Logistic Regression} regressor, the user needs to set the sub-node $<SKLtype>LogisticRegression</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<penalty>$ \textbf{\textit{, string, ‘l1’ or ‘l2’.}}. Used to specify the norm used in the penalization.
+  \item $<dual>$ \textbf{\textit{, boolean.}}. Dual or primal formulation. Dual formulation is only implemented for l2 penalty. Prefer dual=False when n \textunderscore samples > n \textunderscore features.
+  \item $<C>$ \textbf{\textit{, float, optional field (default: 1.0).}}. Inverse of regularization strength; must be a positive float. Like in support vector machines, smaller values specify stronger regularization.
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean (default: True).}}. Specifies if a constant (a.k.a. bias or intercept) should be added the decision function.
+  \item $<intercept \textunderscore scaling>$ \textbf{\textit{, float, optional field (default: 1.0).}}. when self.fit \textunderscore intercept is True, instance vector x becomes [x, self.intercept \textunderscore scaling], i.e. a “synthetic” feature with constant value equals to intercept \textunderscore scaling is appended to the instance vector. The intercept becomes intercept \textunderscore scaling * synthetic feature weight Note! the synthetic feature weight is subject to l1/l2 regularization as all other features. To lessen the effect of regularization on synthetic feature weight (and therefore on the intercept) intercept \textunderscore scaling has to be increased
+  \item $<class \textunderscore weight>$ \textbf{\textit{, {dict, ‘auto’}, optional.}}. Over-/undersamples the samples of each class according to the given weights. If not given, all classes are supposed to have weight one. The ‘auto’ mode selects weights inversely proportional to class frequencies in the training set.
+  \item $<random \textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data.
+  \item $<tol>$ \textbf{\textit{, float, optional field.}}. Tolerance for stopping criteria.
+\end{itemize}
+
 \subparagraph{Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer }
-pass
+\mbox{}
+\\The \textit{Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer} is a regressor where the optimization objective for Lasso is:
+$(1 / (2 * n \textunderscore samples)) * ||Y - XW||^2_Fro + alpha * ||W||_21$
+Where:
+$||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
+i.e. the sum of norm of earch row.
+\\In order to use the \textit{Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer} regressor, the user needs to set the sub-node $<SKLtype>MultiTaskLasso</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<alpha>$ \textbf{\textit{, float, optional field.}}. Constant that multiplies the L1/L2 term. Defaults to 1.0
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<normlaize>$ \textbf{\textit{, boolean, optional field (default: False).}}. If True, the regressors X will be normalized before regression.
+  \item $<max \textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The maximum number of iterations
+  \item $<tol>$ \textbf{\textit{, float, optional field.}}. The tolerance for the optimization: if the updates are smaller than tol, the optimization code checks the dual gap for optimality and continues until it is smaller than tol.
+  \item $<warm \textunderscore start>$ \textbf{\textit{, boolean, optional field.}}. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+\end{itemize}
+
 \subparagraph{Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer}
-pass
+\mbox{}
+\\The \textit{Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer} is a regressor where the optimization objective for MultiTaskElasticNet is:
+$(1 / (2 * n \textunderscore samples)) * ||Y - XW||^Fro_2
++ alpha * l1 \textunderscore ratio * ||W||_21
++ 0.5 * alpha * (1 - l1 \textunderscore ratio) * ||W||_Fro^2$
+Where:
+$||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
+i.e. the sum of norm of each row.
+\\In order to use the \textit{Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer} regressor, the user needs to set the sub-node $<SKLtype>MultiTaskElasticNet</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<alpha>$ \textbf{\textit{, float, optional field.}}. Constant that multiplies the L1/L2 term. Defaults to 1.0
+  \item $<l1 \textunderscore ratio>$ \textbf{\textit{, float.}}. The ElasticNet mixing parameter, with $0 < l1 \textunderscore ratio <= 1$. For $l1 \textunderscore ratio = 0$ the penalty is an L1/L2 penalty. For $l1 \textunderscore ratio = 1$ it is an L1 penalty. For $0 < l1 \textunderscore ratio < 1$, the penalty is a combination of L1/L2 and L2.
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field (default False).}}. If True, the regressors X will be normalized before regression.
+  \item $<max \textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The maximum number of iterations
+  \item $<tol>$ \textbf{\textit{, float, optional field.}}. The tolerance for the optimization: if the updates are smaller than tol, the optimization code checks the dual gap for optimality and continues until it is smaller than tol.
+  \item $<warm \textunderscore start>$ \textbf{\textit{, boolean, optional field.}}. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+\end{itemize}
+
 \subparagraph{Orthogonal Mathching Pursuit model (OMP)}
-pass
+\mbox{}
+\\The \textit{Orthogonal Mathching Pursuit model (OMP)} is a type of sparse approximation which involves finding the "best matching" projections of multidimensional data onto an over-complete dictionary D. 
+\\In order to use the \textit{Orthogonal Mathching Pursuit model (OMP)} regressor, the user needs to set the sub-node $<SKLtype>OrthogonalMatchingPursuit</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<n \textunderscore nonzero \textunderscore coefs>$ \textbf{\textit{, int, optional field.}}. Desired number of non-zero entries in the solution. If None (by default) this value is set to 10\% of n \textunderscore features.
+  \item $<tol>$ \textbf{\textit{, float, optional field.}}. Maximum norm of the residual. If not None, overrides n \textunderscore nonzero \textunderscore coefs.
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean, optional field.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field.}}. If False, the regressors X are assumed to be already normalized.
+  \item $<precompute>$ \textbf{\textit{, {True, False, ‘auto’}, default ‘auto’.}}. Whether to use a precomputed Gram and Xy matrix to speed up calculations. Improves performance when n \textunderscore targets or n \textunderscore samples is very large. Note that if you already have such matrices, you can pass them directly to the fit method.
+\end{itemize}
+
 \subparagraph{Cross-validated Orthogonal Mathching Pursuit model (OMP)}
-pass
+\mbox{}
+\\The \textit{Cross-validated Orthogonal Mathching Pursuit model (OMP)} is a regressor similar to OMP which has good performance in sparse recovery.
+\\In order to use the \textit{Cross-validated Orthogonal Mathching Pursuit model (OMP)} regressor, the user needs to set the sub-node $<SKLtype>OrthogonalMatchingPursuitCV</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean, optional field.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field.}}. If False, the regressors X are assumed to be already normalized.
+  \item $<max \textunderscore iter>$ \textbf{\textit{, integer, optional field.}}. Maximum numbers of iterations to perform, therefore maximum features to include 10\% of n \textunderscore features but at least 5 if available.
+  \item $<cv>$ \textbf{\textit{, cross-validation generator, optional.}}. see sklearn.cross \textunderscore validation. If None is passed, default to a 5-fold strategy
+  \item $<verbose>$ \textbf{\textit{,  boolean or integer, optional.}}. Sets the verbosity amount
+\end{itemize}
+
 \subparagraph{Passive Aggressive Classifier}
-pass
+\mbox{}
+\\The \textit{Passive Aggressive Classifier} is a principled approach to linear classification that advocates minimal weight updates i.e., the least required so that the current training instance is correctly classified.
+\\In order to use the \textit{Passive Aggressive Classifier} classifier, the user needs to set the sub-node $<SKLtype>PassiveAggressiveClassifier</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<C>$ \textbf{\textit{, float.}}. Maximum step size (regularization). Defaults to 1.0.
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. Defaults to True.
+  \item $<n \textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The number of passes over the training data (aka epochs). Defaults to 5.
+  \item $<shuffle>$ \textbf{\textit{, boolean, optional field.}}. Whether or not the training data should be shuffled after each epoch. Defaults to False.
+  \item $<random \textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data.
+  \item $<verbose>$ \textbf{\textit{, integer or boolean, optional field.}}. The verbosity level
+  \item $<loss>$ \textbf{\textit{, string, optional field.}}. The loss function to be used: hinge: equivalent to PA-I in the reference paper. squared \textunderscore hinge: equivalent to PA-II in the reference paper.
+  \item $<warm \textunderscore start>$ \textbf{\textit{, boolean, optional field.}}. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+\end{itemize}
+
 \subparagraph{Passive Aggressive Regressor}
-pass
+\mbox{}
+\\The \textit{Passive Aggressive Regressor} is similar to the Perceptron in that they do not require a learning rate. However, contrary to the Perceptron, they include a regularization parameter C
+\\In order to use the \textit{Passive Aggressive Regressor} regressor, the user needs to set the sub-node $<SKLtype>PassiveAggressiveRegressor</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<C>$ \textbf{\textit{, float.}}. Maximum step size (regularization). Defaults to 1.0.
+  \item $<epsilon>$ \textbf{\textit{, float.}}. If the difference between the current prediction and the correct label is below this threshold, the model is not updated.
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. Defaults to True.
+  \item $<n \textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The number of passes over the training data (aka epochs). Defaults to 5.
+  \item $<shuffle>$ \textbf{\textit{, boolean, optional field.}}. Whether or not the training data should be shuffled after each epoch. Defaults to False.
+  \item $<random \textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data.
+  \item $<verbose>$ \textbf{\textit{, int, optional field.}}. The verbosity level
+  \item $<loss>$ \textbf{\textit{, string, optional field.}}. The loss function to be used: epsilon \textunderscore insensitive: equivalent to PA-I in the reference paper. squared \textunderscore epsilon \textunderscore insensitive: equivalent to PA-II in the reference paper.
+  \item $<warm \textunderscore start>$ \textbf{\textit{, boolean, optional field.}}. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+\end{itemize}
+
 \subparagraph{Perceptron}
-pass
+\mbox{}
+\\The \textit{Perceptron} is an algorithm for supervised classification of an input into one of several possible non-binary outputs. It is a type of linear classifier, i.e. a classification algorithm that makes its predictions based on a linear predictor function combining a set of weights with the feature vector. The algorithm allows for online learning, in that it processes elements in the training set one at a time.
+\\In order to use the \textit{Perceptron} classifier, the user needs to set the sub-node $<SKLtype>Perceptron</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<penalty>$ \textbf{\textit{, None, ‘l2’ or ‘l1’ or ‘elasticnet’.}}. The penalty (aka regularization term) to be used. Defaults to None.
+  \item $<alpha>$ \textbf{\textit{, float.}}. Constant that multiplies the regularization term if regularization is used. Defaults to 0.0001
+  \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. Defaults to True.
+  \item $<n \textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The number of passes over the training data (aka epochs). Defaults to 5.
+  \item $<shuffle>$ \textbf{\textit{, boolean, optional field.}}. Whether or not the training data should be shuffled after each epoch. Defaults to False.
+  \item $<random \textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data.
+  \item $<verbose>$ \textbf{\textit{, int, optional field.}}. The verbosity level
+  \item $<eta0>$ \textbf{\textit{, double, optional field.}}. Constant by which the updates are multiplied. Defaults to 1.
+  \item $<class \textunderscore weight>$ \textbf{\textit{, dict, {class \textunderscore label}.}}. Preset for the class \textunderscore weight fit parameter. Weights associated with classes. If not given, all classes are supposed to have weight one. The “auto” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies.
+  \item $<warm \textunderscore start>$ \textbf{\textit{, boolean, optional field.}}. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+\end{itemize}
+
 \subparagraph{Randomized Lasso}
-pass
+\mbox{}
+\\The \textit{Randomized Lasso} works by resampling the train data and computing a Lasso on each resampling. In short, the features selected more often are good features. It is also known as stability selection. 
+\\In order to use the \textit{Randomized Lasso} regressor, the user needs to set the sub-node $<SKLtype>RandomizedLasso</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<alpha>$ \textbf{\textit{, float, ‘aic’, or ‘bic’, optional.}}. The regularization parameter alpha parameter in the Lasso. Warning: this is not the alpha parameter in the stability selection article which is scaling.
+  \item $<scaling>$ \textbf{\textit{, float, optional field.}}. The alpha parameter in the stability selection article used to randomly scale the features. Should be between 0 and 1. 
+  \item $<sample\textunderscore fraction>$ \textbf{\textit{, float, optional field.}}. The fraction of samples to be used in each randomized design. Should be between 0 and 1. If 1, all samples are used.
+  \item $<n\textunderscore resampling>$ \textbf{\textit{, int, optional field.}}. Number of randomized models.
+  \item $<selection\textunderscore threshold>$ \textbf{\textit{, float, optional field.}}. The score above which features should be selected.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean, optional field.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<verbose>$ \textbf{\textit{, boolean or integer, optional field.}}. Sets the verbosity amount
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field (default True).}}. If True, the regressors X will be normalized before regression.
+  \item $<precompute>$ \textbf{\textit{, True | False | ‘auto’.}}. Whether to use a precomputed Gram matrix to speed up calculations. If set to ‘auto’ let us decide. The Gram matrix can also be passed as argument.
+  \item $<max\textunderscore iter>$ \textbf{\textit{, int, optional field.}}. Maximum number of iterations to perform in the Lars algorithm.
+  \item $<eps>$ \textbf{\textit{, float, optional field.}}. The machine-precision regularization in the computation of the Cholesky diagonal factors. Increase this for very ill-conditioned systems. Unlike the ‘tol’ parameter in some iterative optimization-based algorithms, this parameter does not control the tolerance of the optimization.
+  \item $<random\textunderscore state>$ \textbf{\textit{, int, RandomState instance or None, optional (default=None).}}. If int, random\textunderscore state is the seed used by the random number generator; If RandomState instance, random\textunderscore state is the random number generator; If None, the random number generator is the RandomState instance used by np.random.
+\end{itemize}
+
 \subparagraph{Randomized Logistic Regression}
-pass
+\mbox{}
+\\The \textit{Randomized Logistic Regression} works by resampling the train data and computing a LogisticRegression on each resampling. In short, the features selected more often are good features. It is also known as stability selection.
+\\In order to use the \textit{Randomized Logistic Regression} regressor, the user needs to set the sub-node $<SKLtype>RandomizedLogisticRegression</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<C>$ \textbf{\textit{, float, optional field (default=1).}}. The regularization parameter C in the LogisticRegression.
+  \item $<scaling>$ \textbf{\textit{, float, optional field (default=0.5).}}. The alpha parameter in the stability selection article used to randomly scale the features. Should be between 0 and 1.
+  \item $<sample\textunderscore fraction>$ \textbf{\textit{, float, optional field (default=0.75).}}. The fraction of samples to be used in each randomized design. Should be between 0 and 1. If 1, all samples are used.
+  \item $<n\textunderscore resampling>$ \textbf{\textit{, int, optional field (default=200).}}. Number of randomized models.
+  \item $<selection\textunderscore threshold>$ \textbf{\textit{, float, optional field (default=0.25).}}. The score above which features should be selected.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean, optional field.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<verbose>$ \textbf{\textit{, boolean or integer, optional field (default=True).}} Sets the verbosity amount
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field (default=True).}}. If True, the regressors X will be normalized before regression.
+  \item $<tol>$ \textbf{\textit{, float, optional field (default=1e-3).}}. tolerance for stopping criteria of LogisticRegression
+  \item $<random\textunderscore state>$ \textbf{\textit{, int, RandomState instance or None, optional (default=None).}}. If int, random\textunderscore state is the seed used by the random number generator; If RandomState instance, random\textunderscore state is the random number generator; If None, the random number generator is the RandomState instance used by np.random.
+\end{itemize}
+
 \subparagraph{Linear least squares with l2 regularization}
-pass
+\mbox{}
+\\The \textit{Linear least squares with l2 regularization} solves a regression model where the loss function is the linear least squares function and regularization is given by the l2-norm. Also known as Ridge Regression or Tikhonov regularization. This estimator has built-in support for multi-variate regression (i.e., when y is a 2d-array of shape [n\textunderscore samples, n\textunderscore targets]).
+\\In order to use the \textit{Linear least squares with l2 regularization} regressor, the user needs to set the sub-node $<SKLtype>Ridge</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<alpha>$ \textbf{\textit{, float, array-like.}}. shape = [n\textunderscore targets] Small positive values of alpha improve the conditioning of the problem and reduce the variance of the estimates. Alpha corresponds to $(2*C)^-1$ in other linear models such as LogisticRegression or LinearSVC. If an array is passed, penalties are assumed to be specific to the targets. Hence they must correspond in number.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<max\textunderscore iter>$ \textbf{\textit{, int, optional field.}}. Maximum number of iterations for conjugate gradient solver. The default value is determined by scipy.sparse.linalg.
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field (default False).}}. If True, the regressors X will be normalized before regression.
+  \item $<solver>$ \textbf{\textit{, {‘auto’, ‘svd’, ‘cholesky’, ‘lsqr’, ‘sparse\textunderscore cg’}.}}. Solver to use in the computational routines:
+				\begin{itemize}
+				\item‘auto’ chooses the solver automatically based on the type of data.
+				\item‘svd’ uses a Singular Value Decomposition of X to compute the Ridge coefficients. More stable for singular matrices than ‘cholesky’.
+				\item‘cholesky’ uses the standard scipy.linalg.solve function to obtain a closed-form solution.
+				\item‘sparse\textunderscore cg’ uses the conjugate gradient solver as found in scipy.sparse.linalg.cg. As an iterative algorithm, this solver is more appropriate than ‘cholesky’ for large-scale data (possibility to set tol and max\textunderscore iter).
+				\item‘lsqr’ uses the dedicated regularized least-squares routine scipy.sparse.linalg.lsqr. It is the fatest but may not be available in old scipy versions. It also uses an iterative procedure.
+				\end{itemize}
+				All three solvers support both dense and sparse data.
+\end{itemize}
+
 \subparagraph{Classifier using Ridge regression}
-pass
+\mbox{}
+\\The \textit{Classifier using Ridge regression} is a classifier based on Linear least squares with l2 regularization
+\\In order to use the \textit{Classifier using Ridge regression} classifier, the user needs to set the sub-node $<SKLtype>RidgeClassifier</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<alpha>$ \textbf{\textit{, float.}}. Small positive values of alpha improve the conditioning of the problem and reduce the variance of the estimates. Alpha corresponds to $(2*C)^-1$ in other linear models such as LogisticRegression or LinearSVC.
+  \item $<class\textunderscore weight>$ \textbf{\textit{, dic, optional field.}}. Weights associated with classes in the form {class\textunderscore label : weight}. If not given, all classes are supposed to have weight one.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<max\textunderscore iter>$ \textbf{\textit{, int, optional field.}}. Maximum number of iterations for conjugate gradient solver. The default value is determined by scipy.sparse.linalg.
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field (default False).}}. If True, the regressors X will be normalized before regression.
+  \item $<solver>$ \textbf{\textit{, {‘auto’, ‘svd’, ‘cholesky’, ‘lsqr’, ‘sparse\textunderscore cg’}.}}. Solver to use in the computational routines. ‘svd’ will use a Singular value decomposition to obtain the solution, ‘cholesky’ will use the standard scipy.linalg.solve function, ‘sparse\textunderscore cg’ will use the conjugate gradient solver as found in scipy.sparse.linalg.cg while ‘auto’ will chose the most appropriate depending on the matrix X. ‘lsqr’ uses a direct regularized least-squares routine provided by scipy.
+  \item $<tol>$ \textbf{\textit{, float.}}. Precision of the solution.
+\end{itemize}
+
 \subparagraph{Ridge classifier with built-in cross-validation}
-pass
+\mbox{}
+\\The \textit{Ridge classifier with built-in cross-validation} performs Generalized Cross-Validation, which is a form of efficient Leave-One-Out cross-validation. Currently, only the n\textunderscore features > n\textunderscore samples case is handled efficiently.
+\\In order to use the \textit{Ridge classifier with built-in cross-validation} classifier, the user needs to set the sub-node $<SKLtype>RidgeClassifierCV</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<alphas>$ \textbf{\textit{, numpy array of shape [n\textunderscore alphas].}}. Array of alpha values to try. Small positive values of alpha improve the conditioning of the problem and reduce the variance of the estimates. Alpha corresponds to $(2*C)^-1$ in other linear models such as LogisticRegression or LinearSVC.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field (default False).}}. If True, the regressors X will be normalized before regression.
+  \item $<scoring>$ \textbf{\textit{, string, callable or None, optional, default: None.}}. A string (see model evaluation documentation) or a scorer callable object / function with signature scorer(estimator, X, y).
+  \item $<cv>$ \textbf{\textit{, cross-validation generator, optional.}}. If None, Generalized Cross-Validation (efficient Leave-One-Out) will be used.
+  \item $<class\textunderscore weight>$ \textbf{\textit{, dic, optional field.}}. Weights associated with classes in the form {class\textunderscore label : weight}. If not given, all classes are supposed to have weight one.
+\end{itemize}
+
 \subparagraph{Ridge regression with built-in cross-validation}
-pass
+\mbox{}
+\\The \textit{Ridge regression with built-in cross-validation} performs Generalized Cross-Validation, which is a form of efficient Leave-One-Out cross-validation.
+\\In order to use the \textit{Ridge regression with built-in cross-validation} regressor, the user needs to set the sub-node $<SKLtype>RidgeCV</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<alphas>$ \textbf{\textit{, numpy array of shape [n\textunderscore alphas] .}}. Array of alpha values to try. Small positive values of alpha improve the conditioning of the problem and reduce the variance of the estimates. Alpha corresponds to $(2*C)^-1$ in other linear models such as LogisticRegression or LinearSVC.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<normalize>$ \textbf{\textit{, boolean, optional field (default False).}}. If True, the regressors X will be normalized before regression.
+  \item $<scoring>$ \textbf{\textit{, string, callable or None, optional, default: None.}}. A string (see model evaluation documentation) or a scorer callable object / function with signature scorer(estimator, X, y).
+  \item $<cv>$ \textbf{\textit{, cross-validation generator, optional field.}}. If None, Generalized Cross-Validation (efficient Leave-One-Out) will be used.
+  \item $<gcv\textunderscore mode>$ \textbf{\textit{, {None, ‘auto’, ‘svd’, eigen’}, optional field.}}. Flag indicating which strategy to use when performing Generalized Cross-Validation. Options are:
+				\begin{itemize}
+				  \item 'auto' : use svd if n\textunderscore samples > n\textunderscore features or when X is a sparse matrix, otherwise use eigen
+				  \item 'svd' : force computation via singular value decomposition of $X$ (does not work for sparse matrices)
+				  \item 'eigen' : force computation via eigendecomposition of $X^T X$
+				 \end{itemize}
+				The ‘auto’ mode is the default and is intended to pick the cheaper option of the two depending upon the shape and format of the training data.
+  \item $<store\textunderscore cv\textunderscore values>$ \textbf{\textit{, boolean (default=False).}}. Flag indicating if the cross-validation values corresponding to each alpha should be stored in the cv\textunderscore values\textunderscore  attribute (see below). This flag is only compatible with cv=None (i.e. using Generalized Cross-Validation).
+\end{itemize}
+
 \subparagraph{Linear classifiers (SVM, logistic regression, a.o.) with SGD training}
-pass
+\mbox{}
+\\The \textit{Linear classifiers (SVM, logistic regression, a.o.) with SGD training} implements regularized linear models with stochastic gradient descent (SGD) learning: the gradient of the loss is estimated each sample at a time and the model is updated along the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch (online/out-of-core) learning, see the partial\textunderscore fit method.
+This implementation works with data represented as dense or sparse arrays of floating point values for the features. The model it fits can be controlled with the loss parameter; by default, it fits a linear support vector machine (SVM).
+The regularizer is a penalty added to the loss function that shrinks model parameters towards the zero vector using either the squared euclidean norm L2 or the absolute norm L1 or a combination of both (Elastic Net). If the parameter update crosses the 0.0 value because of the regularizer, the update is truncated to 0.0 to allow for learning sparse models and achieve online feature selection.
+\\In order to use the \textit{Linear classifiers (SVM, logistic regression, a.o.) with SGD training} WHAT, the user needs to set the sub-node $<SKLtype>SGDClassifier</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<loss>$ \textbf{\textit{, str, ‘hinge’, ‘log’, ‘modified\textunderscore huber’, ‘squared\textunderscore hinge’, ‘perceptron’, or a regression loss: ‘squared\textunderscore loss’, ‘huber’, ‘epsilon\textunderscore insensitive’, or ‘squared\textunderscore epsilon\textunderscore insensitive’.}}. The loss function to be used. Defaults to ‘hinge’, which gives a linear SVM. The ‘log’ loss gives logistic regression, a probabilistic classifier. ‘modified\textunderscore huber’ is another smooth loss that brings tolerance to outliers as well as probability estimates. ‘squared\textunderscore hinge’ is like hinge but is quadratically penalized. ‘perceptron’ is the linear loss used by the perceptron algorithm. The other losses are designed for regression but can be useful in classification as well; see SGDRegressor for a description.
+  \item $<penalty>$ \textbf{\textit{, str, ‘l2’ or ‘l1’ or ‘elasticnet’.}}. The penalty (aka regularization term) to be used. Defaults to ‘l2’ which is the standard regularizer for linear SVM models. ‘l1’ and ‘elasticnet’ might bring sparsity to the model (feature selection) not achievable with ‘l2’.
+  \item $<alpha>$ \textbf{\textit{, float.}}. Constant that multiplies the regularization term. Defaults to 0.0001
+  \item $<l1\textunderscore ratio>$ \textbf{\textit{, float.}}. The Elastic Net mixing parameter, with 0 <= l1\textunderscore ratio <= 1. l1\textunderscore ratio=0 corresponds to L2 penalty, l1\textunderscore ratio=1 to L1. Defaults to 0.15.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. Defaults to True.
+  \item $<n\textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The number of passes over the training data (aka epochs). Defaults to 5.
+  \item $<shuffle>$ \textbf{\textit{, boolean, optional field.}}. Whether or not the training data should be shuffled after each epoch. Defaults to False.
+  \item $<random\textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data.
+  \item $<verbose>$ \textbf{\textit{, int, optional field.}}. The verbosity level
+  \item $<epsilon>$ \textbf{\textit{, int, optional field.}}. The number of CPUs to use to do the OVA (One Versus All, for multi-class problems) computation. -1 means ‘all CPUs’. Defaults to 1.
+  \item $<learning\textunderscore rate>$ \textbf{\textit{, string, optional field.}}. The learning rate: constant: eta = eta0 optimal: eta = 1.0 / (t + t0) [default] invscaling: eta = eta0 / pow(t, power\textunderscore t)
+  \item $<eta0>$ \textbf{\textit{, double.}}. The initial learning rate for the ‘constant’ or ‘invscaling’ schedules. The default value is 0.0 as eta0 is not used by the default schedule ‘optimal’.
+  \item $<power\textunderscore t>$ \textbf{\textit{, double.}}. The exponent for inverse scaling learning rate [default 0.5].
+  \item $<class\textunderscore weight>$ \textbf{\textit{, dict, {class\textunderscore label}.}}. Preset for the class\textunderscore weight fit parameter. Weights associated with classes. If not given, all classes are supposed to have weight one. The “auto” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies.
+  \item $<warm\textunderscore start>$ \textbf{\textit{, boolean, optional field.}}. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+\end{itemize}
+
 \subparagraph{Linear model fitted by minimizing a regularized empirical loss with SGD}
-pass
+\mbox{}
+\\The \textit{Linear model fitted by minimizing a regularized empirical loss
+with SGD} is a model where SGD stands for Stochastic Gradient Descent: the gradient of the loss is estimated each sample at a time and the model is updated along the way with a decreasing strength schedule (aka learning rate).
+The regularizer is a penalty added to the loss function that shrinks model parameters towards the zero vector using either the squared euclidean norm L2 or the absolute norm L1 or a combination of both (Elastic Net). If the parameter update crosses the 0.0 value because of the regularizer, the update is truncated to 0.0 to allow for learning sparse models and achieve online feature selection.
+This implementation works with data represented as dense numpy arrays of floating point values for the features.
+ \\In order to use the \textit{Linear model fitted by
+minimizing a regularized empirical loss with SGD} model, the user needs to set the sub-node
+$<SKLtype>FW\textunderscore NAME</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<loss>$ \textbf{\textit{,str, ‘squared\textunderscore loss’, ‘huber’, ‘epsilon\textunderscore insensitive’, or ‘squared\textunderscore epsilon\textunderscore insensitive’.}}. The loss function to be used. Defaults to ‘squared\textunderscore loss’ which refers to the ordinary least squares fit. ‘huber’ modifies ‘squared\textunderscore loss’ to focus less on getting outliers correct by switching from squared to linear loss past a distance of epsilon. ‘epsilon\textunderscore insensitive’ ignores errors less than epsilon and is linear past that; this is the loss function used in SVR. ‘squared\textunderscore epsilon\textunderscore insensitive’ is the same but becomes squared loss past a tolerance of epsilon.
+  \item $<penalty>$ \textbf{\textit{, str, ‘l2’ or ‘l1’ or ‘elasticnet’.}}. The penalty (aka regularization term) to be used. Defaults to ‘l2’ which is the standard regularizer for linear SVM models. ‘l1’ and ‘elasticnet’ might bring sparsity to the model (feature selection) not achievable with ‘l2’.
+  \item $<alpha>$ \textbf{\textit{, float.}}. Constant that multiplies the regularization term. Defaults to 0.0001
+  \item $<l1\textunderscore ratio>$ \textbf{\textit{, float.}}. The Elastic Net mixing parameter, with 0 <= l1\textunderscore ratio <= 1. l1\textunderscore ratio=0 corresponds to L2 penalty, l1\textunderscore ratio=1 to L1. Defaults to 0.15.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean.}}. Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. Defaults to True.
+  \item $<n\textunderscore iter>$ \textbf{\textit{, int, optional field.}}. The number of passes over the training data (aka epochs). Defaults to 5.
+  \item $<shuffle>$ \textbf{\textit{, boolean, optional field.}}. Whether or not the training data should be shuffled after each epoch. Defaults to False.
+  \item $<random\textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data.
+  \item $<verbose>$ \textbf{\textit{, int, optional field.}}. The verbosity level.
+  \item $<epsilon>$ \textbf{\textit{, float.}}. Epsilon in the epsilon-insensitive loss functions; only if loss is ‘huber’, ‘epsilon\textunderscore insensitive’, or ‘squared\textunderscore epsilon\textunderscore insensitive’. For ‘huber’, determines the threshold at which it becomes less important to get the prediction exactly right. For epsilon-insensitive, any differences between the current prediction and the correct label are ignored if they are less than this threshold.
+  \item $<learning\textunderscore rate>$ \textbf{\textit{, string, optional field.}}.Learning rate: constant: eta = eta0 optimal: eta = 1.0/(t+t0) invscaling: eta= eta0 / pow(t, power\textunderscore t) [default]
+  \item $<eta0>$ \textbf{\textit{, double.}}. The initial learning rate [default 0.01].
+  \item $<power\textunderscore t>$ \textbf{\textit{, double, optional field.}}. The exponent for inverse scaling learning rate [default 0.25].
+  \item $<warm\textunderscore start>$ \textbf{\textit{, boolean, optional field.}}. When set to True, reuse the solution of the previous call to fit as initialization, otherwise, just erase the previous solution.
+\end{itemize}
+
 \subparagraph{Compute Least Angle Regression or Lasso path using LARS algorithm}
-pass
+\mbox{}
+\\The \textit{Compute Least Angle Regression or Lasso path using LARS algorithm} is a regressor where the optimization objective for the case method=’lasso’ is:
+$(1 / (2 * n\textunderscore samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
+in the case of method=’lars’, the objective function is only known in the form of an implicit equation
+\\In order to use the \textit{Compute Least Angle Regression or Lasso path using LARS algorithm} regressor, the user needs to set the sub-node $<SKLtype>lars\textunderscore path</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<X>$ \textbf{\textit{, array, shape: (n\textunderscore samples, n\textunderscore features).}}. Input data.
+  \item $<y>$ \textbf{\textit{, array, shape: (n\textunderscore samples).}}. Input targets.
+  \item $<max\textunderscore iter>$ \textbf{\textit{, integer, optional (default=500).}}. Maximum number of iterations to perform, set to infinity for no limit.
+  \item $<gram>$ \textbf{\textit{, None, ‘auto’, array, shape: (n\textunderscore features, n\textunderscore features), optional.}}. Precomputed Gram matrix (X’ * X), if 'auto', the Gram matrix is precomputed from the given X, if there are more samples than features.
+  \item $<alpha\textunderscore min>$ \textbf{\textit{, float, optional field (default=0).}}. Minimum correlation along the path. It corresponds to the regularization parameter alpha parameter in the Lasso.
+  \item $<method>$ \textbf{\textit{, {‘lar’, ‘lasso’}, optional (default=’lar’).}}. Specifies the returned model. Select 'lar' for Least Angle Regression, 'lasso' for the Lasso.
+  \item $<eps>$ \textbf{\textit{, float, optional (default=``np.finfo(np.float).eps``).}}. The machine-precision regularization in the computation of the Cholesky diagonal factors. Increase this for very ill-conditioned systems.
+  \item $<verbose>$ \textbf{\textit{, int (default=0).}}. Controls output verbosity.
+\end{itemize}
+
 \subparagraph{Compute Lasso path with coordinate descent}
-pass
-\subparagraph{Stabiliy path based on randomized Lasso estimates}
-pass
+\mbox{}
+\\The \textit{Compute Lasso path with coordinate descent} is a regressor where the Lasso optimization function varies for mono and multi-outputs.
+For mono-output tasks it is:
+$(1 / (2 * n\textunderscore samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
+For multi-output tasks it is:
+$(1 / (2 * n\textunderscore samples)) * ||Y - XW||^2_Fro + alpha * ||W||_21$
+Where:
+$||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
+i.e. the sum of norm of each row.
+\\In order to use the \textit{Compute Lasso path with coordinate descent} regressor, the user needs to set the sub-node $<SKLtype>lasso\textunderscore path</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<X>$ \textbf{\textit{, {array-like, sparse matrix}, shape (n\textunderscore samples, n\textunderscore features).}}. Training data. Pass directly as Fortran-contiguous data to avoid unnecessary memory duplication. If y is mono-output then X can be sparse.
+  \item $<y>$ \textbf{\textit{, ndarray, shape = (n\textunderscore samples,), or (n\textunderscore samples, n\textunderscore outputs).}}. Target values
+  \item $<eps>$ \textbf{\textit{, float, optional field.}}. Length of the path. eps=1e-3 means that alpha\textunderscore min / alpha\textunderscore max = 1e-3
+  \item $<n\textunderscore alphas>$ \textbf{\textit{, int, optional field.}}. Number of alphas along the regularization path
+  \item $<alphas>$ \textbf{\textit{, ndarray, optional field.}}. List of alphas where to compute the models. If None alphas are set automatically
+  \item $<precompute>$ \textbf{\textit{, True | False | ‘auto’ | array-like.}}. Whether to use a precomputed Gram matrix to speed up calculations. If set to 'auto' let us decide. The Gram matrix can also be passed as argument.
+  \item $<Xy>$ \textbf{\textit{, array-like, optional field.}}. Xy = np.dot(X.T, y) that can be precomputed. It is useful only when the Gram matrix is precomputed.
+  \item $<copy\textunderscore X>$ \textbf{\textit{, boolean, optional field (default True).}}. If True, X will be copied; else, it may be overwritten.
+  \item $<coef\textunderscore init>$ \textbf{\textit{, array, shape (n\textunderscore features, ) | None.}}. The initial values of the coefficients.
+  \item $<verbose>$ \textbf{\textit{, bool or integer.}}. Amount of verbosity.
+\end{itemize}
+
+\subparagraph{Stability path based on randomized Lasso estimates}
+\mbox{}
+\\In order to use the \textit{Stability path based on randomized Lasso estimates} regressor, the user needs to set the sub-node $<SKLtype>lasso\textunderscore stability\textunderscore path</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<X>$ \textbf{\textit{, array-like, shape = [n\textunderscore samples, n\textunderscore features].}}. training data.
+  \item $<y>$ \textbf{\textit{, array-like, shape = [n\textunderscore samples].}}. target values.
+  \item $<scaling>$ \textbf{\textit{, float, optional, default=0.5.}}. The alpha parameter in the stability selection article used to randomly scale the features. Should be between 0 and 1.
+  \item $<random\textunderscore state>$ \textbf{\textit{, integer or numpy.random.RandomState, optional.}}. The generator used to randomize the design.
+  \item $<n\textunderscore resampling>$ \textbf{\textit{, int, optional, default=200.}}. Number of randomized models.
+  \item $<n\textunderscore grid>$ \textbf{\textit{, int, optional, default=100.}}. Number of grid points. The path is linearly reinterpolated on a grid between 0 and 1 before computing the scores.
+  \item $<sample\textunderscore fraction>$ \textbf{\textit{, float, optional, default=0.75.}}. The fraction of samples to be used in each randomized design. Should be between 0 and 1. If 1, all samples are used.
+  \item $<eps>$ \textbf{\textit{, float, optional field.}}. Smallest value of alpha / alpha\textunderscore max considered
+  \item $<verbose>$ \textbf{\textit{, boolean or integer, optional field.}}. Sets the verbosity amount
+\end{itemize}
+
 \subparagraph{Gram Orthogonal Matching Pursuit (OMP)}
-pass
-%%%%% ROM Model - SciKitLearn: Support Vector Machineas %%%%%%%
+\mbox{}
+\\The \textit{NAME} Solves n\textunderscore targets Orthogonal Matching Pursuit problems using only the Gram matrix X.T * X and the product X.T * y.
+\\In order to use the \textit{NAME} regressor, the user needs to set the sub-node $<SKLtype>orthogonal\textunderscore mp\textunderscore gram</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<Gram>$ \textbf{\textit{, array, shape (n\textunderscore features, n\textunderscore features).}}. Gram matrix of the input data: X.T * X
+  \item $<Xy>$ \textbf{\textit{, array, shape (n\textunderscore features,) or (n\textunderscore features, n\textunderscore targets) .}}. Input targets multiplied by X: X.T * y
+  \item $<n\textunderscore nonzero\textunderscore coefs>$ \textbf{\textit{, int.}}. Desired number of non-zero entries in the solution. If None (by default) this value is set to 10\% of n\textunderscore features.
+  \item $<tol>$ \textbf{\textit{, float.}}. Maximum norm of the residual. If not None, overrides n\textunderscore nonzero\textunderscore coefs.
+  \item $<norms\textunderscore squared>$ \textbf{\textit{, array-like, shape (n\textunderscore targets).}}. DESCRIPTION
+\end{itemize}
+
+%%%%% ROM Model - SciKitLearn: Support Vector Machines %%%%%%%
 \paragraph{Support Vector Machines.}
 \label{SVM}
-The LinearModels' type of algorithms implement generalized linear models. It includes Ridge regression, Bayesian Regression, Lasso and Elastic Net estimators computed with Least Angle Regression and coordinate descent. It also implements Stochastic Gradient Descent related algorithms.
-In the following, all the linear models available in RAVEN are reported.
+In machine learning, \textbf{Support Vector Machines} (SVMs, also support vector networks) are supervised learning models with associated learning algorithms that analyze data and recognize patterns, used for classification and regression analysis. Given a set of training examples, each marked as belonging to one of two categories, an SVM training algorithm builds a model that assigns new examples into one category or the other, making it a non-probabilistic binary linear classifier. An SVM model is a representation of the examples as points in space, mapped so that the examples of the separate categories are divided by a clear gap that is as wide as possible. New examples are then mapped into that same space and predicted to belong to a category based on which side of the gap they fall on.
+In addition to performing linear classification, SVMs can efficiently perform a non-linear classification using what is called the kernel trick, implicitly mapping their inputs into high-dimensional feature spaces.
+In the following, all the SVM models available in RAVEN are reported.
+
 \subparagraph{Linear Support Vector Classifier}
-pass
+\mbox{}
+\\The \textit{Linear Support Vector Classifier} is similar to SVC with parameter kernel=’linear’, but implemented in terms of liblinear rather than libsvm, so it has more flexibility in the choice of penalties and loss functions and should scale better (to large numbers of samples).
+This class supports both dense and sparse input and the multiclass support is handled according to a one-vs-the-rest scheme.
+\\In order to use the \textit{Linear Support Vector Classifier} classifier, the user needs to set the sub-node $<SKLtype>LinearSVC</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<C>$ \textbf{\textit{, boolean, optional field (default=1.0).}}. Penalty parameter C of the error term.
+  \item $<loss>$ \textbf{\textit{, string, ‘l1’ or ‘l2’ (default=’l2’).}}. Specifies the loss function. ‘l1’ is the hinge loss (standard SVM) while ‘l2’ is the squared hinge loss.
+  \item $<penalty>$ \textbf{\textit{, string, ‘l1’ or ‘l2’ (default=’l2’).}}. Specifies the norm used in the penalization. The ‘l2’ penalty is the standard used in SVC. The ‘l1’ leads to coef\textunderscore  vectors that are sparse.
+  \item $<dual>$ \textbf{\textit{, boolean (default=True).}}. Select the algorithm to either solve the dual or primal optimization problem. Prefer dual=False when n\textunderscore samples > n\textunderscore features.
+  \item $<tol>$ \textbf{\textit{, float, optional field.}}. Tolerance for stopping criteria
+  \item $<multi\textunderscore class>$ \textbf{\textit{, string, ‘ovr’ or ‘crammer\textunderscore singer’ (default=’ovr’).}}. Determines the multi-class strategy if y contains more than two classes. ovr trains n\textunderscore classes one-vs-rest classifiers, while crammer\textunderscore singer optimizes a joint objective over all classes. While crammer\textunderscore singer is interesting from an theoretical perspective as it is consistent it is seldom used in practice and rarely leads to better accuracy and is more expensive to compute. If crammer\textunderscore singer is chosen, the options loss, penalty and dual will be ignored.
+  \item $<fit\textunderscore intercept>$ \textbf{\textit{, boolean, optional field (default=True).}}. Whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
+  \item $<intercept\textunderscore scaling>$ \textbf{\textit{, float, optional field (default=1).}}. when self.fit\textunderscore intercept is True, instance vector x becomes [x, self.intercept\textunderscore scaling], i.e. a “synthetic” feature with constant value equals to intercept\textunderscore scaling is appended to the instance vector. The intercept becomes intercept\textunderscore scaling * synthetic feature weight Note! the synthetic feature weight is subject to l1/l2 regularization as all other features. To lessen the effect of regularization on synthetic feature weight (and therefore on the intercept) intercept\textunderscore scaling has to be increased
+  \item $<class\textunderscore weight>$ \textbf{\textit{, {dict, ‘auto’}, optional field.}}. Set the parameter C of class i to class\textunderscore weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The ‘auto’ mode uses the values of y to automatically adjust weights inversely proportional to class frequencies.
+  \item $<verbose>$ \textbf{\textit{, int, optional field (default=0).}}. Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in liblinear that, if enabled, may not work properly in a multithreaded context.
+  \item $<random\textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data.
+\end{itemize}
+
 \subparagraph{C-Support Vector Classification}
-pass
+\mbox{}
+\\The \textit{C-Support Vector Classification} is a based on libsvm. The fit time complexity is more than quadratic with the number of samples which makes it hard to scale to dataset with more than a couple of 10000 samples.
+The multiclass support is handled according to a one-vs-one scheme.
+\\In order to use the \textit{C-Support Vector Classification} classifier, the user needs to set the sub-node $<SKLtype>SVC</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<C>$ \textbf{\textit{, float, optional field (default=1.0).}}. Penalty parameter C of the error term.
+  \item $<kernel>$ \textbf{\textit{, string, optional (default=’rbf’).}}. Specifies the kernel type to be used in the algorithm. It must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’ or a callable. If none is given, ‘rbf’ will be used. If a callable is given it is used to precompute the kernel matrix.
+  \item $<degree>$ \textbf{\textit{, int, optional field (default=3).}}. Degree of the polynomial kernel function (‘poly’). Ignored by all other kernels.
+  \item $<gamma>$ \textbf{\textit{, float, optional field (default=0.0).}}. Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’. If gamma is 0.0 then 1/n\textunderscore features will be used instead.
+  \item $<coef0>$ \textbf{\textit{, float, optional field (default=0.0).}}. Independent term in kernel function. It is only significant in ‘poly’ and ‘sigmoid’.
+  \item $<probability>$ \textbf{\textit{, boolean, optional field (default=False).}}. Whether to enable probability estimates. This must be enabled prior to calling fit, and will slow down that method.
+  \item $<shrinking>$ \textbf{\textit{, boolean, optional field (default=True).}}. Whether to use the shrinking heuristic.
+  \item $<tol>$ \textbf{\textit{, float, optional field (default=1e-3).}}. Tolerance for stopping criterion.
+  \item $<cache\textunderscore size>$ \textbf{\textit{, float, optional field.}}. Specify the size of the kernel cache (in MB)
+  \item $<class\textunderscore weight>$ \textbf{\textit{, {dict, ‘auto’}, optional.}}. Set the parameter C of class i to class\textunderscore weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The ‘auto’ mode uses the values of y to automatically adjust weights inversely proportional to class frequencies.
+  \item $<verbose>$ \textbf{\textit{, boolean (default: False).}}. Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in libsvm that, if enabled, may not work properly in a multithreaded context.
+  \item $<max\textunderscore iter>$ \textbf{\textit{, int, optional field (default=-1).}}. Hard limit on iterations within solver, or -1 for no limit.
+  \item $<random\textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data for probability estimation.
+\end{itemize}
+
 \subparagraph{Nu-Support Vector Classification}
-pass
+\mbox{}
+\\The \textit{Nu-Support Vector Classification} is similar to SVC but uses a parameter to control the number of support vectors.
+The implementation is based on libsvm.
+\\In order to use the \textit{Nu-Support Vector Classification} classifier, the user needs to set the sub-node $<SKLtype>NuSVC</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<nu>$ \textbf{\textit{, float, optional field (default=0.5).}}. An upper bound on the fraction of training errors and a lower bound of the fraction of support vectors. Should be in the interval (0, 1].
+  \item $<kernel>$ \textbf{\textit{, string, optional field (default=’rbf’).}}. Specifies the kernel type to be used in the algorithm. It must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’ or a callable. If none is given, ‘rbf’ will be used. If a callable is given it is used to precompute the kernel matrix.
+  \item $<degree>$ \textbf{\textit{, int, optional field (default=3).}}. degree of kernel function is significant only in poly, rbf, sigmoid
+  \item $<gamma>$ \textbf{\textit{, float, optional field (default=0.0).}}. kernel coefficient for rbf and poly, if gamma is 0.0 then 1/n\textunderscore features will be taken.
+  \item $<coef0>$ \textbf{\textit{, float, optional field (default=0.0).}}. independent term in kernel function. It is only significant in poly/sigmoid.
+  \item $<probability>$ \textbf{\textit{, boolean, optional field (default=False).}}. Whether to enable probability estimates. This must be enabled prior to calling fit, and will slow down that method.
+  \item $<shrinking>$ \textbf{\textit{, boolean, optional field (default=True).}}. Whether to use the shrinking heuristic.
+  \item $<tol>$ \textbf{\textit{, float, optional field (default=1e-3).}}. Tolerance for stopping criterion.
+  \item $<cache\textunderscore size>$ \textbf{\textit{, float, optional field.}}. Specify the size of the kernel cache (in MB)
+  \item $<verbose>$ \textbf{\textit{, boolean, optional field (default=False).}}. Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in libsvm that, if enabled, may not work properly in a multithreaded context.
+  \item $<max\textunderscore iter>$ \textbf{\textit{, int, optional field (default=-1).}}. Hard limit on iterations within solver, or -1 for no limit.
+  \item $<random\textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data for probability estimation.
+\end{itemize}
+
 \subparagraph{Support Vector Regression}
-pass
-
-
-
-
+\mbox{}
+\\The \textit{Support Vector Regression} is an epsilon-Support Vector Regression.
+The free parameters in the model are C and epsilon.
+The implementations is a based on libsvm.
+\\In order to use the \textit{Support Vector Regression} regressor, the user needs to set the sub-node $<SKLtype>SVR</SKLtype>$.
+In addition to this XML node, several others need (or not) to be inputted:
+\begin{itemize}
+  \item $<C>$ \textbf{\textit{, float, optional field (default=1.0).}}. penalty parameter C of the error term.
+  \item $<epsilon>$ \textbf{\textit{, float, optional field (default=0.1).}}. epsilon in the epsilon-SVR model. It specifies the epsilon-tube within which no penalty is associated in the training loss function with points predicted within a distance epsilon from the actual value.
+  \item $<kernel>$ \textbf{\textit{, string, optional field (default=’rbf’).}}. Specifies the kernel type to be used in the algorithm. It must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’ or a callable. If none is given, ‘rbf’ will be used. If a callable is given it is used to precompute the kernel matrix.
+  \item $<degree>$ \textbf{\textit{, float, optional field (default=3.0).}}. degree of kernel function is significant only in poly, rbf, sigmoid
+  \item $<gamma>$ \textbf{\textit{, float, optional field (default=0.0).}}. kernel coefficient for rbf and poly, if gamma is 0.0 then 1/n\textunderscore features will be taken.
+  \item $<coef0>$ \textbf{\textit{, float, optional field (default=0.0).}}. independent term in kernel function. It is only significant in poly/sigmoid.
+  \item $<probability>$ \textbf{\textit{, boolean, optional field (default=False).}}. Whether to enable probability estimates. This must be enabled prior to calling fit, and will slow down that method.
+  \item $<shrinking>$ \textbf{\textit{, boolean, optional field (default=True).}}. Whether to use the shrinking heuristic.
+  \item $<tol>$ \textbf{\textit{, float, optional field (default=1e-3).}}. Tolerance for stopping criterion.
+  \item $<cache\textunderscore size>$ \textbf{\textit{, float, optional field.}}. Specify the size of the kernel cache (in MB)
+  \item $<verbose>$ \textbf{\textit{, boolean (default: False).}}. Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in libsvm that, if enabled, may not work properly in a multithreaded context.
+  \item $<max\textunderscore iter>$ \textbf{\textit{, int, optional field (default=-1).}}. Hard limit on iterations within solver, or -1 for no limit.
+  \item $<random\textunderscore state>$ \textbf{\textit{, int seed, RandomState instance, or None (default).}}. The seed of the pseudo random number generator to use when shuffling the data for probability estimaton.
+\end{itemize}
  %%%%% ROM Model - SciKitLearn: MultiClass %%%%%%%
 \paragraph{Multi Class.}
 \label{Multiclass}

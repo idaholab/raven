@@ -1,5 +1,58 @@
 \section{Steps  \\ \vspace{2 mm} {\small }}
 \label{sec:steps}
+The core of the RAVEN calculation flow is employed in the so called \textbf{Step} system. The \textbf{Step} is in charge to assemble the different ``entities'' in RAVEN (e.g. Samplers, Models, DataBases, etc.) in order to perform a task that is defined by the kind of Step is under usage. A sequence of different \textbf{Steps} represents the calculation flow and core of the analysis the user wants to perform. 
+\\Before analyzing each \textbf{Step} type, it is worth to briefly explain how a general Step entity is organized and the concept of ``role'' in its definition.
+\\In the following example, a general example of a Step is reported:
+\begin{lstlisting}[style=XML]
+--------------------------------------------
+<Simulation>
+  ...
+  <Steps>
+    ...
+    <WhatEverStepType name='***'>
+        <Role1 class='***'     type='***'   >***</Role1>
+        <Role2 class='***'     type='***'   >***</Role2>
+        <Role3 class='***'     type='***'   >***</Role3>
+        <Role4 class='***'     type='***'   >***</Role4>
+    </WhatEverStepType>
+    ...
+  </Steps>
+  ...
+</Simulation>
+--------------------------------------------
+\end{lstlisting}
+As it can be noticed above,
+
+
+
+The sampler is probably the most important entity in the RAVEN framework. Indeed, it performs the driving of the specific sampling strategy and, hence, determines the effectiveness of the analysis, from both an accuracy and computational point of view.  The samplers, that are available in RAVEN, can be categorized in three main classes:
+\begin{itemize}
+\item \textbf{Once-through}
+\item \textbf{Dynamic Event Tree (DET)}
+\item \textbf{Adaptive}
+\end{itemize}
+Before analyzing  each sampler in details, it is important to mention that each type has a similar syntax to input the variables that need to be ``sampled''. In the example below the variable ``variableName'' is going to be sampled by the Sampler ``WhatEverSampler'' using the distribution ``aDistribution''. 
+\begin{lstlisting}[style=XML]
+--------------------------------------------
+<Simulation>
+  ...
+  <Samplers>
+    ...
+    <WhatEverSampler name='whatever'>
+      ...
+     <variable name='variableName'> 
+       ...
+       <distribution>aDistribution</distribution>
+       ...
+     </variable>
+      ... 
+    </WhatEverSampler>
+    ...
+  </Samplers>
+  ...
+</Simulation>
+--------------------------------------------
+\end{lstlisting}
 
 \begin{itemize}
 \item SingleRun: This is the step that will perform just one evaluation
