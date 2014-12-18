@@ -156,6 +156,9 @@ class Distribution(BaseType):
     if self.quadTypeSet:
       self.polynomialSet().setMeasures(self.quadratureSet())
 
+  def setNewPolyOrder(self,order):
+    self.setPolynomials(self.__polySet,order)
+
   def quadratureSet(self):
     try: return self.__quadSet
     except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No quadrature has been set for this distr. yet.')
