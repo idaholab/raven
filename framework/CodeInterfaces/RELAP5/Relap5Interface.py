@@ -32,14 +32,15 @@ class Relap5:
     '''  '''
     return fileRoot + '.csv'
 
-  def finalizeCodeOutput(self,command,output):
+  def finalizeCodeOutput(self,command,output,workingDir):
     ''' this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
         It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
         @ command, Input, the command used to run the just ended job
         @ output, Input, the Output name root (string)
+        @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     '''
-    outfile = command.split('-o')[0].split('-i')[-1]+'.o'
+    outfile = os.path.join(workingDir,command.split('-o')[0].split('-i')[-1]+'.o')
     outputobj=relapdata.relapdata(outfile)
     outputobj.write_csv(output+'.csv')
 
