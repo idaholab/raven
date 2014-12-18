@@ -42,7 +42,7 @@ class Relap5:
     '''
     outfile = os.path.join(workingDir,command.split('-o')[0].split('-i')[-1]+'.o')
     outputobj=relapdata.relapdata(outfile)
-    outputobj.write_csv(output+'.csv')
+    outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
