@@ -1,0 +1,163 @@
+\section{Install}
+
+\subsection{Framework Source Install}
+
+Install the dependencies.  Either they can be installed manually or the script can be used.  Other versions may work.
+
+\begin{enumerate}
+\item numpy-1.7.0
+\item hdf5-1.8.12
+\item Cython-0.18
+\item h5py-2.2.1
+\item scipy-0.12.0
+\item scikit-learn-0.14.1
+\item matplotlib-1.4.0
+\end{enumerate}
+
+Untar the source install (if there is more than one version of the
+source tarball, the full filename will need to be used instead of *):
+
+\begin{lstlisting}[language=bash]
+tar -xvzf raven_framework_*_source.tar.gz
+\end{lstlisting}
+
+If the dependencies were not installed previously, they can be installed by
+running the \verb'raven_libs_script.sh':
+
+\begin{lstlisting}[language=bash]
+cd trunk/raven/
+./raven_libs_script.sh
+cd ../../
+\end{lstlisting}
+
+Crow needs to be compiled.  This can be done either with the python
+setup or with a makefile.  Using the setup.py file:
+
+\begin{lstlisting}[language=bash]
+cd trunk/crow/
+python setup.py build_ext build install --user
+\end{lstlisting}
+
+Using the makefile:
+
+\begin{lstlisting}[language=bash]
+cd trunk/crow/
+make -f Makefile.linux
+\end{lstlisting}
+
+Next, the tests should be run (you may need to change the \verb'cd'
+command if you are not in the crow directory):
+
+\begin{lstlisting}[language=bash]
+cd ../raven/
+./run_tests --re=framework --skip-config-check
+\end{lstlisting}
+
+There should be a line something like:
+{\tt 8 passed, 19 skipped, 0 pending, 0 failed}
+at the end.  If any failed, look at the output to see why.
+
+
+\subsection{Ubuntu Framework Install}
+
+Install the dependencies:
+
+\begin{lstlisting}[language=bash]
+sudo apt-get install libtool python-dev swig g++ python3-dev \
+ python-numpy python-sklearn python-h5py
+\end{lstlisting}
+
+Untar the binary install (if there is more than one version of the
+binary install, the full filename will need to be used instead of *):
+
+\begin{lstlisting}[language=bash]
+tar -xvzf raven_framework_*_ubuntu.tar.gz
+\end{lstlisting}
+
+Run the tests:
+
+\begin{lstlisting}[language=bash]
+cd trunk/raven/
+./run_tests --re=framework --skip-config-check
+\end{lstlisting}
+
+There should be a line something like:
+{\tt 8 passed, 19 skipped, 0 pending, 0 failed}
+at the end.  If any failed, look at the output to see why.
+
+\subsection{Fedora Framework Install}
+
+Install the dependencies:
+
+\begin{lstlisting}[language=bash]
+yum install swig libtool gcc-c++ python-devel python3-devel \
+ numpy h5py scipy python-scikit-learn python-matplotlib-qt4
+\end{lstlisting}
+
+If you want to be able to edit and rebuild the manual, install:
+\begin{lstlisting}[language=bash]
+yum install texlive texlive-subfigure texlive-stmaryrd
+\end{lstlisting}
+
+Untar the binary install (if there is more than one version of the
+binary install, the full filename will need to be used instead of *):
+
+\begin{lstlisting}[language=bash]
+tar -xvzf raven_framework_*_fedora.tar.gz
+\end{lstlisting}
+
+Run the tests:
+
+\begin{lstlisting}[language=bash]
+cd trunk/raven/
+./run_tests --re=framework --skip-config-check
+\end{lstlisting}
+
+There should be a line something like:
+{\tt 8 passed, 19 skipped, 0 pending, 0 failed}
+at the end.  If any failed, look at the output to see why.
+
+\subsection{OSX Framework Install}
+
+Open up the file \verb'raven_libs_framework_and_crow.dmg' Open up the
+\verb'raven_libs.pkg' inside, and install it.  The files will be
+installed into \verb'/opt/raven_libs' They will edit your
+\verb'.bash_profile' to source the
+\verb'/opt/raven_libs/environments/raven_libs_profile' file.  This
+file sets up the \verb'PYTHONPATH' and the \verb'PATH' so that the
+\verb'raven_framework' command can be used.
+
+\subsection{Moose and Raven Source Install}
+
+First, moose should be installed.  Follow the instructions for moose:
+\url{http://mooseframework.org/getting-started/}
+
+Next, if the C++ Raven is desired, RELAP-7 needs to be installed.
+Follow the RELAP-7 instructions, but moose needs to be installed
+in the same directory level as RELAP-7.
+
+Then clone crow and raven:
+
+\begin{lstlisting}[language=bash]
+git clone git@hpcgitlab.inl.gov:idaholab/crow.git
+git clone git@hpcgitlab.inl.gov:idaholab/raven.git
+\end{lstlisting}
+
+Install the raven dependencies via one of the methods mentioned for
+the raven framework.
+
+Then compile raven:
+
+\begin{lstlisting}[language=bash]
+cd raven
+make
+\end{lstlisting}
+
+Then run the tests:
+
+\begin{lstlisting}[language=bash]
+./run_tests
+\end{lstlisting}
+
+There will be a line telling how many passed.  If any failed, look at
+the output to see why.
