@@ -39,7 +39,9 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'Logistic':'LogisticDistribution',
                               'Exponential':'ExponentialDistribution',
                               'LogNormal':'LogNormalDistribution',
-                              'Weibull':'WeibullDistribution'  }
+                              'Weibull':'WeibullDistribution',
+                              'NDInverseWeight': 'InverseWeightDistribution',
+                              'NDspline': 'NDsplineDistribution' }
 
 
 class Distribution(BaseType):
@@ -891,6 +893,10 @@ class NDimensionalDistributions(Distribution):
     self.function_type = None
     self.type = 'NDimensionalDistributions'
     self.dimensionality  = 'ND'
+    
+    self.RNGInitDisc = 10
+    self.RNGtolerance = 0.0001
+    
   def _readMoreXML(self,xmlNode):
     Distribution._readMoreXML(self, xmlNode)
     data_filename = xmlNode.find('data_filename')
@@ -901,11 +907,18 @@ class NDimensionalDistributions(Distribution):
     else:
       self.function_type = function_type.upper()
       if self.function_type not in ['CDF','PDF']:  raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <function_type> parameter needs to be either CDF or PDF in MultiDimensional Distributions!!!!')
+  
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['function_type'] = self.function_type
     tempDict['data_filename'] = self.data_filename
-
+    
+  #######  
+  def updateRNGParam(self, dictParam):
+    for param in dictParam:
+      self.RNGtolerance = dictParam['tolerance']
+      self.RNGInitDisc  = dictParam['initial_grid_disc']
+  ######
 
 class NDInverseWeight(NDimensionalDistributions):
   def __init__(self):
@@ -915,8 +928,8 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
-    self.p = xmlNode.find('p')
-    if self.p != None: self.p = float(self.p)
+    p = xmlNode.find('p')
+    if p.text != None: self.p = float(p.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Minkowski distance parameter <p> not found in NDInverseWeight distribution')
     self.initializeDistribution()
 
@@ -925,7 +938,7 @@ class NDInverseWeight(NDimensionalDistributions):
     tempDict['p'] = self.p
 
   def initializeDistribution(self):
-    NDimensionalDistributions.initializeDistribution()
+    #NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.p)
 
   def cdf(self,x):
@@ -953,7 +966,8 @@ class NDInverseWeight(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
+    return self._distribution.InverseCdf(random(),self.RNGtolerance,self.RNGInitDisc)
+    #raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
 class NDScatteredMS(NDimensionalDistributions):
@@ -1023,7 +1037,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    NDimensionalDistributions.initializeDistribution()
+    #NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline()
 
   def cdf(self,x):

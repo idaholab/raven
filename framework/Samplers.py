@@ -96,6 +96,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.printTag                      = returnPrintTag(self.type) # prefix for all prints (sampler type)
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
+    ######
+    self.ND_sampling_params            = None                      # parameters for ND distribution sampling
+    ###### 
+    
   def whatDoINeed(self):
     '''
     This method is used mainly by the Simulation class at the Step construction stage.
