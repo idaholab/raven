@@ -61,6 +61,8 @@ class Distribution(BaseType):
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
     self.polyTypeSet          = False # flag for if polynomials have been set
     self.quadTypeSet          = False # flag for if quadrature type has been set
+    self.compatibleQuadrature = ['CDF'] #list of compatible quadratures
+    self.importanceWeight     = None #used for creating anisotropic grid samples
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -158,6 +160,9 @@ class Distribution(BaseType):
 
   def setNewPolyOrder(self,order):
     self.setPolynomials(self.__polySet,order)
+
+  def setImportanceWeight(self,alpha):
+    self.importanceWeight = alpha
 
   def quadratureSet(self):
     try: return self.__quadSet
@@ -349,6 +354,8 @@ class Uniform(BoostDistribution):
     self.low = 0.0
     self.hi = 0.0
     self.type = 'Uniform'
+    self.compatibleQuadrature.append('Legendre')
+    self.compatibleQuadrature.append('CurtisClenshaw')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -464,8 +471,8 @@ class Normal(BoostDistribution):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma,
                                                                   a,b)
-      self.preferredPolynomials = 'Jacobi'
-      self.preferredQuadrature = 'Jacobi'
+      #self.preferredPolynomials = 'Jacobi'
+      #self.preferredQuadrature = 'Jacobi'
 
   def stdProbabilityNorm(self,std=False):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
@@ -528,7 +535,6 @@ class Gamma(BoostDistribution):
     self.beta = 1.0
     self.type = 'Gamma'
     self.hasInfiniteBound = True
-    self.preferredPolynomials = 'Laguerre'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -577,6 +583,7 @@ class Gamma(BoostDistribution):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
     self.preferredPolynomials = 'Laguerre'
     self.preferredQuadrature = 'Laguerre'
+    self.compatibleQuadrature.append('Laguerre')
 
   def convertDistrPointsToStd(self,y):
     quad=self.quadratureSet()
@@ -611,7 +618,6 @@ class Beta(BoostDistribution):
     self.beta = 0.0
     self.type = 'Beta'
     self.hasInfiniteBound = True
-    if self.debug: print('FIXME: # TODO default to specific Beta distro?')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -664,6 +670,8 @@ class Beta(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
     self.preferredPolynomials = 'Jacobi'
+    self.compatibleQuadrature.append('Jacobi')
+    self.compatibleQuadrature.append('ClenshawCurtis')
 
   def convertDistrPointsToStd(self,y):
     quad=self.quadratureSet()

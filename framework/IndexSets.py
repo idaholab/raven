@@ -17,7 +17,7 @@ class IndexSet(object):
     return len(self.points)
 
   def __getitem__(self,i=None):
-    if i==None: return self.points
+    if i==None: return np.array(self.points)
     else: return self.points[i]
 
   def _extrema(self):
@@ -32,11 +32,12 @@ class IndexSet(object):
   def _xy(self):
     return zip(*self.points)
 
-  def initialize(self,distrList,impWeights):
+  def initialize(self,distrList):#,impWeights):
     numDim = len(distrList)
     #set up and normalize weights -> 
-    if impWeights==None:
-      impWeights=np.ones(numDim)
+    impWeights = list(d.importanceWeight for d in distrList.values())
+    #if impWeights==None:
+    #  impWeights=np.ones(numDim)
     impWeights = np.array(impWeights)
     #this algorithm assures higher weight means more importance, and end product is normalized so smallest is 1
     impWeights=impWeights/np.max(impWeights)
@@ -100,3 +101,20 @@ class HyperbolicCross(IndexSet):
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
 
+
+'''
+Interface Dictionary (factory) (private)
+'''
+__base = 'IndexSet'
+__interFaceDict = {}
+__interFaceDict['Tensor Product'  ] = TensorProduct
+__interFaceDict['Total Degree'    ] = TotalDegree
+__interFaceDict['Hyperbolic Cross'] = HyperbolicCross
+__knownTypes = list(__interFaceDict.keys())
+
+def knownTypes():
+  return __knownTypes
+
+def returnInstance(Type):
+  try: return __interFaceDict[Type]()
+  except KeyError: raise NameError('not known '+__base+' type '+Type)

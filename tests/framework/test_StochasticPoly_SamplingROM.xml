@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug='True'>
+
+<RunInfo>
+    <WorkingDir>StochasticPolyTest</WorkingDir>
+    <Sequence>CustomSampler</Sequence> <!--what is this? -->
+    <batchSize>2</batchSize>
+</RunInfo>
+
+<Models>
+    <Dummy name='MyDummy' subType='' print='True'/>
+</Models>
+
+<Distributions>
+    <Normal name='Gauss1'>
+        <mean>1</mean>
+        <sigma>0.001</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>up</adjustement>
+    </Normal>
+    <Normal name='Gauss2'>
+        <mean>1</mean>
+        <sigma>0.4</sigma>
+        <lowerBound>0</lowerBound>
+        <upperBound>2</upperBound>
+        <adjustement>scaling</adjustement>
+    </Normal>
+    <Triangular name='DistTri1'>
+        <apex>1</apex>
+        <min>-0.1</min>
+        <max>4</max>
+    </Triangular>
+</Distributions>
+
+<!-- 
+These don't get customized at all; should they still be specified
+or just get pulled as requested from the distribution creator?
+I assume not, since they do have to be created before SamplingROM is initialized
+
+Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take from dist?
+<Quadratures>
+</Quadratures>
+
+<Polynomials>
+</Polynomials>
+-->
+
+<Samplers>
+    <StochasticPolynomial name='myStochPolys' indexSetType='TP' maxPolyOrder='2'>
+      <variable name='VarGauss1' impWeight='1'>
+        <distribution>Gauss1</distribution>
+        <quadrature>
+          <type>Hermite</type>
+          <polynomials>Hermite</polynomials>
+          <alpha>0.5</alpha>
+        </quadrature>
+      </variable>
+      <variable name='VarGauss2' quadType='Hermite' polyType='Hermite' impWeight=1>
+        <distribution  >Gauss2</distribution>
+        <polynomial>pHermite1</polynomial-->
+      </variable>
+      <variable name='VarTri1' quadType='CDF' impWeight=1>
+        <distribution  >DistTri1</distribution>
+        <polynomial>pHermite1</polynomial-->
+      </variable>
+    </StochasticPolynomial>
+    <!--
+    <AdaptiveStochasticPolynomial name='myAdaptiveSC' indexSetType='TP' maxPolyOrder='2'>
+    </AdaptiveStochasticPolynomial>
+    -->
+      
+</Samplers>
+
+<Datas>
+     <TimePointSet name='outGrid'>
+        <Input>VarGauss1,VarGauss2,VarTri1</Input>
+        <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+   <TimePointSet name='dummyIN'>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+</Datas>
+    
+<OutStreamManager>
+    <Print name='outGrid_dump'>
+        <type>csv</type>
+        <source>outGrid</source>
+    </Print>
+</OutStreamManager>
+
+<Steps>
+     <MultiRun name='CustomSampler'>
+        <Input   class='Datas'     type='TimePointSet'>dummyIN</Input>
+        <Model   class='Models'    type='Dummy'       >MyDummy</Model>
+        <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
+        <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
+        <Output  class='DataBases' type='HDF5'        >test_DummyModel_db</Output>
+        <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
+    </MultiRun >
+</Steps>
+<DataBases>
+        <HDF5 name="test_DummyModel_db"/> 
+</DataBases>
+</Simulation>
+
+
+
