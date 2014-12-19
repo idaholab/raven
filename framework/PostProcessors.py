@@ -25,9 +25,6 @@ from BaseClasses import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-sys.path.append('../src/postprocessors/')
-from amsc import *
-
 '''
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
@@ -1221,6 +1218,11 @@ class TopologicalDecomposition(BasePostProcessor):
     arbitrary number of input parameters and a response value per input point
   '''
   def __init__(self):
+    # Load the library on demand, so the uninterested user does not have to 
+    # worry about any compilation issues
+    sys.path.append('../src/postprocessors/')
+    #from amsc import *
+
     BasePostProcessor.__init__(self)
     self.acceptedGraphParam = ['Approximate KNN','Delaunay','Beta Skeleton',\
                                'Relaxed Beta Skeleton']
