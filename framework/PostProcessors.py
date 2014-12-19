@@ -431,7 +431,7 @@ class ComparisonStatistics(BasePostProcessor):
     #      "input output",Input.getParametersValues('outputs'))
 
   def collectOutput(self,finishedjob,output):
-    #print("finishedjob",finishedjob,"output",output)
+    print("finishedjob",finishedjob,"output",output)
     dataToProcess = []
     for dataPull in self.dataPulls:
       name, kind, rest = dataPull
@@ -442,7 +442,8 @@ class ComparisonStatistics(BasePostProcessor):
         dataToProcess.append((dataPull,data[rest[0]]))
     #print("dataToProcess",dataToProcess)
     for dataPull, data in dataToProcess:
-      process_data(dataPull, data, self.methodInfo)
+      data_stats = process_data(dataPull, data, self.methodInfo)
+      print("data_stats",data_stats)
 
 def count_bins(sorted_data, bin_boundaries):
   """counts the number of data items in the sorted_data
@@ -465,13 +466,16 @@ def log2(x):
   return math.log(x)/math.log(2.0)
 
 def process_data(dataPull, data, methodInfo):
+  ret = {}
   sorted_data = data.tolist()
   sorted_data.sort()
   low = sorted_data[0]
   high = sorted_data[-1]
   data_range = high - low
-  print("data",dataPull,"average",sum(data)/len(data))
-  print("low",low,"high",high,end=' ')
+  #print("data",dataPull,"average",sum(data)/len(data))
+  ret['low'] = low
+  ret['high'] = high
+  #print("low",low,"high",high,end=' ')
   if not 'bin_method' in methodInfo:
     num_bins = methodInfo.get("num_bins",10)
   else:
@@ -484,7 +488,8 @@ def process_data(dataPull, data, methodInfo):
     else:
       print(returnPrintPostTag('ERROR')+"Unknown bin_method "+bin_method)
       num_bins = 5
-  print("num_bins",num_bins)
+  ret['num_bins'] = num_bins
+  #print("num_bins",num_bins)
   kind = methodInfo.get("kind","uniform_bins")
   if kind == "uniform_bins":
     bins = [low+x*data_range/num_bins for x in range(1,num_bins)]
@@ -492,7 +497,10 @@ def process_data(dataPull, data, methodInfo):
     stride = len(sorted_data)//num_bins
     bins = [sorted_data[x] for x in range(stride-1,len(sorted_data)-stride+1,stride)]
   counts = count_bins(sorted_data,bins)
-  print("bins",bins,"counts",counts)
+  ret['bins'] = bins
+  ret['counts'] = counts
+  #print("bins",bins,"counts",counts)
+  return ret
 
 
 class PrintCSV(BasePostProcessor):
