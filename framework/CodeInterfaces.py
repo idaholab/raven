@@ -25,7 +25,7 @@ import utils
 
 __moduleInterfaceList = []
 start_dir = os.path.join(os.path.dirname(__file__),'CodeInterfaces')
-for dirr,_,_ in os.walk(start_dir): 
+for dirr,_,_ in os.walk(start_dir):
   __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
   utils.add_path(dirr)
 __moduleImportedList = []
