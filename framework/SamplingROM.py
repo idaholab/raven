@@ -44,26 +44,52 @@ class StochasticPolynomials(SamplingROM):
     self.adaptive    = False #not yet implemented; adaptively samples index set and/or quadrature
 
   def localInputAndChecks(self,xmlNode):
+    compatible={} #keys are distro names, values are lists of quad/poly types
     SamplingROM.localInputAndChecks(self,xmlNode)
-    for name,attrib in child.attrib.iteritems():
-      if   name=='maxPolyOrder': self.maxPolyOrder = int(attrib)
-      elif name=='indexSetType': self.indexSetType = attrib
-      elif name=='adaptive'    : self.adaptive = 1 if attrib.lower() in ['true','t','1','y','yes'] else 0
+    self.indexSetType =     xmlNode.attrib['indexSetType']  if 'indexSetType' in xmlNode.attrib.keys() else 'Tensor Product'
+    self.maxPolyOrder = int(xmlNode.attrib['maxPolyOrder']) if 'maxPolyOrder' in xmlNode.attrib.keys() else 2
+    #FIXME self.adaptive     =(1 if xmlNode.attrib['adaptive'].lower() in ['true','t','1','y','yes'] else 0) if 'adaptive' in xmlNode.attrib.keys() else 0
     for child in xmlNode:
+      importanceWeight = float(child.attrib['impWeight']) if 'impWeight' in child.attrib.keys() else 1
       elif child.tag=='Distribution':
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
         varName = child.attrib['name']
-      quadType = child.attrib['quadType'] #TODO what if keyError?  Try-catch here?
-      polyType = child.attrib['polyType']
-      self.gridInfo[varName] = (quadType,polyType)
+      for cchild in child:
+        quad_find = xmlNode.find('quadrature')
+        if quad_find != None:
+          quadType = quad_find.find('type').text if quad_find.find('type') != None else 'DEFAULT' #TODO handle default cases in distribution
+          poly_find = quad_find.find('polynomials').text if quad_find.find('polynomials') != None else 'DEFAULT'
+      self.gridInfo[varName] = (quadType,polyType,importanceWeight)
 
   def localInitialize(self):
     Grid.localInitialize(self)
-    for varName,dat in self.gridInfo.iteritems():
+    for varName,dat in self.gridInfo.items():
       quad = Quadrature.returnInstance(dat[0])
-      poly = OrthoPolynomials.returnInstance(dat[1])
-      #TODO how to access distributions from here?
-      distDict[varName].setQuadrature(quad)
-      distDict[varName].setPolynomials(poly,self.maxPolyOrder)
+      #FIXME alpha,beta for laguerre, jacobi
+      if quad.type not in self.distDict[varName].compatibleQuadrature:
+        raise IOError (self.printTag+' Incompatible quadrature <'+quad.type+'> for distribution of '+varName+': '+distribution.type)
+      quad.initialize()
 
+      poly = OrthoPolynomials.returnInstance(dat[1])
+      poly.initialize()
+      #TODO how to check compatible polys?  Polys compatible with quadrature more than distribution, kind of both
+
+      self.distDict[varName].setQuadrature(quad)
+      self.distDict[varName].setPolynomials(poly,self.maxPolyOrder)
+    self.norm = np.prod(list(d.probabilityNorm() for d in self.distDict))
+
+    self.indexSet = IndexSet.returnInstance(self.indexSetType)
+    self.indexSet.initialize(self.distDict)
+
+    self.sparseGrid = Quadrature.SparseQuad()
+    self.sparseGrid.initialize(self.indexSet,self.distDict)
+
+  def localGenerateInput(self,model,myInput):
+    pts,weight = self.sparseGrid[counter-1]
+    for v,varName in enumerate(self.axisName):
+      self.values[varName] = pts[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = weight
+    self.inputInfo['SamplerType'] = 'Sparse Grid (SamplingROM)'

@@ -31,9 +31,8 @@ class SparseQuad(BaseType):
   def __init__(self):
     self.c = [] #array of coefficient terms for smaller tensor grid entries
 
-  def initialize(self, indexSet, quadRule, distrList):
+  def initialize(self, indexSet, distrList):
     self.indexSet = np.array(indexSet[:])
-    self.quadRule = quadRule
     self.distrList = distrList
     self.N= len(distrList.keys())
     maxPoly = 0
@@ -61,6 +60,12 @@ class SparseQuad(BaseType):
           self.SG[newpt]+=newwt
         else:
           self.SG[newpt] = newwt
+
+  def quadRule(self,idx):
+    tot=np.zeros(len(idx))
+    for i,ix in enumerate(idx):
+      tot[i]=self.distrList.values()[i].getQuadrature().quadRule(ix)
+    return tot
 
   def __getitem__(self,n):
     return self.points(n),self.weights(n)
