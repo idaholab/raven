@@ -53,16 +53,17 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
         <quadrature>
           <type>Hermite</type>
           <polynomials>Hermite</polynomials>
-          <alpha>0.5</alpha>
         </quadrature>
       </variable>
-      <variable name='VarGauss2' quadType='Hermite' polyType='Hermite' impWeight=1>
-        <distribution  >Gauss2</distribution>
-        <polynomial>pHermite1</polynomial-->
+      <variable name='VarGauss2' impWeight='1'>
+        <distribution>Gauss2</distribution>
+        <quadrature>
+          <type>Hermite</type>
+          <polynomial>pHermite1</polynomial>
+        </quadrature>
       </variable>
-      <variable name='VarTri1' quadType='CDF' impWeight=1>
-        <distribution  >DistTri1</distribution>
-        <polynomial>pHermite1</polynomial-->
+      <variable name='VarTri1' impWeight='1'>
+        <distribution>DistTri1</distribution>
       </variable>
     </StochasticPolynomial>
     <!--
