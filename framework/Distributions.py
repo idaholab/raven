@@ -61,7 +61,7 @@ class Distribution(BaseType):
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
     self.polyTypeSet          = False # flag for if polynomials have been set
     self.quadTypeSet          = False # flag for if quadrature type has been set
-    self.compatibleQuadrature = ['CDF'] #list of compatible quadratures
+    self.compatibleQuadrature = [] #list of compatible quadratures
     self.importanceWeight     = None #used for creating anisotropic grid samples
 
   def _readMoreXML(self,xmlNode):
@@ -356,6 +356,9 @@ class Uniform(BoostDistribution):
     self.type = 'Uniform'
     self.compatibleQuadrature.append('Legendre')
     self.compatibleQuadrature.append('CurtisClenshaw')
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature = 'Legendre'
+    self.preferredPolynomials = 'Legendre'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -400,8 +403,6 @@ class Uniform(BoostDistribution):
 
   def initializeDistribution(self):
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
-    self.preferredPolynomials = 'Legendre'
-    self.preferredQuadrature = 'Legendre'
 
   def convertDistrPointsToStd(self,y):
     quad=self.quadratureSet()
@@ -430,6 +431,10 @@ class Normal(BoostDistribution):
     self.sigma = 0.0
     self.hasInfiniteBound = True
     self.type = 'Normal'
+    self.compatibleQuadrature.append('Hermite')
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature = 'Hermite'
+    self.preferredPolynomials = 'Hermite'
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -471,8 +476,8 @@ class Normal(BoostDistribution):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma,
                                                                   a,b)
-      #self.preferredPolynomials = 'Jacobi'
-      #self.preferredQuadrature = 'Jacobi'
+    if self.lowerBoundUsed and self.UpperBoundUsed:
+      self.compatibleQuadrature.append('ClenshawCurtis')
 
   def stdProbabilityNorm(self,std=False):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''

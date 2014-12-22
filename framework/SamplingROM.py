@@ -20,57 +20,72 @@ import importlib
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType, Assembler
 import PostProcessors #import returnFilterInterface
-from Samplers import Grid
+import Samplers
 import Models
+#from Models import ROM
+import inspect
+print('DEBUG')
+print(Models)
+for i in inspect.getmembers(Models,inspect.isclass):
+  print (i)
+print('')
+from Models import Model
+
 import Quadrature
 import OrthoPolynomials
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SamplingROM(ROM,Grid):
+class SamplingModel(Models.Dummy,Samplers.Grid):
   def __init__(self):
     Grid.__init__(self)
     ROM.__init__(self)
+    self.type = 'SamplingROM'
 
   def localInputAndChecks(self,xmlNode):
     Grid.localInputAndChecks(self,xmlNode)
 
-class StochasticPolynomials(SamplingROM):
+class StochasticPolynomials(SamplingModel):
   def __init__(self):
     SamplingROM.__init__(self)
+    self.type = 'StochasticPolynomials'
     self.printTag    = returnPrintTag('SAMPLING ROM STOCHASTIC POLYS')
     self.maxPolyOrder= None  #L, the maximum polynomial expansion order to use
     self.indexSetType= None  #TP, TD, or HC; the type of index set to use
     self.adaptive    = False #not yet implemented; adaptively samples index set and/or quadrature
 
   def localInputAndChecks(self,xmlNode):
-    compatible={} #keys are distro names, values are lists of quad/poly types
     SamplingROM.localInputAndChecks(self,xmlNode)
+    # sampling side #
     self.indexSetType =     xmlNode.attrib['indexSetType']  if 'indexSetType' in xmlNode.attrib.keys() else 'Tensor Product'
     self.maxPolyOrder = int(xmlNode.attrib['maxPolyOrder']) if 'maxPolyOrder' in xmlNode.attrib.keys() else 2
-    #FIXME self.adaptive     =(1 if xmlNode.attrib['adaptive'].lower() in ['true','t','1','y','yes'] else 0) if 'adaptive' in xmlNode.attrib.keys() else 0
+    #FIXME add AdaptiveSP # self.adaptive     =(1 if xmlNode.attrib['adaptive'].lower() in ['true','t','1','y','yes'] else 0) if 'adaptive' in xmlNode.attrib.keys() else 0
     for child in xmlNode:
       importanceWeight = float(child.attrib['impWeight']) if 'impWeight' in child.attrib.keys() else 1
-      elif child.tag=='Distribution':
+      if child.tag=='Distribution':
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
         varName = child.attrib['name']
       for cchild in child:
         quad_find = xmlNode.find('quadrature')
         if quad_find != None:
-          quadType = quad_find.find('type').text if quad_find.find('type') != None else 'DEFAULT' #TODO handle default cases in distribution
+          quadType = quad_find.find('type').text if quad_find.find('type') != None else 'DEFAULT'
           poly_find = quad_find.find('polynomials').text if quad_find.find('polynomials') != None else 'DEFAULT'
       self.gridInfo[varName] = (quadType,polyType,importanceWeight)
+
+    # ROM side #
 
   def localInitialize(self):
     Grid.localInitialize(self)
     for varName,dat in self.gridInfo.items():
-      quad = Quadrature.returnInstance(dat[0])
       #FIXME alpha,beta for laguerre, jacobi
-      if quad.type not in self.distDict[varName].compatibleQuadrature:
-        raise IOError (self.printTag+' Incompatible quadrature <'+quad.type+'> for distribution of '+varName+': '+distribution.type)
+      if dat[0] not in self.distDict[varName].compatibleQuadrature and dat[0]!='DEFAULT':
+        raise IOError (self.printTag+' Incompatible quadrature <'+dat[0]+'> for distribution of '+varName+': '+distribution.type)
+      if dat[0]=='DEFAULT': dat[0]=self.distDict[varName].preferredQuadrature
+      quad = Quadrature.returnInstance(dat[0])
       quad.initialize()
 
+      if dat[1]=='DEFAULT': dat[1]=self.distDict[varName].preferredPolynomial
       poly = OrthoPolynomials.returnInstance(dat[1])
       poly.initialize()
       #TODO how to check compatible polys?  Polys compatible with quadrature more than distribution, kind of both
@@ -93,3 +108,5 @@ class StochasticPolynomials(SamplingROM):
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid (SamplingROM)'
+
+  #TODO add a check for when "amIReady" is finished, to run the Model creation (coefficient and poly creator)

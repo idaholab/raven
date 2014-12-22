@@ -401,9 +401,15 @@ class Simulation(object):
       else: raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
-
+    # For StochasticPolynomials, the SamplingModel will act as both a Sampler and a Model, but is only initialized in the XML as a Sampler.
+    # Here, we add the SamplingModel to the Models dictionary under the same name so the step will be consistent and the user won't have to
+    # list it as a Model in the input.
+    for name,samplingModel in self.whichDict['Samplers'].items():
+      if samplingModel.type in ['StochasticPolynomials','AdaptiveStochasticPolynomials']:
+        self.whichDict['Models'][name] = samplingModel
+    
   def initialize(self):
-    '''check/created working directory, check/set up the parallel environment'''
+    '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
     #check/generate the existence of the working directory
     #print(self.runInfoDict['WorkingDir'])
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
