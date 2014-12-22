@@ -476,7 +476,7 @@ class Normal(BoostDistribution):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma,
                                                                   a,b)
-    if self.lowerBoundUsed and self.UpperBoundUsed:
+    if self.lowerBoundUsed and self.upperBoundUsed:
       self.compatibleQuadrature.append('ClenshawCurtis')
 
   def stdProbabilityNorm(self,std=False):

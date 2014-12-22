@@ -22,14 +22,6 @@ from BaseClasses import BaseType, Assembler
 import PostProcessors #import returnFilterInterface
 import Samplers
 import Models
-#from Models import ROM
-import inspect
-print('DEBUG')
-print(Models)
-for i in inspect.getmembers(Models,inspect.isclass):
-  print (i)
-print('')
-from Models import Model
 
 import Quadrature
 import OrthoPolynomials
@@ -38,16 +30,16 @@ from CustomCommandExecuter import execCommand
 
 class SamplingModel(Models.Dummy,Samplers.Grid):
   def __init__(self):
-    Grid.__init__(self)
-    ROM.__init__(self)
+    Samplers.Grid.__init__(self)
+    Models.Dummy.__init__(self)
     self.type = 'SamplingROM'
 
   def localInputAndChecks(self,xmlNode):
-    Grid.localInputAndChecks(self,xmlNode)
+    Samplers.Grid.localInputAndChecks(self,xmlNode)
 
 class StochasticPolynomials(SamplingModel):
   def __init__(self):
-    SamplingROM.__init__(self)
+    SamplingModel.__init__(self)
     self.type = 'StochasticPolynomials'
     self.printTag    = returnPrintTag('SAMPLING ROM STOCHASTIC POLYS')
     self.maxPolyOrder= None  #L, the maximum polynomial expansion order to use
@@ -110,3 +102,20 @@ class StochasticPolynomials(SamplingModel):
     self.inputInfo['SamplerType'] = 'Sparse Grid (SamplingROM)'
 
   #TODO add a check for when "amIReady" is finished, to run the Model creation (coefficient and poly creator)
+
+
+__base = "SamplingModel"
+
+__interFaceDict = {}
+__interFaceDict['StochasticPolynomials'] = StochasticPolynomials
+__knownTypes = list(__interFaceDict.keys())
+
+def knownTypes():
+  return __knownTypes
+
+def returnInstance(Type):
+  try: return __interFaceDict[Type]()
+  except KeyError: raise NameError('not known '+__base+'type '+Type)
+
+Samplers.addKnownTypes(__interFaceDict)
+

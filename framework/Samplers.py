@@ -31,8 +31,11 @@ import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
-import SamplingModel #TODO should this module be merged into Samplers?
 #Internal Modules End--------------------------------------------------------------------------------
+
+#Internal Submodules---------------------------------------------------------------------------------
+#import SamplingModels
+#Internal Submodules End--------------------------------------------------------------------------------
 
 class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   '''
@@ -2100,8 +2103,12 @@ __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
-__interFaceDict['StochasticPolynomials'   ] = SamplingModel.StochasticPolynomials
+#__interFaceDict['StochasticPolynomials'   ] = SamplingModels.StochasticPolynomials
 __knownTypes = list(__interFaceDict.keys())
+
+def addKnownTypes(newDict):
+  for name, value in newDict.items():
+    __interFaceDict[name]=value
 
 def knonwnTypes():
   return __knownTypes
