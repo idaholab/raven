@@ -632,7 +632,11 @@ class hdf5Database(object):
         # Start constructing the merged numpy array
         where_list = []
         name_list  = []
-        if self.parent_group_name != '/': back = len(list_path)-2
+        # back represents the number of groups back that need to be
+        # included in the construction of the full history.
+        if self.parent_group_name != '/':
+          if self.type == 'DET': back = len(list_path)-1
+          else                 : back = len(list_path)-2
         else: back = len(list_path)-1
         if back <= 0: back = 1
         i=0

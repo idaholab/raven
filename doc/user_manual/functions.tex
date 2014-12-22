@@ -1,31 +1,54 @@
 \section{Functions  \\ \vspace{2 mm} {\small }}
-
-This module contains interfaces to import external functions
-
+\label{sec:functions}
+The RAVEN code provides support for the usage of user-defined external functions. These functions are python modules, with a format that is automatically interpretable by the RAVEN framework. 	For example, the user can define its own method to perform a particular post-processing activity and the code is going to embed and use the function as it is an active part of the code itself. In this section, all the information needed to define the XML input syntax and the format of the accepted functions are here reported.
+\\ The specifications of an external Function must be defined within the XML block $<External>$. This XML node needs to contain the attributes:
+\vspace{-5mm}
 \begin{itemize}
-\item \textbf{External}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Function. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (XML);
+\item \textbf{file}, \textit{required string attribute}, file name with its absolute or relative path. NB. If a relative path is specified, it must be noticed it is relative with respect to where the user runs the code.
+\end{itemize}
+\vspace{-5mm}
+In order to make the RAVEN code aware of the variables the user is going to manipulate/use in its own python function, the variables need to be specified in the \textbf{$<External>$} input block. The user needs to input, within this block, only the variables that RAVEN needs to be aware of (i.e. the variables are going to directly be used by the code) and not the local variables that the user does not want to, for example, store in a RAVEN internal object. These variables are inputted within consecutive XML blocks called $<variable>$:
 \begin{itemize}
-\item name=name of the function
-\item file=file name where the function is
+\item $<variable>$, string, required parameter. In the body of this XML node, the user needs to specify the name of the variable. This variable needs to match a variable used/defined in the external python function.
 \end{itemize}
-\item variable
-	\begin{itemize}
-	\item type=numpy.float64
-	\item variable inside the function that has been defined
-	\end{itemize}
-\end{itemize}
+When the external function variables are defined, at run time, RAVEN initialize those and take track of their values during the simulation. Each variable defined in the $<External>$ block is available in the function as a python ``self''. In the following, an example of an user-defined external function is reported (python module and its relative XML input specifications).
 
+\begin{lstlisting}[language=python]
+---------------------------------------
+Python Function Example:
+---------------------------------------
+import numpy as np
 
-
-
-
+def residuumSign(self):
+  if self.var1 < self.var2 : 
+    return  1
+  else: 
+    return -1
+---------------------------------------
+\end{lstlisting} 
 
 \begin{lstlisting}[style=XML]
-<Functions>
- <External name='***' file='***'>
-  <variable type='***'>***</variable>
- </External>
-</Functions>
+---------------------------------------
+XML Example:
+---------------------------------------
+<Simulation>
+  ...
+  <Functions>
+    ...
+    <External name='whatever' file='path_to_python_file'>
+     ...
+     <variable>var1</variable>
+     <variable>var2</variable>
+     ...
+    </External>
+    ...
+  </Functions>
+   ...
+</Simulation>
+---------------------------------------
 \end{lstlisting}
+
 
 

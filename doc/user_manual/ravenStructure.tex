@@ -1,21 +1,18 @@
-\section{Raven Structure  \\ \vspace{2 mm} {\small }}
-
-Raven Input is set up in different blocks, each with a different function. The blocks communicate with each other in order to achive whatever result the user wants.
-
-The blocks are as following:
+\section{Raven Input Structure  \\ \vspace{2 mm} {\small }}
+The RAVEN code does not have a fixed calculation flow, since all its basic objects can be combined in order to create a user-defined calculation flow. Thus, its input (xml) is organized in different xml blocks, each with a different functionality. 
+The main input blocks are as follows:
 \begin{itemize}
-\item \textbf{Simulation}: The simulation block is the one that has inside the entire input, all the following blocks fit inside the simulation block
-\item \textbf{RunInfo}
-\item \textbf{Distributions}
-\item \textbf{Samplers}
-\item \textbf{Functions}
-\item \textbf{Models}
-\item \textbf{Steps}
-\item \textbf{Dats}
-\item \textbf{Databases}
-\item \textbf{OutStream system}
+\item \textbf{Simulation}: The simulation block is the one that has inside the entire input, all the following blocks fit inside the simulation block;
+\item \textbf{RunInfo}: Block in which the calculation settings are specified (number of parallel simulations, etc.);
+\item \textbf{Distributions}: Distributions' container;
+\item \textbf{Samplers}: Exploration of the uncertain domain strategy specification;
+\item \textbf{Functions}: External functions container;
+\item \textbf{Models}: Models' specifications (e.g. Codes,ROM,etc.);
+\item \textbf{Steps}: Place where the single basic objects get combained;
+\item \textbf{Datas}: Internal Data object block;
+\item \textbf{Databases}: Databases block;
+\item \textbf{OutStream system}: Visualization and Printing system block.
 \end{itemize} 
-
-Each of these blocks are explained in dedicated sections in the various chapters. 
+Each of these blocks are explained in dedicated sections in the following chapters. 
 
 

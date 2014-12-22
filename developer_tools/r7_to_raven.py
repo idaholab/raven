@@ -105,7 +105,7 @@ def print_gpnode(node, depth = 0, output = sys.stdout):
         output.write(prefix+"[./"+node.name+"]\n")
 
     for line in node.comments:
-        output.write(prefix + indent + "# " + line+"\n")
+        output.write(prefix + indent + ("# " + line).rstrip()+"\n")
 
     for param_name in node.params_list:
         param_value = node.params[param_name]
@@ -141,9 +141,6 @@ def add_to_node(parent, node):
     parent.children[node.name] = node
 
 controlled_node = GPNode("Controlled",input_data)
-if len(control_name) > 0:
-    controlled_node.params_list = ["control_logic_input"]
-    controlled_node.params["control_logic_input"] = control_name
 add_to_node(input_data,controlled_node)
 monitored_node = GPNode("Monitored",input_data)
 add_to_node(input_data,monitored_node)
@@ -228,10 +225,13 @@ for component_name in component_list:
     print(component_name,component_type,type_dict,name_of_hs)
 
 
-def change_executioner(data):
+def change_executioner(data,control_name):
     data.children["Executioner"].params["type"] = "RavenExecutioner"
+    if len(control_name) > 0:
+      data.children["Executioner"].params_list.append("control_logic_file")
+      data.children["Executioner"].params["control_logic_file"] = control_name+".py"
 
-change_executioner(input_data)
+change_executioner(input_data,control_name)
 
 
 print_gpnode(input_data,output=output_file)
