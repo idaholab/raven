@@ -29,7 +29,10 @@ from JobHandler import JobHandler
 from utils import returnPrintTag,returnPrintPostTag,convertMultipleToBytes,stringsThatMeanTrue,stringsThatMeanFalse
 #Internal Modules End--------------------------------------------------------------------------------
 
-
+#Internal Submodules---------------------------------------------------------------------------------
+#FIXME this isn't where we want to import it, but we're stuck with it for now
+import SamplingModels
+#Internal Submodules End-----------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 class SimulationMode:
   """SimulationMode allows changes to the how the simulation

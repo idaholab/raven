@@ -21,7 +21,7 @@ import importlib
 from BaseClasses import BaseType, Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
-import Samplers
+#import Samplers
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -68,9 +68,19 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible samplers
   validateDict['Sampler'].append(testDict.copy())
   validateDict['Sampler'][0]['class'       ] ='Samplers'
-  validateDict['Sampler'][0]['type'        ] = Samplers.knownTypes()
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
+  #validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+  #FIXME this is a temporary statick list assignment to fix the circular references
+  #generated in SamplingModel from inheriting both Model and Sampler (Issue #13 on the wiki)
+  validateDict['Sampler'][0]['type'] = ['MonteCarlo',
+                                        'DynamicEventTree',
+                                        'LHS',
+                                        'Grid',
+                                        'Adaptive',
+                                        'AdaptiveDynamicEventTree',
+                                        'FactorialDesign',
+                                        'ResponseSurfaceDesign']
 
   @classmethod
   def generateValidateDict(cls):

@@ -47,7 +47,7 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
 -->
 
 <Samplers>
-    <StochasticPolynomial name='myStochPolys' indexSetType='TP' maxPolyOrder='2'>
+    <StochasticPolynomials name='myStochPolys' indexSetType='TP' maxPolyOrder='2'>
       <variable name='VarGauss1' impWeight='1'>
         <distribution>Gauss1</distribution>
         <quadrature>
@@ -65,7 +65,7 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
       <variable name='VarTri1' impWeight='1'>
         <distribution>DistTri1</distribution>
       </variable>
-    </StochasticPolynomial>
+    </StochasticPolynomials>
     <!--
     <AdaptiveStochasticPolynomial name='myAdaptiveSC' indexSetType='TP' maxPolyOrder='2'>
     </AdaptiveStochasticPolynomial>
