@@ -68,7 +68,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible samplers
   validateDict['Sampler'].append(testDict.copy())
   validateDict['Sampler'][0]['class'       ] ='Samplers'
-  validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+  validateDict['Sampler'][0]['type'        ] = Samplers.knownTypes()
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
 
@@ -757,7 +757,7 @@ for classType in __interFaceDict.values():
   classType.generateValidateDict()
   classType.specializeValidateDict()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type,debug=False):
