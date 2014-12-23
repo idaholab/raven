@@ -43,8 +43,6 @@ class OrthogonalPolynomial(BaseType):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.
        Has to be overwritten if parameters are required.'''
     inps=self.params+[self.pointMod(pt)]
-    #print ('DEBUG inps',inps)
-    #print ('DEBUG',order,pt,self._evPoly(self.orderMod(order),*inps) * self.norm(order))
     return self._evPoly(self.orderMod(order),*inps) * self.norm(order)
     #return self._evPoly(self.orderMod(order),self.pointMod(pt)) * self.norm(order)
 

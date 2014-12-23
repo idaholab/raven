@@ -71,8 +71,6 @@ class StochasticPolynomials(SamplingModel):
       elif child.tag == 'variable':
         varName = child.attrib['name']
       self.axisName.append(varName) #TODO maybe gridInfo.keys() is the same as axisName?
-      #for cchild in child:
-      #  print('DEBUG cchild:',cchild)
       quad_find = xmlNode.find('quadrature')
       if quad_find != None:
         quadType = quad_find.find('type').text if quad_find.find('type') != None else 'DEFAULT'
@@ -111,16 +109,13 @@ class StochasticPolynomials(SamplingModel):
 
     self.sparseGrid = Quadratures.SparseQuad()
     self.sparseGrid.initialize(self.indexSet,self.distDict)
+    self.limit=len(self.sparseGrid)
 
   def localGenerateInput(self,model,myInput):
     pts,weight = self.sparseGrid[self.counter-1]
     for v,varName in enumerate(self.axisName):
       self.values[varName] = pts[v]
-      print('DEBUG self.values',self.values[varName])
-      print('DEBUG min',self.distDict[varName].ppf(0.00000000000000000000001))
-      print('DEBUG max',self.distDict[varName].ppf(1.0-0.00000000000000000000001))
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
-    print('DEBUG inputInfo',self.inputInfo['SampledVarsPb'])
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid (SamplingROM)'

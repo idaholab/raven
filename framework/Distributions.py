@@ -181,7 +181,6 @@ class Distribution(BaseType):
     except TypeError: return list(self.cdf(x) for x in pts)
 
   def _convertCdfPointsToDistr(self,pts):
-    print('DEBUG pts',pts.real)
     try: return self.ppf(pts.real)
     except TypeError: return list(self.ppf(x) for x in pts)
 
