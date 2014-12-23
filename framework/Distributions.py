@@ -433,6 +433,7 @@ class Normal(BoostDistribution):
     self.type = 'Normal'
     self.compatibleQuadrature.append('Hermite')
     self.compatibleQuadrature.append('CDF')
+    self.compatibleQuadrature.append('ClenshawCurtis') #FIXME but only if trunacated!
     self.preferredQuadrature = 'Hermite'
     self.preferredPolynomials = 'Hermite'
 
@@ -589,6 +590,8 @@ class Gamma(BoostDistribution):
     self.preferredPolynomials = 'Laguerre'
     self.preferredQuadrature = 'Laguerre'
     self.compatibleQuadrature.append('Laguerre')
+    self.compatibleQuadrature.append('CDF')
+    self.compatibleQuadrature.append('ClenshawCurtis') #FIXME but only if trunacated!
 
   def convertDistrPointsToStd(self,y):
     quad=self.quadratureSet()
