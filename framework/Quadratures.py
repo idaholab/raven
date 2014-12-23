@@ -64,7 +64,7 @@ class SparseQuad(BaseType):
   def quadRule(self,idx):
     tot=np.zeros(len(idx))
     for i,ix in enumerate(idx):
-      tot[i]=self.distrList.values()[i].getQuadrature().quadRule(ix)
+      tot[i]=self.distrList.values()[i].quadratureSet().quadRule(ix)
     return tot
 
   def __getitem__(self,n):
@@ -148,6 +148,10 @@ class SparseQuad(BaseType):
     for n,distr in enumerate(self.distrList.values()):
       mn = m[n]
       pts,wts=distr.quadratureSet()(mn)
+      pts=pts.real
+      wts=pts.real
+      print('DEBUG distr,pts',distr,pts)
+      pts = distr.convertStdPointsToDistr(pts)
       pointLists.append(pts)
       weightLists.append(wts)
     points = list(product(*pointLists))
@@ -212,6 +216,9 @@ class QuadratureSet(BaseType):
   def _localReadMoreXML(self,xmlNode):
     pass
 
+  def quadRule(self,i):
+    '''Defaults to Gauss, CC should set its own'''
+    return GaussQuadRule(i)
 
 
 class Legendre(QuadratureSet):
@@ -267,7 +274,7 @@ class ClenshawCurtis(QuadratureSet):
   def initialize(self):
     self.rule = self.cc_roots
     self.params = []
-    self.pointRule = CCQuadRule
+    self.quadRule = CCQuadRule
 
   def cc_roots(self,o):
     '''Computes Clenshaw Curtis nodes and weights for given order n=2^o+1'''
@@ -302,7 +309,7 @@ def GaussQuadRule(i):
 __base = 'QuadratureSet'
 __interFaceDict = {}
 __interFaceDict['Legendre'] = Legendre
-__interFaceDict['Cdf'] = CDF
+__interFaceDict['CDF'] = CDF
 __interFaceDict['Hermite'] = Hermite
 __interFaceDict['Laguerre'] = Laguerre
 __interFaceDict['Jacobi'] = Jacobi

@@ -47,7 +47,7 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
 -->
 
 <Samplers>
-    <StochasticPolynomials name='myStochPolys' indexSetType='TP' maxPolyOrder='2'>
+    <StochasticPolynomials name='myStochPolys' indexSetType='TensorProduct' maxPolyOrder='2'>
       <variable name='VarGauss1' impWeight='1'>
         <distribution>Gauss1</distribution>
         <quadrature>
@@ -95,7 +95,7 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
      <MultiRun name='CustomSampler'>
         <Input   class='Datas'     type='TimePointSet'>dummyIN</Input>
         <Model   class='Models'    type='Dummy'       >MyDummy</Model>
-        <Sampler class='Samplers'  type='Grid'        >myGrid</Sampler>
+        <Sampler class='Samplers'  type='StochasticPolynomials'>myStochPolys</Sampler>
         <Output  class='Datas'     type='TimePointSet'>outGrid</Output>
         <Output  class='DataBases' type='HDF5'        >test_DummyModel_db</Output>
         <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>

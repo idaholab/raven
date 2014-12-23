@@ -445,6 +445,8 @@ class Simulation(object):
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if name not in list(self.whichDict[myClass].keys()):
+        print('name:',name)
+        print('list:',list(self.whichDict[myClass].keys()))
         print(self.whichDict[myClass])
         raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       if myClass!= 'Files':  # check if object type is consistent
