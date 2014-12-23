@@ -47,7 +47,7 @@
 </Distributions>
 
 <Samplers>
-    <StochasticPolynomials name='myStochPolys' indexSetType='TotalDegree' maxPolyOrder='4'>
+    <StochasticPolynomials name='myStochPolys' indexSetType='HyperbolicCross' maxPolyOrder='5'>
       <variable name='VarUni1' impWeight='1'>
         <distribution>Uni1</distribution>
         <quadrature>
@@ -60,52 +60,54 @@
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <variable name='VarUni3' impWeight='1'>
+      <!--variable name='VarUni3' impWeight='1'>
         <distribution>Uni3</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
       <variable name='VarUni4' impWeight='1'>
-        <distribution>Uni3</distribution>
+        <distribution>Uni4</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
       <variable name='VarUni5' impWeight='1'>
-        <distribution>Uni3</distribution>
+        <distribution>Uni5</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
       <variable name='VarUni6' impWeight='1'>
-        <distribution>Uni3</distribution>
+        <distribution>Uni6</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
       <variable name='VarUni7' impWeight='1'>
-        <distribution>Uni3</distribution>
+        <distribution>Uni7</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
       <variable name='VarUni8' impWeight='1'>
-        <distribution>Uni3</distribution>
+        <distribution>Uni8</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
-      </variable>
+      </variable-->
     </StochasticPolynomials>
 </Samplers>
 
 <Datas>
      <TimePointSet name='outGrid'>
-       <Input>VarUni1,VarUni2,VarUni3,VarUni4,VarUni5,VarUni6,VarUni7,VarUni8</Input>
+       <!--Input>VarUni1,VarUni2,VarUni3,VarUni4,VarUni5,VarUni6,VarUni7,VarUni8</Input-->
+       <Input>VarUni1,VarUni2</Input>
        <Output>OutputPlaceHolder</Output>
    </TimePointSet>
    <TimePointSet name='dummyIN'>
-       <Input>VarUni1,VarUni2,VarUni3,VarUni4,VarUni5,VarUni6,VarUni7,VarUni8</Input>
+       <!--Input>VarUni1,VarUni2,VarUni3,VarUni4,VarUni5,VarUni6,VarUni7,VarUni8</Input-->
+       <Input>VarUni1,VarUni2</Input>
       <Output>OutputPlaceHolder</Output>
    </TimePointSet>
 </Datas>

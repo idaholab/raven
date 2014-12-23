@@ -72,15 +72,12 @@ class StochasticPolynomials(SamplingModel):
         varName = child.attrib['name']
       self.axisName.append(varName) #TODO maybe gridInfo.keys() is the same as axisName?
       quad_find = child.find('quadrature')
-      print("DEBUG xmlNode",child)
-      print("DEBUG quadfind",quad_find)
       if quad_find != None:
         quadType = quad_find.find('type').text if quad_find.find('type') != None else 'DEFAULT'
         polyType = quad_find.find('polynomials').text if quad_find.find('polynomials') != None else 'DEFAULT'
       else:
         quadType = 'DEFAULT'
         polyType = 'DEFAULT'
-      print("DEBUG quad type for "+varName+" is "+quadType,polyType)
       self.gridInfo[varName] = [quadType,polyType,importanceWeight]
     SamplingModel.localInputAndChecks(self,xmlNode)
 

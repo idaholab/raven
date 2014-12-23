@@ -277,7 +277,7 @@ class ClenshawCurtis(QuadratureSet):
 
   def cc_roots(self,o):
     '''Computes Clenshaw Curtis nodes and weights for given order n=2^o+1'''
-    n1=o #assures nested -> don't assume!
+    n1=o
     if o==1:
       return np.array([np.array([0]),np.array([2])])
     else:
