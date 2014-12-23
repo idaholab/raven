@@ -882,8 +882,6 @@ class Grid(Sampler):
               self.gridInfo[varName][2].sort()
             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
-    print('DEBUG toBeSampled',self.toBeSampled.keys())
-    print('DEBUG gridInfo',self.gridInfo.keys())
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
 

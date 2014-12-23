@@ -3,7 +3,7 @@
 
 <RunInfo>
     <WorkingDir>StochasticPolyTest</WorkingDir>
-    <Sequence>CustomSampler</Sequence> <!--what is this? -->
+    <Sequence>CustomSampler,Plot</Sequence> <!--what is this? -->
     <batchSize>2</batchSize>
 </RunInfo>
 
@@ -31,6 +31,14 @@
         <min>-0.1</min>
         <max>4</max>
     </Triangular>
+    <Uniform name="Uni1">
+      <low>1</low>
+      <high>5</high>
+    </Uniform>
+    <Uniform name="Uni2">
+      <low>-1</low>
+      <high>1</high>
+    </Uniform>
 </Distributions>
 
 <!-- 
@@ -47,7 +55,7 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
 -->
 
 <Samplers>
-    <StochasticPolynomials name='myStochPolys' indexSetType='TensorProduct' maxPolyOrder='2'>
+    <StochasticPolynomials name='myStochPolys' indexSetType='TotalDegree' maxPolyOrder='4'>
       <variable name='VarGauss1' impWeight='1'>
         <distribution>Gauss1</distribution>
         <quadrature>
@@ -65,6 +73,20 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
       <variable name='VarTri1' impWeight='1'>
         <distribution>DistTri1</distribution>
       </variable>
+      <!--variable name='VarUni1' impWeight='1'>
+        <distribution>Uni1</distribution>
+        <quadrature>
+          <type>Legendre</type>
+          <polynomials>Legendre</polynomials>
+        </quadrature>
+      </variable>
+      <variable name='VarUni2' impWeight='1'>
+        <distribution>Uni2</distribution>
+        <quadrature>
+          <type>Legendre</type>
+          <polynomials>Legendre</polynomials>
+        </quadrature>
+      </variable-->
     </StochasticPolynomials>
     <!--
     <AdaptiveStochasticPolynomial name='myAdaptiveSC' indexSetType='TP' maxPolyOrder='2'>
@@ -76,10 +98,12 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
 <Datas>
      <TimePointSet name='outGrid'>
         <Input>VarGauss1,VarGauss2,VarTri1</Input>
+        <!--Input>VarUni1,VarUni2</Input-->
         <Output>OutputPlaceHolder</Output>
    </TimePointSet>
    <TimePointSet name='dummyIN'>
       <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <!--Input>VarUni1,VarUni2</Input-->
       <Output>OutputPlaceHolder</Output>
    </TimePointSet>
 </Datas>
@@ -89,6 +113,38 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
         <type>csv</type>
         <source>outGrid</source>
     </Print>
+    <Plot name="Gausses" dim="3" overwrite="True" pauseAtEnd="True">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>outGrid|Input|VarGauss1</x>
+          <y>outGrid|Input|VarGauss2</y>
+          <z>outGrid|Input|VarTri1</z>
+        </plot>
+        <xlabel>Gauss1</xlabel>
+        <ylabel>Gauss2</ylabel>
+        <zlabel>Triangle1</zlabel>
+      </plotSettings>
+      <actions>
+        <how>png,screen</how>
+        <title><text>Sparse Grid, Gauss vs Gauss</text></title>
+      </actions>
+    </Plot>
+    <Plot name="Unis" dim="2" overwrite="True" pauseAtEnd="True">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>outGrid|Input|VarUni1</x>
+          <y>outGrid|Input|VarUni2</y>
+        </plot>
+        <xlabel>Uni1</xlabel>
+        <ylabel>Uni2</ylabel>
+      </plotSettings>
+      <actions>
+        <how>pdf,screen</how>
+        <title><text>Sparse Grid, Uniforms</text></title>
+      </actions>
+    </Plot>
 </OutStreamManager>
 
 <Steps>
@@ -100,6 +156,10 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
         <Output  class='DataBases' type='HDF5'        >test_DummyModel_db</Output>
         <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </MultiRun >
+    <OutStreamStep name="Plot" pauseAtEnd="True">
+        <Input   class='Datas'     type='TimePointSet'>outGrid</Input>
+        <Output  class='OutStreamManager' type='Plot'>Gausses</Output>
+    </OutStreamStep>
 </Steps>
 <DataBases>
         <HDF5 name="test_DummyModel_db"/> 

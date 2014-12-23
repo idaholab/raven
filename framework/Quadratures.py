@@ -150,7 +150,6 @@ class SparseQuad(BaseType):
       pts,wts=distr.quadratureSet()(mn)
       pts=pts.real
       wts=pts.real
-      print('DEBUG distr,pts',distr,pts)
       pts = distr.convertStdPointsToDistr(pts)
       pointLists.append(pts)
       weightLists.append(wts)
