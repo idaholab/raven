@@ -57,8 +57,8 @@ class Distribution(BaseType):
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
     self.printTag             = returnPrintTag('DISTRIBUTIONS')
-    self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
-    self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
+    self.preferredPolynomials = 'Legendre'  # best polynomial for probability-weighted norm of error
+    self.preferredQuadrature  = 'CDF'  # best quadrature for probability-weighted norm of error
     self.polyTypeSet          = False # flag for if polynomials have been set
     self.quadTypeSet          = False # flag for if quadrature type has been set
     self.compatibleQuadrature = [] #list of compatible quadratures
@@ -177,19 +177,20 @@ class Distribution(BaseType):
     except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Polynomials have not been set for this distr. yet.')
 
   def _convertDistrPointsToCdf(self,pts):
-    try: return self.cdf(pts)
+    try: return self.cdf(pts.real)
     except TypeError: return list(self.cdf(x) for x in pts)
 
   def _convertCdfPointsToDistr(self,pts):
-    try: return self.ppf(pts)
+    print('DEBUG pts',pts.real)
+    try: return self.ppf(pts.real)
     except TypeError: return list(self.ppf(x) for x in pts)
 
   def _convertCdfPointsToStd(self,pts):
-    try: return 2.0*pts-1.0
+    try: return 2.0*pts.real-1.0
     except TypeError: return list(2.0*x-1.0 for x in pts)
 
   def _convertStdPointsToCdf(self,pts):
-    try: return 0.5*(pts+1.0)
+    try: return 0.5*(pts.real+1.0)
     except TypeError: return list(0.5*(x+1.0) for x in pts)
 
   # currently these get overwritten but can be called in overwrite

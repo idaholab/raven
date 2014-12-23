@@ -68,14 +68,14 @@ class IndexSet(object):
     return MI
 
 class TensorProduct(IndexSet):
-  def initialize(self,distrList,impWeights=None):
-    IndexSet.initialize(self,distrList,impWeights)
+  def initialize(self,distrList):
+    IndexSet.initialize(self,distrList)
     self.type='Tensor Product'
     self.points = list(product(*self.polyOrderList))
 
 class TotalDegree(IndexSet):
-  def initialize(self,distrList,impWeights=None):
-    IndexSet.initialize(self,distrList,impWeights)
+  def initialize(self,distrList):
+    IndexSet.initialize(self,distrList)
     self.type='Total Degree'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
@@ -88,8 +88,8 @@ class TotalDegree(IndexSet):
     self.points = self.generateMultiIndex(len(distrList),rule)
 
 class HyperbolicCross(IndexSet):
-  def initialize(self,distrList,impWeights=None):
-    IndexSet.initialize(self,distrList,impWeights)
+  def initialize(self,distrList):
+    IndexSet.initialize(self,distrList)
     self.type='Hyperbolic Cross'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
@@ -107,9 +107,9 @@ Interface Dictionary (factory) (private)
 '''
 __base = 'IndexSet'
 __interFaceDict = {}
-__interFaceDict['Tensor Product'  ] = TensorProduct
-__interFaceDict['Total Degree'    ] = TotalDegree
-__interFaceDict['Hyperbolic Cross'] = HyperbolicCross
+__interFaceDict['TensorProduct'  ] = TensorProduct
+__interFaceDict['TotalDegree'    ] = TotalDegree
+__interFaceDict['HyperbolicCross'] = HyperbolicCross
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

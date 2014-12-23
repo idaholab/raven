@@ -80,7 +80,8 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
                                         'Adaptive',
                                         'AdaptiveDynamicEventTree',
                                         'FactorialDesign',
-                                        'ResponseSurfaceDesign']
+                                        'ResponseSurfaceDesign',
+                                        'StochasticPolynomials']
 
   @classmethod
   def generateValidateDict(cls):
