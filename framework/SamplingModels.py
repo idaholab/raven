@@ -78,6 +78,7 @@ class StochasticPolynomials(SamplingModel):
       else:
         quadType = 'DEFAULT'
         polyType = 'DEFAULT'
+      print("DEBUG quad type for "+varName+" is "+quadType,polyType)
       self.gridInfo[varName] = [quadType,polyType,importanceWeight]
     SamplingModel.localInputAndChecks(self,xmlNode)
 
@@ -90,25 +91,29 @@ class StochasticPolynomials(SamplingModel):
       #FIXME alpha,beta for laguerre, jacobi
       if dat[0] not in self.distDict[varName].compatibleQuadrature and dat[0]!='DEFAULT':
         raise IOError (self.printTag+' Incompatible quadrature <'+dat[0]+'> for distribution of '+varName+': '+distribution.type)
-      if dat[0]=='DEFAULT': dat[0]=self.distDict[varName].preferredQuadrature
-      quad = Quadratures.returnInstance(dat[0])
-      quad.initialize()
+      if dat[0]=='DEFAULT': dat[0]=Quadratures.returnInstance(*self.distDict[varName].preferredQuadrature)
+      else: quad = Quadratures.returnInstance(dat[0])
+      quad.initialize() #take XMLnode as argument?
+      self.quadDict[varName] = quad
 
-      if dat[1]=='DEFAULT': dat[1]=self.distDict[varName].preferredPolynomials
+      if dat[1]=='DEFAULT': dat[1] = self.distDict[varName].preferredPolynomials
       poly = OrthoPolynomials.returnInstance(dat[1])
       poly.initialize()
+      self.polyDict[varName] = poly
       #TODO how to check compatible polys?  Polys compatible with quadrature more than distribution, kind of both
 
-      self.distDict[varName].setQuadrature(quad)
-      self.distDict[varName].setPolynomials(poly,self.maxPolyOrder)
-      self.distDict[varName].setImportanceWeight(dat[2])
+      self.importanceDict[varName] = dat[2]
+
+      #self.distDict[varName].setQuadrature(quad)
+      #self.distDict[varName].setPolynomials(poly,self.maxPolyOrder)
+      #self.distDict[varName].setImportanceWeight(dat[2])
     self.norm = np.prod(list(d.probabilityNorm() for d in self.distDict.values()))
 
     self.indexSet = IndexSets.returnInstance(self.indexSetType)
     self.indexSet.initialize(self.distDict)
 
     self.sparseGrid = Quadratures.SparseQuad()
-    self.sparseGrid.initialize(self.indexSet,self.distDict)
+    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict)
     self.limit=len(self.sparseGrid)
 
   def localGenerateInput(self,model,myInput):

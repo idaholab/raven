@@ -59,10 +59,13 @@ class Distribution(BaseType):
     self.printTag             = returnPrintTag('DISTRIBUTIONS')
     self.preferredPolynomials = 'Legendre'  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = 'CDF'  # best quadrature for probability-weighted norm of error
-    self.polyTypeSet          = False # flag for if polynomials have been set
-    self.quadTypeSet          = False # flag for if quadrature type has been set
     self.compatibleQuadrature = [] #list of compatible quadratures
-    self.importanceWeight     = None #used for creating anisotropic grid samples
+    #self.polyTypeSet          = False # flag for if polynomials have been set
+    #self.quadTypeSet          = False # flag for if quadrature type has been set
+    #self.importanceWeight     = None #used for creating anisotropic grid samples
+    self.convertQuadToDistr   = {} #dict of methods keyed on quadrature types to convert points from quadrature measure and domain to distribution measure and domain
+    self.convertDistrToQuad   = {} #dict of methods keyed on quadrature types to convert points from distribution measure and domain to quadrature measure and domain
+    self.measureNorms         = {} #dict of methods keyed on quadrature types to provide scalar adjustment for measure transformation (from quad to distr)
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -76,6 +79,10 @@ class Distribution(BaseType):
       self.lowerBoundUsed = True
     if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
     else: self.__adjustment = 'scaling'
+    #TODO is this the right place to put this?
+    self.convertQuadToDistr['CDF'] = self._convertStdPointsToDistr
+    self.convertDistrToQuad['CDF'] = self._convertDistrToStdPoints
+    self.measureNorms['CDF']       = self.cdfProbabilityNorm
 
   def getCrowDistDict(self):
     '''
@@ -123,58 +130,65 @@ class Distribution(BaseType):
     CDFlower = self._distribution.cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
-  def setQuadrature(self,quadSet):
-    '''
-    Function to set the quadrature rule
-    @ In, quadSet, object -> collocation quadrature constructor
-    @ Out,         , None 
-    '''
-    if self.hasInfiniteBound and quadSet.type=='ClenshawCurtis':
-      if self.ppf(0) <= -1e50 or self.ppf(1) >= 1e50:
-        raise IOError('Tried to set ClenshawCurtis quad for distribution with endpoints outside +- 1e50')
+#  def setQuadrature(self,quadSet):
+#    '''
+#    Function to set the quadrature rule
+#    @ In, quadSet, object -> collocation quadrature constructor
+#    @ Out,         , None 
+#    '''
+#    if self.hasInfiniteBound and quadSet.type=='ClenshawCurtis':
+#      if self.ppf(0) <= -1e50 or self.ppf(1) >= 1e50:
+#        raise IOError('Tried to set ClenshawCurtis quad for distribution with endpoints outside +- 1e50')
+#
+#    self.__quadSet=quadSet
+#    self.quadTypeSet = True
+#    if quadSet.type in ['CDF','ClenshawCurtis']: #needs CC/Legendre normalization
+#      self.probabilityNorm = self.cdfProbabilityNorm
+#    else:
+#      try: self.probabilityNorm = self.stdProbabilityNorm
+#      except AttributeError: self.probabilityNorm = self.cdfProbabilityNorm
+#
+#    if self.polyTypeSet:
+#      self.polynomialSet().setMeasures(self.quadratureSet())
+#
+#  def setPolynomials(self,polySet,maxOrder):
+#    '''
+#    Function to set the quadrature rule
+#    @ In, polySet, object -> collocation orthonormal polynomial constructor
+#    @ In, maxOrder, int -> max polynomial expansion order for input
+#    @ Out,         , None 
+#    '''
+#    self.__polySet=polySet
+#    self.polyTypeSet = True
+#    self.__maxPolynomialOrder=maxOrder
+#
+#    if self.quadTypeSet:
+#      self.polynomialSet().setMeasures(self.quadratureSet())
+#
+#  def setNewPolyOrder(self,order):
+#    self.setPolynomials(self.__polySet,order)
+#
+#  def setImportanceWeight(self,alpha):
+#    self.importanceWeight = alpha
+#
+#  def quadratureSet(self):
+#    try: return self.__quadSet
+#    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No quadrature has been set for this distr. yet.')
+#
+#  def polynomialSet(self):
+#    try: return self.__polySet
+#    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No polynomial has been set for this distr. yet.')
+#
+#  def maxPolyOrder(self):
+#    try: return self.__maxPolynomialOrder
+#    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Polynomials have not been set for this distr. yet.')
 
-    self.__quadSet=quadSet
-    self.quadTypeSet = True
-    if quadSet.type in ['CDF','ClenshawCurtis']: #needs CC/Legendre normalization
-      self.probabilityNorm = self.cdfProbabilityNorm
-    else:
-      try: self.probabilityNorm = self.stdProbabilityNorm
-      except AttributeError: self.probabilityNorm = self.cdfProbabilityNorm
-
-    if self.polyTypeSet:
-      self.polynomialSet().setMeasures(self.quadratureSet())
-
-  def setPolynomials(self,polySet,maxOrder):
-    '''
-    Function to set the quadrature rule
-    @ In, polySet, object -> collocation orthonormal polynomial constructor
-    @ In, maxOrder, int -> max polynomial expansion order for input
-    @ Out,         , None 
-    '''
-    self.__polySet=polySet
-    self.polyTypeSet = True
-    self.__maxPolynomialOrder=maxOrder
-
-    if self.quadTypeSet:
-      self.polynomialSet().setMeasures(self.quadratureSet())
-
-  def setNewPolyOrder(self,order):
-    self.setPolynomials(self.__polySet,order)
-
-  def setImportanceWeight(self,alpha):
-    self.importanceWeight = alpha
-
-  def quadratureSet(self):
-    try: return self.__quadSet
-    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No quadrature has been set for this distr. yet.')
-
-  def polynomialSet(self):
-    try: return self.__polySet
-    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No polynomial has been set for this distr. yet.')
-
-  def maxPolyOrder(self):
-    try: return self.__maxPolynomialOrder
-    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Polynomials have not been set for this distr. yet.')
+  def convertQuadToDistr(self,qtype,pts):
+    return self.convertToDistr[qtype](pts)
+  def convertDistrToQuad(self,qtype,pts):
+    return self.convertToQuad[qtype](pts)
+  def measureNorm(self,qtype):
+    return self.measureNorms[qtype]
 
   def _convertDistrPointsToCdf(self,pts):
     try: return self.cdf(pts.real)
@@ -214,13 +228,6 @@ class Distribution(BaseType):
   def cdfProbabilityNorm(self):
     return 1.0/2.0;
 
-  def handleMeasure(self,pt):
-    if self.quadratureSet().type in ['CDF',self.preferredQuadrature]:
-      #print('unmodded')
-      return 1
-    else:
-      #print('modded')
-      return 1.0/self.probabilityWeight(pt)
 
 def random():
   '''
@@ -385,6 +392,12 @@ class Uniform(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
+    self.convertQuadToDistr['Legendre']       = self.convertLegendreToUniform
+    self.convertDistrToQuad['Legendre']       = self.convertUniformToLegendre
+    self.convertQuadToDistr['ClenshawCurtis'] = self.convertLegendreToUniform
+    self.convertDistrToQuad['ClenshawCurtis'] = self.convertUniformToLegendre
+    self.measureNorm['Legendre']              = self.stdProbabilityNorm
+    self.measureNorm['ClenshawCurtis']        = self.stdProbabilityNorm
 
   def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
@@ -404,23 +417,11 @@ class Uniform(BoostDistribution):
   def initializeDistribution(self):
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
 
-  def convertDistrPointsToStd(self,y):
-    quad=self.quadratureSet()
-    if quad.type=='Legendre':
-      return (y-self.untruncatedMean())/(self.range/2.)
-    elif quad.type=='ClenshawCurtis':
-      return (y-self.untruncatedMean())/(self.range/2.)
-    else:
-      return Distribution.convertDistrPointsToStd(self,y)
+  def convertUniformPointsToLegendre(self,y):
+    return (y-self.untruncatedMean())/(self.range/2.)
 
-  def convertStdPointsToDistr(self,x):
-    quad=self.quadratureSet()
-    if quad.type=='Legendre':
-      return self.range/2.*x+self.untruncatedMean()
-    elif quad.type=='ClenshawCurtis':
-      return self.range/2.*x+self.untruncatedMean()
-    else:
-      return Distribution.convertStdPointsToDistr(self,x)
+  def convertLegendreToUniform(self,x):
+    return self.range/2.*x+self.untruncatedMean()
 
 
 
@@ -433,6 +434,7 @@ class Normal(BoostDistribution):
     self.type = 'Normal'
     self.compatibleQuadrature.append('Hermite')
     self.compatibleQuadrature.append('CDF')
+    #FIXME this should be the same as the keys for convertToDistr -> duplicate?
     self.preferredQuadrature = 'Hermite'
     self.preferredPolynomials = 'Hermite'
 
@@ -450,6 +452,14 @@ class Normal(BoostDistribution):
     sigma_find = xmlNode.find('sigma')
     if sigma_find != None: self.sigma = float(sigma_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> sigma value needed for normal distribution')
+    self.convertQuadToDistr['Hermite']        = self.convertHermiteToNormal
+    self.convertDistrToQuad['Hermite']        = self.convertNormalToHermite
+    self.measureNorm['Hermite']               = self.stdProbabilityNorm
+
+    if self.lowerBoundUsed and self.upperBoundUsed:
+      self.compatibleQuadrature.append('ClenshawCurtis')
+      self.convertQuadToDistr['ClenshawCurtis'] = self.convertQuadToDistr['CDF']
+      self.convertDistrToQuad['ClenshawCurtis'] = self.convertDistrToQuad['CDF']
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -463,8 +473,11 @@ class Normal(BoostDistribution):
                                                                   self.sigma)
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
+      self.prefferedQuadrature  = 'Hermite'
       self.prefferedPolynomials = 'Hermite'
     else:
+      self.prefferedQuadrature  = 'CDF'
+      self.prefferedPolynomials = 'Legendre'
       if self.lowerBoundUsed == False:
         a = -sys.float_info.max
         self.lowerBound = a
@@ -476,8 +489,6 @@ class Normal(BoostDistribution):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma,
                                                                   a,b)
-    if self.lowerBoundUsed and self.upperBoundUsed:
-      self.compatibleQuadrature.append('ClenshawCurtis')
 
   def stdProbabilityNorm(self,std=False):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
@@ -489,19 +500,11 @@ class Normal(BoostDistribution):
     if std: return np.exp(-x**2/2.)
     else: return np.exp(-(x-self.mean)**2/2./self.sigma**2)
 
-  def convertDistrPointsToStd(self,y):
-    quad=self.quadratureSet()
-    if quad.type=='Hermite':
-      return (y-self.untruncatedMean())/(self.sigma)
-    else:
-      return Distribution.convertDistrPointsToStd(self,y)
+  def convertNormalToHermite(self,y):
+    return (y-self.untruncatedMean())/(self.sigma)
 
-  def convertStdPointsToDistr(self,x):
-    quad=self.quadratureSet()
-    if quad.type=='Hermite':
-      return self.sigma*x+self.untruncatedMean()
-    else:
-      return Distribution.convertStdPointsToDistr(self,x)
+  def convertHermiteToNormal(self,x):
+    return self.sigma*x+self.untruncatedMean()
 
   def _constructBeta(self,numStdDev=5):
     '''Using data from normal distribution and the number of standard deviations
@@ -563,6 +566,11 @@ class Gamma(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
+    self.convertQuadToDistr['Laguerre']        = self.convertLaguerreToGamma
+    self.convertDistrToQuad['Laguerre']        = self.convertGammaToLaguerre
+    self.convertQuadToDistr['ClenshawCurtis']  = self.convertLaguerreToGamma
+    self.convertDistrToQuad['ClenshawCurtis']  = self.convertGammaToLaguerre
+    self.measureNorm['Laguerre']               = self.stdProbabilityNorm
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
