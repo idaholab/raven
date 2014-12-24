@@ -31,13 +31,14 @@ class SparseQuad(BaseType):
   def __init__(self):
     self.c = [] #array of coefficient terms for smaller tensor grid entries
 
-  def initialize(self, indexSet, distrList):
+  def initialize(self, indexSet, maxPoly, distrList, quadDict, polyDict):
     self.indexSet = np.array(indexSet[:])
     self.distrList = distrList
+    self.quadDict = quadDict
+    self.polyDict = polyDict
     self.N= len(distrList.keys())
-    maxPoly = 0
-    for distr in self.distrList.values(): #TODO dict keys or values?  How are they stored?  Or list?
-      maxPoly = max(maxPoly,distr.maxPolyOrder())
+    #for distr in self.distrList.values(): #TODO dict keys or values?  How are they stored?  Or list?
+    #  maxPoly = max(maxPoly,distr.maxPolyOrder())
     #self.serialMakeCoeffs()
     #we can cheat if it's tensor product index set
     if indexSet.type=='Tensor Product':
@@ -64,7 +65,7 @@ class SparseQuad(BaseType):
   def quadRule(self,idx):
     tot=np.zeros(len(idx))
     for i,ix in enumerate(idx):
-      tot[i]=self.distrList.values()[i].quadratureSet().quadRule(ix)
+      tot[i]=self.quadDict.values()[i].quadRule(ix)
     return tot
 
   def __getitem__(self,n):
@@ -146,11 +147,12 @@ class SparseQuad(BaseType):
     pointLists=[]
     weightLists=[]
     for n,distr in enumerate(self.distrList.values()):
+      quad = self.quadList.values()[n]
       mn = m[n]
-      pts,wts=distr.quadratureSet()(mn)
+      pts,wts=quad(mn)
       pts=pts.real
       wts=pts.real
-      pts = distr.convertStdPointsToDistr(pts)
+      pts = distr.convertStdPointsToDistr(quad.type,pts)
       pointLists.append(pts)
       weightLists.append(wts)
     points = list(product(*pointLists))
