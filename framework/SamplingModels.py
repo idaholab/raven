@@ -71,7 +71,7 @@ class StochasticPolynomials(SamplingModel):
       elif child.tag == 'variable':
         varName = child.attrib['name']
       self.axisName.append(varName) #TODO maybe gridInfo.keys() is the same as axisName?
-      quad_find = xmlNode.find('quadrature')
+      quad_find = child.find('quadrature')
       if quad_find != None:
         quadType = quad_find.find('type').text if quad_find.find('type') != None else 'DEFAULT'
         polyType = quad_find.find('polynomials').text if quad_find.find('polynomials') != None else 'DEFAULT'
@@ -89,12 +89,11 @@ class StochasticPolynomials(SamplingModel):
     Samplers.Grid.localInitialize(self)
     for varName,dat in self.gridInfo.items():
       #FIXME alpha,beta for laguerre, jacobi
-      if dat[0] not in self.distDict[varName].compatibleQuadrature and dat[0]!='DEFAULT':
-        raise IOError (self.printTag+' Incompatible quadrature <'+dat[0]+'> for distribution of '+varName+': '+distribution.type)
-      if dat[0]=='DEFAULT': dat[0]=Quadratures.returnInstance(*self.distDict[varName].preferredQuadrature)
-      else: quad = Quadratures.returnInstance(dat[0])
-      quad.initialize() #take XMLnode as argument?
-      self.quadDict[varName] = quad
+      #if dat[0] not in self.distDict[varName].compatibleQuadrature and dat[0]!='DEFAULT':
+      #  raise IOError (self.printTag+' Incompatible quadrature <'+dat[0]+'> for distribution of '+varName+': '+distribution.type)
+      if dat[0]=='DEFAULT': dat[0]=self.distDict[varName].preferredQuadrature
+      quad = Quadratures.returnInstance(dat[0])
+      quad.initialize()
 
       if dat[1]=='DEFAULT': dat[1] = self.distDict[varName].preferredPolynomials
       poly = OrthoPolynomials.returnInstance(dat[1])

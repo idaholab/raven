@@ -435,6 +435,7 @@ class Normal(BoostDistribution):
     self.compatibleQuadrature.append('Hermite')
     self.compatibleQuadrature.append('CDF')
     #FIXME this should be the same as the keys for convertToDistr -> duplicate?
+    self.compatibleQuadrature.append('ClenshawCurtis') #FIXME but only if trunacated!
     self.preferredQuadrature = 'Hermite'
     self.preferredPolynomials = 'Hermite'
 
@@ -597,6 +598,8 @@ class Gamma(BoostDistribution):
     self.preferredPolynomials = 'Laguerre'
     self.preferredQuadrature = 'Laguerre'
     self.compatibleQuadrature.append('Laguerre')
+    self.compatibleQuadrature.append('CDF')
+    self.compatibleQuadrature.append('ClenshawCurtis') #FIXME but only if trunacated!
 
   def convertDistrPointsToStd(self,y):
     quad=self.quadratureSet()

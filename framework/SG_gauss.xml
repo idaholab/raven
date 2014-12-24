@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug='False'>
+<Simulation debug='True'>
 
 <RunInfo>
     <WorkingDir>StochasticPolyTest</WorkingDir>
@@ -40,6 +40,19 @@
       <high>1</high>
     </Uniform>
 </Distributions>
+
+<!-- 
+These don't get customized at all; should they still be specified
+or just get pulled as requested from the distribution creator?
+I assume not, since they do have to be created before SamplingROM is initialized
+
+Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take from dist?
+<Quadratures>
+</Quadratures>
+
+<Polynomials>
+</Polynomials>
+-->
 
 <Samplers>
     <StochasticPolynomials name='myStochPolys' indexSetType='HyperbolicCross' maxPolyOrder='2'>
@@ -84,16 +97,16 @@
 </Samplers>
 
 <Datas>
-  <TimePointSet name='outGrid'>
-    <Input>VarGauss1,VarGauss2,VarTri1</Input>
-    <!--Input>VarUni1,VarUni2</Input-->
-    <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
-  <TimePointSet name='dummyIN'>
-  <Input>VarGauss1,VarGauss2,VarTri1</Input>
-    <!--Input>VarUni1,VarUni2</Input-->
-    <Output>OutputPlaceHolder</Output>
-  </TimePointSet>
+     <TimePointSet name='outGrid'>
+        <Input>VarGauss1,VarGauss2,VarTri1</Input>
+        <!--Input>VarUni1,VarUni2</Input-->
+        <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
+   <TimePointSet name='dummyIN'>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <!--Input>VarUni1,VarUni2</Input-->
+      <Output>OutputPlaceHolder</Output>
+   </TimePointSet>
 </Datas>
     
 <OutStreamManager>
@@ -101,7 +114,7 @@
         <type>csv</type>
         <source>outGrid</source>
     </Print>
-    <Plot name="Gausses and Triangular, TD" dim="3" overwrite="True" pauseAtEnd="True">
+    <Plot name="Gausses" dim="3" overwrite="True" pauseAtEnd="True">
       <plotSettings>
         <plot>
           <type>scatter</type>
