@@ -159,6 +159,25 @@ class Function(BaseType):
     toBeReturned=self.__actionDictionary[what](self)
     return toBeReturned
 
+  def parameterNames(self,method=None):
+    '''
+    Just get a list of the variables this function needs, alternatively, you
+    can pass in a specific method from this Function and it will give you just
+    the arguments that function needs. In this way, an external function would
+    not have to reference self, and could just have matching variable names, or
+    better yet, the xml could define the aliasing from the external script to
+    the internal data
+    '''
+    if method is None:
+      return self.__inputVariables[:]
+    else:
+    # func_code.co_varnames and func_code.co_argcount are python built-ins that
+    # expose the variables and argument count of a python function, this allows
+    # us to return the names of the function parameters/arguments
+      argCount = self.__actionDictionary[method].func_code.co_argcount
+    # So, the first argCount elements of co_varnames will always be the function
+    # input argument list
+      return self.__actionDictionary[method].func_code.co_varnames[:argCount]
 
 
 '''

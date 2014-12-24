@@ -24,6 +24,9 @@ from BaseClasses import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
+def error(*objs):
+  print("ERROR: ", *objs, file=sys.stderr)
+
 '''
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
@@ -1207,6 +1210,261 @@ class LimitSurface(BasePostProcessor):
 
     return self.surfPoint,outputPlaceOrder
 
+#
+#
+#
+class ExternalPostProcessor(BasePostProcessor):
+  '''
+    ExternalPostProcessor class. It computes all the most popular statistics
+  '''
+  def __init__(self):
+    BasePostProcessor.__init__(self)
+    self.parameters = {}             # parameters dictionary (they are basically
+                                     # stored into a dictionary identified by 
+                                     # tag "targets")
+
+    self.methodsToRun = []          # if a function is present, its outcome name
+                                    # is here stored... if it matches one of the
+                                    # known outcomes, the pp is going to use the
+                                    # function to compute it
+
+    self.what = self.methodsToRun   # what needs to be computed... default = all
+
+    self.printTag = returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
+    self.requiredAssObject = (True,(['Function'],['n']))
+
+
+  def _localGenerateAssembler(self,initDict):
+    ''' see generateAssembler method '''
+    for key, value in self.assemblerObjects.items():
+      if key in 'Function': 
+        self.externalFunction = initDict[value[0][0]][value[0][2]]
+
+  def inputToInternal(self,currentInp):
+    # each post processor knows how to handle the coming inputs. The 
+    # BasicStatistics postprocessor accept all the input type (files (csv only),
+    # hdf5 and datas
+    if type(currentInp) == list:
+      currentInput = currentInp[-1]
+    else:
+      currentInput = currentInp
+
+    if type(currentInput) == dict:
+      if 'targets' in currentInput.keys():
+        return
+
+    inputDict = {'targets':{},'metadata':{}}
+    if hasattr(currentInput,'type'): 
+      inType = currentInput.type
+    elif type(currentInput) in [str,bytes,unicode]:
+      inType = "file"
+    elif type(currentInput) in [list]:
+      inType = "list"
+    else:
+      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' 
+                    + self.__class__.__name__ + ' postprocessor accepts files, '
+                    + 'HDF5, Data(s) only! ' + str(type(currentInput)) 
+                    + ' requested.')
+
+    if inType not in ['file','HDF5','TimePointSet','list']: 
+      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> '
+                    + self.__class__.__name__  + 'postprocessor accepts files, '
+                    + 'HDF5, Data(s) only! '+ str(inType) + ' requested.')
+    elif inType == 'file':
+      if currentInput.endswith('csv'):
+        pass # TODO
+    elif inType == 'HDF5':
+      pass # TODO
+    elif inType == 'TimePointSet':
+      if self.externalFunction is not None:
+        for param in self.externalFunction.parameterNames():
+          if param in currentInput.getParaKeys('input'):
+            inputDict['targets'][param] = currentInput.getParam('input',param)
+          elif param in currentInput.getParaKeys('output'):
+            inputDict['targets'][param] = currentInput.getParam('output',param)
+        inputDict['metadata'] = currentInput.getAllMetadata()
+      else:
+        error('It seems we do not have an external function.')
+        sys.exit(0)
+#      for targetP in self.parameters['targets']:
+#        if targetP in currentInput.getParaKeys('input' ): 
+#          inputDict['targets'][targetP] = currentInput.getParam('input',targetP)
+#        elif targetP in currentInput.getParaKeys('output'): 
+#          inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
+#      inputDict['metadata'] = currentInput.getAllMetadata()
+
+      # now we check if the sampler that genereted the samples are from 
+      # adaptive... in case... create the grid
+      if inputDict['metadata'].keys().count('SamplerType') > 0:
+        pass
+
+    return inputDict
+
+  def initialize(self, runInfo, inputs, initDict):
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.__workingDir = runInfo['WorkingDir']
+
+  def _localReadMoreXML(self,xmlNode):
+    '''
+      Function to read the portion of the xml input that belongs to this 
+      specialized class and initialize some stuff based on the inputs got
+      @ In, xmlNode    : Xml element node
+      @ Out, None
+    '''
+    for child in xmlNode:
+      if child.tag == 'methodsToRun':
+        self.methodsToRun = child.text.split(',')
+
+  def collectOutput(self,finishedjob,output):
+    #output
+    if finishedjob.returnEvaluation() == -1: 
+      raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR")
+                      + '->  No available Output to collect (Run probabably is ' 
+                      + 'not finished yet)')
+    outputDict = finishedjob.returnEvaluation()[1]
+    methodToTest = []
+    for key in self.methodsToRun:
+      methodToTest.append(key)
+    if type(output) in [str,unicode,bytes]:
+      availextens = ['csv','txt']
+      outputextension = output.split('.')[-1].lower()
+      if outputextension not in availextens:
+        print(self.printTag+': ' +returnPrintPostTag('Warning') + '->' 
+              + self.__class__.__name__ 
+              + ' postprocessor output extension you input is ' 
+              + outputextension)
+        print('                     Available are ' + str(availextens) 
+              + '. Convertint extension to ' + str(availextens[0])+'!')
+        outputextension = availextens[0]
+      if outputextension != 'csv':
+        separator = ' '
+      else:
+        separator = ','
+
+      outFilename = os.path.join(self.__workingDir,
+                                 output[:output.rfind('.')]+'.'+outputextension)
+      if self.debug:
+        print(self.printTag + ': ' + returnPrintPostTag('Message') + '->' 
+              + 'workingDir', self.__workingDir, 'output', output.split('.'))
+        print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+              + self.__class__.__name__ + ' postprocessor: dumping output in '
+              + 'file named ' + outFilename)
+      with open(outFilename, 'wb') as outdump:
+        outdump.write(self.__class__.__name__ + separator + str(self.name) 
+                      + '\n')
+        outdump.write('-'*len(str(self.__class__.__name__)) + separator 
+                      + '-'*len(str(self.name)) + '\n')
+        for targetP in parameterSet:
+          if self.debug:
+            print('%s: %s -> %s postprocessor: writing variable %s' 
+                  % (self.printTag, returnPrintPostTag('Message'), 
+                     self.__class__.__name__, targetP))
+          outdump.write('Variable' + separator + targetP + '\n')
+          outdump.write('--------' + separator + '-'*len(targetP) + '\n')
+          for what in outputDict.keys():
+            if what not in methodToTest:
+              if self.debug: 
+                print(self.printTag + ': ' + returnPrintPostTag('Message') 
+                      + '-> ' + self.__class__.__name__ + ' postprocessor: '
+                      + 'writing variable '+ targetP + '. Parameter: '+ what)
+              outdump.write(what + separator + '%.8E' 
+                            % outputDict[what][targetP] + '\n')
+        maxLength = max(len(max(parameterSet, key=len))+5,16)
+        if self.externalFunction:
+          if self.debug: 
+            print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+                  + self.__class__.__name__ + ' postprocessor: writing External'
+                  + ' Function results')
+          outdump.write('\n' +'EXT FUNCTION \n')
+          outdump.write('------------ \n')
+          for what in self.methodsToRun:
+            #Check if the requested method is in the external python script
+            #if what not in self.acceptedCalcParam:
+              if self.debug: 
+                print(self.printTag+': ' +returnPrintPostTag('Message') + '-> '
+                      + self.__class__.__name__ + ' postprocessor: writing '
+                      + 'External Function parameter ' + what)
+              outdump.write(what + separator + '%.8E' % outputDict[what] + '\n')
+    elif output.type == 'Datas':
+      if self.debug:
+        print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+              + self.__class__.__name__ + ' postprocessor: dumping output in '
+              + 'data object named ' + output.name)
+      for what in outputDict.keys():
+        if what not in methodToTest:
+          for targetP in parameterSet:
+            if self.debug: 
+              print(self.printTag+': ' + returnPrintPostTag('Message') + '-> '
+                    + self.__class__.__name__ + ' postprocessor: dumping '
+                    + 'variable ' + targetP + '. Parameter: ' + what 
+                    + '. Metadata name = '+ targetP + '|' + what)
+            output.updateMetadata(targetP + '|' + what, 
+                                  outputDict[what][targetP])
+      if self.externalFunction:
+        if self.debug: 
+          print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+                + self.__class__.__name__ + ' postprocessor: dumping External '
+                + 'Function results')
+        for what in self.methodsToRun:
+          output.updateMetadata(what,outputDict[what])
+          if self.debug: 
+            print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+                  + self.__class__.__name__ + ' postprocessor: dumping '
+                  + 'External Function parameter ' + what)
+    elif output.type == 'HDF5': 
+      print(self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '
+            + self.__class__.__name__ +' postprocessor: Output type ' 
+            + str(output.type) + ' not yet implemented. Skip it !!!!!')
+    elif output.type == 'TimePointSet':
+      error('The output type "',output.type,'" is not available yet with ',
+            self.__class__.__name__)
+    else:
+      raise IOError(self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> '
+                    + self.__class__.__name__ + ' postprocessor: Output type '
+                    + str(output.type) + ' unknown!!')
+
+  def run(self, InputIn):
+    '''
+     Function to finalize the filter => execute the filtering
+     @ In , dictionary       : dictionary of data to process
+     @ Out, dictionary       : Dictionary with results
+    '''
+    Input  = self.inputToInternal(InputIn)
+    outputDict = {}
+
+    if self.externalFunction:
+      # there is an external function
+      for method in self.methodsToRun:
+        outputDict[method] = self.externalFunction.evaluate(method,
+Input['targets'])
+
+    for what in self.methodsToRun:
+      if what not in outputDict.keys():
+        outputDict[what] = {}
+
+    # print on screen
+    print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+          + self.__class__.__name__ + ' ' + str(self.name) + 'pp outputs')
+    methodToTest = []
+    for key in self.methodsToRun:
+      methodToTest.append(key)
+
+    maxLength = 16
+    if self.externalFunction:
+      print(' '*maxLength,'+++++++++++++++++++++++++++++')
+      print(' '*maxLength,'+ OUTCOME FROM EXT FUNCTION +')
+      print(' '*maxLength,'+++++++++++++++++++++++++++++')
+      for method in self.methodsToRun:
+        print('              ', '*'*(len(method) + 22))
+        for val in outputDict[method]:
+          print('              ', '* ' + method + ' * ' + '%.8E'
+                                 % val + '  *')
+        print('              ', '*'*(len(method) + 22))
+    return outputDict
+#
+#
+#
+#
 
 
 
@@ -1221,6 +1479,7 @@ __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
+__interFaceDict['External'                 ] = ExternalPostProcessor
 __knownTypes                                 = __interFaceDict.keys()
 
 def knonwnTypes():
