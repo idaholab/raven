@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 <data name="outGrid_dump" type="timepointset"><input>VarUni2,VarUni3,VarUni1,VarUni4</input><output>OutputPlaceHolder</output><input_filename>outGrid_dump.csv</input_filename><metadata><SamplerType>u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
+=======
+<data name="outGrid_dump" type="timepointset"><input>VarGauss2,VarGauss1,VarTri1</input><output>OutputPlaceHolder</output><input_filename>outGrid_dump.csv</input_filename><metadata><SamplerType>u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
+>>>>>>> and another one
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
@@ -80,6 +84,7 @@
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
+<<<<<<< HEAD
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
  u'Sparse Grid (SamplingROM)' u'Sparse Grid (SamplingROM)'
@@ -1653,6 +1658,360 @@
  -0.5        -0.70710678 -0.         -0.          0.          0.          0.
  -0.70710678 -0.5         0.          0.5         0.70710678 -1.
  -0.70710678  0.          0.70710678  1.        </ProbabilityWeight><prefix>'1' '2' '3' '4' '5' '6' '7' '8' '9' '10' '11' '12' '13' '14' '15' '16'
+=======
+ u'Sparse Grid (SamplingROM)'</SamplerType><crowDist> 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'
+ 'VarGauss2': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.4, "xMax": 2.0', 'VarGauss1': '"xMin": 0.0, "mu": 1.0, "type": "NormalDistribution", "sigma": 0.001, "xMax": 2.0', 'VarTri1': '"lowerBound": -0.1, "type": "TriangularDistribution", "upperBound": 4.0, "xMax": 4.0, "xMin": -0.1, "xPeak": 1.0'</crowDist><SampledVars>'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 0.459587006063769
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 1.1293061086129605
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 1.9852750604727367
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 3.075872474332368
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 0.35996135425523823
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 0.9201723901927973
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 2.3152407463230693
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 3.2403988234097993
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 0.459587006063769
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 1.1293061086129605
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 1.9852750604727367
+ 'VarGauss2': 0.999, 'VarGauss1': 1.0, 'VarTri1': 3.075872474332368
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 0.459587006063769
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 1.1293061086129605
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 1.9852750604727367
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.0, 'VarTri1': 3.075872474332368
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.0, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.0, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.0, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.0, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 0.99766558578166098, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99925803621569731, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0007419637843027, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.002334414218339, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99766558578166098, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.99766558578166098, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.99925803621569731, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.99925803621569731, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0007419637843027, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0007419637843027, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.002334414218339, 'VarGauss1': 1.0, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.002334414218339, 'VarGauss1': 1.0, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.99714302998612725, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99864437382002569, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0013556261799743, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0028569700138728, 'VarGauss1': 1.0, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.459587006063769
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.1293061086129605
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.9852750604727367
+ 'VarGauss2': 1.0, 'VarGauss1': 0.59999999999999998, 'VarTri1': 3.075872474332368
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.459587006063769
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.1293061086129605
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.9852750604727367
+ 'VarGauss2': 1.0, 'VarGauss1': 1.3999999999999999, 'VarTri1': 3.075872474332368
+ 'VarGauss2': 0.999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 0.999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.59999999999999998, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 0.999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 0.999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.3999999999999999, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 0.59999999999999998, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 0.59999999999999998, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 0.59999999999999998, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.3999999999999999, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.3999999999999999, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.3999999999999999, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.99766558578166098, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99925803621569731, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0007419637843027, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.002334414218339, 'VarGauss1': 0.59999999999999998, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99766558578166098, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99925803621569731, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0007419637843027, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.002334414218339, 'VarGauss1': 1.3999999999999999, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 0.30717967697244952, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 1.6928203230275507, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 0.30717967697244952, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 0.30717967697244952, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0, 'VarGauss1': 1.6928203230275507, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 1.6928203230275507, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0, 'VarGauss1': 0.30717967697244952, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0, 'VarGauss1': 0.30717967697244952, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 1.0, 'VarGauss1': 1.6928203230275507, 'VarTri1': 0.612940748492086
+ 'VarGauss2': 1.0, 'VarGauss1': 1.6928203230275507, 'VarTri1': 2.822617103842221
+ 'VarGauss2': 0.999, 'VarGauss1': 0.30717967697244952, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.30717967697244952, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.999, 'VarGauss1': 1.6928203230275507, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.6928203230275507, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.999, 'VarGauss1': 0.30717967697244952, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.999, 'VarGauss1': 0.30717967697244952, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.30717967697244952, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.30717967697244952, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.999, 'VarGauss1': 1.6928203230275507, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 0.999, 'VarGauss1': 1.6928203230275507, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.6928203230275507, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.6928203230275507, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 0.30717967697244952, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 0.30717967697244952, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.99826794919243111, 'VarGauss1': 1.6928203230275507, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0017320508075689, 'VarGauss1': 1.6928203230275507, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 0.0662343126644096, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 0.70321448627890915, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 1.2967855137210909, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 1.9337656873355908, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 0.0662343126644096, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 0.0662343126644096, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0, 'VarGauss1': 0.70321448627890915, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 0.70321448627890915, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0, 'VarGauss1': 1.2967855137210909, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 1.2967855137210909, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 1.0, 'VarGauss1': 1.9337656873355908, 'VarTri1': 0.8762556750039374
+ 'VarGauss2': 1.0, 'VarGauss1': 1.9337656873355908, 'VarTri1': 2.3877668144825326
+ 'VarGauss2': 0.999, 'VarGauss1': 0.0662343126644096, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.0662343126644096, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.999, 'VarGauss1': 0.70321448627890915, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 0.70321448627890915, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.999, 'VarGauss1': 1.2967855137210909, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.2967855137210909, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 0.999, 'VarGauss1': 1.9337656873355908, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0009999999999999, 'VarGauss1': 1.9337656873355908, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': -0.14278800554912152, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 0.45774952801029445, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 1.5422504719897066, 'VarTri1': 1.5200806464725511
+ 'VarGauss2': 1.0, 'VarGauss1': 2.1427880055491215, 'VarTri1': 1.5200806464725511</SampledVars><ProbabilityWeight> 0.          0.          0.          0.          0.         -0.         -0.
+ -0.         -0.          0.          0.          0.          0.          0.
+  0.         -0.         -0.          0.          0.          0.         -0.
+  0.          0.         -0.         -0.         -0.         -0.          0.
+  0.          0.          0.         -0.          0.         -0.          0.
+  0.         -0.          0.         -0.         -0.          0.          0.
+  0.         -0.         -0.          0.         -0.          0.         -0.
+ -0.          0.         -0.          0.         -0.         -0.          0.
+  0.          0.          0.          0.          0.         -0.         -0.
+  0.          0.          0.         -0.          0.          0.         -0.
+ -0.         -0.         -0.          0.          0.          0.          0.
+  0.          0.          1.15470054 -1.15470054 -1.15470054  1.15470054
+ -1.15470054  1.15470054  1.15470054 -1.15470054 -0.77459667  0.77459667
+  0.77459667 -0.77459667  0.77459667 -0.77459667 -0.77459667  0.77459667
+ -0.          0.          0.         -0.         -1.          1.          1.
+ -1.          1.         -1.         -1.          1.          0.          0.
+ -0.         -0.         -0.         -0.          0.          0.          0.
+  0.         -0.          0.          0.         -0.          0.         -0.
+ -0.          0.         -0.          0.          0.         -0.         -1.
+  1.          1.         -1.          1.         -1.         -1.          1.
+  0.         -0.         -0.          0.          0.          0.         -0.
+ -0.          0.         -0.          0.         -0.         -0.          0.
+ -0.          0.          0.         -0.          0.         -0.         -0.
+  0.         -0.          0.         -0.         -0.          0.          0.        </ProbabilityWeight><prefix>'1' '2' '3' '4' '5' '6' '7' '8' '9' '10' '11' '12' '13' '14' '15' '16'
+>>>>>>> and another one
  '17' '18' '19' '20' '21' '22' '23' '24' '25' '26' '27' '28' '29' '30' '31'
  '32' '33' '34' '35' '36' '37' '38' '39' '40' '41' '42' '43' '44' '45' '46'
  '47' '48' '49' '50' '51' '52' '53' '54' '55' '56' '57' '58' '59' '60' '61'
@@ -1664,6 +2023,7 @@
  '129' '130' '131' '132' '133' '134' '135' '136' '137' '138' '139' '140'
  '141' '142' '143' '144' '145' '146' '147' '148' '149' '150' '151' '152'
  '153' '154' '155' '156' '157' '158' '159' '160' '161' '162' '163' '164'
+<<<<<<< HEAD
  '165' '166' '167' '168' '169' '170' '171' '172' '173' '174' '175' '176'
  '177' '178' '179' '180' '181' '182' '183' '184' '185' '186' '187' '188'
  '189' '190' '191' '192' '193' '194' '195' '196' '197' '198' '199' '200'
@@ -2396,3 +2756,199 @@
  'VarUni2': 0.5, 'VarUni3': 0.0, 'VarUni1': 0.25, 'VarUni4': 0.5
  'VarUni2': 0.5, 'VarUni3': 0.0, 'VarUni1': 0.25, 'VarUni4': 0.5
  'VarUni2': 0.5, 'VarUni3': 0.0, 'VarUni1': 0.25, 'VarUni4': 0.5</SampledVarsPb></metadata></data>
+=======
+ '165'</prefix><PointProbability> 127.37800752  162.46132909   77.13121392   99.97896462  188.06125463
+  131.98610308   60.54026953   82.17928484  182.26974215  110.36980987
+   49.76202817  174.42278952  105.61824409  174.42278952  105.61824409
+  127.37760947  162.4608214    77.13097288  127.37760947  162.4608214
+   77.13097288   99.97865219  188.06066694  131.98569062   60.54008034
+   99.97865219  188.06066694  131.98569062   60.54008034  162.45980602
+  162.45980602  174.42169938  105.61758398  174.42333459  105.61857415
+  174.42169938  105.61758398  127.37681336   77.13049082  127.37681336
+   77.13049082  162.45856245  162.4610496   162.4610496   162.45856245
+  174.42036425  105.61677551  174.42303452  105.61839245  174.42303452
+  105.61839245  174.42036425  105.61677551  162.45718522  162.46039609
+  162.46039609  162.45718522    0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.            0.            0.            0.            0.
+    0.            0.        </PointProbability><SampledVarsPb> 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.2481538829551082
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.466779494534478
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.32759755114264444
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.15026463831994016
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.203973993017844
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.45240460762430035
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.2739445940938099
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.12351238643743101
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.2481538829551082
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.466779494534478
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.32759755114264444
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.15026463831994016
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.2481538829551082
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.466779494534478
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.32759755114264444
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.15026463831994016
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098721984066046, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098921579556757, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098921579556757, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098721984066046, 'VarGauss1': 398.94228040143275, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.2481538829551082
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.466779494534478
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.32759755114264444
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.15026463831994016
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.2481538829551082
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.466779494534478
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.32759755114264444
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.15026463831994016
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098962202931832, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098807595963242, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.31615997715835303
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.19144437335898845
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.009888489915167, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.4329293458997505
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.262151737482515
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.0098948017379534, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596
+ 'VarGauss2': 1.00989795766414, 'VarGauss1': 0.0, 'VarTri1': 0.40323891927275596</SampledVarsPb></metadata></data>
+>>>>>>> and another one
