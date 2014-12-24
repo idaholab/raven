@@ -159,6 +159,13 @@ class Function(BaseType):
     toBeReturned=self.__actionDictionary[what](self)
     return toBeReturned
 
+  def evaluateArgs(self,method,args):
+    '''Will take a method from a Function object and apply the list of arguments
+       defined by args to the method evaluation
+    '''
+    toBeReturned=self.__actionDictionary[method](args)
+    return toBeReturned
+
   def parameterNames(self,method=None):
     '''
     Just get a list of the variables this function needs, alternatively, you
@@ -179,6 +186,17 @@ class Function(BaseType):
     # input argument list
       return self.__actionDictionary[method].func_code.co_varnames[:argCount]
 
+class PythonFunction(Function):
+  def __init__(self):
+    super(self.__class__, self).__init__(self)
+  
+  def evaluate(self,method,args):
+    '''Will take a method from a Function object and apply the list of arguments
+       defined by args to the method evaluation
+    '''
+    toBeReturned=self.__actionDictionary[method](**args)
+    return toBeReturned
+  
 
 '''
  Interface Dictionary (factory) (private)
@@ -186,6 +204,7 @@ class Function(BaseType):
 
 __base = 'function'
 __interFaceDict = {}
+__interFaceDict['Basic']    = PythonFunction
 __interFaceDict['External'] = Function
 __knownTypes                = __interFaceDict.keys()
 

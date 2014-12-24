@@ -24,8 +24,8 @@ from BaseClasses import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-def error(*objs):
-  print("ERROR: ", *objs, file=sys.stderr)
+#def error(*objs):
+#  print("ERROR: ", *objs, file=sys.stderr)
 
 '''
   ***************************************
@@ -1223,16 +1223,27 @@ class ExternalPostProcessor(BasePostProcessor):
                                      # stored into a dictionary identified by 
                                      # tag "targets")
 
-    self.methodsToRun = []          # if a function is present, its outcome name
-                                    # is here stored... if it matches one of the
-                                    # known outcomes, the pp is going to use the
-                                    # function to compute it
+    self.methodsToRun = {}          # Store the external functions as a 
+                                    # dictionary where the key is the function
+                                    # name, and the value is the ordered list of 
+                                    # parameters to pass into the function
 
     self.what = self.methodsToRun   # what needs to be computed... default = all
 
     self.printTag = returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
 
+  def errorString(self,message):
+    return (self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> '
+           + self.__class__.__name__ + ': ' + message)
+
+  def warningString(self,message):
+    return (self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '
+           + self.__class__.__name__ + ': ' + message)
+
+  def messageString(self,message):
+    return (self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+           + self.__class__.__name__ + ': ' + message)
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
@@ -1241,9 +1252,14 @@ class ExternalPostProcessor(BasePostProcessor):
         self.externalFunction = initDict[value[0][0]][value[0][2]]
 
   def inputToInternal(self,currentInp):
-    # each post processor knows how to handle the coming inputs. The 
-    # BasicStatistics postprocessor accept all the input type (files (csv only),
-    # hdf5 and datas
+    # An external function postprocessor will need to parse the method xml node
+    # to look for attributes that specify the variable mapping from the dataset
+    # to the external code. We will need to support users writing functions
+    # using the "self" interface used elsewhere in the code, but the goal is to
+    # have the external functions be reusable (i.e. not variable dependent) and
+    # easy to write for non-code experts, to that extent I am implementing a new
+    # interface where the user can specify the variable mapping _OR_ force the 
+    # python script to use the same variable names as the internal data.
     if type(currentInp) == list:
       currentInput = currentInp[-1]
     else:
@@ -1261,15 +1277,14 @@ class ExternalPostProcessor(BasePostProcessor):
     elif type(currentInput) in [list]:
       inType = "list"
     else:
-      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' 
-                    + self.__class__.__name__ + ' postprocessor accepts files, '
-                    + 'HDF5, Data(s) only! ' + str(type(currentInput)) 
-                    + ' requested.')
+      raise IOError(self.errorString('acceptable formats: files, HDF5, Data(s) '
+                                     + 'requested format: ' 
+                                     + str(type(currentInput))))
 
     if inType not in ['file','HDF5','TimePointSet','list']: 
-      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> '
-                    + self.__class__.__name__  + 'postprocessor accepts files, '
-                    + 'HDF5, Data(s) only! '+ str(inType) + ' requested.')
+      raise IOError(self.errorString('acceptable formats: files, HDF5, Data(s) '
+                                     + 'requested format: ' 
+                                     + str(type(currentInput))))
     elif inType == 'file':
       if currentInput.endswith('csv'):
         pass # TODO
@@ -1277,27 +1292,56 @@ class ExternalPostProcessor(BasePostProcessor):
       pass # TODO
     elif inType == 'TimePointSet':
       if self.externalFunction is not None:
-        for param in self.externalFunction.parameterNames():
-          if param in currentInput.getParaKeys('input'):
-            inputDict['targets'][param] = currentInput.getParam('input',param)
-          elif param in currentInput.getParaKeys('output'):
-            inputDict['targets'][param] = currentInput.getParam('output',param)
-        inputDict['metadata'] = currentInput.getAllMetadata()
+        for method,args in self.methodsToRun.iteritems():
+          # If the user specifies their arguments via a map of variables:
+          # e.g. <method A='X' B='Y'>externalFunction</method>
+          # then look at that list and make sure everything works
+          if len(args) > 0:
+            knownArgs = list(self.externalFunction.parameterNames(method))
+            for arg,param in args.iteritems():
+              if arg in knownArgs:
+                if param in currentInput.getParaKeys('input'):
+                  inputDict['targets'][param] = currentInput.getParam('input',
+                                                                      param)
+                elif param in currentInput.getParaKeys('output'):
+                  inputDict['targets'][param] = currentInput.getParam('output',
+                                                                       param)
+                else:
+                  raise IOError(self.errorString('variable \"' + param 
+                                                 + '\" unknown. Please verify '
+                                                 + 'your method tag references '
+                                                 + 'data available in your '
+                                                 + 'dataset.'))
+              else:
+                raise IOError(self.errorString('function argument \"' + arg 
+                                               + '\" for \"' + method 
+                                               + '\" unknown. Please check that'
+                                               + ' the named attributes exist '
+                                               + 'in your script.'))
+              
+          # Otherwise, their function should reference self and use the same
+          # variable names as the xml file (X and Y in the above example case)
+          # 
+          else:
+            for param in self.externalFunction.parameterNames():
+              if param in currentInput.getParaKeys('input'):
+                inputDict['targets'][param] = currentInput.getParam('input',
+                                                                    param)
+              elif param in currentInput.getParaKeys('output'):
+                inputDict['targets'][param] = currentInput.getParam('output',
+                                                                    param)
+              else:
+                raise IOError(self.errorString('variable \"' + param 
+                                               + '\" unknown. Please verify '
+                                               + 'your external script'
+                                               + ' variables match the data'
+                                               + ' available in your dataset.'))
+            inputDict['metadata'] = currentInput.getAllMetadata()
       else:
-        error('It seems we do not have an external function.')
-        sys.exit(0)
-#      for targetP in self.parameters['targets']:
-#        if targetP in currentInput.getParaKeys('input' ): 
-#          inputDict['targets'][targetP] = currentInput.getParam('input',targetP)
-#        elif targetP in currentInput.getParaKeys('output'): 
-#          inputDict['targets'][targetP] = currentInput.getParam('output',targetP)
-#      inputDict['metadata'] = currentInput.getAllMetadata()
-
-      # now we check if the sampler that genereted the samples are from 
-      # adaptive... in case... create the grid
-      if inputDict['metadata'].keys().count('SamplerType') > 0:
-        pass
-
+        raise IOError(self.errorString('an external function is required, but '
+                                       + 'it seems to be missing. The Maker '
+                                       + 'did not intend me to do this. This '
+                                       + ' is embarrassing...'))
     return inputDict
 
   def initialize(self, runInfo, inputs, initDict):
@@ -1312,29 +1356,31 @@ class ExternalPostProcessor(BasePostProcessor):
       @ Out, None
     '''
     for child in xmlNode:
-      if child.tag == 'methodsToRun':
-        self.methodsToRun = child.text.split(',')
+      if child.tag == 'method':
+        methods = child.text.split(',')
+        argMap = {}
+        for scriptName,xmlName in child.attrib.iteritems():
+          argMap[scriptName] = xmlName
+        for method in methods:
+          self.methodsToRun[method] = argMap
 
   def collectOutput(self,finishedjob,output):
-    #output
     if finishedjob.returnEvaluation() == -1: 
-      raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR")
-                      + '->  No available Output to collect (Run probabably is ' 
-                      + 'not finished yet)')
+      #TODO This does not feel right
+      raise Exception(self.errorString('No available Output to collect (Run '
+                                       + 'probably did not finish yet)'))
     outputDict = finishedjob.returnEvaluation()[1]
-    methodToTest = []
-    for key in self.methodsToRun:
-      methodToTest.append(key)
+    methodToTest = self.methodsToRun.keys()
+
     if type(output) in [str,unicode,bytes]:
       availextens = ['csv','txt']
       outputextension = output.split('.')[-1].lower()
       if outputextension not in availextens:
-        print(self.printTag+': ' +returnPrintPostTag('Warning') + '->' 
-              + self.__class__.__name__ 
-              + ' postprocessor output extension you input is ' 
-              + outputextension)
-        print('                     Available are ' + str(availextens) 
-              + '. Convertint extension to ' + str(availextens[0])+'!')
+        print(self.warningString('output extension requested is ' 
+                                 + outputextension + '. Available are: '
+                                 + str(availextens) + '. The Maker suggests I '
+                                 + 'convert to ' + str(availextens[0]) 
+                                 + ', so let me do that for you.'))
         outputextension = availextens[0]
       if outputextension != 'csv':
         separator = ' '
@@ -1344,11 +1390,9 @@ class ExternalPostProcessor(BasePostProcessor):
       outFilename = os.path.join(self.__workingDir,
                                  output[:output.rfind('.')]+'.'+outputextension)
       if self.debug:
-        print(self.printTag + ': ' + returnPrintPostTag('Message') + '->' 
-              + 'workingDir', self.__workingDir, 'output', output.split('.'))
-        print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
-              + self.__class__.__name__ + ' postprocessor: dumping output in '
-              + 'file named ' + outFilename)
+        print(self.messageString('workingDir: ' + self.__workingDir 
+                                 + ' output: ' + str(output.split('.'))))
+        print(self.messageString('dumping output to ' + outFilename))
       with open(outFilename, 'wb') as outdump:
         outdump.write(self.__class__.__name__ + separator + str(self.name) 
                       + '\n')
@@ -1356,72 +1400,57 @@ class ExternalPostProcessor(BasePostProcessor):
                       + '-'*len(str(self.name)) + '\n')
         for targetP in parameterSet:
           if self.debug:
-            print('%s: %s -> %s postprocessor: writing variable %s' 
-                  % (self.printTag, returnPrintPostTag('Message'), 
-                     self.__class__.__name__, targetP))
+            print(self.messageString('writing variable ' + targetP))
           outdump.write('Variable' + separator + targetP + '\n')
           outdump.write('--------' + separator + '-'*len(targetP) + '\n')
           for what in outputDict.keys():
             if what not in methodToTest:
-              if self.debug: 
-                print(self.printTag + ': ' + returnPrintPostTag('Message') 
-                      + '-> ' + self.__class__.__name__ + ' postprocessor: '
-                      + 'writing variable '+ targetP + '. Parameter: '+ what)
+              if self.debug:
+                print(self.messageString('writing variable ' + targetP 
+                                         + '. Parameter: ' + what))
               outdump.write(what + separator + '%.8E' 
                             % outputDict[what][targetP] + '\n')
         maxLength = max(len(max(parameterSet, key=len))+5,16)
         if self.externalFunction:
           if self.debug: 
-            print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
-                  + self.__class__.__name__ + ' postprocessor: writing External'
-                  + ' Function results')
+            print(self.messageString('writing external method results'))
           outdump.write('\n' +'EXT FUNCTION \n')
           outdump.write('------------ \n')
           for what in self.methodsToRun:
             #Check if the requested method is in the external python script
             #if what not in self.acceptedCalcParam:
               if self.debug: 
-                print(self.printTag+': ' +returnPrintPostTag('Message') + '-> '
-                      + self.__class__.__name__ + ' postprocessor: writing '
-                      + 'External Function parameter ' + what)
+                print(self.messageString(' writing parameter ' + what))
               outdump.write(what + separator + '%.8E' % outputDict[what] + '\n')
     elif output.type == 'Datas':
       if self.debug:
-        print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
-              + self.__class__.__name__ + ' postprocessor: dumping output in '
-              + 'data object named ' + output.name)
+        print(self.messageString('dumping output in data object named ' 
+                                 + output.name))
       for what in outputDict.keys():
         if what not in methodToTest:
           for targetP in parameterSet:
             if self.debug: 
-              print(self.printTag+': ' + returnPrintPostTag('Message') + '-> '
-                    + self.__class__.__name__ + ' postprocessor: dumping '
-                    + 'variable ' + targetP + '. Parameter: ' + what 
-                    + '. Metadata name = '+ targetP + '|' + what)
+              print(self.messageString('dumping variable ' + targetP 
+                                       + '. Parameter: ' + what 
+                                       + '. Metadata name: ' + targetP + '|' 
+                                       + what))
             output.updateMetadata(targetP + '|' + what, 
                                   outputDict[what][targetP])
       if self.externalFunction:
         if self.debug: 
-          print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
-                + self.__class__.__name__ + ' postprocessor: dumping External '
-                + 'Function results')
+          print(self.messageString('dumping results'))
         for what in self.methodsToRun:
           output.updateMetadata(what,outputDict[what])
           if self.debug: 
-            print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
-                  + self.__class__.__name__ + ' postprocessor: dumping '
-                  + 'External Function parameter ' + what)
+            print(self.messageString('dumping parameter ' + what))
     elif output.type == 'HDF5': 
-      print(self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '
-            + self.__class__.__name__ +' postprocessor: Output type ' 
-            + str(output.type) + ' not yet implemented. Skip it !!!!!')
+      print(self.warningString('Output type ' + str(output.type) + ' not yet '
+                               + 'implemented. I am going to skip it.'))
     elif output.type == 'TimePointSet':
-      error('The output type "',output.type,'" is not available yet with ',
-            self.__class__.__name__)
+      print(self.warningString('The output type "' + output.type + '" is not '
+                               + 'yet compatible with this. I am skipping it.'))
     else:
-      raise IOError(self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> '
-                    + self.__class__.__name__ + ' postprocessor: Output type '
-                    + str(output.type) + ' unknown!!')
+      raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
   def run(self, InputIn):
     '''
@@ -1433,18 +1462,25 @@ class ExternalPostProcessor(BasePostProcessor):
     outputDict = {}
 
     if self.externalFunction:
-      # there is an external function
-      for method in self.methodsToRun:
-        outputDict[method] = self.externalFunction.evaluate(method,
-Input['targets'])
+      # There should be an external function
+      for method,argMap in self.methodsToRun.iteritems():
+        # If the user specified a mapping to the variables, then we need to
+        # make sure everything is handed in the correct order
+        if len(argMap) > 0:
+          functionArgMap = {}
+          for functionArg,xmlArg in argMap.iteritems():
+            functionArgMap[functionArg] = Input['targets'][xmlArg]
+        # Otherwise, do it the old way :(
+        else:
+          outputDict[method] = self.externalFunction.evaluate(method,
+                                                              Input['targets'])
 
     for what in self.methodsToRun:
       if what not in outputDict.keys():
         outputDict[what] = {}
 
     # print on screen
-    print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
-          + self.__class__.__name__ + ' ' + str(self.name) + 'pp outputs')
+    print(self.messageString(str(self.name) + ' pp outputs'))
     methodToTest = []
     for key in self.methodsToRun:
       methodToTest.append(key)
@@ -1465,7 +1501,6 @@ Input['targets'])
 #
 #
 #
-
 
 
 '''
