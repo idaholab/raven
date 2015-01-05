@@ -114,21 +114,21 @@ class OutStreamManager(BaseType):
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
       for output in inDict['Output']:
-        if output.name.strip()==self.sourceName[agrosindex] and output.type in Datas.knonwnTypes():
+        if output.name.strip()==self.sourceName[agrosindex] and output.type in Datas.knownTypes():
           self.sourceData.append(output)
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
           if not type(inp) == type(""):
-            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knonwnTypes():
+            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knownTypes():
               self.sourceData.append(inp)
               foundData = True
       if not foundData and 'TargetEvaluation' in inDict.keys():
-        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in Datas.knonwnTypes():
+        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in Datas.knownTypes():
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knonwnTypes():
+        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData: raise IOError(self.printTag+': ERROR -> the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
@@ -1202,7 +1202,7 @@ __interFaceDict['Plot'   ] = OutStreamPlot
 __interFaceDict['Print'  ] = OutStreamPrint
 __knownTypes              = __interFaceDict.keys()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):
