@@ -499,9 +499,50 @@ def process_data(dataPull, data, methodInfo):
   counts = count_bins(sorted_data,bins)
   ret['bins'] = bins
   ret['counts'] = counts
+  ret.update(calculate_stats(sorted_data))
+  skewness = ret["skewness"]
+  delta = math.sqrt((math.pi/2.0)*(abs(skewness)**(2.0/3.0))/
+                    (abs(skewness)**(2.0/3.0)+((4.0-math.pi)/2.0)**(2.0/3.0)))
+  delta = math.copysign(delta,skewness)
+  alpha = delta/math.sqrt(1.0-delta**2)
+  ret['alpha'] = alpha
   #print("bins",bins,"counts",counts)
   return ret
 
+def calculate_stats(data):
+  """Calculate statistics on a numeric array data
+  and return them in a dictionary"""
+
+  sum1 = 0.0
+  sum2 = 0.0
+  n = len(data)
+  for value in data:
+    sum1 += value
+    sum2 += value**2
+
+  mean = sum1/n
+  variance = (1.0/n)*sum2-mean**2
+  sample_variance = (n/(n-1.0))*variance
+  stdev = math.sqrt(sample_variance)
+
+  m4 = 0.0
+  m3 = 0.0
+  for value in data:
+    m3 += (value - mean)**3
+    m4 += (value - mean)**4
+  m3 = m3/n
+  m4 = m4/n
+  skewness = m3/(variance**(3.0/2.0))
+  kurtosis = m4/variance**2 - 3.0
+
+  ret = {}
+  ret["mean"] = mean
+  ret["variance"] = variance
+  ret["sample_variance"] = sample_variance
+  ret["stdev"] = stdev
+  ret["skewness"] = skewness
+  ret["kurtosis"] = kurtosis
+  return ret
 
 class PrintCSV(BasePostProcessor):
   '''
