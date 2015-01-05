@@ -211,7 +211,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
 
-  def initialize(self,externalSeeding=None,solutionExport=None):
+  def initialize(self,externalSeeding=None,solutionExport=None,**kwargs):
     '''
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
     @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
@@ -226,8 +226,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.auxcnt = externalSeeding
     for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport : self.localInitialize(solutionExport=solutionExport)
-    else              : self.localInitialize()
+    if solutionExport : self.localInitialize(solutionExport=solutionExport,**kwargs)
+    else              : self.localInitialize(**kwargs)
 
   def localInitialize(self):
     '''

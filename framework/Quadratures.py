@@ -32,7 +32,7 @@ class SparseQuad(BaseType):
   def __init__(self):
     self.c = [] #array of coefficient terms for smaller tensor grid entries
 
-  def initialize(self, indexSet, maxPoly, distrList, quadDict, polyDict):
+  def initialize(self, indexSet, maxPoly, distrList, quadDict, polyDict, handler):
     self.indexSet = np.array(indexSet[:])
     self.distrList = distrList
     self.quadDict = quadDict
@@ -46,7 +46,10 @@ class SparseQuad(BaseType):
       self.c=[1]#np.zeros(len(self.indexSet))
       self.indexSet=[self.indexSet[-1]]
     else:
-      self.smarterMakeCoeffs()
+      if handler !=None:
+        self.parallelMakeCoeffs(handler)
+      else:
+        self.smarterMakeCoeffs()
       survive = np.nonzero(self.c!=0)
       self.c=self.c[survive]
       self.indexSet=self.indexSet[survive]
@@ -131,10 +134,7 @@ class SparseQuad(BaseType):
        This particular implementation is faster for any more than 2 dimensions in comparison with the
        serialMakeCoeffs method.'''
     N=len(self.indexSet)
-    #iSet = np.array(self.indexSet) #slower than looping
     iSet = self.indexSet[:]
-    #for i,st in enumerate(iSet):
-    #  iSet[i]=np.array(st)
     self.c=np.ones(N)
     for i in range(N): #could be parallelized from here
       idx = iSet[i]
@@ -144,25 +144,33 @@ class SparseQuad(BaseType):
         if all(np.logical_and(d>=0,d<=1)):
           self.c[i]+=(-1)**sum(d)
 
-  def parallelMakeCoeffs(self):
+  def parallelMakeCoeffs(self,handler):
     N=len(self.indexSet)
-    iSet = selfindexSet[:]
-    self.c=np.ones(N)
-    handler = JobHandler() #FIXME how do I get the existing JobHandler?
-    runInfoDict={} #FIXME what goes here?
-    handler.initialize(runInfoDict)
+    self.c=np.zeros(N)
+    for i in range(N):
+      handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),self.makeSingleCoeff,str(i))
+    while True:
+      finishedJobs = handler.getFinished()
+      for job in finishedJobs:
+        if job.getReturnCode() == 0:
+          self.c[int(job.identifier)]=job.returnEvaluation()[1]
+        else:
+          print(self.printTag+': Sparse grid index',job.identifier,'failed...')
+      if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
+
     #TODO FIXME working still...
     #call individuals by makeSingleCoeff
     #collect solutions
 
-  def makeSingleCoeff(self,N,i,idx,iSet):
-    c=0
+  def makeSingleCoeff(self,arglist):#N,i,idx,iSet):
+    N,i,idx,iSet = arglist
+    c=1
     for j in range(i+1,N):
       jdx = iSet[j]
       d = jdx-idx
       if all(np.logical_and(d>=0,d<=1)):
         c += (-1)**sum(d)
-    #TODO FIXME stash c and i in queue
+    return c
         
     
 

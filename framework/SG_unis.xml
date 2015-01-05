@@ -3,8 +3,10 @@
 
 <RunInfo>
     <WorkingDir>StochasticPolyTest</WorkingDir>
-    <Sequence>CustomSampler,Print,Plot</Sequence>
-    <batchSize>1</batchSize>
+    <Sequence>CustomSampler,Print</Sequence>
+    <batchSize>200</batchSize>
+    <mode>pbsdsh</mode>
+    <expectedTime>2:00:00</expectedTime>
 </RunInfo>
 
 <Models>
@@ -19,20 +21,20 @@
 </Distributions>
 
 <Samplers>
-    <StochasticPolynomials name='myStochPolys' indexSetType='TensorProduct' maxPolyOrder='5'>
-      <variable name='Uni1' impWeight='7'>
+    <StochasticPolynomials name='myStochPolys' indexSetType='TotalDegree' maxPolyOrder='5' parallel='1'>
+      <variable name='Uni1' impWeight='1'>
         <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <variable name='Uni2' impWeight='10'>
+      <variable name='Uni2' impWeight='1'>
         <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <!--variable name='Uni3' impWeight='1'>
+      <variable name='Uni3' impWeight='1'>
         <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
@@ -67,7 +69,7 @@
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
-      </variable-->
+      </variable>
     </StochasticPolynomials>
 </Samplers>
 
@@ -100,7 +102,7 @@
         <ylabel>Uni2</ylabel>
       </plotSettings>
       <actions>
-        <how>pdf</how>
+        <how>pdf,screen</how>
         <title><text>Sparse Grid</text></title>
       </actions>
     </Plot>

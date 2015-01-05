@@ -297,7 +297,7 @@ class JobHandler:
           running = self.__running[i]
           returncode = running.getReturnCode()
           if returncode != 0:
-            print(returnPrintTag('JOB HADLER')+": Process Failed ",running,running.command," returncode",returncode)
+            print(returnPrintTag('JOB HANDLER')+": Process Failed ",running,running.command," returncode",returncode)
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
             outputFilename = running.getOutputFilename()

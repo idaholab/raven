@@ -4,6 +4,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import numpy as np
 from itertools import product
+import sys
 
 #TODO make preamble correct, inherit from BaseClass
 
@@ -87,10 +88,18 @@ class IndexSet(object):
 
 class TensorProduct(IndexSet):
   def initialize(self,distrList,impList,maxPolyOrder):
+    print('DEBUG tp dists',len(distrList))
     IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Tensor Product'
-    points = product(range(maxPolyOrder), repeat=len(distrList))
-    self.points = list(product(*points))
+    target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
+    def rule(i):
+      big=0
+      for j,p in enumerate(i):
+        big=max(big,p*self.impWeights[j])
+      return big <= target
+    #self.points = list(product(range(maxPolyOrder), repeat=len(distrList)))
+    #self.points = list(product(*points))
+    self.points = self.generateMultiIndex(len(distrList),rule)
 
 class TotalDegree(IndexSet):
   def initialize(self,distrList,impList,maxPolyOrder):

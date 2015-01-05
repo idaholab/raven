@@ -39,10 +39,14 @@ class SamplingModel(Models.Dummy,Samplers.Grid):
     self.type = 'SamplingROM'
 
   def initialize(self,*args,**kwargs):
-    #Samplers.Grid.initialize(self,*args,**kwargs)
+    Samplers.Grid.initialize(self,*args,**kwargs)
     #Models.Dummy.initialize(self,*args,**kwargs)
     try: Samplers.Grid.initialize(self,*args,**kwargs)
-    except TypeError: Models.Dummy.initialize(self,*args,**kwargs)
+    except TypeError as te1:
+      try:
+        Models.Dummy.initialize(self,*args,**kwargs)
+      except TypeError as te2:
+        raise Exception(str(te1)+' | '+str(te2))
     #FIXME how else to figure out which to run?  This potentially masks errors in Samplers.Grid.
 
   def localInputAndChecks(self,xmlNode):
@@ -67,6 +71,7 @@ class StochasticPolynomials(SamplingModel):
     # sampling side #
     self.indexSetType =     xmlNode.attrib['indexSetType']  if 'indexSetType' in xmlNode.attrib.keys() else 'Tensor Product'
     self.maxPolyOrder = int(xmlNode.attrib['maxPolyOrder']) if 'maxPolyOrder' in xmlNode.attrib.keys() else 2
+    self.doInParallel =     (xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes']) if 'parallel' in xmlNode.attrib.keys() else True
     #FIXME add AdaptiveSP # self.adaptive     =(1 if xmlNode.attrib['adaptive'].lower() in ['true','t','1','y','yes'] else 0) if 'adaptive' in xmlNode.attrib.keys() else 0
     for child in xmlNode:
       importanceWeight = float(child.attrib['impWeight']) if 'impWeight' in child.attrib.keys() else 1
@@ -92,7 +97,8 @@ class StochasticPolynomials(SamplingModel):
     # ROM side #
 
 
-  def localInitialize(self):
+  def localInitialize(self,handler=None):
+    if handler != None and self.doInParallel == False: handler = None
     Samplers.Grid.localInitialize(self)
     for varName,dat in self.gridInfo.items():
       #dat[0] is the quadtype
@@ -122,10 +128,10 @@ class StochasticPolynomials(SamplingModel):
     self.indexSet = IndexSets.returnInstance(self.indexSetType)
     self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
     #DEBUG
-    print(self.indexSet)
+    #print(self.indexSet)
 
     self.sparseGrid = Quadratures.SparseQuad()
-    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict)
+    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,handler)
     self.limit=len(self.sparseGrid)
 
   def localGenerateInput(self,model,myInput):

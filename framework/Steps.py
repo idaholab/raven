@@ -252,6 +252,11 @@ class MultiRun(SingleRun):
 
   def _initializeSampler(self,inDictionary):
     if 'SolutionExport' in inDictionary.keys(): self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
+
+    #TODO FIXME is this the right way to do this?
+    if inDictionary['Sampler'].type=='StochasticPolynomials':
+      self._samplerInitDict['handler']=inDictionary['jobHandler']
+
     inDictionary['Sampler'].initialize(**self._samplerInitDict)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role of sampler the item of class '+inDictionary['Sampler'].type+' and name '+inDictionary['Sampler'].name+' has been initialized')
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Sampler initialization dictionary: '+str(self._samplerInitDict))
