@@ -10,7 +10,7 @@
     <NumMPI>2</NumMPI>
     <!--<ParallelCommand></ParallelCommand>
     <ThreadingCommand></ThreadingCommand>
-    <quequingSoftware></quequingSoftware>
+    <queueingSoftware></queueingSoftware>
     <procByNode></procByNode>
     <numProcByRun></numProcByRun>
     <totalNumCoresUsed></totalNumCoresUsed>-->
