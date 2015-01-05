@@ -519,7 +519,13 @@ def process_data(dataPull, data, methodInfo):
                     (abs(skewness)**(2.0/3.0)+((4.0-math.pi)/2.0)**(2.0/3.0)))
   delta = math.copysign(delta,skewness)
   alpha = delta/math.sqrt(1.0-delta**2)
+  variance = ret["sample_variance"]
+  omega = variance/(1.0-2*delta**2/math.pi)
+  mean = ret['mean']
+  xi = mean - omega*delta*math.sqrt(2.0/math.pi)
   ret['alpha'] = alpha
+  ret['omega'] = omega
+  ret['xi'] = xi
   #print("bins",bins,"counts",counts)
   return ret
 
