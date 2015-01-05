@@ -2106,6 +2106,10 @@ __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
 #__interFaceDict['StochasticPolynomials'   ] = SamplingModels.StochasticPolynomials
 __knownTypes = list(__interFaceDict.keys())
 
+def addKnownTypes(newDict):
+  for name, value in newDict.items():
+    __interFaceDict[name]=value
+
 def knownTypes():
   return __knownTypes
 
