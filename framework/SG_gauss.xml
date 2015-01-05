@@ -71,7 +71,8 @@ Actually, Laguerre and Jacobi for quads and polys need alpha,beta -> or take fro
       <variable name='VarTri1' impWeight='1'>
         <distribution>DistTri1</distribution>
         <quadrature>
-          <type>ClenshawCurtis</type>
+          <type>CDF</type>
+          <subtype>ClenshawCurtis</subtype>
         </quadrature>
       </variable>
       <!--variable name='VarUni1' impWeight='1'>
