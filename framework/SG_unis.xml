@@ -3,7 +3,7 @@
 
 <RunInfo>
     <WorkingDir>StochasticPolyTest</WorkingDir>
-    <Sequence>CustomSampler,Print</Sequence> <!--what is this? -->
+    <Sequence>CustomSampler,Print,Plot</Sequence>
     <batchSize>1</batchSize>
 </RunInfo>
 
@@ -12,86 +12,58 @@
 </Models>
 
 <Distributions>
-    <Uniform name="Uni1">
+    <Uniform name="UniDist">
       <low>1</low>
       <high>5</high>
-    </Uniform>
-    <Uniform name="Uni2">
-      <low>-1</low>
-      <high>1</high>
-    </Uniform>
-    <Uniform name="Uni3">
-      <low>-1</low>
-      <high>1</high>
-    </Uniform>
-    <Uniform name="Uni4">
-      <low>-1</low>
-      <high>1</high>
-    </Uniform>
-    <Uniform name="Uni5">
-      <low>-1</low>
-      <high>1</high>
-    </Uniform>
-    <Uniform name="Uni6">
-      <low>-1</low>
-      <high>1</high>
-    </Uniform>
-    <Uniform name="Uni7">
-      <low>-1</low>
-      <high>1</high>
-    </Uniform>
-    <Uniform name="Uni8">
-      <low>-1</low>
-      <high>1</high>
     </Uniform>
 </Distributions>
 
 <Samplers>
-    <StochasticPolynomials name='myStochPolys' indexSetType='HyperbolicCross' maxPolyOrder='5'>
-      <variable name='VarUni1' impWeight='1'>
-        <distribution>Uni1</distribution>
+    <StochasticPolynomials name='myStochPolys' indexSetType='TensorProduct' maxPolyOrder='5'>
+      <variable name='Uni1' impWeight='7'>
+        <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <variable name='VarUni2' impWeight='1'>
-        <distribution>Uni2</distribution>
+      <variable name='Uni2' impWeight='10'>
+        <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <!--variable name='VarUni3' impWeight='1'>
-        <distribution>Uni3</distribution>
+      <!--variable name='Uni3' impWeight='1'>
+        <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <variable name='VarUni4' impWeight='1'>
-        <distribution>Uni4</distribution>
+      <variable name='Uni4' impWeight='1'>
+        <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <variable name='VarUni5' impWeight='1'>
-        <distribution>Uni5</distribution>
+      <variable name='Uni5' impWeight='1'>
+        <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <variable name='VarUni6' impWeight='1'>
-        <distribution>Uni6</distribution>
+      <variable name='Uni6' impWeight='1'>
+        <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <variable name='VarUni7' impWeight='1'>
-        <distribution>Uni7</distribution>
+      <variable name='Uni7' impWeight='1'>
+        <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
       </variable>
-      <variable name='VarUni8' impWeight='1'>
-        <distribution>Uni8</distribution>
+      <variable name='Uni8' impWeight='1'>
+        <distribution>UniDist</distribution>
         <quadrature>
           <type>ClenshawCurtis</type>
         </quadrature>
@@ -101,13 +73,13 @@
 
 <Datas>
      <TimePointSet name='outGrid'>
-       <!--Input>VarUni1,VarUni2,VarUni3,VarUni4,VarUni5,VarUni6,VarUni7,VarUni8</Input-->
-       <Input>VarUni1,VarUni2</Input>
+       <!--Input>Uni1,Uni2,Uni3,Uni4,Uni5,Uni6,Uni7,Uni8</Input-->
+       <Input>Uni1,Uni2</Input>
        <Output>OutputPlaceHolder</Output>
    </TimePointSet>
    <TimePointSet name='dummyIN'>
-       <!--Input>VarUni1,VarUni2,VarUni3,VarUni4,VarUni5,VarUni6,VarUni7,VarUni8</Input-->
-       <Input>VarUni1,VarUni2</Input>
+       <!--Input>Uni1,Uni2,Uni3,Uni4,Uni5,Uni6,Uni7,Uni8</Input-->
+       <Input>Uni1,Uni2</Input>
       <Output>OutputPlaceHolder</Output>
    </TimePointSet>
 </Datas>
@@ -121,15 +93,15 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>outGrid|Input|VarUni1</x>
-          <y>outGrid|Input|VarUni2</y>
+          <x>outGrid|Input|Uni1</x>
+          <y>outGrid|Input|Uni2</y>
         </plot>
         <xlabel>Uni1</xlabel>
         <ylabel>Uni2</ylabel>
       </plotSettings>
       <actions>
-        <how>pdf,screen</how>
-        <title><text>SG, GL, Uniforms, TP, L=5</text></title>
+        <how>pdf</how>
+        <title><text>Sparse Grid</text></title>
       </actions>
     </Plot>
 </OutStreamManager>
@@ -146,10 +118,10 @@
         <Input   class='Datas'     type='TimePointSet'>outGrid</Input>
         <Output  class='OutStreamManager' type='Print'>outGrid_dump</Output>
     </OutStreamStep>
-    <!--OutStreamStep name="Plot" pauseAtEnd="True">
+    <OutStreamStep name="Plot" pauseAtEnd="True">
         <Input   class='Datas'     type='TimePointSet'>outGrid</Input>
         <Output  class='OutStreamManager' type='Plot'>Unis</Output>
-    </OutStreamStep-->
+    </OutStreamStep>
 </Steps>
 <DataBases>
         <HDF5 name="test_DummyModel_db"/> 

@@ -20,6 +20,25 @@ class IndexSet(object):
     if i==None: return np.array(self.points)
     else: return self.points[i]
 
+  def __repr__(self):
+    msg='IndexSet Printout:\n'
+    if len(self.points[0])==2: #graphical visualization
+      left=0
+      p=0
+      while p<len(self.points)-1:
+        pt = self.points[p]
+        #print('DEBUG',pt,left)
+        if pt[0]==left:
+          msg+='  '+str(pt)
+          p+=1
+        else:
+          msg+='\n'
+          left+=1
+    else:
+      for pt in self.points:
+        msg+='  '+str(pt)+'\n'
+    return msg
+
   def _extrema(self):
     low=np.ones(len(self.points[0]))*1e300
     hi =np.ones(len(self.points[0]))*(-1e300)
@@ -32,14 +51,13 @@ class IndexSet(object):
   def _xy(self):
     return zip(*self.points)
 
-  def initialize(self,distrList):#,impWeights):
+  def initialize(self,distrList,impList,maxPolyOrder):
     numDim = len(distrList)
-    #set up and normalize weights -> 
-    impWeights = list(d.importanceWeight for d in distrList.values())
-    #if impWeights==None:
-    #  impWeights=np.ones(numDim)
+    #set up and normalize weights
+    impWeights = list(impList[v] for v in distrList.keys())
     impWeights = np.array(impWeights)
-    #this algorithm assures higher weight means more importance, and end product is normalized so smallest is 1
+    #this algorithm assures higher weight means more importance,
+    #  and end product is normalized so smallest is 1
     impWeights=impWeights/np.max(impWeights)
     impWeights=1.0/impWeights
     self.impWeights = impWeights
@@ -47,11 +65,11 @@ class IndexSet(object):
     N = len(distrList.keys())
     #TODO make this input-able from user side
     #  - readMoreXML on distr, if maxPolyOrder not set, set it to the problem maxOrder or error out
+    self.maxOrder=maxPolyOrder
     self.polyOrderList=[]
-    self.maxOrder=0
     for distr in distrList.values():
-      self.polyOrderList.append(range(distr.maxPolyOrder()+1))
-      self.maxOrder = max(self.maxOrder,distr.maxPolyOrder())
+      self.polyOrderList.append(range(self.maxOrder+1))
+    #  self.maxOrder = max(self.maxOrder,distr.maxPolyOrder())
 
   def generateMultiIndex(self,N,rule,I=None,MI=None):
     #recursive tool to build monotonically-increasing-order multi-index set
@@ -68,14 +86,15 @@ class IndexSet(object):
     return MI
 
 class TensorProduct(IndexSet):
-  def initialize(self,distrList):
-    IndexSet.initialize(self,distrList)
+  def initialize(self,distrList,impList,maxPolyOrder):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Tensor Product'
-    self.points = list(product(*self.polyOrderList))
+    points = product(range(maxPolyOrder), repeat=len(distrList))
+    self.points = list(product(*points))
 
 class TotalDegree(IndexSet):
-  def initialize(self,distrList):
-    IndexSet.initialize(self,distrList)
+  def initialize(self,distrList,impList,maxPolyOrder):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Total Degree'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
@@ -88,8 +107,8 @@ class TotalDegree(IndexSet):
     self.points = self.generateMultiIndex(len(distrList),rule)
 
 class HyperbolicCross(IndexSet):
-  def initialize(self,distrList):
-    IndexSet.initialize(self,distrList)
+  def initialize(self,distrList,impList,maxPolyOrder):
+    IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Hyperbolic Cross'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)

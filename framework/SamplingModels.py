@@ -43,6 +43,7 @@ class SamplingModel(Models.Dummy,Samplers.Grid):
     #Models.Dummy.initialize(self,*args,**kwargs)
     try: Samplers.Grid.initialize(self,*args,**kwargs)
     except TypeError: Models.Dummy.initialize(self,*args,**kwargs)
+    #FIXME how else to figure out which to run?  This potentially masks errors in Samplers.Grid.
 
   def localInputAndChecks(self,xmlNode):
     Samplers.Grid.localInputAndChecks(self,xmlNode)
@@ -51,10 +52,13 @@ class StochasticPolynomials(SamplingModel):
   def __init__(self):
     SamplingModel.__init__(self)
     self.type = 'StochasticPolynomials'
-    self.printTag    = returnPrintTag('SAMPLING ROM STOCHASTIC POLYS')
-    self.maxPolyOrder= None  #L, the maximum polynomial expansion order to use
-    self.indexSetType= None  #TP, TD, or HC; the type of index set to use
-    self.adaptive    = False #not yet implemented; adaptively samples index set and/or quadrature
+    self.printTag      = returnPrintTag('SAMPLING ROM STOCHASTIC POLYS')
+    self.maxPolyOrder  = None  #L, the maximum polynomial expansion order to use
+    self.indexSetType  = None  #TP, TD, or HC; the type of index set to use
+    self.adaptive      = False #not yet implemented; adaptively samples index set and/or quadrature
+    self.polyDict      = {} # varName-indexed dict of polynomial types
+    self.quadDict      = {} # varName-indexed dict of quadrature types
+    self.importanceDict= {} # varName-indexed dict of importance weights 
 
   def _readMoreXML(self,xmlNode):
     Samplers.Sampler._readMoreXML(self,xmlNode)
@@ -75,11 +79,14 @@ class StochasticPolynomials(SamplingModel):
       if quad_find != None:
         quadType = quad_find.find('type').text if quad_find.find('type') != None else 'DEFAULT'
         polyType = quad_find.find('polynomials').text if quad_find.find('polynomials') != None else 'DEFAULT'
+        quadSub = quad_find.find('subtype').text if quad_find.find('subtype') != None else None
+        if quadType == 'CDF' and (quadSub!=None and quadSub not in ['Legendre','ClenshawCurtis']):
+          raise IOError(self.printTag+' CDF only takes subtypes Legendre and ClenshawCurtis, not '+quadSub)
       else:
         quadType = 'DEFAULT'
         polyType = 'DEFAULT'
-      print("DEBUG quad type for "+varName+" is "+quadType,polyType)
-      self.gridInfo[varName] = [quadType,polyType,importanceWeight]
+      #print("DEBUG quad,poly type for "+varName+" is "+quadType,polyType)
+      self.gridInfo[varName] = [quadType,polyType,importanceWeight,quadSub]
     SamplingModel.localInputAndChecks(self,xmlNode)
 
     # ROM side #
@@ -88,12 +95,18 @@ class StochasticPolynomials(SamplingModel):
   def localInitialize(self):
     Samplers.Grid.localInitialize(self)
     for varName,dat in self.gridInfo.items():
+      #dat[0] is the quadtype
+      #dat[1] is the poly type
+      #dat[2] is the importance weight
+      #dat[3] is the optional subtype (CDF only)
+
       #FIXME alpha,beta for laguerre, jacobi
       #if dat[0] not in self.distDict[varName].compatibleQuadrature and dat[0]!='DEFAULT':
       #  raise IOError (self.printTag+' Incompatible quadrature <'+dat[0]+'> for distribution of '+varName+': '+distribution.type)
       if dat[0]=='DEFAULT': dat[0]=self.distDict[varName].preferredQuadrature
-      quad = Quadratures.returnInstance(dat[0])
+      quad = Quadratures.returnInstance(dat[0],dat[3]) #the user can optionally pass in a subtype for CDF quadrature (Legendre or ClenshawCurtis)
       quad.initialize()
+      self.quadDict[varName]=quad
 
       if dat[1]=='DEFAULT': dat[1] = self.distDict[varName].preferredPolynomials
       poly = OrthoPolynomials.returnInstance(dat[1])
@@ -103,13 +116,13 @@ class StochasticPolynomials(SamplingModel):
 
       self.importanceDict[varName] = dat[2]
 
-      #self.distDict[varName].setQuadrature(quad)
-      #self.distDict[varName].setPolynomials(poly,self.maxPolyOrder)
-      #self.distDict[varName].setImportanceWeight(dat[2])
-    self.norm = np.prod(list(d.probabilityNorm() for d in self.distDict.values()))
+    self.norm = np.prod(list(self.distDict[v].measureNorm(self.quadDict[v].type) for v in self.distDict.keys()))
+    #self.norm = np.prod(list(d.measureNorm() for d in self.distDict.values()))
 
     self.indexSet = IndexSets.returnInstance(self.indexSetType)
-    self.indexSet.initialize(self.distDict)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+    #DEBUG
+    print(self.indexSet)
 
     self.sparseGrid = Quadratures.SparseQuad()
     self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict)

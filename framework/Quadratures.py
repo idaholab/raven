@@ -20,6 +20,7 @@ from collections import OrderedDict as OrdDict
 
 #Internal Modules
 from BaseClasses import BaseType
+from JobHandler import JobHandler
 from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 #Internal Modules End-----------------------------------------------------------------
 
@@ -143,16 +144,38 @@ class SparseQuad(BaseType):
         if all(np.logical_and(d>=0,d<=1)):
           self.c[i]+=(-1)**sum(d)
 
+  def parallelMakeCoeffs(self):
+    N=len(self.indexSet)
+    iSet = selfindexSet[:]
+    self.c=np.ones(N)
+    handler = JobHandler() #FIXME how do I get the existing JobHandler?
+    runInfoDict={} #FIXME what goes here?
+    handler.initialize(runInfoDict)
+    #TODO FIXME working still...
+    #call individuals by makeSingleCoeff
+    #collect solutions
+
+  def makeSingleCoeff(self,N,i,idx,iSet):
+    c=0
+    for j in range(i+1,N):
+      jdx = iSet[j]
+      d = jdx-idx
+      if all(np.logical_and(d>=0,d<=1)):
+        c += (-1)**sum(d)
+    #TODO FIXME stash c and i in queue
+        
+    
+
   def tensorGrid(self,m,idx):
     pointLists=[]
     weightLists=[]
     for n,distr in enumerate(self.distrList.values()):
-      quad = self.quadList.values()[n]
+      quad = self.quadDict.values()[n]
       mn = m[n]
       pts,wts=quad(mn)
       pts=pts.real
       wts=pts.real
-      pts = distr.convertStdPointsToDistr(quad.type,pts)
+      pts = distr.convertToDistr(quad.type,pts)
       pointLists.append(pts)
       weightLists.append(wts)
     points = list(product(*pointLists))
@@ -228,9 +251,6 @@ class Legendre(QuadratureSet):
     self.params = []
     self.pointRule = GaussQuadRule
 
-class CDF(Legendre): #added just for name distinguish; equiv to Legendre
-  pass #TODO why don't I want this to be ClenshawCurtis by default?
-
 class Hermite(QuadratureSet):
   def initialize(self):
     self.rule   = quads.he_roots
@@ -295,6 +315,13 @@ class ClenshawCurtis(QuadratureSet):
     return x,w
 
 
+class CDFLegendre(Legendre): #added just for name distinguish; equiv to Legendre
+  pass
+
+class CDFClenshawCurtis(ClenshawCurtis): #added just for name distinguish; equiv to ClenshawCurtis
+  pass
+
+
 def CCQuadRule(i):
   try: return np.array(list((0 if p==0 else 2**p) for p in i))
   except TypeError: return 0 if i==0 else 2**i
@@ -310,7 +337,8 @@ def GaussQuadRule(i):
 __base = 'QuadratureSet'
 __interFaceDict = {}
 __interFaceDict['Legendre'] = Legendre
-__interFaceDict['CDF'] = CDF
+__interFaceDict['CDFLegendre'] = CDFLegendre
+__interFaceDict['CDFClenshawCurtis'] = CDFClenshawCurtis
 __interFaceDict['Hermite'] = Hermite
 __interFaceDict['Laguerre'] = Laguerre
 __interFaceDict['Jacobi'] = Jacobi
@@ -320,12 +348,16 @@ __knownTypes = __interFaceDict.keys()
 def knonwnTypes():
   return __knownTypes
 
-def returnInstance(Type):
+def returnInstance(Type,Subtype=None):
   '''
     function used to generate a Filter class
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
   '''
+  # some modification necessary to distinguish CDF on Legendre versus CDF on ClenshawCurtis
+  if Type=='CDF':
+    if Subtype=='Legendre'      : return __interFaceDict['CDFLegendre']
+    if Subtype=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)
 
