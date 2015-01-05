@@ -441,9 +441,23 @@ class ComparisonStatistics(BasePostProcessor):
         #print("dataPart",data[rest[0]])
         dataToProcess.append((dataPull,data[rest[0]]))
     #print("dataToProcess",dataToProcess)
+    csv = open(output,"w")
+    def print_csv(*args):
+      print(*args,file=csv,sep=',')
     for dataPull, data in dataToProcess:
       data_stats = process_data(dataPull, data, self.methodInfo)
+      data_keys = set(data_stats.keys())
+      print_csv('"'+str(dataPull)+'"')
+      print_csv('"num_bins"',data_stats['num_bins'])
+      counts = data_stats['counts']
+      bins = data_stats['bins']
+      for i in range(len(counts)):
+        print_csv(bins[i] if i < len(bins) else ' ',counts[i])
+      data_keys -= set({'num_bins','counts','bins'})
+      for key in data_keys:
+        print_csv('"'+key+'"',data_stats[key])
       print("data_stats",data_stats)
+      print_csv()
 
 def count_bins(sorted_data, bin_boundaries):
   """counts the number of data items in the sorted_data
