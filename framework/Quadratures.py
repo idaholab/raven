@@ -54,17 +54,72 @@ class SparseQuad(BaseType):
       self.c=self.c[survive]
       self.indexSet=self.indexSet[survive]
     self.SG=OrdDict() #keys on points, values on weights
-    for j,cof in enumerate(self.c):
-      idx = self.indexSet[j]
-      m = self.quadRule(idx)+1
-      new = self.tensorGrid(m,idx)
-      for i in range(len(new[0])):
-        newpt=tuple(new[0][i])
-        newwt=new[1][i]*self.c[j]
-        if newpt in self.SG.keys(): #possible point duplication
-          self.SG[newpt]+=newwt
+    #parallelize this
+    if handler!=None: self.parallelSparseQuadGen(handler)
+    else:
+      for j,cof in enumerate(self.c):
+        idx = self.indexSet[j]
+        m = self.quadRule(idx)+1
+        new = self.tensorGrid((m,idx))
+        for i in range(len(new[0])):
+          newpt=tuple(new[0][i])
+          newwt=new[1][i]*self.c[j]
+          if newpt in self.SG.keys(): #possible point duplication
+            self.SG[newpt]+=newwt
+          else:
+            self.SG[newpt] = newwt
+
+  def parallelSparseQuadGen(self,handler):
+    #for j,cof in enumerate(self.c):
+    #  idx = self.indexSet[j]
+    #  m = self.quadRule(idx)+1
+    #  handler.submitDict['Internal']((m,idx),self.tensorGrid,str(j))
+    numRunsNeeded=len(self.c)
+    j=-1
+    while True:
+      finishedJobs = handler.getFinished()
+      for job in finishedJobs:
+        if job.getReturnCode() == 0:
+          new = job.returnEvaluation()[1]
+          for i in range(len(new[0])):
+            newpt = tuple(new[0][i])
+            newwt = new[1][i]*self.c[j]
+            if newpt in self.SG.keys():
+              self.SG[newpt]+= newwt
+            else:
+              self.SG[newpt] = newwt
         else:
-          self.SG[newpt] = newwt
+          print(self.printTag+': Sparse quad generation',job.identifier,'failed...')
+      if j<numRunsNeeded-1:
+        for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
+          j+=1
+          idx = self.indexSet[j]
+          m=self.quadRule(idx)+1
+          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(j))
+      else:
+        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
+
+# THIS version is potentially quite memory-intensive
+#  def parallelSparseQuadGen(self,handler):
+#    for j,cof in enumerate(self.c):
+#      idx = self.indexSet[j]
+#      m = self.quadRule(idx)+1
+#      handler.submitDict['Internal']((m,idx),self.tensorGrid,str(j))
+#    while True:
+#      finishedJobs = handler.getFinished()
+#      for job in finishedJobs:
+#        if job.getReturnCode() == 0:
+#          new = job.returnEvaluation()[1]
+#          for i in range(len(new[0])):
+#            newpt = tuple(new[0][i])
+#            newwt = new[1][i]*self.c[j]
+#            if newpt in self.SG.keys():
+#              self.SG[newpt]+= newwt
+#            else:
+#              self.SG[newpt] = newwt
+#        else:
+#          print(self.printTag+': Sparse quad generation',job.identifier,'failed...')
+#      if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
   def quadRule(self,idx):
     tot=np.zeros(len(idx))
@@ -144,11 +199,25 @@ class SparseQuad(BaseType):
         if all(np.logical_and(d>=0,d<=1)):
           self.c[i]+=(-1)**sum(d)
 
+# THIS is potentially memory-costly
+#  def parallelMakeCoeffs(self,handler):
+#    N=len(self.indexSet)
+#    self.c=np.zeros(N)
+#    for i in range(N):
+#      handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),self.makeSingleCoeff,str(i))
+#    while True:
+#      finishedJobs = handler.getFinished()
+#      for job in finishedJobs:
+#        if job.getReturnCode() == 0:
+#          self.c[int(job.identifier)]=job.returnEvaluation()[1]
+#        else:
+#          print(self.printTag+': Sparse grid index',job.identifier,'failed...')
+#      if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
+#
   def parallelMakeCoeffs(self,handler):
     N=len(self.indexSet)
     self.c=np.zeros(N)
-    for i in range(N):
-      handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),self.makeSingleCoeff,str(i))
+    i=-1
     while True:
       finishedJobs = handler.getFinished()
       for job in finishedJobs:
@@ -156,13 +225,14 @@ class SparseQuad(BaseType):
           self.c[int(job.identifier)]=job.returnEvaluation()[1]
         else:
           print(self.printTag+': Sparse grid index',job.identifier,'failed...')
-      if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
+      if i<N-1: #load new inputs, up to 100 at a time
+        for k in range(min(handler.howManyFreeSpots(),N-1-i)):
+          i+=1
+          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),self.makeSingleCoeff,str(i))
+      else:
+        if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
-    #TODO FIXME working still...
-    #call individuals by makeSingleCoeff
-    #collect solutions
-
-  def makeSingleCoeff(self,arglist):#N,i,idx,iSet):
+  def makeSingleCoeff(self,arglist):
     N,i,idx,iSet = arglist
     c=1
     for j in range(i+1,N):
@@ -171,10 +241,9 @@ class SparseQuad(BaseType):
       if all(np.logical_and(d>=0,d<=1)):
         c += (-1)**sum(d)
     return c
-        
-    
 
-  def tensorGrid(self,m,idx):
+  def tensorGrid(self,args):
+    m,idx = args
     pointLists=[]
     weightLists=[]
     for n,distr in enumerate(self.distrList.values()):
@@ -191,6 +260,9 @@ class SparseQuad(BaseType):
     for k,wtset in enumerate(weights):
       weights[k]=np.product(wtset)
     return points,weights
+
+
+
 
 class QuadratureSet(BaseType):
   '''Base class to produce standard quadrature points and weights.

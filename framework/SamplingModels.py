@@ -123,12 +123,9 @@ class StochasticPolynomials(SamplingModel):
       self.importanceDict[varName] = dat[2]
 
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quadDict[v].type) for v in self.distDict.keys()))
-    #self.norm = np.prod(list(d.measureNorm() for d in self.distDict.values()))
 
     self.indexSet = IndexSets.returnInstance(self.indexSetType)
     self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
-    #DEBUG
-    #print(self.indexSet)
 
     self.sparseGrid = Quadratures.SparseQuad()
     self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,handler)
@@ -142,8 +139,42 @@ class StochasticPolynomials(SamplingModel):
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid (SamplingROM)'
+    if self.counter==len(self.sparseGrid):
+      self.createModel()
 
-  #TODO add a check for when "amIReady" is finished, to run the Model creation (coefficient and poly creator)
+  def createModel(self):
+    self.polyCoeffDict={}
+    for i,idx in enumerate(self.sparseGrid.indexSet):
+      self.polyCoeffDict[idx]=0
+      for k,(pt,wt) in enumerate(self.sparseGrid) #i,pt,wt should be int,tuple,float
+        stdPt = np.zeros(len(pt))
+        for i,p in enumerate(pt):
+          varName = self.distDict.keys()[i]
+          stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type(),p) #TODO FIXME does it need converting back?
+        #TODO FIXME how to get solution out? Also, how to kick runs to get them going?
+        self.polyCoeffDict[idx]+=SOLN[k]*self._multiDBasis(idx,stdPt)*wt
+
+  def _multiDBasis(self,orders,pts):
+    tot=1
+    for i,(o,p) in enumerate(zip(orders,pts)):
+      tot*=self.polys.values()[i][o,p]
+    return tot
+
+  def evaluateROM(self,pts):
+    tot=0
+    stdPt = np.zeros(len(pt))
+    for p,pt in enumerate(pts):
+      varName = self.distDict.keys()[i]
+      stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type(),p) #TODO FIXME does it need converting back?
+    for idx,coeff in self.polyCoeffDict.items():
+      tot+=coeff*self._multiDBasis(idx,stdPt)
+    return tot
+
+  def run(self,Input,jobHandler):
+    inRun = self._manipulateInput(Input[0])
+    jobHandler.submitDict['Internal']((inRun),self.evaluateROM,str(Input[1]['prefix']),metadata=Input[1])
+
+  #def collectOutput(self,finishedJob,output): use Dummy's version until I know better <-seems fitting.
 
 
 __base = "SamplingModel"
