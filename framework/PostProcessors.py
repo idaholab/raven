@@ -394,6 +394,7 @@ class ComparisonStatistics(BasePostProcessor):
     BasePostProcessor.__init__(self)
     self.dataDict = {} #Dictionary of all the input data, keyed by the name
     self.dataPulls = [] #List of data references that will be used
+    self.referenceData = [] #List of reference (experimental) data
     self.methodInfo = {} #Information on what stuff to do.
 
   def inputToInternal(self,currentInput):
@@ -412,6 +413,11 @@ class ComparisonStatistics(BasePostProcessor):
         rest = splitName[2:]
         self.dataPulls.append([name, kind, rest])
         #print("xml dataName",dataName,self.dataPulls[-1])
+        if child.find('reference') is not None:
+          reference = child.find('reference')
+          self.referenceData.append(dict(reference.attrib))
+        else:
+          self.referenceData.append({})
       if child.tag == 'kind':
         self.methodInfo['kind'] = child.text
         if 'num_bins' in child.attrib:
@@ -433,31 +439,67 @@ class ComparisonStatistics(BasePostProcessor):
   def collectOutput(self,finishedjob,output):
     print("finishedjob",finishedjob,"output",output)
     dataToProcess = []
-    for dataPull in self.dataPulls:
+    for dataPull,reference in zip(self.dataPulls,self.referenceData):
       name, kind, rest = dataPull
       data = self.dataDict[name].getParametersValues(kind)
       #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
       if len(rest) == 1:
         #print("dataPart",data[rest[0]])
-        dataToProcess.append((dataPull,data[rest[0]]))
+        dataToProcess.append((dataPull,data[rest[0]],reference))
     #print("dataToProcess",dataToProcess)
     csv = open(output,"w")
     def print_csv(*args):
       print(*args,file=csv,sep=',')
-    for dataPull, data in dataToProcess:
+    for dataPull, data, reference in dataToProcess:
       data_stats = process_data(dataPull, data, self.methodInfo)
       data_keys = set(data_stats.keys())
       print_csv('"'+str(dataPull)+'"')
       print_csv('"num_bins"',data_stats['num_bins'])
       counts = data_stats['counts']
       bins = data_stats['bins']
+      count_sum = sum(counts)
       for i in range(len(counts)):
-        print_csv(bins[i] if i < len(bins) else ' ',counts[i])
+        print_csv(bins[i] if i < len(bins) else ' ',counts[i],counts[i]/count_sum)
       data_keys -= set({'num_bins','counts','bins'})
       for key in data_keys:
         print_csv('"'+key+'"',data_stats[key])
       print("data_stats",data_stats)
+      print_graphs(csv, reference, data_stats)
       print_csv()
+
+def normal(x,mu=0.0,sigma=1.0):
+  return (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
+
+def skew_normal(x,alpha,xi,omega):
+  def phi(x):
+    return (1.0/math.sqrt(2*math.pi))*math.exp(-(x**2)/2.0)
+
+  def Phi(x):
+    return 0.5*(1+math.erf(x/math.sqrt(2)))
+
+  return (2.0/omega)*phi((x-xi)/omega)*Phi(alpha*(x-xi)/omega)
+
+
+def print_graphs(csv, reference, data_stats):
+  if "mean" not in reference:
+    return
+  ref_mean = float(reference["mean"])
+  ref_stddev = float(reference["sigma"])
+  calc_mean = data_stats["mean"]
+  calc_stddev = data_stats["stdev"]
+  calc_omega = data_stats["omega"]
+  calc_xi = data_stats["xi"]
+  calc_alpha = data_stats["alpha"]
+  low = min(ref_mean - 3.0*ref_stddev,calc_mean - 3.0*calc_stddev)
+  high = max(ref_mean + 3.0*ref_stddev,calc_mean + 3.0*calc_stddev)
+  print("Graph from ",low,"to",high)
+  n = int(math.ceil((high-low)/data_stats['min_bin_size']))
+  interval = (high - low)/n
+  print('"x"','"reference"','"calculated"',file=csv,sep=',')
+  for i in range(n):
+    x = low+interval*i
+    print(x,normal(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),file=csv,sep=',')
+
 
 def count_bins(sorted_data, bin_boundaries):
   """counts the number of data items in the sorted_data
@@ -507,9 +549,14 @@ def process_data(dataPull, data, methodInfo):
   kind = methodInfo.get("kind","uniform_bins")
   if kind == "uniform_bins":
     bins = [low+x*data_range/num_bins for x in range(1,num_bins)]
+    ret['min_bin_size'] = data_range/num_bins
   elif kind == "equal_probability":
     stride = len(sorted_data)//num_bins
     bins = [sorted_data[x] for x in range(stride-1,len(sorted_data)-stride+1,stride)]
+    if len(bins) > 1:
+      ret['min_bin_size'] = min(map(lambda x,y: x - y,bins[1:],bins[:-1]))
+    else:
+      ret['min_bin_size'] = data_range
   counts = count_bins(sorted_data,bins)
   ret['bins'] = bins
   ret['counts'] = counts
