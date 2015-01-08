@@ -458,8 +458,10 @@ class ComparisonStatistics(BasePostProcessor):
       counts = data_stats['counts']
       bins = data_stats['bins']
       count_sum = sum(counts)
+      bin_boundaries = [data_stats['low']]+bins+[data_stats['high']]
+      print_csv('"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"')
       for i in range(len(counts)):
-        print_csv(bins[i] if i < len(bins) else ' ',counts[i],counts[i]/count_sum)
+        print_csv(bin_boundaries[i+1],(bin_boundaries[i]+bin_boundaries[i+1])/2.0,counts[i],counts[i]/count_sum)
       data_keys -= set({'num_bins','counts','bins'})
       for key in data_keys:
         print_csv('"'+key+'"',data_stats[key])
