@@ -31,7 +31,7 @@ from utils import returnPrintTag,returnPrintPostTag,convertMultipleToBytes,strin
 
 #Internal Submodules---------------------------------------------------------------------------------
 #FIXME this isn't where we want to import it, but we're stuck with it for now
-import SamplingModels
+import SamplingROMs
 #Internal Submodules End-----------------------------------------------------------------------------
 #----------------------------------------------------------------------------------------------------
 class SimulationMode:
@@ -404,12 +404,13 @@ class Simulation(object):
       else: raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
-    # For StochasticPolynomials, the SamplingModel will act as both a Sampler and a Model, but is only initialized in the XML as a Sampler.
-    # Here, we add the SamplingModel to the Models dictionary under the same name so the step will be consistent and the user won't have to
+    # For StochasticPolynomials, the SamplingROM will act as both a Sampler and a Model, but is only initialized in the XML as a Sampler.
+    # Here, we add the SamplingROM to the Models dictionary under the same name so the step will be consistent and the user won't have to
     # list it as a Model in the input.
-    for name,samplingModel in self.whichDict['Samplers'].items():
-      if samplingModel.type in ['StochasticPolynomials','AdaptiveStochasticPolynomials']:
-        self.whichDict['Models'][name] = samplingModel
+    for name,samplingROM in self.whichDict['Samplers'].items():
+      if samplingROM.type in ['StochasticPolynomials','AdaptiveStochasticPolynomials']:
+        self.whichDict['Models'][name] = samplingROM
+    # it's a ROM really.
     
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
@@ -453,6 +454,7 @@ class Simulation(object):
         objtype = self.whichDict[myClass][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
+          print('DEBUG',objtype)
           raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
 
 

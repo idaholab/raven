@@ -203,7 +203,11 @@ class SingleRun(Step):
   def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
     #Model initialization
-    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
+    modelInitDict={}
+    if inDictionary['Model'].type=='StochasticPolynomials':
+      inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{},what='Model')
+    else:
+      inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{})
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Model'].type,inDictionary['Model'].name))
     #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
@@ -256,6 +260,7 @@ class MultiRun(SingleRun):
     #TODO FIXME is this the right way to do this?
     if inDictionary['Sampler'].type=='StochasticPolynomials':
       self._samplerInitDict['handler']=inDictionary['jobHandler']
+      self._samplerInitDict['what']='Sampler'
 
     inDictionary['Sampler'].initialize(**self._samplerInitDict)
     if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role of sampler the item of class '+inDictionary['Sampler'].type+' and name '+inDictionary['Sampler'].name+' has been initialized')
@@ -385,7 +390,9 @@ class RomTrainer(Step):
     if [item[0] for item in self.parList].count('Input')!=1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
     if [item[0] for item in self.parList].count('Output')<1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> At least one Output is need in a training step. Step name: '+str(self.name))
     for item in self.parList:
-      if item[0]=='Output' and item[2]!='ROM': raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only ROM output class are allowed in a training step. Step name: '+str(self.name))
+      if item[0]=='Output' and item[2] not in ['ROM','StochasticPolynomials']:
+        raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only ROM output class are allowed in a training step. Step name: '+str(self.name))
+      #FIXME ot everything that is a ROM explicitly is a ROM.
 
   def _localAddInitParams(self,tempDict):
     del tempDict['Initial seed'] #this entry in not meaningful for a training step

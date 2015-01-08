@@ -68,6 +68,9 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
 
+  def initialize(self,idict):
+    pass #TODO FIXME
+
   def train(self,tdict):
     '''
       Method to perform the training of the superVisedLearning algorithm
@@ -424,6 +427,10 @@ __interfaceDict['NDinvDistWeigth'  ] = NDinvDistWeigth
 __interfaceDict['microSphere'      ] = NDmicroSphere
 __interfaceDict['SciKitLearn'      ] = SciKitLearn
 __base                               = 'superVisedLearning'
+
+def addToInterfaceDict(newDict):
+  for key,val in newDict.items():
+    __interfaceDict[key]=val
 
 def returnInstance(ROMclass,**kwargs):
   '''This function return an instance of the request model type'''

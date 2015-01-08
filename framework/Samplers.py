@@ -34,7 +34,6 @@ import pyDOE as doe
 #Internal Modules End--------------------------------------------------------------------------------
 
 #Internal Submodules---------------------------------------------------------------------------------
-#import SamplingModels
 #Internal Submodules End--------------------------------------------------------------------------------
 
 class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -216,6 +215,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
     @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
     '''
+    #hybrid SamplingROM needs to know "what" to initialize, so this kwarg gets passed
+    if 'what' in kwargs.keys(): del kwargs['what']
     self.counter = 0
     if   not externalSeeding          :
       Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
@@ -2103,7 +2104,6 @@ __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
-#__interFaceDict['StochasticPolynomials'   ] = SamplingModels.StochasticPolynomials
 __knownTypes = list(__interFaceDict.keys())
 
 def addKnownTypes(newDict):
@@ -2116,6 +2116,7 @@ def knownTypes():
 def addKnownTypes(newDict):
   for name, value in newDict.items():
     __interFaceDict[name]=value
+    __knownTypes.append(name)
 
 def returnInstance(Type):
   '''

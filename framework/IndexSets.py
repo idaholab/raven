@@ -28,7 +28,6 @@ class IndexSet(object):
       p=0
       while p<len(self.points)-1:
         pt = self.points[p]
-        #print('DEBUG',pt,left)
         if pt[0]==left:
           msg+='  '+str(pt)
           p+=1
@@ -88,7 +87,6 @@ class IndexSet(object):
 
 class TensorProduct(IndexSet):
   def initialize(self,distrList,impList,maxPolyOrder):
-    print('DEBUG tp dists',len(distrList))
     IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Tensor Product'
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder

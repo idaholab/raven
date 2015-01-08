@@ -72,7 +72,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   validateDict['Sampler'][0]['multiplicity'] = 1
   #validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
   #FIXME this is a temporary statick list assignment to fix the circular references
-  #generated in SamplingModel from inheriting both Model and Sampler (Issue #13 on the wiki)
+  #generated in SamplingROM from inheriting both Model and Sampler (Issue #13 on the wiki)
   validateDict['Sampler'][0]['type'] = ['MonteCarlo',
                                         'DynamicEventTree',
                                         'LHS',
@@ -294,6 +294,7 @@ class ROM(Dummy):
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
+      #FIXME is there anything that is a float that will raise an exception for int?
       try: self.initializationOptionDict[child.tag] = int(child.text)
       except ValueError:
         try: self.initializationOptionDict[child.tag] = float(child.text)
@@ -767,6 +768,11 @@ __knownTypes                      = list(__interFaceDict.keys())
 for classType in __interFaceDict.values():
   classType.generateValidateDict()
   classType.specializeValidateDict()
+
+def addKnownTypes(newDict):
+  for name,value in newDict.items():
+    __interFaceDict[name]=value
+    __knownTypes.append(name)
 
 def knownTypes():
   return __knownTypes

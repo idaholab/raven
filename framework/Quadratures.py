@@ -30,7 +30,7 @@ class SparseQuad(BaseType):
      Requires: dimension N, max polynomial level L, quadrature generation rules for each dimension, distributions?
   '''
   def __init__(self):
-    self.c = [] #array of coefficient terms for smaller tensor grid entries
+    self.c = [] #array of coefficient terms for component tensor grid entries
 
   def initialize(self, indexSet, maxPoly, distrList, quadDict, polyDict, handler):
     self.indexSet = np.array(indexSet[:])
@@ -38,12 +38,9 @@ class SparseQuad(BaseType):
     self.quadDict = quadDict
     self.polyDict = polyDict
     self.N= len(distrList.keys())
-    #for distr in self.distrList.values(): #TODO dict keys or values?  How are they stored?  Or list?
-    #  maxPoly = max(maxPoly,distr.maxPolyOrder())
-    #self.serialMakeCoeffs()
-    #we can cheat if it's tensor product index set
+    #we can cheat if it's tensor product index set!
     if indexSet.type=='Tensor Product':
-      self.c=[1]#np.zeros(len(self.indexSet))
+      self.c=[1]
       self.indexSet=[self.indexSet[-1]]
     else:
       if handler !=None:
@@ -54,7 +51,6 @@ class SparseQuad(BaseType):
       self.c=self.c[survive]
       self.indexSet=self.indexSet[survive]
     self.SG=OrdDict() #keys on points, values on weights
-    #parallelize this
     if handler!=None: self.parallelSparseQuadGen(handler)
     else:
       for j,cof in enumerate(self.c):
@@ -64,16 +60,12 @@ class SparseQuad(BaseType):
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
           newwt=new[1][i]*self.c[j]
-          if newpt in self.SG.keys(): #possible point duplication
+          if newpt in self.SG.keys():
             self.SG[newpt]+=newwt
           else:
             self.SG[newpt] = newwt
 
   def parallelSparseQuadGen(self,handler):
-    #for j,cof in enumerate(self.c):
-    #  idx = self.indexSet[j]
-    #  m = self.quadRule(idx)+1
-    #  handler.submitDict['Internal']((m,idx),self.tensorGrid,str(j))
     numRunsNeeded=len(self.c)
     j=-1
     while True:
@@ -98,28 +90,6 @@ class SparseQuad(BaseType):
           handler.submitDict['Internal']((m,idx),self.tensorGrid,str(j))
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
-
-# THIS version is potentially quite memory-intensive
-#  def parallelSparseQuadGen(self,handler):
-#    for j,cof in enumerate(self.c):
-#      idx = self.indexSet[j]
-#      m = self.quadRule(idx)+1
-#      handler.submitDict['Internal']((m,idx),self.tensorGrid,str(j))
-#    while True:
-#      finishedJobs = handler.getFinished()
-#      for job in finishedJobs:
-#        if job.getReturnCode() == 0:
-#          new = job.returnEvaluation()[1]
-#          for i in range(len(new[0])):
-#            newpt = tuple(new[0][i])
-#            newwt = new[1][i]*self.c[j]
-#            if newpt in self.SG.keys():
-#              self.SG[newpt]+= newwt
-#            else:
-#              self.SG[newpt] = newwt
-#        else:
-#          print(self.printTag+': Sparse quad generation',job.identifier,'failed...')
-#      if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
   def quadRule(self,idx):
     tot=np.zeros(len(idx))
