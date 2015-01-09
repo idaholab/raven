@@ -188,15 +188,14 @@ class Function(BaseType):
 
 class PythonFunction(Function):
   def __init__(self):
-    super(self.__class__, self).__init__(self)
+    super(self.__class__, self).__init__()
   
   def evaluate(self,method,args):
     '''Will take a method from a Function object and apply the list of arguments
        defined by args to the method evaluation
     '''
-    toBeReturned=self.__actionDictionary[method](**args)
+    toBeReturned=self._Function__actionDictionary[method](**args)
     return toBeReturned
-  
 
 '''
  Interface Dictionary (factory) (private)

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
+<Simulation>
+<RunInfo>
+  <WorkingDir>externalPostProcessor</WorkingDir>
+  <Sequence>
+    loadData,
+    legacyExample,
+    newExample
+  </Sequence>
+</RunInfo>
+<Models>
+<!-- This post-processor uses the older interface for writing python functions 
+     compatible with RAVEN -->
+  <PostProcessor name='staticPP' subType='External' debug='true'>
+    <method>Delta,Sum</method>
+    <Assembler>
+      <Function class='Functions' type='External'>staticFs</Function>
+    </Assembler>
+  </PostProcessor>
+<!-- This one uses a newer reusable interface which I think is simpler for a 
+     new user to understand and is more flexible -->
+  <PostProcessor name='flexPP' subType='External' debug='true'>
+    <method A='X' B='Y'>DiffAB,Norm</method>
+    <Assembler>
+      <Function class='Functions' type='Basic'>flexFs</Function>
+    </Assembler>
+  </PostProcessor>
+</Models>
+<Functions>
+<!-- The flexible strategy requires the variable names from the dataset it will 
+     be working on. The post-processor will establish the mapping to the 
+     variables used in the external file -->
+    <Basic name='flexFs' file='externalPostProcessor/BasicOperators'>
+        <variable>X</variable>
+        <variable>Y</variable>
+    </Basic>
+<!-- The static strategy requires the static list of variables used in the 
+     function file and used in this dataset -->
+    <External name='staticFs' file='externalPostProcessor/BasicOperators'>
+        <variable>X</variable>
+        <variable>Y</variable>
+    </External>
+</Functions>
+<Steps>
+<!-- Load the data from a csv into the hdf5 database used by this run -->
+    <IOStep name='loadData' fromDirectory='.'>
+      <Input  class='Datas'    type='TimePointSet'>testData</Input>
+      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+    </IOStep> 
+<!-- Perform the difference operator using the legacy function interface -->
+    <PostProcess name='legacyExample'>
+        <Input    class='Datas'            type='TimePointSet'>testData</Input>
+        <Model    class='Models'           type='PostProcessor'>staticPP</Model>
+        <Function class='Functions'        type='External'>staticFs</Function>
+        <Output   class='Datas'            type='TimePointSet'>outTPS</Output>
+        <Output   class='OutStreamManager' type='Print'>myDump1</Output>
+    </PostProcess>
+<!-- Perform the difference operator using the basic function interface -->
+    <PostProcess name='newExample'>
+        <Input    class='Datas'            type='TimePointSet'>testData</Input>
+        <Model    class='Models'           type='PostProcessor'>flexPP</Model>
+        <Function class='Functions'        type='Basic'>flexFs</Function>
+        <Output   class='Datas'            type='TimePointSet'>outTPS</Output>
+        <Output   class='OutStreamManager' type='Print'>myDump2</Output>
+    </PostProcess>
+</Steps>
+
+<OutStreamManager>
+<!-- A csv file containing the output of the example -->
+  <Print name='myDump1'>
+    <type>csv</type>
+    <source>outTPS</source>
+  </Print>
+  <Print name='myDump2'>
+    <type>csv</type>
+    <source>outTPS</source>
+  </Print>
+</OutStreamManager>
+
+<DataBases>
+<!-- The necessary database object -->
+  <HDF5 name="myDB"/> 
+</DataBases>
+<Datas>
+<!-- The input TimePointSet objects -->
+  <TimePointSet name='testData'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+<!-- The output TimePointSet objects -->
+  <TimePointSet name='outTPS'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+</Datas>
+</Simulation>
