@@ -1467,9 +1467,10 @@ class ExternalPostProcessor(BasePostProcessor):
         # If the user specified a mapping to the variables, then we need to
         # make sure everything is handed in the correct order
         if len(argMap) > 0:
-          functionArgMap = {}
-          for functionArg,xmlArg in argMap.iteritems():
-            functionArgMap[functionArg] = Input['targets'][xmlArg]
+          funcArgMap = {}
+          for funcArg,xmlArg in argMap.iteritems():
+            funcArgMap[funcArg] = Input['targets'][xmlArg]
+          outputDict[method] = self.externalFunction.evaluate(method,funcArgMap)
         # Otherwise, do it the old way :(
         else:
           outputDict[method] = self.externalFunction.evaluate(method,

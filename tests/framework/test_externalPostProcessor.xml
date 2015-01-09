@@ -21,7 +21,7 @@
 <!-- This one uses a newer reusable interface which I think is simpler for a 
      new user to understand and is more flexible -->
   <PostProcessor name='flexPP' subType='External' debug='true'>
-    <method A='X' B='Y'>DiffAB,Norm</method>
+    <method A='X' B='Y'>DiffAB,SumAB</method>
     <Assembler>
       <Function class='Functions' type='Basic'>flexFs</Function>
     </Assembler>

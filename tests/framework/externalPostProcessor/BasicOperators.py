@@ -19,4 +19,4 @@ def DiffAB(A,B):
   return A - B
 
 def Norm(A,B):
-  return math.sqrt(A**2 + B**2)
+  return np.sqrt(A**2 + B**2)
