@@ -1447,8 +1447,10 @@ class ExternalPostProcessor(BasePostProcessor):
       print(self.warningString('Output type ' + str(output.type) + ' not yet '
                                + 'implemented. I am going to skip it.'))
     elif output.type == 'TimePointSet':
-      print(self.warningString('The output type "' + output.type + '" is not '
-                               + 'yet compatible with this. I am skipping it.'))
+      for method in methodToTest:
+        output.updateOutputValue(method,outputDict[method])
+#      print(self.warningString('The output type "' + output.type + '" is not '
+#                               + 'yet compatible with this. I am skipping it.'))
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
@@ -1481,22 +1483,22 @@ class ExternalPostProcessor(BasePostProcessor):
         outputDict[what] = {}
 
     # print on screen
-    print(self.messageString(str(self.name) + ' pp outputs'))
-    methodToTest = []
-    for key in self.methodsToRun:
-      methodToTest.append(key)
+#    print(self.messageString(str(self.name) + ' pp outputs'))
+#    methodToTest = []
+#    for key in self.methodsToRun:
+#      methodToTest.append(key)
 
-    maxLength = 16
-    if self.externalFunction:
-      print(' '*maxLength,'+++++++++++++++++++++++++++++')
-      print(' '*maxLength,'+ OUTCOME FROM EXT FUNCTION +')
-      print(' '*maxLength,'+++++++++++++++++++++++++++++')
-      for method in self.methodsToRun:
-        print('              ', '*'*(len(method) + 22))
-        for val in outputDict[method]:
-          print('              ', '* ' + method + ' * ' + '%.8E'
-                                 % val + '  *')
-        print('              ', '*'*(len(method) + 22))
+#    maxLength = 16
+#    if self.externalFunction:
+#      print(' '*maxLength,'+++++++++++++++++++++++++++++')
+#      print(' '*maxLength,'+ OUTCOME FROM EXT FUNCTION +')
+#      print(' '*maxLength,'+++++++++++++++++++++++++++++')
+#      for method in self.methodsToRun:
+#        print('              ', '*'*(len(method) + 22))
+#        for val in outputDict[method]:
+#          print('              ', '* ' + method + ' * ' + '%.8E'
+#                                 % val + '  *')
+#        print('              ', '*'*(len(method) + 22))
     return outputDict
 #
 #

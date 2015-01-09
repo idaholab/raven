@@ -5,8 +5,10 @@
   <WorkingDir>externalPostProcessor</WorkingDir>
   <Sequence>
     loadData,
-    legacyExample,
-    newExample
+<!--    legacyExample,-->
+<!--    saveData1,-->
+    newExample,
+    saveData2
   </Sequence>
 </RunInfo>
 <Models>
@@ -54,16 +56,22 @@
         <Model    class='Models'           type='PostProcessor'>staticPP</Model>
         <Function class='Functions'        type='External'>staticFs</Function>
         <Output   class='Datas'            type='TimePointSet'>outTPS</Output>
-        <Output   class='OutStreamManager' type='Print'>myDump1</Output>
     </PostProcess>
+    <IOStep name='saveData1' fromDirectory='.'>
+      <Input  class='Datas'    type='TimePointSet'>outTPS</Input>
+      <Output   class='OutStreamManager' type='Print'   >myDump1</Output>
+    </IOStep> 
 <!-- Perform the difference operator using the basic function interface -->
     <PostProcess name='newExample'>
         <Input    class='Datas'            type='TimePointSet'>testData</Input>
         <Model    class='Models'           type='PostProcessor'>flexPP</Model>
         <Function class='Functions'        type='Basic'>flexFs</Function>
         <Output   class='Datas'            type='TimePointSet'>outTPS</Output>
-        <Output   class='OutStreamManager' type='Print'>myDump2</Output>
     </PostProcess>
+    <IOStep name='saveData2' fromDirectory='.'>
+      <Input  class='Datas'    type='TimePointSet'>outTPS</Input>
+      <Output   class='OutStreamManager' type='Print'   >myDump2</Output>
+    </IOStep> 
 </Steps>
 
 <OutStreamManager>
@@ -91,7 +99,7 @@
 <!-- The output TimePointSet objects -->
   <TimePointSet name='outTPS'>
     <Input>X,Y</Input>
-    <Output>Z</Output>
+    <Output>Z,SumAB,DiffAB,Delta,Sum</Output>
   </TimePointSet>
 </Datas>
 </Simulation>
