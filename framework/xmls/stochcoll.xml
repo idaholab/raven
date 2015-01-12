@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="False">
+  <RunInfo>
+    <WorkingDir>StochasticPolyTest</WorkingDir>
+    <Sequence>makeStochPolys,trainROM</Sequence>
+    <!--Sequence>makeStochPolys,trainROM,MCSampleStochPoly</Sequence-->
+    <batchSize>1</batchSize>
+    <!--batchSize>512</batchSize>
+    <mode>pbsdsh</mode>
+    <expectedTime>1:00:00</expectedTime-->
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType="" print="True"/>
+    <ExternalModel name='attenuation' subType='' ModuleToLoad = 'attenuation'>
+      <variable>x1</variable>
+      <variable>x2</variable>
+      <!--variable>x3</variable>
+      <variable>x4</variable>
+      <variable>x5</variable>
+      <variable>x6</variable>
+      <variable>x7</variable>
+      <variable>x8</variable-->
+      <variable>ans</variable>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="UniDist">
+      <low>1</low>
+      <high>5</high>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <StochasticPolynomials name="myStochPolys" subType='' indexSetType="HyperbolicCross" maxPolyOrder="5" parallel="true">
+      <Sampling>
+        <variable name="x1" impWeight="1">
+          <distribution>UniDist</distribution>
+          <quadrature>
+            <type>Legendre</type>
+          </quadrature>
+        </variable>
+        <variable name="x2" impWeight="1">
+          <distribution>UniDist</distribution>
+          <quadrature>
+            <type>Legendre</type>
+          </quadrature>
+        </variable>
+        <!--variable name="x3" impWeight="1">
+          <distribution>UniDist</distribution>
+          <quadrature>
+            <type>Legendre</type>
+          </quadrature>
+        </variable>
+        <variable name="x4" impWeight="1">
+          <distribution>UniDist</distribution>
+          <quadrature>
+            <type>Legendre</type>
+          </quadrature>
+        </variable>
+        <variable name="x5" impWeight="1">
+          <distribution>UniDist</distribution>
+          <quadrature>
+            <type>Legendre</type>
+          </quadrature>
+        </variable>
+        <variable name="x6" impWeight="1">
+          <distribution>UniDist</distribution>
+          <quadrature>
+            <type>Legendre</type>
+          </quadrature>
+        </variable>
+        <variable name='x7' impWeight='1'>
+          <distribution>UniDist</distribution>
+          <quadrature>
+            <type>Legendre</type>
+          </quadrature>
+        </variable>
+        <variable name='x8' impWeight='1'>
+          <distribution>UniDist</distribution>
+          <quadrature>
+            <type>Legendre</type>
+          </quadrature>
+        </variable-->
+      </Sampling>
+      <Assembler>
+        <TargetEvaluation class = 'Datas' type = 'TimePointSet'  >solns</TargetEvaluation>
+      </Assembler>
+      <ROM subType='GaussPolynomialEngine'>
+        <Target>ans</Target>
+        <Features>x1,x2</Features>
+      </ROM>
+    </StochasticPolynomials>
+    <MonteCarlo name='MC2' limit='100'>
+      <variable name='x1'>
+        <distribution>UniDist</distribution>
+      </variable>
+      <variable name='x2'>
+        <distribution>UniDist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Datas>
+    <TimePointSet name="outGrid">
+      <!--Input>x1,x2,x3,x4,x5,x6,x7,x8</Input-->
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </TimePointSet>
+    <TimePointSet name="dummyIN">
+      <!--Input>x1,x2,x3,x4,x5,x6,x7,x8</Input-->
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </TimePointSet>
+    <TimePointSet name='solns'>
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </TimePointSet>
+    <TimePointSet name='MCsamples'>
+      <Input>x1,x2</Input>
+      <Output>val</Output>
+    </TimePointSet>
+  </Datas>
+
+  <OutStreamManager>
+    <Print name="grid_dump">
+      <type>csv</type>
+      <source>solns</source>
+      <variables>Input,Output</variables>
+    </Print>
+    <Print name="outMC_dump">
+      <type>csv</type>
+      <source>MCsamples</source>
+    </Print>
+  </OutStreamManager>
+
+  <Steps>
+    <!--MultiRun name="CustomSampler">
+      <Input class="Datas" type="TimePointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="StochasticPolynomials">myStochPolys</Sampler>
+      <Output class="Datas" type="TimePointSet">outGrid</Output>
+      <Output class="DataBases" type="HDF5">test_DummyModel_db</Output>
+    </MultiRun>
+    <OutStreamStep name="Print">
+      <Input class="Datas" type="TimePointSet">outGrid</Input>
+      <Output class="OutStreamManager" type="Print">outGrid_dump</Output>
+    </OutStreamStep>
+    <OutStreamStep name="Plot" pauseAtEnd="True">
+      <Input class="Datas" type="TimePointSet">outGrid</Input>
+      <Output class="OutStreamManager" type="Plot">xs</Output>
+    </OutStreamStep-->
+    <MultiRun name='makeStochPolys' pauseAtEnd='False'>
+      <Sampler class='Samplers' type='StochasticPolynomials'>myStochPolys</Sampler>
+      <Input   class='Datas'    type='TimePointSet'         >dummyIN</Input>
+      <Model   class='Models'   type='ExternalModel'        >attenuation</Model>
+      <Output  class='Datas'    type='TimePointSet'         >solns</Output>
+      <Output  class='OutStreamManager' type='Print'>grid_dump</Output>
+    </MultiRun>
+    <RomTrainer name='trainROM'>
+      <Input   class='Datas'    type='TimePointSet'>solns</Input>
+      <Output  class='Models'   type='ROM'>myStochPolys</Output>
+    </RomTrainer>
+    <MultiRun name='MCSampleStochPoly' pauseAtEnd='False'>
+      <Input   class='Datas'    type='TimePointSet'         >dummyIN</Input>
+      <Model   class='Models' type='StochasticPolynomials'>myStochPolys</Model>
+      <Sampler class='Samplers' type='MonteCarlo'           >MC2</Sampler>
+      <Output  class='Datas'    type='TimePointSet'         >MCsamples</Output>
+      <Output  class='OutStreamManager' type='Print'>outMC_dump</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataBases>
+    <HDF5 name="test_DummyModel_db"/>
+  </DataBases>
+
+</Simulation>
