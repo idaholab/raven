@@ -459,9 +459,24 @@ class ComparisonStatistics(BasePostProcessor):
       bins = data_stats['bins']
       count_sum = sum(counts)
       bin_boundaries = [data_stats['low']]+bins+[data_stats['high']]
-      print_csv('"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"')
+      print_csv('"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
+      cdf = 0.0
       for i in range(len(counts)):
-        print_csv(bin_boundaries[i+1],(bin_boundaries[i]+bin_boundaries[i+1])/2.0,counts[i],counts[i]/count_sum)
+        h = bin_boundaries[i+1] - bin_boundaries[i]
+        f_0 = counts[i]/count_sum
+        cdf += f_0
+        if i + 1 < len(counts):
+          f_1 = counts[i + 1]/count_sum
+        else:
+          f_1 = 0.0
+        if i + 2 < len(counts):
+          f_2 = counts[i + 2]/count_sum
+        else:
+          f_2 = 0.0
+        #f_prime = (f_1 - f_0)/h
+        #print(f_0,f_1,f_2,h,f_prime)
+        f_prime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
+        print_csv(bin_boundaries[i+1],(bin_boundaries[i]+bin_boundaries[i+1])/2.0,counts[i],f_0,f_prime,cdf)
       data_keys -= set({'num_bins','counts','bins'})
       for key in data_keys:
         print_csv('"'+key+'"',data_stats[key])
@@ -471,6 +486,9 @@ class ComparisonStatistics(BasePostProcessor):
 
 def normal(x,mu=0.0,sigma=1.0):
   return (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
+
+def normal_cdf(x,mu=0.0,sigma=1.0):
+  return 0.5*(1.0+math.erf((x-mu)/(sigma*math.sqrt(2.0))))
 
 def skew_normal(x,alpha,xi,omega):
   def phi(x):
@@ -497,10 +515,10 @@ def print_graphs(csv, reference, data_stats):
   print("Graph from ",low,"to",high)
   n = int(math.ceil((high-low)/data_stats['min_bin_size']))
   interval = (high - low)/n
-  print('"x"','"reference"','"calculated"',file=csv,sep=',')
+  print('"x"','"reference"','"reference_cdf"','"calculated"',file=csv,sep=',')
   for i in range(n):
     x = low+interval*i
-    print(x,normal(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),file=csv,sep=',')
+    print(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),file=csv,sep=',')
 
 
 def count_bins(sorted_data, bin_boundaries):
