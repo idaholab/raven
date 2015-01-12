@@ -460,23 +460,28 @@ class ComparisonStatistics(BasePostProcessor):
       count_sum = sum(counts)
       bin_boundaries = [data_stats['low']]+bins+[data_stats['high']]
       print_csv('"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
-      cdf = 0.0
+      cdf = [0.0]*len(counts)
+      cdf_sum = 0.0
+      for i in range(len(counts)):
+        f_0 = counts[i]/count_sum
+        cdf_sum += f_0
+        cdf[i] = cdf_sum
       for i in range(len(counts)):
         h = bin_boundaries[i+1] - bin_boundaries[i]
-        f_0 = counts[i]/count_sum
-        cdf += f_0
+        n_count = counts[i]/count_sum #normalized count
+        f_0 = cdf[i]
         if i + 1 < len(counts):
-          f_1 = counts[i + 1]/count_sum
+          f_1 = cdf[i+1]
         else:
-          f_1 = 0.0
+          f_1 = 1.0
         if i + 2 < len(counts):
-          f_2 = counts[i + 2]/count_sum
+          f_2 = cdf[i+2]
         else:
-          f_2 = 0.0
+          f_2 = 1.0
         #f_prime = (f_1 - f_0)/h
         #print(f_0,f_1,f_2,h,f_prime)
         f_prime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
-        print_csv(bin_boundaries[i+1],(bin_boundaries[i]+bin_boundaries[i+1])/2.0,counts[i],f_0,f_prime,cdf)
+        print_csv(bin_boundaries[i+1],(bin_boundaries[i]+bin_boundaries[i+1])/2.0,counts[i],n_count,f_prime,cdf[i])
       data_keys -= set({'num_bins','counts','bins'})
       for key in data_keys:
         print_csv('"'+key+'"',data_stats[key])
