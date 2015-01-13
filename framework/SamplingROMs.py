@@ -95,14 +95,16 @@ class StochasticPolynomials(SamplingROM):
     self.doInParallel =     (xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes']) if 'parallel' in xmlNode.attrib.keys() else True
     #TODO add AdaptiveSP # self.adaptive     =(1 if xmlNode.attrib['adaptive'].lower() in ['true','t','1','y','yes'] else 0) if 'adaptive' in xmlNode.attrib.keys() else 0
     #send appropriate nodes to their corresponding hybrid parts
-    for _ in xmlNode:
-      child = xmlNode.pop()
+    for child in xmlNode:
       if child.tag=='Sampling':
         Samplers.Sampler._readMoreXML(self,child)
-      elif schild.tag=='ROM':
+      elif child.tag=='ROM':
         Models.ROM._readMoreXML(self,child)
-    if len(xmlNode)>0:
-      raise IOError(self.printTag+' Unused tags in xmlNode:' +str(list(child.tag for child in xmlNode))
+      xmlNode.remove(child)
+      elif child.tag=='Assembler':
+        pass
+      else:
+        raise IOError(self.printTag+' Unused tags in xmlNode:' +str(list(child.tag for child in xmlNode)))
       #TODO adaptive
 
   def localInputAndChecks(self,xmlNode): #Sampler side
@@ -184,7 +186,7 @@ class StochasticPolynomials(SamplingROM):
           varName = self.distDict.keys()[i]
           stdPt[i] = self.distDict[varName].convertToQuad(self.quadDict[varName].type,p) #TODO FIXME does it need converting back?
         self.polyCoeffDict[idx]+=SOLN[pt]*self._multiDBasis(idx,stdPt)*wt
-    self.SupervisedEngine[target].initialize(all the stuff you neeed)
+    self.SupervisedEngine[target].initialize(self.sparseGrid,self.distDict,self.quadDict)
 
   def _multiDBasis(self,orders,pts):
     tot=1
@@ -261,7 +263,7 @@ __interFaceDict['StochasticPolynomials'] = StochasticPolynomials
 __knownTypes = list(__interFaceDict.keys())
 
 __engineDict = {}
-__engineDict['GaussPolynomialEngine'] = SCGaussLearningEngine
+__engineDict['GaussPolynomialEngine'] = GaussPolynomialEngine
 
 def knownTypes():
   return __knownTypes
