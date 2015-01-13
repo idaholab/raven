@@ -669,7 +669,7 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Output' ][3]['multiplicity'] = 'n'
     cls.validateDict['Function'] = [cls.testDict.copy()]
     cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
-    cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']#,'Basic']
+    cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
     cls.validateDict['Function'  ][0]['required'    ] = False
     cls.validateDict['Function'  ][0]['multiplicity'] = '1'
     cls.validateDict['ROM'] = [cls.testDict.copy()]
