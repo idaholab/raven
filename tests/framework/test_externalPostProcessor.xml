@@ -5,8 +5,8 @@
   <WorkingDir>externalPostProcessor</WorkingDir>
   <Sequence>
     loadData,
-<!--    legacyExample,-->
-<!--    saveData1,-->
+    legacyExample,
+    saveData1,
     newExample,
     saveData2
   </Sequence>
@@ -52,25 +52,25 @@
     </IOStep> 
 <!-- Perform the difference operator using the legacy function interface -->
     <PostProcess name='legacyExample'>
-        <Input    class='Datas'            type='TimePointSet'>testData</Input>
-        <Model    class='Models'           type='PostProcessor'>staticPP</Model>
-        <Function class='Functions'        type='External'>staticFs</Function>
-        <Output   class='Datas'            type='TimePointSet'>outTPS</Output>
+        <Input    class='Datas'     type='TimePointSet'>testData</Input>
+        <Model    class='Models'    type='PostProcessor'>staticPP</Model>
+        <Function class='Functions' type='External'>staticFs</Function>
+        <Output   class='Datas'     type='TimePointSet'>outTPS1</Output>
     </PostProcess>
-    <IOStep name='saveData1' fromDirectory='.'>
-      <Input  class='Datas'    type='TimePointSet'>outTPS</Input>
-      <Output   class='OutStreamManager' type='Print'   >myDump1</Output>
+    <IOStep name='saveData1'>
+      <Input  class='Datas'            type='TimePointSet'>outTPS1</Input>
+      <Output class='OutStreamManager' type='Print'   >myDump1</Output>
     </IOStep> 
 <!-- Perform the difference operator using the basic function interface -->
     <PostProcess name='newExample'>
-        <Input    class='Datas'            type='TimePointSet'>testData</Input>
-        <Model    class='Models'           type='PostProcessor'>flexPP</Model>
-        <Function class='Functions'        type='Basic'>flexFs</Function>
-        <Output   class='Datas'            type='TimePointSet'>outTPS</Output>
+        <Input    class='Datas'     type='TimePointSet'>testData</Input>
+        <Model    class='Models'    type='PostProcessor'>flexPP</Model>
+        <Function class='Functions' type='Basic'>flexFs</Function>
+        <Output   class='Datas'     type='TimePointSet'>outTPS2</Output>
     </PostProcess>
-    <IOStep name='saveData2' fromDirectory='.'>
-      <Input  class='Datas'    type='TimePointSet'>outTPS</Input>
-      <Output   class='OutStreamManager' type='Print'   >myDump2</Output>
+    <IOStep name='saveData2'>
+      <Input  class='Datas'            type='TimePointSet'>outTPS2</Input>
+      <Output class='OutStreamManager' type='Print'   >myDump2</Output>
     </IOStep> 
 </Steps>
 
@@ -78,11 +78,11 @@
 <!-- A csv file containing the output of the example -->
   <Print name='myDump1'>
     <type>csv</type>
-    <source>outTPS</source>
+    <source>outTPS1</source>
   </Print>
   <Print name='myDump2'>
     <type>csv</type>
-    <source>outTPS</source>
+    <source>outTPS2</source>
   </Print>
 </OutStreamManager>
 
@@ -97,9 +97,13 @@
     <Output>Z</Output>
   </TimePointSet>
 <!-- The output TimePointSet objects -->
-  <TimePointSet name='outTPS'>
+  <TimePointSet name='outTPS1'>
     <Input>X,Y</Input>
-    <Output>Z,SumAB,DiffAB,Delta,Sum</Output>
+    <Output>Z</Output>
+  </TimePointSet>
+  <TimePointSet name='outTPS2'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
   </TimePointSet>
 </Datas>
 </Simulation>

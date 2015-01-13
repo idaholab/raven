@@ -1423,34 +1423,21 @@ class ExternalPostProcessor(BasePostProcessor):
                 print(self.messageString(' writing parameter ' + what))
               outdump.write(what + separator + '%.8E' % outputDict[what] + '\n')
     elif output.type == 'Datas':
-      if self.debug:
-        print(self.messageString('dumping output in data object named ' 
-                                 + output.name))
-      for what in outputDict.keys():
-        if what not in methodToTest:
-          for targetP in parameterSet:
-            if self.debug: 
-              print(self.messageString('dumping variable ' + targetP 
-                                       + '. Parameter: ' + what 
-                                       + '. Metadata name: ' + targetP + '|' 
-                                       + what))
-            output.updateMetadata(targetP + '|' + what, 
-                                  outputDict[what][targetP])
-      if self.externalFunction:
-        if self.debug: 
-          print(self.messageString('dumping results'))
-        for what in self.methodsToRun:
-          output.updateMetadata(what,outputDict[what])
-          if self.debug: 
-            print(self.messageString('dumping parameter ' + what))
+      print(self.warningString('Output type ' + str(output.type) + ' not yet '
+                               + 'implemented. I am going to skip it.'))
     elif output.type == 'HDF5': 
       print(self.warningString('Output type ' + str(output.type) + ' not yet '
                                + 'implemented. I am going to skip it.'))
     elif output.type == 'TimePointSet':
+      dataCollector = finishedjob.returnEvaluation()[0][0]
+      for key,value in dataCollector.getParametersValues('input').items():
+        for val in value:
+          output.updateInputValue(key, val)
+      for key,value in dataCollector.getParametersValues('output').items():
+        for val in value:
+          output.updateOutputValue(key,val)
       for method in methodToTest:
-        output.updateOutputValue(method,outputDict[method])
-#      print(self.warningString('The output type "' + output.type + '" is not '
-#                               + 'yet compatible with this. I am skipping it.'))
+        output.updateOutputValue(method,[outputDict[method]])
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
