@@ -1223,12 +1223,7 @@ class ExternalPostProcessor(BasePostProcessor):
                                      # stored into a dictionary identified by 
                                      # tag "targets")
 
-    self.methodsToRun = {}          # Store the external functions as a 
-                                    # dictionary where the key is the function
-                                    # name, and the value is the ordered list of 
-                                    # parameters to pass into the function
-
-    self.what = self.methodsToRun   # what needs to be computed... default = all
+    self.methodsToRun = []          # Store the external functions as a list
 
     self.printTag = returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
@@ -1292,51 +1287,23 @@ class ExternalPostProcessor(BasePostProcessor):
       pass # TODO
     elif inType == 'TimePointSet':
       if self.externalFunction is not None:
-        for method,args in self.methodsToRun.iteritems():
-          # If the user specifies their arguments via a map of variables:
-          # e.g. <method A='X' B='Y'>externalFunction</method>
-          # then look at that list and make sure everything works
-          if len(args) > 0:
-            knownArgs = list(self.externalFunction.parameterNames(method))
-            for arg,param in args.iteritems():
-              if arg in knownArgs:
-                if param in currentInput.getParaKeys('input'):
-                  inputDict['targets'][param] = currentInput.getParam('input',
-                                                                      param)
-                elif param in currentInput.getParaKeys('output'):
-                  inputDict['targets'][param] = currentInput.getParam('output',
-                                                                       param)
-                else:
-                  raise IOError(self.errorString('variable \"' + param 
-                                                 + '\" unknown. Please verify '
-                                                 + 'your method tag references '
-                                                 + 'data available in your '
-                                                 + 'dataset.'))
-              else:
-                raise IOError(self.errorString('function argument \"' + arg 
-                                               + '\" for \"' + method 
-                                               + '\" unknown. Please check that'
-                                               + ' the named attributes exist '
-                                               + 'in your script.'))
-              
-          # Otherwise, their function should reference self and use the same
-          # variable names as the xml file (X and Y in the above example case)
-          # 
-          else:
-            for param in self.externalFunction.parameterNames():
-              if param in currentInput.getParaKeys('input'):
-                inputDict['targets'][param] = currentInput.getParam('input',
-                                                                    param)
-              elif param in currentInput.getParaKeys('output'):
-                inputDict['targets'][param] = currentInput.getParam('output',
-                                                                    param)
-              else:
-                raise IOError(self.errorString('variable \"' + param 
-                                               + '\" unknown. Please verify '
-                                               + 'your external script'
-                                               + ' variables match the data'
-                                               + ' available in your dataset.'))
-            inputDict['metadata'] = currentInput.getAllMetadata()
+        for method in self.methodsToRun:
+          # The function should reference self and use the same variable names
+          # as the xml file
+          for param in self.externalFunction.parameterNames():
+            if param in currentInput.getParaKeys('input'):
+              inputDict['targets'][param] = currentInput.getParam('input',
+                                                                  param)
+            elif param in currentInput.getParaKeys('output'):
+              inputDict['targets'][param] = currentInput.getParam('output',
+                                                                  param)
+            else:
+              raise IOError(self.errorString('variable \"' + param 
+                                             + '\" unknown. Please verify '
+                                             + 'your external script'
+                                             + ' variables match the data'
+                                             + ' available in your dataset.'))
+          inputDict['metadata'] = currentInput.getAllMetadata()
       else:
         raise IOError(self.errorString('an external function is required, but '
                                        + 'it seems to be missing. The Maker '
@@ -1359,10 +1326,7 @@ class ExternalPostProcessor(BasePostProcessor):
       if child.tag == 'method':
         methods = child.text.split(',')
         argMap = {}
-        for scriptName,xmlName in child.attrib.iteritems():
-          argMap[scriptName] = xmlName
-        for method in methods:
-          self.methodsToRun[method] = argMap
+        self.methodsToRun.extend(methods)
 
   def collectOutput(self,finishedjob,output):
     if finishedjob.returnEvaluation() == -1: 
@@ -1370,7 +1334,6 @@ class ExternalPostProcessor(BasePostProcessor):
       raise Exception(self.errorString('No available Output to collect (Run '
                                        + 'probably did not finish yet)'))
     outputDict = finishedjob.returnEvaluation()[1]
-    methodToTest = self.methodsToRun.keys()
 
     if type(output) in [str,unicode,bytes]:
       availextens = ['csv','txt']
@@ -1404,7 +1367,7 @@ class ExternalPostProcessor(BasePostProcessor):
           outdump.write('Variable' + separator + targetP + '\n')
           outdump.write('--------' + separator + '-'*len(targetP) + '\n')
           for what in outputDict.keys():
-            if what not in methodToTest:
+            if what not in self.methodsToRun:
               if self.debug:
                 print(self.messageString('writing variable ' + targetP 
                                          + '. Parameter: ' + what))
@@ -1436,7 +1399,7 @@ class ExternalPostProcessor(BasePostProcessor):
       for key,value in dataCollector.getParametersValues('output').items():
         for val in value:
           output.updateOutputValue(key,val)
-      for method in methodToTest:
+      for method in self.methodsToRun:
         output.updateOutputValue(method,[outputDict[method]])
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
@@ -1452,44 +1415,10 @@ class ExternalPostProcessor(BasePostProcessor):
 
     if self.externalFunction:
       # There should be an external function
-      for method,argMap in self.methodsToRun.iteritems():
-        # If the user specified a mapping to the variables, then we need to
-        # make sure everything is handed in the correct order
-#        if len(argMap) > 0:
-#          funcArgMap = {}
-#          for funcArg,xmlArg in argMap.iteritems():
-#            funcArgMap[funcArg] = Input['targets'][xmlArg]
-#          outputDict[method] = self.externalFunction.evaluate(method,funcArgMap)
-#        # Otherwise, do it the old way :(
-#        else:
-#          outputDict[method] = self.externalFunction.evaluate(method,
-#                                                              Input['targets'])
-
-## Do it this way, and never again speak of the code listed above...
+      for method in self.methodsToRun:
         outputDict[method] = self.externalFunction.evaluate(method,
-                                                            Input['targets'])          
+                                                            Input['targets'])
 
-    for what in self.methodsToRun:
-      if what not in outputDict.keys():
-        outputDict[what] = {}
-
-    # print on screen
-#    print(self.messageString(str(self.name) + ' pp outputs'))
-#    methodToTest = []
-#    for key in self.methodsToRun:
-#      methodToTest.append(key)
-
-#    maxLength = 16
-#    if self.externalFunction:
-#      print(' '*maxLength,'+++++++++++++++++++++++++++++')
-#      print(' '*maxLength,'+ OUTCOME FROM EXT FUNCTION +')
-#      print(' '*maxLength,'+++++++++++++++++++++++++++++')
-#      for method in self.methodsToRun:
-#        print('              ', '*'*(len(method) + 22))
-#        for val in outputDict[method]:
-#          print('              ', '* ' + method + ' * ' + '%.8E'
-#                                 % val + '  *')
-#        print('              ', '*'*(len(method) + 22))
     return outputDict
 #
 #
