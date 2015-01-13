@@ -12,6 +12,7 @@ import sys
 import numpy as np
 from sklearn import tree
 from scipy import spatial
+from scipy import interpolate
 import os
 from glob import glob
 import copy
@@ -461,11 +462,14 @@ class ComparisonStatistics(BasePostProcessor):
       bin_boundaries = [data_stats['low']]+bins+[data_stats['high']]
       print_csv('"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
       cdf = [0.0]*len(counts)
+      midpoints = [0.0]*len(counts)
       cdf_sum = 0.0
       for i in range(len(counts)):
         f_0 = counts[i]/count_sum
         cdf_sum += f_0
         cdf[i] = cdf_sum
+        midpoints[i] = (bin_boundaries[i]+bin_boundaries[i+1])/2.0
+      cdf_func = create_interp(midpoints,cdf,0.0,1.0)
       for i in range(len(counts)):
         h = bin_boundaries[i+1] - bin_boundaries[i]
         n_count = counts[i]/count_sum #normalized count
@@ -481,12 +485,12 @@ class ComparisonStatistics(BasePostProcessor):
         #f_prime = (f_1 - f_0)/h
         #print(f_0,f_1,f_2,h,f_prime)
         f_prime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
-        print_csv(bin_boundaries[i+1],(bin_boundaries[i]+bin_boundaries[i+1])/2.0,counts[i],n_count,f_prime,cdf[i])
+        print_csv(bin_boundaries[i+1],midpoints[i],counts[i],n_count,f_prime,cdf[i])
       data_keys -= set({'num_bins','counts','bins'})
       for key in data_keys:
         print_csv('"'+key+'"',data_stats[key])
       print("data_stats",data_stats)
-      print_graphs(csv, reference, data_stats)
+      print_graphs(csv, reference, data_stats, cdf_func)
       print_csv()
 
 def normal(x,mu=0.0,sigma=1.0):
@@ -504,8 +508,31 @@ def skew_normal(x,alpha,xi,omega):
 
   return (2.0/omega)*phi((x-xi)/omega)*Phi(alpha*(x-xi)/omega)
 
+def create_interp(x, y, low_fill, high_fill):
+  interp = interpolate.interp1d(x, y)
+  low = x[0]
+  high = x[-1]
+  def my_interp(x):
+    try:
+      return interp(x)+0.0
+    except ValueError:
+      if x <= low:
+        return low_fill
+      else:
+        return high_fill
+  return my_interp
 
-def print_graphs(csv, reference, data_stats):
+def simpson(f, a, b, n):
+  h = (b - a) / float(n)
+  sum = f(a) + f(b)
+  for i in range(1,n, 2):
+    sum += 4*f(a + i*h)
+  for i in range(2, n-1, 2):
+    sum += 2*f(a + i*h)
+
+  return sum * h / 3.0
+
+def print_graphs(csv, reference, data_stats, cdf_func):
   if "mean" not in reference:
     return
   ref_mean = float(reference["mean"])
@@ -517,13 +544,28 @@ def print_graphs(csv, reference, data_stats):
   calc_alpha = data_stats["alpha"]
   low = min(ref_mean - 3.0*ref_stddev,calc_mean - 3.0*calc_stddev)
   high = max(ref_mean + 3.0*ref_stddev,calc_mean + 3.0*calc_stddev)
+  low_low = min(ref_mean - 5.0*ref_stddev,calc_mean - 5.0*calc_stddev)
+  high_high = max(ref_mean + 5.0*ref_stddev,calc_mean + 5.0*calc_stddev)
   print("Graph from ",low,"to",high)
   n = int(math.ceil((high-low)/data_stats['min_bin_size']))
   interval = (high - low)/n
-  print('"x"','"reference"','"reference_cdf"','"calculated"',file=csv,sep=',')
+  print('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"','"f_z(z)"',file=csv,sep=',')
+  def f_z(z):
+    return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 1000)
+
   for i in range(n):
     x = low+interval*i
-    print(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),file=csv,sep=',')
+    print(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x),f_z(x),file=csv,sep=',')
+
+  cdf_area_difference = simpson(lambda x:abs(cdf_func(x)-normal_cdf(x,ref_mean,ref_stddev)),low_low,high_high,1000)
+
+  def first_moment_simpson(f, a, b, n):
+    return simpson(lambda x:x*f(x), a, b, n)
+
+  #first_moment_function_diff = first_moment_simpson(f_z, low_low,
+  #                                                  high_high, 1000)
+  print('"cdf_area_difference"',cdf_area_difference,file=csv,sep=',')
+  #print('"first_moment_function_diff"',first_moment_function_diff,file=csv,sep=',')
 
 
 def count_bins(sorted_data, bin_boundaries):
