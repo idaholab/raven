@@ -95,21 +95,21 @@
     tensor = stress
     variable = stress_xx
     index = 0
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./stress_yy]
     type = MaterialTensorAux
     tensor = stress
     variable = stress_yy
     index = 1
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./stress_zz]
     type = MaterialTensorAux
     tensor = stress
     variable = stress_zz
     index = 2
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
 
   [./stress_xy]
@@ -117,28 +117,28 @@
     tensor = stress
     variable = stress_xy
     index = 3
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./stress_yz]
     type = MaterialTensorAux
     tensor = stress
     variable = stress_yz
     index = 4
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./stress_xz]
     type = MaterialTensorAux
     tensor = stress
     variable = stress_xz
     index = 5
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./hydrostatic_stress]
     type = MaterialTensorAux
     tensor = stress
     variable = hydrostatic_stress
     quantity = hydrostatic
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
 []
 
