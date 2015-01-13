@@ -551,7 +551,7 @@ def print_graphs(csv, reference, data_stats, cdf_func):
   interval = (high - low)/n
   print('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"','"f_z(z)"',file=csv,sep=',')
   def f_z(z):
-    return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 1000)
+    return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 10000)
 
   for i in range(n):
     x = low+interval*i
