@@ -34,22 +34,120 @@ In RAVEN several different ``roles'' are available:
 \end{itemize}
 As understandable, depending on the \textbf{Step} type, different combinations of these roles are allowed to be used.
 For this reason, it is important to analyze each \textbf{Step} type in details.
-%__interFaceDict['SingleRun'        ] = SingleRun
 %__interFaceDict['MultiRun'         ] = MultiRun
-%#__interFaceDict['Adaptive'         ] = Adaptive
 %__interFaceDict['IOStep'           ] = IOStep
 %__interFaceDict['IODataBase'       ] = IOStep
 %__interFaceDict['RomTrainer'       ] = RomTrainer
 %__interFaceDict['PostProcess'      ] = SingleRun
 %__interFaceDict['OutStreamStep'    ] = IOStep
+%%%%%%%%%%%%%%%%%%%%
+ %%%%% SINGLERUN %%%%%
+%%%%%%%%%%%%%%%%%%%%
 \subsection{SingleRun}
 \label{subsec:stepSingleRun}
+The  \textbf{SingleRun} is the simplest step the user can use to assemble a calculation flow. It is aimed to perform a single  action, employed by a \textbf{Model}. For example, it can be used to run a single job (Code Model) and collect the outcomes in a ``Datas'' of type ``TimePoint'' or ``History''.
+\\ The specifications of this Step must be defined within the xml block $<SingleRun>$. This xml-node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the xml-node $<Sequence>$;
+\item \textbf{pauseAtEnd}, \textit{optional boolean/string attribute}, if True (True values = True, yes, y, t, si, dajie), in case one, or more, of the Outputs is/are of type ``OutStreamManager'', the code is going to pause at the end of the step, waiting for an user signal to continue. For example, it can be used when a OutStreamManager of type Plot is supposed to be output on the screen, in order to be able to interact with the Plot itself (e.g. rotate the figure, change the scale, etc.).  \textit{Default = False};
+\end{itemize}
+\vspace{-5mm}
+In the \textbf{SingleRun} input block, the user needs to specify the objects that need to be used for the different allowable roles. This step accepts the following roles:
+\begin{itemize}
+\item $<Input>$, string, required paramete . Name of the ``entity'' that is going to be used as input for the model specified in this step. This xml node needs to contain the following attributes:
+\begin{itemize}
+  \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For example, ``Files'', ``Datas'', ``DataBases'', etc;
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''. NB. The class ``Files'' has no type (i.e. \textbf{type = ``''}).
+\end{itemize}
+NB. The \textbf{class} and, consequentially,  the \textbf{type} usable for this role depends on the particular $<Model>$ is going to be used. In addition, the user can specify as many $<Input>$ as needed by the model;
+\item $<Model>$, string, required parameter. Name of the ``entity'' that is going to be used as Model. This xml node needs to contain the following attributes:
+\begin{itemize}
+  \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Models'' can be used;
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the ``Models'' object class. For example, the \textbf{type} attribute might be ``Code'', ``ROM'', etc.
+\end{itemize}
+\item $<Output>$, string, required parameter. Name of the ``entity'' that is going to be used as Output for the Model. This xml node needs to contain the following attributes:
+\begin{itemize}
+  \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Datas'', ``DataBases'' and ``OutStreamManager'' can be used;
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''.
+\end{itemize}
+NB. The number of $<Output>$ nodes is unlimited.
+\end{itemize}
 
+\begin{lstlisting}[style=XML]
+---------------------------------------------------------
+Example:
+---------------------------------------------------------
+<Steps>
+  ...
+  <SingleRun name='StepName' pauseAtEnd='false'> 
+        <Input   class='Files'     type=''>anInputFile.i</Input>
+        <Input   class='Files'     type=''>anotherFileNeededByTheCode</Input>
+        <Model   class='Models'    type='Code'      >aCode</Model>
+        <Output  class='DataBases' type='HDF5' >aDataBase</Output>
+        <Output  class='Datas'     type='History' >aData</Output>
+  </SingleRun>
+  ...
+</Steps>
+---------------------------------------------------------
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%
+ %%%%% MULTIRUN %%%%%
+%%%%%%%%%%%%%%%%%%%
+\subsection{SingleRun}
+\label{subsec:stepSingleRun}
+The  \textbf{SingleRun} is the simplest step the user can use to assemble a calculation flow. It is aimed to perform a single  action, employed by a \textbf{Model}. For example, it can be used to run a single job (Code Model) and collect the outcomes in a ``Datas'' of type ``TimePoint'' or ``History''.
+\\ The specifications of this Step must be defined within the xml block $<SingleRun>$. This xml-node needs to contain the attributes:
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the xml-node $<Sequence>$;
+\item \textbf{pauseAtEnd}, \textit{optional boolean/string attribute}, if True (True values = True, yes, y, t, si, dajie), in case one, or more, of the Outputs is/are of type ``OutStreamManager'', the code is going to pause at the end of the step, waiting for an user signal to continue. For example, it can be used when a OutStreamManager of type Plot is supposed to be output on the screen, in order to be able to interact with the Plot itself (e.g. rotate the figure, change the scale, etc.).  \textit{Default = False};
+\end{itemize}
+\vspace{-5mm}
+In the \textbf{SingleRun} input block, the user needs to specify the objects that need to be used for the different allowable roles. This step accepts the following roles:
+\begin{itemize}
+\item $<Input>$, string, required paramete . Name of the ``entity'' that is going to be used as input for the model specified in this step. This xml node needs to contain the following attributes:
+\begin{itemize}
+  \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For example, ``Files'', ``Datas'', ``DataBases'', etc;
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''. NB. The class ``Files'' has no type (i.e. \textbf{type = ``''}).
+\end{itemize}
+NB. The \textbf{class} and, consequentially,  the \textbf{type} usable for this role depends on the particular $<Model>$ is going to be used. In addition, the user can specify as many $<Input>$ as needed by the model;
+\item $<Model>$, string, required parameter. Name of the ``entity'' that is going to be used as Model. This xml node needs to contain the following attributes:
+\begin{itemize}
+  \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Models'' can be used;
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the ``Models'' object class. For example, the \textbf{type} attribute might be ``Code'', ``ROM'', etc.
+\end{itemize}
+\item $<Output>$, string, required parameter. Name of the ``entity'' that is going to be used as Output for the Model. This xml node needs to contain the following attributes:
+\begin{itemize}
+  \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Datas'', ``DataBases'' and ``OutStreamManager'' can be used;
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''.
+\end{itemize}
+NB. The number of $<Output>$ nodes is unlimited.
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+---------------------------------------------------------
+Example:
+---------------------------------------------------------
+<Steps>
+  ...
+  <SingleRun name='StepName' pauseAtEnd='false'> 
+        <Input   class='Files'     type=''>anInputFile.i</Input>
+        <Input   class='Files'     type=''>anotherFileNeededByTheCode</Input>
+        <Model   class='Models'    type='Code'      >aCode</Model>
+        <Output  class='DataBases' type='HDF5' >aDataBase</Output>
+        <Output  class='Datas'     type='History' >aData</Output>
+  </SingleRun>
+  ...
+</Steps>
+---------------------------------------------------------
+\end{lstlisting}
 
 
 
 \begin{itemize}
-\item SingleRun: This is the step that will perform just one evaluation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \item MultiRun: This class implements one step of the simulation pattern where several runs are, needed without being adaptive.  
 \begin{itemize}
