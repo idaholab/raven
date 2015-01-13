@@ -187,6 +187,16 @@ class Function(BaseType):
       return self.__actionDictionary[method].func_code.co_varnames[:argCount]
 
 class PythonFunction(Function):
+'''
+   Written by Dan Maljovec 1/8/15
+   This is a generic python function interface for allowing users to use a more
+   reusable external python interface. In such an interface, the user decides 
+   what variables in their data object map to what variables in their python
+   module. In this way, a user could define a python function that does 
+   something like normalize a column and could use it on any arbitrary dataset
+   without having to modify the script.
+'''
+
   def __init__(self):
     super(self.__class__, self).__init__()
   
@@ -194,6 +204,10 @@ class PythonFunction(Function):
     '''Will take a method from a Function object and apply the list of arguments
        defined by args to the method evaluation
     '''
+  
+    # I am accessing the private member from the base class in order to call the
+    # external function with the arguments passed in by the user, not 'self'
+    # I apologize for not having a better way to access this guy. -DM
     toBeReturned=self._Function__actionDictionary[method](**args)
     return toBeReturned
 
