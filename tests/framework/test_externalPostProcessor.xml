@@ -6,9 +6,9 @@
   <Sequence>
     loadData,
     legacyExample,
-    saveData1,
-    newExample,
-    saveData2
+    saveData1
+<!--    newExample,-->
+<!--    saveData2-->
   </Sequence>
 </RunInfo>
 <Models>
@@ -22,21 +22,24 @@
   </PostProcessor>
 <!-- This one uses a newer reusable interface which I think is simpler for a 
      new user to understand and is more flexible -->
-  <PostProcessor name='flexPP' subType='External' debug='true'>
-    <method A='X' B='Y'>DiffAB,SumAB</method>
-    <Assembler>
-      <Function class='Functions' type='Basic'>flexFs</Function>
-    </Assembler>
-  </PostProcessor>
+<!-- The Apocryphal Method that shall never be used -->
+<!--  <PostProcessor name='flexPP' subType='External' debug='true'>-->
+<!--    <method A='X' B='Y'>DiffAB,SumAB</method>-->
+<!--    <Assembler>-->
+<!--      <Function class='Functions' type='Basic'>flexFs</Function>-->
+<!--    </Assembler>-->
+<!--  </PostProcessor>-->
 </Models>
 <Functions>
 <!-- The flexible strategy requires the variable names from the dataset it will 
      be working on. The post-processor will establish the mapping to the 
      variables used in the external file -->
-    <Basic name='flexFs' file='externalPostProcessor/BasicOperators'>
-        <variable>X</variable>
-        <variable>Y</variable>
-    </Basic>
+
+<!-- The Apocryphal Method that shall never be used -->
+<!--    <Basic name='flexFs' file='externalPostProcessor/BasicOperators'>-->
+<!--        <variable>X</variable>-->
+<!--        <variable>Y</variable>-->
+<!--    </Basic>-->
 <!-- The static strategy requires the static list of variables used in the 
      function file and used in this dataset -->
     <External name='staticFs' file='externalPostProcessor/BasicOperators'>
@@ -61,17 +64,18 @@
       <Input  class='Datas'            type='TimePointSet'>outTPS1</Input>
       <Output class='OutStreamManager' type='Print'   >myDump1</Output>
     </IOStep> 
+<!-- The Apocryphal Method that shall never be used -->
 <!-- Perform the difference operator using the basic function interface -->
-    <PostProcess name='newExample'>
-        <Input    class='Datas'     type='TimePointSet'>testData</Input>
-        <Model    class='Models'    type='PostProcessor'>flexPP</Model>
-        <Function class='Functions' type='Basic'>flexFs</Function>
-        <Output   class='Datas'     type='TimePointSet'>outTPS2</Output>
-    </PostProcess>
-    <IOStep name='saveData2'>
-      <Input  class='Datas'            type='TimePointSet'>outTPS2</Input>
-      <Output class='OutStreamManager' type='Print'   >myDump2</Output>
-    </IOStep> 
+<!--    <PostProcess name='newExample'>-->
+<!--        <Input    class='Datas'     type='TimePointSet'>testData</Input>-->
+<!--        <Model    class='Models'    type='PostProcessor'>flexPP</Model>-->
+<!--        <Function class='Functions' type='Basic'>flexFs</Function>-->
+<!--        <Output   class='Datas'     type='TimePointSet'>outTPS2</Output>-->
+<!--    </PostProcess>-->
+<!--    <IOStep name='saveData2'>-->
+<!--      <Input  class='Datas'            type='TimePointSet'>outTPS2</Input>-->
+<!--      <Output class='OutStreamManager' type='Print'   >myDump2</Output>-->
+<!--    </IOStep> -->
 </Steps>
 
 <OutStreamManager>
