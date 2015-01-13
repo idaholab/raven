@@ -31,6 +31,9 @@ import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
+import Quadratures
+import OrthoPolynomials
+import IndexSets
 #Internal Modules End--------------------------------------------------------------------------------
 
 #Internal Submodules---------------------------------------------------------------------------------
@@ -2087,6 +2090,136 @@ class ResponseSurfaceDesign(Grid):
     gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
     for cnt, varName in enumerate(self.axisName): self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
     Grid.localGenerateInput(self,model, myInput)
+
+class SparseGridCollocation(Grid):
+  def __init__(self):
+    Grid.__init__(self)
+    self.type           = 'SparseGridCollocationSampler'
+    self.printTag       = returnPrintTag(self.type)
+    self.assemblerObjects={}    #dict of external objects required for assembly
+    self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
+    self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
+    self.adaptive       = False #TODO
+    self.polyDict       = {}    #varName-indexed dict of polynomial types
+    self.quadDict       = {}    #varName-indexed dict of quadrature types
+    self.importanceDict = {}    #varName-indexed dict of importance weights
+    self.lastOutput     = None  #pointer to output datas object
+    self.ROM            = None  #pointer to ROM
+    
+  def _localWhatDoINeed(self):
+    needDict={}
+    for value in self.assemblerObjects.values():
+      if value[0] not in needDict.keys(): needDict[value[0]]=[]
+      needDict[value[0]].append((value[1],value[2]))
+    #needDict['jobHandler'] = (None,None)
+    #TODO I also need a job handler.
+    return needDict
+
+  def _localGenerateAssembler(self,initDict):
+    for key, value in self.assemblerObjects.items():
+      if   key in 'TargetEvaluation': self.lastOutput = initDict[value[0]][value[2]]
+      elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
+      #FIXME jobhandler
+
+  def _readMoreXML(self,xmlNode):
+    Grid._readMoreXML(self,xmlNode)
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+    #assembler node
+    assemblerNode = xmlNode.find('Assembler')
+    if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
+    targEvalCounter = 0
+    romCounter      = 0
+    for subNode in assemblerNode:
+      if subNode.tag in ['TargetEvaluation','ROM']:
+        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+        self.assemblerObjects[subNode.tag] = [subNode.attrib['class'],subNode.attrib['type'],subNode.text]
+        if 'TargetEvaluation' in subNode.tag: targEvalCounter+=1
+        if 'ROM'              in subNode.tag: romCounter+=1
+      else:
+        raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
+    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
+    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+
+  def localInputAndChecks(self,xmlNode):
+    for child in xmlNode:
+      if   child.tag=='Assembler'   :continue
+      elif child.tag=='Distribution': varName = '<distribution>'+child.attrib['name']
+      elif child.tag=='variable'    : varName =                  child.attrib['name']
+      self.axisName.append(varName)
+    #check for sampler, ROM consistency
+    #TODO consistency checks between quads-polys-distros
+
+  def localInitialize(self):
+    Grid.localInitialize(self)
+    SVL = self.ROM.SupervisedEngine.values()[0]
+    ROMdata = SVL.interpolationInfo() #FIXME they are all the same?
+    #TODO how to handle multiple targets?  Assume one for now!
+    #check input space consistency
+    samVars=self.axisName[:]
+    romVars=SVL.features[:]
+    try:
+      for v in self.axisName:
+        samVars.remove(v)
+        romVars.remove(v)
+    except ValueError:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
+    if len(romVars)>0:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
+    for v in ROMdata.keys():
+      if v not in self.axisName:
+        raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' given interpolation rules but '+v+' not in sampler!')
+      else:
+        self.gridInfo[v] = ROMdata[v] #quad, poly, weight
+    #build dimensional quad, poly
+    for varName,dat in self.gridInfo.items():
+      if dat['cdf'].lower() in ['t','true','y','yes','1']:
+        quadType='CDF'
+        if dat['quad']=='DEFAULT': subType = 'ClenshawCurtis'
+        else:                      subType = dat['quad']
+        if dat['poly']=='DEFAULT': polyType = 'Legendre'
+        else:                      polyType = dat['poly']
+      else:
+        if dat['quad']=='DEFAULT': quadType = self.distDict[varName].preferredQuadrature
+        else:                      quadType = dat['quad']
+        if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
+        else:                      polyType = dat['poly']
+        subType=None
+
+      quad = Quadratures.returnInstance(quadType,subType)
+      quad.initialize()
+      self.quadDict[varName]=quad
+
+      poly = OrthoPolynomials.returnInstance(polyType)
+      poly.initialize()
+      self.polyDict[varName] = poly
+      #TODO consistency checks between quads-polys-distros
+
+      self.importanceDict[varName] = float(dat['weight'])
+
+    self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
+    self.indexSet.initialize(self.distDict,self.importanceDict,SVL.maxPolyOrder)
+
+    self.sparseGrid = Quadratures.SparseQuad()
+    self.sparseGrid.initialize(self.indexSet,SVL.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,handler) #FIXME handler
+    self.limit=len(self.sparseGrid)
+
+  def localGenerateInput(self,model,myInput):
+    pts,weight = self.sparseGrid[self.counter-1]
+    for v,varName in enumerate(self.axisName):
+      self.values[varName] = pts[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = weight
+    self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+
+  def localFinalizeActualSampling(jobObject,model,myInput):
+    if len(self.lastOutput)==len(self.sparseGrid):
+      for SVL in self.ROM.SupervisedEngine.values():
+        SVL.initialize({'SG':self.sparseGrid,
+                        'dists':self.distDict,
+                        'quads':self.quadDict,
+                        'polys':self.polyDict})
+
 #
 #
 #
@@ -2104,6 +2237,7 @@ __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
+__interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __knownTypes = list(__interFaceDict.keys())
 
 def addKnownTypes(newDict):

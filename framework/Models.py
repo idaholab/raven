@@ -81,7 +81,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
                                         'AdaptiveDynamicEventTree',
                                         'FactorialDesign',
                                         'ResponseSurfaceDesign',
-                                        'StochasticPolynomials']
+                                        'SparseGridCollocation']
 
   @classmethod
   def generateValidateDict(cls):
@@ -307,6 +307,7 @@ class ROM(Dummy):
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
+      self.SupervisedEngine[target]._readMoreXML(xmlNode)
 
   def reset(self):
     '''

@@ -53,7 +53,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     return (True,'')
 
   def __init__(self,**kwargs):
-    self.printTag = returnPrintTag('Super Visioned')
+    self.printTag = returnPrintTag('SuperVised')
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
     if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Feature names not provided')
@@ -67,6 +67,9 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     self.muAndSigmaFeatures = {} #a dictionary where for each feature a tuple (average value, sigma)
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
+
+  def _readMoreXML(self,xmlNode):
+    pass
 
   def initialize(self,idict):
     pass #TODO FIXME
@@ -232,6 +235,82 @@ class NDinterpolatorRom(superVisedLearning):
 
   def __returnCurrentSettingLocal__(self):
     raise NotImplemented('NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!!!!!')
+
+class GaussPolynomialRom(NDinterpolatorRom):
+  def __confidenceLocal__(self,edict):pass #TODO
+  def __resetLocal__(self):pass
+  def __returnCurrentSettingLocal__(self):pass
+  def __returnInitialParametersLocal__(self):pass
+
+  def __init__(self,**kwargs):
+    superVisedLearning.__init__(self,**kwargs)
+    self.interpolator = None #FIXME what's this?
+    self.printTag     = returnPrintTag('GAUSS gPC ROM')
+    self.indexSetType = None
+    self.maxPolyOrder = None
+    self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
+
+  def _readMoreXML(self,xmlNode):
+    NDinterpolatorRom._readMoreXML(self,xmlNode)
+    if xmlNode.find('IndexSet')!=None: self.indexSetType = xmlNode.find('IndexSet').text
+    else: raise IOError(self.printTag+' No IndexSet specified!')
+    if xmlNode.find('PolynomialOrder')!=None: self.maxPolyOrder = int(xmlNode.find('PolynomialOrder').text)
+    else: raise IOError(self.printTag+' No PolynomialOrder specified!')
+    self.itpDict={}
+    for child in xmlNode:
+      if child.tag=='Interpolation':
+        var = child.text
+        self.itpDict[var]={'poly'  :'DEFAULT',
+                           'quad'  :'DEFAULT',
+                           'weight':'1',
+                           'cdf'   :'False'}
+        for atr in ['poly','quad','weight','cdf']:
+          if atr in child.attrib.keys(): self.itpDict[var][atr]=child.attrib[atr]
+          else: raise IOError(self.printTag+' Unrecognized option: '+child.attrib[atr])
+
+  def interpolationInfo(self):
+    return dict(self.itpDict)
+
+  def initialize(self,idict):
+    for key,value in idict.items():
+      if   key == 'SG'   : self.sparseGrid = value
+      elif key == 'dists': self.distDict   = value
+      elif key == 'quads': self.quads      = value
+      elif key == 'polys': self.polys      = value
+
+  def _multiDPolyBasisEval(self,orders,pts):
+    tot=1
+    for i,(o,p) in enumerate(zip(orders,pts)):
+      tot*=self.polys.values()[i][o,p]
+    return tot
+
+  def __trainLocal__(self,featureVals,targetVals):
+    self.polyCoeffDict={}
+    #FIXME what's targetVals keyed by?
+    for i,idx in enumerate(self.sparseGrid.indexSet):
+      idx=tuple(idx)
+      self.polyCoeffDict[idx]=0
+      for k,(pt,wt) in enumerate(self.sparseGrid): #int, tuple, float for k,pt,wt
+        stdPt = np.zeros(len(pt))
+        for i,p in enumerate(pt):
+          varName = self.distDict.keys()[i]
+          stdPt[i] = self.distDict[varName].convertToQuad(self.quadDict[varName].type,p)
+        self.polyCoeffDict[idx]+=SOLN[pt]*self._multiDPolyBasisEval(idx,stdPt)*wt
+
+  def __evaluateLocal__(self,featureVals):
+    tot=0
+    stdPt = np.zeroes(len(featureVals))
+    for p,pt in enumerate(featureVals): #FIXME what data type is featureVals?
+      varName = self.distDict.keys()[i]
+      stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type(),p) #FIXME need to convert?
+    for idx,coeff in sulf.polyCoeffDict.items():
+      tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
+    return tot
+
+  def __returnInitialParametersLocal__(self):
+    return {'IndexSet:':self.indexSetType,
+            'PolynomialOrder':self.maxPolyOrder,
+             'Interpolation':interpolationInfo()}
 #
 #
 #
@@ -421,12 +500,13 @@ class SciKitLearn(superVisedLearning):
 #
 #
 #
-__interfaceDict                      = {}
-__interfaceDict['NDspline'         ] = NDsplineRom
-__interfaceDict['NDinvDistWeigth'  ] = NDinvDistWeigth
-__interfaceDict['microSphere'      ] = NDmicroSphere
-__interfaceDict['SciKitLearn'      ] = SciKitLearn
-__base                               = 'superVisedLearning'
+__interfaceDict                         = {}
+__interfaceDict['NDspline'            ] = NDsplineRom
+__interfaceDict['NDinvDistWeigth'     ] = NDinvDistWeigth
+__interfaceDict['microSphere'         ] = NDmicroSphere
+__interfaceDict['SciKitLearn'         ] = SciKitLearn
+__interfaceDict['GaussPolynomialRom'] = GaussPolynomialRom
+__base                                  = 'superVisedLearning'
 
 def addToInterfaceDict(newDict):
   for key,val in newDict.items():
