@@ -469,7 +469,7 @@ class ComparisonStatistics(BasePostProcessor):
         cdf_sum += f_0
         cdf[i] = cdf_sum
         midpoints[i] = (bin_boundaries[i]+bin_boundaries[i+1])/2.0
-      cdf_func = create_interp(midpoints,cdf,0.0,1.0)
+      cdf_func = create_interp(midpoints,cdf,0.0,1.0,'quadratic')
       for i in range(len(counts)):
         h = bin_boundaries[i+1] - bin_boundaries[i]
         n_count = counts[i]/count_sum #normalized count
@@ -508,8 +508,8 @@ def skew_normal(x,alpha,xi,omega):
 
   return (2.0/omega)*phi((x-xi)/omega)*Phi(alpha*(x-xi)/omega)
 
-def create_interp(x, y, low_fill, high_fill):
-  interp = interpolate.interp1d(x, y)
+def create_interp(x, y, low_fill, high_fill, kind='linear'):
+  interp = interpolate.interp1d(x, y, kind)
   low = x[0]
   high = x[-1]
   def my_interp(x):
