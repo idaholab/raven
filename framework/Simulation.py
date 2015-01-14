@@ -554,6 +554,8 @@ class Simulation(object):
       for key in stepInputDict.keys():
         if type(stepInputDict[key]) == list: stepindict = stepInputDict[key]
         else                               : stepindict = [stepInputDict[key]]
+        # check assembler. NB. If the assembler refers to an internal object the relative dictionary
+        # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
         for stp in stepindict:
           if "whatDoINeed" in dir(stp):
             neededobjs    = {}
