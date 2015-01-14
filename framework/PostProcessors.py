@@ -1238,7 +1238,7 @@ class ExternalPostProcessor(BasePostProcessor):
       @ Out, A formatted string with the appropriate tags listed
     '''
     # This function can be promoted for printing error functions more easily and
-    # consistently. 
+    # consistently.
     return (self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> '
            + self.__class__.__name__ + ': ' + message)
 
@@ -1249,7 +1249,7 @@ class ExternalPostProcessor(BasePostProcessor):
       @ Out, A formatted string with the appropriate tags listed
     '''
     # This function can be promoted for printing error functions more easily and
-    # consistently. 
+    # consistently.
     return (self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '
            + self.__class__.__name__ + ': ' + message)
 
@@ -1260,7 +1260,7 @@ class ExternalPostProcessor(BasePostProcessor):
       @ Out, A formatted string with the appropriate tags listed
     '''
     # This function can be promoted for printing error functions more easily and
-    # consistently. 
+    # consistently.
     return (self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
            + self.__class__.__name__ + ': ' + message)
 
@@ -1275,7 +1275,7 @@ class ExternalPostProcessor(BasePostProcessor):
     '''
       Function to convert the received input into a format this object can
       understand
-      @ In, currentInp: Some form of data object or list of data objects handed 
+      @ In, currentInp: Some form of data object or list of data objects handed
                         to the post-processor
       @ Out, An input dictionary this object can process
     '''
@@ -1315,7 +1315,7 @@ class ExternalPostProcessor(BasePostProcessor):
         for param in item.getParaKeys('input'):
           inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'):
-          inputDict['targets'][param] = item.getParam('output', param)        
+          inputDict['targets'][param] = item.getParam('output', param)
         metadata.append(item.getAllMetadata())
 
       #Not sure if we need it, but keep a copy of every inputs metadata
@@ -1352,7 +1352,7 @@ class ExternalPostProcessor(BasePostProcessor):
 
   def collectOutput(self,finishedJob,output):
     '''
-      Function to place all of the computed data into the output object 
+      Function to place all of the computed data into the output object
       @ In, finishedJob: A JobHandler object that is in charge of running this
                          post-processor
       @ In, output: The object where we want to place our computed results
@@ -1377,22 +1377,55 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'TimePointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
+      dataLength = None
       for inputData in inputList:
+        # Pass inputs from input data to output data
         for key,value in inputData.getParametersValues('input').items():
           if key in requestedInput:
+            # We need the size to ensure the data size is consistent, but there
+            # is no guarantee the data is not scalar, so this check is necessary
+            myLength = 1
+            if hasattr(value, "__len__"):
+              myLength = len(value)
+
+            if dataLength is None:
+              dataLength = myLength
+            elif dataLength != myLength:
+              dataLength = max(dataLength,myLength)
+              print(self.warningString('Data size is inconsistent. Currently '
+                                      + 'set to ' + str(dataLength) + '.'))
+
             for val in value:
               output.updateInputValue(key, val)
+
+        # Pass outputs from input data to output data
         for key,value in inputData.getParametersValues('output').items():
           if key in requestedOutput:
+            # We need the size to ensure the data size is consistent, but there
+            # is no guarantee the data is not scalar, so this check is necessary
+            myLength = 1
+            if hasattr(value, "__len__"):
+              myLength = len(value)
+
+            if dataLength is None:
+              dataLength = myLength
+            elif dataLength != myLength:
+              dataLength = max(dataLength,myLength)
+              print(self.warningString('Data size is inconsistent. Currently '
+                                      + 'set to ' + str(dataLength) + '.'))
+
             for val in value:
               output.updateOutputValue(key,val)
+
+      # Figure out where the computed data should go in the output data and put
+      # it there
       for method,value in outputDict.iteritems():
-        if method in requestedOutput:
-          output.updateOutputValue(method,[value])
-        else:
-          # Because we are qualifying overloaded function names, we need to do
-          # some special checking to see if they requested this function without
-          # the qualifying interface name
+        storeInOutput = method in requestedOutput
+
+        # Because we are qualifying overloaded function names, we need to do
+        # some special checking to see if they requested this function without
+        # the qualifying interface name
+        if not storeInOutput:
           tokens = method.split('.',1)
           foundColumn = False
           if len(tokens) > 1:
@@ -1401,9 +1434,32 @@ class ExternalPostProcessor(BasePostProcessor):
                 foundColumn = True
                 break
           if foundColumn:
-            output.updateOutputValue(method,[value])
-          else:
-            output.updateMetadata(method,[value])
+            storeInOutput = True
+
+        # If the user is trying to put this in the output file, verify that the
+        # data shape allows for that, if not then print a message and place it
+        # in the metadata
+        if storeInOutput:
+          # We need the size to ensure the data size is consistent, but there
+          # is no guarantee the data is not scalar, so this check is necessary
+          myLength = 1
+          if hasattr(value, "__len__"):
+            myLength = len(value)
+
+          if dataLength is None:
+            dataLength = myLength
+          elif dataLength != myLength:
+            print(self.warningString('Requested output for ' + method + ' has a'
+                                     + ' non-conformant data size, it is being'
+                                     + ' placed in the metadata.' ))
+            storeInOutput = False
+
+        # Finally, no matter what, place the computed data somewhere accessible
+        if storeInOutput:
+          output.updateOutputValue(method,[value])
+        else:
+          output.updateMetadata(method,[value])
+
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
@@ -1417,7 +1473,7 @@ class ExternalPostProcessor(BasePostProcessor):
     outputDict = {}
 
     # This will map the name to its appropriate interface and method
-    # in the case of a function being defined in two separate files, we 
+    # in the case of a function being defined in two separate files, we
     # qualify the output by appending the name of the interface from which it
     # originates
     methodMap = {}
@@ -1431,7 +1487,7 @@ class ExternalPostProcessor(BasePostProcessor):
           matchingInterfaces.append(interface)
 
       if len(matchingInterfaces) == 0:
-        print(self.warningString(method + ' not found.'))
+        print(self.warningString(method + ' not found. I will skip it.'))
       elif len(matchingInterfaces) == 1:
         methodMap[method] = (matchingInterfaces[0],method)
       else:

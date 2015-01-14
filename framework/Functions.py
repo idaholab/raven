@@ -158,7 +158,7 @@ class Function(BaseType):
     self.__importValues(myInput)
 
     if what not in self.__actionDictionary:
-      raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') 
+      raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR')
                     + '-> Method ' + what + ' not defined in ' + self.name)
     return self.__actionDictionary[what](self)
 

@@ -17,3 +17,9 @@ def Sum(self):
 
 def Delta(self):
   return self.A - self.B
+
+def Max(self):
+  return max(max(self.A),max(self.B))
+
+def Min(self):
+  return min(min(self.A),min(self.B))
