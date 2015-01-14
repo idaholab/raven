@@ -1502,6 +1502,7 @@ RAVEN supports several different types of PPs. Currently in RAVEN the following 
    \item \textbf{ComparisonStatistics;}
    \item \textbf{SafestPoint;}
    \item \textbf{LimitSurface;}
+   \item \textbf{TopologicalDecomposition;}
    \item \textbf{PrintCSV;}
    \item \textbf{LoadCsvIntoInternalObject.}
 \end{itemize}
@@ -1681,6 +1682,71 @@ Each of these sub-nodes  must contain 2 attributes that are used to map those wi
 </Simulation>
 ----------------------------------------------
 \end{lstlisting}
+%%%%% PP TopologicalDecomposition %%%%%%%
+\paragraph{TopologicalDecomposition.}
+\label{TopologicalDecomposition}
+The \textbf{TopologicalDecomposition} post-processor will compute an 
+approximated hierarchical Morse-Smale complex and perform linear regression on
+each component. 
+\\In order to use the \textbf{TopologicalDecomposition} post-processor, the user
+needs to set the attribute \textit{subType}: 
+$<$ \texttt{PostProcessor subType=TopologicalDecomposition} $>$. 
+The following is a list of acceptable sub-nodes:
+\begin{itemize}
+  \item $<$\texttt{graph}$>$ \textbf{\textit{, string, optional field.}} The 
+        type of neighborhood graph used in the algorithm, available options are:
+        \begin{itemize}
+          \item Beta Skeleton
+          \item Relaxed Beta Skeleton
+          \item Approximate KNN
+          \item Delaunay \textit{(disabled)}
+        \end{itemize}
+        \textit{Default = Beta Skeleton};
+  \item $<$\texttt{gradient}$>$ \textbf{\textit{, string, optional field.}} The 
+        method used for estimating the gradient, available options are:
+        \begin{itemize}
+          \item Steepest
+          \item MaxFlow \textit{(disabled)}
+        \end{itemize}
+        \textit{Default = Steepest};
+  \item $<$\texttt{beta}$>$ \textbf{\textit{, float, optional field.}}. Only 
+        used when the \texttt{graph} is set to \textit{Beta Skeleton} or 
+        \textit{Relaxed Beta Skeleton}. \textit{Default = 1.0};
+  \item $<$\texttt{knn}$>$ \textbf{\textit{, integer, optional field.}}. The
+        number of neighbors when using the \textit{Approximate KNN} for the
+        \texttt{graph} sub-node and used to speed up the computation of other
+        graphs by using the approximate knn graph as a starting point for
+        pruning. -1 means use a fully connected graph. \textit{Default = -1};
+  \item $<$\texttt{persistence}$>$ \textbf{\textit{, float, optional field.}}. 
+        The amount of noise reduction to apply before returning lables. 
+        \textit{Default = 0};
+  \item $<$\texttt{parameters}$>$ \textbf{\textit{, comma separated string,
+        required field.}} List of the parameters defining the input space;
+  \item $<$\texttt{response}$>$ \textbf{\textit{, string, required field.}}. 
+        A single variable name defining the scalar output space.
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+-----------------------------------------------------------
+<Simulation>
+   ...
+   <Models>
+      ...
+      <PostProcessor name="***" subType='TopologicalDecomposition'>
+          <graph>Beta Skeleton</graph>
+          <gradient>Steepest</gradient>
+          <beta>1</beta>
+          <knn>8</knn>
+          <parameters>X,Y</parameters>
+          <response>Z</response>
+      </PostProcessor>
+      ...
+   <Models>
+   ...
+<Simulation>
+-----------------------------------------------------------
+\end{lstlisting}
+
 %%%%% PP PrintCSV %%%%%%%
 \paragraph{PrintCSV.}
 \label{PrintCSV}

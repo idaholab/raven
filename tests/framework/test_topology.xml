@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
+<Simulation>
+<RunInfo>
+  <WorkingDir>topologyPP</WorkingDir>
+  <Sequence>
+    loadData,
+    decompose
+  </Sequence>
+</RunInfo>
+<Models>
+<!-- The definition of the topological partition and all of its parameters -->
+  <PostProcessor name='AMSC' subType='TopologicalDecomposition' debug='true'>
+    <graph>Beta Skeleton</graph>
+    <gradient>steepest</gradient>
+    <beta>1</beta>
+    <knn>8</knn>
+    <parameters>X,Y</parameters>
+    <response>Z</response>
+  </PostProcessor>
+</Models>
+<Steps>
+<!-- Load the data from a csv into the hdf5 database used by this run -->
+    <IOStep name='loadData' fromDirectory='.'>
+      <Input  class='Datas'    type='TimePointSet'>testData</Input>
+      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+    </IOStep> 
+<!-- Perform the topological decomposition -->
+    <PostProcess name='decompose'>
+        <Input   class='Datas'    type='TimePointSet'>testData</Input>
+        <Model   class='Models'   type='PostProcessor'>AMSC</Model>
+        <Output  class='Datas'    type='TimePointSet'>outTPS</Output>
+        <Output  class='OutStreamManager' type='Print'>myDump</Output>
+    </PostProcess>
+</Steps>
+
+<OutStreamManager>
+<!-- A csv file containing the output of the example -->
+  <Print name='myDump'>
+    <type>csv</type>
+    <source>outTPS</source>
+  </Print>
+</OutStreamManager>
+
+<DataBases>
+<!-- The necessary database object -->
+  <HDF5 name="myDB"/> 
+</DataBases>
+<Datas>
+<!-- The input TimePointSet objects -->
+  <TimePointSet name='testData'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+<!-- The output TimePointSet objects -->
+  <TimePointSet name='outTPS'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+</Datas>
+</Simulation>

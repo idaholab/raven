@@ -19,6 +19,11 @@ import copy
 import Datas
 #External Modules End--------------------------------------------------------------------------------
 
+# There is probably a better way to do this
+myPath = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(myPath+'/../src/postprocessors/')
+from amsc import *
+
 #Internal Modules------------------------------------------------------------------------------------
 from utils import toString, toBytes, first, returnPrintTag, returnPrintPostTag
 from BaseClasses import Assembler
@@ -1207,7 +1212,6 @@ class LimitSurface(BasePostProcessor):
 
     return self.surfPoint,outputPlaceOrder
 
-
 #
 #
 #
@@ -1218,11 +1222,6 @@ class TopologicalDecomposition(BasePostProcessor):
     arbitrary number of input parameters and a response value per input point
   '''
   def __init__(self):
-    # Load the library on demand, so the uninterested user does not have to 
-    # worry about any compilation issues
-    sys.path.append('../src/postprocessors/')
-    #from amsc import *
-
     BasePostProcessor.__init__(self)
     self.acceptedGraphParam = ['Approximate KNN','Delaunay','Beta Skeleton',\
                                'Relaxed Beta Skeleton']
