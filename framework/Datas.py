@@ -431,7 +431,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def sizeData(self,typeVar,keyword=None,nodeid=None,serialize=False):
     '''
-    Function to get the size of the Data. 
+    Function to get the size of the Data.
     @ In, typeVar, string, required, variable type (input/inputs, output/outputs, metadata)
     @ In, keyword, string, optional, variable keyword. If None, the sizes of each variables are returned
     @ In, nodeid, string, optional, id of the node if hierarchical
