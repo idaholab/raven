@@ -19,6 +19,11 @@ import copy
 import Datas
 #External Modules End--------------------------------------------------------------------------------
 
+# There is probably a better way to do this
+myPath = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(myPath+'/../src/postprocessors/')
+from amsc import *
+
 #Internal Modules------------------------------------------------------------------------------------
 from utils import toString, toBytes, first, returnPrintTag, returnPrintPostTag
 from BaseClasses import Assembler
@@ -1627,73 +1632,9 @@ class TopologicalDecomposition(BasePostProcessor):
         self.response = child.text
 
   def collectOutput(self,finishedjob,output):
-    #output
-    if finishedjob.returnEvaluation() == -1:
-      raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") /
-                      + '->  No available Output to collect (Run probabably ' /
-                      + 'is not finished yet)')
-    outputDict = finishedjob.returnEvaluation()[1]
-    if type(output) in [str,unicode,bytes]:
-      availextens = ['csv','txt']
-      outputextension = output.split('.')[-1].lower()
-      if outputextension not in availextens:
-        print(self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '/
-              + self.__class__.__name__ /
-              + ' postprocessor output extension you input is ' /
-              + outputextension)
-        print('                     Available are ' + str(availextens) / 
-              + '. Convertint extension to '+str(availextens[0]))
-        outputextension = availextens[0]
-      if outputextension != 'csv':
-        separator = ' '
-      else:
-        separator = ','
-      outFilename = os.path.join(self.__workingDir,
-                                 output[:output.rfind('.')]+'.'+outputextension)
-      if self.debug:
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '->' /
-              + "workingDir",self.__workingDir,"output",output.split('.'))
-        print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ' /
-              + self.__class__.__name__ /
-              + ' postprocessor: dumping output in file named ' + outFilename)
-      with open(outFilename, 'wb') as outdump:
-        outdump.write('========== Persistence Chart: ==========\n')
-        outdump.write(myObj.PrintHierarchy())
-        outdump.write('\n========== Data Labels: ==========\n')
-        line = 'Index'
-        sep = ','
-        for lbl in self.params:
-          line += sep + lbl
-        line += sep + self.response + sep + 'Minimum' + sep + 'Maximum\n'
-        outdump.write(line)
-        for i in xrange(0,myObj.Size()):
-          line = str(i)
-          for d in xrange(0,myObj.Dimension()):
-            line += '%s%d' % (sep,inputData[i,d])
-          line += '%s%d' % (sep,outputData[i])
-          line += '%s%d%s%d\n' % (sep,myObj.MinLabel(i),sep,myObj.MaxLabel(i))
-          outdump.write(line)
-    elif output.type == 'Datas':
-      if self.debug:
-        print(self.printTag + ': ' + returnPrintPostTag('Message') + '-> ' /
-              + self.__class__.__name__ /
-              + ' postprocessor: dumping output in data object named ' 
-              + output.name)
-#      for what in outputDict.keys():
-#        if self.debug: 
-#          print(self.printTag + ': ' + returnPrintPostTag('Message') + ' -> ' /
-#                + self.__class__.__name__ + ' postprocessor: dumping matrix ' /
-#                + what + '. Metadata name = ' + what + '. Targets stored in ' + 'targets|'+what)
-#          output.updateMetadata('targets|'+what,parameterSet)
-#          output.updateMetadata(what,outputDict[what])
-    elif output.type == 'HDF5':
-      print(self.printTag + ': ' + returnPrintPostTag('Warning') + '-> ' /
-            + self.__class__.__name__ + ' postprocessor: Output type ' /
-            + str(output.type) + ' not yet implemented. Skipping this output.')
-    else:
-      raise IOError(self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> ' /
-                    + self.__class__.__name__ + ' postprocessor: Output type ' /
-                    + str(output.type) + ' unknown!')
+#    print("finishedjob",dir(finishedjob))
+#    print("output",dir(output))
+    pass
 
 #    print("finishedjob",dir(finishedjob))
 #    print("output",dir(output))
@@ -1740,7 +1681,7 @@ class TopologicalDecomposition(BasePostProcessor):
     self.__amsc = AMSCFloat(vectorFloat(inputData.flatten()), \
                             vectorFloat(outputData), \
                             vectorString(names), \
-                            self.graph, self.gradient, self.knn, self.beta)
+                            self.graph,self.gradient, self.knn,self.beta)
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
