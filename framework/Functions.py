@@ -156,10 +156,19 @@ class Function(BaseType):
   def evaluate(self,what,myInput):
     '''return the result of the type of action described by 'what' '''
     self.__importValues(myInput)
-    toBeReturned=self.__actionDictionary[what](self)
-    return toBeReturned
 
+    if what not in self.__actionDictionary:
+      raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR')
+                    + '-> Method ' + what + ' not defined in ' + self.name)
+    return self.__actionDictionary[what](self)
 
+  def availableMethods(self):
+    ''' Get a list of the callable methods this interface provides '''
+    return self.__actionDictionary.keys()
+
+  def parameterNames(self):
+    ''' Get a list of the variables this function needs '''
+    return self.__inputVariables[:]
 
 '''
  Interface Dictionary (factory) (private)
@@ -171,10 +180,10 @@ __interFaceDict['External'] = Function
 __knownTypes                = __interFaceDict.keys()
 
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
-  if Type in knonwnTypes():return __interFaceDict[Type]()
+  if Type in knownTypes():return __interFaceDict[Type]()
   else: raise NameError('not known '+__base+' type '+Type)

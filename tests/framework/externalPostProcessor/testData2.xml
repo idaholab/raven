@@ -1,0 +1,5 @@
+<data name="testData2" type="timepointset">
+  <input>A,B</input>
+  <output>C</output>
+  <input_filename>data2.csv</input_filename>
+</data>

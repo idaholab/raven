@@ -1,13 +1,13 @@
-\section{OutStream system \\ \vspace{2 mm} {\small Author: Andrea Alfonsi}}
+\section{OutStream system \\ \vspace{2 mm} }
+\label{sec:outstream}
 The PRA and UQ framework provides the capabilities to visualize and dump out the data that are  generated, imported (from a system code) and post-processed during the analysis. These capabilities are contained in the "OutStream" system. Actually, two different OutStream types are available:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item Print, module that lets the user dump the data contained in the internal objects 
-\item Plot, module, based on MatPlotLib~\cite{MatPlotLib}, aimed to provide advanced plotting capabilities 
+\item \textbf{Print}, module that lets the user dump the data contained in the internal objects;
+\item \textbf{Plot}, module, based on MatPlotLib~\cite{MatPlotLib}, aimed to provide advanced plotting capabilities. 
 \end{itemize}
 \vspace{-5mm}
-
 Both the types listed above only accept as ``input'' a \textit{Data} object type. This choice has been taken since the ``\textit{Datas}'' system (see section~\ref{sec:Datas}) has the main advantages, among the others, of ensuring a standardized approach for exchanging the data/meta-data among the different framework entities. Every module can project its outcomes into a \textit{Data} object. This provides, to the user, the capability to visualize/dump all the modules' results. 
 As already mentioned [put reference to the xml input section], the RAVEN framework input is based on the \textbf{E}xtensible \textbf{M}arkup \textbf{L}anguage (\textbf{XML}) format. Thus, in order to activate the ``\textit{OutStream}'' system, the input needs to contain a block identified by the ``\textbf{$<OutStreamManager>$}'' tag (as shown below).  
 
@@ -318,24 +318,289 @@ The sub-block identified by the keyword $<plot\_settings>$ is used to define the
 \end{lstlisting}
 As already mentioned, within the $<plot\_settings>$  block, at least a $<plot>$ sub-block needs to be inputted. Independently from the plot type, some keywords are mandatory:
 \begin{itemize}
-     \item \textit{$<type>$}, string, the plot type (for example, line, scatter, wireframe, etc.)
-     \item \textit{$<x>$}, string, the parameter needs to be considered as x coordinate
-     \item \textit{$<y>$}, string, the parameter needs to be considered as y coordinate
-     \item \textit{$<z>$}, string (required in 3-D plots only), the parameter needs to be considered as z coordinate
+     \item \textit{$<type>$}, string, required parameter, the plot type (for example, line, scatter, wireframe, etc.);
+     \item \textit{$<x>$}, string, required parameter, the parameter needs to be considered as x coordinate;
+     \item \textit{$<y>$}, string, required parameter, the parameter needs to be considered as y coordinate;
+     \item \textit{$<z>$}, string required parameter (3D plots only), the parameter needs to be considered as z coordinate.
 \end{itemize}
 In addition other plot-dependent keywords, reported in section~\ref{sec:23Dplotting}, can be provided. 
 \\Under the  $<plot\_settings>$ block other keywords, common to all the plots the user decided to combine in the figure, can be inputted, such as:
 \begin{itemize}
-     \item \textit{$<xlabel>$}, string, x axis label
-     \item \textit{$<ylabel>$}, string, y axis laber
-     \item \textit{$<zlabel>$}, string (available in 3-D plots only), z axis label
+     \item \textit{$<xlabel>$}, string, optional parameter, x axis label;
+     \item \textit{$<ylabel>$}, string, optional parameter, y axis laber;
+     \item \textit{$<zlabel>$}, string, optional parameter (3D plots only), z axis label;
+     \item \textit{$<colorMap>$}, string, the parameter needs to be used to define a color map.
 \end{itemize}
+As already mentioned, the Plot system accepts as parameter (i.e., x, y, z, colorMap) the \textbf{Datas} object only. Considering the structure of ``Datas'', the parameters are inputted as follow:
+\\ $DataObjectName|Input(or)Output|variableName$.
+\\ If the ``variableName'' contains the symbol $|$, it must be surrounded by brackets:
+\\ $DataObjectName|Input(or)Output|(whatever|variableName)$.
+
+
 %%%%%%%%%%%%%
 %Predefined Plotting System block sub-sub-sub section
 %%%%%%%%%%%%%
 \paragraph{Predefined Plotting System: 2D/3D \label{sec:23Dplotting}} 
-sgagagga
-%As already mentioned above, the Plotting system provides specialized input structure for 11 different plot types. 
+As already mentioned above, the Plotting system provides specialized input structure for several different kind of plots:
+ \begin{itemize}
+     \item \textit{2 Dimensional plots}:
+       \begin{itemize}
+        \item \textit{scatter}. 2 dimensional scatter plot. It used to create a scatter plot of x vs y, where x and y are sequences of numbers of the same length;
+        \item \textit{line}. 2 dimensional line plot. It used to create a line plot of x vs y, where x and y are sequences of numbers of the same length; 
+        \item \textit{histogram}. 2 dimensional histogram plot. Compute and draw the histogram of x. It must be noticed that this plot accepts only the XML node $<x>$ even if it is considered as 2D plot type;
+        \item \textit{stem}. 2 dimensional stem plot. A stem plot plots vertical lines  at each x location from the baseline to y, and places a marker there;
+        \item \textit{step}. 2 dimensional step plot;
+        \item \textit{pseudocolor}. 2 dimensional scatter plot. It creates a pseudocolor plot of a two dimensional array. The two dimensional array is built creating a mesh from $<x> and <y>$ data, in conjunction with the data inputted in $<colorMap>$;
+         \item \textit{contour}. 2 dimensional contour plot. It plots the contour lines. Contour plot is built creating a plot from $<x> and <y>$ data, in conjunction with the data inputted in $<colorMap>$;
+         \item \textit{filledContour}. 2 dimensional contour plot. It plots the filled contour leveles. Filled contour plot is built creating a plot from $<x> and <y>$ data, in conjunction with the data inputted in $<colorMap>$;
+      \end{itemize}
+     \item \textit{3 Dimensional plots}:
+       \begin{itemize}
+        \item \textit{scatter}. 3 dimensional scatter plot. It is used to create a scatter plot of (x,y) vs z, where x, y, z are sequences of numbers of the same length;
+        \item \textit{line}. 3 dimensional line plot.  It used to create a line plot of (x,y) vs z, where x, y, z are sequences of numbers of the same length; 
+        \item \textit{stem}. 3 dimensional stem plot. It creates a 3 Dimensional stem plot of (x,y) vs z;
+        \item \textit{surface}. 3 dimensional surface plot. Create a surface plot of (x,y) vs z. By default it will be colored in shades of a solid color, but it also supports color mapping;
+        \item \textit{wireframe}. 3 dimensional wire-frame plot. No color mapping  is supported;
+        \item \textit{tri-surface}. 3 dimensional tri-surface plot. It is a surface plot with automatic triangulation;
+        \item \textit{contour3D}. 3 dimensional contour  plot. It plots the contour lines. Contour plot is built creating a plot from $<x>, <y> and <z>$ data, in conjunction with the data inputted in $<colorMap>$
+        \item \textit{filledContour3D}. 3 dimensional filled contour plot. It plots the filled contour leveles. Filled contour plot is built creating a plot from $<x>, <y> and <z>$ data, in conjunction with the data inputted in $<colorMap>$;
+        \item \textit{histogram}. 3 dimensional histogram plot.Compute and draw the histogram of x and y. It must be noticed that this plot accepts only the XML nodes $<x> and <y>$ even if it is considered as 3D plot type
+       \end{itemize}
+\end{itemize}
+As already mentioned, the settings for each plot type are inputted within the XML block called $<plot>$. The sub-nodes that can be inputted depends on the plot type: each plot type has its own set of parameters that can be specified.
+\\In the following sub-sections all the options for the plot types listed above are reported.
+
+\subsubsection{2D \& 3D Scatter plot.}
+In order to create a ``scatter'' plot, either 2D or 3D, the user needs to write in the $<type>$ body the keyword ``scatter''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<s>$\textbf{\textit{, integer, optional  field.}}. Size in points\^2. \textit{Default = 20};
+     \item $<c>$\textbf{\textit{, string, optional  field.}}. color or sequence of color. $<c>$ can be a single color format string, or a sequence of color specifications of length N, or a sequence of N numbers to be mapped to colors using the cmap and norm specified via kwargs. Note that $<c>$ should not be a single numeric RGB or RGBA sequence because that is indistinguishable from an array of values to be colormapped. $<c>$ can be a 2-D array in which the rows are RGB or RGBA;
+     \item $<marker>$\textbf{\textit{, string, optional  field.}}. Marker type. \textit{Default = o};  
+     \item $<alpha>$\textbf{\textit{, string, optional  field.}}. The alpha blending value, between 0 (transparent) and 1 (opaque). \textit{Default = None} ;
+     \item $<linewidths>$\textbf{\textit{, string, optional  field.}}. Widths of lines.  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats. \textit{Default = None};
+     \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.scatter'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+\subsubsection{2D \& 3D Line plot.}
+In order to create a ``line'' plot, either 2D or 3D, the user needs to write in the $<type>$ body the keyword ``line''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<interpolationType>$\textbf{\textit{, string, optional  field.}}. Type of interpolation algorithm to use for the data. Available are ``nearest'', ``linear'', ``cubic'', ``multiquadric'', ``inverse'', ``gaussian'', ``Rbflinear'', ``Rbfcubic'', ``quintic'', ``thin\_plate''. \textit{Default = linear};
+     \item $<interpPointsX>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of x axis;
+     \item $<interpPointsY>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of y axis (only 3D line plot);
+    \end{itemize}
+
+\subsubsection{2D \& 3D Histogram plot.}
+In order to create a ``histogram'' plot, either 2D or 3D, the user needs to write in the $<type>$ body the keyword ``histogram''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<bins>$\textbf{\textit{, integer or array\_like, optional  field.}}. Number of bins if an integer is inputted or a sequence of edges  if a python list is defined. \textit{Default = 10};
+     \item $<normed>$\textbf{\textit{, boolean, optional  field.}}. if True normalize the histogram to 1. \textit{Default = False};
+     \item $<weights>$\textbf{\textit{, sequence, optional  field.}}. An array of weights, of the same shape as x. Each value in x only contributes its associated weight towards the bin count (instead of 1). If normed is True, the weights are normalized, so that the integral of the density over the range remains 1. \textit{Default = None};
+     \item $<cumulative>$\textbf{\textit{, boolean, optional  field.}}. If True, then a histogram is computed where each bin gives the counts in that bin plus all bins for smaller values. The last bin gives the total number of datapoints. If normed is also True then the histogram is normalized such that the last bin equals 1. If cumulative evaluates to less than 0 (e.g., -1), the direction of accumulation is reversed. In this case, if normed is also True, then the histogram is normalized such that the first bin equals 1. \textit{Default = False} ;
+     \item $<histtype>$\textbf{\textit{, string, optional  field.}}. The type of histogram to draw:
+         \begin{itemize}
+         \item \textbf{bar} is a traditional bar-type histogram. If multiple data are given the bars are aranged side by side;
+         \item \textbf{barstacked} is a bar-type histogram where multiple data are stacked on top of each other;
+         \item \textbf{step} generates a lineplot that is by default unfilled;
+         \item \textbf{stepfilled} generates a lineplot that is by default filled;
+         \end{itemize}
+        \textit{Default = bar};
+     \item $<align>$\textbf{\textit{, string, optional  field.}}. Controls how the histogram is plotted.
+         \begin{itemize}
+         \item \textbf{left} bars are centered on the left bin edge;
+         \item \textbf{mid}  bars are centered between the bin edges;
+         \item \textbf{right} bars are centered on the right bin edges;
+         \end{itemize}
+         \textit{Default = mid};
+     \item $<orientation>$\textbf{\textit{, string, optional  field.}}. Orientation of the histogram: 
+         \begin{itemize}
+         \item \textbf{horizontal};
+         \item \textbf{vertical};
+         \end{itemize}
+          \textit{Default = vertical};
+     \item $<rwidth>$\textbf{\textit{, float, optional  field.}}. The relative width of the bars as a fraction of the bin width. \textit{Default = None};
+     \item $<log>$\textbf{\textit{, boolean, optional  field.}}. Set a log scale. \textit{Default = False};
+     \item $<color>$\textbf{\textit{, string, optional  field.}}. Color of the histogram. \textit{Default = blue};
+     \item $<stacked>$\textbf{\textit{, boolean, optional  field.}}. If True, multiple data are stacked on top of each other If False multiple data are aranged side by side if histtype is ‘bar’ or on top of each other if histtype is ‘step’. \textit{Default = False};
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.hist'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+\subsubsection{2D \& 3D Stem plot.}
+In order to create a ``stem'' plot, either 2D or 3D, the user needs to write in the $<type>$ body the keyword ``stem''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<linefmt>$\textbf{\textit{, string, optional  field.}}. Line style. \textit{Default = b-};
+     \item $<markerfmt>$\textbf{\textit{, string, optional  field.}}. Marker format. \textit{Default = bo};
+     \item $<basefmt>$\textbf{\textit{, string, optional  field.}}. Base format. \textit{Default = r-};
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.stem'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+\subsubsection{2D Step plot}
+In order to create a 2D ``step'' plot, the user needs to write in the $<type>$ body the keyword ``step''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<where>$\textbf{\textit{, string, optional  field.}}.  Positioning:
+     \begin{itemize}
+      \item \textbf{pre}, the interval from x[i] to x[i+1] has level y[i+1];
+      \item \textbf{post}, that interval has level y[i];
+      \item \textbf{mid}, the jumps in y occur half-way between the x-values;
+     \end{itemize}
+      \textit{Default = mid};
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.step'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+\subsubsection{2D Pseudocolor plot}
+In order to create a 2D ``pseudocolor'' plot, the user needs to write in the $<type>$ body the keyword ``pseudocolor''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<interpolationType>$\textbf{\textit{, string, optional  field.}}. Type of interpolation algorithm to use for the data. Available are ``nearest'', ``linear'', ``cubic'', ``multiquadric'', ``inverse'', ``gaussian'', ``Rbflinear'', ``Rbfcubic'', ``quintic'', ``thin\_plate''. \textit{Default = linear};
+     \item $<interpPointsX>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of x axis;
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.pcolor'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+\subsubsection{2D Contour or filledContour plots.}
+In order to create a 2D ``Contour'' or ``filledContour'' plot, the user needs to write in the $<type>$ body the keyword ``contour'' or ``filledContour'', respectively. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+   \item $<number\_bins>$\textbf{\textit{, integer, optional  field.}}. Number of bins. \textit{Default = 5};
+     \item $<interpolationType>$\textbf{\textit{, string, optional  field.}}. Type of interpolation algorithm to use for the data. Available are ``nearest'', ``linear'', ``cubic'', ``multiquadric'', ``inverse'', ``gaussian'', ``Rbflinear'', ``Rbfcubic'', ``quintic'', ``thin\_plate''. \textit{Default = linear};
+     \item $<interpPointsX>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of x axis;
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+\subsubsection{3D Surface Plot.}
+In order to create a 3D ``Surface'' plot, the user needs to write in the $<type>$ body the keyword ``surface''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<rstride>$\textbf{\textit{, integer, optional  field.}}. Array row stride (step size). \textit{Default = 1}; 
+     \item $<cstride>$\textbf{\textit{, integer, optional  field.}}. Array column stride (step size). \textit{Default = 1};
+     \item $<cmap>$\textbf{\textit{, string, optional  field.}}. Color map. \textit{Default = jet};
+     \item $<antialiased>$\textbf{\textit{, boolean, optional  field.}}. Antialiased rendering. \textit{Default = False};
+     \item $<linewidth>$\textbf{\textit{, integer, optional  field.}}. Widths of lines.  Note that this is a tuple, and if you set the linewidths argument you must set it as a sequence of floats. \textit{Default = 0}; 
+     \item $<interpolationType>$\textbf{\textit{, string, optional  field.}}. Type of interpolation algorithm to use for the data. Available are ``nearest'', ``linear'', ``cubic'', ``multiquadric'', ``inverse'', ``gaussian'', ``Rbflinear'', ``Rbfcubic'', ``quintic'', ``thin\_plate''. \textit{Default = linear};
+     \item $<interpPointsX>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of x axis;
+     \item $<interpPointsY>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of y axis;
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+\subsubsection{3D Wireframe Plot.}
+In order to create a 3D ``Wireframe'' plot, the user needs to write in the $<type>$ body the keyword ``wireframe''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<rstride>$\textbf{\textit{, integer, optional  field.}}. Array row stride (step size). \textit{Default = 1}; 
+     \item $<cstride>$\textbf{\textit{, integer, optional  field.}}. Array column stride (step size). \textit{Default = 1};
+     \item $<cmap>$\textbf{\textit{, string, optional  field.}}. Color map. \textit{Default = jet};
+     \item $<interpolationType>$\textbf{\textit{, string, optional  field.}}. Type of interpolation algorithm to use for the data. Available are ``nearest'', ``linear'', ``cubic'', ``multiquadric'', ``inverse'', ``gaussian'', ``Rbflinear'', ``Rbfcubic'', ``quintic'', ``thin\_plate''. \textit{Default = linear};
+     \item $<interpPointsX>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of x axis;
+     \item $<interpPointsY>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of y axis;
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+\subsubsection{3D Tri-surface Plot.}
+In order to create a 3D ``Tri-surface'' plot, the user needs to write in the $<type>$ body the keyword ``tri-surface''. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+     \item $<color>$\textbf{\textit{, string, optional  field.}}. Color of the surface patches. \textit{Default = b}; 
+     \item $<shade>$\textbf{\textit{, boolean, optional  field.}}. Apply shading. \textit{Default = False};
+     \item $<cmap>$\textbf{\textit{, string, optional  field.}}. Color map. \textit{Default = jet};
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+  
+\subsubsection{3D Contour or filledContour plots.}
+In order to create a 3D ``Contour'' or ``filledContour'' plot, the user needs to write in the $<type>$ body the keyword ``contour3D'' or ``filledContour3D'', respectively. In order to customize the plot, the user can define the following XML sub-nodes:
+  \begin{itemize}
+   \item $<number\_bins>$\textbf{\textit{, integer, optional  field.}}. Number of bins. \textit{Default = 5};
+     \item $<interpolationType>$\textbf{\textit{, string, optional  field.}}. Type of interpolation algorithm to use for the data. Available are ``nearest'', ``linear'', ``cubic'', ``multiquadric'', ``inverse'', ``gaussian'', ``Rbflinear'', ``Rbfcubic'', ``quintic'', ``thin\_plate''. \textit{Default = linear};
+     \item $<interpPointsX>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of x axis;
+     \item $<interpPointsY>$\textbf{\textit{, integer, optional  field.}}. Number of points need to be used for interpolation of y axis;
+ \item \textit{$<kwargs>$},  within this block the user can specify optional parameters with the following format:
+        \begin{lstlisting}[style=XML]
+        --------------------------
+         <kwargs>
+           <param1>value1</param1>
+           <param2>value2</param2>
+         </kwargs>
+        -------------------------
+       \end{lstlisting}
+         The kwargs block is able to convert whatever string into a python type (for example $<param1>{'1stKeyword':45}</param1>$ will be converted into a dictionary, $<param2>[56,67]</param2>$ into a list, etc.). For reference regarding the available kwargs, see ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+    \end{itemize}
+
+%\subsubsection{Interpreted Plotting instruction \label{sec:Interpretedplotting}}
+
+\subsubsection{Example XML input.}
 -----------------------------------------------------------
 \begin{lstlisting}[style=XML]
 <OutStreamManager>
@@ -343,7 +608,7 @@ sgagagga
     <actions>
       <how>pdf,png,eps</how>
       <title>
-        <text> </text>
+        <text>***</text>
       </title>
     </actions>
     <plot_settings>
@@ -372,9 +637,6 @@ sgagagga
 </OutStreamManager>
 \end{lstlisting}
 -----------------------------------------------------------
-
-\subsubsection{Interpreted Plotting instruction \label{sec:Interpretedplotting}}
-
 
 
 

@@ -7,10 +7,11 @@
   global_init_T = 300.
   model_type = 3
   stabilization_type = NONE
+  scaling_factor_1phase = '1e4 1e1 1e-2'
 []
 [EoS]
   [./eos]
-    type = NonIsothermalEquationOfState
+    type = LinearEquationOfState
     p_0 = 1.e5 # Pa
     rho_0 = 1.e3 # kg/m^3
     a2 = 1.e7 # m^2/s^2
@@ -56,71 +57,63 @@
     inputs = 'pipe1(out)'
     outputs = 'pipe2(in)'
     mass_flow_rate = 0.3141159265 # rho * u * A (kg/s)
-#Area = 2.624474
     Initial_pressure = 151.7e5
   [../]
   [./inlet_TDV]
     type = TimeDependentVolume
     input = 'pipe1(in)'
-    p_bc = 1.0e5
-    T_bc = 300.0
+    p = 1.0e5
+    T = 300.0
     eos = eos
   [../]
   [./outlet_TDV]
     type = TimeDependentVolume
     input = 'pipe2(out)'
-    p_bc = 1.e5
-    T_bc = 300.0
+    p = 1.e5
+    T = 300.0
     eos = eos
   [../]
 []
-
 [Preconditioning]
   # Uncomment one of the lines below to activate one of the blocks...
-  # active = 'SMP_PJFNK'
+  # active = 'SMP_Newton'
   # active = 'FDP_PJFNK'
   # active = 'FDP_Newton'
-  active = 'SMP_Newton'
-
   # The definitions of the above-named blocks follow.
+  # End preconditioning block
+  active = 'SMP_PJFNK'
   [./SMP_PJFNK]
+    # Preconditioned JFNK (default)
     type = SMP
     full = true
-
-    # Preconditioned JFNK (default)
-    solve_type = 'PJFNK'
+    solve_type = PJFNK
+    line_search = basic
   [../]
-
   [./SMP_Newton]
     type = SMP
     full = true
-    solve_type = 'NEWTON'
+    solve_type = NEWTON
   [../]
-
   [./FDP_PJFNK]
-    type = FDP
-    full = true
-
     # Preconditioned JFNK (default)
-    solve_type = 'PJFNK'
-
     # petsc_options_iname = '-mat_fd_type'
     # petsc_options_value = 'ds'
+    type = FDP
+    full = true
+    solve_type = PJFNK
     petsc_options_iname = '-mat_fd_coloring_err'
     petsc_options_value = 1.e-10
   [../]
-
   [./FDP_Newton]
-    type = FDP
-    full = true
-    solve_type = 'NEWTON'
-    petsc_options_iname = '-mat_fd_coloring_err'
-    petsc_options_value = 1.e-10
     # petsc_options_iname = '-mat_fd_type'
     # petsc_options_value = 'ds'
+    type = FDP
+    full = true
+    solve_type = NEWTON
+    petsc_options_iname = '-mat_fd_coloring_err'
+    petsc_options_value = 1.e-10
   [../]
 []
-
 [Executioner]
   type = RavenExecutioner
   control_logic_file = 'ideal_pump_control.py'
@@ -215,32 +208,22 @@
   [../]
   [./inlet_TDV_p_bc]
     component_name = 'inlet_TDV'
-    property_name = 'p_bc'
+    property_name = 'p'
     data_type = double
   [../]
   [./inlet_TDV_T_bc]
     component_name = 'inlet_TDV'
-    property_name = 'T_bc'
-    data_type = double
-  [../]
-  [./inlet_TDV_void_fraction_bc]
-    component_name = 'inlet_TDV'
-    property_name = 'volume_fraction_vapor_bc'
+    property_name = 'T'
     data_type = double
   [../]
   [./outlet_TDV_p_bc]
     component_name = 'outlet_TDV'
-    property_name = 'p_bc'
+    property_name = 'p'
     data_type = double
   [../]
   [./outlet_TDV_T_bc]
     component_name = 'outlet_TDV'
-    property_name = 'T_bc'
-    data_type = double
-  [../]
-  [./outlet_TDV_void_fraction_bc]
-    component_name = 'outlet_TDV'
-    property_name = 'volume_fraction_vapor_bc'
+    property_name = 'T'
     data_type = double
   [../]
 []

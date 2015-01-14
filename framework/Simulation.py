@@ -275,9 +275,9 @@ class Simulation(object):
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
     self.runInfoDict['numNode'           ] = 1            # number of nodes
-    self.runInfoDict['procByNode'        ] = 1            # number of processors by node
+    #self.runInfoDict['procByNode'        ] = 1            # number of processors by node
     self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver
-    self.runInfoDict['quequingSoftware'  ] = ''           # quequing software name
+    self.runInfoDict['queueingSoftware'  ] = ''           # queueing software name
     self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
     self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.
@@ -303,9 +303,9 @@ class Simulation(object):
     self.stepSequenceList     = [] #the list of step of the simulation
 
     #list of supported queue-ing software:
-    self.knownQuequingSoftware = []
-    self.knownQuequingSoftware.append('None')
-    self.knownQuequingSoftware.append('PBS Professional')
+    self.knownQueueingSoftware = []
+    self.knownQueueingSoftware.append('None')
+    self.knownQueueingSoftware.append('PBS Professional')
 
     #Dictionary of mode handlers for the
     self.__modeHandlerDict           = {}
@@ -457,11 +457,11 @@ class Simulation(object):
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
         else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
-      elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
+      elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
-      elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
+      #elif element.tag == 'procByNode'        : self.runInfoDict['procByNode'        ] = int(element.text)
       elif element.tag == 'totalNumCoresUsed' : self.runInfoDict['totalNumCoresUsed'   ] = int(element.text)
       elif element.tag == 'NumMPI'            : self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'batchSize'         : self.runInfoDict['batchSize'         ] = int(element.text)
@@ -554,15 +554,19 @@ class Simulation(object):
       for key in stepInputDict.keys():
         if type(stepInputDict[key]) == list: stepindict = stepInputDict[key]
         else                               : stepindict = [stepInputDict[key]]
+        # check assembler. NB. If the assembler refers to an internal object the relative dictionary
+        # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
         for stp in stepindict:
           if "whatDoINeed" in dir(stp):
             neededobjs    = {}
             neededObjects = stp.whatDoINeed()
             for mainClassStr in neededObjects.keys():
-              if mainClassStr not in self.whichDict.keys(): raise IOError(self.printTag+': ERROR -> Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
+              if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal': raise IOError(self.printTag+': ERROR -> Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
               neededobjs[mainClassStr] = {}
               for obj in neededObjects[mainClassStr]:
-                if obj[1] in self.whichDict[mainClassStr].keys():
+                if obj[1] in vars(self):
+                  neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
+                elif obj[1] in self.whichDict[mainClassStr].keys():
                   if obj[0]:
                     if obj[0] not in self.whichDict[mainClassStr][obj[1]].type: raise IOError(self.printTag+': ERROR -> Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
                   neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]

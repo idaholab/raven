@@ -38,11 +38,12 @@ class RAVENInterface:
     '''  '''
     return fileRoot + '.csv'
 
-  def finalizeCodeOutput(self,currentInputFiles,output):
+  def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
     ''' this method is called by the RAVEN code at the end of each run (if the method is present).
         It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
         @ currentInputFiles, Input, the current input files (list)
         @ output, Input, the Output name root (string)
+        @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     '''
     return output
@@ -56,6 +57,8 @@ class RAVENInterface:
     self._samplersDictionary['Adaptive'                ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
     self._samplersDictionary['LHS'                     ] = self.latinHyperCubeForRAVEN
     self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRAVEN
+    self._samplersDictionary['FactorialDesign'         ] = self.gridForRAVEN
+    self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
     self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRAVEN
     self._samplersDictionary['StochasticCollocation'   ] = self.stochasticCollocationForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0

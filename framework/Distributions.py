@@ -483,7 +483,7 @@ class Beta(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.low = 0.0
-    self.hi = 0.0
+    self.hi = 1.0
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
@@ -1073,7 +1073,7 @@ __interFaceDict['NDScatteredMS'    ] = NDScatteredMS
 __interFaceDict['NDCartesianSpline'] = NDCartesianSpline
 __knownTypes                  = __interFaceDict.keys()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):

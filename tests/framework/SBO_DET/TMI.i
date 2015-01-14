@@ -20,7 +20,7 @@
     a2 = 1.e7 # m^2/s^2
     rho_0 = 738.350 # kg/m^3
     T_0 = 564.15 # K
-    type = NonIsothermalEquationOfState
+    type = LinearEquationOfState
     cv = 5.832e3 # J/kg-K
     p_0 = 15.17e6 # Pa
   [../]

@@ -114,21 +114,21 @@ class OutStreamManager(BaseType):
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
       for output in inDict['Output']:
-        if output.name.strip()==self.sourceName[agrosindex] and output.type in Datas.knonwnTypes():
+        if output.name.strip()==self.sourceName[agrosindex] and output.type in Datas.knownTypes():
           self.sourceData.append(output)
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
           if not type(inp) == type(""):
-            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knonwnTypes():
+            if inp.name.strip()==self.sourceName[agrosindex] and inp.type in Datas.knownTypes():
               self.sourceData.append(inp)
               foundData = True
       if not foundData and 'TargetEvaluation' in inDict.keys():
-        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in Datas.knonwnTypes():
+        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in Datas.knownTypes():
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knonwnTypes():
+        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in Datas.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData: raise IOError(self.printTag+': ERROR -> the Data named ' + self.sourceName[agrosindex] + ' has not been found!!!!')
@@ -141,7 +141,7 @@ class OutStreamPlot(OutStreamManager):
     self.type         = 'OutStreamPlot'
     self.printTag     = returnPrintTag('OUTSTREAM PLOT')
     # available 2D and 3D plot types
-    self.availableOutStreamTypes = {2:['scatter','line','histogram','stem','step','polar','pseudocolor'],
+    self.availableOutStreamTypes = {2:['scatter','line','histogram','stem','step','pseudocolor'],
                                     3:['scatter','line','stem','surface','wireframe','tri-surface',
                                        'contour','filledContour','contour3D','filledContour3D','histogram']}
     # default plot is 2D
@@ -690,7 +690,7 @@ class OutStreamPlot(OutStreamManager):
       elif self.outStreamTypes[pltindex] == 'line':
         for key in self.xValues[pltindex].keys():
           for x_index in range(len(self.xValues[pltindex][key])):
-            if self.colorMapCoordinates: self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = str(max(100,len(self.xValues[pltindex][key][x_index])))
+            if self.colorMapCoordinates: self.options['plotSettings']['plot'][pltindex]['interpPointsX'] = str(max(200,len(self.xValues[pltindex][key][x_index])))
             if self.xValues[pltindex][key][x_index].size <= 2: xi = self.xValues[pltindex][key][x_index]
             else: xi = np.linspace(self.xValues[pltindex][key][x_index].min(),self.xValues[pltindex][key][x_index].max(),ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['interpPointsX']))
             for y_index in range(len(self.yValues[pltindex][key])):
@@ -896,7 +896,7 @@ class OutStreamPlot(OutStreamManager):
       ########################
       elif self.outStreamTypes[pltindex] == 'surface':
         if self.dim == 2:
-          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> surface Plot is NOT available for 2D plots, IT IS A 2D!')
+          print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> surface Plot is NOT available for 2D plots, IT IS A 3D!')
           return
         elif self.dim == 3:
           if 'rstride' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['rstride'] = '1'
@@ -1202,7 +1202,7 @@ __interFaceDict['Plot'   ] = OutStreamPlot
 __interFaceDict['Print'  ] = OutStreamPrint
 __knownTypes              = __interFaceDict.keys()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):

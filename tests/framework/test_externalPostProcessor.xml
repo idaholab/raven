@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A simple example of writing an external python function and using it
+     inside RAVEN -->
+<!-- Here we are testing several things:
+     1. We can handle data from multiple input files.
+     2. We can handle methods defined in multiple .py files.
+     3. A subset of inputs from the originating data is reported correctly, note
+        we ask for B, but not Y (they contain the same information).
+     4. A subset of outputs from the originating data is reported correctly,
+        note we ask for Z, but not C (they contain the same information).
+     5. Reporting an overloaded function with the appropriately qualified names:
+        basicOps.Sum and advOps.Sum.
+     6. A non-overloaded function is reported correctly: Norm
+     7. An overloaded function name can be specified by its qualified name and
+        only that version will be applied to the output: advOps.Delta.
+     8. If you ask for a function that is not defined, it will give a warning
+        message and skip it: DoesNotExist
+     9. Vector return type that is appended as a column to the data: Norm
+    10. Vector return type that is stored in the metadata: Mean
+    11. Scalar or non-conformant data size stored in metadata: Min
+    12. Scalar or non-conformant data size warning message when attempting to
+        store it in the output, it is instead put in the metadata: Max
+ -->
+<Simulation>
+<RunInfo>
+  <WorkingDir>externalPostProcessor</WorkingDir>
+  <Sequence>
+    loadData1,
+    loadData2,
+    applyFunctions,
+    saveData
+  </Sequence>
+</RunInfo>
+<Models>
+<!-- This post-processor will call methods defined in two external python 
+     scripts compatible with RAVEN -->
+  <PostProcessor name='functionPP' subType='External' debug='true'>
+    <method>Delta,Sum,Norm,Mean,Max,Min,DoesNotExist</method>
+    <Assembler>
+      <Function class='Functions' type='External'>basicOps</Function>
+      <Function class='Functions' type='External'>advOps</Function>
+    </Assembler>
+  </PostProcessor>
+</Models>
+<!-- The external methods will be defined in the files pointed to by these
+     guys -->
+<Functions>
+    <External name='basicOps' file='externalPostProcessor/BasicOperators'>
+        <variable>X</variable>
+        <variable>Y</variable>
+    </External>
+    <External name='advOps' file='externalPostProcessor/AdvancedOperators'>
+        <variable>A</variable>
+        <variable>B</variable>
+    </External>
+</Functions>
+<Steps>
+<!-- Read the data from a csv into the hdf5 database used by this run -->
+    <IOStep name='loadData1' fromDirectory='.'>
+      <Input  class='Datas'    type='TimePointSet'>testData</Input>
+      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+    </IOStep> 
+    <IOStep name='loadData2' fromDirectory='.'>
+      <Input  class='Datas'    type='TimePointSet'>testData2</Input>
+      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+    </IOStep> 
+<!-- Perform the sum and difference operators using the function interface -->
+    <PostProcess name='applyFunctions'>
+        <Input    class='Datas'     type='TimePointSet' >testData2</Input>
+        <Input    class='Datas'     type='TimePointSet' >testData</Input>
+        <Model    class='Models'    type='PostProcessor'>functionPP</Model>
+        <Output   class='Datas'     type='TimePointSet' >outTPS</Output>
+    </PostProcess>
+<!-- Write the results to a csv -->
+    <IOStep name='saveData'>
+      <Input  class='Datas'            type='TimePointSet'>outTPS</Input>
+      <Output class='OutStreamManager' type='Print'       >myDump</Output>
+    </IOStep> 
+</Steps>
+
+<OutStreamManager>
+<!-- A csv file containing the output of the example -->
+  <Print name='myDump'>
+    <type>csv</type>
+    <source>outTPS</source>
+  </Print>
+</OutStreamManager>
+
+<DataBases>
+<!-- The necessary database object -->
+  <HDF5 name="myDB"/> 
+</DataBases>
+<Datas>
+<!-- The input TimePointSet objects -->
+  <TimePointSet name='testData'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+  <TimePointSet name='testData2'>
+    <Input>A,B</Input>
+    <Output>C</Output>
+  </TimePointSet>
+<!-- The output TimePointSet object -->
+  <TimePointSet name='outTPS'>
+    <Input>A,B,X</Input>
+    <Output>Z,Sum,Norm,advOps.Delta,Max</Output>
+  </TimePointSet>
+</Datas>
+</Simulation>
