@@ -24,6 +24,9 @@ from BaseClasses import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
+#def error(*objs):
+#  print("ERROR: ", *objs, file=sys.stderr)
+
 '''
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
@@ -1207,7 +1210,310 @@ class LimitSurface(BasePostProcessor):
 
     return self.surfPoint,outputPlaceOrder
 
+#
+#
+#
+class ExternalPostProcessor(BasePostProcessor):
+  '''
+    ExternalPostProcessor class. It will apply an arbitrary python function to
+    a dataset and append each specified function's output to the output data
+    object, thus the function should produce a scalar value per row of data. I
+    have no idea what happens if the function produces multiple outputs.
+  '''
+  def __init__(self):
+    '''
+      Initialization.
+    '''
+    BasePostProcessor.__init__(self)
+    self.methodsToRun = []              # A list of strings specifying what
+                                        # methods the user wants to compute from
+                                        # the external interfaces
 
+    self.externalInterfaces = []        # A list of Function objects that
+                                        # hopefully contain definitions for all
+                                        # of the methods the user wants
+
+    self.printTag = returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
+    self.requiredAssObject = (True,(['Function'],['n']))
+
+  def errorString(self,message):
+    '''
+      Function to format an error string for printing.
+      @ In, message: A string describing the error
+      @ Out, A formatted string with the appropriate tags listed
+    '''
+    # This function can be promoted for printing error functions more easily and
+    # consistently.
+    return (self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> '
+           + self.__class__.__name__ + ': ' + message)
+
+  def warningString(self,message):
+    '''
+      Function to format a warning string for printing.
+      @ In, message: A string describing the warning
+      @ Out, A formatted string with the appropriate tags listed
+    '''
+    # This function can be promoted for printing error functions more easily and
+    # consistently.
+    return (self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '
+           + self.__class__.__name__ + ': ' + message)
+
+  def messageString(self,message):
+    '''
+      Function to format a message string for printing.
+      @ In, message: A string describing the message
+      @ Out, A formatted string with the appropriate tags listed
+    '''
+    # This function can be promoted for printing error functions more easily and
+    # consistently.
+    return (self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+           + self.__class__.__name__ + ': ' + message)
+
+  def _localGenerateAssembler(self,initDict):
+    ''' see generateAssembler method '''
+    for key, value in self.assemblerObjects.items():
+      if key in 'Function':
+        for interface in value:
+          # interface holds the information about an Assembler's subnode, in
+          # this case we know it is a Function node, and has the following
+          # components:
+          # interface[0] = the class name (e.g. "Functions")
+          # interface[1] = the type name (e.g. "External")
+          # interface[2] = the object name specified by the user
+          self.externalInterfaces.append(initDict[interface[0]][interface[2]])
+
+  def inputToInternal(self,currentInp):
+    '''
+      Function to convert the received input into a format this object can
+      understand
+      @ In, currentInp: Some form of data object or list of data objects handed
+                        to the post-processor
+      @ Out, An input dictionary this object can process
+    '''
+
+    if type(currentInp) == dict:
+      if 'targets' in currentInp.keys():
+        return
+
+    currentInput = currentInp
+    if type(currentInput) != list:
+      currentInput = [currentInput]
+
+    inputDict = {'targets':{},'metadata':{}}
+    metadata = []
+    for item in currentInput:
+      inType = None
+      if hasattr(item,'type'):
+        inType = item.type
+      elif type(item).__name__ in ["str","unicode","bytes"]:
+        inType = "file"
+      elif type(item) in [list]:
+        inType = "list"
+
+      if inType not in ['file','HDF5','TimePointSet','list']:
+        print(self.warningString('Input type ' + type(item).__name__ + ' not'
+                               + ' recognized. I am going to skip it.'))
+      elif inType == 'file':
+        if currentInput.endswith('csv'):
+          # TODO
+          print(self.warningString('Input type ' + inType + ' not yet '
+                                 + 'implemented. I am going to skip it.'))
+      elif inType == 'HDF5':
+        # TODO
+          print(self.warningString('Input type ' + inType + ' not yet '
+                                 + 'implemented. I am going to skip it.'))
+      elif inType == 'TimePointSet':
+        for param in item.getParaKeys('input'):
+          inputDict['targets'][param] = item.getParam('input', param)
+        for param in item.getParaKeys('output'):
+          inputDict['targets'][param] = item.getParam('output', param)
+        metadata.append(item.getAllMetadata())
+
+      #Not sure if we need it, but keep a copy of every inputs metadata
+      inputDict['metadata'] = metadata
+
+    for interface in self.externalInterfaces:
+      for method in self.methodsToRun:
+        # The function should reference self and use the same variable names
+        # as the xml file
+        for param in interface.parameterNames():
+          if param not in inputDict['targets']:
+            raise IOError(self.errorString('variable \"' + param + '\" unknown.'
+                                          + ' Please verify your external'
+                                          + ' script variables match the data'
+                                          + ' available in your dataset.'))
+
+    return inputDict
+
+  def initialize(self, runInfo, inputs, initDict):
+    BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.__workingDir = runInfo['WorkingDir']
+
+  def _localReadMoreXML(self,xmlNode):
+    '''
+      Function to grab the names of the methods this post-processor will be
+      using
+      @ In, xmlNode    : Xml element node
+      @ Out, None
+    '''
+    for child in xmlNode:
+      if child.tag == 'method':
+        methods = child.text.split(',')
+        self.methodsToRun.extend(methods)
+
+  def collectOutput(self,finishedJob,output):
+    '''
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    '''
+    if finishedJob.returnEvaluation() == -1:
+      #TODO This does not feel right
+      raise Exception(self.errorString('No available Output to collect (Run '
+                                       + 'probably did not finish yet)'))
+    inputList = finishedJob.returnEvaluation()[0]
+    outputDict = finishedJob.returnEvaluation()[1]
+
+    if type(output).__name__ in ["str","unicode","bytes"]:
+      print(self.warningString('Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.'))
+    elif output.type == 'Datas':
+      print(self.warningString('Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.'))
+    elif output.type == 'HDF5':
+      print(self.warningString('Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.'))
+    elif output.type == 'TimePointSet':
+      requestedInput = output.getParaKeys('input')
+      requestedOutput = output.getParaKeys('output')
+      dataLength = None
+      for inputData in inputList:
+        # Pass inputs from input data to output data
+        for key,value in inputData.getParametersValues('input').items():
+          if key in requestedInput:
+            # We need the size to ensure the data size is consistent, but there
+            # is no guarantee the data is not scalar, so this check is necessary
+            myLength = 1
+            if hasattr(value, "__len__"):
+              myLength = len(value)
+
+            if dataLength is None:
+              dataLength = myLength
+            elif dataLength != myLength:
+              dataLength = max(dataLength,myLength)
+              print(self.warningString('Data size is inconsistent. Currently '
+                                      + 'set to ' + str(dataLength) + '.'))
+
+            for val in value:
+              output.updateInputValue(key, val)
+
+        # Pass outputs from input data to output data
+        for key,value in inputData.getParametersValues('output').items():
+          if key in requestedOutput:
+            # We need the size to ensure the data size is consistent, but there
+            # is no guarantee the data is not scalar, so this check is necessary
+            myLength = 1
+            if hasattr(value, "__len__"):
+              myLength = len(value)
+
+            if dataLength is None:
+              dataLength = myLength
+            elif dataLength != myLength:
+              dataLength = max(dataLength,myLength)
+              print(self.warningString('Data size is inconsistent. Currently '
+                                      + 'set to ' + str(dataLength) + '.'))
+
+            for val in value:
+              output.updateOutputValue(key,val)
+
+      # Figure out where the computed data should go in the output data and put
+      # it there
+      for method,value in outputDict.iteritems():
+        storeInOutput = method in requestedOutput
+
+        # Because we are qualifying overloaded function names, we need to do
+        # some special checking to see if they requested this function without
+        # the qualifying interface name
+        if not storeInOutput:
+          tokens = method.split('.',1)
+          foundColumn = False
+          if len(tokens) > 1:
+            for interface in self.externalInterfaces:
+              if tokens[0] == interface.name and tokens[1] in requestedOutput:
+                foundColumn = True
+                break
+          if foundColumn:
+            storeInOutput = True
+
+        # If the user is trying to put this in the output file, verify that the
+        # data shape allows for that, if not then print a message and place it
+        # in the metadata
+        if storeInOutput:
+          # We need the size to ensure the data size is consistent, but there
+          # is no guarantee the data is not scalar, so this check is necessary
+          myLength = 1
+          if hasattr(value, "__len__"):
+            myLength = len(value)
+
+          if dataLength is None:
+            dataLength = myLength
+          elif dataLength != myLength:
+            print(self.warningString('Requested output for ' + method + ' has a'
+                                     + ' non-conformant data size, it is being'
+                                     + ' placed in the metadata.' ))
+            storeInOutput = False
+
+        # Finally, no matter what, place the computed data somewhere accessible
+        if storeInOutput:
+          output.updateOutputValue(method,[value])
+        else:
+          output.updateMetadata(method,[value])
+
+    else:
+      raise IOError(errorString('Unknown output type: ' + str(output.type)))
+
+  def run(self, InputIn):
+    '''
+     Function to finalize the filter => execute the filtering
+     @ In , dictionary       : dictionary of data to process
+     @ Out, dictionary       : Dictionary with results
+    '''
+    Input  = self.inputToInternal(InputIn)
+    outputDict = {}
+
+    # This will map the name to its appropriate interface and method
+    # in the case of a function being defined in two separate files, we
+    # qualify the output by appending the name of the interface from which it
+    # originates
+    methodMap = {}
+
+    # First check all the requested methods are available and if there are
+    # duplicates then qualify their names for the user
+    for method in self.methodsToRun:
+      matchingInterfaces = []
+      for interface in self.externalInterfaces:
+        if method in interface.availableMethods():
+          matchingInterfaces.append(interface)
+
+      if len(matchingInterfaces) == 0:
+        print(self.warningString(method + ' not found. I will skip it.'))
+      elif len(matchingInterfaces) == 1:
+        methodMap[method] = (matchingInterfaces[0],method)
+      else:
+        for interface in matchingInterfaces:
+          methodName = interface.name + '.' + method
+          methodMap[methodName] = (interface,method)
+
+    for methodName,(interface,method) in methodMap.iteritems():
+      outputDict[methodName] = interface.evaluate(method,Input['targets'])
+
+    return outputDict
+#
+#
+#
+#
 
 
 '''
@@ -1221,6 +1527,7 @@ __interFaceDict['BasicStatistics'          ] = BasicStatistics
 __interFaceDict['LoadCsvIntoInternalObject'] = LoadCsvIntoInternalObject
 __interFaceDict['LimitSurface'             ] = LimitSurface
 __interFaceDict['ComparisonStatistics'     ] = ComparisonStatistics
+__interFaceDict['External'                 ] = ExternalPostProcessor
 __knownTypes                                 = __interFaceDict.keys()
 
 def knownTypes():
