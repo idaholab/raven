@@ -287,15 +287,18 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def __trainLocal__(self,featureVals,targetVals):
     self.polyCoeffDict={}
     #FIXME what's targetVals keyed by?
+    #TODO can parallelize this!
     for i,idx in enumerate(self.sparseGrid.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
-      for k,(pt,wt) in enumerate(self.sparseGrid): #int, tuple, float for k,pt,wt
+      #for k,(pt,wt) in enumerate(self.sparseGrid): #int, tuple, float for k,pt,wt
+      for pt,soln in zip(featureVals,targetVals):
+        wt = self.sparseGrid.weights(pt)
         stdPt = np.zeros(len(pt))
         for i,p in enumerate(pt):
           varName = self.distDict.keys()[i]
           stdPt[i] = self.distDict[varName].convertToQuad(self.quadDict[varName].type,p)
-        self.polyCoeffDict[idx]+=SOLN[pt]*self._multiDPolyBasisEval(idx,stdPt)*wt
+        self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
 
   def __evaluateLocal__(self,featureVals):
     tot=0

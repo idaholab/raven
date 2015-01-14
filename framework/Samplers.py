@@ -2153,6 +2153,8 @@ class SparseGridCollocation(Grid):
     Grid.localInitialize(self)
     SVL = self.ROM.SupervisedEngine.values()[0]
     ROMdata = SVL.interpolationInfo() #FIXME they are all the same?
+    if len(self.ROM.SupervisedEngine)>1:
+      raise IOError(self.printTag,' ERROR: There is no implementation for collocation with multiple targets (yet)!')
     #TODO how to handle multiple targets?  Assume one for now!
     #check input space consistency
     samVars=self.axisName[:]
@@ -2200,7 +2202,8 @@ class SparseGridCollocation(Grid):
     self.indexSet.initialize(self.distDict,self.importanceDict,SVL.maxPolyOrder)
 
     self.sparseGrid = Quadratures.SparseQuad()
-    self.sparseGrid.initialize(self.indexSet,SVL.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,handler) #FIXME handler
+    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid.initialize(self.indexSet,SVL.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,None)#handler) #FIXME handler
     self.limit=len(self.sparseGrid)
 
   def localGenerateInput(self,model,myInput):
@@ -2212,8 +2215,8 @@ class SparseGridCollocation(Grid):
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
-  def localFinalizeActualSampling(jobObject,model,myInput):
-    if len(self.lastOutput)==len(self.sparseGrid):
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    if self.lastOutput.length('Output')==len(self.sparseGrid):
       for SVL in self.ROM.SupervisedEngine.values():
         SVL.initialize({'SG':self.sparseGrid,
                         'dists':self.distDict,

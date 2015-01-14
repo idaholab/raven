@@ -138,7 +138,8 @@ class SparseQuad(BaseType):
     if n==None:
       return self.SG.values()
     else:
-      return self.SG.values()[n]
+      try: return self.SG[n]
+      except KeyError:  return self.SG.values()[n]
   
   def serialMakeCoeffs(self):
     '''Brute force method to create coefficients for each index set in the sparse grid approximation.
