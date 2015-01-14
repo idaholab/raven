@@ -5,40 +5,50 @@
 <RunInfo>
   <WorkingDir>externalPostProcessor</WorkingDir>
   <Sequence>
-    loadData,
+    loadData1,
+    loadData2,
     applyFunctions,
     saveData
   </Sequence>
 </RunInfo>
 <Models>
-<!-- This post-processor will call methods defined in an external python script
-     compatible with RAVEN -->
+<!-- This post-processor will call methods defined in two external python 
+     scripts compatible with RAVEN -->
   <PostProcessor name='functionPP' subType='External' debug='true'>
-    <method>Delta,Sum</method>
+    <method>Delta,Sum,Norm,Mean</method>
     <Assembler>
-      <Function class='Functions' type='External'>operators</Function>
+      <Function class='Functions' type='External'>basicOps</Function>
+      <Function class='Functions' type='External'>advOps</Function>
     </Assembler>
   </PostProcessor>
 </Models>
-<!-- The external methods will be defined in the file pointed to by this -->
+<!-- The external methods will be defined in the files pointed to by these
+     guys -->
 <Functions>
-    <External name='operators' file='externalPostProcessor/BasicOperators'>
+    <External name='basicOps' file='externalPostProcessor/BasicOperators'>
         <variable>X</variable>
         <variable>Y</variable>
+    </External>
+    <External name='advOps' file='externalPostProcessor/AdvancedOperators'>
+        <variable>A</variable>
+        <variable>B</variable>
     </External>
 </Functions>
 <Steps>
 <!-- Read the data from a csv into the hdf5 database used by this run -->
-    <IOStep name='loadData' fromDirectory='.'>
+    <IOStep name='loadData1' fromDirectory='.'>
       <Input  class='Datas'    type='TimePointSet'>testData</Input>
+      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+    </IOStep> 
+    <IOStep name='loadData2' fromDirectory='.'>
+      <Input  class='Datas'    type='TimePointSet'>testData2</Input>
       <Output   class='DataBases' type='HDF5'   >myDB</Output>
     </IOStep> 
 <!-- Perform the sum and difference operators using the function interface -->
     <PostProcess name='applyFunctions'>
-        <Input    class='Datas'     type='TimePointSet' >testData</Input>
         <Input    class='Datas'     type='TimePointSet' >testData2</Input>
+        <Input    class='Datas'     type='TimePointSet' >testData</Input>
         <Model    class='Models'    type='PostProcessor'>functionPP</Model>
-<!--        <Function class='Functions' type='External'     >operators</Function>-->
         <Output   class='Datas'     type='TimePointSet' >outTPS</Output>
     </PostProcess>
 <!-- Write the results to a csv -->
@@ -73,7 +83,7 @@
 <!-- The output TimePointSet objects -->
   <TimePointSet name='outTPS'>
     <Input>A,B,X,Y</Input>
-    <Output>Z,Sum</Output>
+    <Output>Z,Sum,Norm</Output>
   </TimePointSet>
 </Datas>
 </Simulation>

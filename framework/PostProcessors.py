@@ -1226,7 +1226,7 @@ class ExternalPostProcessor(BasePostProcessor):
     '''
     BasePostProcessor.__init__(self)
     self.methodsToRun = []
-    self.externalFunction = []
+    self.externalFunctions = []
 
     self.printTag = returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
@@ -1268,7 +1268,8 @@ class ExternalPostProcessor(BasePostProcessor):
     ''' see generateAssembler method '''
     for key, value in self.assemblerObjects.items():
       if key in 'Function':
-        self.externalFunction.append(initDict[value[0][0]][value[0][2]])
+        for foo in value:
+          self.externalFunctions.append(initDict[foo[0]][foo[2]])
 
   def inputToInternal(self,currentInp):
     '''
@@ -1290,7 +1291,6 @@ class ExternalPostProcessor(BasePostProcessor):
     inputDict = {'targets':{},'metadata':{}}
     metadata = []
     for item in currentInput:
-      item.printMe()
       inType = None
       if hasattr(item,'type'):
         inType = item.type
@@ -1312,8 +1312,6 @@ class ExternalPostProcessor(BasePostProcessor):
           print(self.warningString('Input type ' + inType + ' not yet '
                                  + 'implemented. I am going to skip it.'))
       elif inType == 'TimePointSet':
-        print(item.getParaKeys('input'))
-        print(item._dataContainer['inputs'])
         for param in item.getParaKeys('input'):
           inputDict['targets'][param] = item.getParam('input', param)
         for param in item.getParaKeys('output'):
@@ -1323,7 +1321,7 @@ class ExternalPostProcessor(BasePostProcessor):
       #Not sure if we need it, but keep a copy of every inputs metadata
       inputDict['metadata'] = metadata
 
-    for foo in self.externalFunction:
+    for foo in self.externalFunctions:
       for method in self.methodsToRun:
         # The function should reference self and use the same variable names
         # as the xml file
@@ -1364,7 +1362,9 @@ class ExternalPostProcessor(BasePostProcessor):
       #TODO This does not feel right
       raise Exception(self.errorString('No available Output to collect (Run '
                                        + 'probably did not finish yet)'))
+    inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
+    print(outputDict)
 
     if type(output).__name__ in ["str","unicode","bytes"]:
       print(self.warningString('Output type ' + type(output).__name__ + ' not'
@@ -1378,15 +1378,18 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'TimePointSet':
       # For now assume there is only one input data object, using multiple
       # inputs is an undefined behavior.
-      dataCollector = finishedJob.returnEvaluation()[0][0]
-      for key,value in dataCollector.getParametersValues('input').items():
-        for val in value:
-          output.updateInputValue(key, val)
-      for key,value in dataCollector.getParametersValues('output').items():
-        for val in value:
-          output.updateOutputValue(key,val)
-      for method in self.methodsToRun:
-        output.updateOutputValue(method,[outputDict[method]])
+      for inputData in inputList:
+        for key,value in inputData.getParametersValues('input').items():
+          for val in value:
+            output.updateInputValue(key, val)
+        for key,value in inputData.getParametersValues('output').items():
+          for val in value:
+            output.updateOutputValue(key,val)
+      for method,value in outputDict.iteritems():
+        if method in output.getParaKeys('output'):
+          output.updateOutputValue(method,[value])
+        else:
+          print('Put in metadata')
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
@@ -1399,12 +1402,12 @@ class ExternalPostProcessor(BasePostProcessor):
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
 
-    for foo in self.externalFunction:
-      # There should be an external function, or an error message would have
-      # been generated
-      print(dir(foo))
+    for foo in self.externalFunctions:
+      # We may want an error message if a method is not found in any external
+      # function
       for method in self.methodsToRun:
-        outputDict[method] = foo.evaluate(method,Input['targets'])
+        if method in foo.availableMethods():
+          outputDict[method] = foo.evaluate(method,Input['targets'])
 
     return outputDict
 #

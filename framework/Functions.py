@@ -159,6 +159,10 @@ class Function(BaseType):
     toBeReturned=self.__actionDictionary[what](self)
     return toBeReturned
 
+  def availableMethods(self):
+    ''' Get a list of the callable methods this interface provides '''
+    return self.__actionDictionary.keys()
+
   def parameterNames(self):
     ''' Get a list of the variables this function needs '''
     return self.__inputVariables[:]
