@@ -429,13 +429,34 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if len(self.getInpParametersValues().keys()) == 0 and len(self.getOutParametersValues()) == 0: return True
     else:                                                                                          return False
 
+  def sizeData(self,typeVar,keyword=None,nodeid=None,serialize=False):
+    '''
+    Function to get the size of the Data.
+    @ In, typeVar, string, required, variable type (input/inputs, output/outputs, metadata)
+    @ In, keyword, string, optional, variable keyword. If None, the sizes of each variables are returned
+    @ In, nodeid, string, optional, id of the node if hierarchical
+    @ In, serialize, string, optional, serialize the tree if in hierarchical mode
+    @ Out, dictionary, keyword:size
+    '''
+    outcome = {}
+    if typeVar.lower() in ['input','inputs','output','outputs']:
+      if keyword != None: outcome[keyword] = len(self.getParam(typeVar,keyword,nodeid,serialize))
+      else:
+        for key in self.getParaKeys(typeVar): outcome[key] = len(self.getParam(typeVar,key,nodeid,serialize))
+    elif typeVar.lower() == 'metadata':
+      if keyword != None: outcome[keyword] = len(self.getMetadata(keyword,nodeid,serialize))
+      else:
+        for key,value in self.getAllMetadata(nodeid,serialize): outcome[key] = len(value)
+    else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.sizeData')
+    return outcome
+
   def getInpParametersValues(self,nodeid=None,serialize=False):
     '''
     Function to get a reference to the input parameter dictionary
     @, In, nodeid, optional, in hierarchical mode, if nodeid is provided, the data for that node is returned,
-                             otherwise check explaination for getHierParam
+                             otherwise check explanation for getHierParam
     @, In, serialize, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
-                                PLEASE check explaination for getHierParam
+                                PLEASE check explanation for getHierParam
     @, Out, Reference to self._dataContainer['inputs'] or something else in hierarchical
     '''
     if self._dataParameters['hierarchical']: return self.getHierParam('inputs',nodeid,serialize=serialize)
@@ -445,9 +466,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     Function to get a reference to the output parameter dictionary
     @, In, nodeid, optional, in hierarchical mode, if nodeid is provided, the data for that node is returned,
-                             otherwise check explaination for getHierParam
+                             otherwise check explanation for getHierParam
     @, In, serialize, optional, in hierarchical mode, if serialize is provided and is true a serialized data is returned
-                                PLEASE check explaination for getHierParam
+                                PLEASE check explanation for getHierParam
     @, Out, Reference to self._dataContainer['outputs'] or something else in hierarchical
     '''
     if self._dataParameters['hierarchical']: return self.getHierParam('outputs',nodeid,serialize=serialize)
@@ -518,7 +539,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In,  nodeid,   string, it's the node name... if == None or *, a dictionary of of data is returned, otherwise the actual node data is returned in a dict as well (see serialize attribute)
       @ In, keyword,   string, it's a parameter name (for example, cladTemperature), if None, the whole dict is returned, otherwise the parameter value is got (see serialize attribute)
       @ In, serialize, bool  , if true a sequence of TimePointSet is generated (a dictionary where the keys are the 'ending' branches and the values are a sorted list of _dataContainers (from first branch to the ending ones)
-                               if false see explaination for nodeid
+                               if false see explanation for nodeid
       @ Out, a dictionary of data (see above)
     '''
     if type(keyword).__name__ in ['str','unicode','bytes']:
