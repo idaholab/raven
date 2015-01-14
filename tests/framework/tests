@@ -284,8 +284,8 @@
  [./externalPostProcessor]
   type = 'RavenFramework'
   input = 'test_externalPostProcessor.xml'
-  output = 'externalPostProcessor/myDump.csv'
-  csv = 'externalPostProcessor/expectedSolution.csv'
+  csv = 'externalPostProcessor/myDump.csv'
+  output = 'externalPostProcessor/myDump.xml'
  [../]
 
 []
