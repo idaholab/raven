@@ -36,8 +36,9 @@
 <!-- Perform the sum and difference operators using the function interface -->
     <PostProcess name='applyFunctions'>
         <Input    class='Datas'     type='TimePointSet' >testData</Input>
+        <Input    class='Datas'     type='TimePointSet' >testData2</Input>
         <Model    class='Models'    type='PostProcessor'>functionPP</Model>
-        <Function class='Functions' type='External'     >operators</Function>
+<!--        <Function class='Functions' type='External'     >operators</Function>-->
         <Output   class='Datas'     type='TimePointSet' >outTPS</Output>
     </PostProcess>
 <!-- Write the results to a csv -->
@@ -65,10 +66,14 @@
     <Input>X,Y</Input>
     <Output>Z</Output>
   </TimePointSet>
+  <TimePointSet name='testData2'>
+    <Input>A,B</Input>
+    <Output>C</Output>
+  </TimePointSet>
 <!-- The output TimePointSet objects -->
   <TimePointSet name='outTPS'>
-    <Input>X,Y</Input>
-    <Output>Z</Output>
+    <Input>A,B,X,Y</Input>
+    <Output>Z,Sum</Output>
   </TimePointSet>
 </Datas>
 </Simulation>

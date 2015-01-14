@@ -1502,6 +1502,7 @@ RAVEN supports several different types of PPs. Currently in RAVEN the following 
    \item \textbf{ComparisonStatistics;}
    \item \textbf{SafestPoint;}
    \item \textbf{LimitSurface;}
+   \item \textbf{External;}
    \item \textbf{PrintCSV;}
    \item \textbf{LoadCsvIntoInternalObject.}
 \end{itemize}
@@ -1678,6 +1679,58 @@ Each of these sub-nodes  must contain 2 attributes that are used to map those wi
       ...
    </Models>
    ...
+</Simulation>
+----------------------------------------------
+\end{lstlisting}
+%%%%% PP External %%%%%%%
+\paragraph{External.}
+\label{External}
+The \textbf{External} post-processor will execute an arbitrary python function
+defined externally using the \textit{Functions} interface (see 
+Section~\ref{sec:functions} for more details).
+\\In order to use the \textit{External} post-processor, the user needs to set 
+the \textit{subType} attribute to be ``External'': 
+\textit{$<$PostProcessor subType=``External''$>$}. 
+The following sub-nodes need to be specified:
+\begin{itemize}
+\item $<method>$ \textbf{\textit{, comma separated string, required field.}}.
+List of method names of an external Function that will be computed.
+\item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node
+contains a ``list'' of Functions where the \textit{methods} listed above are
+defined. The objects must be listed with a rigorous syntax that, except for the
+xml node tag, is common among all the objects. 
+Each of these sub-nodes must contain 2 attributes that are used to map them
+within the simulation framework:
+   \begin{itemize}
+     \item \textbf{class}, \textit{required string attribute}, it is the main
+           ``class'' the listed object is from, the only acceptable class for
+           this post-processor is \textit{Functions};
+     \item \textbf{type},  \textit{required string attribute}, it is the object
+           identifier or sub-type, the only acceptable type for this 
+           post-processor is \textit{External}.
+    \end{itemize}
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+----------------------------------------------
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="externalPP" subType='External' debug='True'>
+      <method>Delta,Sum</method>
+      <Assembler>
+        <Function class='Functions' type='External'>operators</Function> 
+          <!--Here, you can add a Function defined in the
+              Functions block. This should be present or
+              else RAVEN will not know where to find the
+              defined methods.
+            -->
+      </Assembler>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
 </Simulation>
 ----------------------------------------------
 \end{lstlisting}
