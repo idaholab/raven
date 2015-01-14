@@ -1,34 +1,219 @@
 \section{RunInfo  \\ \vspace{2 mm} {\small }}
+The $RunInfo$ block is the place where the user specifiy how the calculation needs to be performed. In this input block, several settings can be inputted, in order to define how to drive the calculation and set up, when needed, particular settings for the machine the code needs to run on (queue system if not PBS, etc.).
+In the following subsections, all the keywords are explained in detail.
 
-General information of how the program is queried
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% RUN INFO CALCULATION FLOW %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RunInfo: input of calculation flow.}
+\label{subsec:runinfoCalcFlow}
+This sub-section contains the information regarding the xml nodes that define the settings of the calculation flow is going to be performed through RAVEN:
+
 \begin{itemize}
-%\item [Simulation:] First and last lines of the input file, the whole input file must be written between these two lines
+%%%%%% WORKING DIR
+\item $<WorkingDir>$\textbf{\textit{, string, required field.}} in this block the user needs to specify the absolute or relative (with respect to the location where RAVEN is run from) path to a directory that is going to be used to store all the results of the calculations and where RAVEN looks for the files specified in the block $<Files>$. \textit{Default = None};
 
-\item  \textbf{WorkingDir}: the path to the directory where the output files are going to be located (starting from the same directory where the input file was located)
-\item \textbf{ParallelCommand*}: the command that should be used to submit jobs in parallel
-\item \textbf{quequingSoftware*?}: quequing software name
-\item \textbf{ThreadingCommand*}: The command should be used to submit multi-threaded jobs?????
-\item \textbf{NumThreads*}: number of threads by run
-\item \textbf{NumNode*}: number of nodes used in the HPC 
-\item \textbf{procByNode*}: number of processors used in a single node 
-\item \textbf{NumCoresUsed*}: total number of cores used
-\item \textbf{NumMPI*}: number of MPI processes by run
-\item \textbf{MaxLogFileSize*} :**********
-\item \textbf{precommand}: add before of the command that is used to run the external model
-\item \textbf{postcommand}: add after of the command that is used to run the external model
-\item \textbf{deleteOutExtension}:if a run of an external model has not failed delete the outut files with the listed extension
-\item \textbf{delSucLogFiles}:if a run of an external model has not failed delete the log files with the listed extension
-\item \textbf{Files}: these are the paths to the files required by the code, string from the working directory 
-\item \textbf{Sequence}: ordered list of the step name that the simulation will run
-\item \textbf{mode}: these refers to the way in which the parallel environment is set up (currently the only modes supported are pbsdsh and mpi). When the user is running the code on his own machine \textit{no mode should be set}. On the contrary, when the user wants to run the code on the cluster, he should specify the mode. Additional info can be found in the readme file. 
-\item \textbf{batchSize}: number of contemporaneous processors used when the code is running on the cluster. It is good pratice to try to run the input a first time using a batchSize=1 to see if there are no faults inside the RAVEN input and/or any code that is coupled with RAVEN. If there are no faults then the user can input batchSize= to as many processors are needed to be used.
-\item \textbf{expectedTime*}: how much time the simulation is expected to run. After this period of time the cluster will automatically stop the simulation (even if the simulation is not competed) so be sure that the time is overestimated.
-\item \textbf{DefaultInputFile}: default input file to be read*******
-\item \textbf{CustomMode}: **********
+%%%%%% Files
+\item $<Files>$\textbf{\textit{, comma separated string, required field.}} these are the paths to the files required by the code, string from the $WorkingDir$; 
+
+%%%%%% BATCH SIZE
+\item $<batchSize>$\textbf{\textit{, integer, required field.}}. This parameter specifies the number of parallel runs need to be run simultaneously (e.g., the number of driven code instances, e.g. RELAP5-3D, that RAVEN will spoon at the same time). \textit{Default = 1};
+
+%%%%%% Sequence
+\item $<Sequence>$\textbf{\textit{, comma separated string, required field.}} ordered list of the step names that RAVEN will run (see Section~\ref{sec:steps});
+
+%%%%%% NumThreads
+\item $<NumThreads>$\textbf{\textit{, integer, optional field.}} this section can be used to specify the number of threads RAVEN should associate when running the driven software. For example, if RAVEN is driving a code named "FOO", and this code has multi-threading support, in here the user specify how many threads each instance of FOO should use (e.g. FOO --n-threads=$NumThreads$). \textit{Default = 1 (or None when the driven code does not have multi-threading support)};
+
+%%%%%% NumMPI
+\item $<NumMPI>$\textbf{\textit{, integer, optional field.}}  this section can be used to specify the number of MPI cpus RAVEN should associate when running the driven software. For example, if RAVEN is driving a code named "FOO", and this code has MPI support, in here the user specifies how many mpi cpus each instance of FOO should use (e.g. mpiexec FOO -np $NumMPI$). \textit{Default = 1 (or None when the driven code does not have MPI support)};
+
+%%%%%% totalNumCoresUsed
+\item $<totalNumCoresUsed>$\textbf{\textit{, integer, optional field.}}  global number of cpus RAVEN is going to use for performing the calculation. When the driven code has MPI and/or  Multi-threading support and the user decides to input $NumThreads > 1$  and $NumMPI > 1$, the totalNumCoresUsed = NumThreads*NumMPI*batchSize. \textit{Default = 1};
+
+%%%%%% precommand
+\item $<precommand>$\textbf{\textit{, string, optional field.}} in here the user can specifies a command that needs to be inserted before the actual command that is used to run the external model (e.g., mpiexec -n 8 $precommand$ ./externalModel.exe (...)). \textit{Default = None};  
+
+%%%%%% postcommand
+\item $<postcommand>$\textbf{\textit{, string, optional field.}} in here the user can specifies a command that needs to be appended after the actual command that is used to run the external model (e.g., mpiexec -n 8  ./externalModel.exe (...) $postcommand$). \textit{Default = None};
+
+%%%%%% MaxLogFileSize
+\item $<MaxLogFileSize>$\textbf{\textit{, integer, optional field.}}  every time RAVEN drives a code/software, it creates a logfile of the code screen output. In this block, the user can input the maximum size of log file in bytes. \textit{Defautl = Inf}. NB. This flag is not implemtend yet; 
+
+%%%%%% deleteOutExtension
+\item $<deleteOutExtension>$\textbf{\textit{, comma separated string, optional field.}} if a run of an external model has not failed delete the outut files with the listed extension (e.g., $<deleteOutExtension>txt,pdf</deleteOutExtension>$). \textit{Default = None}.
+
+%%%%%% delSucLogFiles
+\item $<delSucLogFiles>$\textbf{\textit{, boolean, optional field.}} if a run of an external model has not failed (return code = 0), delete the associated log files. \textit{Default = False};
+
 \end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% RUN INFO QUEUE MODES %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RunInfo: input of queue modes.}
+\label{subsec:runinfoModes}
+In this sub-section all  the keyword (xml nodes) for setting the queue system are reported.
+\begin{itemize}
+%%%%%% MODE
+\item $<mode>$\textbf{\textit{, string, optional field.}} In this xml block, the user might specify which kind of protocol the parallel enviroment should use. By instance, RAVEN currently supports two pre-defined ``modes'':
+  \begin{itemize}
+    \item pbsdsh: this ``mode'' uses the pbsdsh protocol to distribute the program running; more information regarding this protocol can be found in ~ref{}. 
+    \\ Mode ``pbsdsh'' automatically ``understands'' when it needs to generate the ``qsub'' command, inquiring the ``machine eviroment'': 
+         \begin{itemize}         
+           \item If RAVEN is executed in the HEAD node of an HPC system, RAVEN generates the ``qsub'' command, instantiates and submits itself to the queue system; 
+           \item If the user decides to execute RAVEN from an ``interactive node'' (a certain number of nodes that have been reserved in interactive PBS mode), RAVEN, using the ``pbsdsh'' system, is going to utilize the reserved resources (cpus and nodes) to distribute the jobs, but, obviously, it's not going to generate the ``qsub'' command. 
+         \end{itemize}
+    \item mpi: this ``mode'' uses mpiexec to distribute the program running; more information regarding this protocol can be found in ~ref{}.
+     \\ Mode ``MPI''  can either generate the  ``qsub'' command or can execute in selected nodes.
+      \\In order to make the ``mpi'' mode generate the ``qsub'' command, an additional keyword (xml sub-node) needs to be specified:
+         \begin{itemize}         
+           \item If RAVEN is executed in the HEAD node of an HPC system, the user needs to input a sub-node, $<runQSUB/>$, right after the specification of the mpi mode (i.e. $<mode>mpi<runQSUB/></mode>$). If the keyword is provided, RAVEN generates the ``qsub'' command, instantiates and submits itself to the queue system; 
+           \item If the user decides to execute RAVEN from an ``interactive node'' (a certain number of nodes that have been reserved in interactive PBS mode), RAVEN, using the ``mpi'' system, is going to utilize the reserved resources (cpus and nodes) to distribute the jobs, but, obviously, it's not going to generate the ``qsub'' command. 
+         \end{itemize}
+     When the user decides to run in ``mpi'' mode without making RAVEN generate the ``qsub'' command, different options are available:
+      \begin{itemize}         
+           \item If the user decides to run in the local machine (either in local desktop/workstation or remote machine), no additional keywords are needed (i.e. $<mode>mpi</mode>$); 
+           \item If the user decided to run in multiple nodes, the nodes' ids have to be specified:
+           \begin{itemize} 
+              \item the nodes' ids' can be specified in an external text file (nodes' ids separated by blank space). This file needs to be provided in the $mode$ xml node, introducing a sub-node named $nodefile$ (e.g. $<mode>mpi<nodefile>/tmp/nodes</nodefile></mode>$);
+              \item the nodes' ids' can be contained in an enviromental variable (nodes' ids separated by blank space). This variable needs to be provided in the $mode$ xml node, introducing a sub-node named $nodefileenv$ (e.g. $<mode>mpi<nodefileenv>NODEFILE</nodefileenv></mode>$);
+                \item if none of the above options are used, RAVEN is going to try finding the nodes' information in the enviroment variable $PBS\_NODEFILE$.
+           \end{itemize}
+         \end{itemize}    
+   \end{itemize}
+
+%Both methods can submit a qsub command or can be run from an already submitted interactive qsub command:
+%     \begin{itemize}
+%        \item Mode ``pbsdsh'' automatically ``understands'' when it needs to generate the ``qsub'' command, inquiring the ``machine eviroment'': 
+%         \begin{itemize}         
+%           \item If RAVEN is executed in the HEAD node of an HPC system, RAVEN generates the ``qsub'' command, instantiates and submits itself to the queue system; 
+%           \item If the user decides to execute RAVEN from an ``interactive node'' (a certain number of nodes that have been reserved in interactive PBS mode), RAVEN, using the ``pbsdsh'' system, is going to utilize the reserved resources (cpus and nodes) to distribute the jobs, but, obviously, it's not going to generate the ``qsub'' command. 
+%         \end{itemize}
+%          \item Mode ``MPI'' needs an additional keyword (xml sub-node) in order to understand when it needs to generate the ``qsub'' commnad:
+%         \begin{itemize}         
+%           \item If RAVEN is executed in the HEAD node of an HPC system, the user needs to input a sub-node, $<runQSUB/>$, right after the specification of the mpi mode (i.e. $<mode>mpi<runQSUB/></mode>$). If the keyword is provided, RAVEN generates the ``qsub'' command, instantiates and submits itself to the queue system; 
+%           \item If the user decides to execute RAVEN from an ``interactive node'' (a certain number of nodes that have been reserved in interactive PBS mode), RAVEN, using the ``mpi'' system, is going to utilize the reserved resources (cpus and nodes) to distribute the jobs, but, obviously, it's not going to generate the ``qsub'' command. 
+%         \end{itemize}
+%     \end{itemize}
+%     In the mode ``mpi''  Mode ``MPI'' can be used without any PBS support.
+
+%%%%%% NUMBER OF NODES
+\item $<NumNode>$\textbf{\textit{, integer, optional field.}}  this xml node is used to specify the number of nodes RAVEN should request when running in High Performance Computing (HPC) systems. \textit{Default = None};
+
+%%%%%% CUSTOM MODE
+\item $<CustomMode>$\textbf{\textit{, xml node, optional field.}} In this xml node, the ``advanced'' users can implement a newer ``mode''. Please refer to sub-section~\ref{subsec:runinfoadvanced} for advanced users.
+
+%%%%%% QUEUE SOFTWARE
+\item $<quequingSoftware>$\textbf{\textit{, string, optional field.}} RAVEN has support for PBS quequing system. If the platform provides a different quequing system, the user can specify its name here (e.g., PBS PROFESSIONAL, etc.). \textit{Default = PBS PROFESSIONAL};
+
+%%%%%% EXPECTED TIME
+\item $<expectedTime>$\textbf{\textit{colum separated string, requested field (pbsdsh mode) }}. In this block the user specifies the time the whole calculation is expected to last. The syntax of this node is $hours:minutes:seconds$ (e.g. 40:10:30 => 40 hours, 10 minutes, 30 seconds). After this period of time the HPC system will automatically stop the simulation (even if the simulation is not completed). It is preferable to rationally overstimate the needed time. \textit{Default = None};
+\end{itemize}
+
+%\begin{itemize}
+%\item $<WorkingDir>$\textbf{\textit{, string, required field.}} in this block the user needs to specify the absolute or relative (with respect to the location where RAVEN is run from) path to a directory that is going to be used to store all the results of the calculations and where RAVEN looks for the files specified in the block $<Files>$. \textit{Default = None};
+%
+%
+%
+%\item $<CustomMode>$\textbf{\textit{, xml node, optional field.}} In this xml node, the ``advanced'' users can implement a newer ``mode''. Please refer to sub-section~\ref{subsec:runinfoadvanced} for advanced users.
+%
+%
+%
+%\item $<NumNode>$\textbf{\textit{, integer, optional field.}}  this xml node is used to specify the number of nodes RAVEN should request when running in High Performance Computing (HPC) systems. \textit{Default = None};
+%
+%\item $<batchSize>$\textbf{\textit{, integer, required field.}}. This parameter specifies the number of parallel runs need to be run simultaneously (e.g., the number of driven code instances, e.g. RELAP5-3D, that RAVEN will spoon at the same time). \textit{Default = 1};
+%
+%\item $<NumThreads>$\textbf{\textit{, integer, optional field.}} this section can be used to specify the number of threads RAVEN should associate when running the driven software. For example, if RAVEN is driving a code named "FOO", and this code has multi-threading support, in here the user specify how many threads each instance of FOO should use (e.g. FOO --n-threads=$NumThreads$). \textit{Default = 1 (or None when the driven code does not have multi-threading support)};
+%
+%\item $<totalNumCoresUsed>$\textbf{\textit{, integer, optional field.}}  global number of cpus RAVEN is going to use for performing the calculation. When the driven code has MPI and/or  Multi-threading support and the user decides to input $NumThreads > 1$  and $NumMPI > 1$, the totalNumCoresUsed = NumThreads*NumMPI*batchSize. \textit{Default = 1};
+%
+%\item $<NumMPI>$\textbf{\textit{, integer, optional field.}}  this section can be used to specify the number of MPI cpus RAVEN should associate when running the driven software. For example, if RAVEN is driving a code named "FOO", and this code has MPI support, in here the user specifies how many mpi cpus each instance of FOO should use (e.g. mpiexec FOO -np $NumMPI$). \textit{Default = 1 (or None when the driven code does not have MPI support)};
+%
+%\item $<precommand>$\textbf{\textit{, string, optional field.}} in here the user can specifies a command that needs to be inserted before the actual command that is used to run the external model (e.g., mpiexec -n 8 $precommand$ ./externalModel.exe (...)). \textit{Default = None};  
+%
+%\item $<postcommand>$\textbf{\textit{, string, optional field.}} in here the user can specifies a command that needs to be appended after the actual command that is used to run the external model (e.g., mpiexec -n 8  ./externalModel.exe (...) $postcommand$). \textit{Default = None};
+%
+%\item $<MaxLogFileSize>$\textbf{\textit{, integer, optional field.}}  every time RAVEN drives a code/software, it creates a logfile of the code screen output. In this block, the user can input the maximum size of log file in bytes. \textit{Defautl = Inf}. NB. This flag is not implemtend yet; 
+%
+%\item $<deleteOutExtension>$\textbf{\textit{, comma separated string, optional field.}} if a run of an external model has not failed delete the outut files with the listed extension (e.g., $<deleteOutExtension>txt,pdf</deleteOutExtension>$). \textit{Default = None}.
+%
+%\item $<delSucLogFiles>$\textbf{\textit{, boolean, optional field.}} if a run of an external model has not failed (return code = 0), delete the associated log files. \textit{Default = False};
+%
+%\item $<Files>$\textbf{\textit{, comma separated string, required field.}} these are the paths to the files required by the code, string from the $WorkingDir$; 
+%
+%\item $<Sequence>$\textbf{\textit{, comma separated string, required field.}} ordered list of the step names that RAVEN will run (see Section~\ref{sec:steps});
+%
+%\item $<DefaultInputFile>$\textbf{\textit{, string, optional field.}} In this block the user can change the default xml input file RAVEN is going to look for if none has been provided as command-line argument. \textit{Default = ``test.xml''}.
+%
+%\end{itemize}
 % source: Simulation.py
 
-The example:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% RUN INFO ADVANCED USERS %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RunInfo: Advanced Users.}
+\label{subsec:runinfoadvanced}
+This sub-section addresses some customizations of the running enviroment that are possible in RAVEN.
+// Firstly, all the keywords reported in the previous sections can be pre-defined by the user in an auxiliary xml input file. Every time RAVEN gets instantiated (i.e. the code is run), it looks for an optional file, named ``default\_runinfo.xml'' contained in ``\textbackslash home\textbackslash username\textbackslash.raven\textbackslash '' directory (i.e. ``\textbackslash home\textbackslash username\textbackslash.raven\textbackslash default\_runinfo.xml'). This file (same syntax of the RunInfo block definable in the general input file) will be used for defining default values for the data inputtable in the RunInfo block.In addition to the keywords defined in the previous sections, in the $<RunInfo>$, an additional keyword can be defined:
+\begin{itemize}
+%%%%%% DefaultInputFile
+\item $<DefaultInputFile>$\textbf{\textit{, string, optional field.}} In this block the user can change the default xml input file RAVEN is going to look for if none has been provided as command-line argument. \textit{Default = ``test.xml''}.
+\end{itemize}
+As already mentioned, this file is read to define defaul data for the RunInfo block. This means that all the keywords, that lately are read in the actual input file, will be overridden by values in the actual RAVEN input file.
+\\ In section ~ref{subsec:runinfoModes}, it has been explained how RAVEN can handle the queue and parallel systems. If the currently available ``modes'' are not suitable for the user's system (workstation, HPC system, etc.), it is possible to define a custom ``mode'' modifying the $<RunInfo>$ block as follows:
+\begin{lstlisting}[style=XML]
+<RunInfo>
+    ...
+    <CustomMode file="newMode.py" class="NewMode">
+       aNewMode
+    </CustomMode>    
+    <mode>aNewMode</mode>
+    ...
+</RunInfo>
+\end{lstlisting}
+
+The python file should override the functions in SimulationMode in
+Simulation.py.  Generally modifySimulation will be overridden to
+change the precommand or postcommand parts which will be added before
+and after the executable command. In the following section an example is reported:
+
+\begin{lstlisting}[language=python]
+-------------------------------------------------------
+import Simulation
+class NewMode(Simulation.SimulationMode):
+  def doOverrideRun(self):
+    # If doOverrideRun is true, then use runOverride 
+    # instead of running the simulation normally.  
+    # This method should call simulation.run somehow 
+    return True
+
+  def runOverride(self):
+    # this can completely override the Simulation's run method
+    pass
+
+  def modifySimulation(self):
+    # modifySimulation is called after the runInfoDict 
+    # has been setup.
+    # This allows the mode to change any parameters 
+    # that need changing. This typically modifies the 
+    # precommand and the postcommand that
+    # are put infront of the command and after the command.
+    pass
+
+  def XMLread(self,xmlNode):
+    # XMLread is called with the mode node, 
+    # and can be used to
+    # get extra parameters needed for the simulation mode.
+    pass
+-------------------------------------------------------
+\end{lstlisting}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% RUN INFO EXAMPLES %%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{RunInfo: Examples.}
+\label{subsec:runinfoexamples}
+In here we present some examples:
 \begin{lstlisting}[style=XML]
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>

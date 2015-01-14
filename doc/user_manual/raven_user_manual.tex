@@ -51,6 +51,14 @@
     morekeywords={attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
 }
 
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage}
+\setcounter{secnumdepth}{4}
+
+%\titleformat{\paragraph}
+%{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+%\titlespacing*{\paragraph}
+%{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 
 %%%%%%%% Begin comands definition to input python code into document
 \usepackage[utf8]{inputenc}
@@ -170,18 +178,12 @@ showstringspaces=false            %
     \title{RAVEN User Manual}
 
     \author{%
-      \\ \textit{The RAVEN team:}
-       \\
-      \\\ \underline{\textit{\textbf{Principal Investigator}}:}
-       \\
-      \\  \textbf{Cristian Rabiti}, \textit{the Boss}
-      \\
-      \\\underline{\textit{\textbf{Developers}}:}
-       \\
-      \\\textbf{Andrea Alfonsi},   \textit{the funny guy}
-      \\\textbf{Joshua Cogliati},   \textit{the computer ace}
-      \\\textbf{Diego Mandelli},   \textit{born old}
-      \\\textbf{Robert Kinoshita}, \textit{he is not Japanese} 
+    \\
+     \\\textbf{Andrea Alfonsi},   
+      \\\textbf{Cristian Rabiti}, 
+      \\\textbf{Joshua Cogliati},   
+      \\\textbf{Diego Mandelli},  
+      \\\textbf{Robert Kinoshita}.
     }
 
     % There is a "Printed" date on the title page of a SAND report, so
@@ -193,7 +195,7 @@ showstringspaces=false            %
 % Set some things we need for SAND reports. These are mandatory
 %
 \SANDnum{INL/EXT-14-xxxxx}
-\SANDprintDate{August 2014}
+\SANDprintDate{December 2014}
 \SANDauthor{ }
 \SANDreleaseType{Draft Release}
 
@@ -261,10 +263,10 @@ showstringspaces=false            %
 
     % ---------------------------------------------------------------------- %
     % An optional executive summary
-    \clearpage
-    \section*{Summary}
-    \addcontentsline{toc}{section}{Summary}
-    \input{Summary.tex}
+    %\clearpage
+    %\section*{Summary}
+    %\addcontentsline{toc}{section}{Summary}
+    %\input{Summary.tex}
 %	Once a certain level of mistrust and skepticism has
 %	been overcome, magic finds many uses in todays science
 %	and engineering. In this report we explain some of the
@@ -296,16 +298,19 @@ showstringspaces=false            %
     \SANDmain		% Start the main part of the report
 
 \input{introduction.tex}
+\input{install.tex}
+\input{HowToRun.tex}
 \input{ravenStructure.tex}
 \input{runInfo.tex}
 \input{ProbabilityDistributions.tex}
 \input{sampler.tex}
+\input{database_data.tex}
 \input{functions.tex}
 \input{model.tex}
-\input{step.tex}
-\input{database_data.tex}
 \input{OutStreamSystem.tex}
+\input{step.tex}
 \input{existing_interfaces.tex}
+
 
     % ---------------------------------------------------------------------- %
     % References
