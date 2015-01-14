@@ -80,10 +80,22 @@
     <Input>A,B</Input>
     <Output>C</Output>
   </TimePointSet>
-<!-- The output TimePointSet objects -->
+<!-- The output TimePointSet objects, here we are testing several things:
+     1. We can handle data from multiple input files
+     2. We can handle methods defined in multiple different .py files
+     3. A subset of inputs from the originating data is reported correctly, note
+        we ask for B, but not Y (they contain the same information).
+     4. A subset of outputs from the originating data is reported correctly,
+        note we ask for Z, but not C (they contain the same information).
+     5. Reporting an overloaded function with the appropriately qualified names:
+        basicOps.Sum and advOps.Sum.
+     6. A non-overloaded function is reported correctly: Norm
+     7. An overloaded function name can be specified by its qualified name and
+        only that version will be applied to the output.
+ -->
   <TimePointSet name='outTPS'>
     <Input>A,B,X,Y</Input>
-    <Output>Z,Sum,Norm</Output>
+    <Output>Z,Sum,Norm,advOps.Delta</Output>
   </TimePointSet>
 </Datas>
 </Simulation>

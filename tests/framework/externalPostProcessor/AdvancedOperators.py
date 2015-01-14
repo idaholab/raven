@@ -12,3 +12,8 @@ def Norm(self):
 def Mean(self):
   return (self.A + self.B) / 2.
 
+def Sum(self):
+  return self.A + self.B
+
+def Delta(self):
+  return self.A - self.B

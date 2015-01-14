@@ -1226,7 +1226,7 @@ class ExternalPostProcessor(BasePostProcessor):
     '''
     BasePostProcessor.__init__(self)
     self.methodsToRun = []
-    self.externalFunctions = []
+    self.externalInterfaces = []
 
     self.printTag = returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
@@ -1268,8 +1268,8 @@ class ExternalPostProcessor(BasePostProcessor):
     ''' see generateAssembler method '''
     for key, value in self.assemblerObjects.items():
       if key in 'Function':
-        for foo in value:
-          self.externalFunctions.append(initDict[foo[0]][foo[2]])
+        for interface in value:
+          self.externalInterfaces.append(initDict[interface[0]][interface[2]])
 
   def inputToInternal(self,currentInp):
     '''
@@ -1321,11 +1321,11 @@ class ExternalPostProcessor(BasePostProcessor):
       #Not sure if we need it, but keep a copy of every inputs metadata
       inputDict['metadata'] = metadata
 
-    for foo in self.externalFunctions:
+    for interface in self.externalInterfaces:
       for method in self.methodsToRun:
         # The function should reference self and use the same variable names
         # as the xml file
-        for param in foo.parameterNames():
+        for param in interface.parameterNames():
           if param not in inputDict['targets']:
             raise IOError(self.errorString('variable \"' + param + '\" unknown.'
                                           + ' Please verify your external'
@@ -1375,22 +1375,35 @@ class ExternalPostProcessor(BasePostProcessor):
       print(self.warningString('Output type ' + type(output).__name__ + ' not'
                                + ' yet implemented. I am going to skip it.'))
     elif output.type == 'TimePointSet':
-      # For now assume there is only one input data object, using multiple
-      # inputs is an undefined behavior.
+      requestedInput = output.getParaKeys('input')
+      requestedOutput = output.getParaKeys('output')
       for inputData in inputList:
         for key,value in inputData.getParametersValues('input').items():
-          if key in output.getParaKeys('input'):
+          if key in requestedInput:
             for val in value:
               output.updateInputValue(key, val)
         for key,value in inputData.getParametersValues('output').items():
-          if key in output.getParaKeys('output'):
+          if key in requestedOutput:
             for val in value:
               output.updateOutputValue(key,val)
       for method,value in outputDict.iteritems():
-        if method in output.getParaKeys('output'):
+        if method in requestedOutput:
           output.updateOutputValue(method,[value])
         else:
-          output.updateMetadata(method,[value])
+          # Because we are qualifying overloaded function names, we need to do
+          # some special checking to see if they requested this function without
+          # the qualifying interface name
+          tokens = method.split('.',1)
+          foundColumn = False
+          if len(tokens) > 1:
+            for interface in self.externalInterfaces:
+              if tokens[0] == interface.name and tokens[1] in requestedOutput:
+                foundColumn = True
+                break
+          if foundColumn:
+            output.updateOutputValue(method,[value])
+          else:
+            output.updateMetadata(method,[value])
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
@@ -1403,12 +1416,31 @@ class ExternalPostProcessor(BasePostProcessor):
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
 
-    for foo in self.externalFunctions:
-      # We may want an error message if a method is not found in any external
-      # function
-      for method in self.methodsToRun:
-        if method in foo.availableMethods():
-          outputDict[method] = foo.evaluate(method,Input['targets'])
+    # This will map the name to its appropriate interface and method
+    # in the case of a function being defined in two separate files, we 
+    # qualify the output by appending the name of the interface from which it
+    # originates
+    methodMap = {}
+
+    # First check all the requested methods are available and if there are
+    # duplicates then qualify their names for the user
+    for method in self.methodsToRun:
+      matchingInterfaces = []
+      for interface in self.externalInterfaces:
+        if method in interface.availableMethods():
+          matchingInterfaces.append(interface)
+
+      if len(matchingInterfaces) == 0:
+        print(self.warningString(method + ' not found.'))
+      elif len(matchingInterfaces) == 1:
+        methodMap[method] = (matchingInterfaces[0],method)
+      else:
+        for interface in matchingInterfaces:
+          methodName = interface.name + '.' + method
+          methodMap[methodName] = (interface,method)
+
+    for methodName,(interface,method) in methodMap.iteritems():
+      outputDict[methodName] = interface.evaluate(method,Input['targets'])
 
     return outputDict
 #
