@@ -10,7 +10,7 @@ class RavenPython(Tester):
   except OSError:
     output_swig = "Failed"
 
-  has_swig2 = "Version 2.0" in output_swig
+  has_swig2 = "Version 2.0" in output_swig or "Version 3.0" in output_swig
 
 
   @staticmethod

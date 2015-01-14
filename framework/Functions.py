@@ -180,10 +180,10 @@ __interFaceDict['External'] = Function
 __knownTypes                = __interFaceDict.keys()
 
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
-  if Type in knonwnTypes():return __interFaceDict[Type]()
+  if Type in knownTypes():return __interFaceDict[Type]()
   else: raise NameError('not known '+__base+' type '+Type)
