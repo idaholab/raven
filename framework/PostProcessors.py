@@ -1364,7 +1364,6 @@ class ExternalPostProcessor(BasePostProcessor):
                                        + 'probably did not finish yet)'))
     inputList = finishedJob.returnEvaluation()[0]
     outputDict = finishedJob.returnEvaluation()[1]
-    print(outputDict)
 
     if type(output).__name__ in ["str","unicode","bytes"]:
       print(self.warningString('Output type ' + type(output).__name__ + ' not'
@@ -1380,16 +1379,18 @@ class ExternalPostProcessor(BasePostProcessor):
       # inputs is an undefined behavior.
       for inputData in inputList:
         for key,value in inputData.getParametersValues('input').items():
-          for val in value:
-            output.updateInputValue(key, val)
+          if key in output.getParaKeys('input'):
+            for val in value:
+              output.updateInputValue(key, val)
         for key,value in inputData.getParametersValues('output').items():
-          for val in value:
-            output.updateOutputValue(key,val)
+          if key in output.getParaKeys('output'):
+            for val in value:
+              output.updateOutputValue(key,val)
       for method,value in outputDict.iteritems():
         if method in output.getParaKeys('output'):
           output.updateOutputValue(method,[value])
         else:
-          print('Put in metadata')
+          output.updateMetadata(method,[value])
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
