@@ -1225,8 +1225,13 @@ class ExternalPostProcessor(BasePostProcessor):
       Initialization.
     '''
     BasePostProcessor.__init__(self)
-    self.methodsToRun = []
-    self.externalInterfaces = []
+    self.methodsToRun = []              # A list of strings specifying what
+                                        # methods the user wants to compute from
+                                        # the external interfaces
+
+    self.externalInterfaces = []        # A list of Function objects that
+                                        # hopefully contain definitions for all
+                                        # of the methods the user wants
 
     self.printTag = returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
@@ -1269,6 +1274,12 @@ class ExternalPostProcessor(BasePostProcessor):
     for key, value in self.assemblerObjects.items():
       if key in 'Function':
         for interface in value:
+          # interface holds the information about an Assembler's subnode, in
+          # this case we know it is a Function node, and has the following
+          # components:
+          # interface[0] = the class name (e.g. "Functions")
+          # interface[1] = the type name (e.g. "External")
+          # interface[2] = the object name specified by the user
           self.externalInterfaces.append(initDict[interface[0]][interface[2]])
 
   def inputToInternal(self,currentInp):

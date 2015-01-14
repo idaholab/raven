@@ -1,0 +1,4 @@
+<data name="expectedSolution" type="timepointset"><input>A,X,B</input><output>advOps.Sum,Z,basicOps.Sum,Norm,advOps.Delta</output><input_filename>myDump.csv</input_filename><metadata><Max>5</Max><Mean> 0.5  1.   1.5  2.   2.5  3.   0.5  1.   1.5  2.   2.5  3.   0.5  1.   1.5
+   2.   2.5  3.   1.5  2.   2.5  3.   3.5  4.   1.5  2.   2.5  3.   3.5  4.
+   1.5  2.   2.5  3.   3.5  4. </Mean><basicOps.Delta> 0 -1 -2 -3 -4 -5  1  0 -1 -2 -3 -4  2  1  0 -1 -2 -3  3  2  1  0 -1 -2
+   4  3  2  1  0 -1  5  4  3  2  1  0</basicOps.Delta><Min>0</Min></metadata></data>
