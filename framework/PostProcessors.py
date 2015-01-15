@@ -1542,12 +1542,6 @@ class TopologicalDecomposition(BasePostProcessor):
     self.knn = -1
     self.persistence = 0
 
-  def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
-    for key, value in self.assemblerObjects.items():
-      if key in 'Function': 
-        self.externalFunction = initDict[value[0]][value[2]]
-
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The 
     # TopologicalDecomposition postprocessor accepts all the input types:
@@ -1561,7 +1555,7 @@ class TopologicalDecomposition(BasePostProcessor):
     inputDict = {}
     if hasattr(currentInput, 'type'):
       inType = currentInput.type
-    elif type(currentInput) in [str,bytes,unicode]:
+    elif type(currentInput).__name__ in ['str','bytes','unicode']:
       inType = "file"
     elif type(currentInput) in [list]:
       inType = "list"
@@ -1631,14 +1625,83 @@ class TopologicalDecomposition(BasePostProcessor):
       elif child.tag =='response':
         self.response = child.text
 
-  def collectOutput(self,finishedjob,output):
-#    print("finishedjob",dir(finishedjob))
-#    print("output",dir(output))
-    pass
+  def collectOutput(self,finishedJob,output):
+    '''
+      Function to place all of the computed data into the output object
+      @ In, finishedJob: A JobHandler object that is in charge of running this
+                         post-processor
+      @ In, output: The object where we want to place our computed results
+      @ Out, None
+    '''
+    if finishedJob.returnEvaluation() == -1:
+      #TODO This does not feel right
+      raise Exception(self.errorString('No available Output to collect (Run '
+                                       + 'probably did not finish yet)'))
+    inputList = finishedJob.returnEvaluation()[0]
+    outputDict = finishedJob.returnEvaluation()[1]
 
-#    print("finishedjob",dir(finishedjob))
-#    print("output",dir(output))
-    pass
+    if type(output).__name__ in ["str","unicode","bytes"]:
+      print(self.warningString('Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.'))
+    elif output.type == 'Datas':
+      print(self.warningString('Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.'))
+    elif output.type == 'HDF5':
+      print(self.warningString('Output type ' + type(output).__name__ + ' not'
+                               + ' yet implemented. I am going to skip it.'))
+    elif output.type == 'TimePointSet':
+      requestedInput = output.getParaKeys('input')
+      requestedOutput = output.getParaKeys('output')
+      dataLength = None
+      for inputData in inputList:
+        # Pass inputs from input data to output data
+        for key,value in inputData.getParametersValues('input').items():
+          if key in requestedInput:
+            # We need the size to ensure the data size is consistent, but there
+            # is no guarantee the data is not scalar, so this check is necessary
+            myLength = 1
+            if hasattr(value, "__len__"):
+              myLength = len(value)
+
+            if dataLength is None:
+              dataLength = myLength
+            elif dataLength != myLength:
+              dataLength = max(dataLength,myLength)
+              print(self.warningString('Data size is inconsistent. Currently '
+                                      + 'set to ' + str(dataLength) + '.'))
+
+            for val in value:
+              output.updateInputValue(key, val)
+
+        # Pass outputs from input data to output data
+        for key,value in inputData.getParametersValues('output').items():
+          if key in requestedOutput:
+            # We need the size to ensure the data size is consistent, but there
+            # is no guarantee the data is not scalar, so this check is necessary
+            myLength = 1
+            if hasattr(value, "__len__"):
+              myLength = len(value)
+
+            if dataLength is None:
+              dataLength = myLength
+            elif dataLength != myLength:
+              dataLength = max(dataLength,myLength)
+              print(self.warningString('Data size is inconsistent. Currently '
+                                      + 'set to ' + str(dataLength) + '.'))
+
+            for val in value:
+              output.updateOutputValue(key,val)
+
+        # Append the min/max labels to the data whether the user wants them or
+        # not, and place the hierarchy information into the metadata
+        for key,value in outputDict.iteritems():
+          if key in ['minLabel','maxLabel']:
+            output.updateOutputValue(key,[value])
+          elif key in ['hierarchy','fits']:
+            output.updateMetadata(key,[value])
+
+    else:
+      raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
   def run(self, InputIn):
     '''
@@ -1705,9 +1768,10 @@ class TopologicalDecomposition(BasePostProcessor):
       print(line)
     print('========== Persistence Chart: ==========')
     print(self.__amsc.PrintHierarchy())
+    outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
     print('========== Linear Regressors: ==========')
     partitions = self.__amsc.GetPartitions(self.persistence)
-    fits = {}    
+    fits = {}
 
     for key,items in partitions.iteritems():
       X = inputData[np.array(items),:]
@@ -1719,6 +1783,8 @@ class TopologicalDecomposition(BasePostProcessor):
       fits[key] = (beta_hat,rSquared)
       print("Coefficients and R^2:")
       print(fits[key])
+    
+    outputDict['fits'] = dict(fits)
 
     return outputDict
 
