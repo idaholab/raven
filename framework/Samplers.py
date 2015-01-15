@@ -2105,21 +2105,21 @@ class SparseGridCollocation(Grid):
     self.importanceDict = {}    #varName-indexed dict of importance weights
     self.lastOutput     = None  #pointer to output datas object
     self.ROM            = None  #pointer to ROM
+    self.jobHandler     = None  #pointer to job handler for parallel runs
     
   def _localWhatDoINeed(self):
     needDict={}
     for value in self.assemblerObjects.values():
       if value[0] not in needDict.keys(): needDict[value[0]]=[]
       needDict[value[0]].append((value[1],value[2]))
-    #needDict['jobHandler'] = (None,None)
-    #TODO I also need a job handler.
+    needDict['internal'] = [(None,'jobHandler')]
     return needDict
 
   def _localGenerateAssembler(self,initDict):
     for key, value in self.assemblerObjects.items():
       if   key in 'TargetEvaluation': self.lastOutput = initDict[value[0]][value[2]]
       elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
-      #FIXME jobhandler
+    self.jobHandler = initDict['internal']['jobHandler']
 
   def _readMoreXML(self,xmlNode):
     Grid._readMoreXML(self,xmlNode)
@@ -2187,6 +2187,11 @@ class SparseGridCollocation(Grid):
         else:                      polyType = dat['poly']
         subType=None
 
+      #TODO FIXME consistency checks between quads-polys-distros
+      distr = self.distDict[varName]
+      if quadType not in self.distDict[varName].compatibleQuadrature:
+        raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+
       quad = Quadratures.returnInstance(quadType,subType)
       quad.initialize()
       self.quadDict[varName]=quad
@@ -2194,7 +2199,7 @@ class SparseGridCollocation(Grid):
       poly = OrthoPolynomials.returnInstance(polyType)
       poly.initialize()
       self.polyDict[varName] = poly
-      #TODO consistency checks between quads-polys-distros
+
 
       self.importanceDict[varName] = float(dat['weight'])
 
@@ -2203,25 +2208,33 @@ class SparseGridCollocation(Grid):
 
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
-    self.sparseGrid.initialize(self.indexSet,SVL.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,None)#handler) #FIXME handler
+    self.sparseGrid.initialize(self.indexSet,SVL.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
     self.limit=len(self.sparseGrid)
 
   def localGenerateInput(self,model,myInput):
-    pts,weight = self.sparseGrid[self.counter-1]
+    pt,weight = self.sparseGrid[self.counter-1]
+    #actPt = np.zeros(len(pt))
+    #for i,p in enumerate(pt):
+    #  varName = self.distDict.keys()[i]
+    #  actPt[i] = self.distDict[varName].convertToDistr(self.quadDict[varName].type,p)
     for v,varName in enumerate(self.axisName):
-      self.values[varName] = pts[v]
+      self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
-    if self.lastOutput.length('Output')==len(self.sparseGrid):
+    try: self.lastOutput.sizeData('output') #FAILS with exception if no output name stashed yet
+    except: return #FIXME better way to check if Datas has any outputs yet
+    #print('DEBUG',self.printTag,'at',self.lastOutput.sizeData('output').values()[0],'out of',len(self.sparseGrid))
+    if self.lastOutput.sizeData('output').values()[0]==len(self.sparseGrid)-1: #-1 because collection is after this call
       for SVL in self.ROM.SupervisedEngine.values():
         SVL.initialize({'SG':self.sparseGrid,
                         'dists':self.distDict,
                         'quads':self.quadDict,
-                        'polys':self.polyDict})
+                        'polys':self.polyDict,
+                        'iSet':self.indexSet})
 
 #
 #

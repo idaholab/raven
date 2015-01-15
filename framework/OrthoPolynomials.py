@@ -22,12 +22,13 @@ from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OrthogonalPolynomial(BaseType):
+class OrthogonalPolynomial(object):
   '''Provides polynomial generators for stochastic collocation.'''
   def __init__(self):
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
     self.debug = True
+    self.params=[]
 
   def initialize(self):
     self._poly = self.monomial #orthogonal polynomial constructor function  
@@ -37,7 +38,7 @@ class OrthogonalPolynomial(BaseType):
 
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order', as poly[2]'''
-    return self._poly(self.orderMod(order),*self.params) * self.norm(order)
+    return self._poly(self.orderMod(order),*self.params)# * self.norm(order)
 
   def __call__(self,order,pt):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.
@@ -100,7 +101,7 @@ class OrthogonalPolynomial(BaseType):
     return 1.
 
 class Legendre(OrthogonalPolynomial):
-  def initalize(self):
+  def initialize(self):
     self._poly = polys.legendre
     self._evPoly = polys.eval_legendre
 
@@ -130,7 +131,9 @@ class Legendre(OrthogonalPolynomial):
     return np.sqrt(2)
 
   def orderMod(self,n):
-    return n+1
+    #try: return n+1
+    #except TypeError: return tuple(m+1 for m in n)
+    return n
 
   def norm(self,n):
     return np.sqrt((2.*n+1.)/2.)

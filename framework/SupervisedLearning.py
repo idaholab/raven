@@ -249,6 +249,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.indexSetType = None
     self.maxPolyOrder = None
     self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
+    self.norm         = None
 
   def _readMoreXML(self,xmlNode):
     NDinterpolatorRom._readMoreXML(self,xmlNode)
@@ -277,36 +278,87 @@ class GaussPolynomialRom(NDinterpolatorRom):
       elif key == 'dists': self.distDict   = value
       elif key == 'quads': self.quads      = value
       elif key == 'polys': self.polys      = value
+      elif key == 'iSet' : self.indexSet   = value
+    print('DEBUG',self.sparseGrid)
 
   def _multiDPolyBasisEval(self,orders,pts):
     tot=1
     for i,(o,p) in enumerate(zip(orders,pts)):
-      tot*=self.polys.values()[i][o,p]
+      #print('        poly',o,'\n',self.polys.values()[i][o])
+      tot*=self.polys.values()[i](o,p)
+    #print('        order',orders,'polytot:',tot)
     return tot
+
+  def train(self,tdict):
+    #mimic SVL.train without messing with data #FIXME will be fixed in issue 19
+    if type(tdict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    names, values  = list(tdict.keys()), list(tdict.values())
+    if self.target in names: targetValues = values[names.index(self.target)]
+    else                   : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The output sought '+self.target+' is not in the training set')
+    # check if the targetValues are consistent with the expected structure
+    resp = self.checkArrayConsistency(targetValues)
+    if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for target '+self.target+':'+resp[1])
+    # construct the evaluation matrixes
+    featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
+    for cnt, feat in enumerate(self.features):
+      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the training set')
+      else:
+        resp = self.checkArrayConsistency(values[names.index(feat)])
+        if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
+        if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
+        #self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
+        #if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
+        #if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
+        featureValues[:,cnt] = (values[names.index(feat)])# - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+    self.__trainLocal__(featureValues,targetValues)
+    self.amITrained = True
 
   def __trainLocal__(self,featureVals,targetVals):
     self.polyCoeffDict={}
-    #FIXME what's targetVals keyed by?
     #TODO can parallelize this!
-    for i,idx in enumerate(self.sparseGrid.indexSet):
+    self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    #for i,idx in enumerate(self.sparseGrid.indexSet):
+    for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
       #for k,(pt,wt) in enumerate(self.sparseGrid): #int, tuple, float for k,pt,wt
+      wtsum=0
       for pt,soln in zip(featureVals,targetVals):
-        wt = self.sparseGrid.weights(pt)
         stdPt = np.zeros(len(pt))
         for i,p in enumerate(pt):
           varName = self.distDict.keys()[i]
-          stdPt[i] = self.distDict[varName].convertToQuad(self.quadDict[varName].type,p)
+          stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
+        wt = self.sparseGrid.weights(pt)
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
+      self.polyCoeffDict[idx]*=self.norm
+    print('DEBUG norm',self.norm)
+    print('DEBUG polyDict',self.printTag)
+    self.printPolyDict()
+    #try a moment
+    r=1
+    tot=0
+    for pt,wt in self.sparseGrid:
+      tot+=self.__evaluateLocal__(pt)**r*wt*self.norm**(1-r)
+      #FIXME I don't know why the norm^(1-r) needs to be there.  It fixes uniform  at least.
+    print('DEBUG','tot',tot)
+
+  def printPolyDict(self,printZeros=False):
+    data=[]
+    for idx,val in self.polyCoeffDict.items():
+      if val > 1e-14 or printZeros:
+        data.append([idx,val])
+    data.sort()
+    print('polyDict:')
+    for idx,val in data:
+      print('    ',idx,val)
 
   def __evaluateLocal__(self,featureVals):
     tot=0
-    stdPt = np.zeroes(len(featureVals))
+    stdPt = np.zeros(len(featureVals))
     for p,pt in enumerate(featureVals): #FIXME what data type is featureVals?
-      varName = self.distDict.keys()[i]
-      stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type(),p) #FIXME need to convert?
-    for idx,coeff in sulf.polyCoeffDict.items():
+      varName = self.distDict.keys()[p]
+      stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,pt) #FIXME need to convert?
+    for idx,coeff in self.polyCoeffDict.items():
       tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
     return tot
 
