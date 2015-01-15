@@ -25,12 +25,14 @@ from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 #Internal Modules End-----------------------------------------------------------------
 
 
-class SparseQuad(BaseType):
+class SparseQuad(object):
   '''Base class to produce sparse-grid multiple-dimension quadrature.
      Requires: dimension N, max polynomial level L, quadrature generation rules for each dimension, distributions?
   '''
   def __init__(self):
     self.c = [] #array of coefficient terms for component tensor grid entries
+    self.type='SparseQuad'
+    self.printTag='SparseQuad'
 
   def initialize(self, indexSet, maxPoly, distrList, quadDict, polyDict, handler):
     self.indexSet = np.array(indexSet[:])
@@ -104,9 +106,17 @@ class SparseQuad(BaseType):
     return len(self.weights())
 
   def __repr__(self):
-    msg='SparseQuad:\n'
+    msg='SparseQuad: (point) | weight\n'
     for p in range(len(self)):
-      msg+='    '+str(self[p])+'\n'
+      msg+='    ('
+      pt,wt = self[p]
+      for i in pt:
+        if i<0:
+          msg+='%1.9f,' %i
+        else:
+          msg+=' %1.9f,' %i
+      msg=msg[:-1]+') | %1.9f'%wt+'\n'
+      #msg+='    '+str(self[p])+'\n'
     return msg
 
   def _extrema(self):
@@ -138,8 +148,8 @@ class SparseQuad(BaseType):
     if n==None:
       return self.SG.values()
     else:
-      try: return self.SG[n]
-      except KeyError:  return self.SG.values()[n]
+      try: return self.SG[tuple(n)]
+      except TypeError:  return self.SG.values()[n]
   
   def serialMakeCoeffs(self):
     '''Brute force method to create coefficients for each index set in the sparse grid approximation.
@@ -222,7 +232,7 @@ class SparseQuad(BaseType):
       mn = m[n]
       pts,wts=quad(mn)
       pts=pts.real
-      wts=pts.real
+      wts=wts.real
       pts = distr.convertToDistr(quad.type,pts)
       pointLists.append(pts)
       weightLists.append(wts)
@@ -235,7 +245,7 @@ class SparseQuad(BaseType):
 
 
 
-class QuadratureSet(BaseType):
+class QuadratureSet(object):
   '''Base class to produce standard quadrature points and weights.
      Points and weights are obtained as
 
@@ -246,6 +256,7 @@ class QuadratureSet(BaseType):
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
     self.debug = False
+    self.rule  = None
 
   def __call__(self,order):
     '''Defines operations to return correct pts, wts'''
