@@ -61,7 +61,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Feature names not provided')
     if 'Target'   not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Target name not provided')
     if 'NormalizeData' in self.initOptionDict.keys():
-      if self.initOptionDict['Features'] in stringsThatMeanFalse(): self.normalizeData = False
+      if self.initOptionDict['NormalizeData'].lower() in stringsThatMeanFalse(): self.normalizeData = False
       self.initOptionDict.pop('NormalizeData')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
