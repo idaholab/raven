@@ -21,7 +21,15 @@
             <variable>x2</variable>
             <variable>ans</variable>
         </ExternalModel>
-        <ROM name='SCROM' subType='GaussPolynomialRom'>
+        <ROM name='UROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>2</PolynomialOrder>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='NROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
@@ -37,13 +45,25 @@
             <high>1</high>
         </Uniform>
         <Normal name="NormDist">
-            <mean>0</mean>
-            <sigma>1</sigma>
+            <mean>3</mean>
+            <sigma>2</sigma>
         </Normal>
     </Distributions>
 
     <Samplers>
-        <SparseGridCollocation name="mySG" parallel="0">
+        <SparseGridCollocation name="USG" parallel="0">
+            <variable name="x1">
+                <distribution>UniDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>UniDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+        <SparseGridCollocation name="NSG" parallel="0">
             <variable name="x1">
                 <distribution>NormDist</distribution>
             </variable>
@@ -51,7 +71,7 @@
                 <distribution>NormDist</distribution>
             </variable>
             <Assembler>
-                <ROM              class = 'Models' type = 'ROM'         >SCROM</ROM>
+                <ROM              class = 'Models' type = 'ROM'         >NROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
             </Assembler>
         </SparseGridCollocation>
@@ -98,7 +118,7 @@
 
     <Steps>
         <MultiRun name='makeStochPolys' pauseAtEnd='False'>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>mySG</Sampler>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
             <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
             <Output  class='Datas'            type='TimePointSet'         >solns</Output>
@@ -106,11 +126,11 @@
         </MultiRun>
         <RomTrainer name='trainROM'>
             <Input   class='Datas'    type='TimePointSet'>solns</Input>
-            <Output  class='Models'   type='ROM'         >SCROM</Output>
+            <Output  class='Models'   type='ROM'         >NROM</Output>
         </RomTrainer>
         <MultiRun name='MCSampleStochPoly' pauseAtEnd='False'>
             <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
-            <Model   class='Models'           type='ROM'          >SCROM</Model>
+            <Model   class='Models'           type='ROM'          >UROM</Model>
             <Sampler class='Samplers'         type='MonteCarlo'   >MC2</Sampler>
             <Output  class='Datas'            type='TimePointSet' >MCsamples</Output>
             <Output  class='OutStreamManager' type='Print'        >outMC_dump</Output>

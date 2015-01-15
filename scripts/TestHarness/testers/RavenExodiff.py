@@ -30,7 +30,7 @@ class RavenExodiff(Exodiff):
     except OSError:
         output_swig = "Failed"
 
-    has_swig2 = "Version 2.0" in output_swig
+    has_swig2 = "Version 2.0" in output_swig or "Version 3.0" in output_swig
 
     module_dir = os.path.join(os.path.dirname(os.getcwd()),"crow","control_modules")
     has_distributions = os.path.exists(os.path.join(module_dir,"_distribution1D.so"))

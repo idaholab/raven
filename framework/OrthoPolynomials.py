@@ -38,7 +38,7 @@ class OrthogonalPolynomial(object):
 
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order', as poly[2]'''
-    return self._poly(self.orderMod(order),*self.params)# * self.norm(order)
+    return self._poly(self.orderMod(order),*self.params) * self.norm(order)
 
   def __call__(self,order,pt):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.

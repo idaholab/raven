@@ -2200,8 +2200,9 @@ class SparseGridCollocation(Grid):
       poly.initialize()
       self.polyDict[varName] = poly
 
-
       self.importanceDict[varName] = float(dat['weight'])
+      print('DEBUG poly',self.printTag,'\n',poly[5])
+      print('DEBUG norm',poly.norm(5))
 
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
     self.indexSet.initialize(self.distDict,self.importanceDict,SVL.maxPolyOrder)

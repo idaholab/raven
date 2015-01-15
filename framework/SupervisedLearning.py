@@ -28,7 +28,7 @@ import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, find_interpolationND
+from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, find_interpolationND,stringsThatMeanFalse
 interpolationND = find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -54,17 +54,23 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
 
   def __init__(self,**kwargs):
     self.printTag = returnPrintTag('SuperVised')
+    #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
+    self.normalizeData      = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
     if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Feature names not provided')
     if 'Target'   not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Target name not provided')
+    if 'NormalizeData' in self.initOptionDict.keys():
+      if self.initOptionDict['NormalizeData'].lower() in stringsThatMeanFalse(): self.normalizeData = False
+      self.initOptionDict.pop('NormalizeData')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
     if self.features.count(self.target) > 0: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The target and one of the features have the same name!!!!')
     #average value and sigma are used for normalization of the feature data
-    self.muAndSigmaFeatures = {} #a dictionary where for each feature a tuple (average value, sigma)
+    #a dictionary where for each feature a tuple (average value, sigma)
+    self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
 
@@ -97,7 +103,8 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
+        if self.normalizeData: self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
+        else                 : self.muAndSigmaFeatures[feat] = (0.0,1.0)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
@@ -250,6 +257,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.maxPolyOrder = None
     self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
     self.norm         = None
+    self.normalizeData = False #not desirable for this ROM
 
   def _readMoreXML(self,xmlNode):
     NDinterpolatorRom._readMoreXML(self,xmlNode)
@@ -335,12 +343,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     print('DEBUG polyDict',self.printTag)
     self.printPolyDict()
     #try a moment
-    r=1
-    tot=0
-    for pt,wt in self.sparseGrid:
-      tot+=self.__evaluateLocal__(pt)**r*wt*self.norm**(1-r)
-      #FIXME I don't know why the norm^(1-r) needs to be there.  It fixes uniform  at least.
-    print('DEBUG','tot',tot)
+    r=3
+    print('DEBUG moment',r,'=',self.__evaluateMoment__(r))
 
   def printPolyDict(self,printZeros=False):
     data=[]
@@ -351,6 +355,15 @@ class GaussPolynomialRom(NDinterpolatorRom):
     print('polyDict:')
     for idx,val in data:
       print('    ',idx,val)
+
+  def __evaluateMoment__(self,r):
+    tot=0
+    for pt,wt in self.sparseGrid:
+      tot+=self.__evaluateLocal__(pt)**r*wt#*self.norm#**(1-r)
+    tot*=self.norm
+    #FIXME I don't know why the norm^(1-r) needs to be there.  It fixes uniform  at least.
+    #for normals, just *norm fixes it, without any exponent
+    return tot
 
   def __evaluateLocal__(self,featureVals):
     tot=0
