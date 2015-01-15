@@ -412,6 +412,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     elif  typeVar.lower() in 'outputs': return self.getOutParametersValues(nodeid,serialize)
     else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.getParametersValues')
 
+  #Insert bird joke here...
   def getParaKeys(self,typePara):
     '''
     Functions to get the parameter keys
