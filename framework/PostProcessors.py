@@ -1581,7 +1581,6 @@ class TopologicalDecomposition(BasePostProcessor):
                     + '-> ' + self.__class__.__name__ /
                     + ' postprocessor accepts files, HDF5, Data(s) only. '/
                     + ' Requested: ' + str(type(currentInput)))
-    print('currentInp' + str(currentInp))
     return inputDict
 
   def _localReadMoreXML(self,xmlNode):
@@ -1697,9 +1696,12 @@ class TopologicalDecomposition(BasePostProcessor):
         for key,value in outputDict.iteritems():
           if key in ['minLabel','maxLabel']:
             output.updateOutputValue(key,[value])
-          elif key in ['hierarchy','fits']:
+          elif key in ['hierarchy']:
             output.updateMetadata(key,[value])
-
+          elif key.startswith('coefficients'):
+            output.updateMetadata(key,[value])
+          elif key.startswith('R2'):
+            output.updateMetadata(key,[value])
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
@@ -1767,24 +1769,31 @@ class TopologicalDecomposition(BasePostProcessor):
       outputDict['maxLabel'][i] = self.__amsc.MaxLabel(i)
       print(line)
     print('========== Persistence Chart: ==========')
-    print(self.__amsc.PrintHierarchy())
+    print(self.__amsc.XMLFormattedHierarchy())
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
     print('========== Linear Regressors: ==========')
     partitions = self.__amsc.GetPartitions(self.persistence)
-    fits = {}
+    coefficients = {}
+    R2s = {}
 
     for key,items in partitions.iteritems():
       X = inputData[np.array(items),:]
       y = outputData[np.array(items)]
       beta_hat,residuals,rank,s = np.linalg.lstsq(X,y)
-#      print((residuals,rank,s))
       yHat = X.dot(beta_hat)
       rSquared = 1 - np.sum((yHat - y)**2)/np.sum((y - np.mean(y))**2)
-      fits[key] = (beta_hat,rSquared)
-      print("Coefficients and R^2:")
-      print(fits[key])
+      key = key.replace(',','_')
+      coefficients[key] = beta_hat.tolist()
+      R2s[key] = rSquared
+      
+      print(key)
+      print('\t' + u"\u03B2\u0302: " + str(coefficients[key]))
+      print('\t' + u"R\u00B2: " + str(R2s[key]) + '\n')
     
-    outputDict['fits'] = dict(fits)
+    for key,value in coefficients.iteritems():
+      outputDict['coefficients_' + key] = value
+    for key,value in R2s.iteritems():
+      outputDict['R2_' + key] = value
 
     return outputDict
 
