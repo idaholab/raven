@@ -87,6 +87,15 @@
   skip = 'Relap issue #111'
  [../]
 
+ [./test_rom_trainer_no_norm]
+  type = 'RavenFramework'
+  input = 'test_rom_trainer_no_normalization.xml'
+  output = 'test_rom_trainer_no_norm/ciccio.csv'
+  csv = 'test_rom_trainer_no_norm/outputMontecarloRom_dump.csv test_rom_trainer_no_norm/outputMontecarloRomND_dump.csv test_rom_trainer_no_norm/ciccio.csv'
+  max_time = 1500
+  rel_err = 0.001
+ [../]
+
  [./test_multi_target_rom]
   type = 'RavenFramework'
   input = 'test_multi_target_rom.xml'
