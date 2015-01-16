@@ -41,7 +41,7 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'LogNormal':'LogNormalDistribution',
                               'Weibull':'WeibullDistribution',
                               'NDInverseWeight': 'InverseWeightDistribution',
-                              'NDspline': 'NDsplineDistribution' }
+                              'NDCartesianSpline': 'NDsplineDistribution' }
 
 
 class Distribution(BaseType):
@@ -899,9 +899,13 @@ class NDimensionalDistributions(Distribution):
     
   def _readMoreXML(self,xmlNode):
     Distribution._readMoreXML(self, xmlNode)
+    working_dir = xmlNode.find('working_dir')
+    if working_dir != None: self.working_dir = working_dir.text
+    
     data_filename = xmlNode.find('data_filename')
-    if data_filename != None: self.data_filename = data_filename.text
+    if data_filename != None: self.data_filename = self.working_dir+data_filename.text
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <data_filename> parameter needed for MultiDimensional Distributions!!!!')
+    
     function_type = xmlNode.find('function_type')
     if not function_type: self.function_type = 'CDF'
     else:
@@ -939,7 +943,8 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def initializeDistribution(self):
     #NDimensionalDistributions.initializeDistribution()
-    self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.p)
+    print('BasicMultiDimensional InverseWeight initialize Distribution')
+    self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.data_filename, self.p)
 
   def cdf(self,x):
     return self._distribution.Cdf(x)

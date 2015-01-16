@@ -98,6 +98,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     ######
     self.ND_sampling_params            = None                      # parameters for ND distribution sampling
+    self. distributions2variablesMapping = {}
     ###### 
     
   def whatDoINeed(self):
@@ -143,10 +144,15 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           if child.tag == 'Distribution':
             #Add <distribution> to name so we know it is not the direct variable
             self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
-          elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = childChild.text
+          elif child.tag == 'variable': 
+            self.toBeSampled[child.attrib['name']] = childChild.text
+            ###
+            self.distributions2variablesMapping[childChild.text] = child.attrib['name']
+            ###
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
           if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
     self.localInputAndChecks(xmlNode)
+    print("distributions2variablesMapping: " + str(self.distributions2variablesMapping))
 
   def endJobRunnable(self): return self._endJobRunnable
 
@@ -316,7 +322,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     @in myInput  : the generating input
     '''
     pass
-#
+  
 #
 #
 class AdaptiveSampler(Sampler):
@@ -822,15 +828,25 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
+    print('self.distDict: ' + str(self.distDict))
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
       rvsnum = self.distDict[key].rvs()
-      for kkey in key.strip().split(','):
-        self.values[kkey] = copy.deepcopy(rvsnum)
-        self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
+      print('rvsnum: ' + str(rvsnum))
+      
+      for kkey in key.strip().split(';'):
+        for kkkey in kkey.strip().split(','):
+          self.values[kkkey] = copy.deepcopy(rvsnum)
+          self.inputInfo['SampledVarsPb'][kkkey] = self.distDict[key].pdf(self.values[kkkey])
+      
+      #for kkey in key.strip().split(','):
+      #  self.values[kkey] = copy.deepcopy(rvsnum)
+      #  self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
+      
       #self.values[key] = self.distDict[key].rvs()
       #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
+    
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
       #self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
