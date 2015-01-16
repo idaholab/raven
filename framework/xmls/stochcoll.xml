@@ -2,47 +2,13 @@
 <Simulation debug="False">
     <RunInfo>
         <WorkingDir>StochasticPolyTest</WorkingDir>
-        <Sequence>makeStochPolys,trainROM,MCSampleDirect,PrintMCdirect,MCSampleStochPoly,PrintMCrom,PrintMCdirect,PPMCdirect,PPMCrom</Sequence>
+        <Sequence>makeStochPolys,trainROM,MCSampleDirect,MCSampleStochPoly,PPMCdirect,PPMCrom,HistMCdirect,HistMCrom</Sequence>
         <Files>MCrom.stats,MCdirect.stats</Files>
         <!--batchSize>1</batchSize-->
         <batchSize>512</batchSize>
         <mode>pbsdsh</mode>
         <expectedTime>2:00:00</expectedTime>
     </RunInfo>
-
-    <Models>
-        <Dummy name="MyDummy" subType="" print="True"/>
-        <ExternalModel name='attenuation' subType='' ModuleToLoad = 'attenuation'>
-            <variable>x1</variable>
-            <variable>x2</variable>
-            <variable>ans</variable>
-        </ExternalModel>
-        <ExternalModel name='polynomial' subType='' ModuleToLoad = 'polynomial'>
-            <variable>x1</variable>
-            <variable>x2</variable>
-            <variable>ans</variable>
-        </ExternalModel>
-        <ROM name='UROM' subType='GaussPolynomialRom'>
-            <Target>ans</Target>
-            <Features>x1,x2</Features>
-            <IndexSet>TensorProduct</IndexSet>
-            <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
-        </ROM>
-        <ROM name='NROM' subType='GaussPolynomialRom'>
-            <Target>ans</Target>
-            <Features>x1,x2</Features>
-            <IndexSet>TensorProduct</IndexSet>
-            <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x2</Interpolation>
-        </ROM>
-        <PostProcessor name="basicStatsPP" subType='BasicStatistics' debug='false'>
-          <what>expectedValue,variance,kurtois</what>
-          <parameters>ans</parameters>
-        </PostProcessor>
-    </Models>
 
     <Distributions>
         <Uniform name="UniDist">
@@ -68,6 +34,7 @@
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
             </Assembler>
         </SparseGridCollocation>
+
         <SparseGridCollocation name="NSG" parallel="1">
             <variable name="x1">
                 <distribution>NormDist</distribution>
@@ -80,7 +47,8 @@
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
             </Assembler>
         </SparseGridCollocation>
-        <MonteCarlo name='MC2' limit='100000'>
+
+        <MonteCarlo name='MC2' limit='10000'>
             <variable name='x1'>
                 <distribution>NormDist</distribution>
             </variable>
@@ -89,6 +57,87 @@
             </variable>
         </MonteCarlo>
     </Samplers>
+
+    <Models>
+        <Dummy name="MyDummy" subType="" print="True"/>
+        <ExternalModel name='attenuation' subType='' ModuleToLoad = 'attenuation'>
+            <variable>x1</variable>
+            <variable>x2</variable>
+            <variable>ans</variable>
+        </ExternalModel>
+        <ExternalModel name='polynomial' subType='' ModuleToLoad = 'polynomial'>
+            <variable>x1</variable>
+            <variable>x2</variable>
+            <variable>ans</variable>
+        </ExternalModel>
+        <ROM name='UROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>4</PolynomialOrder>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='NROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>2</PolynomialOrder>
+            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <PostProcessor name="basicStatsPP" subType='BasicStatistics' debug='false'>
+          <what>expectedValue,variance,kurtois</what>
+          <parameters>ans</parameters>
+        </PostProcessor>
+    </Models>
+
+    <Steps>
+        <MultiRun name='makeStochPolys' pauseAtEnd='False'>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
+            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Model   class='Models'           type='ExternalModel'        >attenuation</Model>
+            <Output  class='Datas'            type='TimePointSet'         >solns</Output>
+        </MultiRun>
+        <RomTrainer name='trainROM'>
+            <Input   class='Datas'    type='TimePointSet'>solns</Input>
+            <Output  class='Models'   type='ROM'         >NROM</Output>
+        </RomTrainer>
+
+        <MultiRun name='MCSampleStochPoly' pauseAtEnd='False'>
+            <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
+            <Model   class='Models'           type='ROM'          >NROM</Model>
+            <Sampler class='Samplers'         type='MonteCarlo'   >MC2</Sampler>
+            <Output  class='Datas'            type='TimePointSet' >MCrom</Output>
+        </MultiRun>
+
+        <MultiRun name='MCSampleDirect' pauseAtEnd='False'>
+            <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
+            <Model   class='Models'           type='ExternalModel'>attenuation</Model>
+            <Sampler class='Samplers'         type='MonteCarlo'   >MC2</Sampler>
+            <Output  class='Datas'            type='TimePointSet' >MCsamples</Output>
+        </MultiRun>
+
+        <PostProcess name='PPMCdirect'>
+            <Input class='Datas' type='TimePointSet'>MCsamples</Input>
+            <Model class='Models' type='PostProcessor' >basicStatsPP</Model>
+            <Output class='Files' type='' >MCdirect.stats</Output>
+        </PostProcess>
+        <PostProcess name='PPMCrom'>
+            <Input class='Datas' type='TimePointSet'>MCrom</Input>
+            <Model class='Models' type='PostProcessor' >basicStatsPP</Model>
+            <Output class='Files' type='' >MCrom.stats</Output>
+        </PostProcess>
+
+        <OutStreamStep name='HistMCdirect' pauseAtEnd='True'>
+            <Input class='Datas' type='TimePointSet'>MCsamples</Input>
+            <Output class='OutStreamManager' type='Plot'>HistDirect</Output>
+        </OutStreamStep>
+        <OutStreamStep name='HistMCrom' pauseAtEnd='True'>
+            <Input class='Datas' type='TimePointSet'>MCrom</Input>
+            <Output class='OutStreamManager' type='Plot'>HistROM</Output>
+        </OutStreamStep>
+    </Steps>
 
     <Datas>
         <TimePointSet name="outGrid">
@@ -129,58 +178,35 @@
             <source>MCrom</source>
             <variables>Input,Output</variables>
         </Print>
+        <Plot name='HistDirect' dim="2" overwrite='True'>
+            <plotSettings>
+                <plot>
+                    <type>histogram</type>
+                    <x>MCsamples|Output|ans</x>
+                    <bins>100</bins>
+                </plot>
+                <xlabel>Directly Sampled</xlabel>
+            </plotSettings>
+            <actions>
+              <how>png</how>
+              <title><text>MC Direct</text></title>
+              <scale><yscale>log</yscale></scale>
+            </actions>
+        </Plot>
+        <Plot name='HistROM' dim="2" overwrite='True'>
+            <plotSettings>
+                <plot>
+                    <type>histogram</type>
+                    <x>MCrom|Output|ans</x>
+                    <bins>100</bins>
+                </plot>
+                <xlabel>ROM Sampled</xlabel>
+            </plotSettings>
+            <actions>
+              <how>png</how>
+              <title><text>MC ROM</text></title>
+              <scale><yscale>log</yscale></scale>
+            </actions>
+        </Plot>
     </OutStreamManager>
-
-    <Steps>
-        <MultiRun name='makeStochPolys' pauseAtEnd='False'>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
-            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >attenuation</Model>
-            <Output  class='Datas'            type='TimePointSet'         >solns</Output>
-            <!--Output  class='OutStreamManager' type='Print'                >grid_dump</Output-->
-        </MultiRun>
-        <RomTrainer name='trainROM'>
-            <Input   class='Datas'    type='TimePointSet'>solns</Input>
-            <Output  class='Models'   type='ROM'         >NROM</Output>
-        </RomTrainer>
-
-        <MultiRun name='MCSampleStochPoly' pauseAtEnd='False'>
-            <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
-            <Model   class='Models'           type='ROM'          >NROM</Model>
-            <Sampler class='Samplers'         type='MonteCarlo'   >MC2</Sampler>
-            <Output  class='Datas'            type='TimePointSet' >MCrom</Output>
-            <!--Output  class='OutStreamManager' type='Print'        >outMC_dump</Output-->
-        </MultiRun>
-        <OutStreamStep name='PrintMCrom'>
-            <Input class='Datas' type='TimePointSet'>MCrom</Input>
-            <Output  class='OutStreamManager' type='Print'>outMCrom</Output>
-        </OutStreamStep>
-
-        <MultiRun name='MCSampleDirect' pauseAtEnd='False'>
-            <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'>attenuation</Model>
-            <Sampler class='Samplers'         type='MonteCarlo'   >MC2</Sampler>
-            <Output  class='Datas'            type='TimePointSet' >MCsamples</Output>
-        </MultiRun>
-        <IOStep name='PrintMCdirect'>
-            <Input class='Datas' type='TimePointSet'>MCsamples</Input>
-            <Output  class='OutStreamManager' type='Print'        >outMCdirect</Output>
-        </IOStep>
-
-        <PostProcess name='PPMCdirect'>
-            <Input class='Datas' type='TimePointSet'>MCsamples</Input>
-            <Model class='Models' type='PostProcessor' >basicStatsPP</Model>
-            <Output class='Files' type='' >MCdirect.stats</Output>
-        </PostProcess>
-        <PostProcess name='PPMCrom'>
-            <Input class='Datas' type='TimePointSet'>MCrom</Input>
-            <Model class='Models' type='PostProcessor' >basicStatsPP</Model>
-            <Output class='Files' type='' >MCrom.stats</Output>
-        </PostProcess>
-    </Steps>
-
-    <DataBases>
-        <HDF5 name="test_DummyModel_db"/>
-    </DataBases>
-
 </Simulation>

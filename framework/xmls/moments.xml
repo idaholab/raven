@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="False">
+    <RunInfo>
+        <WorkingDir>StochasticPolyTest</WorkingDir>
+        <Sequence>makeStochPolys,trainROM</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
+
+    <Distributions>
+        <Uniform name="UniDist">
+            <low>1</low>
+            <high>5</high>
+        </Uniform>
+        <Normal name="NormDist">
+            <mean>3</mean>
+            <sigma>2</sigma>
+        </Normal>
+    </Distributions>
+
+    <Samplers>
+        <SparseGridCollocation name="USG" parallel="1">
+            <variable name="x1">
+                <distribution>UniDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>UniDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="NSG" parallel="1">
+            <variable name="x1">
+                <distribution>NormDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>NormDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >NROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+    </Samplers>
+
+    <Models>
+        <Dummy name="MyDummy" subType="" print="True"/>
+        <ExternalModel name='attenuation' subType='' ModuleToLoad = 'attenuation'>
+            <variable>x1</variable>
+            <variable>x2</variable>
+            <variable>ans</variable>
+        </ExternalModel>
+        <ExternalModel name='polynomial' subType='' ModuleToLoad = 'polynomial'>
+            <variable>x1</variable>
+            <variable>x2</variable>
+            <variable>ans</variable>
+        </ExternalModel>
+        <ROM name='UROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>4</PolynomialOrder>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='NROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>2</PolynomialOrder>
+            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+    </Models>
+
+    <Steps>
+        <MultiRun name='makeStochPolys' pauseAtEnd='False'>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>USG</Sampler>
+            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
+            <Output  class='Datas'            type='TimePointSet'         >solns</Output>
+        </MultiRun>
+        <RomTrainer name='trainROM'>
+            <Input   class='Datas'    type='TimePointSet'>solns</Input>
+            <Output  class='Models'   type='ROM'         >UROM</Output>
+        </RomTrainer>
+    </Steps>
+
+    <Datas>
+        <TimePointSet name="dummyIN">
+            <Input>x1,x2</Input>
+            <Output>OutputPlaceHolder</Output>
+        </TimePointSet>
+        <TimePointSet name='solns'>
+            <Input>x1,x2</Input>
+            <Output>ans</Output>
+        </TimePointSet>
+    </Datas>
+
+</Simulation>

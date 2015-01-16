@@ -31,21 +31,20 @@ class OrthogonalPolynomial(object):
     self.params=[]
 
   def initialize(self):
-    self._poly = self.monomial #orthogonal polynomial constructor function  
-    self._evPoly = self.evalMonomial #orthogonal polynomial constructor function  
+    self._poly = None #self.monomial #orthogonal polynomial constructor function  
+    self._evPoly = None #self.evalMonomial #orthogonal polynomial constructor function  
 
   #TODO whatDoINeed()
 
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order', as poly[2]'''
-    return self._poly(self.orderMod(order),*self.params) * self.norm(order)
+    return self._poly(order,*self.params) * self.norm(order)
 
   def __call__(self,order,pt):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.
        Has to be overwritten if parameters are required.'''
-    inps=self.params+[self.pointMod(pt)]
-    return self._evPoly(self.orderMod(order),*inps) * self.norm(order)
-    #return self._evPoly(self.orderMod(order),self.pointMod(pt)) * self.norm(order)
+    inps=self.params+[self.pointMod(pt)] #TODO pointmod only for CDF...fix?
+    return self._evPoly(order,*inps) * self.norm(order)
 
   def _readMoreXML(self,xmlNode):
     if self.debug:print('Quadrature: need to fix _readMoreXML')
@@ -67,11 +66,6 @@ class OrthogonalPolynomial(object):
 
   def stdPointMod(self,x):
     return x
-
-  def orderMod(self,n):
-    '''For a reason I can't fathom, some scipy polys use base 0 and some base
-       1 for their poly orders.  This function fixes that when necessary.'''
-    return n
 
   def monomial(self,order): #these are default, but not orthogonal at all.
     coeffs=[1]+[0]*(order-1)
@@ -101,9 +95,10 @@ class OrthogonalPolynomial(object):
     return 1.
 
 class Legendre(OrthogonalPolynomial):
-  def initialize(self):
+  def initialize(self,quad):
     self._poly = polys.legendre
     self._evPoly = polys.eval_legendre
+    self.setMeasures(quad)
 
   def setMeasures(self,quad):
     if quad.type=='Legendre':
@@ -125,18 +120,13 @@ class Legendre(OrthogonalPolynomial):
     return uniform
 
   def stdPointMod(self,x):
-    return x*self.scipyNorm()
+    return x#self.scipyNorm()
 
   def scipyNorm(self):
     return np.sqrt(2)
 
-  def orderMod(self,n):
-    #try: return n+1
-    #except TypeError: return tuple(m+1 for m in n)
-    return n
-
   def norm(self,n):
-    return np.sqrt((2.*n+1.)/2.)
+    return np.sqrt((2.*n+1.))#/2.)
     #OLD NOTE the first 2 is included because scipy legendre poly1d is orthogonal
     #over [-1,1] with with weight function 1:
     #http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.special.legendre.html#scipy.special.legendre 

@@ -2198,7 +2198,7 @@ class SparseGridCollocation(Grid):
       self.quadDict[varName]=quad
 
       poly = OrthoPolynomials.returnInstance(polyType)
-      poly.initialize()
+      poly.initialize(quad)
       self.polyDict[varName] = poly
 
       self.importanceDict[varName] = float(dat['weight'])

@@ -319,8 +319,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     print('DEBUG polyDict',self.printTag)
     self.printPolyDict()
     #try a moment
-    r=3
-    print('DEBUG moment',r,'=',self.__evaluateMoment__(r))
+    for r in range(5):
+      print('DEBUG moment',r,'=',self.__evaluateMoment__(r))
 
   def printPolyDict(self,printZeros=False):
     data=[]
