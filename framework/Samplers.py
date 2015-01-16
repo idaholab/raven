@@ -1272,7 +1272,7 @@ class DynamicEventTree(Grid):
     rootnode.add('completedHistory', False)
     # Fill th values dictionary in
     if precSampled: self.inputInfo['preconditionerCoordinate'  ] = copy.deepcopy(precSampled)
-    self.inputInfo['prefix'                    ] = copy.deepcopy(rname.encode())
+    self.inputInfo['prefix'                    ] = rname.encode()
     self.inputInfo['initiator_distribution'    ] = []
     self.inputInfo['PbThreshold'               ] = []
     self.inputInfo['ValueThreshold'            ] = []
@@ -1283,12 +1283,12 @@ class DynamicEventTree(Grid):
     self.inputInfo['parent_id'                 ] = 'root'
     self.inputInfo['conditional_prb'           ] = [1.0]
     self.inputInfo['conditional_pb'            ] = 1.0
-    for key in self.branchProbabilities.keys():self.inputInfo['initiator_distribution'].append(copy.deepcopy(key.encode()))
-    for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(copy.deepcopy(self.branchProbabilities[key][branchedLevel[key]]))
-    for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(copy.deepcopy(self.branchValues[key][branchedLevel[key]]))
+    for key in self.branchProbabilities.keys():self.inputInfo['initiator_distribution'].append(key.encode())
+    for key in self.branchProbabilities.keys():self.inputInfo['PbThreshold'].append(self.branchProbabilities[key][branchedLevel[key]])
+    for key in self.branchProbabilities.keys():self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
     for varname in self.toBeSampled.keys():
-      self.inputInfo['SampledVars'  ][varname] = copy.deepcopy(self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
-      self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
+      self.inputInfo['SampledVars'  ][varname] = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+      self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
 
@@ -1296,10 +1296,10 @@ class DynamicEventTree(Grid):
     # Call the model function "createNewInput" with the "values" dictionary just filled.
     # Add the new input path into the RunQueue system
     newInputs = model.createNewInput(myInput,self.type,**self.inputInfo)
-    for key,value in self.inputInfo.items(): rootnode.add(key,copy.deepcopy(value))
-    self.RunQueue['queue'].append(copy.deepcopy(newInputs))
-    self.RunQueue['identifiers'].append(copy.deepcopy(self.inputInfo['prefix'].encode()))
-    self.rootToJob[copy.deepcopy(self.inputInfo['prefix'])] = copy.deepcopy(rname)
+    for key,value in self.inputInfo.items(): rootnode.add(key,value)
+    self.RunQueue['queue'].append(newInputs)
+    self.RunQueue['identifiers'].append(self.inputInfo['prefix'].encode())
+    self.rootToJob[self.inputInfo['prefix']] = rname
     del newInputs
     self.counter += 1
 
@@ -1309,7 +1309,7 @@ class DynamicEventTree(Grid):
     # The root name of the xml element tree is the starting name for all the branches
     # (this root name = the user defined sampler name)
     # Get the initial branchedLevel dictionary (=> the list gets empty)
-    branchedLevel = copy.deepcopy(self.branchedLevel.pop(0))
+    branchedLevel = self.branchedLevel.pop(0)
     for rootTree in self.TreeInfo.values(): self._createRunningQueueBeginOne(rootTree,branchedLevel, model,myInput)
     return
 
@@ -1337,9 +1337,9 @@ class DynamicEventTree(Grid):
       del self.inputInfo
       self.counter += 1
       self.branchCountOnLevel += 1
-      branchedLevel = copy.deepcopy(branchedLevelParent)
+      branchedLevel =branchedLevelParent
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
-      rname = copy.deepcopy(endInfo['parent_node'].get('name') + '-' + str(self.branchCountOnLevel))
+      rname = endInfo['parent_node'].get('name') + '-' + str(self.branchCountOnLevel)
 
       # create a subgroup that will be appended to the parent element in the xml tree structure
       subGroup = ETS.Node(rname.encode())
@@ -1355,21 +1355,21 @@ class DynamicEventTree(Grid):
       for key in endInfo['branch_changed_params'].keys():
         subGroup.add('branch_changed_param',key)
         if self.branchCountOnLevel != 1:
-          subGroup.add('branch_changed_param_value',copy.deepcopy(endInfo['branch_changed_params'][key]['actual_value'][self.branchCountOnLevel-2]))
-          subGroup.add('branch_changed_param_pb',copy.deepcopy(endInfo['branch_changed_params'][key]['associated_pb'][self.branchCountOnLevel-2]))
-          cond_pb_c = cond_pb_c + copy.deepcopy(endInfo['branch_changed_params'][key]['changed_cond_pb'][self.branchCountOnLevel-2])
+          subGroup.add('branch_changed_param_value',endInfo['branch_changed_params'][key]['actual_value'][self.branchCountOnLevel-2])
+          subGroup.add('branch_changed_param_pb',endInfo['branch_changed_params'][key]['associated_pb'][self.branchCountOnLevel-2])
+          cond_pb_c = cond_pb_c + endInfo['branch_changed_params'][key]['changed_cond_pb'][self.branchCountOnLevel-2]
         else:
-          subGroup.add('branch_changed_param_value',copy.deepcopy(endInfo['branch_changed_params'][key]['old_value']))
-          subGroup.add('branch_changed_param_pb',copy.deepcopy(endInfo['branch_changed_params'][key]['unchanged_pb']))
-          cond_pb_un =  cond_pb_un + copy.deepcopy(endInfo['branch_changed_params'][key]['unchanged_cond_pb'])
+          subGroup.add('branch_changed_param_value',endInfo['branch_changed_params'][key]['old_value'])
+          subGroup.add('branch_changed_param_pb',endInfo['branch_changed_params'][key]['unchanged_pb'])
+          cond_pb_un =  cond_pb_un + endInfo['branch_changed_params'][key]['unchanged_cond_pb']
       # add conditional probability
-      if self.branchCountOnLevel != 1: subGroup.add('conditional_pb',copy.deepcopy(cond_pb_c))
-      else: subGroup.add('conditional_pb',copy.deepcopy(cond_pb_un))
+      if self.branchCountOnLevel != 1: subGroup.add('conditional_pb',cond_pb_c)
+      else: subGroup.add('conditional_pb',cond_pb_un)
       # add initiator distribution info, start time, etc.
-      subGroup.add('initiator_distribution',copy.deepcopy(endInfo['branch_dist']))
-      subGroup.add('start_time', copy.deepcopy(endInfo['parent_node'].get('end_time')))
+      subGroup.add('initiator_distribution',endInfo['branch_dist'])
+      subGroup.add('start_time', endInfo['parent_node'].get('end_time'))
       # initialize the end_time to be equal to the start one... It will modified at the end of this branch
-      subGroup.add('end_time', copy.deepcopy(endInfo['parent_node'].get('end_time')))
+      subGroup.add('end_time', endInfo['parent_node'].get('end_time'))
       # add the branchedLevel dictionary to the subgroup
       if self.branchCountOnLevel != 1: branchedLevel[endInfo['branch_dist']] = branchedLevel[endInfo['branch_dist']] - 1
       # branch calculation info... running, queue, etc are set here
@@ -1411,7 +1411,7 @@ class DynamicEventTree(Grid):
         self.inputInfo['ValueThreshold'        ] = []
       # Add the unbranched thresholds
       for key in self.branchProbabilities.keys():
-        if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])): self.inputInfo['initiator_distribution'].append(copy.deepcopy(key.encode()))
+        if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])): self.inputInfo['initiator_distribution'].append(key.encode())
       for key in self.branchProbabilities.keys():
         if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])):
           self.inputInfo['PbThreshold'   ].append(self.branchProbabilities[key][branchedLevel[key]])
@@ -1423,7 +1423,7 @@ class DynamicEventTree(Grid):
         self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
-      # Call the model function "createNewInput" with the "values" dictionary just filled.
+      # Call the model function  "createNewInput" with the "values" dictionary just filled.
       # Add the new input path into the RunQueue system
       self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
