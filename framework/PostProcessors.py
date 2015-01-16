@@ -13,6 +13,7 @@ import numpy as np
 from sklearn import tree
 from sklearn import neighbors
 from scipy import spatial
+from scipy.optimize import leastsq
 import os
 from glob import glob
 import copy
@@ -1768,7 +1769,7 @@ class TopologicalDecomposition(BasePostProcessor):
       outputDict['minLabel'][i] = self.__amsc.MinLabel(i)
       outputDict['maxLabel'][i] = self.__amsc.MaxLabel(i)
       print(line)
-    print('========== Persistence Chart: ==========')
+    print('========== Merge Hierarchy: ==========')
     print(self.__amsc.XMLFormattedHierarchy())
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
     print('========== Linear Regressors: ==========')
@@ -1794,6 +1795,116 @@ class TopologicalDecomposition(BasePostProcessor):
       outputDict['coefficients_' + key] = value
     for key,value in R2s.iteritems():
       outputDict['R2_' + key] = value
+    print('========== Gaussian Fits: ==========')
+    minFlowSet = {}
+    for idx in xrange(0,len(outputData)):
+      minIdx = self.__amsc.MinLabel(idx)
+      if minIdx not in minFlowSet.keys():
+        minFlowSet[minIdx] = []
+      minFlowSet[minIdx].append(idx)
+
+    for minIdx,indices in minFlowSet.iteritems():
+      X = inputData[indices,]
+      Y = outputData[indices]
+      # For fitting a constrained multivariate Gaussian, we will fix the mean
+      # to be at the extrema and the y-offset to match the output value at the
+      # extrema's location
+      mu = inputData[minIdx]
+      c = outputData[minIdx]
+
+      # Define a variable number of inputs for our constrained Gaussian, it is
+      # constrained because we are only fitting diagonal components of the
+      # covariance matrix
+      def residuals(*arg):
+        a = arg[0][-1]
+        xvec = arg[1]
+        yvec = arg[2]
+        err = []
+        A = np.identity(len(arg[0][:-1]))*np.array(arg[0][:-1])
+        for idx in xrange(0,len(yvec)):
+          v = mu-xvec[idx]
+          err.append(yvec[idx] - a*np.exp(-(v.dot(A).dot(v))) + c - a)
+        return err
+
+      paramGuess = [] 
+      # Not sure what is a good starting place for the covariance, so just use
+      # the identity matrix
+      for d in xrange(0,self.dimensionCount):
+        paramGuess.append(1)
+
+      # Amplitude estimate (the range of this data, opens up for minima thus
+      # the amplitude should be negative, and the opens down for the maxima thus
+      # amplitude should be positive
+      paramGuess.append(outputData[minIdx]-max(outputData[indices]))
+
+      test = leastsq(residuals, paramGuess, args=(X,Y))
+      print(str(minIdx) + ':\n\tA=' + str(test[0][2]))
+      print('\tCov=' + str(test[0][0:-1]))
+
+    maxFlowSet = {}
+    for idx in xrange(0,len(outputData)):
+      maxIdx = self.__amsc.MaxLabel(idx)
+      if maxIdx not in maxFlowSet.keys():
+        maxFlowSet[maxIdx] = []
+      maxFlowSet[maxIdx].append(idx)
+
+    for maxIdx,indices in maxFlowSet.iteritems():
+      X = inputData[indices,]
+      Y = outputData[indices]
+      # For fitting a constrained multivariate Gaussian, we will fix the mean
+      # to be at the extrema and the y-offset to match the output value at the
+      # extrema's location
+      mu = inputData[maxIdx]
+      c = outputData[maxIdx]
+
+      # Define a variable number of inputs for our constrained Gaussian, it is
+      # constrained because we are only fitting diagonal components of the
+      # covariance matrix
+      def residuals(*arg):
+        a = arg[0][-1]
+        xvec = arg[1]
+        yvec = arg[2]
+        err = []
+        A = np.identity(len(arg[0][:-1]))*np.array(arg[0][:-1])
+        for idx in xrange(0,len(yvec)):
+          v = mu-xvec[idx]
+          err.append(yvec[idx] - a*np.exp(-(v.dot(A).dot(v))) + c - a)
+        return err
+
+      paramGuess = [] 
+      # Not sure what is a good starting place for the covariance, so just use
+      # the identity matrix
+      for d in xrange(0,self.dimensionCount):
+        paramGuess.append(1)
+
+      # Amplitude estimate (the range of this data, opens up for minima thus
+      # the amplitude should be negative, and the opens down for the maxima thus
+      # amplitude should be positive
+      paramGuess.append(outputData[maxIdx]-min(outputData[indices]))
+
+      test = leastsq(residuals, paramGuess, args=(X,Y))
+      print(str(maxIdx) + ':\n\tA=' + str(test[0][2]))
+      print('\tCov=' + str(test[0][0:-1]))
+
+#    pairs = partitions.keys()
+#    mins = set(map(lambda x: int(x.split(',')[0]),pairs))
+#    maxs = set(map(lambda x: int(x.split(',')[1]),pairs))
+#    for idx in mins:
+#      neighbors = self.__amsc.Neighbors(idx)
+#      xmin = inputData[idx]
+#      ymin = outputData[idx]
+#      gradients = {}
+#      for n in neighbors:
+#        xn = inputData[n]
+#        yn = outputData[n]
+#        deltaY = yn - ymin
+#        deltaX = xn - xmin
+#        gradients[n] = []
+#        for dXn in deltaX:
+#          if dXn != 0:
+#            gradients[n].append(deltaY / dXn)
+#          else:
+#            gradients[n].append(None)
 
     return outputDict
 
