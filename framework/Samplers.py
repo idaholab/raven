@@ -400,16 +400,16 @@ class AdaptiveSampler(Sampler):
     #assembler node: Hidden from User
     targEvalNode = xmlNode.find('TargetEvaluation')
     if targEvalNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> TargetEvaluation object is required. Not found in Sampler '+self.name + '!')
-    self.assemblerObjects[targEvalNode.tag] = [targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]            
+    self.assemblerObjects[targEvalNode.tag] = [targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]
     functionNode = xmlNode.find('Function')
     if functionNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Function object is required. Not Found in Sampler '+self.name + '!')
-    self.assemblerObjects[functionNode.tag] = [functionNode.attrib['class'],functionNode.attrib['type'],functionNode.text]    
+    self.assemblerObjects[functionNode.tag] = [functionNode.attrib['class'],functionNode.attrib['type'],functionNode.text]
     romNode = xmlNode.find('ROM')
     if romNode != None: self.assemblerObjects[romNode.tag] = [romNode.attrib['class'],romNode.attrib['type'],romNode.text]
     targEvalCounter  = 0
     romCounter       = 0
     functionCounter  = 0
-    for subNode in xmlNode: 
+    for subNode in xmlNode:
       if 'TargetEvaluation' in subNode.tag:
         targEvalCounter += 1
       if 'ROM'              in subNode.tag:
@@ -417,7 +417,7 @@ class AdaptiveSampler(Sampler):
       if 'Function'         in subNode.tag:
         functionCounter += 1
     if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
-    if functionCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!') 
+    if functionCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!')
     if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
     # set subgrid
     if self.subGridTol == None: self.subGridTol = self.tolerance

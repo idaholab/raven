@@ -97,14 +97,14 @@ class BasePostProcessor(Assembler):
         for subNode in xmlNode:
             for token in self.requiredAssObject[1][0]:
                 if subNode.tag in token:
-                    found = True 
+                    found = True
                     if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
                     if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
                     self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
                     testObjects[token] += 1
         if not found:
             for tofto in self.requiredAssObject[1][0]:
-                if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'): 
+                if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'):
                     raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
         # test the objects found
         else:
