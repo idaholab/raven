@@ -655,12 +655,6 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
-    from Distributions import _FrameworkToCrowDistNames
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][3]['class'       ] = 'Distributions'
-    cls.validateDict['Input'  ][3]['type'        ] = _FrameworkToCrowDistNames.keys()
-    cls.validateDict['Input'  ][3]['required'    ] = False
-    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']

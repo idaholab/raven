@@ -2139,6 +2139,7 @@ class SparseGridCollocation(Grid):
         raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
     if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
     if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
 
   def localInputAndChecks(self,xmlNode):
     for child in xmlNode:
@@ -2201,8 +2202,8 @@ class SparseGridCollocation(Grid):
       self.polyDict[varName] = poly
 
       self.importanceDict[varName] = float(dat['weight'])
-      print('DEBUG poly',self.printTag,'\n',poly[5])
-      print('DEBUG norm',poly.norm(5))
+      #print('DEBUG poly',self.printTag,'\n',poly[5])
+      #print('DEBUG norm',poly.norm(5))
 
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
     self.indexSet.initialize(self.distDict,self.importanceDict,SVL.maxPolyOrder)

@@ -297,30 +297,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #print('        order',orders,'polytot:',tot)
     return tot
 
-  def train(self,tdict):
-    #mimic SVL.train without messing with data #FIXME will be fixed in issue 19
-    if type(tdict) != dict: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
-    names, values  = list(tdict.keys()), list(tdict.values())
-    if self.target in names: targetValues = values[names.index(self.target)]
-    else                   : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The output sought '+self.target+' is not in the training set')
-    # check if the targetValues are consistent with the expected structure
-    resp = self.checkArrayConsistency(targetValues)
-    if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for target '+self.target+':'+resp[1])
-    # construct the evaluation matrixes
-    featureValues = np.zeros(shape=(targetValues.size,len(self.features)))
-    for cnt, feat in enumerate(self.features):
-      if feat not in names: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The feature sought '+feat+' is not in the training set')
-      else:
-        resp = self.checkArrayConsistency(values[names.index(feat)])
-        if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
-        if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        #self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
-        #if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
-        #if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
-        featureValues[:,cnt] = (values[names.index(feat)])# - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-    self.__trainLocal__(featureValues,targetValues)
-    self.amITrained = True
-
   def __trainLocal__(self,featureVals,targetVals):
     self.polyCoeffDict={}
     #TODO can parallelize this!
@@ -359,18 +335,19 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def __evaluateMoment__(self,r):
     tot=0
     for pt,wt in self.sparseGrid:
-      tot+=self.__evaluateLocal__(pt)**r*wt#*self.norm#**(1-r)
+      tot+=self.__evaluateLocal__([pt])**r*wt#*self.norm#**(1-r)
     tot*=self.norm
     #FIXME I don't know why the norm^(1-r) needs to be there.  It fixes uniform  at least.
     #for normals, just *norm fixes it, without any exponent
     return tot
 
   def __evaluateLocal__(self,featureVals):
+    featureVals=featureVals[0] #FIXME why do I need the [0]?  Does it come in bigger sizes?
     tot=0
     stdPt = np.zeros(len(featureVals))
-    for p,pt in enumerate(featureVals): #FIXME what data type is featureVals?
+    for p,pt in enumerate(featureVals):
       varName = self.distDict.keys()[p]
-      stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,pt) #FIXME need to convert?
+      stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,pt)
     for idx,coeff in self.polyCoeffDict.items():
       tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
     return tot

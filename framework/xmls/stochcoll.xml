@@ -2,11 +2,12 @@
 <Simulation debug="False">
     <RunInfo>
         <WorkingDir>StochasticPolyTest</WorkingDir>
-        <Sequence>makeStochPolys,trainROM</Sequence>
-        <batchSize>1</batchSize>
-        <!--batchSize>512</batchSize>
+        <Sequence>makeStochPolys,trainROM,MCSampleDirect,PrintMCdirect,MCSampleStochPoly,PrintMCrom,PrintMCdirect,PPMCdirect,PPMCrom</Sequence>
+        <Files>MCrom.stats,MCdirect.stats</Files>
+        <!--batchSize>1</batchSize-->
+        <batchSize>512</batchSize>
         <mode>pbsdsh</mode>
-        <expectedTime>1:00:00</expectedTime-->
+        <expectedTime>2:00:00</expectedTime>
     </RunInfo>
 
     <Models>
@@ -37,6 +38,10 @@
             <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1</Interpolation>
             <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x2</Interpolation>
         </ROM>
+        <PostProcessor name="basicStatsPP" subType='BasicStatistics' debug='false'>
+          <what>expectedValue,variance,kurtois</what>
+          <parameters>ans</parameters>
+        </PostProcessor>
     </Models>
 
     <Distributions>
@@ -51,7 +56,7 @@
     </Distributions>
 
     <Samplers>
-        <SparseGridCollocation name="USG" parallel="0">
+        <SparseGridCollocation name="USG" parallel="1">
             <variable name="x1">
                 <distribution>UniDist</distribution>
             </variable>
@@ -63,7 +68,7 @@
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
             </Assembler>
         </SparseGridCollocation>
-        <SparseGridCollocation name="NSG" parallel="0">
+        <SparseGridCollocation name="NSG" parallel="1">
             <variable name="x1">
                 <distribution>NormDist</distribution>
             </variable>
@@ -75,12 +80,12 @@
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
             </Assembler>
         </SparseGridCollocation>
-        <MonteCarlo name='MC2' limit='100'>
+        <MonteCarlo name='MC2' limit='100000'>
             <variable name='x1'>
-                <distribution>UniDist</distribution>
+                <distribution>NormDist</distribution>
             </variable>
             <variable name='x2'>
-                <distribution>UniDist</distribution>
+                <distribution>NormDist</distribution>
             </variable>
         </MonteCarlo>
     </Samplers>
@@ -98,9 +103,13 @@
             <Input>x1,x2</Input>
             <Output>ans</Output>
         </TimePointSet>
+        <TimePointSet name='MCrom'>
+            <Input>x1,x2</Input>
+            <Output>ans</Output>
+        </TimePointSet>
         <TimePointSet name='MCsamples'>
             <Input>x1,x2</Input>
-            <Output>val</Output>
+            <Output>ans</Output>
         </TimePointSet>
     </Datas>
 
@@ -110,9 +119,15 @@
             <source>solns</source>
             <variables>Input,Output</variables>
         </Print>
-        <Print name="outMC_dump">
+        <Print name="outMCdirect">
             <type>csv</type>
             <source>MCsamples</source>
+            <!--variables>Input,Output</variables-->
+        </Print>
+        <Print name="outMCrom">
+            <type>csv</type>
+            <source>MCrom</source>
+            <variables>Input,Output</variables>
         </Print>
     </OutStreamManager>
 
@@ -120,21 +135,48 @@
         <MultiRun name='makeStochPolys' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>NSG</Sampler>
             <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
-            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
+            <Model   class='Models'           type='ExternalModel'        >attenuation</Model>
             <Output  class='Datas'            type='TimePointSet'         >solns</Output>
-            <Output  class='OutStreamManager' type='Print'                >grid_dump</Output>
+            <!--Output  class='OutStreamManager' type='Print'                >grid_dump</Output-->
         </MultiRun>
         <RomTrainer name='trainROM'>
             <Input   class='Datas'    type='TimePointSet'>solns</Input>
             <Output  class='Models'   type='ROM'         >NROM</Output>
         </RomTrainer>
+
         <MultiRun name='MCSampleStochPoly' pauseAtEnd='False'>
             <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
-            <Model   class='Models'           type='ROM'          >UROM</Model>
+            <Model   class='Models'           type='ROM'          >NROM</Model>
+            <Sampler class='Samplers'         type='MonteCarlo'   >MC2</Sampler>
+            <Output  class='Datas'            type='TimePointSet' >MCrom</Output>
+            <!--Output  class='OutStreamManager' type='Print'        >outMC_dump</Output-->
+        </MultiRun>
+        <OutStreamStep name='PrintMCrom'>
+            <Input class='Datas' type='TimePointSet'>MCrom</Input>
+            <Output  class='OutStreamManager' type='Print'>outMCrom</Output>
+        </OutStreamStep>
+
+        <MultiRun name='MCSampleDirect' pauseAtEnd='False'>
+            <Input   class='Datas'            type='TimePointSet' >dummyIN</Input>
+            <Model   class='Models'           type='ExternalModel'>attenuation</Model>
             <Sampler class='Samplers'         type='MonteCarlo'   >MC2</Sampler>
             <Output  class='Datas'            type='TimePointSet' >MCsamples</Output>
-            <Output  class='OutStreamManager' type='Print'        >outMC_dump</Output>
         </MultiRun>
+        <IOStep name='PrintMCdirect'>
+            <Input class='Datas' type='TimePointSet'>MCsamples</Input>
+            <Output  class='OutStreamManager' type='Print'        >outMCdirect</Output>
+        </IOStep>
+
+        <PostProcess name='PPMCdirect'>
+            <Input class='Datas' type='TimePointSet'>MCsamples</Input>
+            <Model class='Models' type='PostProcessor' >basicStatsPP</Model>
+            <Output class='Files' type='' >MCdirect.stats</Output>
+        </PostProcess>
+        <PostProcess name='PPMCrom'>
+            <Input class='Datas' type='TimePointSet'>MCrom</Input>
+            <Model class='Models' type='PostProcessor' >basicStatsPP</Model>
+            <Output class='Files' type='' >MCrom.stats</Output>
+        </PostProcess>
     </Steps>
 
     <DataBases>
