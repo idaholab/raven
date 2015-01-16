@@ -430,6 +430,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     if len(self.getInpParametersValues().keys()) == 0 and len(self.getOutParametersValues()) == 0: return True
     else:                                                                                          return False
 
+  def __len__(self):
+    '''
+    Overriding of the __len__ method for data.
+    len(dataobject) is going to return the size of the first output element found in the self._dataParameters['outParams']
+    @ In, None
+    @ Out, integer, size of first output element
+    '''
+    if len(self._dataParameters['outParam']) == 0: return 0
+    else: return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
+
   def sizeData(self,typeVar,keyword=None,nodeid=None,serialize=False):
     '''
     Function to get the size of the Data.
@@ -439,15 +449,25 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, serialize, string, optional, serialize the tree if in hierarchical mode
     @ Out, dictionary, keyword:size
     '''
-    outcome = {}
+    outcome   = {}
+    emptyData = False
+    if self.isItEmpty(): emptyData = True
     if typeVar.lower() in ['input','inputs','output','outputs']:
-      if keyword != None: outcome[keyword] = len(self.getParam(typeVar,keyword,nodeid,serialize))
+      if keyword != None:
+        if not emptyData: outcome[keyword] = len(self.getParam(typeVar,keyword,nodeid,serialize))
+        else            : outcome[keyword] = 0
       else:
-        for key in self.getParaKeys(typeVar): outcome[key] = len(self.getParam(typeVar,key,nodeid,serialize))
+        for key in self.getParaKeys(typeVar):
+          if not emptyData: outcome[key] = len(self.getParam(typeVar,key,nodeid,serialize))
+          else            : outcome[key] = 0
     elif typeVar.lower() == 'metadata':
-      if keyword != None: outcome[keyword] = len(self.getMetadata(keyword,nodeid,serialize))
+      if keyword != None:
+        if not emptyData: outcome[keyword] = len(self.getMetadata(keyword,nodeid,serialize))
+        else            : outcome[keyword] = 0
       else:
-        for key,value in self.getAllMetadata(nodeid,serialize): outcome[key] = len(value)
+        for key,value in self.getAllMetadata(nodeid,serialize):
+          if not emptyData: outcome[key] = len(value)
+          else            : outcome[key] = 0
     else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.sizeData')
     return outcome
 
