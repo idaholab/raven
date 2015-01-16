@@ -222,8 +222,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.auxcnt = externalSeeding
     for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport : self.localInitialize(solutionExport=solutionExport)
-    else              : self.localInitialize()
+    if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
+    else                      : self.localInitialize()
 
   def localInitialize(self):
     '''
@@ -441,6 +441,8 @@ class AdaptiveSampler(Sampler):
   def localInitialize(self,solutionExport=None):
     self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
+    # check if solutionExport is actually a "Datas" type "TimePointSet"
+    if type(solutionExport).__name__ != "TimePointSet": raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
