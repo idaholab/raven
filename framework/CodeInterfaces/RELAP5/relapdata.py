@@ -11,9 +11,7 @@ class relapdata:
     self.EndTime=self.gettime(self.lines)
     self.readraven()
 
-  def hasAtLeastMinorData(self):
-    if self.minordata != None: return True
-    else                     : return False
+  def hasAtLeastMinorData(self): return self.minordata != None
 
   def gettime(self,lines):
     for i in lines:
