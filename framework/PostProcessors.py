@@ -552,22 +552,29 @@ def print_graphs(csv, reference, data_stats, cdf_func):
   print("Graph from ",low,"to",high)
   n = int(math.ceil((high-low)/data_stats['min_bin_size']))
   interval = (high - low)/n
-  print('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"','"f_z(z)"',file=csv,sep=',')
+  def print_csv(*args):
+    print(*args,file=csv,sep=',')
+
+  print_csv('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"','"f_z(z)"')
   def f_z(z):
     return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 10000)
 
   for i in range(n):
     x = low+interval*i
-    print(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x),f_z(x),file=csv,sep=',')
+    print_csv(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x),f_z(x))
 
   cdf_area_difference = simpson(lambda x:abs(cdf_func(x)-normal_cdf(x,ref_mean,ref_stddev)),low_low,high_high,1000)
 
   def first_moment_simpson(f, a, b, n):
     return simpson(lambda x:x*f(x), a, b, n)
 
+  pdf_common_area = simpson(lambda x:min(normal(x,ref_mean,ref_stddev),
+                                         skew_normal(x,calc_alpha,calc_xi,calc_omega)),
+                            low_low,high_high,1000)
   #first_moment_function_diff = first_moment_simpson(f_z, low_low,
   #                                                  high_high, 1000)
-  print('"cdf_area_difference"',cdf_area_difference,file=csv,sep=',')
+  print_csv('"cdf_area_difference"',cdf_area_difference)
+  print_csv('"pdf_common_area"',pdf_common_area)
   #print('"first_moment_function_diff"',first_moment_function_diff,file=csv,sep=',')
 
 
