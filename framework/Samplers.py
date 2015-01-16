@@ -397,26 +397,27 @@ class AdaptiveSampler(Sampler):
       if   convergenceNode.attrib['forceIteration']=='True' : self.forceIteration   = True
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
       else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
-    #assembler node
-    assemblerNode = xmlNode.find('Assembler')
-    if assemblerNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the node Assembler is missed in the definition of the adaptive sampler!')
+    #assembler node: Hidden from User
+    targEvalNode = xmlNode.find('TargetEvaluation')
+    if targEvalNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> TargetEvaluation object is required. Not found in Sampler '+self.name + '!')
+    self.assemblerObjects[targEvalNode.tag] = [targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]            
+    functionNode = xmlNode.find('Function')
+    if functionNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Function object is required. Not Found in Sampler '+self.name + '!')
+    self.assemblerObjects[functionNode.tag] = [functionNode.attrib['class'],functionNode.attrib['type'],functionNode.text]    
+    romNode = xmlNode.find('ROM')
+    if romNode != None: self.assemblerObjects[romNode.tag] = [romNode.attrib['class'],romNode.attrib['type'],romNode.text]
     targEvalCounter  = 0
     romCounter       = 0
     functionCounter  = 0
-    for subNode in assemblerNode:
-      if subNode.tag in ['TargetEvaluation','ROM','Function']:
-        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+    for subNode in xmlNode: 
       if 'TargetEvaluation' in subNode.tag:
         targEvalCounter += 1
-        self.assemblerObjects[subNode.tag] = [subNode.attrib['class'],subNode.attrib['type'],subNode.text]
       if 'ROM'              in subNode.tag:
         romCounter += 1
-        self.assemblerObjects[subNode.tag] = [subNode.attrib['class'],subNode.attrib['type'],subNode.text]
       if 'Function'         in subNode.tag:
         functionCounter += 1
-        self.assemblerObjects[subNode.tag] = [subNode.attrib['class'],subNode.attrib['type'],subNode.text]
     if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
-    if functionCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!')
+    if functionCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!') 
     if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
     # set subgrid
     if self.subGridTol == None: self.subGridTol = self.tolerance

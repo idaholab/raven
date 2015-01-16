@@ -90,35 +90,38 @@ class BasePostProcessor(Assembler):
     self.printTag = self.type.ljust(25)
     if 'debug' in xmlNode.attrib.keys():self.debug = bool(xmlNode.attrib['debug'])
     if self.requiredAssObject[0]:
-      testObjects = {}
-      assemblerNode = xmlNode.find('Assembler')
-      if assemblerNode == None:
-        for tofto in self.requiredAssObject[1][1]:
-          if not str(tofto).strip().startswith('-'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the node Assembler is missed in the definition of the '+self.type+' PostProcessor!')
-      else:
-        for to in self.requiredAssObject[1][0]: testObjects[to] = 0
-        for subNode in assemblerNode:
-          if subNode.tag in self.requiredAssObject[1][0]:
-            if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-          if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
-          self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
-          testObjects[subNode.tag]+=1
+        testObjects = {}
+        for token in self.requiredAssObject[1][0]:
+            testObjects[token] = 0
+        found = False
+        for subNode in xmlNode:
+            for token in self.requiredAssObject[1][0]:
+                if subNode.tag in token:
+                    found = True 
+                    if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+                    if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
+                    self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
+                    testObjects[token] += 1
+        if not found:
+            for tofto in self.requiredAssObject[1][0]:
+                if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'): 
+                    raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
         # test the objects found
-        for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
-          numerosity = str(self.requiredAssObject[1][1][cnt])
-          if numerosity.strip().startswith('-'):
-            # optional
-            if tofto in testObjects.keys():
-              numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
-              if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
-          else:
-            # required
-            if tofto not in testObjects.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
-            else:
-              numerosity = numerosity.replace('n',str(testObjects[tofto]))
-              if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+        else:
+            for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
+                numerosity = str(self.requiredAssObject[1][1][cnt])
+                if numerosity.strip().startswith('-'):
+                # optional
+                    if tofto in testObjects.keys():
+                        numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
+                        if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+                else:
+                # required
+                    if tofto not in testObjects.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
+                    else:
+                        numerosity = numerosity.replace('n',str(testObjects[tofto]))
+                        if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
     self._localReadMoreXML(xmlNode)
-
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
 
   def run(self, Input): pass
@@ -193,8 +196,8 @@ class SafestPoint(BasePostProcessor):
                 raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid labels after the variable call. Only "distribution" and "grid" are accepted.')
           else:
             raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the controllable variables call. Only "variable" is accepted.')
-      else:
-        if child.tag != 'Assembler': raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only "controllable", "non-controllable" and "Assembler" are accepted.')
+      #else:
+      #  if child.tag != 'Assembler': raise NameError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> invalid or missing labels after the post-processor call. Only "controllable", "non-controllable" and "Assembler" are accepted.')
     if self.debug:
       print('CONTROLLABLE DISTRIBUTIONS:')
       print(self.controllableDist)
