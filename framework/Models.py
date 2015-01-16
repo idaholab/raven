@@ -580,9 +580,7 @@ class Code(Model):
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
-    if metadata:
-      #for key in metadata: attributes[key] = metadata[key]
-      attributes['metadata'] = metadata
+    if metadata: attributes['metadata'] = metadata
     try:                   output.addGroup(attributes,attributes)
     except AttributeError:
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)

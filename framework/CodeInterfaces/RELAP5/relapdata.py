@@ -11,6 +11,10 @@ class relapdata:
     self.EndTime=self.gettime(self.lines)
     self.readraven()
 
+  def hasAtLeastMinorData(self):
+    if self.minordata != None: return True
+    else                     : return False
+
   def gettime(self,lines):
     for i in lines:
       if re.match('^\s*Final time=',i):
@@ -70,6 +74,7 @@ class relapdata:
     '''    looks for key word MINOR EDIT for reading minor edit block
      and calls readminor block to read in the block of minor edit data '''
     count  = 0
+    minordict = None
     for i in range(len(lines)):
       if re.match('^MINOR EDIT',lines[i]):
         j=i+1
@@ -97,7 +102,8 @@ class relapdata:
   def write_csv(self,filen):
     '''   writes the csv file from minor edit data '''
     IOcsvfile=open(filen,'w')
-    for i in range(len(self.minordata.keys())): IOcsvfile.write('%s,' %(self.minordata.keys()[i]))
+    if self.minordata != None:
+      for i in range(len(self.minordata.keys())): IOcsvfile.write('%s,' %(self.minordata.keys()[i]))
     for j in range(len(self.ravendata.keys())):
       IOcsvfile.write('%s' %(self.ravendata.keys()[j]))
       if j+1<len(self.ravendata.keys()): IOcsvfile.write(',')
