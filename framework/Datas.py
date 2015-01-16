@@ -439,7 +439,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     if len(self._dataParameters['outParam']) == 0: return 0
     else: return self.sizeData('output',keyword=self._dataParameters['outParam'][0])[self._dataParameters['outParam'][0]]
-      
+
   def sizeData(self,typeVar,keyword=None,nodeid=None,serialize=False):
     '''
     Function to get the size of the Data.
@@ -453,19 +453,19 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     emptyData = False
     if self.isItEmpty(): emptyData = True
     if typeVar.lower() in ['input','inputs','output','outputs']:
-      if keyword != None: 
+      if keyword != None:
         if not emptyData: outcome[keyword] = len(self.getParam(typeVar,keyword,nodeid,serialize))
         else            : outcome[keyword] = 0
       else:
-        for key in self.getParaKeys(typeVar): 
+        for key in self.getParaKeys(typeVar):
           if not emptyData: outcome[key] = len(self.getParam(typeVar,key,nodeid,serialize))
           else            : outcome[key] = 0
     elif typeVar.lower() == 'metadata':
-      if keyword != None: 
+      if keyword != None:
         if not emptyData: outcome[keyword] = len(self.getMetadata(keyword,nodeid,serialize))
         else            : outcome[keyword] = 0
       else:
-        for key,value in self.getAllMetadata(nodeid,serialize): 
+        for key,value in self.getAllMetadata(nodeid,serialize):
           if not emptyData: outcome[key] = len(value)
           else            : outcome[key] = 0
     else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type ' + typeVar + ' is not a valid type. Function: Data.sizeData')
