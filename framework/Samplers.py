@@ -443,7 +443,7 @@ class AdaptiveSampler(Sampler):
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "Datas" type "TimePointSet"
     if type(solutionExport).__name__ != "TimePointSet": raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
-    if 
+    if
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
