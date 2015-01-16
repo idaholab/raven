@@ -823,7 +823,7 @@ class MonteCarlo(Sampler):
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
       rvsnum = self.distDict[key].rvs()
       for kkey in key.strip().split(','):
-        self.values[kkey] = copy.deepcopy(rvsnum)
+        self.values[kkey] = rvsnum
         self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
       #self.values[key] = self.distDict[key].rvs()
       #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
@@ -946,7 +946,7 @@ class Grid(Sampler):
         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0)
         if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
+    self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Grid'
 #
 #
@@ -1006,9 +1006,9 @@ class LHS(Grid):
         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
         self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
         if self.gridInfo[varName][0] =='CDF':
-          self.values[kkey] = copy.deepcopy(ppfvalue)
-          self.inputInfo['upper'][kkey] = copy.deepcopy(ppfupper)
-          self.inputInfo['lower'][kkey] = copy.deepcopy(ppflower)
+          self.values[kkey] = ppfvalue
+          self.inputInfo['upper'][kkey] = ppfupper
+          self.inputInfo['lower'][kkey] = ppflower
           self.inputInfo['SampledVarsPb'][varName] = coordinate
           weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
         elif self.gridInfo[varName][0]=='value':
@@ -1019,7 +1019,7 @@ class LHS(Grid):
       if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
       else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight' ] = copy.deepcopy(weight)
+    self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'
 #
 #
@@ -1141,7 +1141,7 @@ class DynamicEventTree(Grid):
     # Collect the branch info in a multi-level dictionary
     endInfo = {'end_time':self.actual_end_time,'end_ts':self.actual_end_ts,'branch_dist':list(self.actualBranchInfo.keys())[0]}
     endInfo['branch_changed_params'] = self.actualBranchInfo[endInfo['branch_dist']]
-    parentNode.add('actual_end_ts',copy.deepcopy(self.actual_end_ts))
+    parentNode.add('actual_end_ts',self.actual_end_ts)
 #     # Get the parent element tree (xml object) to retrieve the information needed to create the new inputs
 #     if(jobObject.identifier == self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().name): endInfo['parent_node'] = self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode()
 #     else: endInfo['parent_node'] = list(self.TreeInfo[self.rootToJob[jobObject.identifier]].getrootnode().iter(jobObject.identifier))[0]
@@ -1381,14 +1381,14 @@ class DynamicEventTree(Grid):
       endInfo['parent_node'].appendBranch(subGroup)
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
-      self.inputInfo = {'prefix':copy.deepcopy(rname.encode()),'end_ts':copy.deepcopy(endInfo['end_ts']),
-                'branch_changed_param':copy.deepcopy([subGroup.get('branch_changed_param')]),
-                'branch_changed_param_value':copy.deepcopy([subGroup.get('branch_changed_param_value')]),
-                'conditional_prb':copy.deepcopy([subGroup.get('conditional_pb')]),
-                'start_time':copy.deepcopy(endInfo['parent_node'].get('end_time')),
+      self.inputInfo = {'prefix':rname.encode(),'end_ts':endInfo['end_ts'],
+                'branch_changed_param':[subGroup.get('branch_changed_param')],
+                'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
+                'conditional_prb':[subGroup.get('conditional_pb')],
+                'start_time':endInfo['parent_node'].get('end_time'),
                 'parent_id':subGroup.get('parent')}
       # add the newer branch name to the map
-      self.rootToJob[copy.deepcopy(rname)] = copy.deepcopy(self.rootToJob[subGroup.get('parent')])
+      self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
       # check if it is a preconditioned DET sampling, if so add the relative information
       precSampled = endInfo['parent_node'].get('preconditionerSampled')
       if precSampled:
@@ -1398,9 +1398,9 @@ class DynamicEventTree(Grid):
       #  In this case there is not a probability threshold that needs to be added in the input
       #  for this particular distribution
       if not (branchedLevel[endInfo['branch_dist']] >= len(self.branchProbabilities[endInfo['branch_dist']])):
-        self.inputInfo['initiator_distribution'] = copy.deepcopy([endInfo['branch_dist']])
-        self.inputInfo['PbThreshold'           ] = copy.deepcopy([self.branchProbabilities[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]])
-        self.inputInfo['ValueThreshold'        ] = copy.deepcopy([self.branchValues[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]])
+        self.inputInfo['initiator_distribution'] = [endInfo['branch_dist']]
+        self.inputInfo['PbThreshold'           ] = [self.branchProbabilities[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]]
+        self.inputInfo['ValueThreshold'        ] = [self.branchValues[endInfo['branch_dist']][branchedLevel[endInfo['branch_dist']]]]
       #  For the other distributions, we put the unbranched thresholds
       #  Before adding these thresholds, check if the keyword 'initiator_distribution' is present...
       #  (In the case the previous if statement is true, this keyword is not present yet
@@ -1414,20 +1414,20 @@ class DynamicEventTree(Grid):
         if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])): self.inputInfo['initiator_distribution'].append(copy.deepcopy(key.encode()))
       for key in self.branchProbabilities.keys():
         if not (key in endInfo['branch_dist']) and (branchedLevel[key] < len(self.branchProbabilities[key])):
-          self.inputInfo['PbThreshold'   ].append(copy.deepcopy(self.branchProbabilities[key][branchedLevel[key]]))
-          self.inputInfo['ValueThreshold'].append(copy.deepcopy(self.branchValues[key][branchedLevel[key]]))
+          self.inputInfo['PbThreshold'   ].append(self.branchProbabilities[key][branchedLevel[key]])
+          self.inputInfo['ValueThreshold'].append(self.branchValues[key][branchedLevel[key]])
       self.inputInfo['SampledVars']   = {}
       self.inputInfo['SampledVarsPb'] = {}
       for varname in self.toBeSampled.keys():
-        self.inputInfo['SampledVars'][varname]   = copy.deepcopy(self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
-        self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]])
+        self.inputInfo['SampledVars'][varname]   = self.branchValues[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
+        self.inputInfo['SampledVarsPb'][varname] = self.branchProbabilities[self.toBeSampled[varname]][branchedLevel[self.toBeSampled[varname]]]
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       # Call the model function "createNewInput" with the "values" dictionary just filled.
       # Add the new input path into the RunQueue system
-      self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**self.inputInfo)))
+      self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
       self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
-      for key,value in self.inputInfo.items(): subGroup.add(key,copy.deepcopy(value))
+      for key,value in self.inputInfo.items(): subGroup.add(key,value)
       popped = endInfo.pop('parent_node')
       subGroup.add('endInfo',copy.deepcopy(endInfo))
       endInfo['parent_node'] = popped
@@ -1559,7 +1559,7 @@ class DynamicEventTree(Grid):
       while preconditioner.amIreadyToProvideAnInput():
         preconditioner.counter +=1
         preconditioner.localGenerateInput(None,None)
-        preconditioner.inputInfo['prefix'] = copy.deepcopy(preconditioner.counter)
+        preconditioner.inputInfo['prefix'] = preconditioner.counter
         precondlistoflist[cnt].append(copy.deepcopy(preconditioner.inputInfo))
     if self.precNumberSamplers > 0:
       print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Number of Preconditioner Samples are ' + str(self.precNumberSamplers) + '!')
@@ -1584,14 +1584,14 @@ class DynamicEventTree(Grid):
       elm.add('branchedLevel', self.branchedLevel[0])
       # Here it is stored all the info regarding the DET => we create the info for all the
       # branchings and we store them
-      self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.NodeTree(copy.deepcopy(elm))
+      self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.NodeTree(elm)
 
     for key in self.branchProbabilities.keys():
       #kk = self.toBeSampled.values().index(key)
-      self.branchValues[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].ppf(float(self.branchProbabilities[key][index]))) for index in range(len(self.branchProbabilities[key]))]
+      self.branchValues[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].ppf(float(self.branchProbabilities[key][index])) for index in range(len(self.branchProbabilities[key]))]
     for key in self.branchValues.keys():
       #kk = self.toBeSampled.values().index(key)
-      self.branchProbabilities[key] = [copy.deepcopy(self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index]))) for index in range(len(self.branchValues[key]))]
+      self.branchProbabilities[key] = [self.distDict[self.toBeSampled.keys()[self.toBeSampled.values().index(key)]].cdf(float(self.branchValues[key][index])) for index in range(len(self.branchValues[key]))]
     return
 #
 #
@@ -1701,37 +1701,37 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     self.counter           += 1
     self.branchCountOnLevel = info['actualBranchOnLevel']+1
     # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
-    rname = copy.deepcopy(info['parent_node'].get('name') + '-' + str(self.branchCountOnLevel))
+    rname = info['parent_node'].get('name') + '-' + str(self.branchCountOnLevel)
     info['parent_node'].add('completedHistory', False)
     print(rname)
-    bcnt = copy.deepcopy(self.branchCountOnLevel)
+    bcnt = self.branchCountOnLevel
     while info['parent_node'].isAnActualBranch(rname):
       bcnt += 1
-      rname = copy.deepcopy(info['parent_node'].get('name') + '-' + str(bcnt))
+      rname = info['parent_node'].get('name') + '-' + str(bcnt)
     # create a subgroup that will be appended to the parent element in the xml tree structure
     subGroup = ETS.Node(rname)
     subGroup.add('parent', info['parent_node'].get('name'))
     subGroup.add('name', rname)
     print('cond pb = '+str(info['parent_node'].get('conditional_pb')))
-    cond_pb_c  = copy.deepcopy(float(info['parent_node'].get('conditional_pb')))
+    cond_pb_c  = float(info['parent_node'].get('conditional_pb'))
 
     # Loop over  branch_changed_params (events) and start storing information,
     # such as conditional pb, variable values, into the xml tree object
     if endInfo:
       for key in endInfo['branch_changed_params'].keys():
         subGroup.add('branch_changed_param',key)
-        subGroup.add('branch_changed_param_value',copy.deepcopy(endInfo['branch_changed_params'][key]['old_value'][0]))
-        subGroup.add('branch_changed_param_pb',copy.deepcopy(endInfo['branch_changed_params'][key]['associated_pb'][0]))
+        subGroup.add('branch_changed_param_value',endInfo['branch_changed_params'][key]['old_value'][0])
+        subGroup.add('branch_changed_param_pb',endInfo['branch_changed_params'][key]['associated_pb'][0])
     else:
       pass
     #cond_pb_c = cond_pb_c + copy.deepcopy(endInfo['branch_changed_params'][key]['unchanged_cond_pb'])
     # add conditional probability
-    subGroup.add('conditional_pb',copy.deepcopy(cond_pb_c))
+    subGroup.add('conditional_pb',cond_pb_c)
     # add initiator distribution info, start time, etc.
     #subGroup.add('initiator_distribution',copy.deepcopy(endInfo['branch_dist']))
-    subGroup.add('start_time', copy.deepcopy(info['parent_node'].get('end_time')))
+    subGroup.add('start_time', info['parent_node'].get('end_time'))
     # initialize the end_time to be equal to the start one... It will modified at the end of this branch
-    subGroup.add('end_time', copy.deepcopy(info['parent_node'].get('end_time')))
+    subGroup.add('end_time', info['parent_node'].get('end_time'))
     # add the branchedLevel dictionary to the subgroup
     #branchedLevel[endInfo['branch_dist']] = branchedLevel[endInfo['branch_dist']] - 1
     # branch calculation info... running, queue, etc are set here
@@ -1743,14 +1743,14 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     info['parent_node'].appendBranch(subGroup)
     # Fill the values dictionary that will be passed into the model in order to create an input
     # In this dictionary the info for changing the original input is stored
-    self.inputInfo = {'prefix':copy.deepcopy(rname),'end_ts':copy.deepcopy(info['parent_node'].get('actual_end_ts')),
-              'branch_changed_param':copy.deepcopy([subGroup.get('branch_changed_param')]),
-              'branch_changed_param_value':copy.deepcopy([subGroup.get('branch_changed_param_value')]),
-              'conditional_prb':copy.deepcopy([subGroup.get('conditional_pb')]),
-              'start_time':copy.deepcopy(info['parent_node'].get('end_time')),
+    self.inputInfo = {'prefix':rname,'end_ts':info['parent_node'].get('actual_end_ts'),
+              'branch_changed_param':[subGroup.get('branch_changed_param')],
+              'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
+              'conditional_prb':[subGroup.get('conditional_pb')],
+              'start_time':info['parent_node'].get('end_time'),
               'parent_id':subGroup.get('parent')}
     # add the newer branch name to the map
-    self.rootToJob[copy.deepcopy(rname)] = copy.deepcopy(self.rootToJob[subGroup.get('parent')])
+    self.rootToJob[rname] = self.rootToJob[subGroup.get('parent')]
 #     check if it is a preconditioned DET sampling, if so add the relative information
 #     precSampled = endInfo['parent_node'].get('preconditionerSampled')
 #     if precSampled:
@@ -1758,21 +1758,21 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
 #       subGroup.add('preconditionerSampled', precSampled)
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
-    self.inputInfo['initiator_distribution'] = copy.deepcopy([self.toBeSampled[key] for key in cdfValues.keys()])
-    self.inputInfo['PbThreshold'           ] = copy.deepcopy(cdfValues.values())
-    self.inputInfo['ValueThreshold'        ] = copy.deepcopy([self.distDict[key].ppf(value) for key,value in cdfValues.items()])
+    self.inputInfo['initiator_distribution'] = [self.toBeSampled[key] for key in cdfValues.keys()]
+    self.inputInfo['PbThreshold'           ] = cdfValues.values()
+    self.inputInfo['ValueThreshold'        ] = [self.distDict[key].ppf(value) for key,value in cdfValues.items()]
     self.inputInfo['SampledVars'           ] = {}
     self.inputInfo['SampledVarsPb'         ] = {}
     for varname in self.toBeSampled.keys():
-      self.inputInfo['SampledVars'][varname]   = copy.deepcopy(self.distDict[varname].ppf(cdfValues[varname]))
-      self.inputInfo['SampledVarsPb'][varname] = copy.deepcopy(cdfValues[varname])
+      self.inputInfo['SampledVars'][varname]   = self.distDict[varname].ppf(cdfValues[varname])
+      self.inputInfo['SampledVarsPb'][varname] = cdfValues[varname]
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())*subGroup.get('conditional_pb')
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
     # Call the model function "createNewInput" with the "values" dictionary just filled.
     # Add the new input path into the RunQueue system
-    self.RunQueue['queue'].append(copy.deepcopy(model.createNewInput(myInput,self.type,**self.inputInfo)))
+    self.RunQueue['queue'].append(model.createNewInput(myInput,self.type,**self.inputInfo))
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
-    for key,value in self.inputInfo.items(): subGroup.add(key,copy.deepcopy(value))
+    for key,value in self.inputInfo.items(): subGroup.add(key,value)
     if endInfo: subGroup.add('endInfo',copy.deepcopy(endInfo))
     # Call the model function "createNewInput" with the "values" dictionary just filled.
     return
@@ -1802,11 +1802,11 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
           for histd in completedHistNames:
             histdict = histd.values()[-1]
             for key in histdict['inputs' ].keys():
-              if key not in lastOutDict['inputs'].keys(): lastOutDict['inputs'][key] = copy.deepcopy(np.atleast_1d(histdict['inputs'][key]))
-              else                                      : lastOutDict['inputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['inputs'][key]),copy.deepcopy(np.atleast_1d(histdict['inputs'][key]))))
+              if key not in lastOutDict['inputs'].keys(): lastOutDict['inputs'][key] = np.atleast_1d(histdict['inputs'][key])
+              else                                      : lastOutDict['inputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['inputs'][key]),np.atleast_1d(histdict['inputs'][key])))
             for key in histdict['outputs'].keys():
-              if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))
-              else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),copy.deepcopy(np.atleast_1d(histdict['outputs'][key]))))
+              if key not in lastOutDict['outputs'].keys(): lastOutDict['outputs'][key] = np.atleast_1d(histdict['outputs'][key])
+              else                                       : lastOutDict['outputs'][key] = np.concatenate((np.atleast_1d(lastOutDict['outputs'][key]),np.atleast_1d(histdict['outputs'][key])))
         else: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> No Completed histories! No possible to start an adaptive search! Something went wrongly!')
       if len(completedHistNames) > self.completedHistCnt:
         self.actualLastOutput = self.lastOutput
@@ -1843,7 +1843,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
           self.branchValues[self.toBeSampled[key]].insert(ind,self.distDict[key].ppf(value))
         investigatedPoint[self.toBeSampled[key]] = value
       # collect investigated point
-      self.investigatedPoints.append(copy.deepcopy(investigatedPoint))
+      self.investigatedPoints.append(investigatedPoint)
 
       if closestBranch:
         info = self._retrieveBranchInfo(closestBranch)
@@ -1868,7 +1868,8 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
         # the advancement of the thresholds must follow the tree structure
         elm.add('branchedLevel', branchedLevel)
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
-        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.NodeTree(copy.deepcopy(elm))
+        #self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.NodeTree(copy.deepcopy(elm))
+        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.NodeTree(elm)
         #self.branchedLevel.append(branchedLevel)
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)
         #self._createRunningQueueBegin(model,myInput)
