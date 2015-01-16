@@ -308,53 +308,60 @@ class QuadratureSet(object):
 
 
 class Legendre(QuadratureSet):
-  def initialize(self):
+  def initialize(self,distr):
     self.rule   = quads.p_roots
     self.params = []
     self.pointRule = GaussQuadRule
 
 class Hermite(QuadratureSet):
-  def initialize(self):
+  def initialize(self,distr):
     self.rule   = quads.he_roots
     self.params = []
     self.pointRule = GaussQuadRule
 
 
 class Laguerre(QuadratureSet):
-  def initialize(self):
+  def initialize(self,distr):
     self.rule   = quads.la_roots
     self.pointRule = GaussQuadRule
+    if distr.type=='Gamma':
+      self.params=[distr.alpha-1]
+    else:
+      raise IOError('No implementation for Laguerre quadrature on '+distr.type+' distribution!')
 
-  def _localReadMoreXML(self,xmlNode):
-    self.params=[]
-    if xmlNode.find('alpha') != None:
-      alpha = float(xmlNode.find('alpha').text)
-    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Laguerre quadrature requires alpha keyword; not found.')
-    self.params = [alpha-1]
-
+#  def _localReadMoreXML(self,xmlNode):
+#    self.params=[]
+#    if xmlNode.find('alpha') != None:
+#      alpha = float(xmlNode.find('alpha').text)
+#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Laguerre quadrature requires alpha keyword; not found.')
+#    self.params = [alpha-1]
 
 class Jacobi(QuadratureSet):
-  def initialize(self):
+  def initialize(self,distr):
     self.rule   = quads.j_roots
     self.pointRule = GaussQuadRule
-
-  def _localReadMoreXML(self,xmlNode):
-    self.params = []
-    if xmlNode.find('alpha') != None:
-      alpha=float(xmlNode.find('alpha').text)
-    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi quadrature requires alpha keyword; not found.')
-    if xmlNode.find('beta') != None:
-      beta=float(xmlNode.find('beta').text)
-    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi quadrature requires beta keyword; not found.')
-    self.params = [beta-1,alpha-1]
+    if distr.type=='Beta':
+      self.params=[distr.beta-1,distr.alpha-1]
+    else:
+      raise IOError('No implementation for Jacobi quadrature on '+distr.type+' distribution!')
     #NOTE this looks totally backward, BUT it is right!
     #The Jacobi measure switches the exponent naming convention
     #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
     #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
 
+#  def _localReadMoreXML(self,xmlNode):
+#    self.params = []
+#    if xmlNode.find('alpha') != None:
+#      alpha=float(xmlNode.find('alpha').text)
+#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi quadrature requires alpha keyword; not found.')
+#    if xmlNode.find('beta') != None:
+#      beta=float(xmlNode.find('beta').text)
+#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi quadrature requires beta keyword; not found.')
+#    self.params = [beta-1,alpha-1]
+
 
 class ClenshawCurtis(QuadratureSet):
-  def initialize(self):
+  def initialize(self,distr):
     self.rule = self.cc_roots
     self.params = []
     self.quadRule = CCQuadRule

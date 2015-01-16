@@ -19,6 +19,14 @@
             <mean>3</mean>
             <sigma>2</sigma>
         </Normal>
+        <Gamma name="GammaDist">
+            <low>1</low>
+            <alpha>2</alpha>
+        </Gamma>
+        <Beta name="BetaDist">
+            <low>1</low>
+            <alpha>2</alpha>
+        </Beta>
     </Distributions>
 
     <Samplers>

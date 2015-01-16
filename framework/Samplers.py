@@ -2190,11 +2190,11 @@ class SparseGridCollocation(Grid):
 
       #TODO FIXME consistency checks between quads-polys-distros
       distr = self.distDict[varName]
-      if quadType not in self.distDict[varName].compatibleQuadrature:
+      if quadType not in distr.compatibleQuadrature:
         raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
 
       quad = Quadratures.returnInstance(quadType,subType)
-      quad.initialize()
+      quad.initialize(distr)
       self.quadDict[varName]=quad
 
       poly = OrthoPolynomials.returnInstance(polyType)
@@ -2227,9 +2227,9 @@ class SparseGridCollocation(Grid):
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
-    try: self.lastOutput.sizeData('output') #FAILS with exception if no output name stashed yet
-    except: return #FIXME better way to check if Datas has any outputs yet
     #print('DEBUG',self.printTag,'at',self.lastOutput.sizeData('output').values()[0],'out of',len(self.sparseGrid))
+    try: self.lastOutput.sizeData('output')
+    except: return
     if self.lastOutput.sizeData('output').values()[0]==len(self.sparseGrid)-1: #-1 because collection is after this call
       for SVL in self.ROM.SupervisedEngine.values():
         SVL.initialize({'SG':self.sparseGrid,

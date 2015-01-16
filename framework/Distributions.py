@@ -531,26 +531,18 @@ class Gamma(BoostDistribution):
       else:b = self.upperBound
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
 
-  def convertDistrPointsToStd(self,y):
-    quad=self.quadratureSet()
-    if quad.type=='Laguerre':
-      return (y-self.low)*(self.beta)
-    else:
-      return Distribution.convertDistrPointsToStd(self,y)
+  def convertGammaToLaguerre(self,y):
+    return (y-self.low)*(self.beta)
 
-  def convertStdPointsToDistr(self,x):
-    quad=self.quadratureSet()
-    if quad.type=='Laguerre':
-      return x/self.beta+self.low
-    else:
-      return Distribution.convertStdPointsToDistr(self,x)
+  def convertLaguerreToGamma(self,x):
+    return x/self.beta+self.low
 
   def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
     #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
 
-  def probabilityWeight(self,x):
+  def ProbabilityWeight(self,x):
     '''Evaluates probability weighting factor for distribution type.'''
     return x**(self.alpha-1)*np.exp(-x/self.beta)
 
@@ -576,7 +568,6 @@ class Beta(BoostDistribution):
     retDict['scale'] = self.hi-self.low
     retDict['low'] = self.low
     return retDict
-
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self,xmlNode)

@@ -15,6 +15,16 @@
             <mean>3</mean>
             <sigma>2</sigma>
         </Normal>
+        <Gamma name="GammaDist">
+            <low>0</low>
+            <alpha>2</alpha>
+        </Gamma>
+        <Beta name="BetaDist">
+            <low>1</low>
+            <high>5</high>
+            <alpha>2</alpha>
+            <beta>5</beta>
+        </Beta>
     </Distributions>
 
     <Samplers>
@@ -40,6 +50,32 @@
             </variable>
             <Assembler>
                 <ROM              class = 'Models' type = 'ROM'         >NROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="GSG" parallel="1">
+            <variable name="x1">
+                <distribution>GammaDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>GammaDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >GROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="BSG" parallel="1">
+            <variable name="x1">
+                <distribution>BetaDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>BetaDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >BROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
             </Assembler>
         </SparseGridCollocation>
@@ -73,18 +109,34 @@
             <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1</Interpolation>
             <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x2</Interpolation>
         </ROM>
+        <ROM name='GROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>2</PolynomialOrder>
+            <Interpolation quad='Laguerre' poly='Laguerre' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Laguerre' poly='Laguerre' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='BROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>2</PolynomialOrder>
+            <Interpolation quad='Jacobi' poly='Laguerre' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Jacobi' poly='Laguerre' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
     </Models>
 
     <Steps>
         <MultiRun name='makeStochPolys' pauseAtEnd='False'>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>USG</Sampler>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>GSG</Sampler>
             <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
             <Output  class='Datas'            type='TimePointSet'         >solns</Output>
         </MultiRun>
         <RomTrainer name='trainROM'>
             <Input   class='Datas'    type='TimePointSet'>solns</Input>
-            <Output  class='Models'   type='ROM'         >UROM</Output>
+            <Output  class='Models'   type='ROM'         >GROM</Output>
         </RomTrainer>
     </Steps>
 
