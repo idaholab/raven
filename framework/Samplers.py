@@ -643,7 +643,7 @@ class AdaptiveSampler(Sampler):
     listsurfPoint=[]
     myIdList= np.zeros(self.nVar)
     for coordinate in np.rollaxis(toBeTested,0):
-      myIdList[:]=copy.deepcopy(coordinate)
+      myIdList[:]=coordinate
       if self.testMatrix[tuple(coordinate)]*sign>0:
         for iVar in range(self.nVar):
           if coordinate[iVar]+1<self.gridShape[iVar]:
