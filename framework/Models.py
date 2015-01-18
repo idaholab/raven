@@ -154,7 +154,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
     @return the new input in a list form
     '''
-    return [(copy.deepcopy(Kwargs))]
+    return [(copy.copy(Kwargs))]
 
   @abc.abstractmethod
   def run(self,Input,jobHandler):
@@ -236,7 +236,7 @@ class Dummy(Model):
     if None in inputDict.values(): raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
-    return [(inputDict)],copy.deepcopy(Kwargs)
+    return [(inputDict)],copy.copy(Kwargs)
 
   def run(self,Input,jobHandler):
     '''
@@ -252,7 +252,7 @@ class Dummy(Model):
 
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "-> No available Output to collect (Run probabably is not finished yet)")
-    exportDict = {'input_space_params':copy.deepcopy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.deepcopy(finishedJob.returnEvaluation()[1]),'metadata':copy.deepcopy(finishedJob.returnMetadata())}
+    exportDict = {'input_space_params':finishedJob.returnEvaluation()[0],'output_space_params':finishedJob.returnEvaluation()[1],'metadata':finishedJob.returnMetadata()}
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] :
@@ -402,8 +402,8 @@ class ExternalModel(Dummy):
     if 'createNewInput' in dir(self.sim):
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.deepcopy(modelVariableValues)
-    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.deepcopy(modelVariableValues)
+      return ([(extCreateNewInput)],copy.copy(Kwargs)),copy.copy(modelVariableValues)
+    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -436,16 +436,16 @@ class ExternalModel(Dummy):
     '''
     class Object(object):pass
     externalSelf        = Object()
-    for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.deepcopy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.deepcopy(value)')
+    for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
     modelVariableValues = {}
     for key in self.modelVariableType.keys(): modelVariableValues[key] = None
-    for key in Input[1].keys(): modelVariableValues[key] = copy.deepcopy(Input[1][key])
+    for key in Input[1].keys(): modelVariableValues[key] = copy.copy(Input[1][key])
     if 'createNewInput' not in dir(self.sim):
-      for key in Input[0].keys(): modelVariableValues[key] = copy.deepcopy(Input[0][key])
-      for key in self.modelVariableType.keys() : execCommand('self.'+ key +' = copy.deepcopy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.deepcopy(modelVariableValues[key])')  #self.__uploadSolution()
+      for key in Input[0].keys(): modelVariableValues[key] = copy.copy(Input[0][key])
+      for key in self.modelVariableType.keys() : execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
     self.sim.run(externalSelf, Input[0])
-    for key in self.modelVariableType.keys()   : execCommand('object["'+key+'"]  = copy.deepcopy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.deepcopy(externalSelf.'+key+')') #self.__pointSolution()
-    for key in self.initExtSelf.__dict__.keys(): execCommand('self.' +key+' = copy.deepcopy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.deepcopy(externalSelf.'+key+')')
+    for key in self.modelVariableType.keys()   : execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
+    for key in self.initExtSelf.__dict__.keys(): execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():
       errorfound = False
       for key in self.modelVariableType.keys():
@@ -455,7 +455,7 @@ class ExternalModel(Dummy):
           errorfound = True
           print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key])
       if errorfound: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Errors detected. See above!!')
-    return copy.deepcopy(modelVariableValues)
+    return copy.copy(modelVariableValues)
 
   def run(self,Input,jobHandler):
     '''
@@ -463,7 +463,7 @@ class ExternalModel(Dummy):
     @ In, Input, list, list of the inputs needed for running the model
     @ In, jobHandler, jobHandler object, jobhandler instance
     '''
-    inRun = copy.deepcopy(self._manipulateInput(Input[0][0]))
+    inRun = copy.copy(self._manipulateInput(Input[0][0]))
     jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1])
 
   def collectOutput(self,finishedJob,output):
@@ -561,7 +561,7 @@ class Code(Model):
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),copy.deepcopy(Kwargs))
+    return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
