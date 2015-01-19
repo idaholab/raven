@@ -802,8 +802,9 @@ In the \textbf{Adaptive} input block, the user needs to specify the variables ne
          \item \textbf{subGridTol}, \textit{optional string attribute}, in this attribute the user can define a tolerance for constructing a sub-grid on which the acceleration ROM is going to be tested. \textit{Default = None};
       \end{itemize}   
    Summarizing,  this xml node contains the information that are needed in order to control this sampler convergence criterion.
-   \item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node contains a ``list'' of objects that are required (or optional) for the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
-Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
+% Assembler Objects
+   \item \textbf{Assembler Objects} These objects are either required or optional depending on the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+Each of these nodes  must contain 2 attributes that are used to map those within the simulation framework:
    \begin{itemize}
      \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from. For example, it can be ``Models'', ``Functions'', etc;
      \item \textbf{type},  \textit{required string attribute}, it is the object identifier or sub-type. For example, it can be ``ROM'', ``External'', etc.
@@ -828,12 +829,10 @@ XML INPUT:
 <Samplers>
   ...
   <Adaptive name = 'AdaptiveName'>
-    <Assembler>
-        <ROM                   class = 'Models'    type = 'ROM'            >ROMname</ROM>
-        <Function             class = 'Functions' type = 'External'      >FunctionName</Function>
-        <TargetEvaluation class = 'Datas'     type = 'TimePointSet'>DataName</TargetEvaluation>
-    </Assembler>
-    <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
+   <ROM                   class = 'Models'    type = 'ROM'            >ROMname</ROM>
+    <Function             class = 'Functions' type = 'External'      >FunctionName</Function>
+    <TargetEvaluation class = 'Datas'     type = 'TimePointSet'>DataName</TargetEvaluation>
+   <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
       1e-2
     </Convergence>
     <variable name = 'var1'>
@@ -941,8 +940,9 @@ Based on the $construction$ type, the content of the $<grid>$ xml node and the r
          \item \textbf{subGridTol}, \textit{optional string attribute}, in this attribute the user can define a tolerance for constructing a sub-grid on which the acceleration ROM is going to be tested. \textit{Default = None};
       \end{itemize}   
    Summarizing,  this xml node contains the information that are needed in order to control this sampler convergence criterion.
-   \item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node contains a ``list'' of objects that are required (or optional) for the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
-Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
+% Assembler Objects
+   \item \textbf{Assembler Objects} These objects are either required or optional depending on the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+Each of these nodes  must contain 2 attributes that are used to map those within the simulation framework:
    \begin{itemize}
      \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from. For example, it can be ``Models'', ``Functions'', etc;
      \item \textbf{type},  \textit{required string attribute}, it is the object identifier or sub-type. For example, it can be ``ROM'', ``External'', etc.
@@ -966,11 +966,9 @@ XML INPUT:
 <Samplers>
   ...
   <AdaptiveDynamicEventTree name = 'AdaptiveName'>
-    <Assembler>
-        <ROM                   class = 'Models'    type = 'ROM'            >ROMname</ROM>
-        <Function             class = 'Functions' type = 'External'      >FunctionName</Function>
-        <TargetEvaluation class = 'Datas'     type = 'TimePointSet'>DataName</TargetEvaluation>
-    </Assembler>
+    <ROM                   class = 'Models'    type = 'ROM'            >ROMname</ROM>
+    <Function             class = 'Functions' type = 'External'      >FunctionName</Function>
+    <TargetEvaluation class = 'Datas'     type = 'TimePointSet'>DataName</TargetEvaluation>
     <Convergence limit = '3000' subGridTol= '0.001' forceIteration = 'False' weight = 'none' persistence = '5'>
       1e-2
     </Convergence>
