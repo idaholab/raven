@@ -1796,6 +1796,8 @@ class TopologicalDecomposition(BasePostProcessor):
     for key,value in R2s.iteritems():
       outputDict['R2_' + key] = value
     print('========== Gaussian Fits: ==========')
+    print(u'a*e^(-(x-\u03BC)TA(x-\u03BC)) + c - a\t(\u03BC & c are fixed, ' + 
+          ' A and a are estimated)')
     minFlowSet = {}
     for idx in xrange(0,len(outputData)):
       minIdx = self.__amsc.MinLabel(idx)
@@ -1823,7 +1825,8 @@ class TopologicalDecomposition(BasePostProcessor):
         A = np.identity(len(arg[0][:-1]))*np.array(arg[0][:-1])
         for idx in xrange(0,len(yvec)):
           v = mu-xvec[idx]
-          err.append(yvec[idx] - a*np.exp(-(v.dot(A).dot(v))) + c - a)
+          yPredicted = (a*np.exp(-(v.dot(A).dot(v))) + c - a)
+          err.append(yvec[idx] - yPredicted)
         return err
 
       paramGuess = [] 
@@ -1833,13 +1836,14 @@ class TopologicalDecomposition(BasePostProcessor):
         paramGuess.append(1)
 
       # Amplitude estimate (the range of this data, opens up for minima thus
-      # the amplitude should be negative, and the opens down for the maxima thus
-      # amplitude should be positive
+      # the amplitude should be negative
       paramGuess.append(outputData[minIdx]-max(outputData[indices]))
 
       test = leastsq(residuals, paramGuess, args=(X,Y))
-      print(str(minIdx) + ':\n\tA=' + str(test[0][2]))
-      print('\tCov=' + str(test[0][0:-1]))
+      print(str(minIdx) + u':\n\t\u03BC=' + str(mu))
+      print('\tc=' + str(c))
+      print('\ta=' + str(test[0][2]))
+      print('\tA=\n' + str(np.identity(2)*test[0][0:-1]) + '\n')
 
     maxFlowSet = {}
     for idx in xrange(0,len(outputData)):
@@ -1868,7 +1872,8 @@ class TopologicalDecomposition(BasePostProcessor):
         A = np.identity(len(arg[0][:-1]))*np.array(arg[0][:-1])
         for idx in xrange(0,len(yvec)):
           v = mu-xvec[idx]
-          err.append(yvec[idx] - a*np.exp(-(v.dot(A).dot(v))) + c - a)
+          yPredicted = (a*np.exp(-(v.dot(A).dot(v))) + c - a)
+          err.append(yvec[idx] - yPredicted)
         return err
 
       paramGuess = [] 
@@ -1877,14 +1882,15 @@ class TopologicalDecomposition(BasePostProcessor):
       for d in xrange(0,self.dimensionCount):
         paramGuess.append(1)
 
-      # Amplitude estimate (the range of this data, opens up for minima thus
-      # the amplitude should be negative, and the opens down for the maxima thus
-      # amplitude should be positive
+      # Amplitude estimate (the range of this data, opens down for the maxima
+      # thus amplitude should be positive
       paramGuess.append(outputData[maxIdx]-min(outputData[indices]))
 
       test = leastsq(residuals, paramGuess, args=(X,Y))
-      print(str(maxIdx) + ':\n\tA=' + str(test[0][2]))
-      print('\tCov=' + str(test[0][0:-1]))
+      print(str(maxIdx) + u':\n\t\u03BC=' + str(mu))
+      print('\tc=' + str(c))
+      print('\ta=' + str(test[0][2]))
+      print('\tA=' + str(np.identity(2)*test[0][0:-1]) + '\n')
 
 #    pairs = partitions.keys()
 #    mins = set(map(lambda x: int(x.split(',')[0]),pairs))
