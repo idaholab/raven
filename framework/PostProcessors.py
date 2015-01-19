@@ -1703,6 +1703,8 @@ class TopologicalDecomposition(BasePostProcessor):
             output.updateMetadata(key,[value])
           elif key.startswith('R2'):
             output.updateMetadata(key,[value])
+          elif key.startswith('Gaussian'):
+            output.updateMetadata(key,[value])
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
@@ -1845,6 +1847,11 @@ class TopologicalDecomposition(BasePostProcessor):
       print('\ta=' + str(test[0][2]))
       print('\tA=\n' + str(np.identity(2)*test[0][0:-1]) + '\n')
 
+      def GaussFit():
+        pass
+
+      outputDict['Gaussian_' + str(minIdx)] = GaussFit
+
     maxFlowSet = {}
     for idx in xrange(0,len(outputData)):
       maxIdx = self.__amsc.MaxLabel(idx)
@@ -1891,6 +1898,11 @@ class TopologicalDecomposition(BasePostProcessor):
       print('\tc=' + str(c))
       print('\ta=' + str(test[0][2]))
       print('\tA=' + str(np.identity(2)*test[0][0:-1]) + '\n')
+
+      def GaussFit():
+        pass
+
+      outputDict['Gaussian_' + str(maxIdx)] = GaussFit
 
 #    pairs = partitions.keys()
 #    mins = set(map(lambda x: int(x.split(',')[0]),pairs))
