@@ -69,11 +69,11 @@ class HOBOInterface:
       historiesFilesPaths = []
       for filenamei in historiesFiles:
         for cnt,inputF in enumerate(currentInputFiles):
-         if filenamei == os.path.basename(inputF): historiesFilesPaths.append(copy.deepcopy(currentInputFiles[cnt]))
+          if filenamei == os.path.basename(inputF): historiesFilesPaths.append(copy.copy(currentInputFiles[cnt]))
       parser = HOBOInputParser.HOBOInputParser(historiesFilesPaths)
     parser.modifyOrAdd(modifDict,True)
     temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.deepcopy(currentInputFiles)
+    newInputFiles = copy.copy(currentInputFiles)
     # now we make a new directory since the code we are running does not let the user change the input and output file names
     # we are going to copy the new filesinto that directory. Also the executable needs to be copied... (for the same reason)
     if not os.path.exists(os.path.join(os.path.split(temp)[0],Kwargs['prefix'])): os.makedirs(os.path.join(os.path.split(temp)[0],Kwargs['prefix']))
@@ -87,15 +87,15 @@ class HOBOInterface:
     except:pass
     shutil.copyfile(Kwargs['executable'],os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.basename(Kwargs['executable'])))
     if not historiesFiles:
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.split(temp)[1])
     else:
       ciccio = []
       for cnt in range(len(oriInputFiles)):
         temp = str(oriInputFiles[cnt][:])
         if os.path.basename(temp) in historiesFiles:
-          ciccio.append(copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.split(temp)[1])))
+          ciccio.append(os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.split(temp)[1]))
         else:
-          newInputFiles[cnt] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.split(temp)[1]))
+          newInputFiles[cnt] = os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.split(temp)[1])
     # change rights of executable
     shutil.copystat(Kwargs['executable'],os.path.join(os.path.split(temp)[0],Kwargs['prefix'],os.path.basename(Kwargs['executable'])))
     if not historiesFiles:
@@ -147,7 +147,7 @@ class HOBOInterface:
             else:Time.append(float(Kwargs['SampledVars'][key])+Time[-1])
 
     if foundKnownParameters: modifDict['strategy1'] = {'T':T,'FissionRate':FissionRate,'time':Time}
-    return copy.deepcopy(modifDict)
+    return modifDict
 
   def DynamicEventTreeForHOBO(self,**Kwargs):
     raise NotYetImplemented("DynamicEventTreeForHOBO not yet implemented")
