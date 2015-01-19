@@ -157,6 +157,41 @@ The main ``class'' NDspline contains a single ROM type, based on a N-Dimensional
 </Simulation>
 ------------------------------------------------------------
 \end{lstlisting}
+
+%%%%% ROM Model - GaussPolynomialRom  %%%%%%% TODO WORKING
+\subsubsection{GaussPolynomialRom.}
+\label{subsubsec:GaussPolynomialRom}
+The ``class'' GaussPolynomialRom contains a single ROM type, based on stochastic collocation for generalized polynomial chaos. Generalized polynomial chaos is a form of interpolation where the interpolant is a multidimensional orthogonal polynomial constructed from sets of characteristic orthonormal polynomials. 
+\\In order to use this Reduced Order Model, the $<ROM>$ attribute \textit{subType} needs to be ``GaussPolynomialRom'' (i.e. \textit{subType = ``GaussPolynomialRom''}). Additionally, stochastic collocation for generalized polynomial chaos requires all variables listed in the Sampler be listed as Features in the ROM.  The following XML sub-nodes are available in addition to those specified in the general \textbf{ROM}:
+\begin{itemize}
+\item $<IndexSet>$\textbf{\textit{,string, required field}}.  In this node, the user specifies one of several methods for choosing combinations of orthonormal polynomial bases.  The choices are \textit{TensorProduct, TotalDegree,} and \textit{HyperbolicCross}.
+\item $<PolynomialOrder>$\textbf{\textit{,integer, required field}}. This node identifies the polynomial expansion level to use in the polynomial representation.  The IndexSet uses this integer as a limit when picking combinations of polynomials to keep in the expansion.  N. B. When using an anisotropic sparse grid sampling regime, it is possible to obtain polynomials with degrees greater than this PolynomialOrder; however, it still serves to limit the overall polynomial order.
+\item $<Interpolation>$\textbf{\textit{,XML-node, optional field}}. This node provides the opportunity to define the quadrature type, polynomial types, importance weights, and distribution representation options for each uncertain input variable.  Each \textbf{Interpolation} node may be applied to one or more variables; any variables for which an interpolation scheme is not specified will default to unity-weight characteristic Gauss quadrature and polynomials (where possible, else Clenshaw Curtis quadrature through a CDF-based distribution transformation).  Interpolation methods may not be defined for any variables which are not listed as Features.
+\end{itemize}
+NB. This ROM type must be trained from a SparseGridCollocation sampling strategy.
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML]
+------------------------------------------------------------
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='SCROM' subType='GaussPolynomialRom'>
+      <Target>ans</Target>
+      <Features>x1,x2</Features>
+      <IndexSet>HyperbolicCross</IndexSet>
+      <PolynomialOrder>5</PolynomialOrder>
+      <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1,x2</In
+      <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='2' cdf='False'>x3</In
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+------------------------------------------------------------
+\end{lstlisting}
+
 %%%%% ROM Model - NDinvDistWeigth  %%%%%%%
 \subsubsection{NDinvDistWeigth.}
 \label{subsubsec:NDinvDistWeigth}

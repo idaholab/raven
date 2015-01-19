@@ -57,6 +57,7 @@ In the RAVEN framework, five different and well-known “once-through” sampler
 \item \textbf{Monte Carlo (MC)}
 \item \textbf{Stratified}
 \item \textbf{Grid Based}
+\item \textbf{Sparse Grid Collocation}
 \item \textbf{Response Surface Design of Experiment}
 \item \textbf{Factorial Design of Experiment}
 \end{itemize}
@@ -178,6 +179,64 @@ Example:
       <grid	type='CDF' construction='custom'>0.2 0.5 1.0</grid>	
     </variable>
   </Grid>
+  ...
+</Samplers>
+---------------------------------------------------------
+\end{lstlisting}
+
+ %%% Once-Through Samplers: Grid
+\subsubsection{Sparse Grid Collocation.}
+\label{subsubsubsec:SparseGridCollocation}
+\textbf{Sparse Grid Collocation} improves on generic \textbf{Grid} sampling by selecting evaluation points based on characteristic quadratures as part of \textbf{stochastic collocation for generalized polynomial chaos} uncertainty quantification.  The main idea is to construct an N-dimensional grid, with each uncertain variable providing an axis.  Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials (see \ref{subsubsec:GaussPolynomialRom}).  In the simplest (and most  naive) case, a N-Dimensional tensor product of all possible combinations of points from each dimension's quadrature is constructed as sampling points.  The number of necessary samples can be reduced by applying Smolyak-like sparse grids, which use reduced combinations of polynomial orders to reduce the necessary sampling space.  The specifications of this Sampler must be defined within the xml block $<Grid>$. This xml-node needs to contain the attribute:
+\begin{itemize}
+\itemsep0em
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other xml input blocks;
+\item \textbf{parallel}, \textit{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid.
+\end{itemize}
+In the \textbf{Sparse Grid Collocation} input block, the user needs to specify the variables need to be sampled as well as the ROM to be constructed using the sparse grid . As already mentioned, the variables are inputted within consecutive xml blocks called $<variable>$:
+\begin{itemize}
+\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\begin{itemize}
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+ \end{itemize}
+ In the variable node, the following xml-node needs to be specified:
+ \begin{itemize}
+    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
+ \end{itemize} \end{itemize}
+Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}):
+\begin{itemize}
+   \item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node contains a ``list'' of objects that are required for the functionality of the Sparse Grid Collocation sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
+   \begin{itemize}
+     \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from. For example, it can be ``Models'', ``Functions'', etc;
+     \item \textbf{type},  \textit{required string attribute}, it is the object identifier or sub-type. In this case, it should be ``ROM'' or ``TargetEvaluation''. 
+    \end{itemize}
+The \textbf{Sparse Grid Collocation} approach requires the following object types:
+   \begin{itemize}
+     \item $<ROM>$\textbf{\textit{, string, optional  field.}}. The body of this xml node must contain the name of a ROM defined in the $<Models>$ block (see section \ref{subsec:models_ROM}), and is restricted to ROM objects compatible with stochastic collocation for generalized polynomial chaos (GaussPolynomialRom and LagrangePolynomialRom, for example);
+        \item $<TargetEvaluation>$\textbf{\textit{, string, required field.}}. The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this xml node must contain the name of a Data defined in the $<Datas>$ block (see section \ref{sec:sec:Datas}). Sparse grid collocation accepts ``Datas'' of type ``TimePointSet'' only.
+    \end{itemize}
+    
+\end{itemize}
+%%%%%%%%%%%%%TODO FIXME WORKING HERE - pt %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{lstlisting}[style=XML]
+---------------------------------------------------------
+Example:
+---------------------------------------------------------
+<Samplers>
+  ...
+  <SparseGridCollocation name="mySG" parallel="0">
+    <variable name="x1">
+      <distribution>myDist1</distribution>
+    </variable>
+    <variable name="x2">
+      <distribution>myDist2</distribution>
+    </variable>
+    <Assembler>
+      <ROM              class = 'Models' type = 'ROM'         >SCROM</ROM>
+      <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEv
+    </Assembler>
+  </SparseGridCollocation>
   ...
 </Samplers>
 ---------------------------------------------------------
