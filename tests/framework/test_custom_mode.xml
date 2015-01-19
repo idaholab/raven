@@ -12,7 +12,7 @@
     <ThreadingCommand></ThreadingCommand>
     <NumThreads></NumThreads>
     <numNode></numNode>
-    <quequingSoftware></quequingSoftware>
+    <queueingSoftware></queueingSoftware>
     <procByNode></procByNode>
     <numProcByRun></numProcByRun>
     <totalNumCoresUsed></totalNumCoresUsed>-->

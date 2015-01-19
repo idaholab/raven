@@ -68,7 +68,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible samplers
   validateDict['Sampler'].append(testDict.copy())
   validateDict['Sampler'][0]['class'       ] ='Samplers'
-  validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+  validateDict['Sampler'][0]['type'        ] = Samplers.knownTypes()
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
 
@@ -575,14 +575,12 @@ class Code(Model):
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
     if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output)
+      out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
-    if metadata:
-      #for key in metadata: attributes[key] = metadata[key]
-      attributes['metadata'] = metadata
+    if metadata: attributes['metadata'] = metadata
     try:                   output.addGroup(attributes,attributes)
     except AttributeError:
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
@@ -757,7 +755,7 @@ for classType in __interFaceDict.values():
   classType.generateValidateDict()
   classType.specializeValidateDict()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type,debug=False):

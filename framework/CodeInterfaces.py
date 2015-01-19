@@ -25,7 +25,9 @@ import utils
 
 __moduleInterfaceList = []
 start_dir = os.path.join(os.path.dirname(__file__),'CodeInterfaces')
-for dirr,_,_ in os.walk(start_dir): __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
+for dirr,_,_ in os.walk(start_dir):
+  __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
+  utils.add_path(dirr)
 __moduleImportedList = []
 
 '''
@@ -40,7 +42,7 @@ for moduleIndex in range(len(__moduleInterfaceList)):
       if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass
 __knownTypes      = list(__interFaceDict.keys())
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnCodeInterface(Type):

@@ -23,6 +23,7 @@
   output = 'branch/DETrunTest/out~DET_test_1-1-2~ideal_pump branch/extract_hist_example/DET_histories_additional_info_DET_test_1-1-2.csv branch/testprint_tpset_hier_variables.csv branch/3-2DHistoryPlot_tps_scatter.pdf'
   csv = 'branch/extract_hist_example/DET_histories_DET_test_1-2.csv'
   required_executable = '../../RAVEN-%METHOD%'
+  #skip = 'Unknown error'
   #skip = 'Josh Broke it by breaking RestartInitialize'
  [../]
 
@@ -83,6 +84,16 @@
   max_time = 1500
   rel_err = 0.001
   required_executable = '../../RAVEN-%METHOD%'
+  skip = 'Relap issue #111'
+ [../]
+
+ [./test_rom_trainer_no_norm]
+  type = 'RavenFramework'
+  input = 'test_rom_trainer_no_normalization.xml'
+  output = 'test_rom_trainer_no_norm/ciccio.csv'
+  csv = 'test_rom_trainer_no_norm/outputMontecarloRom_dump.csv test_rom_trainer_no_norm/outputMontecarloRomND_dump.csv test_rom_trainer_no_norm/ciccio.csv'
+  max_time = 1500
+  rel_err = 0.001
  [../]
 
  [./test_multi_target_rom]
@@ -93,6 +104,7 @@
   max_time = 1500
   rel_err = 0.001
   required_executable = '../../RAVEN-%METHOD%'
+  skip = 'Relap issue #111'
  [../]
 
 
@@ -276,6 +288,13 @@
   input = 'test_safest_point.xml'
   output = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
   csv = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
+ [../]
+
+ [./externalPostProcessor]
+  type = 'RavenFramework'
+  input = 'test_externalPostProcessor.xml'
+  csv = 'externalPostProcessor/myDump.csv'
+  output = 'externalPostProcessor/myDump.xml'
  [../]
 
 []

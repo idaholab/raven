@@ -3,6 +3,7 @@ from Tester import Tester
 from CSVDiffer import CSVDiffer
 import RavenUtils
 import os
+import subprocess
 
 class RavenFramework(Tester):
 
@@ -38,6 +39,12 @@ class RavenFramework(Tester):
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
       return (False,'skipped (Missing executable: "'+self.required_executable+'")')
+    try:
+      if len(self.required_executable) > 0 and \
+         subprocess.call([self.required_executable],stdout=subprocess.PIPE) != 0:
+        return (False,'skipped (Failing executable: "'+self.required_executable+'")')
+    except:
+      return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
     return (True, '')
 
   def prepare(self):

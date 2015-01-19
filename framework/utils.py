@@ -223,11 +223,16 @@ def find_crow(framework_dir):
     #print("pmoduleDir",pmoduleDir)
     if not os.path.exists(pmoduleDir): raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
 
+def add_path(absolutepath):
+  """ Add absolutepath path is in the python path. """
+  if not os.path.exists(absolutepath):
+    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '"directory has not been found!')
+  sys.path.append(absolutepath)
+
 def add_contrib(framework_dir):
   """ Add contrib path is in the python path. """
-  if not os.path.exists(os.path.join(framework_dir,"contrib")):
-    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "contrib" directory in framework folder has not been found!')
-  sys.path.append(os.path.join(framework_dir,"contrib"))
+  if not os.path.exists(os.path.join(framework_dir,"contrib")): raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "contrib" directory in framework folder has not been found!')
+  add_path(os.path.join(framework_dir,"contrib"))
 
 def find_distribution1D():
   """ find the crow distribution1D module and return it. """
