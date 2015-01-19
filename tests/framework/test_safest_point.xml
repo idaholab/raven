@@ -107,11 +107,11 @@
   </Grid>
   
   <Adaptive name = 'dpt_smp'>
-    <Assembler>
+<!--    <Assembler> -->
         <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
         <Function         class = 'Functions' type = 'External'      >g_zr</Function>
         <TargetEvaluation class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
-    </Assembler>
+<!--    </Assembler> -->
     <Convergence limit = '3000' forceIteration = 'False' weight = 'none' persistence = '5'>1e-2</Convergence>
       <variable name = 'x1'>
         <distribution>x1_dst</distribution>
@@ -145,11 +145,11 @@
   </ROM>  
   
   <PostProcessor name='SP' subType='SafestPoint' debug = 'True'>
-    <Assembler>
+<!--    <Assembler> -->
         <Distribution     class = 'Distributions'  type = 'Normal'>x1_dst</Distribution>
         <Distribution     class = 'Distributions'  type = 'Normal'>x2_dst</Distribution>
         <Distribution     class = 'Distributions'  type = 'Normal'>gammay_dst</Distribution>
-    </Assembler>
+<!--    </Assembler> -->
     <controllable>
     	<variable name = 'x1'>
     		<distribution>x1_dst</distribution>
