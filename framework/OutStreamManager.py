@@ -576,7 +576,7 @@ class OutStreamPlot(OutStreamManager):
               else:
                 tempDict['attributes'] = {}
                 for sss in subsubsub: tempDict['attributes'][sss.tag] = sss.text.strip()
-            self.options[subnode.tag][subsub.tag].append(copy.deepcopy(tempDict))
+            self.options[subnode.tag][subsub.tag].append(tempDict)
           else: self.options[subnode.tag][subsub.tag] = subsub.text.strip()
       if subnode.tag in 'title':
         self.options[subnode.tag] = {}
@@ -1154,7 +1154,7 @@ class OutStreamPlot(OutStreamManager):
       #if blockFigure: self.fig.ginput(n=-1, timeout=-1, show_clicks=False)
     for i in range(len(self.options['how']['how'].split(','))):
       if self.options['how']['how'].split(',')[i].lower() != 'screen':
-        if not self.overwrite: prefix = copy.deepcopy(str(self.counter)) + '-'
+        if not self.overwrite: prefix = str(self.counter) + '-'
         else: prefix = ''
         self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
         #self.fig.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
