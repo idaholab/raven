@@ -36,10 +36,10 @@
      scripts compatible with RAVEN -->
   <PostProcessor name='functionPP' subType='External' debug='true'>
     <method>Delta,Sum,Norm,Mean,Max,Min,DoesNotExist</method>
-    <Assembler>
+<!--    <Assembler> -->
       <Function class='Functions' type='External'>basicOps</Function>
       <Function class='Functions' type='External'>advOps</Function>
-    </Assembler>
+<!--    </Assembler> -->
   </PostProcessor>
 </Models>
 <!-- The external methods will be defined in the files pointed to by these
