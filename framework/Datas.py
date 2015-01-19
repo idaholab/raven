@@ -786,7 +786,7 @@ class TimePoint(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['inputs'].pop(name)
     if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-    self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+    self._dataContainer['inputs'][name] = np.atleast_1d(np.array(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -795,7 +795,7 @@ class TimePoint(Data):
       @ In,  value, whatever type, newer value
       @ Out, None
     '''
-    self._dataContainer['metadata'][name] = copy.deepcopy(value)
+    self._dataContainer['metadata'][name] = copy.copy(value)
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     '''
@@ -807,7 +807,7 @@ class TimePoint(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['outputs'].pop(name)
     if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-    self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+    self._dataContainer['outputs'][name] = np.atleast_1d(np.array(value))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -986,7 +986,7 @@ class TimePointSet(Data):
       if name in self._dataContainer['inputs'].keys():
         self._dataContainer['inputs'].pop(name)
       if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-      self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
+      self._dataContainer['inputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['inputs'].keys():
@@ -994,7 +994,7 @@ class TimePointSet(Data):
         self._dataContainer['inputs'][name] = copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-        self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
+        self._dataContainer['inputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1021,12 +1021,12 @@ class TimePointSet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.deepcopy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
+      else                                             : self._dataContainer['metadata'][name] = np.atleast_1d(value)
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.deepcopy(np.atleast_1d(value))
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
+      else                                             : self._dataContainer['metadata'][name] = np.atleast_1d(value)
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     '''
@@ -1056,7 +1056,7 @@ class TimePointSet(Data):
       if name in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(name)
       if name not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(name)
-      self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
+      self._dataContainer['outputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['outputs'].keys():
@@ -1064,7 +1064,7 @@ class TimePointSet(Data):
         self._dataContainer['outputs'][name] = copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-        self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.atleast_1d(value)[-1]))
+        self._dataContainer['outputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -1105,18 +1105,18 @@ class TimePointSet(Data):
                 inpKeys[-1].append(var.split('|')[1])
                 axa = np.zeros(len(O_o[key]))
                 for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][var.split('|')[1]]))[0]
-                inpValues[-1].append(copy.deepcopy(axa))
+                inpValues[-1].append(axa)
         else:
           inpKeys[-1] = O_o[key][0]['inputs'].keys()
           for var in inpKeys[-1]:
             axa = np.zeros(len(O_o[key]))
             for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var][0]
-            inpValues[-1].append(copy.deepcopy(axa))
+            inpValues[-1].append(axa)
           outKeys[-1] = O_o[key][0]['outputs'].keys()
           for var in outKeys[-1]:
             axa = np.zeros(len(O_o[key]))
             for index in range(len(O_o[key])): axa[index] = O_o[key][index]['outputs'][var][0]
-            outValues[-1].append(copy.deepcopy(axa))
+            outValues[-1].append(axa)
           if len(O_o[key][0]['metadata'].keys()) > 0:
             #write metadata as well_known_implementations
             for metaname,value in O_o[key][0]['metadata'].items():
@@ -1126,7 +1126,7 @@ class TimePointSet(Data):
                 inpKeys[-1].append(metaname)
                 axa = np.zeros(len(O_o[key]))
                 for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][metaname]))[0]
-                inpValues[-1].append(copy.deepcopy(axa))
+                inpValues[-1].append(axa)
       if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
       O_o_keys = list(O_o.keys())
@@ -1292,7 +1292,7 @@ class History(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['inputs'].pop(name)
     if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-    self._dataContainer['inputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+    self._dataContainer['inputs'][name] = np.atleast_1d(np.array(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1302,7 +1302,7 @@ class History(Data):
       @ Out, None
       NB. This method, if the metadata name is already present, replaces it with the new value. No appending here, since the metadata are dishomogenius and a common updating strategy is not feasable.
     '''
-    self._dataContainer['metadata'][name] = copy.deepcopy(value)
+    self._dataContainer['metadata'][name] = copy.copy(value)
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     '''
@@ -1314,7 +1314,7 @@ class History(Data):
     if name in self._dataContainer['outputs'].keys():
       self._dataContainer['outputs'].pop(name)
     if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-    self._dataContainer['outputs'][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+    self._dataContainer['outputs'][name] = np.atleast_1d(np.array(value))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -1541,7 +1541,7 @@ class Histories(Data):
       if namep in self._dataContainer['inputs'].keys():
         self._dataContainer['inputs'].pop(name)
       if namep not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(namep)
-      self._dataContainer['inputs'][namep] = copy.deepcopy(np.atleast_1d(np.array(value)))
+      self._dataContainer['inputs'][namep] = np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if type(name) == list:
@@ -1550,19 +1550,19 @@ class Histories(Data):
           gethistory = self._dataContainer['inputs'].pop(name[0])
           popped = gethistory[name[1]]
           if name[1] in popped.keys():
-            gethistory[name[1]] = copy.deepcopy(np.atleast_1d(np.array(value)))
-            self._dataContainer['inputs'][name[0]] = copy.deepcopy(gethistory)
+            gethistory[name[1]] = np.atleast_1d(np.array(value))
+            self._dataContainer['inputs'][name[0]] = gethistory
         else:
-          self._dataContainer['inputs'][name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
+          self._dataContainer['inputs'][name[0]] = {name[1]:np.atleast_1d(np.array(value))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = {name:np.atleast_1d(np.array(value))}
         else:
           hisn = max(self._dataContainer['inputs'].keys())
           if name in list(self._dataContainer['inputs'].values())[-1]:
             hisn += 1
             self._dataContainer['inputs'][hisn] = {}
-          self._dataContainer['inputs'][hisn][name] = copy.deepcopy(np.atleast_1d(np.array(value)))
+          self._dataContainer['inputs'][hisn][name] = np.atleast_1d(np.array(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1651,7 +1651,7 @@ class Histories(Data):
       if namep in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(namep)
       if namep not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(namep)
-      self._dataContainer['outputs'][namep] = copy.deepcopy(np.atleast_1d(np.array(value)))
+      self._dataContainer['outputs'][namep] = np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if type(name) == list:
@@ -1660,13 +1660,13 @@ class Histories(Data):
           gethistory = self._dataContainer['outputs'].pop(name[0])
           popped = gethistory[name[1]]
           if name[1] in popped.keys():
-            gethistory[name[1]] = copy.deepcopy(np.atleast_1d(np.array(value)))
-            self._dataContainer['outputs'][name[0]] = copy.deepcopy(gethistory)
+            gethistory[name[1]] = np.atleast_1d(np.array(value))
+            self._dataContainer['outputs'][name[0]] =gethistory
         else:
-          self._dataContainer['outputs'][name[0]] = copy.deepcopy({name[1]:np.atleast_1d(np.array(value))})
+          self._dataContainer['outputs'][name[0]] = {name[1]:np.atleast_1d(np.array(value))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['outputs'].keys()) == 0: self._dataContainer['outputs'][1] = copy.deepcopy({name:np.atleast_1d(np.array(value))})
+        if len(self._dataContainer['outputs'].keys()) == 0: self._dataContainer['outputs'][1] = {name:np.atleast_1d(np.array(value))}
         else:
           hisn = max(self._dataContainer['outputs'].keys())
           if name in list(self._dataContainer['outputs'].values())[-1]:
@@ -1713,12 +1713,12 @@ class Histories(Data):
           for var in O_o[key][0]['inputs'].keys():
             axa = np.zeros(len(O_o[key]))
             for index in range(len(O_o[key])): axa[index] = O_o[key][index]['inputs'][var][0]
-            inpValues[-1].append(copy.deepcopy(axa))
+            inpValues[-1].append(axa)
           for var in O_o[key][0]['outputs'].keys():
             axa = O_o[key][0]['outputs'][var]
             for index in range(len(O_o[key])-1):
               axa = np.concatenate((axa,O_o[key][index+1]['outputs'][var]))
-            outValues[-1].append(copy.deepcopy(axa))
+            outValues[-1].append(axa)
 
         if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '_' + key + '.csv', 'w')
         else: return
