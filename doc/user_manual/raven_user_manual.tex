@@ -178,12 +178,12 @@ showstringspaces=false            %
     \title{RAVEN User Manual}
     \author{%
     \\
-     \\\textbf{Andrea Alfonsi},   
       \\\textbf{Cristian Rabiti}, 
+         \textbf{Andrea Alfonsi},  
       \\\textbf{Joshua Cogliati},   
-      \\\textbf{Diego Mandelli},  
+         \textbf{Diego Mandelli},  
       \\\textbf{Robert Kinoshita},
-      \\\textbf{Sonat Sen}.
+      \textbf{Sonat Sen}.
     }
     % There is a "Printed" date on the title page of a SAND report, so
     % the generic \date should [WorkingDir:]generally be empty.
@@ -249,9 +249,9 @@ showstringspaces=false            %
     % figures or tables. Make sure this starts on an odd numbered page
     %
     \cleardoublepage		% TOC needs to start on an odd page
-    \tableofcontents
-    \listoffigures
-    \listoftables
+    %\tableofcontents
+    %\listoffigures
+    %\listoftables
 
 
     % ---------------------------------------------------------------------- %
@@ -301,6 +301,7 @@ showstringspaces=false            %
     \SANDmain		% Start the main part of the report
 
 \input{introduction.tex}
+\input{nomenclature.tex}
 \input{install.tex}
 \input{HowToRun.tex}
 \input{ravenStructure.tex}

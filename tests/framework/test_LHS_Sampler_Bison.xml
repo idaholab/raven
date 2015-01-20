@@ -9,7 +9,10 @@
 </RunInfo>
 
 <Models>
-    <Code name='Bison' subType='MooseBasedApp'><executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable></Code>
+    <Code name='Bison' subType='MooseBasedApp'>
+        <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+        <flags>-p -O</flags>
+    </Code>
 </Models>
 
 <Distributions>
@@ -27,6 +30,14 @@
     </Triangular>
 </Distributions>
 <Samplers>
+    <MonteCarlo name='lll' initial_seed ='1' limit="10">
+        <variable name='Materials|heat1|thermal_conductivity' >
+            <distribution >DistTri1</distribution>
+        </variable>
+        <variable name='Materials|heat2|thermal_conductivity'>
+            <distribution >Gauss1</distribution>
+        </variable>
+    </MonteCarlo>
     <LHS name='myLHS' initial_seed ='1'>
       <variable name='Materials|heat1|thermal_conductivity' >
         <distribution >DistTri1</distribution>

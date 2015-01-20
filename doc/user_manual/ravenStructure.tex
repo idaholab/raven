@@ -1,9 +1,9 @@
 \section{Raven Input Structure  \\ \vspace{2 mm} {\small }}
-The RAVEN code does not have a fixed calculation flow, since all its basic objects can be combined in order to create a user-defined calculation flow. Thus, its input (xml) is organized in different xml blocks, each with a different functionality. 
+The RAVEN code does not have a fixed calculation flow, since all its basic objects can be combined in order to create a user-defined calculation flow. Thus, its input (XML) is organized in different XML blocks, each with a different functionality. 
 The main input blocks are as follows:
 \begin{itemize}
-\item \textbf{Simulation}: The simulation block is the one that has inside the entire input, all the following blocks fit inside the simulation block;
-\item \textbf{RunInfo}: Block in which the calculation settings are specified (number of parallel simulations, etc.);
+\item \textbf{Simulation}: As the name suggests, this XML block represents the container of the Simulation is going to be performed by RAVEN. The simulation block covers the entire input, all the following XML nodes fit inside the Simulation section;
+\item \textbf{RunInfo}: This XML block is the place where the user specifies how the calculation needs to be performed (i.e where the calculation settings, such as number of parallel jobs to be spooned, etc,  are specified;
 \item \textbf{Distributions}: Distributions' container;
 \item \textbf{Samplers}: Exploration of the uncertain domain strategy specification;
 \item \textbf{Functions}: External functions container;
