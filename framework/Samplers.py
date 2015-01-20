@@ -2105,21 +2105,21 @@ class SparseGridCollocation(Grid):
     self.importanceDict = {}    #varName-indexed dict of importance weights
     self.lastOutput     = None  #pointer to output datas object
     self.ROM            = None  #pointer to ROM
+    self.jobHandler     = None  #pointer to job handler for parallel runs
     
   def _localWhatDoINeed(self):
     needDict={}
     for value in self.assemblerObjects.values():
       if value[0] not in needDict.keys(): needDict[value[0]]=[]
       needDict[value[0]].append((value[1],value[2]))
-    #needDict['jobHandler'] = (None,None)
-    #TODO I also need a job handler.
+    needDict['internal'] = [(None,'jobHandler')]
     return needDict
 
   def _localGenerateAssembler(self,initDict):
     for key, value in self.assemblerObjects.items():
       if   key in 'TargetEvaluation': self.lastOutput = initDict[value[0]][value[2]]
       elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
-      #FIXME jobhandler
+    self.jobHandler = initDict['internal']['jobHandler']
 
   def _readMoreXML(self,xmlNode):
     Grid._readMoreXML(self,xmlNode)
@@ -2139,6 +2139,7 @@ class SparseGridCollocation(Grid):
         raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
     if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
     if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
 
   def localInputAndChecks(self,xmlNode):
     for child in xmlNode:
@@ -2153,6 +2154,8 @@ class SparseGridCollocation(Grid):
     Grid.localInitialize(self)
     SVL = self.ROM.SupervisedEngine.values()[0]
     ROMdata = SVL.interpolationInfo() #FIXME they are all the same?
+    if len(self.ROM.SupervisedEngine)>1:
+      raise IOError(self.printTag,' ERROR: There is no implementation for collocation with multiple targets (yet)!')
     #TODO how to handle multiple targets?  Assume one for now!
     #check input space consistency
     samVars=self.axisName[:]
@@ -2185,40 +2188,55 @@ class SparseGridCollocation(Grid):
         else:                      polyType = dat['poly']
         subType=None
 
+      #TODO FIXME consistency checks between quads-polys-distros
+      distr = self.distDict[varName]
+      if quadType not in distr.compatibleQuadrature:
+        raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+
       quad = Quadratures.returnInstance(quadType,subType)
-      quad.initialize()
+      quad.initialize(distr)
       self.quadDict[varName]=quad
 
       poly = OrthoPolynomials.returnInstance(polyType)
-      poly.initialize()
+      poly.initialize(quad)
       self.polyDict[varName] = poly
-      #TODO consistency checks between quads-polys-distros
 
       self.importanceDict[varName] = float(dat['weight'])
+      #print('DEBUG poly',self.printTag,'\n',poly[5])
+      #print('DEBUG norm',poly.norm(5))
 
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
     self.indexSet.initialize(self.distDict,self.importanceDict,SVL.maxPolyOrder)
 
     self.sparseGrid = Quadratures.SparseQuad()
-    self.sparseGrid.initialize(self.indexSet,SVL.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,handler) #FIXME handler
+    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid.initialize(self.indexSet,SVL.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
     self.limit=len(self.sparseGrid)
 
   def localGenerateInput(self,model,myInput):
-    pts,weight = self.sparseGrid[self.counter-1]
+    pt,weight = self.sparseGrid[self.counter-1]
+    #actPt = np.zeros(len(pt))
+    #for i,p in enumerate(pt):
+    #  varName = self.distDict.keys()[i]
+    #  actPt[i] = self.distDict[varName].convertToDistr(self.quadDict[varName].type,p)
     for v,varName in enumerate(self.axisName):
-      self.values[varName] = pts[v]
+      self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
-  def localFinalizeActualSampling(jobObject,model,myInput):
-    if len(self.lastOutput)==len(self.sparseGrid):
+  def localFinalizeActualSampling(self,jobObject,model,myInput):
+    #print('DEBUG',self.printTag,'at',self.lastOutput.sizeData('output').values()[0],'out of',len(self.sparseGrid))
+    try: self.lastOutput.sizeData('output')
+    except: return
+    if self.lastOutput.sizeData('output').values()[0]==len(self.sparseGrid)-1: #-1 because collection is after this call
       for SVL in self.ROM.SupervisedEngine.values():
         SVL.initialize({'SG':self.sparseGrid,
                         'dists':self.distDict,
                         'quads':self.quadDict,
-                        'polys':self.polyDict})
+                        'polys':self.polyDict,
+                        'iSet':self.indexSet})
 
 #
 #

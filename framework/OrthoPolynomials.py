@@ -22,29 +22,29 @@ from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OrthogonalPolynomial(BaseType):
+class OrthogonalPolynomial(object):
   '''Provides polynomial generators for stochastic collocation.'''
   def __init__(self):
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
     self.debug = True
+    self.params=[]
 
   def initialize(self):
-    self._poly = self.monomial #orthogonal polynomial constructor function  
-    self._evPoly = self.evalMonomial #orthogonal polynomial constructor function  
+    self._poly = None #self.monomial #orthogonal polynomial constructor function  
+    self._evPoly = None #self.evalMonomial #orthogonal polynomial constructor function  
 
   #TODO whatDoINeed()
 
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order', as poly[2]'''
-    return self._poly(self.orderMod(order),*self.params) * self.norm(order)
+    return self._poly(order,*self.params) * self.norm(order)
 
   def __call__(self,order,pt):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.
        Has to be overwritten if parameters are required.'''
-    inps=self.params+[self.pointMod(pt)]
-    return self._evPoly(self.orderMod(order),*inps) * self.norm(order)
-    #return self._evPoly(self.orderMod(order),self.pointMod(pt)) * self.norm(order)
+    inps=self.params+[self.pointMod(pt)] #TODO pointmod only for CDF...fix?
+    return self._evPoly(order,*inps) * self.norm(order)
 
   def _readMoreXML(self,xmlNode):
     if self.debug:print('Quadrature: need to fix _readMoreXML')
@@ -66,11 +66,6 @@ class OrthogonalPolynomial(BaseType):
 
   def stdPointMod(self,x):
     return x
-
-  def orderMod(self,n):
-    '''For a reason I can't fathom, some scipy polys use base 0 and some base
-       1 for their poly orders.  This function fixes that when necessary.'''
-    return n
 
   def monomial(self,order): #these are default, but not orthogonal at all.
     coeffs=[1]+[0]*(order-1)
@@ -100,9 +95,10 @@ class OrthogonalPolynomial(BaseType):
     return 1.
 
 class Legendre(OrthogonalPolynomial):
-  def initalize(self):
+  def initialize(self,quad):
     self._poly = polys.legendre
     self._evPoly = polys.eval_legendre
+    self.setMeasures(quad)
 
   def setMeasures(self,quad):
     if quad.type=='Legendre':
@@ -124,16 +120,13 @@ class Legendre(OrthogonalPolynomial):
     return uniform
 
   def stdPointMod(self,x):
-    return x*self.scipyNorm()
+    return x#self.scipyNorm()
 
   def scipyNorm(self):
     return np.sqrt(2)
 
-  def orderMod(self,n):
-    return n+1
-
   def norm(self,n):
-    return np.sqrt((2.*n+1.)/2.)
+    return np.sqrt((2.*n+1.))#/2.)
     #OLD NOTE the first 2 is included because scipy legendre poly1d is orthogonal
     #over [-1,1] with with weight function 1:
     #http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.special.legendre.html#scipy.special.legendre 
@@ -141,9 +134,10 @@ class Legendre(OrthogonalPolynomial):
 
 
 class Hermite(OrthogonalPolynomial):
-  def initialize(self):
+  def initialize(self,quad):
     self._poly = polys.hermitenorm
     self._evPoly = polys.eval_hermitenorm
+    self.setMeasures(quad)
 
   def setMeasures(self,quad):
     if quad.type=='Hermite':
@@ -171,16 +165,11 @@ class Hermite(OrthogonalPolynomial):
 
 
 class Laguerre(OrthogonalPolynomial):
-  def initialize(self):
+  def initialize(self,quad):
     self._poly = polys.genlaguerre
     self._evPoly = polys.eval_genlaguerre
-
-  def _localReadMoreXML(self,xmlNode):
-    self.params=[]
-    if xmlNode.find('alpha') != None:
-      alpha = float(xmlNode.find('alpha').text)
-    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Laguerre polynomials require alpha keyword; not found.')
-    self.params = [alpha-1]
+    self.params=quad.params
+    self.setMeasures(quad)
 
   def setMeasures(self,quad):
     if quad.type=='Laguerre':
@@ -204,14 +193,14 @@ class Laguerre(OrthogonalPolynomial):
   def norm(self,order):
     return np.sqrt(factorial(order)/factorial(order+self.params[0]))
 
-  #def scipyNorm(self):
-  #  return np.sqrt(2)
 
 
 class Jacobi(OrthogonalPolynomial):
-  def initialize(self):
+  def initialize(self,quad):
     self._poly = polys.jacobi
     self._evPoly = polys.eval_jacobi
+    self.params=quad.params
+    self.setMeasures(quad)
 
   def _localReadMoreXML(self,xmlNode):
     self.params = []
@@ -222,10 +211,6 @@ class Jacobi(OrthogonalPolynomial):
       beta=float(xmlNode.find('beta').text)
     else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi polynomials require beta keyword; not found.')
     self.params = [beta-1,alpha-1]
-    #NOTE this looks totally backward, BUT it is right!
-    #The Jacobi measure switches the exponent naming convention
-    #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
-    #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
 
   def setMeasures(self,quad):
     if quad.type=='Jacobi':
@@ -256,45 +241,6 @@ class Jacobi(OrthogonalPolynomial):
     return coeff
 
 
-
-#class Irregular(CollocationSet):
-#  #TODO FIX ME
-#  '''This covers all the collocation sets that don't fit in the regular 4.
-#     It uses the CDF and inverse CDF to map onto U[0,1].'''
-#  def setPolynomial(self,quadType=None):
-#    self._polynomial = polys.legendre
-#    self._opt_quad = quads.p_roots
-#    self.setQuadrature(quadType)
-#
-#  #def polyNorm(self,n):
-#  #  return np.sqrt((2.*n+1.)/2.)
-#
-#  def cdfDomainToInputDomainPoint(self,x):
-#    try: return self.distr.ppf(x)
-#    except TypeError:
-#      sln=[]
-#      for xs in x:
-#        sln.append(self.distr.ppf(xs))
-#      return sln
-#  def InputDomainToCdfDomainPoint(self,x):
-#    try: return self.distr.cdf(x)
-#    except TypeError:
-#      sln=[]
-#      for xs in x:
-#        sln.append(self.distr.cdf(xs))
-#      return sln
-#
-#  def cdfDomainToBasisDomainPoint(self,x):
-#    return 2.0*x-1.0
-#  def BasisDomainToCdfDomainPoint(self,x):
-#    return 0.5*(x+1.0)
-#
-#  def stdToActPoint(self,x):
-#    a=self.BasisDomainToCdfDomainPoint(x)
-#    b=self.cdfDomainToInputDomainPoint(a)
-#    return self.cdfDomainToInputDomainPoint(self.BasisDomainToCdfDomainPoint(x))
-#  def actToStdPoint(self,x):
-#    return self.cdfDomainToBasisDomainPoint(self.InputDomainToCdfDomainPoint(x))
 
 '''
  Interface Dictionary (factory) (private)

@@ -593,9 +593,7 @@ class Code(Model):
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
-    if metadata:
-      #for key in metadata: attributes[key] = metadata[key]
-      attributes['metadata'] = metadata
+    if metadata: attributes['metadata'] = metadata
     try:                   output.addGroup(attributes,attributes)
     except AttributeError:
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
@@ -655,12 +653,6 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
-    from Distributions import _FrameworkToCrowDistNames
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][3]['class'       ] = 'Distributions'
-    cls.validateDict['Input'  ][3]['type'        ] = _FrameworkToCrowDistNames.keys()
-    cls.validateDict['Input'  ][3]['required'    ] = False
-    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']

@@ -42,7 +42,8 @@ class Relap5:
     '''
     outfile = os.path.join(workingDir,command.split('-o')[0].split('-i')[-1].strip()+'.o')
     outputobj=relapdata.relapdata(outfile)
-    outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
+    if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
+    else: raise IOError('ERROR! Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
