@@ -97,8 +97,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
     ######
-    self.ND_sampling_params            = None                      # parameters for ND distribution sampling
-    self. distributions2variablesMapping = {}
+    self.ND_sampling_params            = {}                      # parameters for ND distribution sampling
+    self.distributions2variablesMapping = {}
     ###### 
     
   def whatDoINeed(self):
@@ -138,11 +138,12 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
     if 'reseedAtEachIteration' in xmlNode.attrib.keys():
       if xmlNode.attrib['reseedAtEachIteration'].lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
+    
+    '''
     for child in xmlNode:
       for childChild in child:
         if childChild.tag =='distribution':
           if child.tag == 'Distribution':
-            #Add <distribution> to name so we know it is not the direct variable
             self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
           elif child.tag == 'variable': 
             self.toBeSampled[child.attrib['name']] = childChild.text
@@ -151,8 +152,39 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             ###
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
           if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
+    '''
+    prefix = ""
+    for child in xmlNode:
+      if child.tag == 'Distribution':
+        for childChild in child:
+          if childChild.tag =='distribution':
+            prefix = "<distribution>"
+            tobesampled = childChild.text
+      elif child.tag == 'variable':
+        for childChild in child:
+          if childChild.tag =='distribution':
+            tobesampled = childChild.text
+            self.distributions2variablesMapping[childChild.text] = child.attrib['name']
+          if childChild.tag == "dist_init":
+            NDdistData = {}
+            for childChildChild in childChild:
+              if childChildChild.tag == 'initial_grid_disc':
+                NDdistData['initial_grid_disc'] = childChildChild.text
+              if childChildChild.tag == 'tolerance':
+                NDdistData['tolerance'] = childChildChild.text
+            self.ND_sampling_params[tobesampled] = NDdistData
+            
+      else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
+      if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))    
+      
+      self.toBeSampled[prefix+child.attrib['name']] = tobesampled
+    
+    print("self.ND_sampling_params: " + str(self.ND_sampling_params))
+      
     self.localInputAndChecks(xmlNode)
     print("distributions2variablesMapping: " + str(self.distributions2variablesMapping))
+    
+    print("self.ND_sampling_params" + str(self.ND_sampling_params))
 
   def endJobRunnable(self): return self._endJobRunnable
 
@@ -828,17 +860,20 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
-    print('self.distDict: ' + str(self.distDict))
+    #print('self.distDict: ' + str(self.distDict))
+    
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
       rvsnum = self.distDict[key].rvs()
-      print('rvsnum: ' + str(rvsnum))
+      #for i in range(len(rvsnum)):    
+      #  print('rvsnum: ' + str(rvsnum[i]))
       
-      for kkey in key.strip().split(';'):
+      for index, kkey in enumerate(key.strip().split(';')):
         for kkkey in kkey.strip().split(','):
-          self.values[kkkey] = copy.deepcopy(rvsnum)
-          self.inputInfo['SampledVarsPb'][kkkey] = self.distDict[key].pdf(self.values[kkkey])
+          self.values[kkkey] = np.atleast_1d(rvsnum)[index]
+          print('kkkey: ' + str(kkkey) + '; self.values[kkkey]: ' + str(self.values[kkkey]))         
+          #TO BE FIXED: self.inputInfo['SampledVarsPb'][kkkey] = self.distDict[key].pdf(self.values[kkkey])
       
       #for kkey in key.strip().split(','):
       #  self.values[kkey] = copy.deepcopy(rvsnum)
