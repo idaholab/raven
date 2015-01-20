@@ -9,11 +9,11 @@ The core of the RAVEN calculation flow is employed in the so called \textbf{Step
   ...
   <Steps>
     ...
-    <WhatEverStepType name='***'>
-        <Role1 class='***'     type='***'   >***</Role1>
-        <Role2 class='***'     type='***'   >***</Role2>
-        <Role3 class='***'     type='***'   >***</Role3>
-        <Role4 class='***'     type='***'   >***</Role4>
+    <WhatEverStepType name='aName'>
+        <Role1  class='aMainClassType'     type='aSubType'>userDefinedName1</Role1>
+        <Role2  class='aMainClassType'     type='aSubType'>userDefinedName2</Role2>
+        <Role3  class='aMainClassType'     type='aSubType'>userDefinedName3</Role3>
+        <Role4  class='aMainClassType'     type='aSubType'>userDefinedName4</Role4>
     </WhatEverStepType>
     ...
   </Steps>
@@ -41,33 +41,33 @@ For this reason, it is important to analyze each \textbf{Step} type in details.
 \subsection{SingleRun}
 \label{subsec:stepSingleRun}
 The  \textbf{SingleRun} is the simplest step the user can use to assemble a calculation flow. It is aimed to perform a single  action, employed by a \textbf{Model}. For example, it can be used to run a single job (Code Model) and collect the outcomes in a ``Datas'' of type ``TimePoint'' or ``History''.
-\\ The specifications of this Step must be defined within the xml block $<SingleRun>$. This xml-node needs to contain the attributes:
+\\ The specifications of this Step must be defined within the XML block $<SingleRun>$. This XML-node needs to contain the attributes:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the xml-node $<Sequence>$;
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the XML-node $<Sequence>$;
 \item \textbf{pauseAtEnd}, \textit{optional boolean/string attribute}, if True (True values = True, yes, y, t, si, dajie), in case one, or more, of the Outputs is/are of type ``OutStreamManager'', the code is going to pause at the end of the step, waiting for an user signal to continue. For example, it can be used when a OutStreamManager of type Plot is supposed to be output on the screen, in order to be able to interact with the Plot itself (e.g. rotate the figure, change the scale, etc.).  \textit{Default = False};
 \end{itemize}
 \vspace{-5mm}
 In the \textbf{SingleRun} input block, the user needs to specify the objects that need to be used for the different allowable roles. This step accepts the following roles:
 \begin{itemize}
-\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as input for the model specified in this step. This xml node needs to contain the following attributes:
+\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as input for the model specified in this step. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For example, ``Files'', ``Datas'', ``DataBases'', etc;
-  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''. NB. The class ``Files'' has no type (i.e. \textbf{type = ``''}).
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''. N.B. The class ``Files'' has no type (i.e. \textbf{type = ``''}).
 \end{itemize}
-NB. The \textbf{class} and, consequentially,  the \textbf{type} usable for this role depends on the particular $<Model>$ is going to be used. In addition, the user can specify as many $<Input>$ as needed by the model;
-\item $<Model>$, string, required parameter. Name of the ``entity'' that is going to be used as Model. This xml node needs to contain the following attributes:
+N.B. The \textbf{class} and, consequentially,  the \textbf{type} usable for this role depends on the particular $<Model>$ is going to be used. In addition, the user can specify as many $<Input>$ as needed by the model;
+\item $<Model>$, string, required parameter. Name of the ``entity'' that is going to be used as Model. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Models'' can be used;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the ``Models'' object class. For example, the \textbf{type} attribute might be ``Code'', ``ROM'', etc.
 \end{itemize}
-\item $<Output>$, string, required parameter. Name of the ``entity'' that is going to be used as Output for the Model. This xml node needs to contain the following attributes:
+\item $<Output>$, string, required parameter. Name of the ``entity'' that is going to be used as Output for the Model. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Datas'', ``DataBases'' and ``OutStreamManager'' can be used;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''.
 \end{itemize}
-NB. The number of $<Output>$ nodes is unlimited.
+N.B. The number of $<Output>$ nodes is unlimited.
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
@@ -94,45 +94,45 @@ Example:
 \label{subsec:stepMultiRun}
 The  \textbf{MultiRun} step is the place where the user can assemble the calculation flow of an analysis that  requires multiple ``runs'' of the same Model. This Step is generally used when the input (space) of the Model needs to be perturbed by a particular ``Sampling'' strategy.
 'sleepTime','re-seeding'
-\\ The specifications of this Step must be defined within the xml block $<MultiRun>$. This xml-node needs to contain the attributes:
+\\ The specifications of this Step must be defined within the XML block $<MultiRun>$. This XML-node needs to contain the attributes:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the xml-node $<Sequence>$;
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the XML-node $<Sequence>$;
 \item \textbf{pauseAtEnd}, \textit{optional boolean/string attribute}, if True (True values = True, yes, y, t, si, dajie), in case one, or more, of the Outputs is/are of type ``OutStreamManager'', the code is going to pause at the end of the step, waiting for an user signal to continue. For example, it can be used when a OutStreamManager of type Plot is supposed to be output on the screen, in order to be able to interact with the Plot itself (e.g. rotate the figure, change the scale, etc.).  \textit{Default = False};
 \item \textbf{sleepTime}, \textit{optional float attribute}, in this attribute the user can specify the ``waiting time'' (seconds) between two subsequent  inquiries of the status of the submitted job (i.e. check if a run has finished).  \textit{Default = 0.05};
 \end{itemize}
 \vspace{-5mm}
 In the \textbf{MultiRun} input block, the user needs to specify the objects that need to be used for the different allowable roles. This step accepts the following roles:
 \begin{itemize}
-\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as input for the model specified in this step. This xml node needs to contain the following attributes:
+\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as input for the model specified in this step. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For example, ``Files'', ``Datas'', ``DataBases'', etc;
-  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''. NB. The class ``Files'' has no type (i.e. \textbf{type = ``''}).
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''. N.B. The class ``Files'' has no type (i.e. \textbf{type = ``''}).
 \end{itemize}
-NB. The \textbf{class} and, consequentially,  the \textbf{type} usable for this role depends on the particular $<Model>$ is going to be used. In addition, the user can specify as many $<Input>$ as needed by the model;
-\item $<Model>$, string, required parameter. Name of the ``entity'' that is going to be used as Model. This xml node needs to contain the following attributes:
+N.B. The \textbf{class} and, consequentially,  the \textbf{type} usable for this role depends on the particular $<Model>$ is going to be used. In addition, the user can specify as many $<Input>$ as needed by the model;
+\item $<Model>$, string, required parameter. Name of the ``entity'' that is going to be used as Model. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Models'' can be used;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the ``Models'' object class. For example, the \textbf{type} attribute might be ``Code'', ``ROM'', etc.
 \end{itemize}
-\item $<Sampler>$, string, required parameter. Name of the ``entity'' that is going to be used as Sampler. As already mentioned in section \ref{sec:Samplers}, the Sampler is in charge of defining the strategy to perturb the input space. This xml node needs to contain the following attributes:
+\item $<Sampler>$, string, required parameter. Name of the ``entity'' that is going to be used as Sampler. As already mentioned in section \ref{sec:Samplers}, the Sampler is in charge of defining the strategy to perturb the input space. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. Obviously, for this role, only ``Samplers'' can be used;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the ``Samplers'' object class. For example, the \textbf{type} attribute might be ``MonteCarlo'', ``Adaptive'', ``AdaptiveDET'', etc. See section \ref{sec:Samplers} for all the different types currently supported.
 \end{itemize}
-\item $<SolutionExport>$, string, optional parameter. Name of the ``entity'' that is going to be used to export key information coming from the ``Sampler'' object during the simulation. This xml node needs to contain the following attributes:
+\item $<SolutionExport>$, string, optional parameter. Name of the ``entity'' that is going to be used to export key information coming from the ``Sampler'' object during the simulation. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Datas'' can be used;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the ``Datas'' object class. For example, the \textbf{type} attribute might be ``Code'', ``ROM'', etc. 
 \\The possibility to export the Sampler solution depends on the actual Sampler type; currently, only the Samplers in the ``Adaptive'' category can export the solution into the $<SolutionExport>$ ``entity''. For example, if  $<Sampler>$ is of type ``Adaptive'', the $<SolutionExport>$ needs to be of type ``TimePointSet'' and is going to contain the coordinates, in the input space, that belong to the ``Limit Surface''. 
 \end{itemize}
-\item $<Output>$, string, required parameter. Name of the ``entity'' that is going to be used as Output for the Model. This xml node needs to contain the following attributes:
+\item $<Output>$, string, required parameter. Name of the ``entity'' that is going to be used as Output for the Model. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Datas'', ``DataBases'' and ``OutStreamManager'' can be used;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''.
 \end{itemize}
-NB. The number of $<Output>$ nodes is unlimited.
+N.B. The number of $<Output>$ nodes is unlimited.
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
@@ -174,28 +174,28 @@ As the name suggests, the  \textbf{IOStep} is the step where the user can perfor
  \item construct/update a \textit{DataBase} or a \textit{Datas} object from \textit{CSV} files contained in a directory;
  \item stream the content of a \textit{DataBase} or a \textit{Datas} out, through the \textbf{OutStream} objects (see section \ref{sec:outstream}).
 \end{itemize}
- The specifications of this Step must be defined within the xml block $<IOStep>$. This xml-node needs to contain the attributes:
+ The specifications of this Step must be defined within the XML block $<IOStep>$. This XML-node needs to contain the attributes:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the xml-node $<Sequence>$;
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the XML-node $<Sequence>$;
 \item \textbf{pauseAtEnd}, \textit{optional boolean/string attribute}, if True (True values = True, yes, y, t, si, dajie), in case one, or more, of the Outputs is/are of type ``OutStreamManager'', the code is going to pause at the end of the step, waiting for an user signal to continue. For example, it can be used when a OutStreamManager of type Plot is supposed to be output on the screen, in order to be able to interact with the Plot itself (e.g. rotate the figure, change the scale, etc.).  \textit{Default = False};
 \end{itemize}
 \vspace{-5mm}
 In the \textbf{IOStep} input block, the user needs to specify the objects that need to be used for the different allowable roles. This step accepts the following roles:
 \begin{itemize}
-\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as source (input) from which the information needs to be extracted. This xml node needs to contain the following attributes:
+\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as source (input) from which the information needs to be extracted. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. As already mentioned, the allowable main classes are ``Datas''  and ``DataBases'';
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''.
 \end{itemize}
-\item $<Output>$, string, required parameter. Name of the ``entity'' that is going to be used as target (output) in which the information, extracted in the Input, needs to be stored. This xml node needs to contain the following attributes:
+\item $<Output>$, string, required parameter. Name of the ``entity'' that is going to be used as target (output) in which the information, extracted in the Input, needs to be stored. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. The allowable main classes are ``Datas'',``DataBases'' and ``OutStreamManager'';
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``OutStreamManager'', the \textbf{type} attribute might be ``Plot''.
 \end{itemize}
 \end{itemize}
-This step basically acts a ``transfer network'' among the different RAVEN storing (or streaming) objects. The number of $<Output>$ and $<Input>$ nodes is unlimited. This step assumes a 1-to-1 mapping (e.g. first $<Input>$ is going to be used for the first $<Output>$, etc.). \\ NB. This 1-to-1 mapping is not present when $<Output>$ nodes are of  \textbf{class} ``OutStreamManager''; in this case, the user needs to provide in the $<Input>$ nodes, all the ``Datas'' objects are linked to the OutStreamManager objects (see the example below).
+This step basically acts a ``transfer network'' among the different RAVEN storing (or streaming) objects. The number of $<Output>$ and $<Input>$ nodes is unlimited. This step assumes a 1-to-1 mapping (e.g. first $<Input>$ is going to be used for the first $<Output>$, etc.). \\ N.B. This 1-to-1 mapping is not present when $<Output>$ nodes are of  \textbf{class} ``OutStreamManager''; in this case, the user needs to provide in the $<Input>$ nodes, all the ``Datas'' objects are linked to the OutStreamManager objects (see the example below).
 \begin{lstlisting}[style=XML]
 ---------------------------------------------------------
 Example:
@@ -233,21 +233,21 @@ Example:
 \subsection{RomTrainer}
 \label{subsec:stepRomTrainer}
 As the name suggests, the  \textbf{RomTrainer} is the step that is in charge of performing the training of a Reduced Order Model.  
-\\ The specifications of this Step must be defined within the xml block $<RomTrainer>$. This xml-node needs to contain the attributes:
+\\ The specifications of this Step must be defined within the XML block $<RomTrainer>$. This XML-node needs to contain the attributes:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the xml-node $<Sequence>$;
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the XML-node $<Sequence>$;
 \end{itemize}
 \vspace{-5mm}
 In the \textbf{RomTrainer} input block, the user needs to specify the objects that need to be used for the different allowable roles. This step accepts the following roles:
 \begin{itemize}
-\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as source (input) from which the information needs to be extracted. This xml node needs to contain the following attributes:
+\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as source (input) from which the information needs to be extracted. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. As already mentioned, the allowable main classes are ``Datas''  only;
-  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, the \textbf{type} attribute might be ``TimePointSet''. NB. Since the ROMs currently present in RAVEN are not time-dependent, the only allowable types are ``TimePoint'' and ``TimePointSet''.
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, the \textbf{type} attribute might be ``TimePointSet''. N.B. Since the ROMs currently present in RAVEN are not time-dependent, the only allowable types are ``TimePoint'' and ``TimePointSet''.
 \end{itemize}
-\item $<Output>$, string, required parameter. Name of the ROM ``entity'' that is going to be trained. This xml node needs to contain the following attributes:
+\item $<Output>$, string, required parameter. Name of the ROM ``entity'' that is going to be trained. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. The allowable main classes is ``Models'' only;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. The only type accepted here is, currently, ``ROM''.
@@ -274,33 +274,33 @@ Example:
 \subsection{PostProcess}
 \label{subsec:stepPostProcess}
 The \textbf{PostProcess} is the step that is used to post-process data or manipulate RAVEN ``entities''. It is aimed to perform a single action that is actually employed by a \textbf{Model} of type \textbf{PostProcessor}.
-\\ The specifications of this Step must be defined within the xml block $<PostProcess>$. This xml-node needs to contain the attributes:
+\\ The specifications of this Step must be defined within the XML block $<PostProcess>$. This XML-node needs to contain the attributes:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the xml-node $<Sequence>$;
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Step. N.B. As for the other objects, this is the name that can be used to refer to this specific entity in the \textit{RunInfo} block, under the XML-node $<Sequence>$;
 \item \textbf{pauseAtEnd}, \textit{optional boolean/string attribute}, if True (True values = True, yes, y, t, si, dajie), in case one, or more, of the Outputs is/are of type ``OutStreamManager'', the code is going to pause at the end of the step, waiting for an user signal to continue. For example, it can be used when a OutStreamManager of type Plot is supposed to be output on the screen, in order to be able to interact with the Plot itself (e.g. rotate the figure, change the scale, etc.).  \textit{Default = False};
 \end{itemize}
 \vspace{-5mm}
 In the \textbf{PostProcess} input block, the user needs to specify the objects that need to be used for the different allowable roles. This step accepts the following roles:
 \begin{itemize}
-\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as input for the model specified in this step. This xml node needs to contain the following attributes:
+\item $<Input>$, string, required parameter . Name of the ``entity'' that is going to be used as input for the model specified in this step. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For example, ``Files'', ``Datas'', ``DataBases'', etc;
-  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''. NB. The class ``Files'' has no type (i.e. \textbf{type = ``''}).
+  \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''. N.B. The class ``Files'' has no type (i.e. \textbf{type = ``''}).
 \end{itemize}
-NB. The \textbf{class} and, consequentially,  the \textbf{type} usable for this role depends on the particular type of \textbf{PostProcessor} is going to be used. In addition, the user can specify as many $<Input>$ as needed by the model;
-\item $<Model>$, string, required parameter. Name of the ``entity'' that is going to be used as Model. This xml node needs to contain the following attributes:
+N.B. The \textbf{class} and, consequentially,  the \textbf{type} usable for this role depends on the particular type of \textbf{PostProcessor} is going to be used. In addition, the user can specify as many $<Input>$ as needed by the model;
+\item $<Model>$, string, required parameter. Name of the ``entity'' that is going to be used as Model. This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input. For this role, only ``Models'' can be used;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the ``Models'' object class. The only type accepted here is ``PostProcessor''.
 \end{itemize}
-\item $<Output>$, string, required/optional parameter. Name of the ``entity'' that is going to be used as Output for the PostProcessor. The need or not of this xml block, and the types of ``entities'' that can be used as output, depends on the type of ``PostProcessor'' that has been used as \textbf{Model} (see section \ref{sec:models_postProcessor}). This xml node needs to contain the following attributes:
+\item $<Output>$, string, required/optional parameter. Name of the ``entity'' that is going to be used as Output for the PostProcessor. The need or not of this XML block, and the types of ``entities'' that can be used as output, depends on the type of ``PostProcessor'' that has been used as \textbf{Model} (see section \ref{sec:models_postProcessor}). This XML node needs to contain the following attributes:
 \begin{itemize}
   \item \textbf{class}, \textit{required string attribute}, main object class type. The string, required here, corresponds to the tag of the main objects type used in the input;
   \item \textbf{type}, \textit{required string attribute}, the actual entity type. This attribute needs to specify the object type within the main object class. For example, if the  \textbf{class} attribute is ``Datas'', the \textbf{type} attribute might be ``TimePointSet''.
 \end{itemize}
-NB. The number of $<Output>$ nodes is unlimited.
+N.B. The number of $<Output>$ nodes is unlimited.
 \end{itemize}
 
 \begin{lstlisting}[style=XML]

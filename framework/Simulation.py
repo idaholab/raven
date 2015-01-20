@@ -277,7 +277,7 @@ class Simulation(object):
     self.runInfoDict['numNode'           ] = 1            # number of nodes
     #self.runInfoDict['procByNode'        ] = 1            # number of processors by node
     self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver
-    self.runInfoDict['quequingSoftware'  ] = ''           # quequing software name
+    self.runInfoDict['queueingSoftware'  ] = ''           # queueing software name
     self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
     self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.

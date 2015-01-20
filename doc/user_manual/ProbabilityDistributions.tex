@@ -26,8 +26,8 @@ This sub-section is organized in two different parts: 1) Continuous 1-D distribu
 In this paragraph all the 1-D distributions', currently available in RAVEN, are reported.
 \\ Firstly, all the probability distributions functions in the code can be truncated by the following keywords:
 \begin{lstlisting}[style=XML]
-<lowerBound>***</lowerBound>
-<upperBound>***</upperBound>
+<lowerBound>aFloatValue</lowerBound>
+<upperBound>aFloatValue</upperBound>
 \end{lstlisting}
 Obviously, each distribution already defines its validity domain (e.g. Normal distribution, [-inf,+inf]).
 \\ RAVEN currently provides support for 12 1-Dimensional distributions.  In the following paragraphs, all the input requirements are reported and commented.
@@ -35,7 +35,7 @@ Obviously, each distribution already defines its validity domain (e.g. Normal di
 %%%%%% Beta
 \paragraph{Beta Distribution}
 \label{Beta}
-The \distname{Beta} distribution is a continuous distribution  defined on the interval $[0, 1]$ parametrized by two positive shape parameters, denoted by $\alpha$ and $\beta$, that appear as exponents of the random variable and control the shape of the distribution. The distribution domain  can be changed,specifying new boundaries, to fit the user needs.  Its support is $x \in (0, 1)$.
+The \distname{Beta} distribution is defined on the interval $[0, 1]$ parametrized by two positive shape parameters, denoted by $\alpha$ and $\beta$, that appear as exponents of the random variable and control the shape of the distribution. The distribution domain  can be changed,specifying new boundaries, to fit the user needs.  Its support is $x \in (0, 1)$.
 \\ The specifications of this distribution must be defined within the xml block $<Beta>$. This xml-node needs to contain the attribute:
 \vspace{-5mm}
 \begin{itemize}
@@ -58,10 +58,10 @@ Example:
 <Distributions>
   ...
   <Beta name='...'>
-     <low>***</low>
-     <high>***</high>
-     <alpha>***</alpha>
-     <beta>***</beta>
+     <low>aFloatValue</low>
+     <high>aFloatValue</high>
+     <alpha>aFloatValue</alpha>
+     <beta>aFloatValue</beta>
   </Beta>
   ...
 </Distributions>
@@ -73,7 +73,7 @@ Example:
 %%%%%% Exponential
 \paragraph{Exponential Distribution}
 \label{Exponential}
-The \distname{Exponential} distribution is a continuous distribution that can be used to model the time between independent events that
+The \distname{Exponential} distribution can be used to model the time between independent events that
 happen at a constant average time.  Its support is $x \in [0, +\inf)$.
 \\ The specifications of this distribution must be defined within the xml block $<Exponential>$. This xml-node needs to contain the attribute:
 \vspace{-5mm}
@@ -94,7 +94,7 @@ Example:
 <Distributions>
   ...
   <Exponential name='...'>
-    <lambda>***</lambda>
+    <lambda>aFloatValue</lambda>
   </Exponential>
   ...
 </Distributions>
@@ -126,9 +126,9 @@ Example:
 <Distributions>
   ...
   <Gamma name='...'>
-    <alpha>***</alpha>
-    <beta>***</beta>
-    <low>***</low>
+    <alpha>aFloatValue</alpha>
+    <beta>aFloatValue</beta>
+    <low>aFloatValue</low>
   </Gamma>
   ...
 </Distributions>

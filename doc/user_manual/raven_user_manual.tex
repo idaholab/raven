@@ -26,11 +26,24 @@
 \usepackage{amssymb}
 \usepackage{pifont}
 \usepackage{enumerate}
-\usepackage{listings, color}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{xcolor}          % Using xcolor for more robust color specification
+
+% Custom colors
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
 \definecolor{forestgreen}{RGB}{34,139,34}
 \definecolor{orangered}{RGB}{239,134,64}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.6}
 \definecolor{gray}{rgb}{0.4,0.4,0.4}
+
+\lstset {
+  basicstyle=\ttfamily,
+  frame=single
+}
+
 \setcounter{secnumdepth}{5}
 \lstdefinestyle{XML} {
     language=XML,
@@ -40,7 +53,7 @@
     emph={name,dim,interactive,overwrite},
     emphstyle=\color{red},
     basicstyle=\ttfamily,
-    columns=fullflexible,
+%    columns=fullflexible,
     commentstyle=\color{gray}\upshape,
     morestring=[b]",
     morecomment=[s]{<?}{?>},
@@ -66,12 +79,6 @@
 % Default fixed font does not support bold face
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{9} % for bold
 \DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{9}  % for normal
-
-% Custom colors
-\usepackage{color}
-\definecolor{deepblue}{rgb}{0,0,0.5}
-\definecolor{deepred}{rgb}{0.6,0,0}
-\definecolor{deepgreen}{rgb}{0,0.5,0}
 
 \usepackage{listings}
 
@@ -104,6 +111,28 @@ showstringspaces=false            %
 
 % Python for inline
 \newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+% Named Colors for the comments below (Attempted to match git symbol colors)
+\definecolor{RScolor}{HTML}{8EB361}  % Sonat (adjusted for clarity)
+\definecolor{DPMcolor}{HTML}{E28B8D} % Dan
+\definecolor{JCcolor}{HTML}{82A8D9}  % Josh (adjusted for clarity)
+\definecolor{AAcolor}{HTML}{8D7F44}  % Andrea
+\definecolor{CRcolor}{HTML}{AC39CE}  % Cristian
+\definecolor{RKcolor}{HTML}{3ECC8D}  % Bob (adjusted for clarity)
+\definecolor{DMcolor}{HTML}{276605}  % Diego (adjusted for clarity)
+\definecolor{PTcolor}{HTML}{D10B8C}  % Paul
+
+% Comment command for developers (Should only be used under active development)
+\newcommand{\alfoa}[1] {{ { \textcolor{AAcolor}{Andrea:[[#1]]}}}}
+\newcommand{\cristr}[1] {{ { \textcolor{CRcolor}{Cristian:[[#1]]}}}}
+\newcommand{\mandd}[1] {{ { \textcolor{DMcolor}{Diego:[[#1]]}}}}
+\newcommand{\maljdan}[1] {{ { \textcolor{DPMcolor}{Dan:[[#1]]}}}}
+\newcommand{\cogljj}[1] {{ { \textcolor{JCcolor}{Josh:[[#1]]}}}}
+\newcommand{\bobk}[1] {{ { \textcolor{RKcolor}{Bob:[[#1]]}}}}
+\newcommand{\senrs}[1] {{ { \textcolor{RScolor}{Sonat:[[#1]]}}}}
+\newcommand{\talbpaul}[1] {{ { \textcolor{PTcolor}{Paul:[[#1]]}}}}
+\newcommand{\TODO}[1] {{ { \textcolor{red}{\textit{(#1)}}}}}
+
 %%%%%%%% End comands definition to input python code into document
 
 %\usepackage[dvips,light,first,bottomafter]{draftcopy}
@@ -178,12 +207,12 @@ showstringspaces=false            %
     \title{RAVEN User Manual}
     \author{%
     \\
-      \\\textbf{Cristian Rabiti}, 
-         \textbf{Andrea Alfonsi},  
-      \\\textbf{Joshua Cogliati},   
-         \textbf{Diego Mandelli},  
-      \\\textbf{Robert Kinoshita},
-      \textbf{Sonat Sen}.
+     \\\textbf{Cristian Rabiti}
+      \textbf{Andrea Alfonsi}
+      \\\textbf{Joshua Cogliati}
+      \textbf{Diego Mandelli}
+      \\\textbf{Robert Kinoshita}
+      \textbf{Sonat Sen}
     }
     % There is a "Printed" date on the title page of a SAND report, so
     % the generic \date should [WorkingDir:]generally be empty.
@@ -193,7 +222,7 @@ showstringspaces=false            %
 % ---------------------------------------------------------------------------- %
 % Set some things we need for SAND reports. These are mandatory
 %
-\SANDnum{INL/EXT-14-xxxxx}
+\SANDnum{INL/EXT-15-34123}
 \SANDprintDate{January 2015}
 \SANDauthor{ }
 \SANDreleaseType{Draft Release}
@@ -326,7 +355,7 @@ showstringspaces=false            %
     \phantomsection
     \addcontentsline{toc}{section}{References}
     \bibliographystyle{ieeetr}
-    \bibliography{raven_user_manual.bib}
+    \bibliography{raven_user_manual}
 
 
     % ---------------------------------------------------------------------- %
