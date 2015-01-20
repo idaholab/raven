@@ -27,6 +27,7 @@
 \usepackage{pifont}
 \usepackage{enumerate}
 \usepackage{listings}
+\usepackage{fullpage}
 \usepackage{xcolor}          % Using xcolor for more robust color specification
 
 % Custom colors
@@ -38,6 +39,11 @@
 \definecolor{darkblue}{rgb}{0.0,0.0,0.6}
 \definecolor{gray}{rgb}{0.4,0.4,0.4}
 
+\lstset {
+  basicstyle=\ttfamily,
+  frame=single
+}
+
 \setcounter{secnumdepth}{5}
 \lstdefinestyle{XML} {
     language=XML,
@@ -47,7 +53,7 @@
     emph={name,dim,interactive,overwrite},
     emphstyle=\color{red},
     basicstyle=\ttfamily,
-    columns=fullflexible,
+%    columns=fullflexible,
     commentstyle=\color{gray}\upshape,
     morestring=[b]",
     morecomment=[s]{<?}{?>},
