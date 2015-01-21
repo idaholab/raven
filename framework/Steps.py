@@ -59,7 +59,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     self.FIXME = False
     BaseType.__init__(self)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
-    self.sleepTime  = 0.025  # Waiting time before checking if a run is finished
+    self.sleepTime  = 0.005  # Waiting time before checking if a run is finished
     #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
     #  re-seeding = a number to be used as a new seed
     #  re-seeding = 'continue' the use the already present random environment
