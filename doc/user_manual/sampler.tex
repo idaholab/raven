@@ -1,58 +1,184 @@
 \section{Samplers  \\ \vspace{2 mm} {\small }}
 \label{sec:Samplers}
-The sampler is probably the most important entity in the RAVEN framework. Indeed, it performs the driving of the specific sampling strategy and, hence, determines the effectiveness of the analysis, from both an accuracy and computational point of view.  The samplers, that are available in RAVEN, can be categorized in three main classes:
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% If you are confused by the input of this document, please make sure you see
+% these defined commands first. There is no point writing the same thing over
+% and over and over and over and over again, so these will help us reduce typos,
+% by just editing a template sentence.
+\renewcommand{\nameDescription}{\xmlAttr{name},
+  \xmlDesc{required string attribute}, user-defined name of this sampler.
+  \nb As with other objects, this identifier can be used to reference this
+  specific entity from other input blocks in the XML.}
+\renewcommand{\specBlock}[2]{The specifications of this sampler must be
+defined within #1 \xmlNode{#2} XML block.}
+\renewcommand{\subnodeIntro}{This \xmlNode{variable} recognizes the following
+  child node:}
+\renewcommand{\subnodesIntro}{This \xmlNode{variable} recognizes the following
+  children nodes:}
+\newcommand{\variableIntro}[1]{In the \xmlNode{#1} input block, the user
+needs to specify the variables to sample.
+%
+As already mentioned, these variables are specified within consecutive
+\xmlNode{variable} XML blocks:}
+\newcommand{\variableDescription}{\xmlNode{variable}, \xmlDesc{XML node,
+  required parameter} will specify one attribute:
+  \begin{itemize}
+    \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+      of this variable.
+  \end{itemize}}
+\newcommand{\distributionDescription}{\xmlNode{distribution}, \xmlDesc{string,
+  required field}, name of the distribution that is associated to this variable.
+  Its name needs to be contained in the \xmlNode{Distributions} block explained
+  in Section \ref{sec:distributions}.}
+
+\newcommand{\gridDescription}{
+  \xmlNode{grid}, \xmlDesc{float or space separated floats, required
+  field}, the content of this XML node depends on the definition of the
+  associated attributes:
+  \begin{itemize}
+  \itemsep0em
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, user-defined
+      discretization metric type: 1) \xmlString{CDF}, the grid will be
+      specified based on cumulative distribution function probability
+      thresholds, and 2) \xmlString{value}, the grid will be provided
+      using variable values.
+    \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
+      the grid needs to be constructed, independently by its type (i.e.
+      \xmlString{CDF} or \xmlString{value}).
+  \end{itemize}
+Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
+XML node and the requirements for other attributes change:
+\begin{itemize}
+  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{equal}.
+    The grid is going to be constructed equally-spaced
+    (\xmlAttr{type}\textbf{\texttt{=}}\xmlString{value}) or equally probable
+    (\xmlAttr{type}\textbf{\texttt{=}}\xmlString{CDF}).
+    This construction type requires the definition of additional attributes:
+      \begin{itemize}
+         \item \xmlAttr{steps}, \xmlDesc{required integer attribute}, number
+           of equally spaced/probable discretization steps.
+         \item \xmlAttr{upperBound}, \xmlDesc{required float attribute}, the
+           upper limit of the grid.
+           \nb This attribute must be specified if the \xmlAttr{lowerBound}
+           has not been defined.
+         \item \xmlAttr{lowerBound}, \xmlDesc{required float attribute}, the
+           lower limit of the grid.
+           \nb This attribute must be specified if the \xmlAttr{upperBound}
+           has not been defined.
+      \end{itemize}
+      This construction type requires that the content of the \xmlNode{grid}
+      node represents the step size (either in probability or value).
+      The attributes \xmlAttr{lowerBound} and \xmlAttr{upperBound} are
+      mutually exclusive (only one of them can be specified):
+      \maljdan{Where is stepSize defined?}
+      \begin{itemize}
+      \item If the \xmlAttr{upperBound} is present, the grid lower bound
+        will be at:\\
+        $\xmlAttr{upperBound} - \xmlAttr{steps}*\xmlAttr{stepSize}$
+      \item If the \xmlAttr{lowerBound} is present, the grid upper bound
+        will be at:\\
+        $\xmlAttr{lowerBound} + \xmlAttr{steps}*\xmlAttr{stepSize}$
+      \end{itemize}
+      The lower and upper bounds are checked against the associated
+      \xmlNode{distribution} bounds.
+      If one or both of them falls outside the distribution's bounds, the
+      code will raise an error.
+  \item \xmlAttr{construction}\textbf{\texttt{=}}\xmlString{custom}.
+    The grid will be directly specified by the user.
+    No additional attributes are needed.
+
+    This construction type requires that the \xmlNode{grid} node contains
+    the actual mesh bins.
+    For example, if the grid \xmlAttr{type} is \xmlString{CDF}, in the body
+    of \xmlNode{grid}, the user will specify the CDF probability thresholds
+    (nodalization in probability).
+\end{itemize}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The sampler is probably the most important entity in the RAVEN framework.
+%
+Indeed, it performs the driving of the specific sampling strategy and, hence,
+determines the effectiveness of the analysis, from both an accuracy and
+computational point of view.
+%
+The samplers, that are available in RAVEN, can be categorized into three main
+classes:
 \begin{itemize}
 \item \textbf{Once-through}
 \item \textbf{Dynamic Event Tree (DET)}
 \item \textbf{Adaptive}
 \end{itemize}
-Before analyzing  each sampler in details, it is important to mention that each type has a similar syntax to input the variables that need to be ``sampled''. In the example below the variable ``variableName'' is going to be sampled by the Sampler ``WhatEverSampler'' using the distribution ``aDistribution''. 
+Before analyzing each sampler in detail, it is important to mention that each
+type has a similar syntax to input the variables to be ``sampled''.
+%
+In the example below, the variable \xmlString{variableName} is going to be
+sampled by the Sampler \xmlString{whatever} using the distribution named\\
+\xmlString{aDistribution}.
 \begin{lstlisting}[style=XML]
---------------------------------------------
 <Simulation>
   ...
   <Samplers>
     ...
     <WhatEverSampler name='whatever'>
       ...
-     <variable name='variableName'> 
+     <variable name='variableName'>
        ...
        <distribution>aDistribution</distribution>
        ...
      </variable>
-      ... 
+      ...
     </WhatEverSampler>
     ...
   </Samplers>
   ...
 </Simulation>
---------------------------------------------
 \end{lstlisting}
-As reported in section \ref{sec:existingInterface}, the variable naming syntax, for external driven codes, depends on the way the ``code interface'' has been implemented. For example, if the code has an input structure like the one reported below, the variable name would be ``$I-Level|II-Level|variable$''; in this way, the relative code interface (and input parser) will know which variable needs to be perturbed and the ``recipe'' to access to it. As reported in \ref{sec:existingInterface}, its syntax is  chosen by the developer of the ``code interface'' and is implemented in the interface only (no modifications are needed in the RAVEN code).
 
-\begin{lstlisting}[style=XML]
---------------------------------------------
+As reported in section \ref{sec:existingInterface}, the variable naming syntax,
+for external driven codes, depends on the way the ``code interface'' has been
+implemented.
+%
+For example, if the code has an input structure like the one reported below, the
+variable name would be\xmlString{I-Level|II-Level|variable}.
+%
+In this way, the relative code interface (and input parser) will know which
+variable needs to be perturbed and the ``recipe'' to access it.
+%
+As reported in \ref{sec:existingInterface}, its syntax is chosen by the
+developer of the ``code interface'' and is implemented in the interface only
+(no modifications are needed in the RAVEN code).
+
 Example Input:
+\begin{lstlisting}
 [I-Level]
   [./II-Level]
     variable = xxx
   [../]
 []
-XML relative 
-----------
+\end{lstlisting}
+
 Example XML block:
-<variable name=''I-Level|II-Level|variable''> 
+\begin{lstlisting}[style=XML]
+<variable name='I-Level|II-Level|variable'>
   <distribution>exampleDistribution</distribution>
 </variable>
---------------------------------------------
 \end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Once-Through Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Once-through Samplers.}
 \label{subsec:onceThroughSamplers}
-The once-through sampler category collects all the strategies that perform the sampling of the input space without exploiting, through dynamic learning approaches, the information made available from the outcomes of calculation previously performed (adaptive sampling) and the common system evolution (patterns) that different sampled calculations can generate in the phase space (dynamic event tree). 
-In the RAVEN framework, five different and well-known “once-through” samplers are available: 
+The once-through sampler category collects all the strategies that perform the
+sampling of the input space without exploiting, through dynamic learning
+approaches, the information made available from the outcomes of calculations
+previously performed (adaptive sampling) and the common system evolution
+(patterns) that different sampled calculations can generate in the phase space
+(dynamic event tree).
+%
+In the RAVEN framework, five different and well-known “once-through” samplers
+are available:
 \begin{itemize}
 \item \textbf{Monte Carlo (MC)}
 \item \textbf{Stratified}
@@ -60,322 +186,400 @@ In the RAVEN framework, five different and well-known “once-through” sampler
 \item \textbf{Response Surface Design of Experiment}
 \item \textbf{Factorial Design of Experiment}
 \end{itemize}
-From a practical point of view, these sampling strategies represent different ways to perturb the input space. In the following paragraphs, the input requirements and a small explaination of the different sampling methodologies are reported.
+
+From a practical point of view, these sampling strategies represent different
+ways to perturb the input space.
+%
+In the following paragraphs, the input requirements and a small explanation of
+the different sampling methodologies are reported.
+
 %%% Once-Through Samplers: MonteCarlo
 \subsubsection{Monte Carlo.}
 \label{subsubsubsec:MC}
-\textbf{Monte-Carlo} sampling approach is one of the most well-known and used approaches to perform exploration of the input space. The main idea, behind it, is the random perturbation of the input space accordingly with uniform or parameter-based probability density functions. 
-\\ The specifications of this Sampler must be defined within the xml block $<MonteCarlo>$. This xml-node needs to contain the attribute:
+The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
+widely used approaches to perform exploration of the input space.
+%
+The main idea behind it is the random perturbation of the input space according
+to uniform or parameter-based probability density functions.
+%
+
+\specBlock{a}{MonteCarlo}
+%
+\attrsIntro
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
-\item \textbf{limit}, \textit{required integer attribute}, number of MonteCarlo samples needs to be generated;
-\item \textbf{initial\_seed}, \textit{optional integer attribute}, initial seeding of random number generator. \textit{Default = random seed};
-\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t, si, dajie). \textit{Default = False}; 
+\item \nameDescription
+\item \xmlAttr{limit}, \xmlDesc{required integer attribute}, number of
+  Monte-Carlo samples to be generate.
+\item \xmlAttr{initial\_seed}, \xmlDesc{optional integer attribute}, initial
+  seeding of random number generator.
+  \textit{Default = random seed}.
+\item \xmlAttr{reseedAtEachIteration}, \xmlDesc{optional boolean/string
+  attribute}, perform a re-seeding for each sample generated
+  (True values = True, yes, y, t, si, dajie).
+  \textit{Default = False}.
 \end{itemize}
 \vspace{-5mm}
-In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+\variableIntro{MonteCarlo}
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
-\begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
-\end{itemize}
- In the variable node, the following xml-nodes need to be specified:
+\item \variableDescription
+ \subnodeIntro
  \begin{itemize}
-    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions}.
+    \item \distributionDescription
   \end{itemize}
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
----------------------------------------------------------
 Example:
----------------------------------------------------------
+\begin{lstlisting}[style=XML]
 <Samplers>
   ...
-  <MonteCarlo name='MCname' limit='10' initial_seed='200286' reseedAtEachIteration='false'> 
-    <variable name='var1'> 
-      <distribution>***</distribution> 	
-    </variable> 
+  <MonteCarlo name='MCname' limit='10' initial_seed='200286' reseedAtEachIteration='false'>
+    <variable name='var1'>
+      <distribution>***</distribution>
+    </variable>
   </MonteCarlo>
   ...
 </Samplers>
----------------------------------------------------------
 \end{lstlisting}
+
 %%% Once-Through Samplers: Grid
 \subsubsection{Grid.}
 \label{subsubsubsec:Grid}
-\textbf{Grid} sampling approach is probably the simplest exploration approach that can be employed to explore the uncertain domain. The main idea, behind it, is the construction of a N-Dimensional grid, where each dimension is represented by the uncertain variables. This approach performs the sampling of each node of the grid.  The sampling of the grid consists in evaluating the answer of the system under all the possible combinations among the different variables' values, with respect a predefined discretization metric.  In RAVEN two discretization metrics are available: 1) Cumulative Distribution Function, and 2) Value. Thus, the grid meshing can be inputted either in probability or in absolute values.
-\\ The specifications of this Sampler must be defined within the xml block $<Grid>$. This xml-node needs to contain the attribute:
-\begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
-\end{itemize}
-In the \textbf{Grid} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
-\begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
-\begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
- \end{itemize}
- In the variable node, the following xml-nodes need to be specified:
- \begin{itemize}
-    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
-    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this xml node depends on the definition of the associated attributes:
-\begin{itemize}
-\itemsep0em
-\item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
-\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$). 
-\end{itemize}
+The \textbf{Grid} sampling approach is probably the simplest exploration
+approach that can be employed to explore an uncertain domain.
+%
+The idea is to construct an $N$-dimensional grid where each dimension is
+represented by one uncertain variable.
+%
+This approach performs the sampling at each node of the grid.
+%
+The sampling of the grid consists in evaluating the answer of the system under
+all possible combinations among the different variables' values with respect to
+a predefined discretization metric.
+%
+In RAVEN two discretization metrics are available: 1) cumulative distribution
+function, and 2) value.
+%
+Thus, the grid meshing can be input via probability or variable values.
 
-Based on the $construction$ type, the content of the $<grid>$ xml node and the requirements for other attributes change:
+\specBlock{a}{Grid}
+%
+\attrIntro
 \begin{itemize}
-  \item \textit{construction = ``equal''}. The grid is going to be constructed equally-spaced ( type = ``value'') or equally-probable (type == ``CDF''). This construction type requires the definition of additional attributes:
-      \begin{itemize}
-         \item \textbf{steps}, \textit{required integer attribute}, number of equally-spaced/probable discretization steps.
-         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid. 
-        NB. This attribute must be specified if the \textbf{lowerBound} has not been defined;
-         \item \textbf{lowerBound}, \textit{required float attribute}, the lower limit of the grid.
-        NB. This attribute must be specified if the \textbf{upperBound} has not been defined;
-      \end{itemize}
-      This construction type requires that the content of the xml node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
-      \\ If the \textit{upperBound} is present, the grid lower bound is going to be at the $upperBound - steps*stepSize$
-      \\ If the \textit{lowerBound} is present, the grid upper bound is going to be at the $lowerBound + steps*stepSize$
-      The lower and upper bounds are checked against the associated $<distribution>$ bounds. If one or both of them fell/s outside the distribution's bounds, the code is going to raise an error.
-  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed. 
-     \\This construction type requires that the xml node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
+\itemsep0em
+\item \nameDescription
 \end{itemize}
+\variableIntro{Grid}
+\begin{itemize}
+\item \variableDescription
+ \subnodesIntro
+ \begin{itemize}
+    \item \distributionDescription
+    \item \gridDescription
   \end{itemize}
 \end{itemize}
-\begin{lstlisting}[style=XML]
----------------------------------------------------------
+
 Example:
----------------------------------------------------------
+\begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
 <Samplers>
   ...
-  <Grid name='Gridname'> 
-    <variable name='var1'> 
+  <Grid name='Gridname'>
+    <variable name='var1'>
       <distribution>***</distribution>
-      <grid	type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>	
-    </variable> 
-    <variable name='var2'> 
-      <distribution>***</distribution>
-      <grid	type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>	
+      <grid type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>
     </variable>
-    <variable name='var3'> 
+    <variable name='var2'>
       <distribution>***</distribution>
-      <grid	type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>	
-    </variable> 
-    <variable name='var4'> 
-      <distribution>***</distribution>
-      <grid	type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>	
+      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>
     </variable>
-    <variable name='var5'> 
+    <variable name='var3'>
       <distribution>***</distribution>
-      <grid	type='value' construction='custom'>0.2 0.5 10.0</grid>	
-    </variable> 
-    <variable name='var6'> 
+      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>
+    </variable>
+    <variable name='var4'>
       <distribution>***</distribution>
-      <grid	type='CDF' construction='custom'>0.2 0.5 1.0</grid>	
+      <grid type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>
+    </variable>
+    <variable name='var5'>
+      <distribution>***</distribution>
+      <grid type='value' construction='custom'>0.2 0.5 10.0</grid>
+    </variable>
+    <variable name='var6'>
+      <distribution>***</distribution>
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
   </Grid>
   ...
 </Samplers>
----------------------------------------------------------
 \end{lstlisting}
- 
+
 %%% Once-Through Samplers: Stratified
 \subsubsection{Stratified.}
 \label{subsubsubsec:Stratified}
-\textbf{Stratified} sampling approach is a method for the exploration of the input space that basically consists in dividing the uncertain domain into  subgroups before sampling. In the ``stratified'' sampling, these subgroups must be:
+The \textbf{Stratified} sampling approach is a method for the exploration of the
+input space that consists of dividing the uncertain domain into subgroups before
+sampling.
+%
+In the ``stratified'' sampling, these subgroups must be:
 \begin{itemize}
- \item mutually exclusive: every element in the population must be assigned to only one stratum (subgroup);
+ \item mutually exclusive: every element in the population must be assigned to
+   only one stratum (subgroup);
  \item collectively exhaustive: no population element can be excluded.
 \end{itemize}
-Then simple random sampling or systematic sampling is applied within each stratum. It is worth to notice that the well-known Latin Hyper Cube sampling represents a specialization of the Stratified approach, when the domain strata are constructed in equally-probable CDF bins.
-\\ The specifications of this Sampler must be defined within the xml block $<Stratified>$. This xml-node needs to contain the attribute:
+
+Then simple random sampling or systematic sampling is applied within each
+stratum.
+%
+It is worthwhile to note that the well-known Latin hypercube sampling represents
+a specialized version of the stratified approach, when the domain strata are
+constructed in equally-probable CDF bins.
+
+\specBlock{a}{Stratified}
+%
+\attrIntro
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \nameDescription
 \end{itemize}
-In the \textbf{Stratified} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+\variableIntro{Stratified}
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
-\begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
- \end{itemize}
- In the variable node, the following xml-nodes need to be specified:
+\item \variableDescription
+ \subnodesIntro
  \begin{itemize}
-    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
-    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this xml node depends on the definition of the associated attributes:
-\begin{itemize}
-\itemsep0em
-\item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
-\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$). 
-\end{itemize}
-Based on the $construction$ type, the content of the $<grid>$ xml node and the requirements for other attributes change:
-\begin{itemize}
-  \item \textit{construction = ``equal''}. The grid is going to be constructed equally-spaced ( type = ``value'') or equally-probable (type == ``CDF''). This construction type requires the definition of additional attributes:
-      \begin{itemize}
-         \item \textbf{steps}, \textit{required integer attribute}, number of equally-spaced/probable discretization steps.
-         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid. 
-        NB. This attribute must be specified if the \textbf{lowerBound} has not been defined;
-         \item \textbf{lowerBound}, \textit{required float attribute}, the lower limit of the grid.
-        NB. This attribute must be specified if the \textbf{upperBound} has not been defined;
-      \end{itemize}
-      This construction type requires that the content of the xml node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
-      \\ If the \textit{upperBound} is present, the grid lower bound is going to be at the $upperBound - steps*stepSize$
-      \\ If the \textit{lowerBound} is present, the grid upper bound is going to be at the $lowerBound + steps*stepSize$
-      The lower and upper bounds are checked against the associated $<distribution>$ bounds. If one or both of them fell/s outside the distribution's bounds, the code is going to raise an error.
-  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed. 
-     \\This construction type requires that the xml node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
-\end{itemize}
+    \item \distributionDescription
+    \item \gridDescription
   \end{itemize}
 \end{itemize}
-As it is inferable from above, the input specifications for the \textbf{Stratified} sampler are similar the Grid sampler ones. It is important to mention again that for each zone (grid mesh) only a point, randomly selected, is picked and not all the nodal combinations (like in the Grid sampling).
 
-\begin{lstlisting}[style=XML]
----------------------------------------------------------
+As one can see, the input specifications for the \textbf{Stratified} sampler are
+similar to that of the \textbf{Grid} sampler.
+%
+It is important to mention again that for each zone (grid mesh) only a point,
+randomly selected, is picked and not all the nodal combinations (like in the
+\textbf{Grid} sampling).
+
 Example:
----------------------------------------------------------
+\begin{lstlisting}[style=XML,morekeywords={construction,steps,lowerBound,upperBound}]
 <Samplers>
   ...
-  <Stratified name='StratifiedName'> 
-    <variable name='var1'> 
+  <Stratified name='StratifiedName'>
+    <variable name='var1'>
       <distribution>***</distribution>
-      <grid	type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>	
+      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>
     </variable>
-    <variable name='var2'> 
+    <variable name='var2'>
       <distribution>***</distribution>
-      <grid	type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>	
-    </variable> 
-    <variable name='var3'> 
+      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>
+    </variable>
+    <variable name='var3'>
       <distribution>***</distribution>
-      <grid	type='CDF' construction='custom'>0.2 0.5 1.0</grid>	
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
   </Stratified>
   ...
 </Samplers>
----------------------------------------------------------
 \end{lstlisting}
- 
+
 %%% Once-Through Samplers: Response Surface Design
 \subsubsection{Response Surface Design.}
 \label{subsubsubsec:RespSurfDOE}
-\textbf{Response Surface Design} approach is one of the most common Design of Experiment (DOE) methodology that are currently in use. It explores the relationships between several explanatory variables and one or more response variables.  The main idea of RSM is to use a sequence of designed experiments to obtain an optimal response. RAVEN Currently  employs two different algorithms that can be classified within this methodology family:
+The \textbf{Response Surface Design}, or Response Surface Modeling (RSM), 
+approach is one of the most common Design of Experiment (DOE) methodologies
+currently in use.
+%
+It explores the relationships between several explanatory variables and one or
+more response variables.
+%
+The main idea of RSM is to use a sequence of designed experiments to obtain an
+optimal response.
+%
+RAVEN currently employs two different algorithms that can be classified within
+this family of methods:
 \begin{itemize}
- \item \textbf{Box-Behnken} design: this methodology has the aim to achieve the following goals:
-\begin{itemize}
-\item  Each factor, or independent variable, is placed at one of three equally spaced values, usually coded as -1, 0, +1. (At least three levels are needed for the following goal);
-\item  The design should be sufficient to fit a quadratic model, that is, one containing squared terms and products of two factors;
-\item  The ratio of the number of experimental points to the number of coefficients in the quadratic model should be reasonable (in fact, their designs kept it in the range of 1.5 to 2.6);
-\item  The estimation variance should more or less depend only on the distance from the center (this is achieved exactly for the designs with 4 and 7 factors), and should not vary too much inside the smallest (hyper)cube containing the experimental points.
+ \item \textbf{Box-Behnken}: This methodology aims to achieve the following
+  goals:
+  \begin{itemize}
+    \item Each factor, or independent variable, is placed at one of three
+      equally spaced values, usually coded as -1, 0, +1. (At least three levels
+      are needed for the following goal);
+    \item The design should be sufficient to fit a quadratic model, that is, one
+      squared term per factor and the products of any two factors;
+    \item The ratio of the number of experimental points to the number of
+      coefficients in the quadratic model should be reasonable (in fact, their
+      designs keep it in the range of 1.5 to 2.6);
+    \item The estimation variance should more or less depend only on the
+      distance from the center (this is achieved exactly for the designs with 4
+      and 7 factors), and should not vary too much inside the smallest
+      (hyper)cube containing the experimental points.
+  \end{itemize}
+  Each design can be thought of as a combination of a two-level (full or
+  fractional) factorial design with an incomplete block design.
+  In each block, a certain number of factors are put through all combinations
+  for the factorial design, while the other factors are kept at the central
+  values.
+ \item \textbf{Central Composite}: This design consists of three distinct sets
+  of experimental runs:
+  \begin{itemize}
+    \item A factorial (perhaps fractional) design in the factors are studied,
+      each having two levels;
+    \item A set of center points, experimental runs whose values of each factor
+      are the medians of the values used in the factorial portion.
+      This point is often replicated in order to improve the precision of the
+      experiment;
+    \item A set of axial points, experimental runs identical to the centre
+      points except for one factor, which will take on values both below and
+      above the median of the two factorial levels, and typically both outside
+      their range.
+      All factors are varied in this way.
+  \end{itemize}
+  This methodology is useful for building a second order (quadratic) model for
+  the response variable without needing to use a complete three-level factorial
+  experiment.
 \end{itemize}
-Each design can be thought of as a combination of a two-level (full or fractional) factorial design with an incomplete block design. In each block, a certain number of factors are put through all combinations for the factorial design, while the other factors are kept at the central values.
- \item \textbf{Central Composite} design:
-the design consists of three distinct sets of experimental runs:
-\begin{itemize}
-\item  A factorial (perhaps fractional) design in the factors studied, each having two levels;
-\item  A set of center points, experimental runs whose values of each factor are the medians of the values used in the factorial portion. This point is often replicated in order to improve the precision of the experiment;
-\item A set of axial points, experimental runs identical to the centre points except for one factor, which will take on values both below and above the median of the two factorial levels, and typically both outside their range. All factors are varied in this way.
-\end{itemize}
-This methodology is useful for building a second order (quadratic) model for the response variable without needing to use a complete three-level factorial experiment.
-\end{itemize}
-All the parameters, needed for setting up the algorithms reported above, must be defined within the xml block $<ResponseSurfaceDesign>$. This xml-node needs to contain the attribute:
+All the parameters, needed for setting up the algorithms reported above, must be
+defined within a \xmlNode{ResponseSurfaceDesign} block.
+%
+\attrIntro
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \nameDescription
 \end{itemize}
-In the \textbf{ResponseSurfaceDesign} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+
+\variableIntro{ResponseSurfaceDesign}
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
-\begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
-\end{itemize}
- In the variable node, the following xml-nodes need to be specified:
+\item \variableDescription
+ \subnodesIntro
  \begin{itemize}
-    \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
-     \item $<boundaries>$\textbf{\textit{, xml node, required field.}}. Within this block the boundaries for this variable are defined. This xml-node needs to contain the attribute:
-\begin{itemize}
-  \item \textbf{type}, \textit{required string attribute}, how the boundaries are defined. This attribute can be:
-    \begin{itemize}
-      \item either  \textit{CDF}: the boundaries are going to be provided as probability CDF thresholds
-      \item or  \textit{value}: the boundaries are going to be provided as variable values.
+    \item \distributionDescription
+     \item \xmlNode{boundaries}, \xmlDesc{XML node, required field}, within this
+       block the boundaries for this variable are defined.
+       This XML node needs to contain the attribute:
+       \begin{itemize}
+         \item \xmlAttr{type}, \xmlDesc{required string attribute}, how the
+           boundaries are defined.
+           This attribute can be:
+           \begin{itemize}
+             \item \xmlString{CDF}: the boundaries are going to be provided as
+               probability CDF thresholds
+             \item \xmlString{value}: the boundaries are going to be provided as
+               variable values.
+           \end{itemize}
+       \end{itemize}
+       Within the \xmlNode{boundaries} block, the following sub-nodes need to be
+       provided:
+       \begin{itemize}
+         \item \xmlNode{lower}, \xmlDesc{float, required field}, the lower limit
+           of this variable.
+         \item \xmlNode{upper}, \xmlDesc{float, required field}, the upper limit
+           of this variable.
+       \end{itemize}
+ \end{itemize}
+\end{itemize}
+The main XML block \xmlNode{ResponseSurfaceDesign} needs to contain an
+additional sub-node called \xmlNode{ResponseSurfaceDesignSettings}. 
+In this sub-node, the user needs to specify different settings depending on the
+algorithm being used:
+     \begin{itemize}
+      \item \xmlNode{type}, \xmlDesc{string, required field}, this XML node
+        will contain the name of the algorithm to be used.
+        Based on the chosen algorithm, other nodes need to be defined:
+        \begin{itemize}
+          \item \xmlNode{type}\texttt{BoxBehnken}\xmlNode{type/}. If Box-Behnken
+            is specified, the following additional node is recognized:
+         \begin{itemize}
+          \item \xmlNode{ncenters}, \xmlDesc{integer, optional field}, the
+            number of center points to include in the box.
+            If this parameter is not specified, then a pre-determined number of
+            points are automatically included.
+            \textit{Default = None}.
+         \end{itemize}
+         \nb In order to employ the ``Box-Behnken'' design, at least 3 variables
+         must be used.
+         \item \xmlNode{type}\texttt{CentralComposite}\xmlNode{type/}. If
+           Central Composite is specified, the following additional nodes will
+           be recognized:
+         \begin{itemize}
+          \item \xmlNode{centers}, \xmlDesc{comma separated integers, optional
+            field}, the number of center points to be included.
+            This block needs to contain 2 integers values separated by a comma.
+            The first entry represents the number of centers to be added for the
+            factorial block; the second one is the one for the star block.
+            \textit{Default = 4,4}.
+          \item \xmlNode{alpha}, \xmlDesc{string, optional field}, in this node,
+            the user decides how an $\alpha$ factor needs to be determined.
+            Two options are available:
+            \begin{itemize}
+              \item \texttt{orthogonal}, for orthogonal design.
+              \item \texttt{rotatable}, for rotatable design.
+            \end{itemize}
+            \textit{Default = orthogonal}.
+          \item \xmlNode{face}, \xmlDesc{string, optional field}, in this node,
+            the user defines how faces should be constructed.
+            Three options are available:
+            \begin{itemize}
+              \item \texttt{circumscribed}, for circumscribed facing
+              \item \texttt{inscribed}, for inscribed facing
+              \item \texttt{faced}, for faced facing.
+            \end{itemize}
+            \textit{Default = circumscribed}.
+         \end{itemize}
+      \end{itemize}
+      \nb In order to employ the ``Central Composite'' design, at least 2
+      variables must be used.
     \end{itemize}
-\end{itemize}
-    Within the $<boundaries>$ xml block, the following sub-nodes need to be provided:
-     \begin{itemize}
-      \item $<lower>$\textbf{\textit{, float, required field.}}. The lower limit of this variable;
-      \item $<upper>$\textbf{\textit{, float, required field.}}. The upper limit of this variable. 
-    \end{itemize}   
-  \end{itemize}
-\end{itemize}
-The main xml block $<ResponseSurfaceDesign>$ needs to contain an additional sub-node called $<ResponseSurfaceDesignSettings>$. In this sub-node, the user needs to specify different settings, depending on the algorithm needs to be used:
-     \begin{itemize}
-      \item $<type>$\textbf{\textit{, string, required field.}}. This xml node needs to contain the name of the algorithm needs to be used. Based on the chosen algorithm, other nodes need to be defined:
-      \begin{itemize}
-        \item \textit{$<type>BoxBehnken<type/>$}. If Box-Behnken is specified, the following additional node might be inputted:
-         \begin{itemize}
-          \item $<ncenters>$\textbf{\textit{, integer, optional field.}}. The number of center points to include in the box.  If this parameter is not specified, then a pre-determined number of points are automatically included. \textit{Default = None}.
-         \end{itemize}
-         NB. In order to employ the ``Box-Behnken'' design, at least 3 variables must be inputted.
-         \item \textit{$<type>CentralComposite<type/>$}. If Central Composite is specified, the following additional nodes might be inputted:
-         \begin{itemize}
-          \item $<centers>$\textbf{\textit{, comma separated integers, optional field.}}. The number of center points to be included. This block needs to contain 2 integers values separated by a comma. The first entry represents the number of centers to be added for the factorial block; the second one the one for the star block. \textit{Default = 4,4}.
-          \item $<alpha>$\textbf{\textit{, string, optional field.}}. In this node, the user might decides how $\alpha$ factor needs to be determined. Two options are available: 1) \textit{alpha = orthogonal}, for orthogonal design, or 2) \textit{alpha = rotatable}, for rotatable design. \textit{Default = orthogonal}.
-          \item $<face>$\textbf{\textit{, string, optional field.}}. In this node, the user defines how faces should be constructed. Three options are available: 1) \textit{face = circumscribed}, for circumscribed facing; 2) \textit{face = inscribed}, for inscribed facing; 3)  \textit{face = faced}, for faced facing. \textit{Default = circumscribed}.
-         \end{itemize}
-      \end{itemize}  
-      NB. In order to employ the ``Central Composite'' design, at least 2 variables must be inputted.
-    \end{itemize}  
-\begin{lstlisting}[style=XML]
----------------------------------------------------------
+
+\maljdan{Is it weird that one of these uses ncenters and the other uses centers?}
+
+\maljdan{This is the first example where type is a attribute and a node...This
+is confusing.}
+
 Example:
----------------------------------------------------------
+\begin{lstlisting}[style=XML,morekeywords={}]
 <Samplers>
   ...
-    <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
-        <ResponseSurfaceDesignSettings>
-            <type>BoxBehnken</type>
-            <ncenters>***</ncenters>
-        </ResponseSurfaceDesignSettings>
-        <variable name='var1' >
-            <distribution >Gauss1</distribution>
-            <boundaries type="CDF">
-                <lower>0.0</lower>
-                <upper>1.0</upper>
-            </boundaries>
-        </variable>
-        <!-- N.B. at least 3 variables need to inputted 
-                in order to employ this algorithm
-         -->
-    </ResponseSurfaceDesign>
-    <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
-        <ResponseSurfaceDesignSettings>
-            <type>CentralComposite</type>
-            <centers>***, ***</centers>
-            <alpha>orthogonal</alpha>
-            <face>circumscribed</face>
-        </ResponseSurfaceDesignSettings>
-        <variable name='var4' >
-            <distribution >Gauss1</distribution>
-            <boundaries type="CDF">
-                <lower>***</lower>
-                <upper>***</upper>
-            </boundaries>
-        </variable>
-        <!-- N.B. at least 2 variables need to inputted 
-                in order to employ this algorithm
-         -->        
-    </ResponseSurfaceDesign>
+  <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
+    <ResponseSurfaceDesignSettings>
+      <type>BoxBehnken</type>
+      <ncenters>***</ncenters>
+    </ResponseSurfaceDesignSettings>
+    <variable name='var1' >
+      <distribution >Gauss1</distribution>
+      <boundaries type='CDF'>
+        <lower>0.0</lower>
+        <upper>1.0</upper>
+      </boundaries>
+    </variable>
+    <!-- Note: at least 3 variables need to used
+            in order to employ this algorithm
+     -->
+  </ResponseSurfaceDesign>
+  <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
+    <ResponseSurfaceDesignSettings>
+      <type>CentralComposite</type>
+      <centers>***, ***</centers>
+      <alpha>orthogonal</alpha>
+      <face>circumscribed</face>
+    </ResponseSurfaceDesignSettings>
+    <variable name='var4' >
+      <distribution >Gauss1</distribution>
+      <boundaries type="CDF">
+        <lower>***</lower>
+        <upper>***</upper>
+      </boundaries>
+    </variable>
+    <!-- Note: at least 2 variables need to used
+            in order to employ this algorithm
+     -->
+  </ResponseSurfaceDesign>
   ...
 </Samplers>
----------------------------------------------------------
 \end{lstlisting}
 
 %%% Once-Through Samplers: Factorial Design
 \subsubsection{Factorial Design.}
 \label{subsubsubsec:FactorialDOE}
-\textbf{Factorial Design} method is an important method to determine the effects of multiple variables on a response. Factorial design can reduce the number of experiments one has to perform by studying multiple factors simultaneously. Additionally, it can be used to find both main effects (from each independent factor) and interaction effects (when both factors must be used to explain the outcome). 
+\textbf{Factorial Design} method is an important method to determine the effects of multiple variables on a response. Factorial design can reduce the number of experiments one has to perform by studying multiple factors simultaneously. Additionally, it can be used to find both main effects (from each independent factor) and interaction effects (when both factors must be used to explain the outcome).
 Factorial design tests all possible conditions. Because factorial design can lead to a large number of trials, which can become expensive and time-consuming, factorial design is best used for a small number of variables with few states (1 to 3). Factorial design works well when interactions between variables are strong and important and where every variable contributes significantly. RAVEN currently  employs three different algorithms that can be classified within this methodology family:
 \begin{itemize}
  \item \textbf{General Full Factorial} design: this methodology  explore the input space investigating  all possible combinations of a set of factors (variables).
@@ -383,64 +587,64 @@ Factorial design tests all possible conditions. Because factorial design can lea
 \item \textbf{Plackett-Burman } design: this method is used to identify the most important factors early in the experimentation phase when complete knowledge about the system is usually unavailable. It is an efficient screening method to identify the active factors (variables) using as few samples as possible.
 In Plackett-Burman designs, main effects have a complicated confounding relationship with two-factor interactions. Therefore, these designs should be used to study main effects when it can be assumed that two-way interactions are negligible.
 \end{itemize}
-All the parameters, needed for setting up the algorithms reported above, must be defined within the xml block $<FactorialDesign>$. This xml-node needs to contain the attribute:
+All the parameters, needed for setting up the algorithms reported above, must be defined within the XML block $<FactorialDesign>$. This XML-node needs to contain the attribute:
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (XML);
 \end{itemize}
-In the \textbf{FactorialDesign} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+In the \textbf{FactorialDesign} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called $<variable>$:
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\item $<variable>$, XML node, required parameter. This XML-node needs to contain the attribute:
 \begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable.
 \end{itemize}
- In the variable node, the following xml-nodes need to be specified:
+ In the variable node, the following XML-nodes need to be specified:
  \begin{itemize}
     \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
-\item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this xml node depends on the definition of the associated attributes:
+\item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this XML node depends on the definition of the associated attributes:
 \begin{itemize}
 \itemsep0em
 \item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
-\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$). 
+\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$).
 \end{itemize}
 
-Based on the $construction$ type, the content of the $<grid>$ xml node and the requirements for other attributes change:
+Based on the $construction$ type, the content of the $<grid>$ XML node and the requirements for other attributes change:
 \begin{itemize}
   \item \textit{construction = ``equal''}. The grid is going to be constructed equally-spaced ( type = ``value'') or equally-probable (type == ``CDF''). This construction type requires the definition of additional attributes:
       \begin{itemize}
          \item \textbf{steps}, \textit{required integer attribute}, number of equally-spaced/probable discretization steps.
-         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid. 
+         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid.
         NB. This attribute must be specified if the \textbf{lowerBound} has not been defined;
          \item \textbf{lowerBound}, \textit{required float attribute}, the lower limit of the grid.
         NB. This attribute must be specified if the \textbf{upperBound} has not been defined;
       \end{itemize}
-      This construction type requires that the content of the xml node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
+      This construction type requires that the content of the XML node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
       \\ If the \textit{upperBound} is present, the grid lower bound is going to be at the $upperBound - steps*stepSize$
       \\ If the \textit{lowerBound} is present, the grid upper bound is going to be at the $lowerBound + steps*stepSize$
       The lower and upper bounds are checked against the associated $<distribution>$ bounds. If one or both of them fell/s outside the distribution's bounds, the code is going to raise an error.
-  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed. 
-     \\This construction type requires that the xml node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
-    \end{itemize}   
+  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed.
+     \\This construction type requires that the XML node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
+    \end{itemize}
   \end{itemize}
 \end{itemize}
 
-The main xml block $<FactorialDesign>$ needs to contain an additional sub-node called $<FactorialSettings>$. In this sub-node, the user needs to specify different settings, depending on the algorithm needs to be used:
+The main XML block $<FactorialDesign>$ needs to contain an additional sub-node called $<FactorialSettings>$. In this sub-node, the user needs to specify different settings, depending on the algorithm needs to be used:
      \begin{itemize}
-      \item $<type>$\textbf{\textit{, string, required field.}}. This xml node needs to contain the name of the algorithm needs to be used. Based on the chosen algorithm, other nodes need to be defined:
+      \item $<type>$\textbf{\textit{, string, required field.}}. This XML node needs to contain the name of the algorithm needs to be used. Based on the chosen algorithm, other nodes need to be defined:
       \begin{itemize}
         \item \textit{$<type>full<type/>$}. Full factorial design. If ``full'' is specified, no additional nodes need to be inputted.
-         NB. The Full factorial design does not have any limitations in the number of discretization bins can be inputted in the $<grid>$ xml node for each $<variable>$.
+         NB. The Full factorial design does not have any limitations in the number of discretization bins can be inputted in the $<grid>$ XML node for each $<variable>$.
          \item \textit{$<type>2levelFract<type/>$}. Two-levels Fractional-Factorial design. If ``levelFract''  is specified, the following additional nodes must be inputted:
          \begin{itemize}
           \item $<gen>$\textbf{\textit{, space separated strings, required field.}}. In this block the confounding mapping needs to inputted.  By instance, in this block the user defines the decisions on a fraction of the full-factorial by allowing some of the factor main effects to be confounded with other factor interaction effects. This is done by defining an alias structure that defines, symbolically, these interactions. These alias structures are written like “C = AB” or “I = ABC”, or “AB = CD”, etc. These define how one column is related to the others.
           \item $<genMap>$\textbf{\textit{, space separated strings, required field.}}. In this block the user defines the mapping between the ``gen'' symbolic aliases and the variables that have been inputted in the $<FactorialDesign>$ main block.
          \end{itemize}
-       NB. The Two-levels Fractional-Factorial design is limited to 2 discretization bins that can be inputted in the $<grid>$ xml node for each $<variable>$.
+       NB. The Two-levels Fractional-Factorial design is limited to 2 discretization bins that can be inputted in the $<grid>$ XML node for each $<variable>$.
        \item \textit{$<type>pb<type/>$}. Plackett-Burman design. If ``pb'' is specified, no additional nodes need to be inputted.
-        \\NB. The Full factorial design does not have any limitations in the number of discretization bins can be inputted in the $<grid>$ xml node for each $<variable>$.
-      \end{itemize}  
-             
-    \end{itemize}  
+        \\NB. The Full factorial design does not have any limitations in the number of discretization bins can be inputted in the $<grid>$ XML node for each $<variable>$.
+      \end{itemize}
+     
+    \end{itemize}
 \begin{lstlisting}[style=XML]
 ---------------------------------------------------------
 Example:
@@ -502,9 +706,9 @@ Example:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Dynamic Event Tree (DET) Samplers.}
 \label{subsec:DETSamplers}
-The Dynamic Event Tree methodologies are designed to take the timing of events explicitly into account, which can become very important especially when uncertainties in complex phenomena are considered. Hence, the main idea of this methodology is to let a system code determine the pathway of an accident scenario within a probabilistic ``environment''. 
+The Dynamic Event Tree methodologies are designed to take the timing of events explicitly into account, which can become very important especially when uncertainties in complex phenomena are considered. Hence, the main idea of this methodology is to let a system code determine the pathway of an accident scenario within a probabilistic ``environment''.
 In this methodologies' family a continuous monitoring of the system evolution in the phase space is needed.  In order to use the DET-based methods, the generic driven  code needs to have, at least, an internal trigger system and, consequentially, a ``restart'' capability.
-In the RAVEN framework, three different  DET samplers are available: 
+In the RAVEN framework, three different  DET samplers are available:
 \begin{itemize}
 \item \textbf{Dynamic Event Tree (DET)}
 \item \textbf{Hybrid Dynamic Event Tree (HDET)}
@@ -518,45 +722,45 @@ The ADET methodology represents an hybrid between the DET and Adaptive sampling 
 \textbf{Dynamic Event Tree} sampling approach is a sampling strategy that is designed to take the timing of events, in transient/accident scenarios, explicitly into a account.
 \\ From an application point of view, a N-Dimensional grid is built on the CDF space. A single simulation is spooned and a set of triggers is added to the system code control logic. Every time a trigger gets activated (one of the CDF thresholds in the grid is overpassed), a new set of simulations (branches) is spooned. Each branch carries its conditional probability. In RAVEN code, the triggers are defined specifying a grid, using a predefined discretization metric.
 In RAVEN two discretization metrics are available: 1) Cumulative Distribution Function, and 2) Value. Thus, the trigger thresholds can be inputted either in probability or in absolute values.
-\\ The specifications of this Sampler must be defined within the xml block $<DynamicEventTree>$. This xml-node needs to contain the attribute:
+\\ The specifications of this Sampler must be defined within the XML block $<DynamicEventTree>$. This XML-node needs to contain the attribute:
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
-\item \textbf{print\_end\_xml}, \textit{optional string/boolean attribute}, this attribute controls the dumping of a ``summary'' of the DET performed in an xml external output. \textit{Default = False}.
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (XML);
+\item \textbf{print\_end\_XML}, \textit{optional string/boolean attribute}, this attribute controls the dumping of a ``summary'' of the DET performed in an XML external output. \textit{Default = False}.
 \item \textbf{maxSimulationTime}, \textit{optional float attribute}, this attribute controls the maximum ``mission'' time of the simulation underneath. \textit{Default = None}.
 \end{itemize}
-In the \textbf{DynamicEventTree} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+In the \textbf{DynamicEventTree} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called $<variable>$:
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\item $<variable>$, XML node, required parameter. This XML-node needs to contain the attribute:
 \begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable.
  \end{itemize}
- In the variable node, the following xml-nodes need to be specified:
+ In the variable node, the following XML-nodes need to be specified:
  \begin{itemize}
     \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
-    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this xml node depends on the definition of the associated attributes:
+    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this XML node depends on the definition of the associated attributes:
 \begin{itemize}
 \itemsep0em
 \item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
-\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$). 
+\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$).
 \end{itemize}
 
-Based on the $construction$ type, the content of the $<grid>$ xml node and the requirements for other attributes change:
+Based on the $construction$ type, the content of the $<grid>$ XML node and the requirements for other attributes change:
 \begin{itemize}
   \item \textit{construction = ``equal''}. The grid is going to be constructed equally-spaced ( type = ``value'') or equally-probable (type == ``CDF''). This construction type requires the definition of additional attributes:
       \begin{itemize}
          \item \textbf{steps}, \textit{required integer attribute}, number of equally-spaced/probable discretization steps.
-         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid. 
+         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid.
         NB. This attribute must be specified if the \textbf{lowerBound} has not been defined;
          \item \textbf{lowerBound}, \textit{required float attribute}, the lower limit of the grid.
         NB. This attribute must be specified if the \textbf{upperBound} has not been defined;
       \end{itemize}
-      This construction type requires that the content of the xml node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
+      This construction type requires that the content of the XML node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
       \\ If the \textit{upperBound} is present, the grid lower bound is going to be at the $upperBound - steps*stepSize$
       \\ If the \textit{lowerBound} is present, the grid upper bound is going to be at the $lowerBound + steps*stepSize$
       The lower and upper bounds are checked against the associated $<distribution>$ bounds. If one or both of them fell/s outside the distribution's bounds, the code is going to raise an error.
-  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed. 
-     \\This construction type requires that the xml node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
+  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed.
+     \\This construction type requires that the XML node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
 \end{itemize}
   \end{itemize}
 \end{itemize}
@@ -566,30 +770,30 @@ Example:
 ---------------------------------------------------------
 <Samplers>
   ...
-  <DynamicEventTree name='DETname'> 
-    <variable name='var1'> 
+  <DynamicEventTree name='DETname'>
+    <variable name='var1'>
       <distribution>***</distribution>
-      <grid	type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>	
-    </variable> 
-    <variable name='var2'> 
-      <distribution>***</distribution>
-      <grid	type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>	
+      <grid type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>
     </variable>
-    <variable name='var3'> 
+    <variable name='var2'>
       <distribution>***</distribution>
-      <grid	type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>	
-    </variable> 
-    <variable name='var4'> 
-      <distribution>***</distribution>
-      <grid	type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>	
+      <grid type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>
     </variable>
-    <variable name='var5'> 
+    <variable name='var3'>
       <distribution>***</distribution>
-      <grid	type='value' construction='custom'>0.2 0.5 10.0</grid>	
-    </variable> 
-    <variable name='var6'> 
+      <grid type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>
+    </variable>
+    <variable name='var4'>
       <distribution>***</distribution>
-      <grid	type='CDF' construction='custom'>0.2 0.5 1.0</grid>	
+      <grid type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>
+    </variable>
+    <variable name='var5'>
+      <distribution>***</distribution>
+      <grid type='value' construction='custom'>0.2 0.5 10.0</grid>
+    </variable>
+    <variable name='var6'>
+      <distribution>***</distribution>
+      <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
   </DynamicEventTree>
   ...
@@ -600,98 +804,98 @@ Example:
 %%%%%%%%% Dynamic Event Tree Samplers: Hybrid Dynamic Event Tree
 \subsubsection{Hybrid Dynamic Event Tree.}
 \label{subsubsubsec:HDET}
-\textbf{Hybrid Dynamic Event Tree} sampling approach is a sampling strategy that represents an evolution of the Dynamic Event Tree method for the simultaneous exploration of the epistemic and aleatory uncertain space. 
+\textbf{Hybrid Dynamic Event Tree} sampling approach is a sampling strategy that represents an evolution of the Dynamic Event Tree method for the simultaneous exploration of the epistemic and aleatory uncertain space.
 In similar approaches,  the uncertainties are generally treated employing a Monte-Carlo sampling approach (epistemic) and DET methodology (aleatory).  The HDET methodology, developed within the RAVEN code, can reproduce the capabilities employed by this approach, but provides additional sampling strategies to the user. The epistemic or epistemic-like uncertainties can be sampled through the following strategies:
 \begin{itemize}
-\item Monte-Carlo; 
+\item Monte-Carlo;
 \item Grid sampling;
 \item Stratified (e.g., Latin Hyper Cube).
 \end{itemize}
 
-From a practical point of view, the user defines the parameters that need to be sampled by one or more different approaches. The HDET module samples those parameters creating a N-Dimensional Grid characterized by all the possible combinations of the input space coordinates coming from the different sampling strategies. Each coordinate in the input space represents a separated and parallel standard DET exploration of the uncertain domain. 
+From a practical point of view, the user defines the parameters that need to be sampled by one or more different approaches. The HDET module samples those parameters creating a N-Dimensional Grid characterized by all the possible combinations of the input space coordinates coming from the different sampling strategies. Each coordinate in the input space represents a separated and parallel standard DET exploration of the uncertain domain.
 The HDET methodology allows the user to completely explore the uncertain domain employing one methodology. The addition of Grid sampling strategy among the approaches usable, allow the user to perform a discrete parametric study, under aleatory and epistemic uncertainties.
-\\ Regarding the input requirements, the HDET sampler is a ``sub-type'' of the  $<DynamicEventTree>$ sampler. 
-For this reason, its specifications  must be defined within the xml block $<DynamicEventTree>$. This xml-node needs to contain the attribute:
+\\ Regarding the input requirements, the HDET sampler is a ``sub-type'' of the  $<DynamicEventTree>$ sampler.
+For this reason, its specifications  must be defined within the XML block $<DynamicEventTree>$. This XML-node needs to contain the attribute:
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
-\item \textbf{print\_end\_xml}, \textit{optional string/boolean attribute}, this attribute controls the dumping of a ``summary'' of the DET performed in an xml external output. \textit{Default = False};
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (XML);
+\item \textbf{print\_end\_XML}, \textit{optional string/boolean attribute}, this attribute controls the dumping of a ``summary'' of the DET performed in an XML external output. \textit{Default = False};
 \item \textbf{maxSimulationTime}, \textit{optional float attribute}, this attribute controls the maximum ``mission'' time of the simulation underneath. \textit{Default = None}.
 \end{itemize}
-In the \textbf{DynamicEventTree} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+In the \textbf{DynamicEventTree} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called $<variable>$:
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\item $<variable>$, XML node, required parameter. This XML-node needs to contain the attribute:
 \begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable.
  \end{itemize}
- In the variable node, the following xml-nodes need to be specified:
+ In the variable node, the following XML-nodes need to be specified:
  \begin{itemize}
     \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
-    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this xml node depends on the definition of the associated attributes:
+    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this XML node depends on the definition of the associated attributes:
 \begin{itemize}
 \itemsep0em
 \item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
-\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$). 
+\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$).
 \end{itemize}
-Based on the $construction$ type, the content of the $<grid>$ xml node and the requirements for other attributes change:
+Based on the $construction$ type, the content of the $<grid>$ XML node and the requirements for other attributes change:
 \begin{itemize}
   \item \textit{construction = ``equal''}. The grid is going to be constructed equally-spaced ( type = ``value'') or equally-probable (type == ``CDF''). This construction type requires the definition of additional attributes:
       \begin{itemize}
          \item \textbf{steps}, \textit{required integer attribute}, number of equally-spaced/probable discretization steps.
-         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid. 
+         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid.
         NB. This attribute must be specified if the \textbf{lowerBound} has not been defined;
          \item \textbf{lowerBound}, \textit{required float attribute}, the lower limit of the grid.
         NB. This attribute must be specified if the \textbf{upperBound} has not been defined;
       \end{itemize}
-      This construction type requires that the content of the xml node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
+      This construction type requires that the content of the XML node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
       \\ If the \textit{upperBound} is present, the grid lower bound is going to be at the $upperBound - steps*stepSize$
       \\ If the \textit{lowerBound} is present, the grid upper bound is going to be at the $lowerBound + steps*stepSize$
       The lower and upper bounds are checked against the associated $<distribution>$ bounds. If one or both of them fell/s outside the distribution's bounds, the code is going to raise an error.
-  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed. 
-     \\This construction type requires that the xml node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
+  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed.
+     \\This construction type requires that the XML node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
 \end{itemize}
   \end{itemize}
 \end{itemize}
 
-In order to activate the \textbf{Hybrid Dynamic Event Tree}  sampler, the main xml block $<DynamicEventTree>$ needs to contain, at least, an additional sub-node called $<HybridSamplerSettings>$. As already mentioned, the user can combine the Monte-Carlo, Stratified and Grid approaches in order to create a ``pre-sampling'' N-Dimensional grid, from whose nodes a standard DET method is employed. For this reason, the user can specify at maximum three $<HybridSamplerSettings>$ sub-nodes (i.e. one for each of the available once-through samplers). 
+In order to activate the \textbf{Hybrid Dynamic Event Tree}  sampler, the main XML block $<DynamicEventTree>$ needs to contain, at least, an additional sub-node called $<HybridSamplerSettings>$. As already mentioned, the user can combine the Monte-Carlo, Stratified and Grid approaches in order to create a ``pre-sampling'' N-Dimensional grid, from whose nodes a standard DET method is employed. For this reason, the user can specify at maximum three $<HybridSamplerSettings>$ sub-nodes (i.e. one for each of the available once-through samplers).
  This sub-node needs to contain the attribute:
 \begin{itemize}
-  \item \textbf{type}, \textit{required string attribute}, type of pre-sampling strategy needs to be used. Available are: 1) MonteCarlo, 2) Grid, and 3) Stratified. 
+  \item \textbf{type}, \textit{required string attribute}, type of pre-sampling strategy needs to be used. Available are: 1) MonteCarlo, 2) Grid, and 3) Stratified.
  \end{itemize}
-Independently on the type of ``pre-sampler'' that has been specified, the $<HybridSamplerSettings>$  must contain the  variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+Independently on the type of ``pre-sampler'' that has been specified, the $<HybridSamplerSettings>$  must contain the  variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called $<variable>$:
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\item $<variable>$, XML node, required parameter. This XML-node needs to contain the attribute:
 \begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable.
  \end{itemize}
- In the variable node, the following xml-nodes need to be specified:
+ In the variable node, the following XML-nodes need to be specified:
  \begin{itemize}
     \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
   \end{itemize}
  \end{itemize}
 %%%%
-If the pre-sampling strategy is either \textbf{Grid} or \textbf{Stratified}, within the $<variable>$ blocks, the user needs to specify the sub-node $<grid>$. As for the standard DET, the content of this xml node depends on the definition of the associated attributes:
+If the pre-sampling strategy is either \textbf{Grid} or \textbf{Stratified}, within the $<variable>$ blocks, the user needs to specify the sub-node $<grid>$. As for the standard DET, the content of this XML node depends on the definition of the associated attributes:
 \begin{itemize}
 \itemsep0em
 \item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
-\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$). 
+\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$).
 \end{itemize}
-Based on the $construction$ type, the content of the $<grid>$ xml node and the requirements for other attributes change:
+Based on the $construction$ type, the content of the $<grid>$ XML node and the requirements for other attributes change:
 \begin{itemize}
   \item \textit{construction = ``equal''}. The grid is going to be constructed equally-spaced ( type = ``value'') or equally-probable (type == ``CDF''). This construction type requires the definition of additional attributes:
       \begin{itemize}
          \item \textbf{steps}, \textit{required integer attribute}, number of equally-spaced/probable discretization steps.
-         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid. 
+         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid.
         NB. This attribute must be specified if the \textbf{lowerBound} has not been defined;
          \item \textbf{lowerBound}, \textit{required float attribute}, the lower limit of the grid.
         NB. This attribute must be specified if the \textbf{upperBound} has not been defined;
       \end{itemize}
-      This construction type requires that the content of the xml node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
+      This construction type requires that the content of the XML node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
       \\ If the \textit{upperBound} is present, the grid lower bound is going to be at the $upperBound - steps*stepSize$
       \\ If the \textit{lowerBound} is present, the grid upper bound is going to be at the $lowerBound + steps*stepSize$
       The lower and upper bounds are checked against the associated $<distribution>$ bounds. If one or both of them fell/s outside the distribution's bounds, the code is going to raise an error.
-  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed. 
-     \\This construction type requires that the xml node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
+  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed.
+     \\This construction type requires that the XML node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
@@ -700,7 +904,7 @@ Example:
 ---------------------------------------------------------
 <Samplers>
   ...
-  <DynamicEventTree name='HybridDETname' print_end_xml="True">
+  <DynamicEventTree name='HybridDETname' print_end_XML="True">
       <HybridSamplerSettings type='MonteCarlo' limit='2'>
           <variable name='***' >
               <distribution>***</distribution>
@@ -730,7 +934,7 @@ Example:
           <variable name='***' >
               <distribution>***</distribution>
               <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
-          </variable> 
+          </variable>
       </HybridSamplerSettings>
       <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like HybridSamplerSettings) -->
         <Distribution name='***'>
@@ -749,7 +953,7 @@ Example:
 \subsection{Adaptive Samplers.}
 \label{subsec:AdaptSamplers}
 The Adaptive Samplers' family provides the possibility to perform smart sampling (also known as adaptive sampling) as an alternative to classical “once-through” techniques.
-The motivation is that system simulations are often computationally expensive, time-consuming, and high dimensional with respect to the number of input parameters. Thus, exploring the space of all possible simulation outcomes is infeasible using finite computing resources. During simulation-based probabilistic risk analysis, it is important to discover the relationship between a potentially large number of input parameters and the output of a simulation using as few simulation trials as possible. 
+The motivation is that system simulations are often computationally expensive, time-consuming, and high dimensional with respect to the number of input parameters. Thus, exploring the space of all possible simulation outcomes is infeasible using finite computing resources. During simulation-based probabilistic risk analysis, it is important to discover the relationship between a potentially large number of input parameters and the output of a simulation using as few simulation trials as possible.
 This is a typical context for performing adaptive sampling where a few observations are obtained from the simulation, a reduced order model (ROM) is built to represent the simulation space, and new samples are selected based on the model constructed. The reduced order model (see section \ref{subsec:models_ROM}) is then updated based on the simulation results of the sampled points. In this way, it is attempted to gain the most information possible with a small number of carefully selected sampled points, limiting the number of expensive trials needed to understand features of the system space.
 In the following, the specific use case of identifying the limit surface, i.e. the boundaries in the simu-lation space between system failure and system suc-cess (see Figure 4) is analyzed.
 For this scope two classes of algorithms are considered:
@@ -758,7 +962,7 @@ For this scope two classes of algorithms are considered:
 \item Data-based algorithms.
 \end{itemize}
 In the first class, the built reduced order model aims to approximate the real response function of the system as function of the input parameters. Once it is built, it is used to search for the points that are in the proximity of the limit surface using contour reconstruction based algorithms. Response function can be built using Support Vector Machines or Kriging based interpolators.
-On the other side, data-based algorithms do not build a response function based reduced order model but determine the location of the limit surface directly from the neighborhood graph constructed from the training data, without any dependencies on a particular prediction model. 
+On the other side, data-based algorithms do not build a response function based reduced order model but determine the location of the limit surface directly from the neighborhood graph constructed from the training data, without any dependencies on a particular prediction model.
 These algorithms begin the search of the limit surface by directly building a neighborhood structure as the surrogate model on the initial training data. It then creates a candidate set by first obtaining linearly interpolated points along spanning edges  of the graph, and introducing a random perturbation along all dimensions to these points.
 \\ Currently, RAVEN provides support for two adaptive algorithm:
 \begin{itemize}
@@ -770,25 +974,25 @@ In the following paragraphs, the input requirements and a small explanation of t
 \subsubsection{Adaptive Sampler.}
 \label{subsubsubsec:AdaptiveSampling}
 \textbf{Adaptive Sampler} approach is an advanced methodology that employs a smart sampling around transition zones that determine a change in the status of the system (Limit Surface). To perform such sampling, RAVEN uses Reduced Order Models for predicting, in the input space, the location(s) of these transitions, in order to accelerate the exploration of the input space in proximity of the Limit Surface.
-\\ The specifications of this Sampler must be defined within the xml block $<Adaptive>$. This xml-node needs to contain the attribute:
+\\ The specifications of this Sampler must be defined within the XML block $<Adaptive>$. This XML-node needs to contain the attribute:
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (XML);
 \end{itemize}
-In the \textbf{Adaptive} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+In the \textbf{Adaptive} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called $<variable>$:
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\item $<variable>$, XML node, required parameter. This XML-node needs to contain the attribute:
 \begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable.
  \end{itemize}
- In the variable node, the following xml-node needs to be specified:
+ In the variable node, the following XML-node needs to be specified:
  \begin{itemize}
     \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions}.
   \end{itemize}
 \end{itemize}
- In addition to the $<variable>$ nodes,  the main xml node $<Adaptive>$ needs to contain two supplementary sub-nodes:
+ In addition to the $<variable>$ nodes,  the main XML node $<Adaptive>$ needs to contain two supplementary sub-nodes:
 \begin{itemize}
-  \item $<Convergence>$\textbf{\textit{, float, required field.}} Convergence tolerance. The meaning of this tolerance depends on the definition of other attributes that might be defined in this xml node:
+  \item $<Convergence>$\textbf{\textit{, float, required field.}} Convergence tolerance. The meaning of this tolerance depends on the definition of other attributes that might be defined in this XML node:
      \begin{itemize}
          \item \textbf{limit}, \textit{optional integer attribute}, the maximum number of adaptive samples. \textit{Default = infinitive};
          \item \textbf{forceIteration}, \textit{optional boolean attribute}, this attribute controls if at least a number of iterations equal to \textbf{limit} must be performed.  \textit{Default = False} ;
@@ -796,14 +1000,14 @@ In the \textbf{Adaptive} input block, the user needs to specify the variables ne
           \begin{itemize}
              \item \textit{weight = probability}, the convergence is checked in terms of probability (Cumulative Distribution Function);
              \item \textit{weight = none}, the convergence is checked on the hyper-volume in terms of absolute values.
-          \end{itemize} 
+          \end{itemize}
           \textit{Default = probability};
          \item \textbf{persistence}, \textit{optional integer attribute}, this option is an additional convergence check. It represents the number of times the computed error needs to be below the inputted tolerance, in order to consider the algorithm in converged condition.  \textit{Default = 0};
          \item \textbf{subGridTol}, \textit{optional string attribute}, in this attribute the user can define a tolerance for constructing a sub-grid on which the acceleration ROM is going to be tested. \textit{Default = None};
-      \end{itemize}   
-   Summarizing,  this xml node contains the information that are needed in order to control this sampler convergence criterion.
+      \end{itemize}
+   Summarizing,  this XML node contains the information that are needed in order to control this sampler convergence criterion.
 % Assembler Objects
-   \item \textbf{Assembler Objects} These objects are either required or optional depending on the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+   \item \textbf{Assembler Objects} These objects are either required or optional depending on the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the XML node tag, is common among all the objects.
 Each of these nodes  must contain 2 attributes that are used to map those within the simulation framework:
    \begin{itemize}
      \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from. For example, it can be ``Models'', ``Functions'', etc;
@@ -811,11 +1015,11 @@ Each of these nodes  must contain 2 attributes that are used to map those within
     \end{itemize}
 The \textbf{Adaptive Sampler} approach requires or optionally accepts the following objects' types:
    \begin{itemize}
-     \item $<ROM>$\textbf{\textit{, string, optional  field.}}. If inputted, the body of this xml node must contain the name of a ROM defined in the $<Models>$ block (see section \ref{subsec:models_ROM});
-       \item $<Function>$\textbf{\textit{, string, required field.}}.The body of this xml block needs to contain the name of an External Function defined within the $<Functions>$ main block (see section \ref{sec:functions}). This object represents the boolean function that defines the transition boundaries. This function must implement a method called \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on the system conditions (see section \ref{sec:functions};
-        \item $<TargetEvaluation>$\textbf{\textit{, string, required field.}}. The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this xml node must contain the name of a Data defined in the $<Datas>$ block (see section \ref{sec:sec:Datas}). The adaptive sampling accepts ``Datas'' of type ``TimePoint''  and ``TimePointSet'' only.
+     \item $<ROM>$\textbf{\textit{, string, optional  field.}}. If inputted, the body of this XML node must contain the name of a ROM defined in the $<Models>$ block (see section \ref{subsec:models_ROM});
+       \item $<Function>$\textbf{\textit{, string, required field.}}.The body of this XML block needs to contain the name of an External Function defined within the $<Functions>$ main block (see section \ref{sec:functions}). This object represents the boolean function that defines the transition boundaries. This function must implement a method called \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on the system conditions (see section \ref{sec:functions};
+        \item $<TargetEvaluation>$\textbf{\textit{, string, required field.}}. The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this XML node must contain the name of a Data defined in the $<Datas>$ block (see section \ref{sec:sec:Datas}). The adaptive sampling accepts ``Datas'' of type ``TimePoint''  and ``TimePointSet'' only.
     \end{itemize}
-    
+
 \end{itemize}
 
 
@@ -825,7 +1029,7 @@ The \textbf{Adaptive Sampler} approach requires or optionally accepts the follow
 Example:
 ---------------------------------------------------------
 XML INPUT:
---------------------------------------------------------- 
+---------------------------------------------------------
 <Samplers>
   ...
   <Adaptive name = 'AdaptiveName'>
@@ -847,7 +1051,7 @@ XML INPUT:
   </Adaptive>
   ...
 </Samplers>
-\end{lstlisting} 
+\end{lstlisting}
 \begin{lstlisting}[language=python]
 ---------------------------------------------------------
 Example:
@@ -855,25 +1059,25 @@ Example:
 EXTERNAL FUNCTION:
 ---------------------------------------------------------
 def __residuumSign(self):
-  if self.whatEverValue < self.OtherValue : 
+  if self.whatEverValue < self.OtherValue :
     return  1
-  else: 
+  else:
     return -1
 ---------------------------------------------------------
-\end{lstlisting} 
+\end{lstlisting}
 
 %%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
 \subsubsection{Adaptive Dynamic Event Tree.}
 \label{subsubsubsec:ADET}
-\textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology that employs a smart sampling around transition zones that determine a change in the status of the system (Limit Surface), using the support of a Dynamic Event Tree methodology. 
+\textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology that employs a smart sampling around transition zones that determine a change in the status of the system (Limit Surface), using the support of a Dynamic Event Tree methodology.
 The main idea of the application of the previously explained adaptive sampling approach to the DET comes from the observation that the DET, when evaluated from a Limit Surface perspective, is intrinsically adaptive.
-For this reason, it appears natural to use the DET approach to perform a goal-function oriented pre-sampling of the input space. 
+For this reason, it appears natural to use the DET approach to perform a goal-function oriented pre-sampling of the input space.
 \\To perform such sampling, RAVEN uses Reduced Order Models for predicting, in the input space, the location(s) of these transitions, in order to accelerate the exploration of the input space in proximity of the Limit Surface.
-\\ The specifications of this Sampler must be defined within the xml block $<AdaptiveDynamicEventTree>$. This xml-node needs to contain the attributes:
+\\ The specifications of this Sampler must be defined within the XML block $<AdaptiveDynamicEventTree>$. This XML-node needs to contain the attributes:
 \begin{itemize}
   \itemsep0em
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
-  \item \textbf{print\_end\_xml}, \textit{optional string/boolean attribute}, this attribute controls the dumping of a ``summary'' of the DET performed in an xml external output. \textit{Default = False};
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (XML);
+  \item \textbf{print\_end\_XML}, \textit{optional string/boolean attribute}, this attribute controls the dumping of a ``summary'' of the DET performed in an XML external output. \textit{Default = False};
   \item \textbf{maxSimulationTime}, \textit{optional float attribute}, this attribute controls the maximum ``mission'' time of the simulation underneath. \textit{Default = None}.
   \item \textbf{mode}, \textit{optional string attribute}, adaptive DET mode. This attribute controls when the adaptive search needs to begin. Two options are available:
       \begin{itemize}
@@ -881,7 +1085,7 @@ For this reason, it appears natural to use the DET approach to perform a goal-fu
          \item \textit{mode = online},  if this option is activated, the adaptive search starts at begin, during the initial standard Dynamic Event Tree. Whenever a transition is detected, the \textbf{Adaptive Dynamic Event Tree} starts it goal-oriented search using the DET as support;
       \end{itemize}
       \textit{Default = post}.
-%  \item \textbf{noTransitionStrategy}, \textit{optional string attribute}, strategy if no transition detected. This attribute controls how to handle the case in which no transitions have been detected through the initial DET grid.  %Two options are available: 
+%  \item \textbf{noTransitionStrategy}, \textit{optional string attribute}, strategy if no transition detected. This attribute controls how to handle the case in which no transitions have been detected through the initial DET grid.  %Two options are available:
  %     \begin{itemize}
   %       \item \textit{noTransitionStrategy = mc}, if this option is activated, when the initial DET grid did not detect any transition, a MC point in space is requested;
    %      \item \textit{noTransitionStrategy = grid},  if this option is activated, the adaptive search starts at begin, during the initial standard Dynamic Event Tree. Whenever a transition is detected, the \textbf{Adaptive Dynamic Event Tree} starts it goal-oriented search using the DET as support;
@@ -889,44 +1093,44 @@ For this reason, it appears natural to use the DET approach to perform a goal-fu
    %   \textit{Default = post}.
   \item \textbf{updateGrid}, \textit{optional boolean attribute}, update DET grid flag. If it is true, each Adaptive Request is going to update the meshing of the initial DET grid.  \textit{Default = True}.
 \end{itemize}
-In the \textbf{AdaptiveDynamicEventTree} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
+In the \textbf{AdaptiveDynamicEventTree} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive XML blocks called $<variable>$:
 \begin{itemize}
-\item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
+\item $<variable>$, XML node, required parameter. This XML-node needs to contain the attribute:
 \begin{itemize}
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
+  \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable.
  \end{itemize}
- In the variable node, the following xml-nodes need to be specified:
+ In the variable node, the following XML-nodes need to be specified:
  \begin{itemize}
     \item $<distribution>$\textbf{\textit{, string, required field.}}. Name of the distribution that is associated to this variable. Its name needs to be contained in the \textbf{Distributions} block explained in sections \ref{sec:distributions};
-    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this xml node depends on the definition of the associated attributes:
+    \item $<grid>$\textbf{\textit{, float or space separated floats, required field.}}. The content of this XML node depends on the definition of the associated attributes:
 \begin{itemize}
 \itemsep0em
 \item \textbf{type}, \textit{required string attribute}, user-defined discretization metric type: 1) $CDF$, the grid is going to be specified based on  Cumulative Distribution Function probability thresholds, and 2) $value$, the grid is going to be provided inputting absolute variable values;
-\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$). 
+\item \textbf{construction}, \textit{required string attribute}, how the grid needs to be constructed, independently by the its type (i.e. $CDF$ or $value$).
 \end{itemize}
-Based on the $construction$ type, the content of the $<grid>$ xml node and the requirements for other attributes change:
+Based on the $construction$ type, the content of the $<grid>$ XML node and the requirements for other attributes change:
 \begin{itemize}
   \item \textit{construction = ``equal''}. The grid is going to be constructed equally-spaced ( type = ``value'') or equally-probable (type == ``CDF''). This construction type requires the definition of additional attributes:
       \begin{itemize}
          \item \textbf{steps}, \textit{required integer attribute}, number of equally-spaced/probable discretization steps.
-         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid. 
+         \item \textbf{upperBound}, \textit{required float attribute}, the upper limit of the grid.
         NB. This attribute must be specified if the \textbf{lowerBound} has not been defined;
          \item \textbf{lowerBound}, \textit{required float attribute}, the lower limit of the grid.
         NB. This attribute must be specified if the \textbf{upperBound} has not been defined;
       \end{itemize}
-      This construction type requires that the content of the xml node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
+      This construction type requires that the content of the XML node $<grid>$ represents the step size (either in probability or value). The attributes \textbf{lowerBound} and \textbf{upperBound} are mutually exclusive (only one of them can be specified):
       \\ If the \textit{upperBound} is present, the grid lower bound is going to be at the $upperBound - steps*stepSize$
       \\ If the \textit{lowerBound} is present, the grid upper bound is going to be at the $lowerBound + steps*stepSize$
       The lower and upper bounds are checked against the associated $<distribution>$ bounds. If one or both of them fell/s outside the distribution's bounds, the code is going to raise an error.
-  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed. 
-     \\This construction type requires that the xml node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
+  \item \textit{construction = ``custom''}. The grid is going to directly be specified by the user. No additional attributes are needed.
+     \\This construction type requires that the XML node $<grid>$  contains the actual mesh bins. For example, if the grid ``type'' is ``CDF'', in the body of $<grid>$, the user is going to specify CDF probability thresholds (nodalization in probability).
 \end{itemize}
   \end{itemize}
 \end{itemize}
 
- In addition to the $<variable>$ nodes,  the main xml node $<AdaptiveDynamicEventTree>$ needs to contain two supplementary sub-nodes:
+ In addition to the $<variable>$ nodes,  the main XML node $<AdaptiveDynamicEventTree>$ needs to contain two supplementary sub-nodes:
 \begin{itemize}
-  \item $<Convergence>$\textbf{\textit{, float, required field.}} Convergence tolerance. The meaning of this tolerance depends on the definition of other attributes that might be defined in this xml node:
+  \item $<Convergence>$\textbf{\textit{, float, required field.}} Convergence tolerance. The meaning of this tolerance depends on the definition of other attributes that might be defined in this XML node:
      \begin{itemize}
          \item \textbf{limit}, \textit{optional integer attribute}, the maximum number of adaptive samples. \textit{Default = infinitive};
          \item \textbf{forceIteration}, \textit{optional boolean attribute}, this attribute controls if at least a number of iterations equal to \textbf{limit} must be performed.  \textit{Default = False} ;
@@ -934,14 +1138,14 @@ Based on the $construction$ type, the content of the $<grid>$ xml node and the r
           \begin{itemize}
              \item \textit{weight = probability}, the convergence is checked in terms of probability (Cumulative Distribution Function);
              \item \textit{weight = none}, the convergence is checked on the hyper-volume in terms of absolute values.
-          \end{itemize} 
+          \end{itemize}
           \textit{Default = probability};
          \item \textbf{persistence}, \textit{optional integer attribute}, this option is an additional convergence check. It represents the number of times the computed error needs to be below the inputted tolerance, in order to consider the algorithm in converged condition.  \textit{Default = 0};
          \item \textbf{subGridTol}, \textit{optional string attribute}, in this attribute the user can define a tolerance for constructing a sub-grid on which the acceleration ROM is going to be tested. \textit{Default = None};
-      \end{itemize}   
-   Summarizing,  this xml node contains the information that are needed in order to control this sampler convergence criterion.
+      \end{itemize}
+   Summarizing,  this XML node contains the information that are needed in order to control this sampler convergence criterion.
 % Assembler Objects
-   \item \textbf{Assembler Objects} These objects are either required or optional depending on the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+   \item \textbf{Assembler Objects} These objects are either required or optional depending on the functionality of the Adaptive Sampler. The objects must be listed with a rigorous syntax that, except for the XML node tag, is common among all the objects.
 Each of these nodes  must contain 2 attributes that are used to map those within the simulation framework:
    \begin{itemize}
      \item \textbf{class}, \textit{required string attribute}, it is the main ``class'' the listed object is from. For example, it can be ``Models'', ``Functions'', etc;
@@ -949,11 +1153,11 @@ Each of these nodes  must contain 2 attributes that are used to map those within
     \end{itemize}
 The \textbf{Adaptive Sampler} approach requires or optionally accepts the following objects' types:
    \begin{itemize}
-     \item $<ROM>$\textbf{\textit{, string, optional  field.}}. If inputted, the body of this xml node must contain the name of a ROM defined in the $<Models>$ block (see section \ref{subsec:models_ROM});
-       \item $<Function>$\textbf{\textit{, string, required field.}}.The body of this xml block needs to contain the name of an External Function defined within the $<Functions>$ main block (see section \ref{sec:functions}). This object represents the boolean function that defines the transition boundaries. This function must implement a method called \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on the system conditions (see section \ref{sec:functions};
-        \item $<TargetEvaluation>$\textbf{\textit{, string, required field.}}. The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this xml node must contain the name of a Data defined in the $<Datas>$ block (see section \ref{sec:sec:Datas}). The adaptive sampling accepts ``Datas'' of type ``TimePoint''  and ``TimePointSet'' only.
+     \item $<ROM>$\textbf{\textit{, string, optional  field.}}. If inputted, the body of this XML node must contain the name of a ROM defined in the $<Models>$ block (see section \ref{subsec:models_ROM});
+       \item $<Function>$\textbf{\textit{, string, required field.}}.The body of this XML block needs to contain the name of an External Function defined within the $<Functions>$ main block (see section \ref{sec:functions}). This object represents the boolean function that defines the transition boundaries. This function must implement a method called \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on the system conditions (see section \ref{sec:functions};
+        \item $<TargetEvaluation>$\textbf{\textit{, string, required field.}}. The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this XML node must contain the name of a Data defined in the $<Datas>$ block (see section \ref{sec:sec:Datas}). The adaptive sampling accepts ``Datas'' of type ``TimePoint''  and ``TimePointSet'' only.
     \end{itemize}
-    
+
 \end{itemize}
 
 
@@ -987,39 +1191,14 @@ XML INPUT:
   </AdaptiveDynamicEventTree>
   ...
 </Samplers>
-\end{lstlisting} 
+\end{lstlisting}
 \begin{lstlisting}[language=python]
 
 EXTERNAL FUNCTION:
 def __residuumSign(self):
-  if self.whatEverValue < self.OtherValue : 
+  if self.whatEverValue < self.OtherValue :
     return  1
-  else: 
+  else:
     return -1
 ---------------------------------------------------------
 \end{lstlisting} 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
