@@ -11,7 +11,8 @@ import sys
 class IndexSet(object):
   def __init__(self):
     self.impWeights = None #weights for anisotropic case
-    self.type       = None #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
+    self.type       = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
+    self.printTag   = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
     self.maxOrds    = None #maximum requested polynomial order requested for each distribution
 
   def __len__(self):
@@ -54,6 +55,8 @@ class IndexSet(object):
   def initialize(self,distrList,impList,maxPolyOrder):
     numDim = len(distrList)
     #set up and normalize weights
+    print('DEBUG',self.printTag,distrList.keys())
+    print('DEBUG',self.printTag,impList.keys())
     impWeights = list(impList[v] for v in distrList.keys())
     impWeights = np.array(impWeights)
     #this algorithm assures higher weight means more importance,
@@ -89,6 +92,7 @@ class TensorProduct(IndexSet):
   def initialize(self,distrList,impList,maxPolyOrder):
     IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Tensor Product'
+    self.printTag='TensorProductIndexSet'
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
     def rule(i):
       big=0
@@ -103,6 +107,7 @@ class TotalDegree(IndexSet):
   def initialize(self,distrList,impList,maxPolyOrder):
     IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Total Degree'
+    self.printTag='TotalDegreeIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
@@ -117,6 +122,7 @@ class HyperbolicCross(IndexSet):
   def initialize(self,distrList,impList,maxPolyOrder):
     IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Hyperbolic Cross'
+    self.printTag='HyperbolicCrossIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = (self.maxOrder+1)**(sum(self.impWeights)/max(1,float(len(self.impWeights))))

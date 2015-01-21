@@ -631,7 +631,9 @@ class Beta(BoostDistribution):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
     #return factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
-    return 1.0/(2**(self.alpha+self.beta-1)*B)
+    norm = 1.0/(2**(self.alpha+self.beta-1)*B)#*np.sqrt(16./15.)
+    print('DEBUG dist norm',norm)
+    return norm
     #return 1.0/(B*(self.hi-self.low))
 
   def probabilityWeight(self,x):

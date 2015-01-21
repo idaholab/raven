@@ -20,8 +20,8 @@
             <alpha>2</alpha>
         </Gamma>
         <Beta name="BetaDist">
-            <low>1</low>
-            <high>5</high>
+            <low>0</low>
+            <high>1</high>
             <alpha>2</alpha>
             <beta>5</beta>
         </Beta>
@@ -122,21 +122,21 @@
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Jacobi' poly='Laguerre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Jacobi' poly='Laguerre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x2</Interpolation>
         </ROM>
     </Models>
 
     <Steps>
         <MultiRun name='makeStochPolys' pauseAtEnd='False'>
-            <Sampler class='Samplers'         type='SparseGridCollocation'>GSG</Sampler>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>BSG</Sampler>
             <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
             <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
             <Output  class='Datas'            type='TimePointSet'         >solns</Output>
         </MultiRun>
         <RomTrainer name='trainROM'>
             <Input   class='Datas'    type='TimePointSet'>solns</Input>
-            <Output  class='Models'   type='ROM'         >GROM</Output>
+            <Output  class='Models'   type='ROM'         >BROM</Output>
         </RomTrainer>
     </Steps>
 

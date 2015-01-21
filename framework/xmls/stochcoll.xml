@@ -4,10 +4,10 @@
         <WorkingDir>StochasticPolyTest</WorkingDir>
         <Sequence>makeStochPolys,trainROM,MCSampleDirect,MCSampleStochPoly,PPMCdirect,PPMCrom,HistMCdirect,HistMCrom</Sequence>
         <Files>MCrom.stats,MCdirect.stats</Files>
-        <!--batchSize>1</batchSize-->
-        <batchSize>512</batchSize>
+        <batchSize>1</batchSize>
+        <!--batchSize>512</batchSize>
         <mode>pbsdsh</mode>
-        <expectedTime>2:00:00</expectedTime>
+        <expectedTime>2:00:00</expectedTime-->
     </RunInfo>
 
     <Distributions>
@@ -19,14 +19,6 @@
             <mean>3</mean>
             <sigma>2</sigma>
         </Normal>
-        <Gamma name="GammaDist">
-            <low>1</low>
-            <alpha>2</alpha>
-        </Gamma>
-        <Beta name="BetaDist">
-            <low>1</low>
-            <alpha>2</alpha>
-        </Beta>
     </Distributions>
 
     <Samplers>
@@ -56,7 +48,7 @@
             </Assembler>
         </SparseGridCollocation>
 
-        <MonteCarlo name='MC2' limit='10000'>
+        <MonteCarlo name='MC2' limit='100'>
             <variable name='x1'>
                 <distribution>NormDist</distribution>
             </variable>

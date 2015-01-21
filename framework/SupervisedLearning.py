@@ -252,7 +252,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.interpolator = None #FIXME what's this?
-    self.printTag     = returnPrintTag('GAUSS gPC ROM')
+    self.printTag     = returnPrintTag('GAUSS gPC ROM '+self.target)
     self.indexSetType = None
     self.maxPolyOrder = None
     self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
@@ -287,7 +287,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       elif key == 'quads': self.quads      = value
       elif key == 'polys': self.polys      = value
       elif key == 'iSet' : self.indexSet   = value
-    print('DEBUG',self.sparseGrid)
+    #print('DEBUG',self.sparseGrid)
 
   def _multiDPolyBasisEval(self,orders,pts):
     tot=1
@@ -299,13 +299,20 @@ class GaussPolynomialRom(NDinterpolatorRom):
 
   def __trainLocal__(self,featureVals,targetVals):
     self.polyCoeffDict={}
-    #TODO can parallelize this!
+    #check consistency of featureVals
+    if len(featureVals)!=len(self.sparseGrid):
+      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(needpts))+' points, but only '+str(len(havepts))+' provided!')
+    #havepts=list(np.around(featureVals             ,decimals=9)) #FIXME is 9 the right number?
+    #needpts=list(np.around(self.sparseGrid.points(),decimals=9)) #FIXME is 9 the right number?
+    #for pt in havepts[:]:
+    #  if (pt in havepts) and (pt in needpts):pass
+    if not np.allclose(featureVals,self.sparseGrid.points(),rtol=1e-16):
+      raise IOError(self.printTag+' ERROR: input values do not match required values!')
+    #TODO can parallelize this! Worth it?
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
-    #for i,idx in enumerate(self.sparseGrid.indexSet):
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
-      #for k,(pt,wt) in enumerate(self.sparseGrid): #int, tuple, float for k,pt,wt
       wtsum=0
       for pt,soln in zip(featureVals,targetVals):
         stdPt = np.zeros(len(pt))
@@ -317,10 +324,17 @@ class GaussPolynomialRom(NDinterpolatorRom):
       self.polyCoeffDict[idx]*=self.norm
     print('DEBUG norm',self.norm)
     print('DEBUG polyDict',self.printTag)
+    #print('DEBUG polys')
+    #for i in range(3):
+    #  print(self.polys.values()[0][i],'} norm',self.polys.values()[0].norm(i))
     self.printPolyDict()
     #try a moment
     for r in range(5):
-      print('DEBUG moment',r,'=',self.__evaluateMoment__(r))
+      print('ROM moment',r,'=',self.__evaluateMoment__(r))
+
+    #local evals
+    #for i in [0,0.2,0.5,0.7,1.0]:
+    #  print('DEBUG eval('+str(i)+'):',self.__evaluateLocal__([[i]]))
 
   def printPolyDict(self,printZeros=False):
     data=[]

@@ -455,6 +455,7 @@ class AdaptiveSampler(Sampler):
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.surfPoint         = None
+    print('DEBUG',self.printTag,'name',self.goalFunction.name,'keys',self.solutionExport.getParaKeys('output'))
     if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Goal function name does not match solution export data output.')
     self._endJobRunnable   = 1
     #build a lambda function to masquerade the ROM <-> cKDTree presence
@@ -2152,11 +2153,10 @@ class SparseGridCollocation(Grid):
 
   def localInitialize(self):
     Grid.localInitialize(self)
-    SVL = self.ROM.SupervisedEngine.values()[0]
-    ROMdata = SVL.interpolationInfo() #FIXME they are all the same?
-    if len(self.ROM.SupervisedEngine)>1:
-      raise IOError(self.printTag,' ERROR: There is no implementation for collocation with multiple targets (yet)!')
-    #TODO how to handle multiple targets?  Assume one for now!
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0] #often need only one
+    ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
+    self.maxPolyOrder = SVL.maxPolyOrder
     #check input space consistency
     samVars=self.axisName[:]
     romVars=SVL.features[:]
@@ -2173,6 +2173,10 @@ class SparseGridCollocation(Grid):
         raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' given interpolation rules but '+v+' not in sampler!')
       else:
         self.gridInfo[v] = ROMdata[v] #quad, poly, weight
+        print('DEBUG set',v,self.gridInfo[v])
+    for v in self.axisName:
+      if v not in self.gridInfo.keys():
+        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1','cdf':'False'}
     #build dimensional quad, poly
     for varName,dat in self.gridInfo.items():
       if dat['cdf'].lower() in ['t','true','y','yes','1']:
@@ -2206,11 +2210,11 @@ class SparseGridCollocation(Grid):
       #print('DEBUG norm',poly.norm(5))
 
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
-    self.indexSet.initialize(self.distDict,self.importanceDict,SVL.maxPolyOrder)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder) #FIXME
 
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
-    self.sparseGrid.initialize(self.indexSet,SVL.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
+    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
     self.limit=len(self.sparseGrid)
 
   def localGenerateInput(self,model,myInput):
@@ -2231,6 +2235,7 @@ class SparseGridCollocation(Grid):
     try: self.lastOutput.sizeData('output')
     except: return
     if self.lastOutput.sizeData('output').values()[0]==len(self.sparseGrid)-1: #-1 because collection is after this call
+      print(self.printTag,'Number of samples:',len(self.sparseGrid))
       for SVL in self.ROM.SupervisedEngine.values():
         SVL.initialize({'SG':self.sparseGrid,
                         'dists':self.distDict,

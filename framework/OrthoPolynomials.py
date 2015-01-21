@@ -96,6 +96,7 @@ class OrthogonalPolynomial(object):
 
 class Legendre(OrthogonalPolynomial):
   def initialize(self,quad):
+    self.printTag = 'LEGENDRE-ORTHOPOLY'
     self._poly = polys.legendre
     self._evPoly = polys.eval_legendre
     self.setMeasures(quad)
@@ -135,6 +136,7 @@ class Legendre(OrthogonalPolynomial):
 
 class Hermite(OrthogonalPolynomial):
   def initialize(self,quad):
+    self.printTag = 'HERMITE-ORTHOPOLY'
     self._poly = polys.hermitenorm
     self._evPoly = polys.eval_hermitenorm
     self.setMeasures(quad)
@@ -166,6 +168,7 @@ class Hermite(OrthogonalPolynomial):
 
 class Laguerre(OrthogonalPolynomial):
   def initialize(self,quad):
+    self.printTag = 'LAGUERRE-ORTHOPOLY'
     self._poly = polys.genlaguerre
     self._evPoly = polys.eval_genlaguerre
     self.params=quad.params
@@ -197,20 +200,21 @@ class Laguerre(OrthogonalPolynomial):
 
 class Jacobi(OrthogonalPolynomial):
   def initialize(self,quad):
+    self.printTag = 'JACOBI-ORTHOPOLY'
     self._poly = polys.jacobi
     self._evPoly = polys.eval_jacobi
     self.params=quad.params
     self.setMeasures(quad)
 
-  def _localReadMoreXML(self,xmlNode):
-    self.params = []
-    if xmlNode.find('alpha') != None:
-      alpha=float(xmlNode.find('alpha').text)
-    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi polynmials require alpha keyword; not found.')
-    if xmlNode.find('beta') != None:
-      beta=float(xmlNode.find('beta').text)
-    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi polynomials require beta keyword; not found.')
-    self.params = [beta-1,alpha-1]
+#  def _localReadMoreXML(self,xmlNode):
+#    self.params = []
+#    if xmlNode.find('alpha') != None:
+#      alpha=float(xmlNode.find('alpha').text)
+#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi polynmials require alpha keyword; not found.')
+#    if xmlNode.find('beta') != None:
+#      beta=float(xmlNode.find('beta').text)
+#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi polynomials require beta keyword; not found.')
+#    self.params = [beta-1,alpha-1]
 
   def setMeasures(self,quad):
     if quad.type=='Jacobi':
@@ -228,16 +232,22 @@ class Jacobi(OrthogonalPolynomial):
     jacobiElement.append(element)
 
   def norm(self,n):
-    a=self.params[0]
-    b=self.params[1]
-    #WHAT I THOUGHT
-    #coeff1=1./np.sqrt(2.**(a+b+1)/(2.*n+a+b+1.))
-    #coeff2=1./np.sqrt(factorial(n+a)*factorial(n+b)/(factorial(n)*factorial(n+a+b)))
-    #return coeff1*coeff2
-    #WHAT WORKS = norm (from comment above) / beta standard norm
-    coeff=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
+    a=self.params[1]#+1
+    b=self.params[0]#+1
+    coeff=1.
+    coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
     coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
-    coeff*=np.sqrt(2**(a+b+1)*factorial(a)*factorial(b)/factorial(a+b+1))
+    #coeff*=np.sqrt(16/15)
+    #coeff*=np.sqrt(2)
+    #a+=1
+    #b+=1
+    #coeff*=np.sqrt(2**(a+b-2)*factorial(a)*factorial(b)/factorial(a+b+1))
+
+    #coeff*=np.sqrt(factorial(a+b-1)/(factorial(a-1)*factorial(b-1)))
+    #coeff*=np.sqrt(1./(2.*2**(a+b-2)))
+
+    #print('DEBUG poly norm',n,coeff)
+    #print('DEBUG norm',factorial(a+b-1)/(factorial(a-1)*factorial(b-1)))
     return coeff
 
 
