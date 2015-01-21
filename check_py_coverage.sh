@@ -34,9 +34,9 @@ then
     echo coverage already available, skipping building it.
 else
     cd $BUILD_DIR
-    $DOWNLOADER https://pypi.python.org/packages/source/c/coverage/coverage-3.6.tar.gz #md5=67d4e393f4c6a5ffc18605409d2aa1ac
-    tar -xvzf coverage-3.6.tar.gz
-    cd coverage-3.6
+    $DOWNLOADER https://pypi.python.org/packages/source/c/coverage/coverage-3.7.1.tar.gz #md5=67d4e393f4c6a5ffc18605409d2aa1ac
+    tar -xvzf coverage-3.7.1.tar.gz
+    cd coverage-3.7.1
     (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 fi
 
@@ -47,8 +47,10 @@ cd $SCRIPT_DIR
 EXTRA='--source=../../framework -a'
 cd tests/framework
 coverage erase
-for I in test_simple.xml test_branch.xml test_mpi.xml test_output.xml test_sbo_heavy_det.xml test_push_into_hdf5.xml test_rom_trainer.xml test_Grid_Sampler.xml test_LHS_Sampler.xml test_Lorentz.xml test_bison_mc_simple.xml
+#skip test_rom_trainer.xml 
+for I in test_simple.xml test_output.xml test_branch.xml test_preconditioned_det.xml test_push_into_hdf5.xml test_rom_trainer_no_normalization.xml test_rom_train_from_already_dumped_HDF5.xml test_FullFactorial_Sampler.xml test_ResponseSurfaceDesign_Sampler.xml test_Grid_Sampler.xml test_random.xml test_LHS_Sampler.xml test_Grid_Sampler_Bison.xml test_LHS_Sampler_Bison.xml test_LHS_Sampler_Raven.xml test_Grid_Sampler_Raven.xml test_Lorentz.xml test_BasicStatistics.xml test_LimitSurface.xml test_CreateInternalObjFromCSVs.xml test_bison_mc_simple.xml test_custom_mode.xml test_iostep_load.xml test_safest_point.xml test_externalPostProcessor.xml
 do
+    echo Running $I
     coverage run $EXTRA ../../framework/Driver.py  $I
 done
 coverage run $EXTRA ../../framework/TestDistributions.py
