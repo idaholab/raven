@@ -1,45 +1,90 @@
 \section{Datas  \\ \vspace{2 mm} {\small }}
 \label{sec:Datas}
-As it could infer from the previous chapters,  in the RAVEN code different entities interact to each other in order to create, ideally, an infinite number of different calculation flows. These interactions are performed through a system that is ``understandable'' by each ``entity''. This system, neglecting the grammar imprecision,  is called ``Datas'' system. The ``Datas'' system is a container of Data objects of different type that can be constructed during the evolution of the particular calculation flow, can be used as input or output of particular Model (see Roles' meaning in section \ref{sec:models}), etc. 
-Currently, RAVEN support 4 different data types, each with a particular conceptual meaning:
+As one could infer from the previous chapters, different entities in the RAVEN 
+code interact with each other in order to create, ideally, an infinite number of
+different calculation flows.
+%
+These interactions are made possible through a data handling system that each
+entity understands.
+%
+This system, neglecting the grammar imprecision,  is called the ``Datas''
+system.
+%
+The \texttt{Datas} tag is a container of data objects of different type that can
+be constructed during the execution of a particular calculation flow. These data
+objects can be used as input or output for a particular Model (see Roles'
+meaning in section \ref{sec:models}), etc. 
+%
+Currently, RAVEN supports 4 different data types, each with a particular
+conceptual meaning:
 \begin{itemize}
-\item \textbf{TimePoint}: The \textit{TimePoint} entity, as the name suggests, ``describes'' the state of the system in a certain point in time. In other words, it can be considered a mapping between a set of parameters in the input space and the resulting outcomes in the output space at a particular time;
-\item \textbf{TimePointSet}: The \textit{TimePointSet} object is, obviously, a collection of single \textit{TimePoint(s)}. It can be considered a mapping between multiple sets of parameters in the input space and the resulting sets of outcomes in the output space at a particular point in time;
-\item \textbf{History}:  The \textit{History} entity ``describes'' the temporal evolution of the state of the system within a certain input domain;
-\item \textbf{Histories}:  The \textit{Histories} object is, obviously, a collection of single \textit{History(ies)}. t can be considered a mapping between multiple sets of parameters in the input space and the resulting sets of temporal evolutions in the output space.
+\item \textbf{TimePoint}: The \textit{TimePoint} entity, as the name suggests, 
+describes the state of the system in a certain point in time.
+%
+In other words, it can be considered a mapping between a set of parameters in
+the input space and the resulting outcomes in the output space at a particular
+time.
+\item \textbf{TimePointSet}: The \textit{TimePointSet} object is a collection of
+individual \textit{TimePoint(s)}.
+%
+It can be considered a mapping between multiple sets of parameters in the input
+space and the resulting sets of outcomes in the output space at a particular
+point in time.
+\item \textbf{History}:  The \textit{History} entity describes the temporal
+evolution of the state of the system within a certain input domain.
+\item \textbf{Histories}:  The \textit{Histories} object is a collection of 
+individual \textit{History} objects.
+%
+It can be considered a mapping between multiple sets of parameters in the input
+space and the resulting sets of temporal evolutions in the output space.
 \end{itemize}
-As inferable  from the brief description reported above, each ``Data'' object represents a mapping between a set of parameters and the resulting outcomes.
-The Data objects are defined within the main XML block called $<Datas>$:
+As noted above, each data object represents a mapping between a set of
+parameters and the resulting outcomes.
+%
+The data objects are defined within the main XML block called \texttt{<Datas>}:
 \begin{lstlisting}[style=XML]
------------------------------
 <Simulation>
    ...
   <Datas> 
-    <WhatEverData name='***'>  
-     ... 
-    </WhatEverData> 
+    <TimePoint name='***'>...</TimePoint>
+    <TimePointSet name='***'>...</TimePointSet>
+    <History name='***'>...</History>
+    <Histories name='***'>...</Histories>
   </Datas>
    ...
 </Simulation>
------------------------------
 \end{lstlisting}
 
-The specifications of each ``Data'' type must be defined within:
+This example also demonstrates the specification of each data type must be
+defined within one of the following xml nodes (each corresponding to the data
+types previously listed):
 \begin{itemize}
-   \item \textbf{TimePoint} $=>$ $<TimePoint>$
-   \item \textbf{TimePointSet} $=>$ $<TimePointSet>$
-   \item \textbf{History} $=>$ $<History>$
-   \item \textbf{Histories} $=>$ $<Histories>$
+   \item \texttt{<TimePoint>}
+   \item \texttt{<TimePointSet>}
+   \item \texttt{<History>}
+   \item \texttt{<Histories>}
 \end{itemize}
-Independently on the type of Data, the respective XML node needs (or not) to contain the attribute:
+Independent of the type of data, the respective XML node has the following
+attributes:
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Data. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \texttt{name}, \textit{\textbf{required string attribute}}, user-defined 
+name of this data object.
+%
+\textbf{N.B.} As with other objects, this name can be used to refer to this
+specific entity from other input blocks in the XML.
 % Regarding the time attribute, we need to take a better decision... Now it is very confusing.
 %\item \textbf{time}, \textit{optional float or string attribute}, time attribute. The user can here specify either the time (value) at which the outcomes need to be taken (History-like object, it represents the time from which the outcomes' evolution need to be tracked) or a string  that can be either ``end'', at the end of the hystory, or ``all'', consider     . \textit{Default = random seed};
-\item \textbf{inputTs}, \textit{optional integer attribute}, This attribute can be used to specify at which ``time step'' the input space needs to be retrieved. NB. If the user wants to take those conditions from the end of the simulation, it can directly input ``-1''. \textit{Default = 0};
-\item \textbf{operator}, \textit{optional string attribute}, The operator attribute is aimed to perform simple operations on the data to be stored. The 3 options currently available are \textit{operator = max}, \textit{operator = min}, \textit{operator = average}, with obvious meaning. \textit{Default = None};
+\item \textcolor{cyan}{\textbf{\texttt{inputTs}}}, \textit{\textbf{optional integer attribute}}, This 
+attribute can be used to specify at which ``time step'' the input space needs to
+be retrieved. 
+%
+\textbf{N.B.} If the user wants to take those conditions from the end of the
+simulation, she/he can directly input ``-1''.
+%
+\textit{Default = 0}.
+\item \texttt{operator}, \textit{\textbf{optional string attribute}}, The operator attribute is aimed to perform simple operations on the data to be stored. The 3 options currently available are \textit{operator = max}, \textit{operator = min}, \textit{operator = average}, with obvious meaning. \textit{Default = None};
 \item \textbf{hierarchical}, \textit{optional boolean attribute}, If True this data is going to be constructed, if possible, in an hierarchical fashion. \textit{Default = False};
 \end{itemize}
 \vspace{-5mm}

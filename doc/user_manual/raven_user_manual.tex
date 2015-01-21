@@ -59,8 +59,8 @@
     morecomment=[s]{<?}{?>},
     morecomment=[s][\color{forestgreen}]{<!--}{-->},
     keywordstyle=\color{cyan},
-    stringstyle=\ttfamily\color{black}\normalfont,
-    tagstyle=\color{darkblue}\bf,
+    stringstyle=\ttfamily\color{black},
+    tagstyle=\color{darkblue}\bf\ttfamily,
     morekeywords={attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
 }
 
@@ -123,15 +123,25 @@ showstringspaces=false            %
 \definecolor{PTcolor}{HTML}{D10B8C}  % Paul
 
 % Comment command for developers (Should only be used under active development)
-\newcommand{\alfoa}[1] {{ { \textcolor{AAcolor}{Andrea:[[#1]]}}}}
-\newcommand{\cristr}[1] {{ { \textcolor{CRcolor}{Cristian:[[#1]]}}}}
-\newcommand{\mandd}[1] {{ { \textcolor{DMcolor}{Diego:[[#1]]}}}}
-\newcommand{\maljdan}[1] {{ { \textcolor{DPMcolor}{Dan:[[#1]]}}}}
-\newcommand{\cogljj}[1] {{ { \textcolor{JCcolor}{Josh:[[#1]]}}}}
-\newcommand{\bobk}[1] {{ { \textcolor{RKcolor}{Bob:[[#1]]}}}}
-\newcommand{\senrs}[1] {{ { \textcolor{RScolor}{Sonat:[[#1]]}}}}
-\newcommand{\talbpaul}[1] {{ { \textcolor{PTcolor}{Paul:[[#1]]}}}}
-\newcommand{\TODO}[1] {{ { \textcolor{red}{\textit{(#1)}}}}}
+\newcommand{\alfoa}[1] {\textcolor{AAcolor}{Andrea:[[#1]]}}
+\newcommand{\cristr}[1] {\textcolor{CRcolor}{Cristian:[[#1]]}}
+\newcommand{\mandd}[1] {\textcolor{DMcolor}{Diego:[[#1]]}}
+\newcommand{\maljdan}[1] {\textcolor{DPMcolor}{Dan:[[#1]]}}
+\newcommand{\cogljj}[1] {\textcolor{JCcolor}{Josh:[[#1]]}}
+\newcommand{\bobk}[1] {\textcolor{RKcolor}{Bob:[[#1]]}}
+\newcommand{\senrs}[1] {\textcolor{RScolor}{Sonat:[[#1]]}}
+\newcommand{\talbpaul}[1] {\textcolor{PTcolor}{Paul:[[#1]]}}
+
+% Commands for making the LaTeX a bit more uniform and cleaner
+\newcommand{\TODO}[1]    {\textcolor{red}{\textit{(#1)}}}
+\newcommand{\xmlAttrRequired}[1] {\textcolor{red}{\textbf{\texttt{#1}}}}
+\newcommand{\xmlAttr}[1] {\textcolor{cyan}{\textbf{\texttt{#1}}}}
+\newcommand{\xmlNodeRequired}[1] {\textcolor{deepblue}{\textbf{\texttt{<#1>}}}}
+\newcommand{\xmlNode}[1] {\textcolor{darkblue}{\textbf{\texttt{<#1>}}}}
+\newcommand{\xmlDesc}[1] {\textbf{\textit{#1}}}
+\newcommand{\xmlString}[1] {\textbf{\texttt{'#1'}}}
+
+\newcommand{\nb} {\textbf{N.B.}~}
 
 %%%%%%%% End comands definition to input python code into document
 
