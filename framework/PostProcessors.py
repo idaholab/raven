@@ -577,14 +577,14 @@ def print_graphs(csv, reference, data_stats, cdf_func):
   for i in range(z_n):
     z = low_z + interval_z*i
     print_csv(z,f_z(z))
-  cdf_area_difference = simpson(lambda x:abs(cdf_func(x)-normal_cdf(x,ref_mean,ref_stddev)),low_low,high_high,1000)
+  cdf_area_difference = simpson(lambda x:abs(cdf_func(x)-normal_cdf(x,ref_mean,ref_stddev)),low_low,high_high,100000)
 
   def first_moment_simpson(f, a, b, n):
     return simpson(lambda x:x*f(x), a, b, n)
 
   pdf_common_area = simpson(lambda x:min(normal(x,ref_mean,ref_stddev),
                                          skew_normal(x,calc_alpha,calc_xi,calc_omega)),
-                            low_low,high_high,1000)
+                            low_low,high_high,100000)
   #sum_function_diff = simpson(f_z, low_z, high_z, 1000)
   #first_moment_function_diff = first_moment_simpson(f_z, low_z,high_z, 1000)
   print_csv('"cdf_area_difference"',cdf_area_difference)
