@@ -567,8 +567,9 @@ def print_graphs(csv, reference, data_stats, cdf_func):
   def f_z(z):
     return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 10000)
 
-  low_z = (ref_mean-3.0*ref_stddev)-(calc_mean-3.0*calc_stddev)
-  high_z = (ref_mean+3.0*ref_stddev)-(calc_mean+3.0*calc_stddev)
+  mid_z = ref_mean-calc_mean
+  low_z = mid_z - 3.0*max(ref_stddev,calc_stddev)
+  high_z = mid_z + 3.0*max(ref_stddev,calc_stddev)
   print_csv('"z"','"f_z(z)"')
   z_n = 20
   interval_z = (high_z - low_z)/z_n
@@ -583,11 +584,12 @@ def print_graphs(csv, reference, data_stats, cdf_func):
   pdf_common_area = simpson(lambda x:min(normal(x,ref_mean,ref_stddev),
                                          skew_normal(x,calc_alpha,calc_xi,calc_omega)),
                             low_low,high_high,1000)
-  #first_moment_function_diff = first_moment_simpson(f_z, low_low,
-  #                                                  high_high, 1000)
+  #sum_function_diff = simpson(f_z, low_z, high_z, 1000)
+  #first_moment_function_diff = first_moment_simpson(f_z, low_z,high_z, 1000)
   print_csv('"cdf_area_difference"',cdf_area_difference)
   print_csv('"pdf_common_area"',pdf_common_area)
-  #print('"first_moment_function_diff"',first_moment_function_diff,file=csv,sep=',')
+  #print_csv('"sum_function_diff"',sum_function_diff)
+  #print_csv('"first_moment_function_diff"',first_moment_function_diff)
 
 
 def count_bins(sorted_data, bin_boundaries):
