@@ -13,6 +13,7 @@ import numpy as np
 from sklearn import tree
 from scipy import spatial
 from scipy import interpolate
+from scipy import integrate
 import os
 from glob import glob
 import copy
@@ -565,7 +566,11 @@ def print_graphs(csv, reference, data_stats, cdf_func):
     print_csv(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x))
 
   def f_z(z):
-    return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 10000)
+    #points=[ref_mean-ref_stddev,ref_mean,ref_mean+ref_stddev,calc_mean-calc_stddev,calc_mean,calc_mean+calc_stddev]
+    #integral,error,out_dict = integrate.quad(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high,limit=10000,points=points,full_output=True)
+    #print("f(z)",integral,error,z,out_dict['neval'])
+    #return integral
+    return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 1000)
 
   mid_z = ref_mean-calc_mean
   low_z = mid_z - 3.0*max(ref_stddev,calc_stddev)
