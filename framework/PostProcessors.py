@@ -558,14 +558,23 @@ def print_graphs(csv, reference, data_stats, cdf_func):
   def print_csv(*args):
     print(*args,file=csv,sep=',')
 
-  print_csv('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"','"f_z(z)"')
-  def f_z(z):
-    return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 10000)
+  print_csv('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"')
 
   for i in range(n):
     x = low+interval*i
-    print_csv(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x),f_z(x))
+    print_csv(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x))
 
+  def f_z(z):
+    return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 10000)
+
+  low_z = (ref_mean-3.0*ref_stddev)-(calc_mean-3.0*calc_stddev)
+  high_z = (ref_mean+3.0*ref_stddev)-(calc_mean+3.0*calc_stddev)
+  print_csv('"z"','"f_z(z)"')
+  z_n = 20
+  interval_z = (high_z - low_z)/z_n
+  for i in range(z_n):
+    z = low_z + interval_z*i
+    print_csv(z,f_z(z))
   cdf_area_difference = simpson(lambda x:abs(cdf_func(x)-normal_cdf(x,ref_mean,ref_stddev)),low_low,high_high,1000)
 
   def first_moment_simpson(f, a, b, n):
