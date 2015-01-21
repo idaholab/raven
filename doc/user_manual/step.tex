@@ -111,7 +111,7 @@ This XML node accepts the following attributes:
 \begin{itemize}
   \item \xmlAttr{class}, \xmlDesc{required string attribute}, main object class
     type.
-    This string corresponds to the tag of the main objects type used in the 
+    This string corresponds to the tag of the main object's type used in the 
     input.
     For example, \xmlString{Files}, \xmlString{Datas}, \xmlString{DataBases},
     etc.
@@ -163,7 +163,7 @@ This XML node recognizes the following attributes:
 \end{itemize}
 
 Example:
-\begin{lstlisting}[style=XML]
+\begin{lstlisting}[style=XML,morekeywords={class,pauseAtEnd}]
 <Steps>
   ...
   <SingleRun name='StepName' pauseAtEnd='false'> 
@@ -528,7 +528,7 @@ This XML node accepts the following attributes:
 \end{itemize}
 
 Example:
-\begin{lstlisting}[style=XML]
+\begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
   ...
   <RomTrainer name='aStepName'>
@@ -635,7 +635,7 @@ This XML node recognizes the following attributes:
 \end{itemize}
 
 Example:
-\begin{lstlisting}[style=XML]
+\begin{lstlisting}[style=XML,morekeywords={class}]
 <Steps>
   ...
   <PostProcess name='PP1'>
@@ -645,5 +645,4 @@ Example:
   </PostProcess>
   ...
 </Steps>
----------------------------------------------------------
 \end{lstlisting}
