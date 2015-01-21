@@ -1,4 +1,24 @@
 \section{How to couple a new code.  \\ \vspace{2 mm} {\small }}
 \label{sec:newCodeCoupling}
-to be added 
+In order to couple your Application to the RAVEN code, your code needs to satisfy some (FEW) pre-requisites.
+CLASSIFICATION:
+Input pre-requisites:
+You need to know your code input syntax :D. Hence, you can write a Python-compatible parser for you input (a module that is able to read and modify your code input)
+You need to decide the syntax your Code Interface will be able to interpret 
+Output pre-requisites:
+RAVEN is able to handle CSV files (as outputs)
+If your code output is not in CSV format, your interface needs to be able to convert it in a CSV format
+
+
+
+
+
+As already mentioned, RAVEN can load your Code Interface automatically, without being aware of it in the source code.
+RAVEN expects, in your interface, to find few methods (that are going to be analyzed, in details, later on in this Presentation):
+generateCommand(self,inputFiles,executable)
+appendLoadFileExtension(self,fileRoot)
+createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs)
+actionsAtTheEnd(self, currentInputFiles,oriInputFiles,samplerType,**Kwargs)
+RAVEN passes in these methods all  the information needed for perturbing and handling the input files of your code (for example, the variables that got sampled, etc.)
+
  
