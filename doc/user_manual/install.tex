@@ -87,6 +87,17 @@ sudo apt-get install libtool python-dev swig g++ python3-dev \
 Untar the binary (if there is more than one version of the
 binary, the full filename will need to be used instead of *):
 
+\maljdan{Somebody verify what \TeX packages are needed under Ubuntu
+(These are what I manually installed according to my
+\texttt{/var/lib/apt/extended\_states} file and things work fine).}
+
+Optionally, if you want to be able to edit and rebuild the manual, you can 
+install \TeX~Live and its related packages:
+\begin{lstlisting}[language=bash]
+sudo apt-get install texlive-latex-base texlive-extra-utils
+\end{lstlisting}
+
+
 \begin{lstlisting}[language=bash]
 tar -xvzf raven_framework_*_ubuntu.tar.gz
 \end{lstlisting}
@@ -115,8 +126,6 @@ Install the dependencies:
 yum install swig libtool gcc-c++ python-devel python3-devel \
  numpy h5py scipy python-scikit-learn python-matplotlib-qt4
 \end{lstlisting}
-
-\maljdan{Do we want the equivalent command for Ubuntu?} \alfoa{I think so. Please ask Josh.}
 
 Optionally, if you want to be able to edit and rebuild the manual, you can 
 install \TeX~Live and its related packages:
