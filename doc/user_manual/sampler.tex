@@ -95,7 +95,7 @@ Example:
   ...
   <MonteCarlo name='MCname' limit='10' initial_seed='200286' reseedAtEachIteration='false'> 
     <variable name='var1'> 
-      <distribution>***</distribution> 	
+      <distribution>aDistributionNameDefinedInDistributionBlock</distribution> 	
     </variable> 
   </MonteCarlo>
   ...
@@ -154,27 +154,27 @@ Example:
   ...
   <Grid name='Gridname'> 
     <variable name='var1'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock1</distribution> 
       <grid	type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>	
     </variable> 
     <variable name='var2'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock2</distribution> 
       <grid	type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>	
     </variable>
     <variable name='var3'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock3</distribution> 
       <grid	type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>	
     </variable> 
     <variable name='var4'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock4</distribution> 
       <grid	type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>	
     </variable>
     <variable name='var5'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock5</distribution> 
       <grid	type='value' construction='custom'>0.2 0.5 10.0</grid>	
     </variable> 
     <variable name='var6'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock6</distribution> 
       <grid	type='CDF' construction='custom'>0.2 0.5 1.0</grid>	
     </variable>
   </Grid>
@@ -241,15 +241,15 @@ Example:
   ...
   <Stratified name='StratifiedName'> 
     <variable name='var1'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock1</distribution> 
       <grid	type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>	
     </variable>
     <variable name='var2'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock2</distribution> 
       <grid	type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>	
     </variable> 
     <variable name='var3'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock3</distribution> 
       <grid	type='CDF' construction='custom'>0.2 0.5 1.0</grid>	
     </variable>
   </Stratified>
@@ -336,7 +336,7 @@ Example:
     <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
         <ResponseSurfaceDesignSettings>
             <type>BoxBehnken</type>
-            <ncenters>***</ncenters>
+            <ncenters>1</ncenters>
         </ResponseSurfaceDesignSettings>
         <variable name='var1' >
             <distribution >Gauss1</distribution>
@@ -352,15 +352,15 @@ Example:
     <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
         <ResponseSurfaceDesignSettings>
             <type>CentralComposite</type>
-            <centers>***, ***</centers>
+            <centers>1, 2</centers>
             <alpha>orthogonal</alpha>
             <face>circumscribed</face>
         </ResponseSurfaceDesignSettings>
         <variable name='var4' >
             <distribution >Gauss1</distribution>
             <boundaries type="CDF">
-                <lower>***</lower>
-                <upper>***</upper>
+                <lower>aFloatValue</lower>
+                <upper>aFloatValue</upper>
             </boundaries>
         </variable>
         <!-- N.B. at least 2 variables need to inputted 
@@ -452,11 +452,11 @@ Example:
             <type>full</type>
         </FactorialSettings>
         <variable name='var1' >
-            <distribution >***</distribution>
+            <distribution>aDistributionNameDefinedInDistributionBlock1</distribution> 
             <grid         type='value' construction='custom' >0.02 0.03 0.5</grid>
         </variable>
         <variable name='var2' >
-            <distribution  >***</distribution>
+            <distribution>aDistributionNameDefinedInDistributionBlock2</distribution> 
             <grid         type='CDF'    construction='custom'>0.5 0.7 1.0</grid>
         </variable>
     </FactorialDesign>
@@ -467,15 +467,15 @@ Example:
             <genMap>var1,var2,var3</genMap>
         </FactorialSettings>
         <variable name='var1' >
-            <distribution >***</distribution>
+            <distribution>aDistributionNameDefinedInDistributionBlock3</distribution> 
             <grid         type='value' construction='custom' >0.02 0.5</grid>
         </variable>
         <variable name='var2' >
-            <distribution  >***</distribution>
+            <distribution>aDistributionNameDefinedInDistributionBlock4</distribution> 
             <grid         type='CDF'    construction='custom'>0.5 1.0</grid>
         </variable>
         <variable name='var3'>
-            <distribution  >***</distribution>
+            <distribution>aDistributionNameDefinedInDistributionBlock5</distribution> 
             <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
         </variable>
     </FactorialDesign>
@@ -484,11 +484,11 @@ Example:
            <type>pb</type>
         </FactorialSettings>
         <variable name='var1' >
-            <distribution >***</distribution>
+            <distribution>aDistributionNameDefinedInDistributionBlock6</distribution> 
             <grid         type='value' construction='custom' >0.02 0.5</grid>
         </variable>
         <variable name='VarGauss2' >
-            <distribution  >***</distribution>
+            <distribution>aDistributionNameDefinedInDistributionBlock7</distribution> 
             <grid         type='CDF'    construction='custom'>0.5 1.0</grid>
         </variable>
     </FactorialDesign>
@@ -568,27 +568,27 @@ Example:
   ...
   <DynamicEventTree name='DETname'> 
     <variable name='var1'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock1</distribution> 
       <grid	type='value' construction='equal' steps='100' lowerBound='1.0'>0.2</grid>	
     </variable> 
     <variable name='var2'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock2</distribution> 
       <grid	type='CDF' construction='equal' steps='5' lowerBound='0.0'>0.2</grid>	
     </variable>
     <variable name='var3'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock3</distribution> 
       <grid	type='value' construction='equal' steps='100' upperBound='21.0'>0.2</grid>	
     </variable> 
     <variable name='var4'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock4</distribution> 
       <grid	type='CDF' construction='equal' steps='5' upperBound='1.0'>0.2</grid>	
     </variable>
     <variable name='var5'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock5</distribution> 
       <grid	type='value' construction='custom'>0.2 0.5 10.0</grid>	
     </variable> 
     <variable name='var6'> 
-      <distribution>***</distribution>
+      <distribution>aDistributionNameDefinedInDistributionBlock6</distribution> 
       <grid	type='CDF' construction='custom'>0.2 0.5 1.0</grid>	
     </variable>
   </DynamicEventTree>
@@ -702,39 +702,39 @@ Example:
   ...
   <DynamicEventTree name='HybridDETname' print_end_xml="True">
       <HybridSamplerSettings type='MonteCarlo' limit='2'>
-          <variable name='***' >
-              <distribution>***</distribution>
+          <variable name='var1' >
+              <distribution>aDistributionNameDefinedInDistributionBlock1</distribution> 
           </variable>
-          <variable name='***' >
-              <distribution>***</distribution>
+          <variable name='var2' >
+              <distribution>aDistributionNameDefinedInDistributionBlock2</distribution> 
               <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
           </variable>
       </HybridSamplerSettings>
       <HybridSamplerSettings type='Grid'>
           <!-- Point sampler way (directly sampling the variable) -->
-          <variable name='***' >
-              <distribution>***</distribution>
+          <variable name='var3' >
+              <distribution>aDistributionNameDefinedInDistributionBlock3</distribution> 
               <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
           </variable>
-          <variable name='***' >
-              <distribution>***</distribution>
+          <variable name='var4' >
+              <distribution>aDistributionNameDefinedInDistributionBlock4</distribution> 
               <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
           </variable>
       </HybridSamplerSettings>
       <HybridSamplerSettings type='Stratified'>
           <!-- Point sampler way (directly sampling the variable ) -->
-          <variable name='***' >
-              <distribution>***</distribution>
+          <variable name='var5' >
+              <distribution>aDistributionNameDefinedInDistributionBlock5</distribution> 
               <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
           </variable>
-          <variable name='***' >
-              <distribution>***</distribution>
+          <variable name='var6' >
+              <distribution>aDistributionNameDefinedInDistributionBlock6</distribution> 
               <grid type='CDF' construction='equal' steps='1' lowerBound='0.1'>0.1</grid>
           </variable> 
       </HybridSamplerSettings>
       <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like HybridSamplerSettings) -->
-        <Distribution name='***'>
-          <distribution >***</distribution>
+        <Distribution name='dist7'>
+          <distribution>aDistributionNameDefinedInDistributionBlock7</distribution> 
           <grid type='CDF' construction='custom'>0.1 0.8</grid>
         </Distribution>
   </DynamicEventTree>
@@ -836,13 +836,13 @@ XML INPUT:
       1e-2
     </Convergence>
     <variable name = 'var1'>
-        <distribution>***</distribution>
+        <distribution>aDistributionNameDefinedInDistributionBlock1</distribution> 
     </variable>
     <variable name = 'var2'>
-        <distribution>***</distribution>
+        <distribution>aDistributionNameDefinedInDistributionBlock2</distribution> 
     </variable>
     <variable name = 'var3'>
-        <distribution>***</distribution>
+        <distribution>aDistributionNameDefinedInDistributionBlock3</distribution> 
     </variable>
   </Adaptive>
   ...
@@ -973,15 +973,15 @@ XML INPUT:
       1e-2
     </Convergence>
     <variable name = 'var1'>
-        <distribution>***</distribution>
+        <distribution>aDistributionNameDefinedInDistributionBlock1</distribution> 
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
     <variable name = 'var2'>
-        <distribution>***</distribution>
+        <distribution>aDistributionNameDefinedInDistributionBlock2</distribution> 
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
     <variable name = 'var3'>
-        <distribution>***</distribution>
+        <distribution>aDistributionNameDefinedInDistributionBlock3</distribution> 
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
   </AdaptiveDynamicEventTree>

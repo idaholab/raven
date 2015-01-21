@@ -97,21 +97,21 @@ In each XML node (e.g. $<TimePoint>$ or $<Histories>$), the user needs to specif
 \begin{lstlisting}[style=XML]
 ----------------------------------------------------------
 <Datas> 
-   <TimePoint name='***' inputTs='-1' operator='max' hierarchical='False'>  
-      <Input history='a_history_name'>***,***,***</Input>
-      <Output>***,***</Output>
+   <TimePoint name='TP' inputTs='-1' operator='max' hierarchical='False'>  
+      <Input history='a_history_name'>var1,var2,var3</Input>
+      <Output>result1,result2</Output>
    </TimePoint> 
-   <TimePointSet name='***'>  
-      <Input>***,***,***</Input>
-      <Output>***,***</Output>
+   <TimePointSet name='TPS'>  
+      <Input>var1,var2,var3</Input>
+      <Output>result1,result2</Output>
     </TimePointSet> 
-    <History name='***'>  
-      <Input history='a_history_name'>***,***,***</Input>
-      <Output>***,***</Output>
+    <History name='HIST'>  
+      <Input history='a_history_name'>var1,var2,var3</Input>
+      <Output>result1,result2</Output>
     </History> 
-    <Histories name='***'>  
-      <Input>***,***,***</Input>
-      <Output>***,***</Output>
+    <Histories name='HISTs'>  
+      <Input>var1,var2,var3</Input>
+      <Output>result1,result2</Output>
     </Histories> 
 </Datas>
 ----------------------------------------------------------
@@ -127,8 +127,8 @@ The DataBase objects are defined  within the main XML block called $<DataBases>$
    ...
   <DataBases>
         ...
-        <HDF5 name="***"/>
-        <HDF5 name="***"/>
+        <HDF5 name="aDataBaseName1"/>
+        <HDF5 name="aDataBaseName2"/>
         ...
   </DataBases>
    ...
@@ -153,8 +153,8 @@ The specifications of each DataBase of type HDF5 needs to be defined within the 
 \begin{lstlisting}[style=XML]
 ----------------------------------------------------------
 <DataBases> 
-   <HDF5 name="***" directory=''path_to_a_dir'' compression=''lzf''/>
-   <HDF5 name="***" filename=''existing_hdf5.h5''/>
+   <HDF5 name="aDataBaseName1" directory=''path_to_a_dir'' compression=''lzf''/>
+   <HDF5 name="aDataBaseName2" filename=''aDataBaseName2.h5''/>
 </DataBases>
 ----------------------------------------------------------
 \end{lstlisting}

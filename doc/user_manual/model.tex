@@ -59,7 +59,7 @@ In the \textbf{Code} input block, the following XML sub-nodes are available:
   ...
   <Models>
     ...
-    <Code name='***' subType='RAVEN_Driven_code'>
+    <Code name='aUserDefinedName' subType='RAVEN_Driven_code'>
       <executable>path_to_executable</executable>
       <alias variable='internal_variable_name1'>
          External_Code_Variable_Name_1
@@ -98,7 +98,7 @@ If this model, in a \textit{Step}, is associated to a \textit{Data} with the rol
   ...
   <Models>
     ...
-    <Dummy name='***' subType=''/>
+    <Dummy name='aUserDefinedName' subType=''''/>
     ...
   </Models>
   ...
@@ -147,9 +147,9 @@ The main ``class'' NDspline contains a single ROM type, based on a N-Dimensional
   ...
   <Models>
     ...
-    <ROM name='***' subType='NDspline'>
-       <Features>***,***,***</Features> 
-       <Target>***,***</Target>
+    <ROM name='aUserDefinedName' subType='NDspline'>
+       <Features>var1,var2,var3</Features> 
+       <Target>result1,result2</Target>
      </ROM>
     ...
   </Models>
@@ -173,9 +173,9 @@ The main ``class'' NDinvDistWeigth contains a single ROM type, based on a N-Dime
   ...
   <Models>
     ...
-    <ROM name='***' subType='NDinvDistWeigth'>
-       <Features>***,***,***</Features> 
-       <Target>***</Target>
+    <ROM name='aUserDefinedName' subType='NDinvDistWeigth'>
+       <Features>var1,var2,var3</Features> 
+       <Target>result1,result2</Target>
        <p>3</p>
      </ROM>
     ...
@@ -205,7 +205,7 @@ In the following, all the linear models available in RAVEN are reported.
 \subparagraph{Linear Model: Automatic Relevance Determination regression}
 \mbox{}
 \\The \textit{Automatic Relevance Determination} regressor is a hierarchical Bayesian approach where there are hyperparameters which explicitly represent the relevance of different input features. These relevance hyperparameters determine the range of variation for the parameters relating to a particular input, usually by modelling the width of a zero-mean Gaussian prior on those parameters. If the width of that Gaussian is zero, then those parameters are constrained to be zero, and the corresponding input cannot have any effect on the predictions, therefore making it irrelevant. ARD optimizes these hyperparameters to discover which inputs are relevant.
-In order to use the  \textit{Automatic Relevance Determination} regressor, the user needs to set the sub-node $<SKLtype>ARDRegression</SKLtype>$. In addition to this XML node, several other need (or not) be inputted:
+In order to use the  \textit{Automatic Relevance Determination} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|ARDRegression</SKLtype>$. In addition to this XML node, several other need (or not) be inputted:
 \begin{itemize}
 \item $<n_iter>$ \textbf{\textit{, integer, optional field.}}.  Maximum number of iterations. \textit{Default = 300};
 \item $<tol>$ \textbf{\textit{, float, optional field.}}.  Stop the algorithm if w has converged. \textit{Default = 1.e-3};
@@ -228,7 +228,7 @@ p(w|\lambda) =\mathcal{N}(w|0,\lambda^{-1}\bold{I_{p}})
 \end{equation}
 The priors over $\alpha$ and $\lambda$ are chosen to be gamma distributions, the conjugate prior for the precision of the Gaussian.
 The resulting model is called Bayesian Ridge Regression, and is similar to the classical Ridge. The parameters $w, \alpha$ and $\lambda$ are estimated jointly during the fit of the model. The remaining hyperparameters are the parameters of the gamma priors over $\alpha$ and $\lambda$. These are usually chosen to be non-informative. The parameters are estimated by maximizing the marginal log likelihood.
-In order to use the  \textit{Bayesian ridge regression} regressor, the user needs to set the sub-node $<SKLtype>BayesianRidge</SKLtype>$.  In addition to this XML node, several others need (or not) to be inputted:
+In order to use the  \textit{Bayesian ridge regression} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|BayesianRidge</SKLtype>$.  In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
 \item $<n_iter>$ \textbf{\textit{, integer, optional field.}}.  Maximum number of iterations. \textit{Default = 300};
 \item $<tol>$ \textbf{\textit{, float, optional field.}}.  Stop the algorithm if w has converged. \textit{Default = 1.e-3};
@@ -250,7 +250,7 @@ It minimizes the objective function:
 \begin{equation}
 1/(2*n_samples) *||y - Xw||^2_2+alpha*l1_ratio*||w||_1 + 0.5 *alpha*(1 - l1_ratio)*||w||^2_2
 \end{equation}
-In order to use the  \textit{Elastic Net} regressor, the user needs to set the sub-node $<SKLtype>ElasticNet</SKLtype>$.  In addition to this XML node, several others need (or not) to be inputted:
+In order to use the  \textit{Elastic Net} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|ElasticNet</SKLtype>$.  In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
 \item $<alpha>$ \textbf{\textit{, float, optional field.}}.  Constant that multiplies the penalty terms. alpha = 0 is equivalent to an ordinary least square, solved by the LinearRegression object. \textit{Default = 1.0};
 \item $<l1_ratio>$ \textbf{\textit{, float, optional field.}}.  The ElasticNet mixing parameter, with $0 <= l1_ratio <= 1$. For $l1_ratio = 0$ the penalty is an L2 penalty. For $l1_ratio = 1$ it is an L1 penalty. For $0 < l1_ratio < 1$, the penalty is a combination of L1 and L2. \textit{Default = 0.5};
@@ -265,7 +265,7 @@ In order to use the  \textit{Elastic Net} regressor, the user needs to set the s
 \subparagraph{Linear Model: Elastic Net CV}
 \mbox{}
 \\The \textit{Elastic Net CV} is a linear regression similar to Elastic Net model but with an iterative fitting along a regularization path. The best model is selected by cross-validation.
-\\In order to use the  \textit{Elastic Net CV} regressor, the user needs to set the sub-node $<SKLtype>ElasticNetCV</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\\In order to use the  \textit{Elastic Net CV} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|ElasticNetCV</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
 \item $<l1_ratio>$ \textbf{\textit{, float, optional field.}}. Float flag between 0 and 1 passed to ElasticNet (scaling between l1 and l2 penalties). For $l1_ratio = 0$ the penalty is an L2 penalty. For $l1_ratio = 1$ it is an L1 penalty. For $0 < l1_ratio < 1$, the penalty is a combination of L1 and L2 This parameter can be a list, in which case the different values are tested by cross-validation and the one giving the best prediction score is used. Note that a good choice of list of values for $l1_ratio$ is often to put more values close to 1 (i.e. Lasso) and less close to 0 (i.e. Ridge), as in [.1, .5, .7, .9, .95, .99, 1]. \textit{Default = 0.5};
 \item $<eps>$ \textbf{\textit{, float, optional field.}}.  Length of the path. eps=1e-3 means that $alpha_min / alpha_max = 1e-3$. \textit{Default = 0.001};
@@ -279,7 +279,7 @@ In order to use the  \textit{Elastic Net} regressor, the user needs to set the s
 \subparagraph{Linear Model: Least Angle Regression model}
 \mbox{}
 \\The \textit{Least Angle Regression model} (LARS)  is a regression algorithm for high-dimensional data. LARS algorithm provides a means of producing an estimate of which variables to include, as well as their coefficients, when a  response variable is determined by a linear combination of a subset of potential covariate.
-\\In order to use the  \textit{Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>Lars</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\\In order to use the  \textit{Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|Lars</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
 \item $<n_nonzero_coef>$ \textbf{\textit{, integer, optional field.}}. Target number of non-zero coefficients. \textit{Default = 500};
 \item $<fit_intercept>$ \textbf{\textit{, boolean, optional field.}}.  Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. \textit{Default =  True};
@@ -293,7 +293,7 @@ In order to use the  \textit{Elastic Net} regressor, the user needs to set the s
 \subparagraph{Linear Model: Cross-validated Least Angle Regression model}
 \mbox{}
 \\The \textit{Cross-validated Least Angle Regression model} is a regression algorithm for high-dimensional data. It is similar to LARS method, but the best model is selected by cross-validation.
-\\In order to use the  \textit{Cross-validated Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>LarsCV</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
+\\In order to use the  \textit{Cross-validated Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|LarsCV</SKLtype>$. In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
 \item $<fit_intercept>$ \textbf{\textit{, boolean, optional field.}}.  Whether the intercept should be estimated or not. If False, the data is assumed to be already centered. \textit{Default =  True};
 \item $<verbose>$ \textbf{\textit{, boolean, optional field.}}.  Verbose mode when fitting the model. \textit{Default =  False};
@@ -306,7 +306,7 @@ In order to use the  \textit{Elastic Net} regressor, the user needs to set the s
 \subparagraph{Linear Model trained with L1 prior as regularizer (aka the Lasso)}
 \mbox{}
 \\The \textit{Linear Model trained with L1 prior as regularizer (Lasso)} is a shrinkage and selection method for linear regression. It minimizes the usual sum of squared errors, with a bound on the sum of the absolute values of the coefficients. 
-\\In order to use the \textit{Linear Model trained with L1 prior as regularizer (Lasso)} regressor, the user needs to set the sub-node $<SKLtype>Lasso</SKLtype>$.
+\\In order to use the \textit{Linear Model trained with L1 prior as regularizer (Lasso)} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|Lasso</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<alpha>$ \textbf{\textit{, float, optional field.}}. Constant that multiplies the L1 term. Defaults to 1.0. alpha = 0 is equivalent to an ordinary least square, solved by the LinearRegression object. For numerical reasons, using alpha = 0 is with the Lasso object is not advised and you should prefer the LinearRegression object.
@@ -322,7 +322,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Lasso linear model with iterative fitting along a regularization path}
 \mbox{}
 \\The \textit{Lasso linear model with iterative fitting along a regularization path} is Lasso linear model with iterative fitting along a regularization path
-\\In order to use the \textit{Lasso linear model with iterative fitting along a regularization path} regressor, the user needs to set the sub-node $<SKLtype>LassoCV</SKLtype>$.
+\\In order to use the \textit{Lasso linear model with iterative fitting along a regularization path} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|LassoCV</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<eps>$ \textbf{\textit{, float, optional field.}}. Length of the path. eps=1e-3 means that alpha \textunderscore min / alpha \textunderscore max = 1e-3.
@@ -338,7 +338,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Lasso model fit with Least Angle Regression }
 \mbox{}
 \\The \textit{Lasso model fit with Least Angle Regression} is a Cross-validated Least Angle Regression model
-\\In order to use the \textit{Cross-validated Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>LarsCV</SKLtype>$.
+\\In order to use the \textit{Cross-validated Least Angle Regression model} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|LarsCV</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
@@ -353,7 +353,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Cross-validated Lasso, using the LARS algorithm}
 p\mbox{}
 \\The \textit{Cross-validated Lasso, using the LARS algorithm} is a Cross-validated Lasso, using the LARS algorithm
-\\In order to use the \textit{Cross-validated Lasso, using the LARS algorithm} regressor, the user needs to set the sub-node $<SKLtype>LassoLarsCV</SKLtype>$.
+\\In order to use the \textit{Cross-validated Lasso, using the LARS algorithm} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|LassoLarsCV</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
@@ -372,7 +372,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 The optimization objective for Lasso is:
 $(1 / (2 * n \textunderscore samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
 AIC is the Akaike information criterion and BIC is the Bayes Information criterion. Such criteria are useful to select the value of the regularization parameter by making a trade-off between the goodness of fit and the complexity of the model. A good model should explain well the data while being simple.
-\\In order to use the \textit{Lasso model fit with Lars using BIC or AIC for model selection} regressor, the user needs to set the sub-node $<SKLtype>LassoLarsIC</SKLtype>$.
+\\In order to use the \textit{Lasso model fit with Lars using BIC or AIC for model selection} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|LassoLarsIC</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<criterion>$ \textbf{\textit{, ‘bic’ | ‘aic’ .}}. The type of criterion to use.
@@ -387,7 +387,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Ordinary least squares Linear Regression}
 \mbox{}
 \\The \textit{Ordinary least squares Linear Regression} is a method for estimating the unknown parameters in a linear regression model, with the goal of minimizing the differences between the observed responses in some arbitrary dataset and the responses predicted by the linear approximation of the data
-\\In order to use the \textit{Ordinary least squares Linear Regression} regressor, the user needs to set the sub-node $<SKLtype>LinearRegression</SKLtype>$.
+\\In order to use the \textit{Ordinary least squares Linear Regression} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|LinearRegression</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean, optional field.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
@@ -397,7 +397,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Logistic Regression }
 \mbox{}
 \\The \textit{Logistic Regression} implements L1 and L2 regularized logistic regression using the liblinear library. It can handle both dense and sparse input. Use C-ordered arrays or CSR matrices containing 64-bit floats for optimal performance; any other input format will be converted (and copied).
-\\In order to use the \textit{Logistic Regression} regressor, the user needs to set the sub-node $<SKLtype>LogisticRegression</SKLtype>$.
+\\In order to use the \textit{Logistic Regression} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|LogisticRegression</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<penalty>$ \textbf{\textit{, string, ‘l1’ or ‘l2’.}}. Used to specify the norm used in the penalization.
@@ -417,7 +417,7 @@ $(1 / (2 * n \textunderscore samples)) * ||Y - XW||^2_Fro + alpha * ||W||_21$
 Where:
 $||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
 i.e. the sum of norm of earch row.
-\\In order to use the \textit{Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer} regressor, the user needs to set the sub-node $<SKLtype>MultiTaskLasso</SKLtype>$.
+\\In order to use the \textit{Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|MultiTaskLasso</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<alpha>$ \textbf{\textit{, float, optional field.}}. Constant that multiplies the L1/L2 term. Defaults to 1.0
@@ -437,7 +437,7 @@ $(1 / (2 * n \textunderscore samples)) * ||Y - XW||^Fro_2
 Where:
 $||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
 i.e. the sum of norm of each row.
-\\In order to use the \textit{Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer} regressor, the user needs to set the sub-node $<SKLtype>MultiTaskElasticNet</SKLtype>$.
+\\In order to use the \textit{Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|MultiTaskElasticNet</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<alpha>$ \textbf{\textit{, float, optional field.}}. Constant that multiplies the L1/L2 term. Defaults to 1.0
@@ -452,7 +452,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Orthogonal Mathching Pursuit model (OMP)}
 \mbox{}
 \\The \textit{Orthogonal Mathching Pursuit model (OMP)} is a type of sparse approximation which involves finding the "best matching" projections of multidimensional data onto an over-complete dictionary D. 
-\\In order to use the \textit{Orthogonal Mathching Pursuit model (OMP)} regressor, the user needs to set the sub-node $<SKLtype>OrthogonalMatchingPursuit</SKLtype>$.
+\\In order to use the \textit{Orthogonal Mathching Pursuit model (OMP)} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|OrthogonalMatchingPursuit</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<n \textunderscore nonzero \textunderscore coefs>$ \textbf{\textit{, int, optional field.}}. Desired number of non-zero entries in the solution. If None (by default) this value is set to 10\% of n \textunderscore features.
@@ -465,7 +465,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Cross-validated Orthogonal Mathching Pursuit model (OMP)}
 \mbox{}
 \\The \textit{Cross-validated Orthogonal Mathching Pursuit model (OMP)} is a regressor similar to OMP which has good performance in sparse recovery.
-\\In order to use the \textit{Cross-validated Orthogonal Mathching Pursuit model (OMP)} regressor, the user needs to set the sub-node $<SKLtype>OrthogonalMatchingPursuitCV</SKLtype>$.
+\\In order to use the \textit{Cross-validated Orthogonal Mathching Pursuit model (OMP)} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|OrthogonalMatchingPursuitCV</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<fit \textunderscore intercept>$ \textbf{\textit{, boolean, optional field.}}. whether to calculate the intercept for this model. If set to false, no intercept will be used in calculations (e.g. data is expected to be already centered).
@@ -478,7 +478,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Passive Aggressive Classifier}
 \mbox{}
 \\The \textit{Passive Aggressive Classifier} is a principled approach to linear classification that advocates minimal weight updates i.e., the least required so that the current training instance is correctly classified.
-\\In order to use the \textit{Passive Aggressive Classifier} classifier, the user needs to set the sub-node $<SKLtype>PassiveAggressiveClassifier</SKLtype>$.
+\\In order to use the \textit{Passive Aggressive Classifier} classifier, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|PassiveAggressiveClassifier</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<C>$ \textbf{\textit{, float.}}. Maximum step size (regularization). Defaults to 1.0.
@@ -494,7 +494,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Passive Aggressive Regressor}
 \mbox{}
 \\The \textit{Passive Aggressive Regressor} is similar to the Perceptron in that they do not require a learning rate. However, contrary to the Perceptron, they include a regularization parameter C
-\\In order to use the \textit{Passive Aggressive Regressor} regressor, the user needs to set the sub-node $<SKLtype>PassiveAggressiveRegressor</SKLtype>$.
+\\In order to use the \textit{Passive Aggressive Regressor} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|PassiveAggressiveRegressor</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<C>$ \textbf{\textit{, float.}}. Maximum step size (regularization). Defaults to 1.0.
@@ -511,7 +511,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Perceptron}
 \mbox{}
 \\The \textit{Perceptron} is an algorithm for supervised classification of an input into one of several possible non-binary outputs. It is a type of linear classifier, i.e. a classification algorithm that makes its predictions based on a linear predictor function combining a set of weights with the feature vector. The algorithm allows for online learning, in that it processes elements in the training set one at a time.
-\\In order to use the \textit{Perceptron} classifier, the user needs to set the sub-node $<SKLtype>Perceptron</SKLtype>$.
+\\In order to use the \textit{Perceptron} classifier, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|Perceptron</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<penalty>$ \textbf{\textit{, None, ‘l2’ or ‘l1’ or ‘elasticnet’.}}. The penalty (aka regularization term) to be used. Defaults to None.
@@ -529,7 +529,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Randomized Lasso}
 \mbox{}
 \\The \textit{Randomized Lasso} works by resampling the train data and computing a Lasso on each resampling. In short, the features selected more often are good features. It is also known as stability selection. 
-\\In order to use the \textit{Randomized Lasso} regressor, the user needs to set the sub-node $<SKLtype>RandomizedLasso</SKLtype>$.
+\\In order to use the \textit{Randomized Lasso} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|RandomizedLasso</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<alpha>$ \textbf{\textit{, float, ‘aic’, or ‘bic’, optional.}}. The regularization parameter alpha parameter in the Lasso. Warning: this is not the alpha parameter in the stability selection article which is scaling.
@@ -549,7 +549,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Randomized Logistic Regression}
 \mbox{}
 \\The \textit{Randomized Logistic Regression} works by resampling the train data and computing a LogisticRegression on each resampling. In short, the features selected more often are good features. It is also known as stability selection.
-\\In order to use the \textit{Randomized Logistic Regression} regressor, the user needs to set the sub-node $<SKLtype>RandomizedLogisticRegression</SKLtype>$.
+\\In order to use the \textit{Randomized Logistic Regression} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|RandomizedLogisticRegression</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<C>$ \textbf{\textit{, float, optional field (default=1).}}. The regularization parameter C in the LogisticRegression.
@@ -567,7 +567,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Linear least squares with l2 regularization}
 \mbox{}
 \\The \textit{Linear least squares with l2 regularization} solves a regression model where the loss function is the linear least squares function and regularization is given by the l2-norm. Also known as Ridge Regression or Tikhonov regularization. This estimator has built-in support for multi-variate regression (i.e., when y is a 2d-array of shape [n\textunderscore samples, n\textunderscore targets]).
-\\In order to use the \textit{Linear least squares with l2 regularization} regressor, the user needs to set the sub-node $<SKLtype>Ridge</SKLtype>$.
+\\In order to use the \textit{Linear least squares with l2 regularization} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|Ridge</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<alpha>$ \textbf{\textit{, float, array-like.}}. shape = [n\textunderscore targets] Small positive values of alpha improve the conditioning of the problem and reduce the variance of the estimates. Alpha corresponds to $(2*C)^-1$ in other linear models such as LogisticRegression or LinearSVC. If an array is passed, penalties are assumed to be specific to the targets. Hence they must correspond in number.
@@ -588,7 +588,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Classifier using Ridge regression}
 \mbox{}
 \\The \textit{Classifier using Ridge regression} is a classifier based on Linear least squares with l2 regularization
-\\In order to use the \textit{Classifier using Ridge regression} classifier, the user needs to set the sub-node $<SKLtype>RidgeClassifier</SKLtype>$.
+\\In order to use the \textit{Classifier using Ridge regression} classifier, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|RidgeClassifier</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<alpha>$ \textbf{\textit{, float.}}. Small positive values of alpha improve the conditioning of the problem and reduce the variance of the estimates. Alpha corresponds to $(2*C)^-1$ in other linear models such as LogisticRegression or LinearSVC.
@@ -603,7 +603,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Ridge classifier with built-in cross-validation}
 \mbox{}
 \\The \textit{Ridge classifier with built-in cross-validation} performs Generalized Cross-Validation, which is a form of efficient Leave-One-Out cross-validation. Currently, only the n\textunderscore features > n\textunderscore samples case is handled efficiently.
-\\In order to use the \textit{Ridge classifier with built-in cross-validation} classifier, the user needs to set the sub-node $<SKLtype>RidgeClassifierCV</SKLtype>$.
+\\In order to use the \textit{Ridge classifier with built-in cross-validation} classifier, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|RidgeClassifierCV</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<alphas>$ \textbf{\textit{, numpy array of shape [n\textunderscore alphas].}}. Array of alpha values to try. Small positive values of alpha improve the conditioning of the problem and reduce the variance of the estimates. Alpha corresponds to $(2*C)^-1$ in other linear models such as LogisticRegression or LinearSVC.
@@ -617,7 +617,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Ridge regression with built-in cross-validation}
 \mbox{}
 \\The \textit{Ridge regression with built-in cross-validation} performs Generalized Cross-Validation, which is a form of efficient Leave-One-Out cross-validation.
-\\In order to use the \textit{Ridge regression with built-in cross-validation} regressor, the user needs to set the sub-node $<SKLtype>RidgeCV</SKLtype>$.
+\\In order to use the \textit{Ridge regression with built-in cross-validation} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|RidgeCV</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<alphas>$ \textbf{\textit{, numpy array of shape [n\textunderscore alphas] .}}. Array of alpha values to try. Small positive values of alpha improve the conditioning of the problem and reduce the variance of the estimates. Alpha corresponds to $(2*C)^-1$ in other linear models such as LogisticRegression or LinearSVC.
@@ -640,7 +640,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \\The \textit{Linear classifiers (SVM, logistic regression, a.o.) with SGD training} implements regularized linear models with stochastic gradient descent (SGD) learning: the gradient of the loss is estimated each sample at a time and the model is updated along the way with a decreasing strength schedule (aka learning rate). SGD allows minibatch (online/out-of-core) learning, see the partial\textunderscore fit method.
 This implementation works with data represented as dense or sparse arrays of floating point values for the features. The model it fits can be controlled with the loss parameter; by default, it fits a linear support vector machine (SVM).
 The regularizer is a penalty added to the loss function that shrinks model parameters towards the zero vector using either the squared euclidean norm L2 or the absolute norm L1 or a combination of both (Elastic Net). If the parameter update crosses the 0.0 value because of the regularizer, the update is truncated to 0.0 to allow for learning sparse models and achieve online feature selection.
-\\In order to use the \textit{Linear classifiers (SVM, logistic regression, a.o.) with SGD training} WHAT, the user needs to set the sub-node $<SKLtype>SGDClassifier</SKLtype>$.
+\\In order to use the \textit{Linear classifiers (SVM, logistic regression, a.o.) with SGD training} WHAT, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|SGDClassifier</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<loss>$ \textbf{\textit{, str, ‘hinge’, ‘log’, ‘modified\textunderscore huber’, ‘squared\textunderscore hinge’, ‘perceptron’, or a regression loss: ‘squared\textunderscore loss’, ‘huber’, ‘epsilon\textunderscore insensitive’, or ‘squared\textunderscore epsilon\textunderscore insensitive’.}}. The loss function to be used. Defaults to ‘hinge’, which gives a linear SVM. The ‘log’ loss gives logistic regression, a probabilistic classifier. ‘modified\textunderscore huber’ is another smooth loss that brings tolerance to outliers as well as probability estimates. ‘squared\textunderscore hinge’ is like hinge but is quadratically penalized. ‘perceptron’ is the linear loss used by the perceptron algorithm. The other losses are designed for regression but can be useful in classification as well; see SGDRegressor for a description.
@@ -668,7 +668,7 @@ The regularizer is a penalty added to the loss function that shrinks model param
 This implementation works with data represented as dense numpy arrays of floating point values for the features.
  \\In order to use the \textit{Linear model fitted by
 minimizing a regularized empirical loss with SGD} model, the user needs to set the sub-node
-$<SKLtype>FW\textunderscore NAME</SKLtype>$.
+$<SKLtype>linear\textunderscore model|FW\textunderscore NAME</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<loss>$ \textbf{\textit{,str, ‘squared\textunderscore loss’, ‘huber’, ‘epsilon\textunderscore insensitive’, or ‘squared\textunderscore epsilon\textunderscore insensitive’.}}. The loss function to be used. Defaults to ‘squared\textunderscore loss’ which refers to the ordinary least squares fit. ‘huber’ modifies ‘squared\textunderscore loss’ to focus less on getting outliers correct by switching from squared to linear loss past a distance of epsilon. ‘epsilon\textunderscore insensitive’ ignores errors less than epsilon and is linear past that; this is the loss function used in SVR. ‘squared\textunderscore epsilon\textunderscore insensitive’ is the same but becomes squared loss past a tolerance of epsilon.
@@ -692,7 +692,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \\The \textit{Compute Least Angle Regression or Lasso path using LARS algorithm} is a regressor where the optimization objective for the case method=’lasso’ is:
 $(1 / (2 * n\textunderscore samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
 in the case of method=’lars’, the objective function is only known in the form of an implicit equation
-\\In order to use the \textit{Compute Least Angle Regression or Lasso path using LARS algorithm} regressor, the user needs to set the sub-node $<SKLtype>lars\textunderscore path</SKLtype>$.
+\\In order to use the \textit{Compute Least Angle Regression or Lasso path using LARS algorithm} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|lars\textunderscore path</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<X>$ \textbf{\textit{, array, shape: (n\textunderscore samples, n\textunderscore features).}}. Input data.
@@ -715,7 +715,7 @@ $(1 / (2 * n\textunderscore samples)) * ||Y - XW||^2_Fro + alpha * ||W||_21$
 Where:
 $||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
 i.e. the sum of norm of each row.
-\\In order to use the \textit{Compute Lasso path with coordinate descent} regressor, the user needs to set the sub-node $<SKLtype>lasso\textunderscore path</SKLtype>$.
+\\In order to use the \textit{Compute Lasso path with coordinate descent} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|lasso\textunderscore path</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<X>$ \textbf{\textit{, {array-like, sparse matrix}, shape (n\textunderscore samples, n\textunderscore features).}}. Training data. Pass directly as Fortran-contiguous data to avoid unnecessary memory duplication. If y is mono-output then X can be sparse.
@@ -732,7 +732,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 
 \subparagraph{Stability path based on randomized Lasso estimates}
 \mbox{}
-\\In order to use the \textit{Stability path based on randomized Lasso estimates} regressor, the user needs to set the sub-node $<SKLtype>lasso\textunderscore stability\textunderscore path</SKLtype>$.
+\\In order to use the \textit{Stability path based on randomized Lasso estimates} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|lasso\textunderscore stability\textunderscore path</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<X>$ \textbf{\textit{, array-like, shape = [n\textunderscore samples, n\textunderscore features].}}. training data.
@@ -749,14 +749,14 @@ In addition to this XML node, several others need (or not) to be inputted:
 \subparagraph{Gram Orthogonal Matching Pursuit (OMP)}
 \mbox{}
 \\The \textit{NAME} Solves n\textunderscore targets Orthogonal Matching Pursuit problems using only the Gram matrix X.T * X and the product X.T * y.
-\\In order to use the \textit{NAME} regressor, the user needs to set the sub-node $<SKLtype>orthogonal\textunderscore mp\textunderscore gram</SKLtype>$.
+\\In order to use the \textit{NAME} regressor, the user needs to set the sub-node $<SKLtype>linear\textunderscore model|orthogonal\textunderscore mp\textunderscore gram</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<Gram>$ \textbf{\textit{, array, shape (n\textunderscore features, n\textunderscore features).}}. Gram matrix of the input data: X.T * X
   \item $<Xy>$ \textbf{\textit{, array, shape (n\textunderscore features,) or (n\textunderscore features, n\textunderscore targets) .}}. Input targets multiplied by X: X.T * y
   \item $<n\textunderscore nonzero\textunderscore coefs>$ \textbf{\textit{, int.}}. Desired number of non-zero entries in the solution. If None (by default) this value is set to 10\% of n\textunderscore features.
   \item $<tol>$ \textbf{\textit{, float.}}. Maximum norm of the residual. If not None, overrides n\textunderscore nonzero\textunderscore coefs.
-  \item $<norms\textunderscore squared>$ \textbf{\textit{, array-like, shape (n\textunderscore targets).}}. DESCRIPTION
+  \item $<norms\textunderscore squared>$ \textbf{\textit{, array-like, shape (n\textunderscore targets).}}. 
 \end{itemize}
 
 %%%%% ROM Model - SciKitLearn: Support Vector Machines %%%%%%%
@@ -770,7 +770,7 @@ In the following, all the SVM models available in RAVEN are reported.
 \mbox{}
 \\The \textit{Linear Support Vector Classifier} is similar to SVC with parameter kernel=’linear’, but implemented in terms of liblinear rather than libsvm, so it has more flexibility in the choice of penalties and loss functions and should scale better (to large numbers of samples).
 This class supports both dense and sparse input and the multiclass support is handled according to a one-vs-the-rest scheme.
-\\In order to use the \textit{Linear Support Vector Classifier} classifier, the user needs to set the sub-node $<SKLtype>LinearSVC</SKLtype>$.
+\\In order to use the \textit{Linear Support Vector Classifier} classifier, the user needs to set the sub-node $<SKLtype>svm|LinearSVC</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<C>$ \textbf{\textit{, boolean, optional field (default=1.0).}}. Penalty parameter C of the error term.
@@ -790,7 +790,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \mbox{}
 \\The \textit{C-Support Vector Classification} is a based on libsvm. The fit time complexity is more than quadratic with the number of samples which makes it hard to scale to dataset with more than a couple of 10000 samples.
 The multiclass support is handled according to a one-vs-one scheme.
-\\In order to use the \textit{C-Support Vector Classification} classifier, the user needs to set the sub-node $<SKLtype>SVC</SKLtype>$.
+\\In order to use the \textit{C-Support Vector Classification} classifier, the user needs to set the sub-node $<SKLtype>svm|SVC</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<C>$ \textbf{\textit{, float, optional field (default=1.0).}}. Penalty parameter C of the error term.
@@ -812,7 +812,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \mbox{}
 \\The \textit{Nu-Support Vector Classification} is similar to SVC but uses a parameter to control the number of support vectors.
 The implementation is based on libsvm.
-\\In order to use the \textit{Nu-Support Vector Classification} classifier, the user needs to set the sub-node $<SKLtype>NuSVC</SKLtype>$.
+\\In order to use the \textit{Nu-Support Vector Classification} classifier, the user needs to set the sub-node $<SKLtype>svm|NuSVC</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<nu>$ \textbf{\textit{, float, optional field (default=0.5).}}. An upper bound on the fraction of training errors and a lower bound of the fraction of support vectors. Should be in the interval (0, 1].
@@ -834,7 +834,7 @@ In addition to this XML node, several others need (or not) to be inputted:
 \\The \textit{Support Vector Regression} is an epsilon-Support Vector Regression.
 The free parameters in the model are C and epsilon.
 The implementations is a based on libsvm.
-\\In order to use the \textit{Support Vector Regression} regressor, the user needs to set the sub-node $<SKLtype>SVR</SKLtype>$.
+\\In order to use the \textit{Support Vector Regression} regressor, the user needs to set the sub-node $<SKLtype>svm|SVR</SKLtype>$.
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
   \item $<C>$ \textbf{\textit{, float, optional field (default=1.0).}}. penalty parameter C of the error term.
@@ -1311,12 +1311,12 @@ In order to use the \textit{Gaussian Process Regressor}, the user needs to set t
   ...
   <Models>
     ...
-   <ROM name='***' subType='SciKitLearn'>
-     <Features>***,***</Features>
+   <ROM name='aUserDefinedName' subType='SciKitLearn'>
+     <Features>var1,var2,var3</Features> 
+     <Target>result1</Target>
      <SKLtype>linear_model|LinearRegression</SKLtype>
-     <Target>***</Target>
-     <fit_intercept>***</fit_intercept>
-     <normalize>***</normalize>
+     <fit_intercept>True</fit_intercept>
+     <normalize>False</normalize>
    </ROM>
     ...
   </Models>
@@ -1372,7 +1372,7 @@ If this method is implemented in the \textbf{External Model}, RAVEN is going to 
        <variable>rho</variable>
        <variable>outcome</variable>
        <!-- 
-          here we define other nodes RAVEN does not read automatically 
+          here we define other XML nodes RAVEN does not read automatically 
           => We need to implement, in the external module ``AnExtModule''
           the readMoreXML method
         -->
@@ -1557,7 +1557,7 @@ The  \textbf{BasicStatistics} post-processor approach  optionally accepts the fo
    ...
    <Models>
       ...
-      <PostProcessor name="***" subType='BasicStatistics'  debug='true'>
+      <PostProcessor name="aUserDefinedName" subType='BasicStatistics'  debug='true'>
           <!-- => you can here specify what type of figure of merit
               you need to compute
              <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what> 
