@@ -90,8 +90,8 @@ simulation, she/he can directly input ``-1''.
 \vspace{-5mm}
 In each XML node (e.g. $<TimePoint>$ or $<Histories>$), the user needs to specify the following sub nodes:
 \begin{itemize}
- \item $<Inputs>$\textbf{\textit{, comma separated string, required field.}}.  List of input parameters this data is connected to. NB. In case the ``Data'' type is either \textit{TimePoint} or  \textit{History}, this XML node must contain the attribute \textbf{history}, where the name of the associated history needs to be placed;
- \item $<Outputs>$\textbf{\textit{, comma separated string, required field.}}.  List of output parameters this data is connected to;
+ \item $<Input>$\textbf{\textit{, comma separated string, required field.}}.  List of input parameters this data is connected to. NB. In case the ``Data'' type is either \textit{TimePoint} or  \textit{History}, this XML node must contain the attribute \textbf{history}, where the name of the associated history needs to be placed;
+ \item $<Output>$\textbf{\textit{, comma separated string, required field.}}.  List of output parameters this data is connected to;
 \end{itemize}
 
 \begin{lstlisting}[style=XML]
