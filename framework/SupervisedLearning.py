@@ -144,6 +144,9 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
+        print(values)
+        print(names)
+        print(self.muAndSigmaFeatures)
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
@@ -385,6 +388,8 @@ class SciKitLearn(superVisedLearning):
       try:self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
     self.ROM.set_params(**self.initOptionDict)
+  
+  def _readdressEvaluate(self,edict): return self.myNumber   
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -400,10 +405,10 @@ class SciKitLearn(superVisedLearning):
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
-      self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
+      #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
     else:
-      myNumber = np.unique(targetVals)[0]
-      self.evaluate = lambda edict : myNumber
+      self.myNumber = np.unique(targetVals)[0]
+      self.evaluate = self._readdressEvaluate
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)

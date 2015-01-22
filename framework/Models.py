@@ -317,12 +317,19 @@ class ROM(Dummy):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-    self.amITrained = True
-    for instrom in self.SupervisedEngine.values():
-      instrom.train(self.trainingSet)
-      self.aimITrained = self.amITrained and instrom.amITrained
-    if self.debug:print('FIXME: add self.amITrained to currentParamters')
+    if type(trainingSet).__name__ in 'ROM':
+      self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
+      self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
+      self.trainingSet              = copy.deepcopy(trainingSet.trainingSet)
+      self.amITrained               = copy.deepcopy(trainingSet.amITrained)
+      self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
+    else:
+      self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+      self.amITrained = True
+      for instrom in self.SupervisedEngine.values():
+        instrom.train(self.trainingSet)
+        self.aimITrained = self.amITrained and instrom.amITrained
+      if self.debug:print('FIXME: add self.amITrained to currentParamters')
 
   def confidence(self,request,target = None):
     '''
