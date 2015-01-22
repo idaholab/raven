@@ -22,6 +22,7 @@
     <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
     <Output           class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
     <SolutionExport   class = 'Datas'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
+    <Output class = 'OutStreamManager'    type = 'Print'         >lmt_srf_dmp</Output>
   </MultiRun>
   
   <PostProcess name='pth5' pauseAtEnd = 'False'>
