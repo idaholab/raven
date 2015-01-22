@@ -2,7 +2,7 @@
 	
 
 <RunInfo>
-  <WorkingDir>SafestPointPP</WorkingDir>
+  <WorkingDir>SafestPointPP_cdf</WorkingDir>
   <Sequence>pth1,pth2,pth5,pth6</Sequence>
   <batchSize>50</batchSize>
 </RunInfo>
