@@ -2,14 +2,14 @@
 	
 
 <RunInfo>
-  <WorkingDir>SafestPointPP_dbg</WorkingDir>
-  <Sequence>pth1,pth2,pth3,pth4</Sequence>
+  <WorkingDir>SafestPointPP</WorkingDir>
+  <Sequence>pth1,pth2,pth5,pth6</Sequence>
   <batchSize>50</batchSize>
 </RunInfo>
 
 
 <Steps>  
-  <MultiRun name = 'pth1' pauseAtEnd = 'False'>
+  <MultiRun name = 'pth1' pauseAtEnd = 'False' debug = 'True'>
     <Sampler  class = 'Samplers'  type = 'Grid'           >grd_vl_ql_smp_dpt</Sampler>
     <Input    class = 'Datas'     type = 'TimePointSet'   >grd_vl_ql_smp_dpt_dt</Input>
     <Model    class = 'Models'    type = 'ExternalModel'  >xtr_mdl</Model>
@@ -18,25 +18,23 @@
   
   <MultiRun name = 'pth2' pauseAtEnd = 'True'>
     <Sampler          class = 'Samplers'  type = 'Adaptive'      >dpt_smp</Sampler>
-    <Input            class = 'Datas'     type = 'TimePointSet'  >bln_smp_dt</Input>   
+  	<Input            class = 'Datas'     type = 'TimePointSet'  >bln_smp_dt</Input>   
     <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
     <Output           class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
     <SolutionExport   class = 'Datas'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
+    <Output class = 'OutStreamManager'    type = 'Print'         >lmt_srf_dmp</Output>
   </MultiRun>
   
-  <PostProcess name='pth3' pauseAtEnd = 'False'>
-    <Input    class = 'Datas'          type = 'TimePointSet'   >lmt_srf_dt</Input>
-    <Model    class = 'Models'         type = 'PostProcessor'  >SP</Model>
-    <Output   class = 'Datas'          type = 'TimePointSet'   >sfs_pnt_dt</Output>
-  </PostProcess>  
+  <PostProcess name='pth5' pauseAtEnd = 'False'>
+      <Input    class = 'Datas'          type = 'TimePointSet'   >lmt_srf_dt</Input>
+      <Model    class = 'Models'         type = 'PostProcessor'  >SP_cdf</Model>
+      <Output   class = 'Datas'          type = 'TimePointSet'   >sfs_pnt_dt_cdf</Output>
+  </PostProcess>
   
-  <OutStreamStep name = 'pth4' pauseAtEnd = 'True'>
-  	<Input  class = 'Datas'            type = 'TimePointSet'  >lmt_srf_dt</Input>
-  	<Output class = 'OutStreamManager' type = 'Print'         >lmt_srf_dmp</Output>
-    <Input  class = 'Datas'            type = 'TimePointSet'  >sfs_pnt_dt</Input>
-  	<Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_dmp</Output>
+  <OutStreamStep name = 'pth6' pauseAtEnd = 'True'>
+      <Input  class = 'Datas'            type = 'TimePointSet'  >sfs_pnt_dt_cdf</Input>
+      <Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_cdf_dmp</Output>
   </OutStreamStep>
-  
 </Steps>
 
 <Datas> 
@@ -60,9 +58,9 @@
     <Output>g_zr</Output>
   </TimePointSet>
   
-  <TimePointSet name = 'sfs_pnt_dt'>
-    <Input>x1,x2,gammay</Input>
-    <Output>p</Output>
+  <TimePointSet name = 'sfs_pnt_dt_cdf'>
+      <Input>x1,x2,gammay</Input>
+      <Output>p</Output>
   </TimePointSet>
 </Datas>
 
@@ -103,14 +101,16 @@
     </variable>
     <variable name='gammay' >
       <distribution>gammay_dst</distribution>
-      <grid type = 'value' construction = 'equal' steps = '10' lowerBound = '-20'>4</grid>
+      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '20'>4</grid>
     </variable>
   </Grid>
   
-  <Adaptive name = 'dpt_smp' debug='True'>
-    <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
-    <Function         class = 'Functions' type = 'External'      >g_zr</Function>
-    <TargetEvaluation class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
+  <Adaptive name = 'dpt_smp'>
+<!--    <Assembler> -->
+        <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
+        <Function         class = 'Functions' type = 'External'      >g_zr</Function>
+        <TargetEvaluation class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
+<!--    </Assembler> -->
     <Convergence limit = '3000' forceIteration = 'False' weight = 'none' persistence = '5'>1e-2</Convergence>
       <variable name = 'x1'>
         <distribution>x1_dst</distribution>
@@ -143,28 +143,28 @@
     <C>50</C>
   </ROM>  
   
-  <PostProcessor name='SP' subType='SafestPoint'>
-<!--    <Assembler> -->
-        <Distribution     class = 'Distributions'  type = 'Normal'>x1_dst</Distribution>
-        <Distribution     class = 'Distributions'  type = 'Normal'>x2_dst</Distribution>
-        <Distribution     class = 'Distributions'  type = 'Normal'>gammay_dst</Distribution>
-<!--    </Assembler> -->
-    <controllable>
-    	<variable name = 'x1'>
-    		<distribution>x1_dst</distribution>
-    		<grid type = 'value' steps = '20'>1</grid>   		
-    	</variable>
-    	<variable name = 'x2'>
-    		<distribution>x2_dst</distribution>
-    		<grid type = 'value' steps = '20'>1</grid>   		
-    	</variable>
-    </controllable>
-    <non-controllable>
-    	<variable name = 'gammay'>
-    		<distribution>gammay_dst</distribution>
-    		<grid type = 'value' steps = '20'>2</grid>
-    	</variable> 	
-    </non-controllable>
+  <PostProcessor name='SP_cdf' subType='SafestPoint' debug = 'True'>
+      <!--    <Assembler> -->
+      <Distribution     class = 'Distributions'  type = 'Normal'>x1_dst</Distribution>
+      <Distribution     class = 'Distributions'  type = 'Normal'>x2_dst</Distribution>
+      <Distribution     class = 'Distributions'  type = 'Normal'>gammay_dst</Distribution>
+      <!--    </Assembler> -->
+      <controllable>
+          <variable name = 'x1'>
+              <distribution>x1_dst</distribution>
+              <grid type = 'CDF' steps = '30'>0.033333333</grid>
+          </variable>
+          <variable name = 'x2'>
+              <distribution>x2_dst</distribution>
+              <grid type = 'value' steps = '20'>1</grid>
+          </variable>
+      </controllable>
+      <non-controllable>
+          <variable name = 'gammay'>
+              <distribution>gammay_dst</distribution>
+              <grid type = 'CDF' steps = '30'>0.033333333</grid>
+          </variable> 	
+      </non-controllable>
   </PostProcessor>
 </Models>
 
@@ -182,11 +182,10 @@
   	<source>lmt_srf_dt</source>
   </Print>
   
-  <Print name = 'sfs_pnt_dmp'>
-  	<type>csv</type>
-  	<source>sfs_pnt_dt</source>
+  <Print name = 'sfs_pnt_cdf_dmp'>
+      <type>csv</type>
+      <source>sfs_pnt_dt_cdf</source>
   </Print>
-  
 </OutStreamManager>
 
 

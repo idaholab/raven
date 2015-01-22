@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
 <RunInfo>
-    <WorkingDir>./output_check</WorkingDir>
+    <WorkingDir>output_check</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>FirstMRun,testOutstreamStep</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
@@ -12,36 +12,20 @@
 </Models>
 
 <Distributions>
-    <Normal name='Gauss1'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
-    </Normal>
-    <Normal name='auxBackUpTimeDist'>
-        <mean>1</mean>
-        <sigma>0.001</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
-    </Normal>
-    <Normal name='Gauss2'>
-        <mean>1</mean>
-        <sigma>0.4</sigma>
-        <lowerBound>0</lowerBound>
-        <upperBound>2</upperBound>
-        <adjustement>scaling</adjustement>
-    </Normal>
-    <Triangular name='CladFailureDist'>
-        <apex>1</apex>
-        <min>-0.1</min>
-        <max>3</max>
-    </Triangular>
+    <Uniform name='zeroToOne'>
+        <low>0.0</low>
+        <high>1.0</high>
+    </Uniform>
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='RAVENmc6'  limit='6'/>
+    <Grid name='RAVENmc6' initial_seed='1'>
+        <Distribution name='Dummy1'>
+            <distribution >zeroToOne</distribution>
+            <grid type='CDF' construction='equal' upperBound='0.9' steps='15'>0.05</grid>
+        </Distribution>
+    </Grid>
+    
 </Samplers>
 
 <OutStreamManager>
@@ -64,43 +48,44 @@
     <source>stories</source>
     <variables>Input|pipe1_Area</variables>
   </Print>
-    <Print name='testprint_selective_timepointset'>
+  <Print name='testprint_selective_timepointset'>
         <type>csv</type>
         <source>TimePointSets</source>
         <variables>Output,Input|pipe1_Area</variables>
     </Print>
-    <Print name='testprint_selective_timepoint'>
+  <Print name='testprint_selective_timepoint'>
         <type>csv</type>
         <source>TimePointt</source>
         <variables>Output,Input|pipe1_Area</variables>
     </Print>
-    <Print name='testprint_selective_history'>
+  <Print name='testprint_selective_history'>
         <type>csv</type>
         <source>Historyy</source>
         <variables>Output,Input|pipe1_Area</variables>
     </Print>
-    <Print name='fullprint_histories'>
+  <Print name='fullprint_histories'>
       <type>csv</type>
       <source>stories</source>
     </Print>
-    <Print name='fullprint_history'>
+  <Print name='fullprint_history'>
       <type>csv</type>
       <source>Historyy</source>
-    </Print>
-    <Print name='fullprint_timepoint'>
+  </Print>
+  <Print name='fullprint_timepoint'>
       <type>csv</type>
       <source>TimePointt</source>
     </Print>
-    <Print name='fullprint_timepointset'>
+  <Print name='fullprint_timepointset'>
       <type>csv</type>
       <source>TimePointSets</source>
     </Print>
-  <Plot name='2DHistoryPlot' dim='2' overwrite='False'>
+  <Plot name='plot1' dim='2' overwrite='False'>
     <plotSettings>
        <plot>
         <type>line</type>
         <x>stories|Output|time</x>
         <y>stories|Output|pipe1_Hw</y>
+        <colorMap>stories|Output|time</colorMap>
         <kwargs>
          <color>green</color>
          <label>pipe1-Hw</label>
@@ -115,45 +100,530 @@
          <label>pipe1-Hw</label>
         </kwargs>
       </plot>
+    </plotSettings>
+    <actions>
+      <how>png</how>
+      <figureProperties>
+        <frameon>t</frameon>
+      </figureProperties>
+      <range>
+        <xmin>0</xmin>
+        <ymin>0</ymin>
+        <xmax>1</xmax>
+        <ymax>1</ymax>
+      </range>
+      <labelFormat>
+          <style>sci</style>
+      </labelFormat>
+      <camera>
+          <elevation>10</elevation>
+          <azimuth>10</azimuth>
+      </camera>
+      <scale>
+          <xscale>linear</xscale>
+          <yscale>linear</yscale>
+      </scale>
+      <autoscale>
+          <enable>t</enable>
+      </autoscale>
+      <horizontalLine>
+          <enable>t</enable>
+      </horizontalLine>
+      <verticalLine>
+          <enable>t</enable>
+      </verticalLine>
+      <horizontalRectangle>
+          <ymin>0.0</ymin>
+          <ymax>0.1</ymax>
+      </horizontalRectangle>
+      <verticalRectangle>
+          <xmin>0.0</xmin>
+          <xmax>0.1</xmax>
+      </verticalRectangle>
+      <grid>
+        <b>on</b>
+      </grid>
+      <addText>
+          <text> </text>
+      </addText>
+      <title>
+        <text> </text>
+      </title>
+      <!-- custom action (not predefined in the code -->
+      <arrow>
+          <x>0.0</x>
+          <y>0.0</y>
+          <dx>0.1</dx>
+          <dy>0.1</dy>
+      </arrow>
+    </actions>
+  </Plot>
+  <Plot name='plot2' dim='3' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>line</type>
+              <x>stories|Output|time</x>
+              <z>stories|Output|pump_mass_flow_rate</z>
+              <y>stories|Output|pipe1_Hw</y>
+              <colorMap>stories|Output|time</colorMap>
+              <kwargs>
+                  <color>green</color>
+                  <label>pipe1-Hw</label>
+              </kwargs>
+          </plot>
+          <plot>
+              <type>line</type>
+              <x>stories|Output|time</x>
+              <z>stories|Output|pump_mass_flow_rate</z>
+              <y>stories|Output|pipe1_Hw</y>
+              <kwargs>
+                  <color>blue</color>
+                  <label>pipe1-Hw</label>
+              </kwargs>
+          </plot>
+      </plotSettings>
+      <actions>
+          <how>png</how>
+          <title>
+              <text> </text>
+          </title>
+          <range>
+              <xmin>0</xmin>
+              <ymin>0</ymin>
+              <zmin>0</zmin>
+              <xmax>1</xmax>
+              <ymax>1</ymax>
+              <zmax>1</zmax>
+          </range>
+          <labelFormat>
+              <style>sci</style>
+          </labelFormat>
+          <grid>
+              <b>off</b>
+          </grid>
+          <horizontalLine>
+              <enable>t</enable>
+          </horizontalLine>
+          <verticalLine>
+              <enable>t</enable>
+          </verticalLine>
+          <horizontalRectangle>
+              <ymin>0.0</ymin>
+              <ymax>0.1</ymax>
+          </horizontalRectangle>
+          <verticalRectangle>
+              <xmin>0.0</xmin>
+              <xmax>0.1</xmax>
+          </verticalRectangle>
+          <scale>
+              <xscale>linear</xscale>
+              <yscale>linear</yscale>
+              <zscale>linear</zscale>
+          </scale>
+          <camera>
+              <elevation>10</elevation>
+              <azimuth>10</azimuth>
+          </camera>
+          <addText>
+              <text> </text>
+          </addText>
+          <autoscale>
+              <enable>f</enable>
+          </autoscale>
+          <!-- custom action (not predefined in the code -->
+          <arrow>
+              <x>0.0</x>
+              <y>0.0</y>
+              <dx>0.1</dx>
+              <dy>0.1</dy>
+          </arrow>
+      </actions>
+  </Plot>
+  <Plot name='plot3' dim='2' overwrite='False'>
+    <plotSettings>
+       <plot>
+        <type>scatter</type>
+        <x>stories|Output|time</x>
+        <y>stories|Output|pump_mass_flow_rate</y>
+        <colorMap>stories|Output|time</colorMap>
+        <kwargs>
+         <color>green</color>
+         <label>pump mass flow rate</label>
+        </kwargs>
+      </plot>
+       <plot>
+        <type>scatter</type>
+        <x>stories|Output|time</x>
+        <y>stories|Output|pump_mass_flow_rate</y>
+        <kwargs>
+         <color>blue</color>
+         <label>pump mass flow rate</label>
+        </kwargs>
+      </plot>
+      <!-- custom plot (aka not predefined...the code try to execute it on the fly
+      <plot>
+          <type>plot</type>
+          <x>stories|Output|time</x>
+          <y>stories|Output|pump_mass_flow_rate</y>
+          <kwargs>
+              <color>blue</color>
+              <label>pump mass flow rate</label>
+          </kwargs>
+      </plot>
+       -->
       <xlabel>time [s]</xlabel>
       <ylabel>evolution</ylabel>
     </plotSettings>
     <actions>
-      <how>pdf,png,eps</how>
+      <how>png</how>
       <title>
         <text> </text>
       </title>
     </actions>
   </Plot>
-  <Plot name='2DHistoryPlot2' dim='2' overwrite='False'>
+  <Plot name='plot4' dim='3' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>scatter</type>
+              <x>stories|Output|time</x>
+              <z>stories|Output|pump_mass_flow_rate</z>
+              <y>stories|Output|pipe1_Hw</y>
+              <colorMap>stories|Output|time</colorMap>
+              <kwargs>
+                  <color>green</color>
+                  <label>pump mass flow rate</label>
+              </kwargs>
+          </plot>
+          <plot>
+              <type>scatter</type>
+              <x>stories|Output|time</x>
+              <z>stories|Output|pump_mass_flow_rate</z>
+              <y>stories|Output|pipe1_Hw</y>
+              <kwargs>
+                  <color>blue</color>
+                  <label>pump mass flow rate</label>
+              </kwargs>
+          </plot>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+          <how>png</how>
+          <camera>
+              <elevation>10</elevation>
+          </camera>
+          <autoscale>
+              <enable>t</enable>
+          </autoscale>
+      </actions>
+  </Plot>
+  <Plot name='plot5' dim='2' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>histogram</type>
+              <x>TimePointSets|Output|pump_mass_flow_rate</x>
+          </plot>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+          <how>png</how>
+          <title>
+              <text> </text>
+          </title>
+      </actions>
+  </Plot>
+  <Plot name='plot6' dim='3' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>histogram</type>
+              <x>TimePointSets|Input|pipe1_Area</x>
+              <y>TimePointSets|Output|pump_mass_flow_rate</y>
+          </plot>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+          <how>png</how>
+          <camera>
+              <azimuth>10</azimuth>
+          </camera>
+      </actions>
+  </Plot>
+
+  <Plot name='plot7' dim='2' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>stem</type>
+              <x>TimePointSets|Input|pipe1_Area</x>
+              <y>TimePointSets|Output|pump_mass_flow_rate</y>
+          </plot>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+          <how>png</how>
+          <title>
+              <text> </text>
+          </title>
+      </actions>
+  </Plot>
+  <Plot name='plot8' dim='3' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>stem</type>
+              <x>TimePointSets|Input|pipe1_Area</x>
+              <y>TimePointSets|Output|pipe1_Hw</y>
+              <z>TimePointSets|Output|pump_mass_flow_rate</z>
+          </plot>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+          <how>png</how>
+          <title>
+              <text> </text>
+          </title>
+      </actions>
+  </Plot>
+
+<Plot name='plot9' dim='2' overwrite='False'>
     <plotSettings>
-       <plot>
-        <type>line</type>
-        <x>stories|Output|time</x>
-        <y>stories|Output|pump_mass_flow_rate</y>
-        <kwargs>
-         <color>green</color>
-         <label>pump mass flow rate</label>
-        </kwargs>
-      </plot>
-       <plot>
-        <type>line</type>
-        <x>stories|Output|time</x>
-        <y>stories|Output|pump_mass_flow_rate</y>
-        <kwargs>
-         <color>blue</color>
-         <label>pump mass flow rate</label>
-        </kwargs>
-      </plot>
-      <xlabel>time [s]</xlabel>
-      <ylabel>evolution</ylabel>
+        <plot>
+            <type>stem</type>
+            <x>TimePointSets|Input|pipe1_Area</x>
+            <y>TimePointSets|Output|pump_mass_flow_rate</y>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
     </plotSettings>
     <actions>
-      <how>pdf,png,eps</how>
-      <title>
-        <text> </text>
-      </title>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
     </actions>
+</Plot>
+<Plot name='plot10' dim='3' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>stem</type>
+            <x>TimePointSets|Input|pipe1_Area</x>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+<Plot name='plot11' dim='2' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>step</type>
+            <x>TimePointSets|Input|pipe1_Area</x>
+            <y>TimePointSets|Output|pump_mass_flow_rate</y>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+<Plot name='plot12' dim='2' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>pseudocolor</type>
+            <x>TimePointSets|Input|pipe1_Area</x>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+<Plot name='plot13' dim='3' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>surface</type>
+            <x>TimePointSets|Output|pipe1_Hw</x>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+            <colorMap>TimePointSets|Output|time</colorMap>
+            <kwargs>
+                <color>green</color>
+                <label>pump mass flow rate</label>
+            </kwargs>
+        </plot>
+        <plot>
+            <type>surface</type>
+            <x>TimePointSets|Output|pipe1_Hw</x>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+            <kwargs>
+                <color>blue</color>
+                <label>pump mass flow rate</label>
+            </kwargs>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+<Plot name='plot14' dim='3' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>tri-surface</type>
+            <x>TimePointSets|Output|pipe1_Hw</x>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+            <colorMap>TimePointSets|Output|time</colorMap>
+        </plot>
+        <plot>
+            <type>tri-surface</type>
+            <x>TimePointSets|Output|pipe1_Hw</x>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+<Plot name='plot15' dim='3' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>wireframe</type>
+            <x>TimePointSets|Output|pipe1_Hw</x>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+            <colorMap>TimePointSets|Output|time</colorMap>
+        </plot>
+        <plot>
+            <type>wireframe</type>
+            <x>TimePointSets|Output|pipe1_Hw</x>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+
+
+<Plot name='plot16' dim='2' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>contour</type>
+            <x>TimePointSets|Output|time</x>
+            <y>TimePointSets|Output|pipe1_Hw</y>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+        </plot>
+        <plot>
+            <type>filledContour</type>
+            <x>TimePointSets|Output|time</x>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <y>TimePointSets|Output|pipe1_Hw</y>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+<Plot name='plot17' dim='3' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>contour3D</type>
+            <x>TimePointSets|Output|time</x>
+            <y>TimePointSets|Output|pipe1_Hw</y>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+        </plot>
+        <plot>
+            <type>filledContour3D</type>
+            <x>TimePointSets|Output|time</x>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <y>TimePointSets|Output|pipe1_Hw</y>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+<Plot name='2DHistoryPlot' dim='2' overwrite='False'>
+    <plotSettings>
+        <plot>
+            <type>histogram</type>
+            <x>TimePointSets|Output|pump_mass_flow_rate</x>
+        </plot>
+        <xlabel>time [s]</xlabel>
+        <ylabel>evolution</ylabel>
+    </plotSettings>
+    <actions>
+        <how>png</how>
+        <title>
+            <text> </text>
+        </title>
+    </actions>
+</Plot>
+  <Plot name='2DHistoryPlot2' dim='2' overwrite='False'>
+      <plotSettings>
+          <plot>
+              <type>histogram</type>
+              <x>TimePointSets|Output|pump_mass_flow_rate</x>
+          </plot>
+          <xlabel>time [s]</xlabel>
+          <ylabel>evolution</ylabel>
+      </plotSettings>
+      <actions>
+          <how>png</how>
+          <title>
+              <text> </text>
+          </title>
+      </actions>
   </Plot>
 </OutStreamManager>
 
@@ -163,15 +633,12 @@
         <Input     class='Files'            type=''             >ideal_pump.i</Input>
         <Input     class='Files'            type=''             >ideal_pump_control.py</Input>
         <Model     class='Models'           type='Code'         >MyRAVEN</Model>
-        <Sampler   class = 'Samplers'       type='MonteCarlo'   >RAVENmc6</Sampler>
+        <Sampler   class = 'Samplers'       type='Grid'         >RAVENmc6</Sampler>
         <Output    class='DataBases'        type='HDF5'         >testOutputDataBase</Output>
         <Output    class='Datas'            type='Histories'    >stories</Output>
         <Output    class='Datas'            type='TimePointSet' >TimePointSets</Output>
         <Output    class='Datas'            type='TimePoint'    >TimePointt</Output>
         <Output    class='Datas'            type='History'      >Historyy</Output>
-        <Output    class='OutStreamManager' type='Print'        >testprint</Output>
-        <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
-        <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot2</Output>
     </MultiRun >
     <IOStep name='testOutstreamStep' pauseAtEnd='False'>
         <Input    class='Datas'            type='Histories'    >stories</Input>
@@ -179,6 +646,26 @@
         <Input    class='Datas'            type='TimePoint'    >TimePointt</Input>
         <Input    class='Datas'            type='History'      >Historyy</Input>
         <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot</Output>
+        <Output    class='OutStreamManager' type='Print'        >testprint</Output>
+        <Output    class='OutStreamManager' type='Print'        >fullprint_timepointset</Output>
+        <Output    class='OutStreamManager' type='Plot'         >2DHistoryPlot2</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot1</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot2</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot3</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot4</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot5</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot6</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot7</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot8</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot9</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot10</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot11</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot12</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot13</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot14</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot15</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot16</Output>
+        <Output    class='OutStreamManager' type='Plot'         >plot17</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist1</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist2</Output>
         <Output    class='OutStreamManager' type='Print'        >testprint_selective_hist3</Output>

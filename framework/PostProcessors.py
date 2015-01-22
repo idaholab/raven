@@ -342,21 +342,15 @@ class SafestPoint(BasePostProcessor):
         for ncVarIndex in range(len(self.nonControllableOrd)):
           dataCollector.updateInputValue(self.nonControllableOrd[ncVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]))
           if queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:
-            if self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].type == 'Bernoulli':
-              prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].p
+            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
             else:
-              if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-                prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
-              else:
-                prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
+              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
           elif queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound:
-            if self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].type == 'Bernoulli':
-              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].p
+            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
             else:
-              if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-                prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
-              else:
-                prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
+              prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
           else:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
               prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]
