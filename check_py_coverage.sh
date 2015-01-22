@@ -44,7 +44,7 @@ update_python_path
 
 cd $SCRIPT_DIR
 
-EXTRA='--source=../../framework -a'
+EXTRA='--source=../../framework -a --omit=../../framework/contrib/pyDOE/*'
 cd tests/framework
 coverage erase
 #skip test_rom_trainer.xml 
