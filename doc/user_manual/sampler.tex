@@ -6,23 +6,39 @@
 % these defined commands first. There is no point writing the same thing over
 % and over and over and over and over again, so these will help us reduce typos,
 % by just editing a template sentence or paragraph.
-\renewcommand{\nameDescription}{\xmlAttr{name},
+\renewcommand{\nameDescription}
+{
+  \xmlAttr{name},
   \xmlDesc{required string attribute}, user-defined name of this sampler.
   \nb As with other objects, this identifier can be used to reference this
-  specific entity from other input blocks in the XML.}
-\renewcommand{\specBlock}[2]{The specifications of this sampler must be
-defined within #1 \xmlNode{#2} XML block.}
-\newcommand{\variableChildIntro}{This \xmlNode{variable} recognizes the
-following child node:}
-\newcommand{\variableChildrenIntro}{This \xmlNode{variable} recognizes the
-following child nodes:}
-\newcommand{\variableIntro}[1]{In the \xmlNode{#1} input block, the user
-needs to specify the variables to sample.
-%
-As already mentioned, these variables are specified within consecutive
-\xmlNode{variable} XML blocks:}
+  specific entity from other input blocks in the XML.
+}
+\renewcommand{\specBlock}[2]
+{
+  The specifications of this sampler must be defined within #1 \xmlNode{#2} XML
+  block.
+}
+\newcommand{\variableChildIntro}
+{
+ This \xmlNode{variable} recognizes the following child node:
+}
 
-\newcommand{\constructionGridDescription}{
+\newcommand{\variableChildrenIntro}
+{
+  This \xmlNode{variable} recognizes the following child nodes:
+}
+
+\newcommand{\variableIntro}[1]
+{
+  In the \xmlNode{#1} input block, the user
+  needs to specify the variables to sample.
+  %
+  As already mentioned, these variables are specified within consecutive
+  \xmlNode{variable} XML blocks:
+}
+
+\newcommand{\constructionGridDescription}
+{
 Based on the \xmlAttr{construction} type, the content of the \xmlNode{grid}
 XML node and the requirements for other attributes change:
 \begin{itemize}
@@ -44,17 +60,17 @@ XML node and the requirements for other attributes change:
            has not been defined.
       \end{itemize}
       This construction type requires that the content of the \xmlNode{grid}
-      node represents the step size (either in probability or value).
+      node represents the step size,$stepSize$ in the equations below, (either
+      in probability or value).
       The attributes \xmlAttr{lowerBound} and \xmlAttr{upperBound} are
       mutually exclusive (only one of them can be specified):
-      \maljdan{Where is stepSize defined?}
       \begin{itemize}
       \item If the \xmlAttr{upperBound} is present, the grid lower bound
         will be at:\\
-        $\xmlAttr{upperBound} - \xmlAttr{steps}*\xmlAttr{stepSize}$
+        $\xmlAttr{upperBound} - \xmlAttr{steps}*stepSize$
       \item If the \xmlAttr{lowerBound} is present, the grid upper bound
         will be at:\\
-        $\xmlAttr{lowerBound} + \xmlAttr{steps}*\xmlAttr{stepSize}$
+        $\xmlAttr{lowerBound} + \xmlAttr{steps}*stepSize$
       \end{itemize}
       The lower and upper bounds are checked against the associated
       \xmlNode{distribution} bounds.
@@ -71,18 +87,26 @@ XML node and the requirements for other attributes change:
     (nodalization in probability).
 \end{itemize}
 }
-\newcommand{\variableDescription}{\xmlNode{variable}, \xmlDesc{XML node,
+\newcommand{\variableDescription}
+{
+  \xmlNode{variable}, \xmlDesc{XML node,
   required parameter} will specify one attribute:
   \begin{itemize}
     \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
       of this variable.
-  \end{itemize}}
-\newcommand{\distributionDescription}{\xmlNode{distribution}, \xmlDesc{string,
+  \end{itemize}
+}
+
+\newcommand{\distributionDescription}
+{
+  \xmlNode{distribution}, \xmlDesc{string,
   required field}, name of the distribution that is associated to this variable.
   Its name needs to be contained in the \xmlNode{Distributions} block explained
-  in Section \ref{sec:distributions}.}
+  in Section \ref{sec:distributions}.
+}
 
-\newcommand{\gridDescription}{
+\newcommand{\gridDescription}
+{
   \xmlNode{grid}, \xmlDesc{float or space separated floats, required
   field}, the content of this XML node depends on the definition of the
   associated attributes:
@@ -94,12 +118,14 @@ XML node and the requirements for other attributes change:
       thresholds, and 2) \xmlString{value}, the grid will be provided
       using variable values.
     \item \xmlAttr{construction}, \xmlDesc{required string attribute}, how
-      the grid needs to be constructed, independently by its type (i.e.
+      the grid needs to be constructed, independent of its type (i.e.
       \xmlString{CDF} or \xmlString{value}).
   \end{itemize}
-  \constructionGridDescription}
+  \constructionGridDescription
+}
 
-\newcommand{\convergenceDescription}{
+\newcommand{\convergenceDescription}
+{
 \xmlNode{Convergence}, \xmlDesc{float, required field}, Convergence 
     tolerance.
     %
@@ -138,10 +164,12 @@ XML node and the requirements for other attributes change:
         \default{None}.
     \end{itemize}
     In summary, this XML node contains the information that is needed in order
-    to control this sampler's convergence criterion.}
+    to control this sampler's convergence criterion.
+}
 
-\newcommand{\assemblerDescription}{
-\textbf{Assembler Objects} These objects are either required or optional
+\newcommand{\assemblerDescription}
+{
+  \textbf{Assembler Objects} These objects are either required or optional
     depending on the functionality of the Adaptive Sampler.
     %
     The objects must be listed with a rigorous syntax that, except for the XML
@@ -185,7 +213,8 @@ XML node and the requirements for other attributes change:
         %
         The adaptive sampling accepts ``Datas'' of type ``TimePoint'' and
         ``TimePointSet'' only.
-    \end{itemize}}
+    \end{itemize}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The sampler is probably the most important entity in the RAVEN framework.
