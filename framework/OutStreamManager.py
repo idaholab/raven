@@ -35,8 +35,8 @@ else:
   else:                    disAvail = False
 
 
-def removeNanEntries(X):
-  return X[~np.isnan(X).any(1)]
+#def removeNanEntries(X):
+#  return X[~np.isnan(X).any(1)]
 
 class OutStreamManager(BaseType):
   '''
@@ -473,8 +473,8 @@ class OutStreamPlot(OutStreamManager):
           if kk != 'attributes' and kk != key:
             if command_args != ' ': prefix = ','
             else: prefix = ''
-            try: command_args = prefix + command_args + kk + '=' + str(ast.literal_eval(self.options[key][kk]))
-            except:command_args = prefix + command_args + kk + '="' + str(self.options[key][kk])+'"'
+            try: command_args = command_args +prefix+ kk + '=' + str(ast.literal_eval(self.options[key][kk]))
+            except:command_args = command_args +prefix+ kk + '="' + str(self.options[key][kk])+'"'
         try:
           if self.dim == 2:  execcommand.execCommand('self.plt.' + key + '(' + command_args + ')',self)
           elif self.dim == 3:execcommand.execCommand('self.plt.' + key + '(' + command_args + ')',self)
@@ -1133,8 +1133,8 @@ class OutStreamPlot(OutStreamManager):
           if kk != 'attributes' and kk != self.outStreamTypes[pltindex]:
             if command_args != ' ': prefix = ','
             else: prefix = ''
-            try: command_args = prefix + command_args + kk + '=' + str(ast.literal_eval(self.options['plotSettings']['plot'][pltindex][kk]))
-            except:command_args = prefix + command_args + kk + '="' + str(self.options['plotSettings']['plot'][pltindex][kk])+'"'
+            try: command_args = command_args + prefix + kk + '=' + str(ast.literal_eval(self.options['plotSettings']['plot'][pltindex][kk]))
+            except:command_args = command_args + prefix + kk + '="' + str(self.options['plotSettings']['plot'][pltindex][kk])+'"'
         try:
           if self.dim == 2:  execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)
           elif self.dim == 3:execcommand.execCommand('self.actPlot = self.plt3D.' + self.outStreamTypes[pltindex] + '(' + command_args + ')',self)

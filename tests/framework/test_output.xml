@@ -149,6 +149,13 @@
       <title>
         <text> </text>
       </title>
+      <!-- custom action (not predefined in the code -->
+      <arrow>
+          <x>0.0</x>
+          <y>0.0</y>
+          <dx>0.1</dx>
+          <dy>0.1</dy>
+      </arrow>
     </actions>
   </Plot>
   <Plot name='plot2' dim='3' overwrite='False'>
@@ -188,6 +195,9 @@
               <ymax>1</ymax>
               <zmax>1</zmax>
           </range>
+          <labelFormat>
+              <style>sci</style>
+          </labelFormat>
           <grid>
               <b>off</b>
           </grid>
@@ -214,6 +224,19 @@
               <elevation>10</elevation>
               <azimuth>10</azimuth>
           </camera>
+          <addText>
+              <text> </text>
+          </addText>
+          <autoscale>
+              <enable>f</enable>
+          </autoscale>
+          <!-- custom action (not predefined in the code -->
+          <arrow>
+              <x>0.0</x>
+              <y>0.0</y>
+              <dx>0.1</dx>
+              <dy>0.1</dy>
+          </arrow>
       </actions>
   </Plot>
   <Plot name='plot3' dim='2' overwrite='False'>
@@ -237,6 +260,17 @@
          <label>pump mass flow rate</label>
         </kwargs>
       </plot>
+      <!-- custom plot (aka not predefined...the code try to execute it on the fly
+      <plot>
+          <type>plot</type>
+          <x>stories|Output|time</x>
+          <y>stories|Output|pump_mass_flow_rate</y>
+          <kwargs>
+              <color>blue</color>
+              <label>pump mass flow rate</label>
+          </kwargs>
+      </plot>
+       -->
       <xlabel>time [s]</xlabel>
       <ylabel>evolution</ylabel>
     </plotSettings>
@@ -275,9 +309,12 @@
       </plotSettings>
       <actions>
           <how>png</how>
-          <title>
-              <text> </text>
-          </title>
+          <camera>
+              <elevation>10</elevation>
+          </camera>
+          <autoscale>
+              <enable>t</enable>
+          </autoscale>
       </actions>
   </Plot>
   <Plot name='plot5' dim='2' overwrite='False'>
@@ -308,9 +345,9 @@
       </plotSettings>
       <actions>
           <how>png</how>
-          <title>
-              <text> </text>
-          </title>
+          <camera>
+              <azimuth>10</azimuth>
+          </camera>
       </actions>
   </Plot>
 
