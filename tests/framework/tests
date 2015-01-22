@@ -290,13 +290,6 @@
   csv = 'SafestPointPP/sfs_pnt_dmp.csv SafestPointPP/lmt_srf_dmp.csv'
  [../]
 
- [./safest_point_dbg]
-  type = 'RavenFramework'
-  input = 'test_safest_point_dbg.xml'
-  output = 'SafestPointPP_dbg/sfs_pnt_dmp.csv SafestPointPP_dbg/lmt_srf_dmp.csv'
-  csv = 'SafestPointPP_dbg/sfs_pnt_dmp.csv SafestPointPP_dbg/lmt_srf_dmp.csv'
- [../]
-
  [./safest_point_cdf_pp]
   type = 'RavenFramework'
   input = 'test_safest_point_cdf.xml'

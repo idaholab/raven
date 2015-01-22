@@ -79,7 +79,7 @@
       <type>csv</type>
       <source>TimePointSets</source>
     </Print>
-  <Plot name='plot1' dim='2' overwrite='False'>
+   <Plot debug = 'True' name='plot1' dim='2' overwrite='False'>
     <plotSettings>
        <plot>
         <type>line</type>
@@ -158,7 +158,7 @@
       </arrow>
     </actions>
   </Plot>
-  <Plot name='plot2' dim='3' overwrite='False'>
+   <Plot debug = 'True' name='plot2' dim='3' overwrite='False'>
       <plotSettings>
           <plot>
               <type>line</type>
@@ -239,7 +239,7 @@
           </arrow>
       </actions>
   </Plot>
-  <Plot name='plot3' dim='2' overwrite='False'>
+   <Plot debug = 'True' name='plot3' dim='2' overwrite='False'>
     <plotSettings>
        <plot>
         <type>scatter</type>
@@ -281,7 +281,7 @@
       </title>
     </actions>
   </Plot>
-  <Plot name='plot4' dim='3' overwrite='False'>
+   <Plot debug = 'True' name='plot4' dim='3' overwrite='False'>
       <plotSettings>
           <plot>
               <type>scatter</type>
@@ -317,7 +317,7 @@
           </autoscale>
       </actions>
   </Plot>
-  <Plot name='plot5' dim='2' overwrite='False'>
+   <Plot debug = 'True' name='plot5' dim='2' overwrite='False'>
       <plotSettings>
           <plot>
               <type>histogram</type>
@@ -333,7 +333,7 @@
           </title>
       </actions>
   </Plot>
-  <Plot name='plot6' dim='3' overwrite='False'>
+   <Plot debug = 'True' name='plot6' dim='3' overwrite='False'>
       <plotSettings>
           <plot>
               <type>histogram</type>
@@ -351,7 +351,7 @@
       </actions>
   </Plot>
 
-  <Plot name='plot7' dim='2' overwrite='False'>
+   <Plot debug = 'True' name='plot7' dim='2' overwrite='False'>
       <plotSettings>
           <plot>
               <type>stem</type>
@@ -368,7 +368,7 @@
           </title>
       </actions>
   </Plot>
-  <Plot name='plot8' dim='3' overwrite='False'>
+   <Plot debug = 'True' name='plot8' dim='3' overwrite='False'>
       <plotSettings>
           <plot>
               <type>stem</type>
@@ -387,7 +387,7 @@
       </actions>
   </Plot>
 
-<Plot name='plot9' dim='2' overwrite='False'>
+ <Plot debug = 'True' name='plot9' dim='2' overwrite='False'>
     <plotSettings>
         <plot>
             <type>stem</type>
@@ -404,11 +404,11 @@
         </title>
     </actions>
 </Plot>
-<Plot name='plot10' dim='3' overwrite='False'>
+ <Plot debug = 'True' name='plot10' dim='3' overwrite='False'>
     <plotSettings>
         <plot>
             <type>stem</type>
-            <x>TimePointSets|Input|pipe1_Area</x>
+            <x>TimePointSets|Output|pipe1_Hw</x>
             <y>TimePointSets|Input|pipe1_Dh</y>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
         </plot>
@@ -422,11 +422,11 @@
         </title>
     </actions>
 </Plot>
-<Plot name='plot11' dim='2' overwrite='False'>
+ <Plot debug = 'True' name='plot11' dim='2' overwrite='False'>
     <plotSettings>
         <plot>
             <type>step</type>
-            <x>TimePointSets|Input|pipe1_Area</x>
+            <x>TimePointSets|Output|pipe1_Hw</x>
             <y>TimePointSets|Output|pump_mass_flow_rate</y>
         </plot>
         <xlabel>time [s]</xlabel>
@@ -439,11 +439,11 @@
         </title>
     </actions>
 </Plot>
-<Plot name='plot12' dim='2' overwrite='False'>
+ <Plot debug = 'True' name='plot12' dim='2' overwrite='False'>
     <plotSettings>
         <plot>
             <type>pseudocolor</type>
-            <x>TimePointSets|Input|pipe1_Area</x>
+            <x>TimePointSets|Output|pipe1_Hw</x>
             <y>TimePointSets|Input|pipe1_Dh</y>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
         </plot>
@@ -457,14 +457,15 @@
         </title>
     </actions>
 </Plot>
-<Plot name='plot13' dim='3' overwrite='False'>
+ <Plot debug = 'True' name='plot13' dim='3' overwrite='False'>
     <plotSettings>
         <plot>
             <type>surface</type>
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|time</colorMap>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <interpolationType>nearest</interpolationType>
             <kwargs>
                 <color>green</color>
                 <label>pump mass flow rate</label>
@@ -475,6 +476,7 @@
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
+            <interpolationType>nearest</interpolationType>
             <kwargs>
                 <color>blue</color>
                 <label>pump mass flow rate</label>
@@ -490,20 +492,22 @@
         </title>
     </actions>
 </Plot>
-<Plot name='plot14' dim='3' overwrite='False'>
+ <Plot debug = 'True' name='plot14' dim='3' overwrite='False'>
     <plotSettings>
         <plot>
             <type>tri-surface</type>
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|time</colorMap>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
             <type>tri-surface</type>
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
+            <interpolationType>nearest</interpolationType>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -515,20 +519,22 @@
         </title>
     </actions>
 </Plot>
-<Plot name='plot15' dim='3' overwrite='False'>
+ <Plot debug = 'True' name='plot15' dim='3' overwrite='False'>
     <plotSettings>
         <plot>
             <type>wireframe</type>
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
-            <colorMap>TimePointSets|Output|time</colorMap>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
             <type>wireframe</type>
             <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
+            <interpolationType>nearest</interpolationType>
 
         </plot>
         <xlabel>time [s]</xlabel>
@@ -543,17 +549,17 @@
 </Plot>
 
 
-<Plot name='plot16' dim='2' overwrite='False'>
+ <Plot debug = 'True' name='plot16' dim='2' overwrite='False'>
     <plotSettings>
         <plot>
             <type>contour</type>
-            <x>TimePointSets|Output|time</x>
+            <x>TimePointSets|Input|pipe1_Dh</x>
             <y>TimePointSets|Output|pipe1_Hw</y>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
         </plot>
         <plot>
             <type>filledContour</type>
-            <x>TimePointSets|Output|time</x>
+            <x>TimePointSets|Input|pipe1_Dh</x>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
             <y>TimePointSets|Output|pipe1_Hw</y>
         </plot>
@@ -567,21 +573,23 @@
         </title>
     </actions>
 </Plot>
-<Plot name='plot17' dim='3' overwrite='False'>
+ <Plot debug = 'True' name='plot17' dim='3' overwrite='False'>
     <plotSettings>
         <plot>
             <type>contour3D</type>
-            <x>TimePointSets|Output|time</x>
-            <y>TimePointSets|Output|pipe1_Hw</y>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <interpolationType>nearest</interpolationType>
         </plot>
         <plot>
             <type>filledContour3D</type>
-            <x>TimePointSets|Output|time</x>
-            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <x>TimePointSets|Output|pipe1_Hw</x>
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
-            <y>TimePointSets|Output|pipe1_Hw</y>
+            <y>TimePointSets|Input|pipe1_Dh</y>
+            <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+            <interpolationType>nearest</interpolationType>
         </plot>
         <xlabel>time [s]</xlabel>
         <ylabel>evolution</ylabel>
@@ -593,7 +601,7 @@
         </title>
     </actions>
 </Plot>
-<Plot name='2DHistoryPlot' dim='2' overwrite='False'>
+ <Plot debug = 'True' name='2DHistoryPlot' dim='2' overwrite='False'>
     <plotSettings>
         <plot>
             <type>histogram</type>
@@ -609,7 +617,7 @@
         </title>
     </actions>
 </Plot>
-  <Plot name='2DHistoryPlot2' dim='2' overwrite='False'>
+   <Plot debug = 'True' name='2DHistoryPlot2' dim='2' overwrite='False'>
       <plotSettings>
           <plot>
               <type>histogram</type>
