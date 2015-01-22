@@ -19,20 +19,21 @@ update_python_path ()
     fi
 }
 
-if curl http://www.energy.gov > /dev/null
-then
-    echo Successfully got data from the internet
-else
-    echo Could not connect to internet
-fi
-
 update_python_path
-PATH="$INSTALL_DIR/bin:$PATH"
+PATH=$INSTALL_DIR/bin:$PATH
+
 
 if which coverage
 then
     echo coverage already available, skipping building it.
 else
+    if curl http://www.energy.gov > /dev/null
+    then
+       echo Successfully got data from the internet
+    else
+       echo Could not connect to internet
+    fi
+
     cd $BUILD_DIR
     $DOWNLOADER https://pypi.python.org/packages/source/c/coverage/coverage-3.7.1.tar.gz #md5=67d4e393f4c6a5ffc18605409d2aa1ac
     tar -xvzf coverage-3.7.1.tar.gz
@@ -46,12 +47,15 @@ cd $SCRIPT_DIR
 
 EXTRA='--source=../../framework -a --omit=../../framework/contrib/pyDOE/*'
 cd tests/framework
+#coverage help run
+
+
 coverage erase
 #skip test_rom_trainer.xml 
 for I in test_simple.xml test_output.xml test_branch.xml test_preconditioned_det.xml test_push_into_hdf5.xml test_rom_trainer_no_normalization.xml test_rom_train_from_already_dumped_HDF5.xml test_FullFactorial_Sampler.xml test_ResponseSurfaceDesign_Sampler.xml test_Grid_Sampler.xml test_random.xml test_LHS_Sampler.xml test_Grid_Sampler_Bison.xml test_LHS_Sampler_Bison.xml test_LHS_Sampler_Raven.xml test_Grid_Sampler_Raven.xml test_Lorentz.xml test_BasicStatistics.xml test_LimitSurface.xml test_CreateInternalObjFromCSVs.xml test_bison_mc_simple.xml test_custom_mode.xml test_iostep_load.xml test_safest_point.xml test_safest_point_dbg.xml test_safest_point_cdf.xml test_externalPostProcessor.xml
 do
     echo Running $I
-    coverage run $EXTRA ../../framework/Driver.py  $I
+    coverage run --rcfile=.coveragerc  $EXTRA ../../framework/Driver.py  $I
 done
 coverage run $EXTRA ../../framework/TestDistributions.py
 coverage html

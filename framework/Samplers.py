@@ -1600,7 +1600,7 @@ class DynamicEventTree(Grid):
 #
 #
 #
-class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
+class AdaptiveDET(DynamicEventTree, AdaptiveSampler): # pragma: no cover
   def __init__(self):
     DynamicEventTree.__init__(self)  # init DET
     AdaptiveSampler.__init__(self)   # init Adaptive
