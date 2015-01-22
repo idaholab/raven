@@ -1,38 +1,47 @@
-\section{Existing Interfaces  \\ \vspace{2 mm} {\small }}
+\section{Existing Interfaces \\ \vspace{2 mm} {\small }}
 \label{sec:existingInterface}
 \subsection{RELAP5 Interface}
 
-
 \subsubsection{Files}
-In the $<Files>$ section, as specified before, there should be specified all the files needed for the code to run. In the case of RELAP5 most of the times the files needed are the following:
+In the \xmlNode{Files} section, as specified before, there should be specified all the
+files needed for the code to run.
+%
+In the case of RELAP5 most of the times the files needed are the following:
 \begin{itemize}
-\item RELAP5 Input file
-\item Table file or files that RELAP needs to run
-\item The Relap5 executable
+  \item RELAP5 Input file
+  \item Table file or files that RELAP needs to run
+  \item The Relap5 executable
 \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
 <Files>X10.i,tpfh2o,r5executable.x</Files>
 \end{lstlisting}
 
-It is a good practice to put inside the working directory all of these files and also:
+It is a good practice to put inside the working directory all of these files and
+also:
 \begin{itemize}
-\item the RAVEN input file
-\item the license for the executable of RELAP5
+  \item the RAVEN input file
+  \item the license for the executable of RELAP5
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Sequence}
-In the $<Sequence>$ section there should be specified the names of the steps declared in the $<Steps>$ block. 
-So if we called the first multirun: "Grid\_Sampler" and the second multirun: "MC\_Sampler" in the sequence section we should see this:
+In the \xmlNode{Sequence} section there should be specified the names of the steps
+declared in the \xmlNode{Steps} block.
+%
+So if we called the first multirun: "Grid\_Sampler" and the second multirun:
+"MC\_Sampler" in the sequence section we should see this:
 \begin{lstlisting}[style=XML]
 <Sequence>Grid_Sampler,MC_Sampler</Sequence>
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{batchSize and mode}
-For the $<batchSize>$ and $<mode>$ sections please take a look at the RunInfo block in the previous chapters.
+For the \xmlNode{batchSize} and \xmlNode{mode} sections please take a look at the RunInfo
+block in the previous chapters.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{RunInfo}
-After all of these blocks are filled out here is a standard example of what a RunInfo block can look like:
+After all of these blocks are filled out here is a standard example of what a
+RunInfo block can look like:
 \begin{lstlisting}[style=XML]
 <RunInfo>
     <WorkingDir>~/working_dir</WorkingDir>
@@ -46,7 +55,8 @@ After all of these blocks are filled out here is a standard example of what a Ru
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
-For the $<Models>$ block here is a standard example of what can be used to use RELAP5 as the external model:
+For the \xmlNode{Models} block here is a standard example of what can be used to use
+RELAP5 as the external model:
 \begin{lstlisting}[style=XML]
 <Models>
     <Code name='MyRELAP' subType='Relap5'><executable>~/path_to_the_executable</executable></Code>
@@ -54,7 +64,13 @@ For the $<Models>$ block here is a standard example of what can be used to use R
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
-In the $<Distribution>$ block are defined the distributions that are going to be used for the sampling of the variables defined in the $<Samplers>$ block. For all the possibile distributions and all their possible inputs please see the chapter about Distributions. Here we give a general example of three different distributions, with the names:
+In the \xmlNode{Distribution} block are defined the distributions that are going to be
+used for the sampling of the variables defined in the \xmlNode{Samplers} block.
+%
+For all the possibile distributions and all their possible inputs please see the
+chapter about Distributions.
+%
+Here we give a general example of three different distributions, with the names:
 \begin{lstlisting}[style=XML]
 <Distributions debug='True'>
     <Triangular name='BPfailtime'>
@@ -72,26 +88,34 @@ In the $<Distribution>$ block are defined the distributions that are going to be
     </Uniform>
  </Distributions>
 \end{lstlisting}
-It is good practice to name the distribution something similar to what kind of variable is going to be sampled, since there might be many variables with the same kind of distributions but different input parameters. 
+It is good practice to name the distribution something similar to what kind of
+variable is going to be sampled, since there might be many variables with the
+same kind of distributions but different input parameters.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Samplers}
-In the $<Samplers>$ block we want to define the variables that are going to be sampled. 
+In the \xmlNode{Samplers} block we want to define the variables that are going to be
+sampled.
+%
 \textbf{Example}:
 We want to do the sampling of 3 variables:
 \begin{itemize}
-\item Battery Fail Time
-\item Battery Repair Time
-\item Scaling Factor Power Rate
+  \item Battery Fail Time
+  \item Battery Repair Time
+  \item Scaling Factor Power Rate
 \end{itemize}
-We are going to sample these 3 variables using two different sampling methods: grid and MonteCarlo.
+We are going to sample these 3 variables using two different sampling methods:
+grid and MonteCarlo.
 
 In RELAP5 the sampler reads the variable in this way:
-Given the name, the first number is the card number, the second number is the word number.
+Given the name, the first number is the card number, the second number is the
+word number.
+%
 In this example we are sampling:
 \begin{itemize}
-\item For card 0000588 (trip) the word 6 (battery failure time)
-\item For card 0000575 (trip) the word 6 (battery repari time)
-\item For card 20210000 (reactor power) the word 4 (reactor scaling factor)
+  \item For card 0000588 (trip) the word 6 (battery failure time)
+  \item For card 0000575 (trip) the word 6 (battery repari time)
+  \item For card 20210000 (reactor power) the word 4 (reactor scaling factor)
 \end{itemize}
 
 We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
@@ -124,22 +148,38 @@ We proceed to do so for both the Grid sampling and the MonteCarlo sampling.
 	</MonteCarlo>
 </Samplers>
 \end{lstlisting}
-It can be seen that each variable is connected with a proper distribution defined in the $<Distributions>$ block. 
+It can be seen that each variable is connected with a proper distribution
+defined in the \xmlNode{Distributions} block.
+%
 Here is how the Input would be read for the first variable:
 \\\\
-We are sampling a a variable situated in word 6 of the card 0000588 using a Grid sampling method. The distribution that this variable is following is a Triangular distribution (see section above). We are sampling this variable beginning from 0.0 in 10 \textit{equal} steps of 2880. 
+We are sampling a a variable situated in word 6 of the card 0000588 using a Grid
+sampling method.
+%
+The distribution that this variable is following is a Triangular distribution
+(see section above).
+%
+We are sampling this variable beginning from 0.0 in 10 \textit{equal} steps of
+2880.
+%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
-For a RELAP interface the steps that are probably going to be used are the $<MultiRun>$. 
-First we need to name the step: this name is one the ones used in the $<Sequence>$ block. In this case: Grid\_Sampler and MC\_Sampler.
+For a RELAP interface the steps that are probably going to be used are the
+\xmlNode{MultiRun}.
+%
+First we need to name the step: this name is one the ones used in the
+\xmlNode{Sequence} block.
+%
+In this case: Grid\_Sampler and MC\_Sampler.
+%
 \begin{lstlisting}[style=XML]
      <MultiRun name='Grid_Sampler' debug='True' re-seeding='210491'>
 \end{lstlisting}
 With this step with need to import all the files needed for the simulation:
 \begin{itemize}
-\item RELAP input file
-\item Relap 5 Executable
-\item elements tables -- tpfh2o 
+  \item RELAP input file
+  \item Relap 5 Executable
+  \item elements tables -- tpfh2o
 \end{itemize}
 \begin{lstlisting}[style=XML]
     <Input   class='Files' type=''>inputrelap.i</Input>
@@ -154,11 +194,18 @@ We then need to specify which Sampler is used, and this can be done as follows:
 \begin{lstlisting}[style=XML]
     <Sampler class='Samplers' type='Grid'>Grid_Sampler</Sampler>
 \end{lstlisting}
-And lastly we need to specify what kind of Output the used wants. For example the user might want to make a DataBase (in RAVEn the DataBase crated is a HDF5 file. Here is a classical example:
+And lastly we need to specify what kind of Output the used wants.
+%
+For example the user might want to make a DataBase (in RAVEn the DataBase crated
+is a HDF5 file.
+%
+Here is a classical example:
 \begin{lstlisting}[style=XML]
     <Output  class='DataBases' type='HDF5'>MC_out</Output>
 \end{lstlisting}
-Following is the example of two MultiRun steps which use different sampling methods (grid and montecarlo), and creating two different DataBases for each one:
+Following is the example of two MultiRun steps which use different sampling
+methods (grid and montecarlo), and creating two different DataBases for each
+one:
 \begin{lstlisting}[style=XML]
     <Steps debug='True'>
     <MultiRun name='Grid_Sampler' debug='True' re-seeding='210491'>
@@ -181,21 +228,29 @@ Following is the example of two MultiRun steps which use different sampling meth
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{DataBases}
-As shown in the $<Steps>$ block, the code is creating two DataBases called Grid\_out and MC\_out. So the user needs to input the following
+As shown in the \xmlNode{Steps} block, the code is creating two DataBases called
+Grid\_out and MC\_out.
+%
+So the user needs to input the following
 \begin{lstlisting}[style=XML]
 <DataBases>
-        <HDF5 name="Grid_out"/> 
-        <HDF5 name="MC_out"/> 
+        <HDF5 name="Grid_out"/>
+        <HDF5 name="MC_out"/>
 </DataBases>
 \end{lstlisting}
-As listed before, this will create two DataBases. The files are .h5 extension files. 
+As listed before, this will create two DataBases.
+%
+The files are .h5 extension files.
 
 \subsection{RELAP7 Interface}
 \subsubsection{Files}
-In the $<Files>$ section, as specified before, there should be specified all the files needed for the code to run. In the case of RELAP7 most of the times the files needed are the following:
+In the \xmlNode{Files} section, as specified before, there should be specified all the
+files needed for the code to run.
+%
+In the case of RELAP7 most of the times the files needed are the following:
 \begin{itemize}
-\item RELAP7 Input file
-\item Control Logic file
+  \item RELAP7 Input file
+  \item Control Logic file
 \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
@@ -203,7 +258,9 @@ Example:
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
-For the $<Models>$ block RELAP7 uses the RAVEN executable. Here is a standard example of what can be used to use RELAP7 as the model:
+For the \xmlNode{Models} block RELAP7 uses the RAVEN executable.
+%
+Here is a standard example of what can be used to use RELAP7 as the model:
 \begin{lstlisting}[style=XML]
 <Models>
     <Code name='MyRAVEN' subType='RAVEN'><executable>~path/to/RAVEN-opt</executable></Code>
@@ -211,9 +268,15 @@ For the $<Models>$ block RELAP7 uses the RAVEN executable. Here is a standard ex
 \end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
-The $<Distributions>$ block, when using RELAP7 has to be specified also through the control logic.
-Given the names of the distributions, and their parameters, a python file should be used for the control logic.
-For example, it is required the sampling of a normal distribution for the primary pressure in RELAP7. 
+The \xmlNode{Distributions} block, when using RELAP7 has to be specified also through
+the control logic.
+%
+Given the names of the distributions, and their parameters, a python file should
+be used for the control logic.
+%
+For example, it is required the sampling of a normal distribution for the
+primary pressure in RELAP7.
+%
 \begin{lstlisting}[style=XML]
 <Distributions>
  <Normal name="Prim_Pres">
@@ -227,32 +290,33 @@ The python file associated to it should look like this:
 \begin{lstlisting}[language=Python]
 def initial_function(monitored, controlled, auxiliary)
     print("monitored",monitored,"controlled",
-    controlled,"auxiliary",auxiliary)  
-    
+    controlled,"auxiliary",auxiliary)
+
     controlled.pressure_in_pressurizer =
      distributions.Prim_Pres.getDistributionRandom()
     return
-\end{lstlisting} 
+\end{lstlisting}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Samplers}
-In the $<Samplers>$ block there are going to be defined both which kind of sampling method used, the variables not sampled inside the control logic and of course which distributions will follow the chosen sampling method.
-For the example it was chosen a MonteCarlo sampling with a 500 runs. The global initial pressure wasn't specified in the control logic so it is sampled in this block. It is also specified that such initial pressure has to follow the same distribution as the primary pressure. 
+In the \xmlNode{Samplers} block there are going to be defined both which kind of
+sampling method used, the variables not sampled inside the control logic and of
+course which distributions will follow the chosen sampling method.
+%
+For the example it was chosen a MonteCarlo sampling with a 500 runs.
+%
+The global initial pressure wasn't specified in the control logic so it is
+sampled in this block.
+%
+It is also specified that such initial pressure has to follow the same
+distribution as the primary pressure.
+%
 \begin{lstlisting}[style=XML]
 <Samplers>
- <MonteCarlo name="MC_samp" limit="500"> 
+ <MonteCarlo name="MC_samp" limit="500">
   <variable name="GlobalParams|global_init_P">
    <distribution>Prim_Pres</distribution>
   </variable>
  </MonteCarlo>
 </Samplers>
 \end{lstlisting}
-
-
-
-
-
-
-
-
-
 
