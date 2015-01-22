@@ -5,7 +5,7 @@
 % If you are confused by the input of this document, please make sure you see
 % these defined commands first. There is no point writing the same thing over
 % and over and over and over and over again, so these will help us reduce typos,
-% by just editing a template sentence.
+% by just editing a template sentence or paragraph.
 \renewcommand{\nameDescription}{\xmlAttr{name},
   \xmlDesc{required string attribute}, user-defined name of this sampler.
   \nb As with other objects, this identifier can be used to reference this
@@ -109,12 +109,12 @@ XML node and the requirements for other attributes change:
       \item \xmlAttr{limit}, \xmlDesc{optional integer attribute}, the
         maximum number of adaptive samples.
         %
-        \textit{Default = infinite}.
+        \default{infinite}.
       \item \xmlAttr{forceIteration}, \xmlDesc{optional boolean attribute},
         this attribute controls if at least a number of iterations equal to
         \textbf{limit} must be performed.
         %
-        \textit{Default = False}.
+        \default{False}.
       \item \xmlAttr{weight}, \xmlDesc{optional string attribute}, defines on
         what the convergence check needs to be performed.
         \begin{itemize}
@@ -123,19 +123,19 @@ XML node and the requirements for other attributes change:
           \item \xmlString{none}, the convergence is checked on the 
             hyper-volume in terms of variable values.
         \end{itemize}
-        \textit{Default = probability}.
+        \default{probability}.
       \item \xmlAttr{persistence}, \xmlDesc{optional integer attribute}, 
         offers an additional convergence check.
         %
         It represents the number of times the computed error needs to be
         below the inputted tolerance before convergence is reported.
         %
-        \textit{Default = 0}.
+        \default{0}.
       \item \xmlAttr{subGridTol}, \xmlDesc{optional string attribute}, 
         defines a tolerance for constructing a sub-grid on which the
         acceleration ROM is going to be tested.
         %
-        \textit{Default = None}.
+        \default{None}.
     \end{itemize}
     In summary, this XML node contains the information that is needed in order
     to control this sampler's convergence criterion.}
@@ -308,11 +308,11 @@ to uniform or parameter-based probability density functions.
   Monte-Carlo samples to be generate.
 \item \xmlAttr{initial\_seed}, \xmlDesc{optional integer attribute}, initial
   seeding of random number generator.
-  \textit{Default = random seed}.
+  \default{random seed}.
 \item \xmlAttr{reseedAtEachIteration}, \xmlDesc{optional boolean/string
   attribute}, perform a re-seeding for each sample generated
   (True values = True, yes, y, t, si, dajie).
-  \textit{Default = False}.
+  \default{False}.
 \end{itemize}
 \vspace{-5mm}
 \variableIntro{MonteCarlo}
@@ -596,7 +596,7 @@ algorithm being used:
             number of center points to include in the box.
             If this parameter is not specified, then a pre-determined number of
             points are automatically included.
-            \textit{Default = None}.
+            \default{None}.
          \end{itemize}
          \nb In order to employ the ``Box-Behnken'' design, at least 3 variables
          must be used.
@@ -609,7 +609,7 @@ algorithm being used:
             This block needs to contain 2 integers values separated by a comma.
             The first entry represents the number of centers to be added for the
             factorial block; the second one is the one for the star block.
-            \textit{Default = 4,4}.
+            \default{4,4}.
           \item \xmlNode{alpha}, \xmlDesc{string, optional field}, in this node,
             the user decides how an $\alpha$ factor needs to be determined.
             Two options are available:
@@ -617,7 +617,7 @@ algorithm being used:
               \item \texttt{orthogonal}, for orthogonal design.
               \item \texttt{rotatable}, for rotatable design.
             \end{itemize}
-            \textit{Default = orthogonal}.
+            \default{orthogonal}.
           \item \xmlNode{face}, \xmlDesc{string, optional field}, in this node,
             the user defines how faces should be constructed.
             Three options are available:
@@ -626,7 +626,7 @@ algorithm being used:
               \item \texttt{inscribed}, for inscribed facing
               \item \texttt{faced}, for faced facing.
             \end{itemize}
-            \textit{Default = circumscribed}.
+            \default{circumscribed}.
          \end{itemize}
       \end{itemize}
       \nb In order to employ the ``Central Composite'' design, at least 2
@@ -928,12 +928,12 @@ space.
     controls the dumping of a ``summary'' of the DET performed into an external
     XML.
     %
-    \textit{Default = False}.
+    \default{False}.
   \item \xmlAttr{maxSimulationTime}, \xmlDesc{optional float attribute}, this
     attribute controls the maximum ``mission'' time of the simulation
     underneath.
     %
-    \textit{Default = None}.
+    \default{None}.
 \end{itemize}
 \variableIntro{DynamicEventTree}
 \begin{itemize}
@@ -1034,12 +1034,12 @@ For this reason, its specifications must be defined within a
     controls the dumping of a ``summary'' of the DET performed into an external
     XML.
     %
-    \textit{Default = False}.
+    \default{False}.
   \item \xmlAttr{maxSimulationTime}, \xmlDesc{optional float attribute}, this
     attribute controls the maximum ``mission'' time of the simulation
     underneath.
     %
-    \textit{Default = None}.
+    \default{None}.
 \end{itemize}
 
 \variableIntro{DynamicEventTree}
@@ -1337,12 +1337,12 @@ the input space in proximity of the limit surface.
     this attribute controls the dumping of a ``summary'' of the DET performed in
     to an external XML.
     %
-    \textit{Default = False}.
+    \default{False}.
   \item \xmlAttr{maxSimulationTime}, \xmlDesc{optional float attribute}, this
     attribute controls the maximum ``mission'' time of the simulation
     underneath.
     %
-    \textit{Default = None}.
+    \default{None}.
   \item \xmlAttr{mode}, \xmlDesc{optional string attribute}, controls when the
     adaptive search needs to begin.
     %
@@ -1360,18 +1360,18 @@ the input space in proximity of the limit surface.
          \textbf{Adaptive Dynamic Event Tree} starts its goal-oriented search
          using the DET as support;
     \end{itemize}
-      \textit{Default = post}.
+      \default{post}.
 %  \item \textbf{noTransitionStrategy}, \textit{optional string attribute}, strategy if no transition detected. This attribute controls how to handle the case in which no transitions have been detected through the initial DET grid.  %Two options are available:
  %     \begin{itemize}
   %       \item \textit{noTransitionStrategy = mc}, if this option is activated, when the initial DET grid did not detect any transition, a MC point in space is requested;
    %      \item \textit{noTransitionStrategy = grid},  if this option is activated, the adaptive search starts at begin, during the initial standard Dynamic Event Tree. Whenever a transition is detected, the \textbf{Adaptive Dynamic Event Tree} starts it goal-oriented search using the DET as support;
   %    \end{itemize}
-   %   \textit{Default = post}.
+   %   \default{post}.
   \item \xmlAttr{updateGrid}, \xmlDesc{optional boolean attribute}, if true, 
     each adaptive request is going to update the meshing of the initial DET
     grid.
     %
-    \textit{Default = True}.
+    \default{True}.
 \end{itemize}
 \variableIntro{AdaptiveDynamicEventTree}
 \begin{itemize}

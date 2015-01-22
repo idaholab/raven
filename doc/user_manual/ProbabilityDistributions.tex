@@ -5,21 +5,22 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % If you are confused by the input of this document, please make sure you see
-% these defined commands first. There is no point writing the same thing over 
+% these defined commands first. There is no point writing the same thing over
 % and over and over and over and over again, so these will help us reduce typos,
 % by just editing a template sentence.
-\newcommand{\nameDescription}{\xmlAttr{name}, 
+\newcommand{\nameDescription}{\xmlAttr{name},
   \xmlDesc{required string attribute}, user-defined name of this distribution.
+  %
   \nb As with other objects, this identifier can be used to reference this
   specific entity from other input blocks in the XML.}
 \newcommand{\specBlock}[2]{The specifications of this distribution must be
-defined within #1 \xmlNode{#2} XML block.}
+  defined within #1 \xmlNode{#2} XML block.}
 \newcommand{\attrIntro}{This XML node accepts one attribute:}
 \newcommand{\attrsIntro}{This XML node accepts the following attributes:}
 \newcommand{\subnodeIntro}{This distribution can be initialized with the
-following child:}
-\newcommand{\subnodesIntro}{This distribution can be initialized with the 
-following children:}
+  following child:}
+\newcommand{\subnodesIntro}{This distribution can be initialized with the
+  following children:}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \maljdan{Do we want to provide the equations of each distribution?}
@@ -28,7 +29,7 @@ following children:}
 RAVEN provides support for several probability distributions.
 %
 Currently, the user can choose among all of the most important 1-dimensional
-distributions and $N$-dimensional ones, either custom or multivariate.  
+distributions and $N$-dimensional ones, either custom or multivariate.
 
 The user will specify the probability distributions, that need to be used during
 the simulation, within the \xmlNode{Distributions} XML block:
@@ -50,8 +51,10 @@ distributions are reported.
 \label{subsec:1dDist}
 This sub-section is organized in two different parts: 1) continuous 1-D
 distributions and 2) discrete 1-D distributions.
+%
 These two chapters cover all the requirements for using the different
-distribution entities. 
+distribution entities.
+%
 %%%%%% paragraph 1-Dimensional Continuous Distributions.
 \subsubsection{1-Dimensional Continuous Distributions}
 \label{subsubsec:1DContinuous}
@@ -65,7 +68,7 @@ truncated by using the following keywords:
 <upperBound>aFloatValue</upperBound>
 \end{lstlisting}
 Obviously, each distribution already defines its valid domain (e.g. Normal
-distribution, $[-\infty,+\infty]$). 
+distribution, $[-\infty,+\infty]$).
 %
 RAVEN currently provides support for 12 1-Dimensional distributions.
 %
@@ -84,24 +87,29 @@ user's needs.
 %
 Its support is $x \in (0, 1)$.
 
-\specBlock{a}{Beta} 
+\specBlock{a}{Beta}
 %
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{alpha}, \xmlDesc{float, required parameter}, first shape
+  \item \xmlNode{alpha}, \xmlDesc{float, required parameter}, first shape
   parameter.
-\item \xmlNode{beta}, \xmlDesc{float, required parameter}, second shape
+  %
+  \item \xmlNode{beta}, \xmlDesc{float, required parameter}, second shape
   parameter.
-\item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain boundary.  
-\item \xmlNode{high}, \xmlDesc{float, required parameter}, upper domain
+  %
+  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
   boundary.
+  %
+  \item \xmlNode{high}, \xmlDesc{float, required parameter}, upper domain
+  boundary.
+  %
 \end{itemize}
 
 Example:
@@ -121,7 +129,7 @@ Example:
 %%%%%% Exponential
 \paragraph{Exponential Distribution}
 \label{Exponential}
-The \distname{Exponential} distribution  can be
+The \distname{Exponential} distribution can be
 used to model the time between independent events happening at a constant
 average time.
 %
@@ -132,13 +140,14 @@ Its support is $x \in [0, +\infty)$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodeIntro
 \begin{itemize}
-\item \xmlNode{lambda}, \xmlDesc{float, required parameter}, rate parameter.
+  \item \xmlNode{lambda}, \xmlDesc{float, required parameter}, rate parameter.
+  %
 \end{itemize}
 
 Example:
@@ -168,17 +177,19 @@ Its support is $x \in (0,+\infty)$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{alpha}, \xmlDesc{float, required parameter}, shape parameter.
-\item \xmlNode{beta}, \xmlDesc{float, required parameter}, 1/scale or the
+  \item \xmlNode{alpha}, \xmlDesc{float, required parameter}, shape parameter.
+  %
+  \item \xmlNode{beta}, \xmlDesc{float, required parameter}, 1/scale or the
   inverse scale parameter;
-\item \xmlNode{low}, \xmlDesc{float, optional parameter},  lower domain
-boundary.
+  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
+  boundary.
+  %
 \end{itemize}
 
 Example:
@@ -210,16 +221,20 @@ Its support is $x \in (-\infty,+\infty)$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{location}, \xmlDesc{float, required parameter}, the distribution
+  \item \xmlNode{location}, \xmlDesc{float, required parameter}, the
+  distribution
   mean.
-\item \xmlNode{scale}, \xmlDesc{float, required parameter}, scale parameter that
+  %
+  \item \xmlNode{scale}, \xmlDesc{float, required parameter}, scale parameter
+  that
   is proportional to the standard deviation.
+  %
 \end{itemize}
 
 Example:
@@ -247,15 +262,18 @@ Its support is $x \in (0, +\infty)$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{mean}, \xmlDesc{float, required parameter}, the distribution mean
-or expected value (in log-scale).
-\item \xmlNode{sigma}, \xmlDesc{float, required parameter}, standard deviation.
+  \item \xmlNode{mean}, \xmlDesc{float, required parameter}, the distribution
+  mean or expected value (in log-scale).
+  %
+  \item \xmlNode{sigma}, \xmlDesc{float, required parameter}, standard
+  deviation.
+  %
 \end{itemize}
 
 Example:
@@ -273,8 +291,9 @@ Example:
 %%%%%% Normal
 \paragraph{Normal Distribution}
 \label{Normal}
-The \distname{Normal} distribution (or Gaussian) is an extremely 
+The \distname{Normal} distribution (or Gaussian) is an extremely
 useful continuous distribution.
+%
 Its utility is due to the central limit theorem, which states that, under mild
 conditions, the mean of many random variables independently drawn from the same
 distribution is distributed approximately normally, irrespective of the form of
@@ -287,16 +306,19 @@ Its support is $x \in (-\infty, +\infty)$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{mean}, \xmlDesc{float, required parameter}, the distribution mean
+  \item \xmlNode{mean}, \xmlDesc{float, required parameter}, the distribution
+  mean
   or expected value.
-\item \xmlNode{sigma}, \xmlDesc{float, required parameter}, the standard
+  %
+  \item \xmlNode{sigma}, \xmlDesc{float, required parameter}, the standard
   deviation.
+  %
 \end{itemize}
 
 Example:
@@ -319,7 +341,7 @@ triangular shape for its PDF.
 %
 It is often used where the distribution is only vaguely known.
 %
-Like the uniform distribution, upper and lower limits are ``known,'' but a 
+Like the uniform distribution, upper and lower limits are ``known,'' but a
 ``best guess,'' of the mode or center point is also added.
 %
 It has been recommended as a ``proxy'' for the beta distribution.
@@ -331,16 +353,22 @@ Its support is $lower \le x \le upper$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{apex}, \xmlDesc{float, required parameter}, ``best guess'', also
+  \item \xmlNode{apex}, \xmlDesc{float, required parameter}, ``best guess'',
+  also
   called, peak factor.
-\item \xmlNode{min}, \xmlDesc{float, required parameter}, domain lower boundary.
-\item \xmlNode{max}, \xmlDesc{float, required parameter}, domain upper boundary.
+  %
+  \item \xmlNode{min}, \xmlDesc{float, required parameter}, domain lower
+  boundary.
+  %
+  \item \xmlNode{max}, \xmlDesc{float, required parameter}, domain upper
+  boundary.
+  %
 \end{itemize}
 
 Example:
@@ -372,15 +400,18 @@ Its support is $lower \le x \le upper$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{low}, \xmlDesc{float, required parameter}, domain lower boundary.
-\item \xmlNode{high}, \xmlDesc{float, required parameter}, domain upper
+  \item \xmlNode{low}, \xmlDesc{float, required parameter}, domain lower
   boundary.
+  %
+  \item \xmlNode{high}, \xmlDesc{float, required parameter}, domain upper
+  boundary.
+  %
 \end{itemize}
 
 Example:
@@ -405,29 +436,32 @@ where the failure rate varies over time.
 If the failure rate is:
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item constant over time, then $k = 1$, suggests that items are failing from
+  \itemsep0em
+  \item constant over time, then $k = 1$, suggests that items are failing from
   random events;
-\item decreases over time, then $k < 1$, suggesting ``infant mortality''; 
-\item increases over time, then $k > 1$, suggesting ``wear out'' - more likely
+  \item decreases over time, then $k < 1$, suggesting ``infant mortality'';
+  \item increases over time, then $k > 1$, suggesting ``wear out'' - more likely
   to fail as time goes by.
+  %
 \end{itemize}
 \vspace{-5mm}
- Its support is $x \in [0, +\infty)$.
+Its support is $x \in [0, +\infty)$.
 
 \specBlock{a}{Weibull}
 %
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription  
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{k}, \xmlDesc{float, required parameter}, shape parameter.
-\item \xmlNode{lambda}, \xmlDesc{float, required parameter}, scale parameter.
+  \item \xmlNode{k}, \xmlDesc{float, required parameter}, shape parameter.
+  %
+  \item \xmlNode{lambda}, \xmlDesc{float, required parameter}, scale parameter.
+  %
 \end{itemize}
 
 Example:
@@ -469,13 +503,15 @@ Its support is $k \in {0, 1}$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodeIntro
 \begin{itemize}
-\item \xmlNode{p}, \xmlDesc{float, required parameter}, probability of success.
+  \item \xmlNode{p}, \xmlDesc{float, required parameter}, probability of
+  success.
+  %
  \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
@@ -502,14 +538,18 @@ Its support is $k \in {0, 1, 2, ..., n}$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodesIntro
 \begin{itemize}
-\item \xmlNode{p}, \xmlDesc{float, required parameter},  probability of success.
-\item \xmlNode{n}, \xmlDesc{integer, required parameter}, number of experiments.
+  \item \xmlNode{p}, \xmlDesc{float, required parameter}, probability of
+  success.
+  %
+  \item \xmlNode{n}, \xmlDesc{integer, required parameter}, number of
+  experiments.
+  %
 \end{itemize}
 
 Example:
@@ -539,14 +579,15 @@ Its support is $k \in {1, 2, 3, 4, ...}$.
 \attrIntro
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \nameDescription   
+  \itemsep0em
+  \item \nameDescription
 \end{itemize}
 \vspace{-5mm}
 \subnodeIntro
 \begin{itemize}
-\item \xmlNode{mu}, \xmlDesc{float, required parameter}, mean rate of 
+  \item \xmlNode{mu}, \xmlDesc{float, required parameter}, mean rate of
   events/time.
+  %
 \end{itemize}
 
 Example:
@@ -563,10 +604,11 @@ Example:
 %%%%%% N-Dimensional Probability distributions
 \subsection{N-Dimensional Probability Distributions}
 \label{subsec:NdDist}
-We have the multivariate normal distributions and 3 different types of 
+We have the multivariate normal distributions and 3 different types of
 user-input $N$D distributions.
 %
 These types depend on the type of interpolation scheme requested by the user.
+%
 The input requirements are explained in the following:
 
 \alfoa{Diego I choose you!}

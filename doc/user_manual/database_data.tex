@@ -1,51 +1,62 @@
-\section{Datas  \\ \vspace{2 mm} {\small }}
+\section{Datas \\ \vspace{2 mm} {\small }}
 \label{sec:Datas}
-As one could infer from the previous chapters, different entities in the RAVEN 
+
+As one can infer from the previous chapters, different entities in the RAVEN
 code interact with each other in order to create, ideally, an infinite number of
 different calculation flows.
 %
 These interactions are made possible through a data handling system that each
 entity understands.
 %
-This system, neglecting the grammar imprecision,  is called the ``Datas''
+This system, neglecting the grammar imprecision, is called the ``Datas''
 system.
+
+The \xmlNode{Datas} tag is a container of data objects of various types that can
+be constructed during the execution of a particular calculation flow.
 %
-The \texttt{Datas} tag is a container of data objects of different type that can
-be constructed during the execution of a particular calculation flow. These data
-objects can be used as input or output for a particular Model (see Roles'
-meaning in section \ref{sec:models}), etc. 
+These data objects can be used as input or output for a particular
+\textbf{Model} (see Roles' meaning in section \ref{sec:models}), etc.
 %
 Currently, RAVEN supports 4 different data types, each with a particular
-conceptual meaning:
+conceptual meaning.
+%
+These data types are instantiated as sub-nodes in the \xmlNode{Datas} block of
+an input file:
 \begin{itemize}
-\item \textbf{TimePoint}: The \textit{TimePoint} entity, as the name suggests, 
-describes the state of the system in a certain point in time.
-%
-In other words, it can be considered a mapping between a set of parameters in
-the input space and the resulting outcomes in the output space at a particular
-time.
-\item \textbf{TimePointSet}: The \textit{TimePointSet} object is a collection of
-individual \textit{TimePoint(s)}.
-%
-It can be considered a mapping between multiple sets of parameters in the input
-space and the resulting sets of outcomes in the output space at a particular
-point in time.
-\item \textbf{History}:  The \textit{History} entity describes the temporal
-evolution of the state of the system within a certain input domain.
-\item \textbf{Histories}:  The \textit{Histories} object is a collection of 
-individual \textit{History} objects.
-%
-It can be considered a mapping between multiple sets of parameters in the input
-space and the resulting sets of temporal evolutions in the output space.
+  \item \xmlNode{TimePoint}, as the name suggests, describes the state of the
+  system at a certain point in time.
+  %
+  In other words, it can be considered a mapping between a set of parameters
+  in the input space and the resulting outcomes in the output space at a
+  particular time.
+  %
+  \item \xmlNode{TimePointSet} is a collection of individual \textit{TimePoint}
+  objects.
+  %
+  It can be considered a mapping between multiple sets of parameters in the
+  input space and the resulting sets of outcomes in the output space at a
+  particular point in time.
+  %
+  \item \xmlNode{History} describes the temporal evolution of the state of the
+  system within a certain input domain.
+  %
+  \item \xmlNode{Histories} is a collection of individual \textit{History}
+  objects.
+  %
+  It can be considered a mapping between multiple sets of parameters in the
+  input space and the resulting sets of temporal evolutions in the output
+  space.
+  %
 \end{itemize}
+
 As noted above, each data object represents a mapping between a set of
 parameters and the resulting outcomes.
 %
-The data objects are defined within the main XML block called \texttt{<Datas>}:
+The data objects are defined within the main XML block called \xmlNode{Datas}:
 \begin{lstlisting}[style=XML]
 <Simulation>
    ...
-  <Datas> 
+  <Datas>
     <TimePoint name='***'>...</TimePoint>
     <TimePointSet name='***'>...</TimePointSet>
     <History name='***'>...</History>
@@ -55,107 +66,157 @@ The data objects are defined within the main XML block called \texttt{<Datas>}:
 </Simulation>
 \end{lstlisting}
 
-This example also demonstrates the specification of each data type must be
-defined within one of the following xml nodes (each corresponding to the data
-types previously listed):
-\begin{itemize}
-   \item \texttt{<TimePoint>}
-   \item \texttt{<TimePointSet>}
-   \item \texttt{<History>}
-   \item \texttt{<Histories>}
-\end{itemize}
 Independent of the type of data, the respective XML node has the following
-attributes:
+available attributes:
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \texttt{name}, \textit{\textbf{required string attribute}}, user-defined 
-name of this data object.
-%
-\textbf{N.B.} As with other objects, this name can be used to refer to this
-specific entity from other input blocks in the XML.
-% Regarding the time attribute, we need to take a better decision... Now it is very confusing.
-%\item \textbf{time}, \textit{optional float or string attribute}, time attribute. The user can here specify either the time (value) at which the outcomes need to be taken (History-like object, it represents the time from which the outcomes' evolution need to be tracked) or a string  that can be either ``end'', at the end of the hystory, or ``all'', consider     . \textit{Default = random seed};
-\item \textcolor{cyan}{\textbf{\texttt{inputTs}}}, \textit{\textbf{optional integer attribute}}, This 
-attribute can be used to specify at which ``time step'' the input space needs to
-be retrieved. 
-%
-\textbf{N.B.} If the user wants to take those conditions from the end of the
-simulation, she/he can directly input ``-1''.
-%
-\textit{Default = 0}.
-\item \texttt{operator}, \textit{\textbf{optional string attribute}}, The operator attribute is aimed to perform simple operations on the data to be stored. The 3 options currently available are \textit{operator = max}, \textit{operator = min}, \textit{operator = average}, with obvious meaning. \textit{Default = None};
-\item \textbf{hierarchical}, \textit{optional boolean attribute}, If True this data is going to be constructed, if possible, in an hierarchical fashion. \textit{Default = False};
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, is a user-defined
+  identifier for this data object.
+    %
+  \nb As with other objects, this name can be used to refer to this specific
+  entity from other input blocks in the XML.
+  %
+%  % Regarding the time attribute, we need to take a better decision... Now it is very confusing.
+%  \item \xmlAttr{time}, \xmlDesc{optional float or string attribute}, time
+%    attribute.
+%    %
+%    Here, the user can specify either the time (value) at which the outcomes
+%    need to be taken (History-like object, it represents the time from which the
+%    outcomes' evolution need to be tracked) or a string  that can be either
+%    ``end'', at the end of the history, or ``all'', consider.
+%    %
+%    \default{random seed};
+  \item \xmlAttr{inputTs}, \xmlDesc{optional integer attribute}, used to
+  specify at which ``time step'' the input space needs to be retrieved.
+  %
+  \nb If the user wants to take conditions from the end of the simulation, s/he
+  can directly input ``-1.''
+  %
+  \default{0}
+  \item \xmlAttr{operator}, \xmlDesc{optional string attribute}, is aimed at
+  performing simple operations on the data to be stored.
+  %
+  The 3 options currently available are:
+  \begin{itemize}
+    \item \xmlString{max}
+    \item \xmlString{min}
+    \item \xmlString{average}
+  \end{itemize}
+  %
+  \default{None}
+  \item \xmlAttr{hierarchical}, \xmlDesc{optional boolean attribute}, if True
+  this data object will be constructed, if possible, in a hierarchical fashion.
+  %
+  \default{False}
 \end{itemize}
 \vspace{-5mm}
-In each XML node (e.g. $<TimePoint>$ or $<Histories>$), the user needs to specify the following sub nodes:
+In each XML node (e.g. \xmlNode{TimePoint} or \xmlNode{Histories}), the user
+needs to specify the following sub-nodes:
 \begin{itemize}
- \item $<Input>$\textbf{\textit{, comma separated string, required field.}}.  List of input parameters this data is connected to. NB. In case the ``Data'' type is either \textit{TimePoint} or  \textit{History}, this XML node must contain the attribute \textbf{history}, where the name of the associated history needs to be placed;
- \item $<Output>$\textbf{\textit{, comma separated string, required field.}}.  List of output parameters this data is connected to;
+  \item \xmlNode{Input}, \xmlDesc{comma separated string, required field} lists
+  the input parameters to which this data is connected.
+  \nb In the case when the ``Data'' type is either a \textit{TimePoint} or a
+  \textit{History}, this XML node must contain the attribute \xmlAttr{history},
+  where the name of the associated history needs to be placed.
+  %
+  \item \xmlNode{Output}, \xmlDesc{comma separated string, required field} lists
+  the output parameters to which this data is connected.
+  %
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------------------------------------
-<Datas> 
-   <TimePoint name='TP' inputTs='-1' operator='max' hierarchical='False'>  
-      <Input history='a_history_name'>var1,var2,var3</Input>
-      <Output>result1,result2</Output>
-   </TimePoint> 
-   <TimePointSet name='TPS'>  
-      <Input>var1,var2,var3</Input>
-      <Output>result1,result2</Output>
-    </TimePointSet> 
-    <History name='HIST'>  
-      <Input history='a_history_name'>var1,var2,var3</Input>
-      <Output>result1,result2</Output>
-    </History> 
-    <Histories name='HISTs'>  
-      <Input>var1,var2,var3</Input>
-      <Output>result1,result2</Output>
-    </Histories> 
+\begin{lstlisting}[style=XML,morekeywords={inputTs,operator,hierarchical,name,history}]
+<Datas>
+  <TimePoint name='TP' inputTs='-1' operator='max' hierarchical='False'>
+    <Input history='a_history_name'>var1,var2,var3</Input>
+    <Output>result1,result2</Output>
+  </TimePoint>
+  <TimePointSet name='TPS'>
+    <Input>var1,var2,var3</Input>
+    <Output>result1,result2</Output>
+  </TimePointSet>
+  <History name='HIST'>
+    <Input history='a_history_name'>var1,var2,var3</Input>
+    <Output>result1,result2</Output>
+  </History>
+  <Histories name='HISTs'>
+    <Input>var1,var2,var3</Input>
+    <Output>result1,result2</Output>
+  </Histories>
 </Datas>
-----------------------------------------------------------
 \end{lstlisting}
 
 \section{Databases}
 \label{sec:Databases}
-The RAVEN framework provides the capability to store and retrieve data to/from an external database. Currently RAVEN has support for only a database type called \textbf{HDF5}. This database, depending on the data format is receiving, will organize itself in a ``parallel'' or ``hierarchical'' fashion. The user can create as many database objects as needed.
-The DataBase objects are defined  within the main XML block called $<DataBases>$:
+The RAVEN framework provides the capability to store and retrieve data to/from
+an external database.
+%
+Currently RAVEN has support for only a database type called \textbf{HDF5}.
+%
+This database, depending on the data format it is receiving, will organize
+itself in a ``parallel'' or ``hierarchical'' fashion.
+%
+The user can create as many database objects as needed.
+%
+The DataBase objects are defined within the main XML block called
+\xmlNode{DataBases}:
 \begin{lstlisting}[style=XML]
------------------------------
 <Simulation>
-   ...
+  ...
   <DataBases>
-        ...
-        <HDF5 name="aDataBaseName1"/>
-        <HDF5 name="aDataBaseName2"/>
-        ...
+    ...
+    <HDF5 name="aDataBaseName1"/>
+    <HDF5 name="aDataBaseName2"/>
+    ...
   </DataBases>
-   ...
+  ...
 </Simulation>
------------------------------
 \end{lstlisting}
-The specifications of each DataBase of type HDF5 needs to be defined within the XML block $<HDF5>$, that  needs (or not) to contain  the attributes:
+The specifications of each DataBase of type HDF5 needs to be defined within the
+XML block \xmlNode{HDF5}, that recognizes the following attributes:
 \vspace{-5mm}
 \begin{itemize}
-\itemsep0em
-\item \textbf{name}, \textit{required string attribute}, user-defined name of this Data. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
-\item \textbf{directory}, \textit{optional string attribute}, this attribute can be used to specify a particular directory path where to create the database, if no \textit{filename} is specified, or from where open an already existing one, if \textit{filename} is provided. \textit{Default = raven/framework/DataBaseStorage};
-\item \textbf{filename}, \textit{optional string attribute}, this attribute can be used to specified the filename of an HDF5 that already exists in the \textit{directory}. This is the only way to let RAVEN know that an HDF5 should be opened and not overwritten. NB. When this attribute is not specified, the newer database filename is going to be named \textit{name}.h5. \textit{Default = None};
-\item \textbf{compression}, \textit{optional string attribute}, compression algorithm to be used. Available are:
-   \begin{itemize}
-      \item \textit{compression = gzip}, best where portability is required. Good compression, moderate speed;
-      \item \textit{compression = lzf}, Low to moderate compression, very fast.
-   \end{itemize}
-  \textit{Default = no compression};
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, a user-defined
+  identifier of this object.
+  %
+  \nb As with other objects, this is name can be used to reference this specific
+  entity from other input blocks in the XML.
+  \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
+  can be used to specify a particular directory path where to create the
+  database, if no \textit{filename} is specified, or from where open an already
+  existing one, if \textit{filename} is provided. \maljdan{Huh?}
+  %
+  \default{raven/framework/DataBaseStorage}
+  \item \xmlAttr{filename}, \xmlDesc{optional string attribute}, specifies the
+  filename of an HDF5 that already exists in the \xmlAttr{directory}.
+  %
+  This is the only way to let RAVEN know that an HDF5 should be opened and not
+  overwritten.
+  %
+  \nb When this attribute is not specified, the newer database filename will be
+  named \texttt{name}.h5, where \textit{name} corresponds to the \xmlAttr{name}
+  attribute of this object.
+  %
+  \default{None}
+  \item \xmlAttr{compression}, \xmlDesc{optional string attribute}, compression
+  algorithm to be used.
+  %
+  Available are:
+  \begin{itemize}
+    \item \xmlString{gzip}, best where portability is required.
+    %
+    Good compression, moderate speed.
+    %
+    \item \xmlString{lzf}, Low to moderate compression, very fast.
+    %
+  \end{itemize}
+  \default{None}
 \end{itemize}
 
-\begin{lstlisting}[style=XML]
-----------------------------------------------------------
-<DataBases> 
-   <HDF5 name="aDataBaseName1" directory=''path_to_a_dir'' compression=''lzf''/>
-   <HDF5 name="aDataBaseName2" filename=''aDataBaseName2.h5''/>
+\begin{lstlisting}[style=XML,morekeywords={directory,filename}]
+<DataBases>
+  <HDF5 name="aDataBaseName1" directory=''path_to_a_dir'' compression=''lzf''/>
+  <HDF5 name="aDataBaseName2" filename=''aDataBaseName2.h5''/>
 </DataBases>
-----------------------------------------------------------
 \end{lstlisting}
-

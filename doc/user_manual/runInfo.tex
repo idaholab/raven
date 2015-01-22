@@ -26,7 +26,7 @@ the absolute or relative (with respect to the location where RAVEN is run from)
 path to a directory that will store all the results of the calculations and
 where RAVEN looks for the files specified in the block \xmlNode{Files}.
 %
-\textit{Default = None}.
+\default{None}
 
 %%%%%% Files
 \item \xmlNode{Files}, \xmlDesc{comma separated string, required field}, lists
@@ -38,7 +38,7 @@ the paths to any files required by the code.
 number of parallel runs executed simultaneously (e.g., the number of driven
 code instances, e.g. RELAP5-3D, that RAVEN will spawn at the same time).
 %
-\textit{Default = 1}.
+\default{1}
 
 %%%%%% Sequence
 \item \xmlNode{Sequence}, \xmlDesc{comma separated string, required field}, is 
@@ -55,8 +55,8 @@ multi-threading support, this block is used to specify how many threads each
 instance of FOO should use (e.g. ``\texttt{FOO --n-threads=N}'' where \texttt{N}
  is the number of threads).
 %
-\textit{Default = 1 (or None when the driven code does not have multi-threading
-support)}.
+\default{1 (or None when the driven code does not have multi-threading
+support)}
 
 %%%%%% NumMPI
 \item \xmlNode{NumMPI}, \xmlDesc{integer, optional field}, can be used to
@@ -67,7 +67,7 @@ For example, if RAVEN is driving a code named ``FOO,'' and this code has MPI
 support, this block specifies how many MPI CPUs each instance of FOO should use
 (e.g. ``\texttt{mpiexec FOO -np N}'' where \texttt{N} is the number of CPUs).
 %
-\textit{Default = 1 (or None when the driven code does not have MPI support)}.
+\default{1 (or None when the driven code does not have MPI support)}
 
 %%%%%% totalNumCoresUsed
 \item \xmlNode{totalNumCoresUsed}, \xmlDesc{integer, optional field}, is the
@@ -79,7 +79,7 @@ specifies \texttt{NumThreads} $> 1$  and \texttt{NumMPI} $> 1$, then
 \texttt{totalNumCoresUsed} = \texttt{NumThreads} $*$ \texttt{NumMPI} $*$
 \texttt{batchSize}.
 %
-\textit{Default = 1}.
+\default{1}
 
 %%%%%% precommand
 \item \xmlNode{precommand}, \xmlDesc{string, optional field}, specifies
@@ -87,7 +87,7 @@ a command that needs to be inserted before the actual command that is used to
 run the external model (e.g., \texttt{mpiexec -n 8 precommand
 ./externalModel.exe (...)}).
 %
-\textit{Default = None}.
+\default{None}
 
 %%%%%% postcommand
 \item \xmlNode{postcommand}, \xmlDesc{string, optional field},
@@ -95,14 +95,14 @@ specifies a command that needs to be appended after the actual command that is
 used to run the external model (e.g., \texttt{mpiexec -n 8  ./externalModel.exe
 (...) postcommand}).
 %
-\textit{Default = None}.
+\default{None}
 
 %%%%%% MaxLogFileSize
 \item \xmlNode{MaxLogFileSize}, \xmlDesc{integer, optional field}.
 specifies the maximum size of the log file in bytes. Every time RAVEN drives a
 code/software, it creates a logfile of the code's screen output.
 %
-\textit{Default = Inf}. \TODO{\nb This flag is not implemtend yet.}
+\default{$\infty$} \TODO{\nb This flag is not implemtend yet.}
 
 %%%%%% deleteOutExtension
 \item \xmlNode{deleteOutExtension}, \xmlDesc{comma separated string, optional 
@@ -111,15 +111,14 @@ files should be deleted by their extension (e.g.,
 \xmlNode{deleteOutExtension}\texttt{txt,pdf}\xmlNode{/deleteOutExtension} will
 delete all generated txt and pdf files).
 %
-\textit{Default = None}.
+\default{None}
 
 %%%%%% delSucLogFiles
 \item \xmlNode{delSucLogFiles}, \xmlDesc{boolean, optional field}, when True and
 the run of an external model has not failed (return code = 0), deletes
 the associated log files.
 %
-\textit{Default = False}.
-
+\default{False}
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -219,7 +218,7 @@ RAVEN currently supports two pre-defined ``modes'':
 the number of nodes RAVEN should request when running on High Performance
 Computing (HPC) systems.
 %
-\textit{Default = None}.
+\default{None}
 
 %%%%%% CUSTOM MODE
 \item \xmlNode{CustomMode}, \xmlDesc{xml node, optional field}, is an
@@ -233,7 +232,7 @@ RAVEN has support for the PBS queueing system. If the platform provides a
 different queueing system, the user can specify its name here (e.g., PBS
 PROFESSIONAL, etc.).
 %
-\textit{Default = PBS PROFESSIONAL}.
+\default{PBS PROFESSIONAL}
 
 %%%%%% EXPECTED TIME
 \item \xmlNode{expectedTime}, \xmlDesc{colum separated string, requested field
@@ -246,7 +245,7 @@ period of time, the HPC system will automatically stop the simulation (even if
 the simulation is not completed). It is preferable to rationally overestimate
 the needed time.
 %
-\textit{Default = None}.
+\default{None}
 \end{itemize}
 
 %\begin{itemize}
@@ -315,7 +314,7 @@ addition to the keywords defined in the previous sections, in the
 this block, the user can change the default xml input file RAVEN is going to
 look for if none have been provided as a command-line argument.
 %
-\textit{Default = ``test.xml''}.
+\default{``test.xml''}.
 \end{itemize}
 As already mentioned, this file is read to define default data for the RunInfo
 block.
