@@ -297,4 +297,11 @@
   output = 'externalPostProcessor/myDump.xml'
  [../]
 
+ [./io_ROM_pickle]
+  type = 'RavenFramework'
+  input = 'test_io_ROM_pickle.xml'
+  output = ‘IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
+  csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
+ [../]
+
 []

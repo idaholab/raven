@@ -144,9 +144,6 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
       else:
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
-        print(values)
-        print(names)
-        print(self.muAndSigmaFeatures)
         featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
