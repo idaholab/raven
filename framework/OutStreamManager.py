@@ -398,13 +398,13 @@ class OutStreamPlot(OutStreamManager):
           if 'yscale' in self.options[key].keys(): self.plt3D.set_yscale(self.options[key]['yscale'],nonposy='clip')
           if 'zscale' in self.options[key].keys(): self.plt3D.set_zscale(self.options[key]['zscale'],nonposy='clip')
       elif key == 'addText':
-        if 'position' not in self.options[key].keys(): 
+        if 'position' not in self.options[key].keys():
           if self.dim == 2 :self.options[key]['position'] = '0.0,0.0'
           else:self.options[key]['position'] = '0.0,0.0,0.0'
         if 'withdash' not in self.options[key].keys(): self.options[key]['withdash'] = 'False'
         if 'fontdict' not in self.options[key].keys(): self.options[key]['fontdict'] = 'None'
         else:
-          try: 
+          try:
             self.options[key]['fontdict'] = ast.literal_eval(self.options[key]['fontdict'])
             self.options[key]['fontdict'] = str(self.options[key]['fontdict'])
           except AttributeError: raise Exception(self.printTag+': ERROR -> In ' + key +' tag: can not convert the string "' + self.options[key]['fontdict'] + '" to a dictionary! Check syntax for python function ast.literal_eval')
@@ -766,7 +766,7 @@ class OutStreamPlot(OutStreamManager):
       # HISTOGRAM PLOT #
       ##################
       elif self.outStreamTypes[pltindex] == 'histogram':
-        if 'bins' not in self.options['plotSettings']['plot'][pltindex].keys(): 
+        if 'bins' not in self.options['plotSettings']['plot'][pltindex].keys():
           if self.dim == 2: self.options['plotSettings']['plot'][pltindex]['bins'] = '10'
           else            : self.options['plotSettings']['plot'][pltindex]['bins'] = '4'
         if 'normed' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['normed'] = 'False'
