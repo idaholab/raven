@@ -164,15 +164,15 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         for childChild in child:
           if childChild.tag =='distribution':
             tobesampled = childChild.text
-            self.distributions2variablesMapping[childChild.text] = child.attrib['name']
+            self.distributions2variablesMapping[child.attrib['name']] = childChild.text
           if childChild.tag == "dist_init":
             NDdistData = {}
             for childChildChild in childChild:
               if childChildChild.tag == 'initial_grid_disc':
-                NDdistData['initial_grid_disc'] = childChildChild.text
+                NDdistData[childChildChild.tag] = int(childChildChild.text)
               if childChildChild.tag == 'tolerance':
-                NDdistData['tolerance'] = childChildChild.text
-            self.ND_sampling_params[tobesampled] = NDdistData
+                NDdistData[childChildChild.tag] = float(childChildChild.text)
+            self.ND_sampling_params[child.attrib['name']] = NDdistData
             
       else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
       if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))    
@@ -860,12 +860,25 @@ class MonteCarlo(Sampler):
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
-    #print('self.distDict: ' + str(self.distDict))
+    print('self.distDict: ' + str(self.distDict))
+    print('XXX self.distributions2variablesMapping: ' + str(self.distributions2variablesMapping))
     
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+      print('XXX key: ' + str(key))
+      print('XXX self.ND_sampling_params: ' + str(self.ND_sampling_params))
+      print('XXX self.ND_sampling_params.keys(): ' + str(self.ND_sampling_params.keys()))
+      #if key in self.ND_sampling_params.keys(): 
+      
+      for distrib in self.ND_sampling_params:
+        print('XXX distrib: ' + str(distrib))
+        if key == distrib:
+          params = self.ND_sampling_params[key]
+          print('YYY params' + str(params))
+          self.distDict[key].updateRNGParam(params)
       rvsnum = self.distDict[key].rvs()
+      
       #for i in range(len(rvsnum)):    
       #  print('rvsnum: ' + str(rvsnum[i]))
       

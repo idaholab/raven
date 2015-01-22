@@ -895,7 +895,7 @@ class NDimensionalDistributions(Distribution):
     self.dimensionality  = 'ND'
     
     self.RNGInitDisc = 10
-    self.RNGtolerance = 0.0001
+    self.RNGtolerance = 0.1
     
   def _readMoreXML(self,xmlNode):
     Distribution._readMoreXML(self, xmlNode)
@@ -919,9 +919,15 @@ class NDimensionalDistributions(Distribution):
     
   #######  
   def updateRNGParam(self, dictParam):
-    for param in dictParam:
-      self.RNGtolerance = dictParam['tolerance']
-      self.RNGInitDisc  = dictParam['initial_grid_disc']
+    print('ZZZ dictParam' + str(dictParam))
+    for key in dictParam:
+      if key == 'tolerance':
+        self.RNGtolerance = dictParam['tolerance']
+      if key == 'initial_grid_disc':
+        self.RNGInitDisc  = dictParam['initial_grid_disc']
+    
+    print('python distributions: updateRNGParam')
+    self._distribution.updateRNGparameter(self.RNGtolerance,self.RNGInitDisc)
   ######
 
 class NDInverseWeight(NDimensionalDistributions):
@@ -971,7 +977,7 @@ class NDInverseWeight(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    return self._distribution.InverseCdf(random(),self.RNGtolerance,self.RNGInitDisc)
+    return self._distribution.InverseCdf(random())
     #raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
