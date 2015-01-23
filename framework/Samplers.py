@@ -175,6 +175,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.ND_sampling_params[child.attrib['name']] = NDdistData
             
       else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
+
       if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))    
       
       self.toBeSampled[prefix+child.attrib['name']] = tobesampled
@@ -914,12 +915,17 @@ class Grid(Sampler):
     self.gridInfo             = {}    # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
+    
+    ####
+    self.gridDic              = {}    # this dictionary stores the info regarding all the grid info for all variables. This was added as a need for the ND FW interface 
+    ####
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
     if 'limit' in xmlNode.attrib.keys(): raise IOError('limit is not used in Grid sampler')
     self.limit = 1
     if not self.axisName: self.axisName = []
+    '''
     for child in xmlNode:
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
@@ -946,6 +952,47 @@ class Grid(Sampler):
               self.gridInfo[varName][2].sort()
             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
+    '''
+    # Modified xml reader to include ND distributions  
+    for child in xmlNode:
+      if child.tag == "Distribution":
+        #Add <distribution> to name so we know it is not a direct variable
+        varName = "<distribution>"+child.attrib['name']
+      elif child.tag == "variable":
+        varName = child.attrib['name']
+      for childChild in child:
+        if childChild.tag =='grid':
+          self.axisName.append(varName)
+          grid_varname = childChild.attrib['name']
+          
+          check=True
+          for var_name in varNamesplit(';'):
+            if var_name == grid_varname:
+              check=False
+          if check == True:
+            raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> name in grid is invalid : ' + str(grid_varname))
+              
+          constrType = childChild.attrib['construction']
+          if constrType == 'custom':
+            tempList = [float(i) for i in childChild.text.split()]
+            tempList.sort()
+            self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
+            
+            self.gridDic[grid_varname] = tempList
+            
+            if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
+            self.limit = len(tempList)*self.limit
+          elif constrType == 'equal':
+            self.limit = self.limit*(int(childChild.attrib['steps'])+1)
+            if   'lowerBound' in childChild.attrib.keys():
+              self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+              self.gridInfo[varName][2].sort()
+            elif 'upperBound' in childChild.attrib.keys():
+              self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+              self.gridInfo[varName][2].sort()
+            else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
+          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
+  
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
 
