@@ -190,7 +190,7 @@
 []
 
 [Outputs]
-  #linear_residuals = true
+   output_linear = true
   file_base = out
   interval = 1
   output_initial = true
