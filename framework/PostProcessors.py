@@ -398,11 +398,17 @@ class ComparisonStatistics(BasePostProcessor):
   two different codes or code to experimental data.
   '''
 
+  class CompareGroup:
+    def __init__(self):
+      self.dataPull = []
+      self.referenceData = {}
+
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.dataDict = {} #Dictionary of all the input data, keyed by the name
-    self.dataPulls = [] #List of data references that will be used
-    self.referenceData = [] #List of reference (experimental) data
+    self.compare_groups = [] #List of each of the groups that will be compared
+    #self.dataPulls = [] #List of data references that will be used
+    #self.referenceData = [] #List of reference (experimental) data
     self.methodInfo = {} #Information on what stuff to do.
 
   def inputToInternal(self,currentInput):
@@ -413,25 +419,26 @@ class ComparisonStatistics(BasePostProcessor):
     #print("runInfo",runInfo,"inputs",inputs,"initDict",initDict)
 
   def _localReadMoreXML(self,xmlNode):
-    for child in xmlNode:
-      if child.tag == 'data':
-        dataName = child.text
-        splitName = dataName.split("|")
-        name, kind = splitName[:2]
-        rest = splitName[2:]
-        self.dataPulls.append([name, kind, rest])
-        #print("xml dataName",dataName,self.dataPulls[-1])
-        if child.find('reference') is not None:
-          reference = child.find('reference')
-          self.referenceData.append(dict(reference.attrib))
-        else:
-          self.referenceData.append({})
-      if child.tag == 'kind':
-        self.methodInfo['kind'] = child.text
-        if 'num_bins' in child.attrib:
-          self.methodInfo['num_bins'] = int(child.attrib['num_bins'])
-        if 'bin_method' in child.attrib:
-          self.methodInfo['bin_method'] = child.attrib['bin_method'].lower()
+    for outer in xmlNode:
+      if outer.tag == 'compare':
+        compare_group = ComparisonStatistics.CompareGroup()
+        for child in outer:
+          if child.tag == 'data':
+            dataName = child.text
+            splitName = dataName.split("|")
+            name, kind = splitName[:2]
+            rest = splitName[2:]
+            compare_group.dataPull = [name, kind, rest]
+            #print("xml dataName",dataName,self.dataPulls[-1])
+          elif child.tag == 'reference':
+            compare_group.referenceData = dict(child.attrib)
+        self.compare_groups.append(compare_group)
+      if outer.tag == 'kind':
+        self.methodInfo['kind'] = outer.text
+        if 'num_bins' in outer.attrib:
+          self.methodInfo['num_bins'] = int(outer.attrib['num_bins'])
+        if 'bin_method' in outer.attrib:
+          self.methodInfo['bin_method'] = outer.attrib['bin_method'].lower()
 
 
   def run(self, Input): # inObj,workingDir=None):
@@ -447,7 +454,9 @@ class ComparisonStatistics(BasePostProcessor):
   def collectOutput(self,finishedjob,output):
     print("finishedjob",finishedjob,"output",output)
     dataToProcess = []
-    for dataPull,reference in zip(self.dataPulls,self.referenceData):
+    for compare_group in self.compare_groups:
+      dataPull = compare_group.dataPull
+      reference = compare_group.referenceData
       name, kind, rest = dataPull
       data = self.dataDict[name].getParametersValues(kind)
       #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
