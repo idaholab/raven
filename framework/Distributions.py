@@ -39,7 +39,10 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'Logistic':'LogisticDistribution',
                               'Exponential':'ExponentialDistribution',
                               'LogNormal':'LogNormalDistribution',
-                              'Weibull':'WeibullDistribution'  }
+                              'Weibull':'WeibullDistribution',
+                              'NDInverseWeight':'NDInverseWeightDistribution',
+                              'NDScatteredMS':'NDScatteredMSDistribution',
+                              'NDCartesianSpline':'NDCartesianSplineDistribution'  }
 
 
 class Distribution(BaseType):
@@ -442,19 +445,21 @@ class Gamma(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
+    if (not self.upperBoundUsed): # and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
-      self.lowerBoundUsed = 0.0
+      #self.lowerBoundUsed = 0.0
       self.upperBound     = sys.float_info.max
     else:
-      if self.lowerBoundUsed == False:
-        a = 0.0
-        self.lowerBound = a
-      else:a = self.lowerBound
-      if self.upperBoundUsed == False:
-        b = sys.float_info.max
-        self.upperBound = b
-      else:b = self.upperBound
+      #if self.lowerBoundUsed == False:
+      #  a = 0.0
+      #  self.lowerBound = a
+      #else:a = self.lowerBound
+      a = self.lowerBound
+      #if self.upperBoundUsed == False:
+      #  b = sys.float_info.max
+      #  self.upperBound = b
+      #else:b = self.upperBound
+      b = self.upperBound
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
 
     self.polynomial = polys.genlaguerre
@@ -504,10 +509,12 @@ class Beta(BoostDistribution):
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> low value needed for Beta distribution')
     hi_find = xmlNode.find('hi')
-    high_find = xmlNode.find('high')
+    #high_find = xmlNode.find('high')
     if hi_find != None: self.hi = float(hi_find.text)
-    elif high_find != None: self.hi = float(high_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
+    #elif high_find != None: self.hi = float(high_find.text)
+    else: 
+        if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text) 
+        else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
     alpha_find = xmlNode.find('alpha')
     if alpha_find != None: self.alpha = float(alpha_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> alpha value needed for Beta distribution')
@@ -531,14 +538,16 @@ class Beta(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low)
-    else:
-      if self.lowerBoundUsed == False: a = 0.0
-      else:a = self.lowerBound
-      if self.upperBoundUsed == False: b = sys.float_info.max
-      else:b = self.upperBound
-      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b)
+    #if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
+    #  self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low)
+    #else:
+    #  if self.lowerBoundUsed == False: a = 0.0
+    #  else:a = self.lowerBound
+    #  if self.upperBoundUsed == False: b = sys.float_info.max
+    #  else:b = self.upperBound
+    a = self.lowerBound
+    b = self.upperBound
+    self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b)
 
 #==========================================================\
 #    other distributions
@@ -765,9 +774,9 @@ class Exponential(BoostDistribution):
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> lambda value needed for Exponential distribution')
     # check if lower bound is set, otherwise default
-    if not self.lowerBoundUsed:
-      self.lowerBoundUsed = True
-      self.lowerBound     = 0.0
+    #if not self.lowerBoundUsed:
+    #  self.lowerBoundUsed = True
+    #  self.lowerBound     = 0.0
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -858,10 +867,10 @@ class Weibull(BoostDistribution):
     if k_find != None: self.k = float(k_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> k (shape) value needed for Weibull distribution')
     # check if lower  bound is set, otherwise default
-    if not self.lowerBoundUsed:
-      self.lowerBoundUsed = True
-      # lower bound = 0 since no location parameter available
-      self.lowerBound     = 0.0
+    #if not self.lowerBoundUsed:
+    #  self.lowerBoundUsed = True
+    #  # lower bound = 0 since no location parameter available
+    #  self.lowerBound     = 0.0
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -870,7 +879,7 @@ class Weibull(BoostDistribution):
     tempDict['k'     ] = self.k
 
   def initializeDistribution(self):
-    if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or self.lowerBound == 0.0:
+    if (self.lowerBoundUsed == False and self.upperBoundUsed == False): # or self.lowerBound == 0.0:
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
     else:
       if self.lowerBoundUsed == False:
@@ -884,15 +893,8 @@ class Weibull(BoostDistribution):
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
 
 
-<<<<<<< Updated upstream
-class NDimensionalDistributions(Distribution): # pragma: under development
-=======
-<<<<<<< Updated upstream
 class NDimensionalDistributions(Distribution):
-=======
-class NDimensionalDistributions(Distribution): # un_pragma: under development
->>>>>>> Stashed changes
->>>>>>> Stashed changes
+
   def __init__(self):
     Distribution.__init__(self)
     self.data_filename = None
@@ -915,15 +917,8 @@ class NDimensionalDistributions(Distribution): # un_pragma: under development
     tempDict['data_filename'] = self.data_filename
 
 
-<<<<<<< Updated upstream
-class NDInverseWeight(NDimensionalDistributions): # pragma: under development
-=======
-<<<<<<< Updated upstream
-class NDInverseWeight(NDimensionalDistributions):
-=======
-class NDInverseWeight(NDimensionalDistributions): # pragma: not under development
->>>>>>> Stashed changes
->>>>>>> Stashed changes
+class NDInverseWeight(NDimensionalDistributions): 
+
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.p  = None
@@ -931,8 +926,8 @@ class NDInverseWeight(NDimensionalDistributions): # pragma: not under developmen
 
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
-    self.p = xmlNode.find('p')
-    if self.p != None: self.p = float(self.p)
+    p_find = xmlNode.find('p')
+    if p_find != None: self.p = float(p_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Minkowski distance parameter <p> not found in NDInverseWeight distribution')
     self.initializeDistribution()
 
@@ -941,7 +936,7 @@ class NDInverseWeight(NDimensionalDistributions): # pragma: not under developmen
     tempDict['p'] = self.p
 
   def initializeDistribution(self):
-    NDimensionalDistributions.initializeDistribution()
+#    NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.p)
 
   def cdf(self,x):
@@ -972,28 +967,21 @@ class NDInverseWeight(NDimensionalDistributions): # pragma: not under developmen
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
-<<<<<<< Updated upstream
-class NDScatteredMS(NDimensionalDistributions): # pragma: under development
-=======
-<<<<<<< Updated upstream
+
 class NDScatteredMS(NDimensionalDistributions):
-=======
-class NDScatteredMS(NDimensionalDistributions): # un_pragma: under development
->>>>>>> Stashed changes
->>>>>>> Stashed changes
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.p  = None
     self.precision = None
     self.type = 'NDScatteredMS'
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode): #Diego! Please check the type of the parameters (precision)!....SS
     NDimensionalDistributions._readMoreXML(self, xmlNode)
-    self.p = xmlNode.find('p')
-    if self.p != None: self.p = float(self.p)
+    p_find = xmlNode.find('p')
+    if p_find != None: self.p = float(p_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Minkowski distance parameter <p> not found in NDScatteredMS distribution')
-    self.precision = xmlNode.find('precision')
-    if self.precision != None: self.precision = float(self.precision)
+    precision_find = xmlNode.find('precision')
+    if precision_find != None: self.precision = int(precision_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> precision parameter <precision> not found in NDScatteredMS distribution')
     self.initializeDistribution()
 
@@ -1003,7 +991,7 @@ class NDScatteredMS(NDimensionalDistributions): # un_pragma: under development
     tempDict['precision'] = self.precision
 
   def initializeDistribution(self):
-    NDimensionalDistributions.initializeDistribution()
+    #NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalScatteredMS(self.p,self.precision)
 
   def cdf(self,x):
@@ -1034,15 +1022,8 @@ class NDScatteredMS(NDimensionalDistributions): # un_pragma: under development
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
-<<<<<<< Updated upstream
-class NDCartesianSpline(NDimensionalDistributions): # pragma: under development
-=======
-<<<<<<< Updated upstream
+
 class NDCartesianSpline(NDimensionalDistributions):
-=======
-class NDCartesianSpline(NDimensionalDistributions): # un_pragma: under development
->>>>>>> Stashed changes
->>>>>>> Stashed changes
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.type = 'NDCartesianSpline'
@@ -1055,7 +1036,7 @@ class NDCartesianSpline(NDimensionalDistributions): # un_pragma: under developme
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    NDimensionalDistributions.initializeDistribution()
+    #NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline()
 
   def cdf(self,x):
