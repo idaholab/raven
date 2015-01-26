@@ -470,6 +470,14 @@ class ComparisonStatistics(BasePostProcessor):
     def print_csv(*args):
       print(*args,file=csv,sep=',')
     for dataPulls, datas, reference in dataToProcess:
+      graph_data = []
+      if "mean" in reference:
+          ref_data_stats = {"mean":float(reference["mean"]),
+                            "stdev":float(reference["sigma"]),
+                            "min_bin_size":float(reference["sigma"])/2.0}
+          ref_pdf = lambda x:normal(x,ref_data_stats["mean"],ref_data_stats["stdev"])
+          ref_cdf = lambda x:normal_cdf(x,ref_data_stats["mean"],ref_data_stats["stdev"])
+          graph_data.append((ref_data_stats,ref_cdf,ref_pdf,"ref"))
       for dataPull, data in zip(dataPulls,datas):
         data_stats = process_data(dataPull, data, self.methodInfo)
         data_keys = set(data_stats.keys())
@@ -512,15 +520,9 @@ class ComparisonStatistics(BasePostProcessor):
         for key in data_keys:
           print_csv('"'+key+'"',data_stats[key])
         print("data_stats",data_stats)
-        if "mean" in reference:
-          ref_data_stats = {"mean":float(reference["mean"]),
-                            "stdev":float(reference["sigma"]),
-                            "min_bin_size":float(reference["sigma"])/2.0}
-          ref_pdf = lambda x:normal(x,ref_data_stats["mean"],ref_data_stats["stdev"])
-          ref_cdf = lambda x:normal_cdf(x,ref_data_stats["mean"],ref_data_stats["stdev"])
-          print_graphs(csv, [(ref_data_stats, ref_cdf, ref_pdf,"ref"),
-                             (data_stats, cdf_func, pdf_func,"calculated")])
-        print_csv()
+        graph_data.append((data_stats, cdf_func, pdf_func,str(dataPull)))
+      print_graphs(csv, graph_data)
+      print_csv()
 
 def normal(x,mu=0.0,sigma=1.0):
   return (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
@@ -600,6 +602,8 @@ def print_graphs(csv, functions):
   def f_z(z):
     return simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), low_low, high_high, 1000)
 
+  if len(means) < 2:
+    return
   mid_z = means[0]-means[1]
   low_z = mid_z - 3.0*max(stddevs[0],stddevs[1])
   high_z = mid_z + 3.0*max(stddevs[0],stddevs[1])
