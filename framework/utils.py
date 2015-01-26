@@ -210,7 +210,7 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
         zi  = rbf(xig, yig)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])  
+        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         zi = interpolateFunction(x,y,z,options)
       else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
@@ -227,7 +227,7 @@ def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
         yi  = rbf(xi)
     except Exception as ae:
       if 'interpolationTypeBackUp' in options.keys():
-        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])  
+        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
         options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
         yi = interpolateFunction(x,y,options)
       else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
