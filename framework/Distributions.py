@@ -101,8 +101,8 @@ class Distribution(BaseType):
     @ In, upperBound, float -> upper bound
     @ In,           , float -> random number
     '''
-    point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
-    return self._distribution.ppf(point)
+    point = float(np.random.rand(1))*(upperBound-LowerBound)+LowerBound
+    return self._distribution.InverseCdf(point)
 
   def rvsWithinbounds(self,LowerBound,upperBound):
     '''
@@ -111,8 +111,8 @@ class Distribution(BaseType):
     @ In, upperBound, float -> upper bound
     @ Out,          , float -> random number
     '''
-    CDFupper = self._distribution.cdf(upperBound)
-    CDFlower = self._distribution.cdf(LowerBound)
+    CDFupper = self._distribution.Cdf(upperBound)
+    CDFlower = self._distribution.Cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def setQuad(self,quad,exp_order):
@@ -884,7 +884,7 @@ class Weibull(BoostDistribution):
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
 
 
-class NDimensionalDistributions(Distribution):
+class NDimensionalDistributions(Distribution): # pragma: under development
   def __init__(self):
     Distribution.__init__(self)
     self.data_filename = None
@@ -907,7 +907,7 @@ class NDimensionalDistributions(Distribution):
     tempDict['data_filename'] = self.data_filename
 
 
-class NDInverseWeight(NDimensionalDistributions):
+class NDInverseWeight(NDimensionalDistributions): # pragma: under development
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.p  = None
@@ -956,7 +956,7 @@ class NDInverseWeight(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
-class NDScatteredMS(NDimensionalDistributions):
+class NDScatteredMS(NDimensionalDistributions): # pragma: under development
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.p  = None
@@ -1010,7 +1010,7 @@ class NDScatteredMS(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
-class NDCartesianSpline(NDimensionalDistributions):
+class NDCartesianSpline(NDimensionalDistributions): # pragma: under development
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.type = 'NDCartesianSpline'

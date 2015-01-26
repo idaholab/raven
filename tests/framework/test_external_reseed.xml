@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation debug="True">
+<Simulation debug='True'>
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
     <Files>lorentzAttractor.py</Files>
@@ -38,7 +38,7 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='3' >
+    <MonteCarlo name='MC_external'  limit='3' reseedAtEachIteration='True'>
       <variable name='x0' >
         <distribution  >x0_distrib</distribution>
       </variable>
@@ -52,7 +52,7 @@
 </Samplers>
 
 <Steps>
-    <MultiRun name='FirstMRun'  re-seeding='25061978'>
+    <MultiRun name='FirstMRun'  re-seeding='200286'>
         <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>

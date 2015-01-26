@@ -21,7 +21,7 @@
     12. Scalar or non-conformant data size warning message when attempting to
         store it in the output, it is instead put in the metadata: Max
  -->
-<Simulation>
+<Simulation debug="True">
 <RunInfo>
   <WorkingDir>externalPostProcessor</WorkingDir>
   <Sequence>
