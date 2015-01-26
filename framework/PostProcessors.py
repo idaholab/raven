@@ -613,7 +613,7 @@ class BasicStatistics(BasePostProcessor):
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtois','median','percentile']  # accepted calculation parameters
+    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
     self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction  = None
@@ -802,8 +802,8 @@ class BasicStatistics(BasePostProcessor):
         for myIndex, targetP in enumerate(parameterSet):
           sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights))
           outputDict[what][targetP] = sigma/outputDict['expectedValue'][targetP]
-      #kurtois
-      if what == 'kurtois':
+      #kurtosis
+      if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent:
               sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2, weights=pbweights))
