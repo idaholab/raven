@@ -385,8 +385,8 @@ class SciKitLearn(superVisedLearning):
       try:self.initOptionDict[key] = ast.literal_eval(value)
       except: pass
     self.ROM.set_params(**self.initOptionDict)
-  
-  def _readdressEvaluate(self,edict): return self.myNumber   
+
+  def _readdressEvaluate(self,edict): return self.myNumber
 
   def __trainLocal__(self,featureVals,targetVals):
     """
