@@ -400,7 +400,7 @@ class ComparisonStatistics(BasePostProcessor):
 
   class CompareGroup:
     def __init__(self):
-      self.dataPull = []
+      self.dataPulls = []
       self.referenceData = {}
 
   def __init__(self):
@@ -428,7 +428,7 @@ class ComparisonStatistics(BasePostProcessor):
             splitName = dataName.split("|")
             name, kind = splitName[:2]
             rest = splitName[2:]
-            compare_group.dataPull = [name, kind, rest]
+            compare_group.dataPulls.append([name, kind, rest])
             #print("xml dataName",dataName,self.dataPulls[-1])
           elif child.tag == 'reference':
             compare_group.referenceData = dict(child.attrib)
@@ -455,59 +455,65 @@ class ComparisonStatistics(BasePostProcessor):
     print("finishedjob",finishedjob,"output",output)
     dataToProcess = []
     for compare_group in self.compare_groups:
-      dataPull = compare_group.dataPull
+      dataPulls = compare_group.dataPulls
       reference = compare_group.referenceData
-      name, kind, rest = dataPull
-      data = self.dataDict[name].getParametersValues(kind)
-      #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
-      if len(rest) == 1:
-        #print("dataPart",data[rest[0]])
-        dataToProcess.append((dataPull,data[rest[0]],reference))
+      found_datas = []
+      for name, kind, rest in dataPulls:
+        data = self.dataDict[name].getParametersValues(kind)
+        #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
+        if len(rest) == 1:
+          #print("dataPart",data[rest[0]])
+          found_datas.append(data[rest[0]])
+      dataToProcess.append((dataPulls,found_datas,reference))
     #print("dataToProcess",dataToProcess)
     csv = open(output,"w")
     def print_csv(*args):
       print(*args,file=csv,sep=',')
-    for dataPull, data, reference in dataToProcess:
-      data_stats = process_data(dataPull, data, self.methodInfo)
-      data_keys = set(data_stats.keys())
-      print_csv('"'+str(dataPull)+'"')
-      print_csv('"num_bins"',data_stats['num_bins'])
-      counts = data_stats['counts']
-      bins = data_stats['bins']
-      count_sum = sum(counts)
-      bin_boundaries = [data_stats['low']]+bins+[data_stats['high']]
-      print_csv('"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
-      cdf = [0.0]*len(counts)
-      midpoints = [0.0]*len(counts)
-      cdf_sum = 0.0
-      for i in range(len(counts)):
-        f_0 = counts[i]/count_sum
-        cdf_sum += f_0
-        cdf[i] = cdf_sum
-        midpoints[i] = (bin_boundaries[i]+bin_boundaries[i+1])/2.0
-      cdf_func = create_interp(midpoints,cdf,0.0,1.0,'quadratic')
-      for i in range(len(counts)):
-        h = bin_boundaries[i+1] - bin_boundaries[i]
-        n_count = counts[i]/count_sum #normalized count
-        f_0 = cdf[i]
-        if i + 1 < len(counts):
-          f_1 = cdf[i+1]
-        else:
-          f_1 = 1.0
-        if i + 2 < len(counts):
-          f_2 = cdf[i+2]
-        else:
-          f_2 = 1.0
-        #f_prime = (f_1 - f_0)/h
-        #print(f_0,f_1,f_2,h,f_prime)
-        f_prime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
-        print_csv(bin_boundaries[i+1],midpoints[i],counts[i],n_count,f_prime,cdf[i])
-      data_keys -= set({'num_bins','counts','bins'})
-      for key in data_keys:
-        print_csv('"'+key+'"',data_stats[key])
-      print("data_stats",data_stats)
-      print_graphs(csv, reference, data_stats, cdf_func)
-      print_csv()
+    for dataPulls, datas, reference in dataToProcess:
+      for dataPull, data in zip(dataPulls,datas):
+        data_stats = process_data(dataPull, data, self.methodInfo)
+        data_keys = set(data_stats.keys())
+        print_csv('"'+str(dataPull)+'"')
+        print_csv('"num_bins"',data_stats['num_bins'])
+        counts = data_stats['counts']
+        bins = data_stats['bins']
+        count_sum = sum(counts)
+        bin_boundaries = [data_stats['low']]+bins+[data_stats['high']]
+        print_csv('"bin_boundary"','"bin_midpoint"','"bin_count"','"normalized_bin_count"','"f_prime"','"cdf"')
+        cdf = [0.0]*len(counts)
+        midpoints = [0.0]*len(counts)
+        cdf_sum = 0.0
+        for i in range(len(counts)):
+          f_0 = counts[i]/count_sum
+          cdf_sum += f_0
+          cdf[i] = cdf_sum
+          midpoints[i] = (bin_boundaries[i]+bin_boundaries[i+1])/2.0
+        cdf_func = create_interp(midpoints,cdf,0.0,1.0,'quadratic')
+        f_prime_data = [0.0]*len(counts)
+        for i in range(len(counts)):
+          h = bin_boundaries[i+1] - bin_boundaries[i]
+          n_count = counts[i]/count_sum #normalized count
+          f_0 = cdf[i]
+          if i + 1 < len(counts):
+            f_1 = cdf[i+1]
+          else:
+            f_1 = 1.0
+          if i + 2 < len(counts):
+            f_2 = cdf[i+2]
+          else:
+            f_2 = 1.0
+          #f_prime = (f_1 - f_0)/h
+          #print(f_0,f_1,f_2,h,f_prime)
+          f_prime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
+          f_prime_data[i] = f_prime
+          print_csv(bin_boundaries[i+1],midpoints[i],counts[i],n_count,f_prime,cdf[i])
+        pdf_func = create_interp(midpoints,f_prime_data,0.0,0.0,'quadratic')
+        data_keys -= set({'num_bins','counts','bins'})
+        for key in data_keys:
+          print_csv('"'+key+'"',data_stats[key])
+        print("data_stats",data_stats)
+        print_graphs(csv, reference, data_stats, cdf_func,pdf_func)
+        print_csv()
 
 def normal(x,mu=0.0,sigma=1.0):
   return (1.0/(sigma*math.sqrt(2*math.pi)))*math.exp(-(x - mu)**2/(2.0*sigma**2))
@@ -548,7 +554,7 @@ def simpson(f, a, b, n):
 
   return sum * h / 3.0
 
-def print_graphs(csv, reference, data_stats, cdf_func):
+def print_graphs(csv, reference, data_stats, cdf_func,pdf_func):
   if "mean" not in reference:
     return
   ref_mean = float(reference["mean"])
@@ -568,11 +574,11 @@ def print_graphs(csv, reference, data_stats, cdf_func):
   def print_csv(*args):
     print(*args,file=csv,sep=',')
 
-  print_csv('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"')
+  print_csv('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"','"interpolated_pdf"')
 
   for i in range(n):
     x = low+interval*i
-    print_csv(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x))
+    print_csv(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x),pdf_func(x))
 
   def f_z(z):
     return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 1000)
