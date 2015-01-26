@@ -70,12 +70,18 @@ checkAnswer("uniform ppf(1.0)",uniform.ppf(1.0),3.0)
 
 print(uniform.rvs(5),uniform.rvs())
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 #check rvsWithinCDFbounds
 uniform.rvsWithinbounds(1.5,2.5)
 # fake quadrature
 uniform.setQuad({},2)
 uniform.quad()
 uniform.polyOrder()
+<<<<<<< Updated upstream
 #uniform.norm(2)
 #uniform.standardToActualPoint(-1)
 #uniform.actualToStandardPoint(2.0)
@@ -83,6 +89,20 @@ uniform.polyOrder()
 #uniform.probNorm(0.5)
 uniform.addInitParams({})
 for _ in range(10): Distributions.randomIntegers(0,1)
+=======
+
+uniform.poly_norm(2)
+uniform.actual_point(-1)
+uniform.std_point(2.0)
+uniform.actual_weight(0.5)
+uniform.probability_norm(0.5)
+
+uniform.addInitParams({})
+for _ in range(10): Distributions.randomIntegers(0,1)
+
+Distributions.randomIntegers(2,1)
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 #Test Normal
 
 normalElement = ET.Element("normal")
@@ -107,6 +127,11 @@ checkAnswer("normal mean()",normal.untruncatedMean(),1.0)
 checkAnswer("normal median()",normal.untruncatedMedian(),1.0)
 checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
 
+normal.poly_norm(2)
+normal.actual_point(-1)
+normal.std_point(2.0)
+normal.actual_weight(0.5)
+normal.probability_norm(0.5)
 
 
 print(normal.rvs(5),normal.rvs())
@@ -118,6 +143,7 @@ truncNormalElement.append(createElement("mean",text="1.0"))
 truncNormalElement.append(createElement("sigma",text="2.0"))
 truncNormalElement.append(createElement("lowerBound",text="-1.0"))
 truncNormalElement.append(createElement("upperBound",text="3.0"))
+
 
 truncNormal = Distributions.Normal()
 truncNormal._readMoreXML(truncNormalElement)
@@ -144,6 +170,8 @@ gamma = Distributions.Gamma()
 gamma._readMoreXML(gammaElement)
 gamma.initializeDistribution()
 
+#gamma.addInitParams({})
+
 checkCrowDist("gamma",gamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
 
 checkAnswer("gamma cdf(0.0)",gamma.cdf(0.0),0.0)
@@ -153,6 +181,13 @@ checkAnswer("gamma cdf(10.0)",gamma.cdf(10.0),0.993262053001)
 checkAnswer("gamma ppf(0.1)",gamma.ppf(0.1),0.210721031316)
 checkAnswer("gamma ppf(0.5)",gamma.ppf(0.5),1.38629436112)
 checkAnswer("gamma ppf(0.9)",gamma.ppf(0.9),4.60517018599)
+
+gamma.poly_norm(2)
+gamma.actual_point(-1)
+gamma.std_point(2.0)
+gamma.actual_weight(0.5)
+gamma.probability_norm(0.5)
+
 
 #print(gamma.rvs(5),gamma.rvs())
 

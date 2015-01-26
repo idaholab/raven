@@ -302,11 +302,11 @@ class Uniform(BoostDistribution):
 
     def standardToActualPoint(x): #standard -> actual
       '''Given a [-1,1] point, converts to parameter value.'''
-      return x*self.range/2.+self._distribution.mean()
+      return x*self.range/2.+self._distribution.untrMean()
 
     def actualToStandardPoint(x): #actual -> standard
       '''Given a parameter value, converts to [-1,1] point.'''
-      return (x-self._distribution.mean())/(self.range/2.)
+      return (x-self._distribution.untrMean())/(self.range/2.)
 
     def standardToActualWeight(x): #standard -> actual
       '''Given normal quadrature weight, returns adjusted weight.'''
@@ -371,10 +371,10 @@ class Normal(BoostDistribution):
         return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
 
       def standardToActualPoint(x): #standard -> actual
-        return x*self.sigma**2/2.+self._distribution.mean()
+        return x*self.sigma**2/2.+self._distribution.untrMean()
 
       def actualToStandardPoint(x): #actual -> standard
-        return (x-self._distribution.mean())/(self.sigma**2/2.)
+        return (x-self._distribution.untrMean())/(self.sigma**2/2.)
 
       def standardToActualWeight(x): #standard -> actual
         return x/(self.sigma**2/2.)
@@ -884,7 +884,15 @@ class Weibull(BoostDistribution):
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
 
 
+<<<<<<< Updated upstream
 class NDimensionalDistributions(Distribution): # pragma: under development
+=======
+<<<<<<< Updated upstream
+class NDimensionalDistributions(Distribution):
+=======
+class NDimensionalDistributions(Distribution): # un_pragma: under development
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   def __init__(self):
     Distribution.__init__(self)
     self.data_filename = None
@@ -907,7 +915,15 @@ class NDimensionalDistributions(Distribution): # pragma: under development
     tempDict['data_filename'] = self.data_filename
 
 
+<<<<<<< Updated upstream
 class NDInverseWeight(NDimensionalDistributions): # pragma: under development
+=======
+<<<<<<< Updated upstream
+class NDInverseWeight(NDimensionalDistributions):
+=======
+class NDInverseWeight(NDimensionalDistributions): # pragma: not under development
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.p  = None
@@ -956,7 +972,15 @@ class NDInverseWeight(NDimensionalDistributions): # pragma: under development
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
+<<<<<<< Updated upstream
 class NDScatteredMS(NDimensionalDistributions): # pragma: under development
+=======
+<<<<<<< Updated upstream
+class NDScatteredMS(NDimensionalDistributions):
+=======
+class NDScatteredMS(NDimensionalDistributions): # un_pragma: under development
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.p  = None
@@ -1010,7 +1034,15 @@ class NDScatteredMS(NDimensionalDistributions): # pragma: under development
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
+<<<<<<< Updated upstream
 class NDCartesianSpline(NDimensionalDistributions): # pragma: under development
+=======
+<<<<<<< Updated upstream
+class NDCartesianSpline(NDimensionalDistributions):
+=======
+class NDCartesianSpline(NDimensionalDistributions): # un_pragma: under development
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.type = 'NDCartesianSpline'
