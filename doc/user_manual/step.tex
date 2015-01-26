@@ -358,8 +358,15 @@ This step type is used to:
  \item construct/update a \textit{DataBase} or a \textit{Datas} object from
    \textit{CSV} files contained in a directory;
  \item stream the content of a \textit{DataBase} or a \textit{Datas} out through
-   an \textbf{OutStream} object (see section \ref{sec:outstream}).
+   an \textbf{OutStream} object (see section \ref{sec:outstream});
+\item store/retrieve a \textit{ROM} to/from an external \textit{File} using Pickle module
+ of Python.
 \end{itemize}
+This last function can be used to create and store mathematical model of fast solution
+ trained to predict a response of interest of a physical system. This model can be 
+recovered in other simulations or used to evaluate the response of a physical system
+ in a Python program by the implementing of the Pickle module. 
+%
 The specifications of this type of step must be defined within an
 \xmlNode{IOStep} XML block.
 %
@@ -395,14 +402,16 @@ This step accepts the following roles:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    As already mentioned, the allowable main classes are \xmlString{Datas} and
-    \xmlString{DataBases}.
+    As already mentioned, the allowable main classes are \xmlString{Datas},
+    \xmlString{DataBases}, \xmlString{Models} and \xmlString{Files}.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute needs to specify the object type within the main object
     class.
     For example, if the  \xmlAttr{class} attribute is \xmlString{Datas}, the
-    \xmlAttr{type} attribute might be \xmlString{TimePointSet}.
+    \xmlAttr{type} attribute might be \xmlString{TimePointSet}. If the  \xmlAttr{class} attribute is \xmlString{Models}, the
+    \xmlAttr{type} attribute must be \xmlString{ROM} and if the  \xmlAttr{class} attribute is \xmlString{Files}, the
+    \xmlAttr{type} attribute must be \xmlString{ }
 \end{itemize}
 \item \xmlNode{Output}, \xmlDesc{string, required parameter} names an entity to 
   be used as the target (output) where the information extracted in the input
@@ -413,8 +422,7 @@ This step accepts the following roles:
     type.
     This string corresponds to the tag of the main object's type used in the
     input.
-    The allowable main classes are \xmlString{Datas}, \xmlString{DataBases},
-    and \xmlString{OutStreamManager}.
+    The allowable main classes are \xmlString{Datas}, \xmlString{DataBases}, \xmlString{OutStreamManager}, \xmlString{Models} and \xmlString{Files}.
   \item \xmlAttr{type}, \xmlDesc{required string attribute}, the actual entity
     type.
     This attribute specifies the object type within the main object class.
@@ -466,8 +474,37 @@ below):
     <Output class='Datas'    type='Histories'>aHistories</Output>
     <Output class='Datas'    type='TimePointSet'>aTPS</Output>
   </IOStep>
+<IOStep name='PushROMIntoFile'>
+    <Input class='Models'  type='ROM'>aROM</Input>
+    <Output class='Files'  type=' '>aFile</Output>
+  </IOStep>
+<IOStep name='ImportROMFromFile'>
+    <Input class='Files'  type=' '>zFile</Input>
+    <Output class='Models'  type='ROM'>zROM</Output>
+  </IOStep>
   ...
 </Steps>
+\end{lstlisting}
+%
+Example to evaluate the response of a physical system, respect the variations of two parameters (x1,x2),
+ in a Python program by the implementing of the Pickle module: 
+%
+Example Python Function:
+\begin{lstlisting}[language=python]
+import os
+from glob import glob
+import inspect
+import utils
+import numpy as np
+for dirr,_,_ in os.walk("path_to_framework"):
+ utils.add_path(dirr)
+import pickle
+fileobj = open('zFile','rb')
+unpickledObj = pickle.load(fileobj)
+dictionary={"x1":np.atleast_1d(Value1),"x2":np.atleast_1d(Value2)}
+eval=unpickledObj.evaluate(dictionary)
+print str(eval)
+fileobj.close()
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%
