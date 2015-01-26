@@ -40,6 +40,12 @@ def checkCrowDist(comment,dist,expected_crow_dist):
   else:
     results["pass"] += 1
 
+#Test module methods
+print(Distributions.knownTypes())
+#Test error
+try: Distributions.returnInstance("unknown")
+except: print("error worked")
+
 #Test Uniform
 
 uniformElement = ET.Element("uniform")
@@ -64,6 +70,19 @@ checkAnswer("uniform ppf(1.0)",uniform.ppf(1.0),3.0)
 
 print(uniform.rvs(5),uniform.rvs())
 
+#check rvsWithinCDFbounds
+uniform.rvsWithinbounds(1.5,2.5)
+# fake quadrature
+uniform.setQuad({},2)
+uniform.quad()
+uniform.polyOrder()
+#uniform.norm(2)
+#uniform.standardToActualPoint(-1)
+#uniform.actualToStandardPoint(2.0)
+#uniform.standardToActualWeight(0.5)
+#uniform.probNorm(0.5)
+uniform.addInitParams({})
+for _ in range(10): Distributions.randomIntegers(0,1)
 #Test Normal
 
 normalElement = ET.Element("normal")

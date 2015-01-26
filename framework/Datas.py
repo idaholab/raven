@@ -1127,18 +1127,20 @@ class TimePointSet(Data):
                 axa = np.zeros(len(O_o[key]))
                 for index in range(len(O_o[key])): axa[index] = np.atleast_1d(np.float(O_o[key][index]['metadata'][metaname]))[0]
                 inpValues[-1].append(axa)
-      if len(inpKeys) > 0 or len(outKeys) > 0: myFile = open(filenameLocal + '.csv', 'w')
+      if len(inpKeys[-1]) > 0 or len(outKeys[-1]) > 0: myFile = open(filenameLocal + '.csv', 'w')
       else: return
       O_o_keys = list(O_o.keys())
       for index in range(len(O_o.keys())):
         myFile.write('Ending branch,'+O_o_keys[index]+'\n')
         myFile.write('branch #')
         for item in inpKeys[index]:
-            myFile.write(',' + item)
+          myFile.write(',' + item)
         for item in outKeys[index]:
-            myFile.write(',' + item)
+          myFile.write(',' + item)
         myFile.write('\n')
-        for j in range(outValues[index][0].size):
+        try   : sizeLoop = outValues[index][0].size
+        except: sizeLoop = inpValues[index][0].size
+        for j in range(sizeLoop):
           myFile.write(str(j+1))
           for i in range(len(inpKeys[index])):
             myFile.write(',' + str(inpValues[index][i][j]))

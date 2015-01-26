@@ -101,8 +101,8 @@ class Distribution(BaseType):
     @ In, upperBound, float -> upper bound
     @ In,           , float -> random number
     '''
-    point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
-    return self._distribution.ppf(point)
+    point = float(np.random.rand(1))*(upperBound-LowerBound)+LowerBound
+    return self._distribution.InverseCdf(point)
 
   def rvsWithinbounds(self,LowerBound,upperBound):
     '''
@@ -111,8 +111,8 @@ class Distribution(BaseType):
     @ In, upperBound, float -> upper bound
     @ Out,          , float -> random number
     '''
-    CDFupper = self._distribution.cdf(upperBound)
-    CDFlower = self._distribution.cdf(LowerBound)
+    CDFupper = self._distribution.Cdf(upperBound)
+    CDFlower = self._distribution.Cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def setQuad(self,quad,exp_order):

@@ -1155,7 +1155,6 @@ class OutStreamPlot(OutStreamManager):
         if not self.overwrite: prefix = str(self.counter) + '-'
         else: prefix = ''
         self.plt.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
-        #self.fig.savefig(prefix + self.name+'_' + str(self.outStreamTypes).replace("'", "").replace("[", "").replace("]", "").replace(",", "-").replace(" ", "") +'.'+self.options['how']['how'].split(',')[i], format=self.options['how']['how'].split(',')[i])
 
 class OutStreamPrint(OutStreamManager):
   def __init__(self):
