@@ -1634,7 +1634,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
     adaptNeed = AdaptiveSampler._localWhatDoINeed(self)
     DETNeed   = DynamicEventTree._localWhatDoINeed(self)
     return dict(adaptNeed.items()+ DETNeed.items())
-    
+
   def _checkIfStartAdaptive(self):
     '''
     Function that checks if the adaptive needs to be started (mode 1)
@@ -1699,7 +1699,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       neigh.fit(nntrain)
       return self._checkValidityOfBranch(neigh.kneighbors(lowerCdfValues.values()),mapping),cdfValues
     else: return None,cdfValues
-  
+
   def _checkValidityOfBranch(self,branchSet,mapping):
     """
     Function that checks if the nearest branches found by method _checkClosestBranch are valid
@@ -1714,8 +1714,8 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
         validBranch = mapping[closestBranch+1]
         break
     return validBranch
-      
-  
+
+
   def _retrieveBranchInfo(self,branch):
     '''
      Function that retrieves the key information from a branch to start a newer calculation
@@ -1937,7 +1937,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     returncode = DynamicEventTree.localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=False)
-    if returncode: 
+    if returncode:
       self._createRunningQueue(model,myInput)
 #
 #
