@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation>
+<Simulation debug="True">
     <RunInfo>
         <WorkingDir>/Users/alfoa/projects/trunk/raven/tests/framework/AdaptiveDET</WorkingDir>
         <Files>TMI_PRA_trans_DET_control.py,TMI.i,TMI_steady_restart/0957.rd-0,TMI_steady_restart/0957.xdr,TMI_steady_restart/0957.xdr.0000,TMI_steady_restart/0957_mesh.cpr</Files>
