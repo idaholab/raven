@@ -512,7 +512,14 @@ class ComparisonStatistics(BasePostProcessor):
         for key in data_keys:
           print_csv('"'+key+'"',data_stats[key])
         print("data_stats",data_stats)
-        print_graphs(csv, reference, data_stats, cdf_func,pdf_func)
+        if "mean" in reference:
+          ref_data_stats = {"mean":float(reference["mean"]),
+                            "stdev":float(reference["sigma"]),
+                            "min_bin_size":float(reference["sigma"])/2.0}
+          ref_pdf = lambda x:normal(x,ref_data_stats["mean"],ref_data_stats["stdev"])
+          ref_cdf = lambda x:normal_cdf(x,ref_data_stats["mean"],ref_data_stats["stdev"])
+          print_graphs(csv, [(ref_data_stats, ref_cdf, ref_pdf,"ref"),
+                             (data_stats, cdf_func, pdf_func,"calculated")])
         print_csv()
 
 def normal(x,mu=0.0,sigma=1.0):
@@ -554,51 +561,60 @@ def simpson(f, a, b, n):
 
   return sum * h / 3.0
 
-def print_graphs(csv, reference, data_stats, cdf_func,pdf_func):
-  if "mean" not in reference:
-    return
-  ref_mean = float(reference["mean"])
-  ref_stddev = float(reference["sigma"])
-  calc_mean = data_stats["mean"]
-  calc_stddev = data_stats["stdev"]
-  calc_omega = data_stats["omega"]
-  calc_xi = data_stats["xi"]
-  calc_alpha = data_stats["alpha"]
-  low = min(ref_mean - 3.0*ref_stddev,calc_mean - 3.0*calc_stddev)
-  high = max(ref_mean + 3.0*ref_stddev,calc_mean + 3.0*calc_stddev)
-  low_low = min(ref_mean - 5.0*ref_stddev,calc_mean - 5.0*calc_stddev)
-  high_high = max(ref_mean + 5.0*ref_stddev,calc_mean + 5.0*calc_stddev)
+def print_graphs(csv, functions):
+  """prints graphs of the functions.
+  The functions are a list of (data_stats_dict, cdf_function, pdf_function,name)
+  """
+
+  means = [x[0]["mean"] for x in functions]
+  stddevs = [x[0]["stdev"] for x in functions]
+  cdfs = [x[1] for x in functions]
+  pdfs = [x[2] for x in functions]
+  names = [x[3] for x in functions]
+  low = min([m - 3.0*s for m,s in zip(means,stddevs)])
+  high = max([m + 3.0*s for m,s in zip(means,stddevs)])
+  low_low = min([m - 5.0*s for m,s in zip(means,stddevs)])
+  high_high = max([m + 5.0*s for m,s in zip(means,stddevs)])
+  min_bin_size = min([x[0]["min_bin_size"] for x in functions])
   print("Graph from ",low,"to",high)
-  n = int(math.ceil((high-low)/data_stats['min_bin_size']))
+  n = int(math.ceil((high-low)/min_bin_size))
   interval = (high - low)/n
   def print_csv(*args):
     print(*args,file=csv,sep=',')
 
-  print_csv('"x"','"reference"','"reference_cdf"','"calculated"','"interpolated_cdf"','"interpolated_pdf"')
+  def print_csv_part(*args):
+    print(*args,file=csv,sep=',',end=',')
+
+  print_csv_part('"x"')
+  for name in names:
+    print_csv_part('"'+name+'_cdf"','"'+name+'_pdf"')
+  print_csv()
 
   for i in range(n):
     x = low+interval*i
-    print_csv(x,normal(x,ref_mean,ref_stddev),normal_cdf(x,ref_mean,ref_stddev),skew_normal(x,calc_alpha,calc_xi,calc_omega),cdf_func(x),pdf_func(x))
+    print_csv_part(x)
+    for stats, cdf, pdf, name in functions:
+      print_csv_part(cdf(x),pdf(x))
+    print_csv()
 
   def f_z(z):
-    return simpson(lambda x: normal(x,ref_mean,ref_stddev)*skew_normal(x-z,calc_alpha,calc_xi,calc_omega), low_low, high_high, 1000)
+    return simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), low_low, high_high, 1000)
 
-  mid_z = ref_mean-calc_mean
-  low_z = mid_z - 3.0*max(ref_stddev,calc_stddev)
-  high_z = mid_z + 3.0*max(ref_stddev,calc_stddev)
+  mid_z = means[0]-means[1]
+  low_z = mid_z - 3.0*max(stddevs[0],stddevs[1])
+  high_z = mid_z + 3.0*max(stddevs[0],stddevs[1])
   print_csv('"z"','"f_z(z)"')
   z_n = 20
   interval_z = (high_z - low_z)/z_n
   for i in range(z_n):
     z = low_z + interval_z*i
     print_csv(z,f_z(z))
-  cdf_area_difference = simpson(lambda x:abs(cdf_func(x)-normal_cdf(x,ref_mean,ref_stddev)),low_low,high_high,100000)
+  cdf_area_difference = simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),low_low,high_high,100000)
 
   def first_moment_simpson(f, a, b, n):
     return simpson(lambda x:x*f(x), a, b, n)
 
-  pdf_common_area = simpson(lambda x:min(normal(x,ref_mean,ref_stddev),
-                                         skew_normal(x,calc_alpha,calc_xi,calc_omega)),
+  pdf_common_area = simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
                             low_low,high_high,100000)
   #sum_function_diff = simpson(f_z, low_z, high_z, 1000)
   #first_moment_function_diff = first_moment_simpson(f_z, low_z,high_z, 1000)
