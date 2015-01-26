@@ -512,8 +512,8 @@ class Beta(BoostDistribution):
     #high_find = xmlNode.find('high')
     if hi_find != None: self.hi = float(hi_find.text)
     #elif high_find != None: self.hi = float(high_find.text)
-    else: 
-        if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text) 
+    else:
+        if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text)
         else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
     alpha_find = xmlNode.find('alpha')
     if alpha_find != None: self.alpha = float(alpha_find.text)
@@ -917,7 +917,7 @@ class NDimensionalDistributions(Distribution):
     tempDict['data_filename'] = self.data_filename
 
 
-class NDInverseWeight(NDimensionalDistributions): 
+class NDInverseWeight(NDimensionalDistributions):
 
   def __init__(self):
     NDimensionalDistributions.__init__(self)
