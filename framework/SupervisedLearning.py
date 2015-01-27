@@ -313,8 +313,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     sgs = self.sparseGrid.points()[:]
     fvs=sorted(fvs, key=lambda x:x[0])
     sgs=sorted(sgs, key=lambda x:x[0])
-    #for i in range(len(featureVals)):
-    #  print('DEBUG',self.printTag,fvs[i],sgs[i])
+    for i in range(len(featureVals)):
+      print('DEBUG',self.printTag,fvs[i],sgs[i])
     #if not np.allclose(featureVals,self.sparseGrid.points(),rtol=1e-16):
     if not np.allclose(fvs,sgs,rtol=1e-15):
       raise IOError(self.printTag+' ERROR: input values do not match required values!')
