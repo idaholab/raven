@@ -252,7 +252,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.interpolator = None #FIXME what's this?
-    self.printTag     = returnPrintTag('GAUSS gPC ROM '+self.target)
+    self.printTag     = returnPrintTag('GAUSS gPC ROM ('+self.target+')')
     self.indexSetType = None
     self.maxPolyOrder = None
     self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
@@ -265,6 +265,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     else: raise IOError(self.printTag+' No IndexSet specified!')
     if xmlNode.find('PolynomialOrder')!=None: self.maxPolyOrder = int(xmlNode.find('PolynomialOrder').text)
     else: raise IOError(self.printTag+' No PolynomialOrder specified!')
+    if self.maxPolyOrder < 1:
+      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
     self.itpDict={}
     for child in xmlNode:
       if child.tag=='Interpolation':
@@ -306,7 +308,15 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #needpts=list(np.around(self.sparseGrid.points(),decimals=9)) #FIXME is 9 the right number?
     #for pt in havepts[:]:
     #  if (pt in havepts) and (pt in needpts):pass
-    if not np.allclose(featureVals,self.sparseGrid.points(),rtol=1e-16):
+    #TODO FIXME the dimensions of featureVals might be reordered from sparseGrid!
+    fvs = featureVals[:]
+    sgs = self.sparseGrid.points()[:]
+    fvs=sorted(fvs, key=lambda x:x[0])
+    sgs=sorted(sgs, key=lambda x:x[0])
+    #for i in range(len(featureVals)):
+    #  print('DEBUG',self.printTag,fvs[i],sgs[i])
+    #if not np.allclose(featureVals,self.sparseGrid.points(),rtol=1e-16):
+    if not np.allclose(fvs,sgs,rtol=1e-15):
       raise IOError(self.printTag+' ERROR: input values do not match required values!')
     #TODO can parallelize this! Worth it?
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
@@ -322,7 +332,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
         wt = self.sparseGrid.weights(pt)
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
-    print('DEBUG norm',self.norm)
     print('DEBUG polyDict',self.printTag)
     #print('DEBUG polys')
     #for i in range(3):
@@ -330,11 +339,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.printPolyDict()
     #try a moment
     for r in range(5):
-      print('ROM moment',r,'=',self.__evaluateMoment__(r))
+      print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
 
     #local evals
-    #for i in [0,0.2,0.5,0.7,1.0]:
-    #  print('DEBUG eval('+str(i)+'):',self.__evaluateLocal__([[i]]))
+    for i in [0,0.2,0.5,0.7,1.0]:
+      print('DEBUG eval('+str(i)+'):',self.__evaluateLocal__([[i]]))
 
   def printPolyDict(self,printZeros=False):
     data=[]

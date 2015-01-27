@@ -75,7 +75,7 @@ def createAndRunQSUB(simulation):
   batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
-  #Generate the qsub command needed to run input
+  #Generate the qsub command needed to run input #FIXME added -k o, for output -talbpaul
   command = ["qsub","-l",
              "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
@@ -119,6 +119,7 @@ class PBSDSHSimulationMode(SimulationMode):
         print(self.printTag+": " +returnPrintPostTag('Warning') + " -> changing batchsize from",oldBatchsize,"to",newBatchsize)
       print(self.printTag+": Message -> Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
       #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
+      print('DEBUG precommand',self.printTag,self.__simulation.runInfoDict['precommand'])
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(self.__simulation.runInfoDict['logfileBuffer'])+" "+self.__simulation.runInfoDict['precommand']
       self.__simulation.runInfoDict['logfilePBS'] = 'out_%CURRENT_ID%'
       if(self.__simulation.runInfoDict['NumThreads'] > 1):

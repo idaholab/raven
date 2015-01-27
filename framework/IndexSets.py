@@ -55,8 +55,6 @@ class IndexSet(object):
   def initialize(self,distrList,impList,maxPolyOrder):
     numDim = len(distrList)
     #set up and normalize weights
-    print('DEBUG',self.printTag,distrList.keys())
-    print('DEBUG',self.printTag,impList.keys())
     impWeights = list(impList[v] for v in distrList.keys())
     impWeights = np.array(impWeights)
     #this algorithm assures higher weight means more importance,

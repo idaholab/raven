@@ -297,7 +297,7 @@ class Uniform(BoostDistribution):
     self.hi = 0.0
     self.type = 'Uniform'
     self.compatibleQuadrature.append('Legendre')
-    self.compatibleQuadrature.append('CurtisClenshaw')
+    self.compatibleQuadrature.append('ClenshawCurtis')
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature = 'Legendre'
     self.preferredPolynomials = 'Legendre'
@@ -633,6 +633,7 @@ class Beta(BoostDistribution):
     B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     norm = 1.0/(2**(self.alpha+self.beta-1)*B)#*np.sqrt(16./15.)
     print('DEBUG dist norm',norm)
+    print('DEBUG dist B',B)
     return norm
     #return 1.0/(B*(self.hi-self.low))
 

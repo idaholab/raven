@@ -425,8 +425,8 @@ def returnInstance(Type,Subtype=None):
   '''
   # some modification necessary to distinguish CDF on Legendre versus CDF on ClenshawCurtis
   if Type=='CDF':
-    if Subtype=='Legendre'      : return __interFaceDict['CDFLegendre']
-    if Subtype=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']
+    if Subtype=='Legendre'      : return __interFaceDict['CDFLegendre']()
+    if Subtype=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']()
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)
 
