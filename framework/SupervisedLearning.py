@@ -386,6 +386,8 @@ class SciKitLearn(superVisedLearning):
       except: pass
     self.ROM.set_params(**self.initOptionDict)
 
+  def _readdressEvaluate(self,edict): return self.myNumber
+
   def __trainLocal__(self,featureVals,targetVals):
     """
     Perform training on samples in featureVals with responses y.
@@ -400,10 +402,10 @@ class SciKitLearn(superVisedLearning):
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
-      self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
+      #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
     else:
-      myNumber = np.unique(targetVals)[0]
-      self.evaluate = lambda edict : myNumber
+      self.myNumber = np.unique(targetVals)[0]
+      self.evaluate = self._readdressEvaluate
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
