@@ -160,11 +160,13 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           if childChild.tag =='distribution':
             prefix = "<distribution>"
             tobesampled = childChild.text
+            if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
       elif child.tag == 'variable':
         for childChild in child:
           if childChild.tag =='distribution':
             tobesampled = childChild.text
             self.distributions2variablesMapping[child.attrib['name']] = childChild.text
+            if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
           if childChild.tag == "dist_init":
             NDdistData = {}
             for childChildChild in childChild:
@@ -175,9 +177,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.ND_sampling_params[child.attrib['name']] = NDdistData
             
       else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
-
-      if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))    
-      
+          
       self.toBeSampled[prefix+child.attrib['name']] = tobesampled
     
     print("self.ND_sampling_params: " + str(self.ND_sampling_params))
@@ -917,7 +917,7 @@ class Grid(Sampler):
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
     
     ####
-    self.gridDic              = {}    # this dictionary stores the info regarding all the grid info for all variables. This was added as a need for the ND FW interface 
+    #self.gridDic              = {}    # this dictionary stores the info regarding all the grid info for all variables. This was added as a need for the ND FW interface 
     ####
 
   def localInputAndChecks(self,xmlNode):
@@ -962,15 +962,17 @@ class Grid(Sampler):
         varName = child.attrib['name']
       for childChild in child:
         if childChild.tag =='grid':
+          grid_varname = None
           self.axisName.append(varName)
-          grid_varname = childChild.attrib['name']
+          if childChild.attrib['type'] == 'value': 
+            grid_varname = childChild.attrib['name']
           
-          check=True
-          for var_name in varNamesplit(';'):
-            if var_name == grid_varname:
-              check=False
-          if check == True:
-            raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> name in grid is invalid : ' + str(grid_varname))
+            check=False
+            for var_name in varName.split(';'):
+              if var_name == grid_varname:
+                check=False or True
+            if check == False:
+              raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> name in grid is invalid : ' + str(grid_varname))
               
           constrType = childChild.attrib['construction']
           if constrType == 'custom':
@@ -978,7 +980,7 @@ class Grid(Sampler):
             tempList.sort()
             self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
             
-            self.gridDic[grid_varname] = tempList
+            #self.gridDic[grid_varname] = tempList
             
             if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
             self.limit = len(tempList)*self.limit
@@ -1032,6 +1034,7 @@ class Grid(Sampler):
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    '''
     weight = 1.0
     for i in range(len(self.gridCoordinate)):
       varName = self.axisName[i]
@@ -1040,6 +1043,7 @@ class Grid(Sampler):
         #index is the index into the array self.gridInfo[varName][2]
         index, remainder = divmod(remainder, stride )
         self.gridCoordinate[i] = index
+        
       # check if the varName is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
       for kkey in varName.strip().split(','):
@@ -1052,6 +1056,7 @@ class Grid(Sampler):
           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
         else: raise IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+      
       if self.gridInfo[varName][0]=='CDF':
         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
@@ -1063,6 +1068,42 @@ class Grid(Sampler):
     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
     self.inputInfo['SamplerType'] = 'Grid'
+    '''
+    
+    weight = 1.0
+    for i in range(len(self.gridCoordinate)):
+      varName = self.axisName[i]
+      if not self.externalgGridCoord:
+        stride = stride // len(self.gridInfo[varName][2])
+        #index is the index into the array self.gridInfo[varName][2]
+        index, remainder = divmod(remainder, stride )
+        self.gridCoordinate[i] = index
+        
+      # check if the varName is a comma separated list of strings
+      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+      for key in varName.strip().split(';'):
+        for kkey in key.strip().split(','):
+          self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+          self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+          if self.gridInfo[varName][0]=='CDF':
+            self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+            self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+          elif self.gridInfo[varName][0]=='value':
+            self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+            self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+          else: raise IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+        
+        if self.gridInfo[varName][0]=='CDF':
+          if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+          if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
+          if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+        else:
+          if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+          if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0)
+          if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+      self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+      self.inputInfo['ProbabilityWeight'] = copy.deepcopy(weight)
+      self.inputInfo['SamplerType'] = 'Grid'
 #
 #
 #
