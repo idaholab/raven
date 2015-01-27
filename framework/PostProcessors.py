@@ -515,7 +515,7 @@ class ComparisonStatistics(BasePostProcessor):
           f_prime = (-1.5*f_0 + 2.0*f_1 + -0.5*f_2)/h
           f_prime_data[i] = f_prime
           print_csv(bin_boundaries[i+1],midpoints[i],counts[i],n_count,f_prime,cdf[i])
-        pdf_func = create_interp(midpoints,f_prime_data,0.0,0.0,'quadratic')
+        pdf_func = create_interp(midpoints,f_prime_data,0.0,0.0,'linear')
         data_keys -= set({'num_bins','counts','bins'})
         for key in data_keys:
           print_csv('"'+key+'"',data_stats[key])
@@ -620,6 +620,9 @@ def print_graphs(csv, functions):
 
   pdf_common_area = simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
                             low_low,high_high,100000)
+  for i in range(len(pdfs)):
+    pdf_area = simpson(pdfs[i],low_low,high_high,100000)
+    print_csv('"pdf_area_'+names[i]+'"',pdf_area)
   #sum_function_diff = simpson(f_z, low_z, high_z, 1000)
   #first_moment_function_diff = first_moment_simpson(f_z, low_z,high_z, 1000)
   print_csv('"cdf_area_difference"',cdf_area_difference)
