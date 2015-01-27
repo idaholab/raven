@@ -76,7 +76,7 @@ class OrthogonalPolynomial(object):
 
   def setMeasures(self,quadSet):
     #make a uniform distribution to use the quantile (ppf) function for cdf,CC case
-    if quadSet.type in ['CDF','ClenshawCurtis']:
+    if quadSet.type.startswith('CDF'):# in ['CDF','ClenshawCurtis']:
       self.__distr=self.makeDistribution()
       self.pointMod = self.cdfPoint
     else:
@@ -85,11 +85,14 @@ class OrthogonalPolynomial(object):
   def _getDistr(self):
     return self.__distr
 
+  def samePoint(self,x):
+    return x
+
   def cdfPoint(self,x):
     '''ppf() converts to from [0,1] to distribution range,
        0.5(x+1) converts from [-1,1] to [0,1],
        sqrt(2) fixes scipy Legendre polynomial weighting'''
-    return self.__distr.ppf(0.5*(x+1.))*self.scipyNorm()
+    return self.__distr.ppf(0.5*(x+1.))#*self.scipyNorm()
 
   def scipyNorm(self):
     return 1.
@@ -102,7 +105,9 @@ class Legendre(OrthogonalPolynomial):
     self.setMeasures(quad)
 
   def setMeasures(self,quad):
-    if quad.type=='Legendre':
+    if quad.type in ['Legendre','ClenshawCurtis']:
+      self.pointMod = self.stdPointMod
+    elif quad.type=='ClenshawCurtis':
       self.pointMod = self.stdPointMod
     else:
       OrthogonalPolynomial.setMeasures(self,quad)
@@ -232,13 +237,28 @@ class Jacobi(OrthogonalPolynomial):
     jacobiElement.append(element)
 
   def norm(self,n):
-    a=self.params[1]#+1
-    b=self.params[0]#+1
+    a=self.params[0]#+1
+    b=self.params[1]#+1
     coeff=1.
+    #THESE THREE AS ARE work for uniform, stashing a copy of them
+    #coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
+    #coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))#=1 for a=b=0
+    #coeff*=np.sqrt(2)
+    #print('DEBUG n =',n)
+    #print('  DEBUG 1',(2.*n+a+b+1.) /2**(a+b+1))
+    #print('  DEBUG 2',factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
     coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
     coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
-    #coeff*=np.sqrt(16/15)
-    #coeff*=np.sqrt(2)
+    coeff*=np.sqrt(2)
+
+    #wtf
+    cof2 = 1
+    cof2 *= 2.**(a+b)/(a+b+1.)
+    cof2 *= factorial(a)*factorial(b)/factorial(a+b)
+
+    coeff*=np.sqrt(cof2)
+
+    #coeff*=np.sqrt(16./15.) #a=5,b=2
     #a+=1
     #b+=1
     #coeff*=np.sqrt(2**(a+b-2)*factorial(a)*factorial(b)/factorial(a+b+1))
