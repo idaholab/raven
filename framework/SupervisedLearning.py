@@ -252,7 +252,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.interpolator = None #FIXME what's this?
-    self.printTag     = returnPrintTag('GAUSS gPC ROM ('+self.target+')')
+    self.printTag     = returnPrintTag('GAUSSgpcROM('+self.target+')')
     self.indexSetType = None
     self.maxPolyOrder = None
     self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
