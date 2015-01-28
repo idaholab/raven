@@ -632,8 +632,6 @@ class Beta(BoostDistribution):
     #return factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
     norm = 1.0/(2**(self.alpha+self.beta-1)*B)#*np.sqrt(16./15.)
-    print('DEBUG dist norm',norm)
-    print('DEBUG dist B',B)
     return norm
     #return 1.0/(B*(self.hi-self.low))
 

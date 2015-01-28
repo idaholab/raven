@@ -25,6 +25,8 @@ import numpy as np
 import numpy
 import abc
 import ast
+import cPickle as pk
+from operator import itemgetter
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -304,20 +306,25 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #check consistency of featureVals
     if len(featureVals)!=len(self.sparseGrid):
       raise IOError(self.printTag+' ERROR: ROM requires '+str(len(needpts))+' points, but only '+str(len(havepts))+' provided!')
-    #havepts=list(np.around(featureVals             ,decimals=9)) #FIXME is 9 the right number?
-    #needpts=list(np.around(self.sparseGrid.points(),decimals=9)) #FIXME is 9 the right number?
-    #for pt in havepts[:]:
-    #  if (pt in havepts) and (pt in needpts):pass
-    #TODO FIXME the dimensions of featureVals might be reordered from sparseGrid!
+    #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
+    self.sparseGrid._remap(self.features)
+    #check equality of point space
     fvs = featureVals[:]
     sgs = self.sparseGrid.points()[:]
-    fvs=sorted(fvs, key=lambda x:x[0])
-    sgs=sorted(sgs, key=lambda x:x[0])
-    for i in range(len(featureVals)):
-      print('DEBUG',self.printTag,fvs[i],sgs[i])
-    #if not np.allclose(featureVals,self.sparseGrid.points(),rtol=1e-16):
+    fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
+    sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
+    #print('DEBUG fvs | sgs:')
+    #for i in range(len(fvs)):
+    #  print('  ',fvs[i],' | ',sgs[i])
     if not np.allclose(fvs,sgs,rtol=1e-15):
+      print('DEBUG fvs | sgs:')
+      for i in range(len(fvs)):
+        print('  ',fvs[i],' | ',sgs[i])
       raise IOError(self.printTag+' ERROR: input values do not match required values!')
+    #make translation matrix between lists
+    translate={}
+    for i in range(len(fvs)):
+      translate[tuple(fvs[i])]=sgs[i]
     #TODO can parallelize this! Worth it?
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
     for i,idx in enumerate(self.indexSet):
@@ -329,21 +336,28 @@ class GaussPolynomialRom(NDinterpolatorRom):
         for i,p in enumerate(pt):
           varName = self.distDict.keys()[i]
           stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
-        wt = self.sparseGrid.weights(pt)
+        wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
+    #try a moment #TODO need a better solution for calling moment calculations, etc
     print('DEBUG polyDict',self.printTag)
     #print('DEBUG polys')
     #for i in range(3):
     #  print(self.polys.values()[0][i],'} norm',self.polys.values()[0].norm(i))
     self.printPolyDict()
-    #try a moment
     for r in range(5):
       print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
 
     #local evals
-    for i in [0,0.2,0.5,0.7,1.0]:
-      print('DEBUG eval('+str(i)+'):',self.__evaluateLocal__([[i]]))
+    if len(self.features)==1:
+      tests=[(0),(0.2),(0.5),(0.7),(1.0)]
+    elif len(self.features)==2:
+     tests=[(0,0),(0,0.5),(0.5,0.5),(1.0,0.5),(1.0,1.0)]
+    #for i in tests:
+    #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
+
+    #try stashing myself fails
+    #pk.dump(self.__dict__,file('testROMdump.pk','w'))
 
   def printPolyDict(self,printZeros=False):
     data=[]

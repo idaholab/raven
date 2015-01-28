@@ -16,6 +16,7 @@ from scipy.fftpack import ifft
 from scipy.misc import factorial
 from itertools import product
 from collections import OrderedDict as OrdDict
+from operator import itemgetter
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
@@ -33,13 +34,15 @@ class SparseQuad(object):
     self.c = [] #array of coefficient terms for component tensor grid entries
     self.type='SparseQuad'
     self.printTag='SparseQuad'
+    self.oldsg=[]
 
-  def initialize(self, indexSet, maxPoly, distrList, quadDict, polyDict, handler):
+  def initialize(self, indexSet, maxPoly, distDict, quadDict, polyDict, handler):
     self.indexSet = np.array(indexSet[:])
-    self.distrList = distrList
+    self.distDict = distDict
     self.quadDict = quadDict
     self.polyDict = polyDict
-    self.N= len(distrList.keys())
+    self.varNames = self.distDict.keys()
+    self.N= len(self.varNames)
     #we can cheat if it's tensor product index set!
     if indexSet.type=='Tensor Product':
       self.c=[1]
@@ -119,6 +122,33 @@ class SparseQuad(object):
       #msg+='    '+str(self[p])+'\n'
     return msg
 
+  def _remap(self,newNames):
+    oldNames = self.varNames[:]
+    #check consistency
+    if len(oldNames)!=len(newNames): raise KeyError('SPARSEGRID: Remap mismatch! Dimensions are not the same!')
+    for name in oldNames:
+      if name not in newNames: raise KeyError('SPARSEGRID: Remap mismatch! '+name+' not found in original variables!')
+    wts = self.weights()
+    #split by columns (dim) instead of rows (points)
+    oldlists = self._xy()
+    #stash point lists by name
+    oldDict = {}
+    for n,name in enumerate(oldNames):
+      oldDict[name]=oldlists[n]
+    #make new lists
+    newlists = list(oldDict[name] for name in newNames)
+    #sort new list
+    newptwt = list( list(pt)+[wts[p]] for p,pt in enumerate(zip(*newlists)))
+    newptwt.sort(key=itemgetter(*range(len(newptwt[0]))))
+    #recompile as ordered dict
+    newSG=OrdDict()
+    for combo in newptwt:
+      newSG[tuple(combo[:-1])]=combo[-1] #weight is last entry
+    self.oldsg.append(self.SG)
+    self.SG = newSG
+    self.varNames = newNames
+
+
   def _extrema(self):
     import matplotlib.pyplot as plt
     #find lowest pt
@@ -134,9 +164,8 @@ class SparseQuad(object):
   def _xy(self):
     return zip(*self.points())
 
-  def _pointKey(self):
-    #return self.distrList.keys()
-    return list(d.type for d in self.distrList.values())
+  #def _pointKey(self):
+  #  return self.varNames
 
   def points(self,n=None):
     if n==None:
@@ -227,7 +256,7 @@ class SparseQuad(object):
     m,idx = args
     pointLists=[]
     weightLists=[]
-    for n,distr in enumerate(self.distrList.values()):
+    for n,distr in enumerate(self.distDict.values()):
       quad = self.quadDict.values()[n]
       mn = m[n]
       pts,wts=quad(mn)

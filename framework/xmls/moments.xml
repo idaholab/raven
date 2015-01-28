@@ -176,7 +176,7 @@
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
-            <PolynomialOrder>4</PolynomialOrder>
+            <PolynomialOrder>2</PolynomialOrder>
             <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x1</Interpolation>
             <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x2</Interpolation>
         </ROM>
