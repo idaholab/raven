@@ -1086,7 +1086,7 @@ class LimitSurface(BasePostProcessor):
     child = xmlNode.find("parameters")
     if child == None: raise IOError(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> No Parameters specified in XML input!!!!')
     self.parameters['targets'] = child.text.split(',')
-    child = xmlNode.find("tollerance")
+    child = xmlNode.find("tolerance")
     if child != None: self.subGridTol = float(child.text)
 
   def collectOutput(self,finishedjob,output):
