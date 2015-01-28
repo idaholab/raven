@@ -1924,83 +1924,73 @@ i.e. the sum of norm of each row.
   estimates regressor}{linear\_model|lasso\_stability\_path}
 \begin{itemize}
   \item \xmlNode{X}, \xmlDesc{array-like, shape = [n\_samples,
-      n\_features]},
+      n\_features]}, represents the training data.
   %
-  training data.
-  %
-  \item \xmlNode{y}, \xmlDesc{array-like, shape = [n\_samples]},
-  %
+  \item \xmlNode{y}, \xmlDesc{array-like, shape = [n\_samples]}, represents the
   target values.
   %
-  \item \xmlNode{scaling}, \xmlDesc{float, optional, default=0.5},
-  %
-  The alpha parameter in the stability selection article used to randomly scale
-  the features.
+  \item \xmlNode{scaling}, \xmlDesc{float, optional, default=0.5},sets the alpha
+  parameter in the stability selection article used to randomly scale the
+  features. \maljdan{what article?}
   %
   Should be between 0 and 1.
   %
   \item \xmlNode{random\_state}, \xmlDesc{integer or
-      numpy.random.RandomState, optional},
+  numpy.random.RandomState, optional}, sets the generator used to randomize the
+  design.
   %
-  The generator used to randomize the design.
+  \item \xmlNode{n\_resampling}, \xmlDesc{int, optional}, sets the number of
+  randomized models.
   %
-  \item \xmlNode{n\_resampling}, \xmlDesc{int, optional,
-      default=200},
+  \default{200}
   %
-  Number of randomized models.
-  %
-  \item \xmlNode{n\_grid}, \xmlDesc{int, optional,
-      default=100},
-  %
-  Number of grid points.
+  \item \xmlNode{n\_grid}, \xmlDesc{int, optional}, specifies the number of grid
+  points.
   %
   The path is linearly reinterpolated on a grid between 0 and 1 before computing
   the scores.
   %
-  \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional,
-      default=0.75},
+  \default{100}
   %
-  The fraction of samples to be used in each randomized design.
+  \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional}, determines the
+  fraction of samples to be used in each randomized design.
   %
   Should be between 0 and 1.
   %
   If 1, all samples are used.
   %
-  \item \xmlNode{eps}, \xmlDesc{float, optional field},
+  \default{0.75}
   %
-  Smallest value of alpha / alpha\_max considered
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, is the smallest value of 
+  alpha / alpha\_max considered.
   \item \verDescriptionB
 \end{itemize}
 
 \subparagraph{Gram Orthogonal Matching Pursuit (OMP)}
 \mbox{}
-\\The \textit{NAME} Solves n\_targets Orthogonal Matching Pursuit
-problems using only the Gram matrix X.T * X and the product X.T * y.
+\\The \textit{Gram OMP} solves n\_targets Orthogonal Matching Pursuit problems
+using only the Gram matrix, X.T * X, and the product, X.T * y.
 %
 \skltype{Gram OMP regressor}{linear\_model|orthogonal\_mp\_gram}
 \begin{itemize}
-  \item \xmlNode{Gram}, \xmlDesc{array, shape (n\_features,
-      n\_features)},
-  %
-  Gram matrix of the input data: X.T * X
+  \item \xmlNode{Gram}, \xmlDesc{array, shape (n\_features,n\_features)}, 
+  contains the Gram matrix of the input data: X.T * X
   \item \xmlNode{Xy}, \xmlDesc{array, shape (n\_features,) or
-      (n\_features, n\_targets) },
+  (n\_features, n\_targets)}, specifies the input targets multiplied by X:
+  X.T * y.
+  \item \xmlNode{n\_nonzero\_coefs}, \xmlDesc{int}, sets the desired number of
+  non-zero entries in the solution.
   %
-  Input targets multiplied by X: X.T * y
-  \item \xmlNode{n\_nonzero\_coefs}, \xmlDesc{int},
+  If None this value is set to 10\% of n\_features.
   %
-  Desired number of non-zero entries in the solution.
+  \default{None}
   %
-  If None (by default) this value is set to 10\% of n\_features.
-  %
-  \item \xmlNode{tol}, \xmlDesc{float},
-  %
-  Maximum norm of the residual.
+  \item \xmlNode{tol}, \xmlDesc{float}, sets the maximum norm of the residual.
   %
   If not None, overrides n\_nonzero\_coefs.
   %
-  \item \xmlNode{norms\_squared}, \xmlDesc{array-like, shape
-      (n\_targets)},
+  \item \xmlNode{norms\_squared}, \xmlDesc{array-like, shape(n\_targets)},
+  \maljdan{needs description}
   %
 \end{itemize}
 
