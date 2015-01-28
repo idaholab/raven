@@ -80,7 +80,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     pass
 
   def initialize(self,idict):
-    pass #TODO FIXME
+    pass #Overloaded by (at least) GaussPolynomialRom
 
   def train(self,tdict):
     '''
@@ -249,7 +249,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def __confidenceLocal__(self,edict):pass #TODO
   def __resetLocal__(self):pass
   def __returnCurrentSettingLocal__(self):pass
-  def __returnInitialParametersLocal__(self):pass
 
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
@@ -356,7 +355,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #for i in tests:
     #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
 
-    #try stashing myself fails
+    #try stashing myself -> fails #TODO overwrite getstate and setstate for pickle
     #pk.dump(self.__dict__,file('testROMdump.pk','w'))
 
   def printPolyDict(self,printZeros=False):
@@ -372,14 +371,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
   def __evaluateMoment__(self,r):
     tot=0
     for pt,wt in self.sparseGrid:
-      tot+=self.__evaluateLocal__([pt])**r*wt#*self.norm#**(1-r)
+      tot+=self.__evaluateLocal__([pt])**r*wt
     tot*=self.norm
-    #FIXME I don't know why the norm^(1-r) needs to be there.  It fixes uniform  at least.
-    #for normals, just *norm fixes it, without any exponent
     return tot
 
   def __evaluateLocal__(self,featureVals):
-    featureVals=featureVals[0] #FIXME why do I need the [0]?  Does it come in bigger sizes?
+    featureVals=featureVals[0]
     tot=0
     stdPt = np.zeros(len(featureVals))
     for p,pt in enumerate(featureVals):

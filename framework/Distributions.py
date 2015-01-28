@@ -76,7 +76,6 @@ class Distribution(BaseType):
       self.lowerBoundUsed = True
     if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
     else: self.__adjustment = 'scaling'
-    #TODO is this the right place to put this?
     self.convertToDistrDict['CDFLegendre'] = self.CDFconvertToDistr
     self.convertToQuadDict ['CDFLegendre'] = self.CDFconvertToQuad
     self.measureNormDict   ['CDFLegendre'] = self.CDFMeasureNorm
@@ -336,7 +335,7 @@ class Uniform(BoostDistribution):
 
   def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
-    return 0.5 #TODO is this just 1/sum(weights)?
+    return 0.5
 
   def probabilityWeight(self,x,std=False):
     '''Evaluates probability weighting factor for distribution type.'''
@@ -447,7 +446,6 @@ class Normal(BoostDistribution):
     a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
     b = a
     print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
-    #TODO best way to construct variable?  Import XML tools to read it in?
     def createElement(tag,attrib={},text={}):
       element = ET.Element(tag,attrib)
       element.text = text

@@ -315,22 +315,6 @@ class QuadratureSet(object):
     self.rule   = None   # Function as rule(n) that takes an integer order and returns pts, wts
     self.params = params # list of additional parameters necessary for some quadratures
 
-  def _readMoreXML(self,xmlNode):
-    if self.debug:print('Quadrature: need to fix _readMoreXML')
-    self._localReadMoreXML(xmlNode)
-    return
-    try:
-      self.type = xmlNode.tag
-      self.name = xmlNode.attrib['name']
-      self.printTag = self.type.ljust(25)
-      if 'debug' in xmlNode.attrib.keys(): self.debug = bool(xmlNode.attrib['debug'])
-      #TODO assembler stuff
-      if self.debug:print('TODO Quadrature needs to implement assembler stuff in readXML')
-    except: pass
-
-  def _localReadMoreXML(self,xmlNode):
-    pass
-
   def quadRule(self,i):
     '''Defaults to Gauss, CC should set its own'''
     return GaussQuadRule(i)

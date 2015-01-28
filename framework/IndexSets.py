@@ -6,8 +6,6 @@ import numpy as np
 from itertools import product
 import sys
 
-#TODO make preamble correct, inherit from BaseClass
-
 class IndexSet(object):
   def __init__(self):
     self.impWeights = None #weights for anisotropic case
@@ -64,13 +62,10 @@ class IndexSet(object):
     self.impWeights = impWeights
     #establish max orders
     N = len(distrList.keys())
-    #TODO make this input-able from user side
-    #  - readMoreXML on distr, if maxPolyOrder not set, set it to the problem maxOrder or error out
     self.maxOrder=maxPolyOrder
     self.polyOrderList=[]
     for distr in distrList.values():
       self.polyOrderList.append(range(self.maxOrder+1))
-    #  self.maxOrder = max(self.maxOrder,distr.maxPolyOrder())
 
   def generateMultiIndex(self,N,rule,I=None,MI=None):
     #recursive tool to build monotonically-increasing-order multi-index set
@@ -97,8 +92,6 @@ class TensorProduct(IndexSet):
       for j,p in enumerate(i):
         big=max(big,p*self.impWeights[j])
       return big <= target
-    #self.points = list(product(range(maxPolyOrder), repeat=len(distrList)))
-    #self.points = list(product(*points))
     self.points = self.generateMultiIndex(len(distrList),rule)
 
 class TotalDegree(IndexSet):

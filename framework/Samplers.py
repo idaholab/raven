@@ -2147,8 +2147,6 @@ class SparseGridCollocation(Grid):
       elif child.tag=='Distribution': varName = '<distribution>'+child.attrib['name']
       elif child.tag=='variable'    : varName =                  child.attrib['name']
       self.axisName.append(varName)
-    #check for sampler, ROM consistency
-    #TODO consistency checks between quads-polys-distros
 
   def localInitialize(self):
     Grid.localInitialize(self)
@@ -2176,17 +2174,17 @@ class SparseGridCollocation(Grid):
       if v not in self.gridInfo.keys():
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1','cdf':'False'}
     #build dimensional quad, poly
-    #TODO be flexible with CDF and legednre/clenshaw
     #FIXME this has grown gnarled, and should be simplified
     for varName,dat in self.gridInfo.items():
-      print('DEBUG dat',self.printTag,varName,dat)
+      #print('DEBUG dat',self.printTag,varName,dat)
       if dat['cdf'].lower() in ['t','true','y','yes','1']:
         quadType='CDF'
+        #TODO is Legendre the right default?
         if dat['quad']=='DEFAULT': subType = 'Legendre'
         else: subType = dat['quad']
         if dat['poly']=='DEFAULT': polyType = 'Legendre'
         else: polyType = dat['poly']
-      else:
+      else: #not flagged as cdf by user
         if dat['quad']=='DEFAULT':
           quadType = self.distDict[varName].preferredQuadrature
           if quadType == 'CDF':
@@ -2197,13 +2195,13 @@ class SparseGridCollocation(Grid):
             if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
             else: polyType = dat['poly']
             subType=None
-        else:
+        else: #quad not default
           quadType = dat['quad']
           if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
           else: polyType = dat['poly']
           subType=None
 
-      #TODO FIXME consistency checks between quads-polys-distros
+      #TODO consistency checks between quads-polys-distros
       distr = self.distDict[varName]
       if quadType not in distr.compatibleQuadrature:
         raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
@@ -2226,7 +2224,7 @@ class SparseGridCollocation(Grid):
 
     if self.debug: print(self.printTag,'Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
-    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder) #FIXME
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
 
     if self.debug: print(self.printTag,'Starting sparse grid generation...')
     self.sparseGrid = Quadratures.SparseQuad()

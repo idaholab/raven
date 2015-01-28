@@ -34,8 +34,6 @@ class OrthogonalPolynomial(object):
     self._poly = None #self.monomial #orthogonal polynomial constructor function  
     self._evPoly = None #self.evalMonomial #orthogonal polynomial constructor function  
 
-  #TODO whatDoINeed()
-
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order', as poly[2]'''
     return self._poly(order,*self.params) * self.norm(order)
@@ -43,7 +41,7 @@ class OrthogonalPolynomial(object):
   def __call__(self,order,pt):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.
        Has to be overwritten if parameters are required.'''
-    inps=self.params+[self.pointMod(pt)] #TODO pointmod only for CDF...fix?
+    inps=self.params+[self.pointMod(pt)]
     return self._evPoly(order,*inps) * self.norm(order)
 
   def _readMoreXML(self,xmlNode):
