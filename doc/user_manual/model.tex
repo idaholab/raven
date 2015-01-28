@@ -38,7 +38,7 @@
 
 \newcommand{\nIterDescriptionB}[1]
 {
-  \xmlNode{n\_iter} , \xmlDesc{int, optional field}, specifies the number of
+  \xmlNode{n\_iter}, \xmlDesc{int, optional field}, specifies the number of
   passes over the training data (aka epochs).
   %
   \default{#1}
@@ -54,7 +54,7 @@
 
 \newcommand{\tolDescriptionB}[1]
 {
-  \xmlNode{tol} , \xmlDesc{float, optional field}, specifies the tolerance for
+  \xmlNode{tol}, \xmlDesc{float, optional field}, specifies the tolerance for
   the optimization: if the updates are smaller than tol, the optimization code
   checks the dual gap for optimality and continues until it is smaller than tol.
   %
@@ -71,7 +71,7 @@
 
 \newcommand{\fitInterceptDescription}[1]
 {
-  \xmlNode{fit\_intercept} , \xmlDesc{boolean, optional field}, determines
+  \xmlNode{fit\_intercept}, \xmlDesc{boolean, optional field}, determines
   whether to calculate the intercept for this model.
   %
   If set to False, no intercept will be used in the calculations (e.g. data is
@@ -82,7 +82,7 @@
 
 \newcommand{\normalizeDescription}[1]
 {
-  \xmlNode{normalize} , \xmlDesc{boolean, optional field}, if True, the
+  \xmlNode{normalize}, \xmlDesc{boolean, optional field}, if True, the
   regressors X will be normalized before regression.
   %
   \default{#1}
@@ -106,7 +106,7 @@
 
 \newcommand{\maxIterDescription}[1]
 {
-\xmlNode{max\_iter} , \xmlDesc{integer, optional field}, specifies the
+\xmlNode{max\_iter}, \xmlDesc{integer, optional field}, specifies the
   maximum number of iterations.
   %
   \default{#1}
@@ -162,7 +162,7 @@
 
 \newcommand{\randomStateDescription}[1]
 {
-  \xmlNode{random\_state} , \xmlDesc{int seed, RandomState instance, or None},
+  \xmlNode{random\_state}, \xmlDesc{int seed, RandomState instance, or None},
   sets the seed of the pseudo random number generator to use when shuffling the
   data.
   %
@@ -644,16 +644,16 @@ ARD optimizes these hyperparameters to discover which inputs are relevant.
   hyperparameter for the Gamma distribution prior over the $\lambda$ parameter.
   \default{ 1.e-6}
   %
-  \item \xmlNode{lambda\_2} , \xmlDesc{float, optional field}, inverse scale
+  \item \xmlNode{lambda\_2}, \xmlDesc{float, optional field}, inverse scale
   hyperparameter (rate parameter) for the Gamma distribution prior over the
   $\lambda$ parameter.
   \default{ 1.e-6}
   %
-  \item \xmlNode{compute\_score} , \xmlDesc{boolean, optional field}, if True,
+  \item \xmlNode{compute\_score}, \xmlDesc{boolean, optional field}, if True,
   compute the objective function at each step of the model.
   \default{False}
   %
-  \item \xmlNode{threshold\_lambda} , \xmlDesc{float, optional field}, specifies
+  \item \xmlNode{threshold\_lambda}, \xmlDesc{float, optional field}, specifies
   the threshold for removing (pruning) weights with high precision from the
   computation.
   \default{ 1.e+4}
@@ -708,16 +708,16 @@ The parameters are estimated by maximizing the marginal log likelihood.
   hyperparameter for the Gamma distribution prior over the $\lambda$ parameter.
   \default{ 1.e-6}
   %
-  \item \xmlNode{lambda\_2} , \xmlDesc{float, optional field}, inverse scale
+  \item \xmlNode{lambda\_2}, \xmlDesc{float, optional field}, inverse scale
   hyperparameter (rate parameter) for the Gamma distribution prior over the
   $\lambda$ parameter.
   \default{ 1.e-6}
   %
-  \item \xmlNode{compute\_score} , \xmlDesc{boolean, optional field}, if True,
+  \item \xmlNode{compute\_score}, \xmlDesc{boolean, optional field}, if True,
   compute the objective function at each step of the model.
   \default{False}
   %
-  \item \xmlNode{threshold\_lambda} , \xmlDesc{float, optional field}, specifies
+  \item \xmlNode{threshold\_lambda}, \xmlDesc{float, optional field}, specifies
   the threshold for removing (pruning) weights with high precision from the
   computation.
   \default{ 1.e+4}
@@ -799,7 +799,7 @@ The best model is selected by cross-validation.
   eps=1e-3 means that $alpha\_min / alpha\_max = 1e-3$.
   %
   \default{0.001}
-  \item \xmlNode{n\_alphas}, \xmlDesc{integer, optional field}, the number of
+  \item \xmlNode{n\_alphas}, \xmlDesc{integer, optional field}, is the number of
   alphas along the regularization path used for each $l1\_ratio$.
   %
   \default{100}
@@ -831,7 +831,7 @@ determined by a linear combination of a subset of potential covariates.
   \item \verDescriptionA{False}
   \item \precomputeDescription{1.0}
   \item \normalizeDescription{False}
-  \item \xmlNode{eps} , \xmlDesc{float, optional field}, represents the machine
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
@@ -840,7 +840,7 @@ determined by a linear combination of a subset of potential covariates.
   algorithms, this parameter does not control the tolerance of the optimization.
   %
   \default{2.22e-16}
-  \item \xmlNode{fit\_path} , \xmlDesc{boolean, optional field}, if True the
+  \item \xmlNode{fit\_path}, \xmlDesc{boolean, optional field}, if True the
   full path is stored in the coef\_path\_attribute.
   %
   If you compute the solution for a large problem or many targets, setting
@@ -888,10 +888,10 @@ absolute values of the coefficients.
 \skltype{Linear Model trained with L1 prior as regularizer
   (Lasso)}{linear\_model|Lasso}
 \begin{itemize}
-  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, constant multiplier
-  for the L1 term.
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, sets a constant
+  multiplier for the L1 term.
   %
-  Defaults to 1.0.
+  \default{1.0}
   %
   alpha = 0 is equivalent to an ordinary least square, solved by the
   LinearRegression object.
@@ -914,8 +914,8 @@ absolute values of the coefficients.
 \mbox{}
 
 The \textit{Lasso linear model with iterative fitting along a regularization
-path} is Lasso linear model with iterative fitting along a regularization 
-path. \maljdan{May need a more better description.}
+path} is Lasso linear model with iterative fitting along a regularization
+path. \maljdan{May need a better description.}
 \skltype{Lasso linear model with iterative fitting along a regularization path
 regressor}{linear\_model|LassoCV}
 \begin{itemize}
@@ -924,7 +924,7 @@ regressor}{linear\_model|LassoCV}
   %
   eps=1e-3 means that alpha\_min / alpha\_max = 1e-3.
   %
-  \item \xmlNode{n\_alphas} , \xmlDesc{int, optional field}, sets the number of
+  \item \xmlNode{n\_alphas}, \xmlDesc{int, optional field}, sets the number of
   alphas along the regularization path.
   \item \xmlNode{alphas}, \xmlDesc{numpy array, optional field}, lists the
   locations of the alphas used to compute the models.
@@ -985,7 +985,7 @@ regressor}{linear\_model|LassoLarsCV}
 \mbox{}
 
 The \textit{Lasso model fit with Lars using BIC or AIC for model selection} is
-a Lasso model fit with Lars using BIC or AIC for model selection. 
+a Lasso model fit with Lars using BIC or AIC for model selection.
 \maljdan{redundant}
 The optimization objective for Lasso is:
 $(1 / (2 * n\_samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
@@ -996,12 +996,12 @@ Such criteria are useful in selecting the value of the regularization parameter
 by making a trade-off between the goodness of fit and the complexity of the
 model.
 %
-A good model should explain the data well while being simple.
+A good model explains the data well while maintaining simplicity.
 %
 \skltype{Lasso model fit with Lars using BIC or AIC for
   model selection regressor}{linear\_model|LassoLarsIC}
 \begin{itemize}
-  \item \xmlNode{criterion} , \xmlDesc{‘bic’ | ‘aic’ }, specifies the type of
+  \item \xmlNode{criterion}, \xmlDesc{`bic' | `aic' }, specifies the type of
   criterion to use.
   %
   \item \fitInterceptDescription{True}
@@ -1009,7 +1009,7 @@ A good model should explain the data well while being simple.
   \item \normalizeDescription{False}
   \item \precomputeDescription{}
   \item \maxIterDescription{}
-  \item \xmlNode{eps} , \xmlDesc{float, optional field}, represents the machine
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the machine
   precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
@@ -1047,7 +1047,7 @@ for optimal performance; any other input format will be converted (and copied).
 %
 \skltype{Logistic Regressor}{linear\_model|LogisticRegression}
 \begin{itemize}
-  \item \xmlNode{penalty}, \xmlDesc{string, ‘l1’ or ‘l2’}, specifies the norm
+  \item \xmlNode{penalty}, \xmlDesc{string, `l1' or `l2'}, specifies the norm
   used in the penalization.
   %
   \item \xmlNode{dual}, \xmlDesc{boolean}, specifies the dual or primal
@@ -1057,7 +1057,7 @@ for optimal performance; any other input format will be converted (and copied).
   %
   Prefer dual=False when n\_samples > n\_features.
   %
-  \item \xmlNode{C} , \xmlDesc{float, optional field}, is the inverse of the
+  \item \xmlNode{C}, \xmlDesc{float, optional field}, is the inverse of the
   regularization strength; must be a positive float.
   %
   Like in support vector machines, smaller values specify stronger
@@ -1139,7 +1139,7 @@ i.e. the sum of norm of each row.
   %
   \default{1.0}
   \item \xmlNode{l1\_ratio}, \xmlDesc{float}, represents the Elastic Net mixing
-  parameter, with $0 < l1\_ratio <= 1$.
+  parameter, with $0 < l1\_ratio \leq 1$.
   %
   For $l1\_ratio = 0$ the penalty is an L1/L2 penalty.
   %
@@ -1183,7 +1183,7 @@ regressor}{linear\_model|OrthogonalMatchingPursuit}
   %
   Improves performance when n\_targets or n\_samples is very large.
   %
-  Note that if you already have such matrices, you can pass them directly to the
+  \nb If you already have such matrices, you can pass them directly to the
   fit method.
   %
   \default{`auto'}
@@ -1294,7 +1294,7 @@ training set one at a time.
 %
 \skltype{Perceptron classifier}{linear\_model|Perceptron}
 \begin{itemize}
-  \item \xmlNode{penalty}, \xmlDesc{None, ‘l2’ or ‘l1’ or ‘elasticnet’}, defines
+  \item \xmlNode{penalty}, \xmlDesc{None, `l2' or `l1' or `elasticnet'}, defines
   the penalty (aka regularization term) to be used.
   %
   \default{None}
@@ -1337,11 +1337,11 @@ It is also known as stability selection.
 %
 \skltype{Randomized Lasso regressor}{linear\_model|RandomizedLasso}
 \begin{itemize}
-  \item \xmlNode{alpha}, \xmlDesc{float, ‘aic’, or ‘bic’, optional}, defines the
+  \item \xmlNode{alpha}, \xmlDesc{float, `aic', or `bic', optional}, defines the
   regularization parameter $\alpha$ in the Lasso.
   %
   Warning: this is not the alpha parameter in the stability selection article
-  which is scaling. \maljdan{Which article?}
+  which is \xmlNode{scaling} (see below). \maljdan{Which article?}
   %
   \item \xmlNode{scaling}, \xmlDesc{float, optional field}, specifies the alpha
   parameter in the stability selection article used to randomly scale the
@@ -1357,10 +1357,10 @@ It is also known as stability selection.
   If 1, all samples are used.
   %
   \item \xmlNode{n\_resampling}, \xmlDesc{int, optional field}, is the number of
-  randomized models.
+  randomized models used.
   %
   \item \xmlNode{selection\_threshold}, \xmlDesc{float, optional field}, sets
-  the score above which features should be selected.
+  the score above for which features should be selected.
   %
   \item \fitInterceptDescription{True}
   \item \verDescriptionB
@@ -1408,7 +1408,7 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   %
   Should be between 0 and 1.
   %
-  \item \xmlNode{sample\_fraction} , \xmlDesc{float, optional field}, is the
+  \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional field}, is the
   fraction of samples to be used in each randomized design.
   %
   Should be between 0 and 1.
@@ -1417,12 +1417,12 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   %
   \default{0.75}
   %
-  \item \xmlNode{n\_resampling} , \xmlDesc{int, optional field}, sets the number
+  \item \xmlNode{n\_resampling}, \xmlDesc{int, optional field}, sets the number
   of randomized models.
   %
   \default{200}
   %
-  \item \xmlNode{selection\_threshold} , \xmlDesc{float, optional field}, sets
+  \item \xmlNode{selection\_threshold}, \xmlDesc{float, optional field}, sets
   the score above which features should be selected.
   %
   \default{0.25}
@@ -1434,7 +1434,7 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   \item \tolDescriptionC{}
   \default{1=e-3}
   %
-  \item \xmlNode{random\_state} , \xmlDesc{int, RandomState instance or None,
+  \item \xmlNode{random\_state}, \xmlDesc{int, RandomState instance or None,
   optional}, if int, random\_state is the seed used by the random number
   generator; If RandomState instance, random\_state is the random
   number generator; If None, the random number generator is the RandomState
@@ -1492,7 +1492,7 @@ least squares with l2 regularization.
   \item \xmlNode{class\_weight}, \xmlDesc{dict, optional field}, specifies
   weights associated with classes in the form {class\_label: weight}.
   %
-  If not given, all classes are supposed to have weight one.
+  If not given, all classes are assumed to have weight one.
   %
   \item \fitInterceptDescription{True}
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
@@ -1519,7 +1519,7 @@ classifier}{linear\_model|RidgeClassifierCV}
   Small positive values of alpha improve the conditioning of the problem and
   reduce the variance of the estimates.
   %
-  Alpha corresponds to $(2*C)^-1$ in other linear models such as
+  Alpha corresponds to $(2*C)^{-1}$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
   \item \fitInterceptDescription{True}
@@ -1555,7 +1555,7 @@ cross-validation.
   Small positive values of alpha improve the conditioning of the problem and
   reduce the variance of the estimates.
   %
-  Alpha corresponds to $(2*C)^-1$ in other linear models such as
+  Alpha corresponds to $(2*C)^{-1}$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
   \item \fitInterceptDescription{True}
@@ -1624,7 +1624,7 @@ online feature selection.
 \skltype{Linear classifiers (SVM, logistic regression, a.o.) with SGD
 training}{linear\_model|SGDClassifier}
 \begin{itemize}
-  \item \xmlNode{loss} , \xmlDesc{str, `hinge,' `log,' `modified\_huber,'
+  \item \xmlNode{loss}, \xmlDesc{str, `hinge,' `log,' `modified\_huber,'
   `squared\_hinge,' `perceptron,' or a regression loss: `squared\_loss,'
   `huber,' `epsilon\_insensitive,' or `squared\_epsilon\_insensitive'},
   %
@@ -1636,8 +1636,8 @@ training}{linear\_model|SGDClassifier}
     \item `log' loss gives logistic regression, a probabilistic classifier.
     \item `modified\_huber' is another smooth loss that brings tolerance to
     outliers as well as probability estimates.
-    \item `squared\_hinge’ is like hinge but is quadratically penalized.
-    \item `perceptron’ is the linear loss used by the perceptron algorithm.
+    \item `squared\_hinge' is like hinge but is quadratically penalized.
+    \item `perceptron' is the linear loss used by the perceptron algorithm.
   \end{itemize}
   The other losses are designed for regression but can be useful in
   classification as well; see SGDRegressor for a description.
@@ -1691,18 +1691,19 @@ training}{linear\_model|SGDClassifier}
   The default value is 0.0 as eta0 is not used by the default schedule
   `optimal.'
   %
-  \item \xmlNode{power\_t}, \xmlDesc{double},
+  \default{0.0}
   %
-  The exponent for inverse scaling learning rate [default 0.5].
+  \item \xmlNode{power\_t}, \xmlDesc{double}, represents the exponent for
+  the inverse scaling learning rate.
   %
-  \item \xmlNode{class\_weight} , \xmlDesc{dict,
-      {class\_label}},
+  \default{0.5}
   %
-  Preset for the class\_weight fit parameter.
+  \item \xmlNode{class\_weight}, \xmlDesc{dict, {class\_label}}, is the preset
+  for the class\_weight fit parameter.
   %
   Weights associated with classes.
   %
-  If not given, all classes are supposed to have weight one.
+  If not given, all classes are assumed to have weight one.
   %
   The “auto” mode uses the values of y to automatically adjust weights
   inversely proportional to class frequencies.
@@ -1724,7 +1725,7 @@ parameters towards the zero vector using either the squared euclidean norm L2 or
 the absolute norm L1 or a combination of both (Elastic Net).
 %
 If the parameter update crosses the 0.0 value because of the regularizer, the
-update is truncated to 0.0 to allow for learning sparse models and achieve
+update is truncated to 0.0 to allow for learning sparse models and achieving
 online feature selection.
 %
 This implementation works with data represented as dense numpy arrays of
@@ -1732,48 +1733,43 @@ floating point values for the features.
 %
 \skltype{Linear model fitted by minimizing a regularized empirical loss with SGD}{linear\_model|FW\_NAME}
 \begin{itemize}
-  \item \xmlNode{loss} , \xmlDesc{str, ‘squared\_loss’,
-      ‘huber’, ‘epsilon\_insensitive’, or
-      ‘squared\_epsilon\_insensitive’},
+  \item \xmlNode{loss}, \xmlDesc{str, `squared\_loss,' `huber,'
+  `epsilon\_insensitive,' or `squared\_epsilon\_insensitive'}, specifies the
+  loss function to be used.
   %
-  The loss function to be used.
+  Defaults to `squared\_loss' which refers to the ordinary least squares fit.
   %
-  Defaults to ‘squared\_loss’ which refers to the ordinary
-  least squares fit.
+  `huber' modifies `squared\_loss' to focus less on getting outliers correct by
+  switching from squared to linear loss past a distance of epsilon.
   %
-  ‘huber’ modifies ‘squared\_loss’ to focus less on
-  getting outliers correct by switching from squared to linear loss past a
-  distance of epsilon.
+  `epsilon\_insensitive' ignores errors less than epsilon and is linear past
+  that; this is the loss function used in SVR.
   %
-  ‘epsilon\_insensitive’ ignores errors less than epsilon and
-  is linear past that; this is the loss function used in SVR.
+  `squared\_epsilon\_insensitive' is the same but becomes squared loss past a
+  tolerance of epsilon.
   %
-  ‘squared\_epsilon\_insensitive’ is the same
-  but becomes squared loss past a tolerance of epsilon.
+  \default{`squared\_loss'}
+  \item \xmlNode{penalty}, \xmlDesc{str, `l2' or `l1' or `elasticnet'}, sets
+  the penalty (aka regularization term) to be used.
   %
-  \item \xmlNode{penalty} , \xmlDesc{str, ‘l2’ or ‘l1’ or
-      ‘elasticnet’},
+  Defaults to `l2' which is the standard regularizer for linear SVM models.
   %
-  The penalty (aka regularization term) to be used.
+  `l1' and `elasticnet' might bring sparsity to the model (feature
+  selection) not achievable with `l2'.
   %
-  Defaults to ‘l2’ which is the standard regularizer for linear SVM models.
+  \default{`l2'}
   %
-  ‘l1’ and ‘elasticnet’ might bring sparsity to the model (feature
-  selection) not achievable with ‘l2’.
-  %
-  \item \xmlNode{alpha} , \xmlDesc{float},
+  \item \xmlNode{alpha}, \xmlDesc{float},
   %
   Constant that multiplies the regularization term.
   %
   Defaults to 0.0001
-  \item \xmlNode{l1\_ratio} , \xmlDesc{float},
+  \item \xmlNode{l1\_ratio}, \xmlDesc{float}, is the Elastic Net mixing
+  parameter, with $0 \leq l1\_ratio \leq 1$.
   %
-  The Elastic Net mixing parameter, with 0 <= l1\_ratio <= 1.
+  l1\_ratio=0 corresponds to L2 penalty, l1\_ratio=1 to L1.
   %
-  l1\_ratio=0 corresponds to L2 penalty, l1\_ratio=1
-  to L1.
-  %
-  Defaults to 0.15.
+  \default{0.15}
   %
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
@@ -1781,28 +1777,32 @@ floating point values for the features.
   \item \randomStateDescription{None}
   \item \verDescriptionB
   %
-  \item \xmlNode{epsilon} , \xmlDesc{float},
+  \item \xmlNode{epsilon}, \xmlDesc{float}, sets the epsilon in the
+  epsilon-insensitive loss functions; only if loss is `huber,'
+  `epsilon\_insensitive,' or `squared\_epsilon\_insensitive.'
   %
-  Epsilon in the epsilon-insensitive loss functions; only if loss is
-  ‘huber’, ‘epsilon\_insensitive’, or
-  ‘squared\_epsilon\_insensitive’.
-  %
-  For ‘huber’, determines the threshold at which it becomes less important
+  For `huber', determines the threshold at which it becomes less important
   to get the prediction exactly right.
   %
   For epsilon-insensitive, any differences between the current prediction and
   the correct label are ignored if they are less than this threshold.
   %
-  \item \xmlNode{learning\_rate} , \xmlDesc{string, optional
-      field},Learning rate: constant: eta = eta0 optimal: eta = 1.0/(t+t0)
-  invscaling: eta= eta0 / pow(t, power\_t) [default]
-  \item \xmlNode{eta0} , \xmlDesc{double},
+  \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field}, 
+  Learning rate:
+  \begin{itemize}
+    \item constant: eta = eta0
+    \item optimal: eta = 1.0/(t+t0)
+    \item invscaling: eta= eta0 / pow(t, power\_t)
+  \end{itemize}
+  \default{invscaling}
+  \item \xmlNode{eta0}, \xmlDesc{double}, specifies the initial learning rate.
   %
-  The initial learning rate [default 0.01].
+  \default{0.01}
   %
-  \item \xmlNode{power\_t} , \xmlDesc{double, optional field},
+  \item \xmlNode{power\_t}, \xmlDesc{double, optional field}, specifies the
+  exponent for inverse scaling learning rate.
   %
-  The exponent for inverse scaling learning rate [default 0.25].
+  \default{0.25}
   %
   \item \warmStartDescription{}
   %
@@ -1811,52 +1811,49 @@ floating point values for the features.
 \subparagraph{Compute Least Angle Regression or Lasso path using LARS algorithm}
 \mbox{}
 \\The \textit{Compute Least Angle Regression or Lasso path using LARS algorithm}
-is a regressor where the optimization objective for the case method=’lasso’
+is a regressor where the optimization objective for the case method=`lasso'
 is:
 $(1 / (2 * n\_samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
-in the case of method=’lars’, the objective function is only known in the
-form of an implicit equation
-\skltype{Compute Least Angle Regression or Lasso path using
-  LARS algorithm regressor}{linear\_model|lars\_path}
+in the case of method='lars', the objective function is only known in the
+form of an implicit equation.
+%
+\skltype{Compute Least Angle Regression or Lasso path using LARS algorithm
+regressor}{linear\_model|lars\_path}
 \begin{itemize}
-  \item \xmlNode{X} , \xmlDesc{array, shape: (n\_samples,
-      n\_features)},
+  \item \xmlNode{X}, \xmlDesc{array, shape: (n\_samples,n\_features)}, is the
+  input data.
   %
-  Input data.
-  %
-  \item \xmlNode{y} , \xmlDesc{array, shape: (n\_samples)},
-  %
-  Input targets.
+  \item \xmlNode{y}, \xmlDesc{array, shape: (n\_samples)}, is the set of input
+  targets.
   %
   \item \maxIterDescription{500}
   %
-  \item \xmlNode{gram} , \xmlDesc{None, ‘auto’, array, shape:
+  \item \xmlNode{gram}, \xmlDesc{None, `auto', array, shape:
       (n\_features, n\_features), optional},
   %
-  Precomputed Gram matrix (X’ * X), if `auto', the Gram matrix is precomputed
+  Precomputed Gram matrix (X' * X), if `auto', the Gram matrix is precomputed
   from the given X, if there are more samples than features.
   %
-  \item \xmlNode{alpha\_min} , \xmlDesc{float, optional field
-      (default=0)},
-  %
-  Minimum correlation along the path.
+  \item \xmlNode{alpha\_min}, \xmlDesc{float, optional field}, sets the minimum
+  correlation along the path.
   %
   It corresponds to the regularization parameter alpha parameter in the Lasso.
   %
-  \item \xmlNode{method} , \xmlDesc{{‘lar’, ‘lasso’}, optional
-      (default=’lar’)},
+  \default{0}
   %
-  Specifies the returned model.
+  \item \xmlNode{method}, \xmlDesc{{`lar', `lasso'}, optional}, specifies the 
+  returned model.
   %
   Select `lar' for Least Angle Regression, `lasso' for the Lasso.
   %
-  \item \xmlNode{eps} , \xmlDesc{float, optional
-      (default=``np.finfo(np.float).eps'')},
+  \default{`lar'}
   %
-  The machine-precision regularization in the computation of the Cholesky
-  diagonal factors.
+  \item \xmlNode{eps}, \xmlDesc{float, optional}, sets the machine-precision
+  regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
+  %
+  \default{``np.finfo(np.float).eps''}
   %
   \item \verDescriptionB
 \end{itemize}
@@ -1876,57 +1873,47 @@ i.e. the sum of norm of each row.
 %
 \skltype{Compute Lasso path with coordinate descent regressor}{linear\_model|lasso\_path}
 \begin{itemize}
-  \item \xmlNode{X} , \xmlDesc{{array-like, sparse matrix}, shape
-      (n\_samples, n\_features)},
-  %
-  Training data.
+  \item \xmlNode{X}, \xmlDesc{{array-like, sparse matrix}, shape (n\_samples,
+  n\_features)}, represents the training data.
   %
   Pass directly as Fortran-contiguous data to avoid unnecessary memory
   duplication.
   %
   If y is mono-output then X can be sparse.
   %
-  \item \xmlNode{y} , \xmlDesc{ndarray, shape = (n\_samples,), or
-      (n\_samples, n\_outputs)},
+  \item \xmlNode{y}, \xmlDesc{ndarray, shape = (n\_samples,), or (n\_samples,
+  n\_outputs)}, represents the target values.
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, specifies the length of
+  the path.
   %
-  Target values
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
+  eps=1e-3 means that alpha\_min / alpha\_max = 1e-3.
+  \item \xmlNode{n\_alphas}, \xmlDesc{int, optional field}, is the number of
+  alphas along the regularization path.
+  \item \xmlNode{alphas}, \xmlDesc{ndarray, optional field}, lists the alphas
+  where the models will be computed.
   %
-  Length of the path.
+  If None, alphas are set automatically.
+  \item \xmlNode{precompute}, \xmlDesc{True | False | `auto' | array-like},
+  decides whether to use a precomputed Gram matrix to speed up calculations or
+  not.
   %
-  eps=1e-3 means that alpha\_min / alpha\_max = 1e-3
-  \item \xmlNode{n\_alphas} , \xmlDesc{int, optional field},
-  %
-  Number of alphas along the regularization path
-  \item \xmlNode{alphas} , \xmlDesc{ndarray, optional field},
-  %
-  List of alphas where to compute the models.
-  %
-  If None alphas are set automatically
-  \item \xmlNode{precompute} , \xmlDesc{True | False | ‘auto’ |
-      array-like},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
+  If set to `auto,' RAVEN will decide.
   %
   The Gram matrix can also be passed as argument.
   %
-  \item \xmlNode{Xy} , \xmlDesc{array-like, optional field},
+  \item \xmlNode{Xy}, \xmlDesc{array-like, optional field},
   %
   Xy = np.dot(X.T, y) that can be precomputed.
   %
   It is useful only when the Gram matrix is precomputed.
   %
-  \item \xmlNode{copy\_X} , \xmlDesc{boolean, optional field
-      (default True)},
+  \item \xmlNode{copy\_X}, \xmlDesc{boolean, optional field}, if True, X will be
+  copied; else, it may be overwritten.
   %
-  If True, X will be copied; else, it may be overwritten.
+  \default{True}
   %
-  \item \xmlNode{coef\_init} , \xmlDesc{array, shape
-      (n\_features, ) | None},
-  %
-  The initial values of the coefficients.
+  \item \xmlNode{coef\_init}, \xmlDesc{array, shape (n\_features, ) | None}, is
+  the initial set of values of the coefficients.
   %
   \item \verDescriptionB
 \end{itemize}
@@ -1936,33 +1923,33 @@ i.e. the sum of norm of each row.
 \skltype{Stability path based on randomized Lasso
   estimates regressor}{linear\_model|lasso\_stability\_path}
 \begin{itemize}
-  \item \xmlNode{X} , \xmlDesc{array-like, shape = [n\_samples,
+  \item \xmlNode{X}, \xmlDesc{array-like, shape = [n\_samples,
       n\_features]},
   %
   training data.
   %
-  \item \xmlNode{y} , \xmlDesc{array-like, shape = [n\_samples]},
+  \item \xmlNode{y}, \xmlDesc{array-like, shape = [n\_samples]},
   %
   target values.
   %
-  \item \xmlNode{scaling} , \xmlDesc{float, optional, default=0.5},
+  \item \xmlNode{scaling}, \xmlDesc{float, optional, default=0.5},
   %
   The alpha parameter in the stability selection article used to randomly scale
   the features.
   %
   Should be between 0 and 1.
   %
-  \item \xmlNode{random\_state} , \xmlDesc{integer or
+  \item \xmlNode{random\_state}, \xmlDesc{integer or
       numpy.random.RandomState, optional},
   %
   The generator used to randomize the design.
   %
-  \item \xmlNode{n\_resampling} , \xmlDesc{int, optional,
+  \item \xmlNode{n\_resampling}, \xmlDesc{int, optional,
       default=200},
   %
   Number of randomized models.
   %
-  \item \xmlNode{n\_grid} , \xmlDesc{int, optional,
+  \item \xmlNode{n\_grid}, \xmlDesc{int, optional,
       default=100},
   %
   Number of grid points.
@@ -1970,7 +1957,7 @@ i.e. the sum of norm of each row.
   The path is linearly reinterpolated on a grid between 0 and 1 before computing
   the scores.
   %
-  \item \xmlNode{sample\_fraction} , \xmlDesc{float, optional,
+  \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional,
       default=0.75},
   %
   The fraction of samples to be used in each randomized design.
@@ -1979,7 +1966,7 @@ i.e. the sum of norm of each row.
   %
   If 1, all samples are used.
   %
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
+  \item \xmlNode{eps}, \xmlDesc{float, optional field},
   %
   Smallest value of alpha / alpha\_max considered
   \item \verDescriptionB
@@ -1992,11 +1979,11 @@ problems using only the Gram matrix X.T * X and the product X.T * y.
 %
 \skltype{Gram OMP regressor}{linear\_model|orthogonal\_mp\_gram}
 \begin{itemize}
-  \item \xmlNode{Gram} , \xmlDesc{array, shape (n\_features,
+  \item \xmlNode{Gram}, \xmlDesc{array, shape (n\_features,
       n\_features)},
   %
   Gram matrix of the input data: X.T * X
-  \item \xmlNode{Xy} , \xmlDesc{array, shape (n\_features,) or
+  \item \xmlNode{Xy}, \xmlDesc{array, shape (n\_features,) or
       (n\_features, n\_targets) },
   %
   Input targets multiplied by X: X.T * y
@@ -2006,13 +1993,13 @@ problems using only the Gram matrix X.T * X and the product X.T * y.
   %
   If None (by default) this value is set to 10\% of n\_features.
   %
-  \item \xmlNode{tol} , \xmlDesc{float},
+  \item \xmlNode{tol}, \xmlDesc{float},
   %
   Maximum norm of the residual.
   %
   If not None, overrides n\_nonzero\_coefs.
   %
-  \item \xmlNode{norms\_squared} , \xmlDesc{array-like, shape
+  \item \xmlNode{norms\_squared}, \xmlDesc{array-like, shape
       (n\_targets)},
   %
 \end{itemize}
@@ -2046,7 +2033,7 @@ In the following, all the SVM models available in RAVEN are reported.
 \subparagraph{Linear Support Vector Classifier}
 \mbox{}
 \\The \textit{Linear Support Vector Classifier} is similar to SVC with parameter
-kernel=’linear’, but implemented in terms of liblinear rather than libsvm,
+kernel='linear', but implemented in terms of liblinear rather than libsvm,
 so it has more flexibility in the choice of penalties and loss functions and
 should scale better (to large numbers of samples).
 %
@@ -2055,28 +2042,28 @@ handled according to a one-vs-the-rest scheme.
 %
 \skltype{Linear Support Vector Classifier}{svm|LinearSVC}
 \begin{itemize}
-  \item \xmlNode{C} , \xmlDesc{boolean, optional field (default=1.0)},
+  \item \xmlNode{C}, \xmlDesc{boolean, optional field (default=1.0)},
   %
   Penalty parameter C of the error term.
   %
-  \item \xmlNode{loss} , \xmlDesc{string, ‘l1’ or ‘l2’
-      (default=’l2’)},
+  \item \xmlNode{loss}, \xmlDesc{string, `l1' or `l2'
+      (default='l2')},
   %
   Specifies the loss function.
   %
-  ‘l1’ is the hinge loss (standard SVM) while ‘l2’ is the squared hinge
+  `l1' is the hinge loss (standard SVM) while `l2' is the squared hinge
   loss.
   %
-  \item \xmlNode{penalty} , \xmlDesc{string, ‘l1’ or ‘l2’
-      (default=’l2’)},
+  \item \xmlNode{penalty}, \xmlDesc{string, `l1' or `l2'
+      (default='l2')},
   %
   Specifies the norm used in the penalization.
   %
-  The ‘l2’ penalty is the standard used in SVC.
+  The `l2' penalty is the standard used in SVC.
   %
-  The ‘l1’ leads to coef\_vectors that are sparse.
+  The `l1' leads to coef\_vectors that are sparse.
   %
-  \item \xmlNode{dual} , \xmlDesc{boolean (default=True)},
+  \item \xmlNode{dual}, \xmlDesc{boolean (default=True)},
   %
   Select the algorithm to either solve the dual or primal optimization problem.
   %
@@ -2084,8 +2071,8 @@ handled according to a one-vs-the-rest scheme.
   %
   \item \tolDescriptionC{}
   %
-  \item \xmlNode{multi\_class} , \xmlDesc{string, ‘ovr’ or
-      ‘crammer\_singer’ (default=’ovr’)},
+  \item \xmlNode{multi\_class}, \xmlDesc{string, `ovr' or
+      `crammer\_singer' (default='ovr')},
   %
   Determines the multi-class strategy if y contains more than two classes.
   %
@@ -2101,7 +2088,7 @@ handled according to a one-vs-the-rest scheme.
   %
   \item \fitInterceptDescription{True}
   %
-  \item \xmlNode{intercept\_scaling} , \xmlDesc{float, optional
+  \item \xmlNode{intercept\_scaling}, \xmlDesc{float, optional
       field (default=1)},
   %
   when self.fit\_intercept is True, instance vector x becomes [x,
@@ -2116,14 +2103,14 @@ handled according to a one-vs-the-rest scheme.
   To lessen the effect of regularization on synthetic feature weight (and
   therefore on the intercept) intercept\_scaling has to be
   increased
-  \item \xmlNode{class\_weight} , \xmlDesc{{dict, ‘auto’},
+  \item \xmlNode{class\_weight}, \xmlDesc{{dict, `auto'},
       optional field},
   %
   Set the parameter C of class i to class\_weight[i]*C for SVC.
   %
   If not given, all classes are supposed to have weight one.
   %
-  The ‘auto’ mode uses the values of y to automatically adjust weights
+  The `auto' mode uses the values of y to automatically adjust weights
   inversely proportional to class frequencies.
   %
   \item \verDescriptionB
@@ -2145,65 +2132,65 @@ The multiclass support is handled according to a one-vs-one scheme.
 %
 \skltype{C-Support Vector Classifier}{svm|SVC}
 \begin{itemize}
-  \item \xmlNode{C} , \xmlDesc{float, optional field (default=1.0)},
+  \item \xmlNode{C}, \xmlDesc{float, optional field (default=1.0)},
   %
   Penalty parameter C of the error term.
   %
-  \item \xmlNode{kernel} , \xmlDesc{string, optional (default=’rbf’)},
+  \item \xmlNode{kernel}, \xmlDesc{string, optional (default='rbf')},
   %
   Specifies the kernel type to be used in the algorithm.
   %
-  It must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’,
-  ‘precomputed’ or a callable.
+  It must be one of `linear', `poly', `rbf', `sigmoid',
+  `precomputed' or a callable.
   %
-  If none is given, ‘rbf’ will be used.
+  If none is given, `rbf' will be used.
   %
   If a callable is given it is used to precompute the kernel matrix.
   %
-  \item \xmlNode{degree} , \xmlDesc{int, optional field (default=3)},
+  \item \xmlNode{degree}, \xmlDesc{int, optional field (default=3)},
   %
-  Degree of the polynomial kernel function (‘poly’).
+  Degree of the polynomial kernel function (`poly').
   %
   Ignored by all other kernels.
   %
-  \item \xmlNode{gamma} , \xmlDesc{float, optional field (default=0.0)},
+  \item \xmlNode{gamma}, \xmlDesc{float, optional field (default=0.0)},
   %
-  Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’.
+  Kernel coefficient for `rbf', `poly' and `sigmoid'.
   %
   If gamma is 0.0 then 1/n\_features will be used instead.
   %
-  \item \xmlNode{coef0} , \xmlDesc{float, optional field (default=0.0)},
+  \item \xmlNode{coef0}, \xmlDesc{float, optional field (default=0.0)},
   %
   Independent term in kernel function.
   %
-  It is only significant in ‘poly’ and ‘sigmoid’.
+  It is only significant in `poly' and `sigmoid'.
   %
-  \item \xmlNode{probability} , \xmlDesc{boolean, optional field
+  \item \xmlNode{probability}, \xmlDesc{boolean, optional field
       (default=False)},
   %
   Whether to enable probability estimates.
   %
   This must be enabled prior to calling fit, and will slow down that method.
   %
-  \item \xmlNode{shrinking} , \xmlDesc{boolean, optional field
+  \item \xmlNode{shrinking}, \xmlDesc{boolean, optional field
       (default=True)},
   %
   Whether to use the shrinking heuristic.
   %
   \item \tolDescriptionC{}
   %
-  \item \xmlNode{cache\_size} , \xmlDesc{float, optional
+  \item \xmlNode{cache\_size}, \xmlDesc{float, optional
       field},
   %
   Specify the size of the kernel cache (in MB)
-  \item \xmlNode{class\_weight} , \xmlDesc{{dict, ‘auto’},
+  \item \xmlNode{class\_weight}, \xmlDesc{{dict, `auto'},
       optional},
   %
   Set the parameter C of class i to class\_weight[i]*C for SVC.
   %
   If not given, all classes are supposed to have weight one.
   %
-  The ‘auto’ mode uses the values of y to automatically adjust weights
+  The `auto' mode uses the values of y to automatically adjust weights
   inversely proportional to class frequencies.
   %
   \item \verDescriptionA{False}
@@ -2213,7 +2200,7 @@ The multiclass support is handled according to a one-vs-one scheme.
   %
   \item \maxIterDescription{-1}
   %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
+  \item \xmlNode{random\_state}, \xmlDesc{int seed, RandomState
       instance, or None (default)},
   %
   The seed of the pseudo random number generator to use when shuffling the data
@@ -2230,52 +2217,52 @@ The implementation is based on libsvm.
 %
 \skltype{Nu-Support Vector Classifier}{svm|NuSVC}
 \begin{itemize}
-  \item \xmlNode{nu} , \xmlDesc{float, optional field (default=0.5)},
+  \item \xmlNode{nu}, \xmlDesc{float, optional field (default=0.5)},
   %
   An upper bound on the fraction of training errors and a lower bound of the
   fraction of support vectors.
   %
   Should be in the interval (0, 1].
   %
-  \item \xmlNode{kernel} , \xmlDesc{string, optional field
-      (default=’rbf’)},
+  \item \xmlNode{kernel}, \xmlDesc{string, optional field
+      (default='rbf')},
   %
   Specifies the kernel type to be used in the algorithm.
   %
-  It must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’,
-  ‘precomputed’ or a callable.
+  It must be one of `linear', `poly', `rbf', `sigmoid',
+  `precomputed' or a callable.
   %
-  If none is given, ‘rbf’ will be used.
+  If none is given, `rbf' will be used.
   %
   If a callable is given it is used to precompute the kernel matrix.
   %
-  \item \xmlNode{degree} , \xmlDesc{int, optional field (default=3)},
+  \item \xmlNode{degree}, \xmlDesc{int, optional field (default=3)},
   %
   degree of kernel function is significant only in poly, rbf, sigmoid
-  \item \xmlNode{gamma} , \xmlDesc{float, optional field (default=0.0)},
+  \item \xmlNode{gamma}, \xmlDesc{float, optional field (default=0.0)},
   %
   kernel coefficient for rbf and poly, if gamma is 0.0 then 1/n\_features will be taken.
   %
-  \item \xmlNode{coef0} , \xmlDesc{float, optional field (default=0.0)},
+  \item \xmlNode{coef0}, \xmlDesc{float, optional field (default=0.0)},
   %
   independent term in kernel function.
   %
   It is only significant in poly/sigmoid.
   %
-  \item \xmlNode{probability} , \xmlDesc{boolean, optional field
+  \item \xmlNode{probability}, \xmlDesc{boolean, optional field
       (default=False)},
   %
   Whether to enable probability estimates.
   %
   This must be enabled prior to calling fit, and will slow down that method.
   %
-  \item \xmlNode{shrinking} , \xmlDesc{boolean, optional field
+  \item \xmlNode{shrinking}, \xmlDesc{boolean, optional field
       (default=True)},
   %
   Whether to use the shrinking heuristic.
   %
   \item \tolDescriptionC{}
-  \item \xmlNode{cache\_size} , \xmlDesc{float, optional
+  \item \xmlNode{cache\_size}, \xmlDesc{float, optional
       field},
   %
   Specify the size of the kernel cache (in MB)
@@ -2286,7 +2273,7 @@ The implementation is based on libsvm.
   %
   \item \maxIterDescription{-1}
   %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
+  \item \xmlNode{random\_state}, \xmlDesc{int seed, RandomState
       instance, or None (default)},
   %
   The seed of the pseudo random number generator to use when shuffling the data
@@ -2305,11 +2292,11 @@ The implementations is a based on libsvm.
 %
 \skltype{Support Vector Regressor}{svm|SVR}
 \begin{itemize}
-  \item \xmlNode{C} , \xmlDesc{float, optional field (default=1.0)},
+  \item \xmlNode{C}, \xmlDesc{float, optional field (default=1.0)},
   %
   penalty parameter C of the error term.
   %
-  \item \xmlNode{epsilon} , \xmlDesc{float, optional field (default=0.1)},
+  \item \xmlNode{epsilon}, \xmlDesc{float, optional field (default=0.1)},
   %
   epsilon in the epsilon-SVR model.
   %
@@ -2317,45 +2304,45 @@ The implementations is a based on libsvm.
   training loss function with points predicted within a distance epsilon from
   the actual value.
   %
-  \item \xmlNode{kernel} , \xmlDesc{string, optional field
-      (default=’rbf’)},
+  \item \xmlNode{kernel}, \xmlDesc{string, optional field
+      (default='rbf')},
   %
   Specifies the kernel type to be used in the algorithm.
   %
-  It must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’,
-  ‘precomputed’ or a callable.
+  It must be one of `linear', `poly', `rbf', `sigmoid',
+  `precomputed' or a callable.
   %
-  If none is given, ‘rbf’ will be used.
+  If none is given, `rbf' will be used.
   %
   If a callable is given it is used to precompute the kernel matrix.
   %
-  \item \xmlNode{degree} , \xmlDesc{float, optional field (default=3.0)},
+  \item \xmlNode{degree}, \xmlDesc{float, optional field (default=3.0)},
   %
   degree of kernel function is significant only in poly, rbf, sigmoid
-  \item \xmlNode{gamma} , \xmlDesc{float, optional field (default=0.0)},
+  \item \xmlNode{gamma}, \xmlDesc{float, optional field (default=0.0)},
   %
   kernel coefficient for rbf and poly, if gamma is 0.0 then 1/n\_features will be taken.
   %
-  \item \xmlNode{coef0} , \xmlDesc{float, optional field (default=0.0)},
+  \item \xmlNode{coef0}, \xmlDesc{float, optional field (default=0.0)},
   %
   independent term in kernel function.
   %
   It is only significant in poly/sigmoid.
   %
-  \item \xmlNode{probability} , \xmlDesc{boolean, optional field
+  \item \xmlNode{probability}, \xmlDesc{boolean, optional field
       (default=False)},
   %
   Whether to enable probability estimates.
   %
   This must be enabled prior to calling fit, and will slow down that method.
   %
-  \item \xmlNode{shrinking} , \xmlDesc{boolean, optional field
+  \item \xmlNode{shrinking}, \xmlDesc{boolean, optional field
       (default=True)},
   %
   Whether to use the shrinking heuristic.
   %
   \item \tolDescriptionC{}
-  \item \xmlNode{cache\_size} , \xmlDesc{float, optional
+  \item \xmlNode{cache\_size}, \xmlDesc{float, optional
       field},
   %
   Specify the size of the kernel cache (in MB)
@@ -2365,7 +2352,7 @@ The implementations is a based on libsvm.
   %
   \item \maxIterDescription{-1}
   %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
+  \item \xmlNode{random\_state}, \xmlDesc{int seed, RandomState
       instance, or None (default)},
   %
   The seed of the pseudo random number generator to use when shuffling the data
@@ -2403,7 +2390,7 @@ This is the most commonly used strategy and is a fair default choice.
 %
 \skltype{One-vs-the-rest (OvR) multiclass/multilabel classifier}{multiClass|OneVsRestClassifier}
 \begin{itemize}
-  \item \xmlNode{estimator} , \xmlDesc{boolean, required field},
+  \item \xmlNode{estimator}, \xmlDesc{boolean, required field},
   %
   An estimator object implementing fit and one of decision\_function or
   predict\_proba.
@@ -2441,7 +2428,7 @@ times.
 %
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
-  \item \xmlNode{estimator} , \xmlDesc{boolean, required field},
+  \item \xmlNode{estimator}, \xmlDesc{boolean, required field},
   %
   An estimator object implementing fit and one of decision\_function or
   predict\_proba.
@@ -2473,7 +2460,7 @@ can be controlled by the user, either for compressing the model ($0 < code_size
 %
 \skltype{Error-Correcting Output-Code multiclass classifier}{multiClass|OutputCodeClassifier}
 \begin{itemize}
-  \item \xmlNode{estimator} , \xmlDesc{xml node, required field},
+  \item \xmlNode{estimator}, \xmlDesc{xml node, required field},
   %
   An estimator object implementing fit and one of decision\_function or
   predict\_proba.
@@ -2487,7 +2474,7 @@ can be controlled by the user, either for compressing the model ($0 < code_size
     construction of the multi-class algorithms; each sub-sequential node depends
     on the chosen ROM;
 \end{itemize}
-  \item \xmlNode{code\_size} , \xmlDesc{float, required field},
+  \item \xmlNode{code\_size}, \xmlDesc{float, required field},
   %
   ercentage of the number of classes to be used to create the code book.
   %
@@ -2514,11 +2501,11 @@ can be controlled by the user, either for compressing the model ($0 < code_size
 \paragraph{Naive Bayes.}
 \label{naiveBayes}
 Naive Bayes methods are a set of supervised learning algorithms based on
-applying Bayes’ theorem with the “naive” assumption of independence
+applying Bayes' theorem with the “naive” assumption of independence
 between every pair of features.
 %
 Given a class variable y and a dependent feature vector x\_1 through x\_n,
-Bayes’ theorem states the following relationship:
+Bayes' theorem states the following relationship:
 \begin{equation}
 P(y \mid x_1, \dots, x_n) = \frac{P(y) P(x_1, \dots x_n \mid y)}
 {P(x_1, \dots, x_n)}
@@ -2619,12 +2606,12 @@ Lidstone smoothing.
 %
 \skltype{Multinomial Naive Bayes strategy}{naiveBayes|MultinomialNB}
 \begin{itemize}
-  \item \xmlNode{alpha} , \xmlDesc{float, optional field},
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field},
   %
   Additive (Laplace/Lidstone) smoothing parameter (0 for no smoothing).
   %
   \default{1.0}
-  \item \xmlNode{fit\_prior} , \xmlDesc{boolean, required
+  \item \xmlNode{fit\_prior}, \xmlDesc{boolean, required
       field},
   %
   Whether to learn class prior probabilities or not.
@@ -2632,7 +2619,7 @@ Lidstone smoothing.
   If false, a uniform prior will be used.
   %
   \default{False}
-  \item \xmlNode{class\_prior} , \xmlDesc{array-like float
+  \item \xmlNode{class\_prior}, \xmlDesc{array-like float
       (n\_classes), optional field},
   %
   Prior probabilities of the classes.
@@ -2659,7 +2646,7 @@ The decision rule for Bernoulli naive Bayes is based on
 \begin{equation}
 P(x_i \mid y) = P(i \mid y) x_i + (1 - P(i \mid y)) (1 - x_i)
 \end{equation}
-which differs from multinomial NB’s rule in that it explicitly penalizes the
+which differs from multinomial NB's rule in that it explicitly penalizes the
 non-occurrence of a feature i that is an indicator for class y, where the
 multinomial variant would simply ignore a non-occurring feature.
 %
@@ -2673,26 +2660,26 @@ It is advisable to evaluate both models, if time permits.
 %
 \skltype{Bernoulli Naive Bayes strategy}{naiveBayes|BernoulliNB}
 \begin{itemize}
-  \item \xmlNode{alpha} , \xmlDesc{float, optional field},
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field},
   %
   Additive (Laplace/Lidstone) smoothing parameter (0 for no smoothing).
   %
   \default{1.0}
-  \item \xmlNode{binarize} , \xmlDesc{float, optional field},
+  \item \xmlNode{binarize}, \xmlDesc{float, optional field},
   %
   Threshold for binarizing (mapping to booleans) of sample features.
   %
   If None, input is presumed to already consist of binary vectors..
   %
   \default{None}
-  \item \xmlNode{fit\_prior} , \xmlDesc{boolean, optional field},
+  \item \xmlNode{fit\_prior}, \xmlDesc{boolean, optional field},
   %
   Whether to learn class prior probabilities or not.
   %
   If false, a uniform prior will be used.
   %
   \default{False}
-  \item \xmlNode{class\_prior} , \xmlDesc{array-like float (n\_classes),
+  \item \xmlNode{class\_prior}, \xmlDesc{array-like float (n\_classes),
       optional field},
   %
   Prior probabilities of the classes.
@@ -2744,18 +2731,18 @@ BallTree, KDTree, and a brute-force algorithm.
 %The choice of neighbors search algorithm is controlled through the keyword 'algorithm', which must be one of ['auto', 'ball_tree', 'kd_tree', 'brute']. When the default value 'auto' is passed, the algorithm attempts to determine the best approach from the training data.
 \skltype{Nearest Neighbors strategy}{neighbors|NearestNeighbors}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors} , \xmlDesc{integer, optional field},
+  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional field},
   %
   Number of neighbors to use by default for k\_neighbors queries..
   %
   \default{5}
-  \item \xmlNode{radius} , \xmlDesc{float, optional field},
+  \item \xmlNode{radius}, \xmlDesc{float, optional field},
   %
   Range of parameter space to use by default for :meth`radius\_neighbors`
   queries.
   %
   \default{1.0}
-  \item \xmlNode{algorithm} , \xmlDesc{string, optional field},
+  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
   %
   Algorithm used to compute the nearest neighbors:
 \begin{itemize}
@@ -2772,7 +2759,7 @@ BallTree, KDTree, and a brute-force algorithm.
   brute force.
   %
   \default{auto}
-  \item \xmlNode{leaf\_size} , \xmlDesc{integer, optional
+  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
       field},
   %
   Leaf size passed to BallTree or KDTree.
@@ -2783,7 +2770,7 @@ BallTree, KDTree, and a brute-force algorithm.
   The optimal value depends on the nature of the problem.
   %
   \default{30}
-  \item \xmlNode{p} , \xmlDesc{integer, optional field},
+  \item \xmlNode{p}, \xmlDesc{integer, optional field},
   %
   Parameter for the Minkowski metric.
   %
@@ -2811,13 +2798,13 @@ where k is an integer value specified by the user.
 %
 \skltype{K Neighbors Classifier}{neighbors|KNeighborsClassifier}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors} , \xmlDesc{integer, optional
+  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional
       field},
   %
   Number of neighbors to use by default for k\_neighbors queries..
   %
   \default{5}
-  \item \xmlNode{weights} , \xmlDesc{string, optional field},
+  \item \xmlNode{weights}, \xmlDesc{string, optional field},
   %
   Weight function used in prediction.
   %
@@ -2834,13 +2821,13 @@ where k is an integer value specified by the user.
 \end{itemize}
   \default{uniform}
 
-  \item \xmlNode{radius} , \xmlDesc{float, optional field},
+  \item \xmlNode{radius}, \xmlDesc{float, optional field},
   %
   Range of parameter space to use by default for :meth`radius\_neighbors`
   queries.
   %
   \default{1.0}
-  \item \xmlNode{algorithm} , \xmlDesc{string, optional field},
+  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
   %
   Algorithm used to compute the nearest neighbors:
 \begin{itemize}
@@ -2857,7 +2844,7 @@ where k is an integer value specified by the user.
   brute force.
   %
   \default{auto}
-  \item \xmlNode{metric} , \xmlDesc{string, optional field},
+  \item \xmlNode{metric}, \xmlDesc{string, optional field},
   %
   the distance metric to use for the tree.
   %
@@ -2865,7 +2852,7 @@ where k is an integer value specified by the user.
   Euclidean metric.
   %
   \default{minkowski}
-  \item \xmlNode{leaf\_size} , \xmlDesc{integer, optional
+  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
       field},
   %
   Leaf size passed to BallTree or KDTree.
@@ -2876,7 +2863,7 @@ where k is an integer value specified by the user.
   The optimal value depends on the nature of the problem.
   %
   \default{30}
-  \item \xmlNode{p} , \xmlDesc{integer, optional field},
+  \item \xmlNode{p}, \xmlDesc{integer, optional field},
   %
   Parameter for the Minkowski metric.
   %
@@ -2904,13 +2891,13 @@ of each training point, where r is a floating-point value specified by the user.
 %
 \skltype{Radius Neighbors Classifier}{neighbors|RadiusNeighbors}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors} , \xmlDesc{integer, optional
+  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional
       field},
   %
   Number of neighbors to use by default for k\_neighbors queries..
   %
   \default{5}
-  \item \xmlNode{weights} , \xmlDesc{string, optional field},
+  \item \xmlNode{weights}, \xmlDesc{string, optional field},
   %
   Weight function used in prediction.
   %
@@ -2926,13 +2913,13 @@ of each training point, where r is a floating-point value specified by the user.
     %
 \end{itemize}
   \default{uniform}
-  \item \xmlNode{radius} , \xmlDesc{float, optional field},
+  \item \xmlNode{radius}, \xmlDesc{float, optional field},
   %
   Range of parameter space to use by default for :meth`radius\_neighbors`
   queries.
   %
   \default{1.0}
-  \item \xmlNode{algorithm} , \xmlDesc{string, optional field},
+  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
   %
   Algorithm used to compute the nearest neighbors:
 \begin{itemize}
@@ -2949,7 +2936,7 @@ of each training point, where r is a floating-point value specified by the user.
   brute force.
   %
   \default{auto}
-  \item \xmlNode{metric} , \xmlDesc{string, optional field},
+  \item \xmlNode{metric}, \xmlDesc{string, optional field},
   %
   the distance metric to use for the tree.
   %
@@ -2957,7 +2944,7 @@ of each training point, where r is a floating-point value specified by the user.
   Euclidean metric.
   %
   \default{minkowski}
-  \item \xmlNode{leaf\_size} , \xmlDesc{integer, optional
+  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
       field},
   %
   Leaf size passed to BallTree or KDTree.
@@ -2968,7 +2955,7 @@ of each training point, where r is a floating-point value specified by the user.
   The optimal value depends on the nature of the problem.
   %
   \default{30}
-  \item \xmlNode{p} , \xmlDesc{integer, optional field},
+  \item \xmlNode{p}, \xmlDesc{integer, optional field},
   %
   Parameter for the Minkowski metric.
   %
@@ -2978,7 +2965,7 @@ of each training point, where r is a floating-point value specified by the user.
   For arbitrary p, minkowski distance (L\_p) is used.
   %
   \default{2}
-  \item \xmlNode{outlier\_label} , \xmlDesc{integer, optional
+  \item \xmlNode{outlier\_label}, \xmlDesc{integer, optional
       field},
   %
   Label, which is given for outlier samples (samples with no neighbors on given
@@ -3003,12 +2990,12 @@ where k is an integer value specified by the user.
 %
 \skltype{K Neighbors Regressor}{neighbors|KNeighborsRegressor}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors} , \xmlDesc{integer, optional field},
+  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional field},
   %
   Number of neighbors to use by default for k\_neighbors queries..
   %
   \default{5}
-  \item \xmlNode{weights} , \xmlDesc{string, optional field},
+  \item \xmlNode{weights}, \xmlDesc{string, optional field},
   %
   Weight function used in prediction.
   %
@@ -3025,13 +3012,13 @@ where k is an integer value specified by the user.
 \end{itemize}
   \default{uniform}
 
-  \item \xmlNode{radius} , \xmlDesc{float, optional field},
+  \item \xmlNode{radius}, \xmlDesc{float, optional field},
   %
   Range of parameter space to use by default for :meth`radius\_neighbors`
   queries.
   %
   \default{1.0}
-  \item \xmlNode{algorithm} , \xmlDesc{string, optional field},
+  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
   %
   Algorithm used to compute the nearest neighbors:
 \begin{itemize}
@@ -3048,7 +3035,7 @@ where k is an integer value specified by the user.
   brute force.
   %
   \default{auto}
-  \item \xmlNode{metric} , \xmlDesc{string, optional field},
+  \item \xmlNode{metric}, \xmlDesc{string, optional field},
   %
   the distance metric to use for the tree.
   %
@@ -3056,7 +3043,7 @@ where k is an integer value specified by the user.
   Euclidean metric.
   %
   \default{minkowski}
-  \item \xmlNode{leaf\_size} , \xmlDesc{integer, optional
+  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
       field},
   %
   Leaf size passed to BallTree or KDTree.
@@ -3067,7 +3054,7 @@ where k is an integer value specified by the user.
   The optimal value depends on the nature of the problem.
   %
   \default{30}
-  \item \xmlNode{p} , \xmlDesc{integer, optional field},
+  \item \xmlNode{p}, \xmlDesc{integer, optional field},
   %
   Parameter for the Minkowski metric.
   %
@@ -3093,13 +3080,13 @@ query point, where r is a floating-point value specified by the user.
 %
 \skltype{Radius Neighbors Regressor}{neighbors|RadiusNeighborsRegressor}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors} , \xmlDesc{integer, optional
+  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional
       field},
   %
   Number of neighbors to use by default for k\_neighbors queries..
   %
   \default{5}
-  \item \xmlNode{weights} , \xmlDesc{string, optional field},
+  \item \xmlNode{weights}, \xmlDesc{string, optional field},
   %
   Weight function used in prediction.
   %
@@ -3115,13 +3102,13 @@ query point, where r is a floating-point value specified by the user.
     %
 \end{itemize}
   \default{uniform}
-  \item \xmlNode{radius} , \xmlDesc{float, optional field},
+  \item \xmlNode{radius}, \xmlDesc{float, optional field},
   %
   Range of parameter space to use by default for :meth`radius\_neighbors`
   queries.
   %
   \default{1.0}
-  \item \xmlNode{algorithm} , \xmlDesc{string, optional field},
+  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
   %
   Algorithm used to compute the nearest neighbors:
 \begin{itemize}
@@ -3138,7 +3125,7 @@ query point, where r is a floating-point value specified by the user.
   brute force.
   %
   \default{auto}
-  \item \xmlNode{metric} , \xmlDesc{string, optional field},
+  \item \xmlNode{metric}, \xmlDesc{string, optional field},
   %
   the distance metric to use for the tree.
   %
@@ -3146,7 +3133,7 @@ query point, where r is a floating-point value specified by the user.
   Euclidean metric.
   %
   \default{minkowski}
-  \item \xmlNode{leaf\_size} , \xmlDesc{integer, optional
+  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
       field},
   %
   Leaf size passed to BallTree or KDTree.
@@ -3157,7 +3144,7 @@ query point, where r is a floating-point value specified by the user.
   The optimal value depends on the nature of the problem.
   %
   \default{30}
-  \item \xmlNode{p} , \xmlDesc{integer, optional field},
+  \item \xmlNode{p}, \xmlDesc{integer, optional field},
   %
   Parameter for the Minkowski metric.
   %
@@ -3167,7 +3154,7 @@ query point, where r is a floating-point value specified by the user.
   For arbitrary p, minkowski distance (L\_p) is used.
   %
   \default{2}
-  \item \xmlNode{outlier\_label} , \xmlDesc{integer, optional
+  \item \xmlNode{outlier\_label}, \xmlDesc{integer, optional
       field},
   %
   Label, which is given for outlier samples (samples with no neighbors on given
@@ -3191,7 +3178,7 @@ drastically different variances, as equal variance in all dimensions is assumed.
 %
 \skltype{Nearest Centroid Classifier}{neighbors|NearestCentroid}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors} , \xmlDesc{float, optional
+  \item \xmlNode{n\_neighbors}, \xmlDesc{float, optional
       field},
   %
   Threshold for shrinking centroids to remove features.
@@ -3209,16 +3196,16 @@ drastically different variances, as equal variance in all dimensions is assumed.
 \label{QDA}
 The \textit{Quadratic Discriminant Analysis} is a classifier with a quadratic
 decision boundary, generated by fitting class conditional densities to the data
-and using Bayes’ rule.The model fits a Gaussian density to each class.
+and using Bayes' rule.The model fits a Gaussian density to each class.
 %
 \skltype{Quadratic Discriminant Analysis Classifier}{qda|QDA}
 \begin{itemize}
-  \item \xmlNode{priors} , \xmlDesc{array-like (n\_classes), optional field},
+  \item \xmlNode{priors}, \xmlDesc{array-like (n\_classes), optional field},
   %
   Priors on classes.
   %
   \default{None}
-  \item \xmlNode{reg\_param} , \xmlDesc{float, optional field},
+  \item \xmlNode{reg\_param}, \xmlDesc{float, optional field},
   %
   Regularizes the covariance estimate as (1-reg\_param)*Sigma +
   reg\_param*Identity(n\_features).
@@ -3322,7 +3309,7 @@ decision tree logic.
 %
 \skltype{Decision Tree Classifier}{tree|DecisionTreeClassifier}
 \begin{itemize}
-  \item \xmlNode{criterion} , \xmlDesc{string, optional field},
+  \item \xmlNode{criterion}, \xmlDesc{string, optional field},
   %
   The function to measure the quality of a split.
   %
@@ -3330,7 +3317,7 @@ decision tree logic.
   information gain.
   %
   \default{gini}
-  \item \xmlNode{splitter} , \xmlDesc{string, optional field},
+  \item \xmlNode{splitter}, \xmlDesc{string, optional field},
   %
   The strategy used to choose the split at each node.
   %
@@ -3338,7 +3325,7 @@ decision tree logic.
   choose the best random split.
   %
   \default{best}
-  \item \xmlNode{max\_features} , \xmlDesc{int, float or string,
+  \item \xmlNode{max\_features}, \xmlDesc{int, float or string,
       optional field},
   %
   The number of features to consider when looking for the best split:
@@ -3361,7 +3348,7 @@ decision tree logic.
   max\_features features.
   %
   \\\default{None}
-  \item \xmlNode{max\_depth} , \xmlDesc{integer, optional
+  \item \xmlNode{max\_depth}, \xmlDesc{integer, optional
       field},
   %
   The maximum depth of the tree.
@@ -3372,19 +3359,19 @@ decision tree logic.
   Ignored if max\_samples\_leaf is not None.
   %
   \default{None}
-  \item \xmlNode{min\_samples\_split} , \xmlDesc{
+  \item \xmlNode{min\_samples\_split}, \xmlDesc{
       integer, optional field},
   %
   The minimum number of samples required to split an internal node.
   %
   \default{2}
-  \item \xmlNode{min\_samples\_leaf} , \xmlDesc{
+  \item \xmlNode{min\_samples\_leaf}, \xmlDesc{
       integer, optional field},
   %
   The minimum number of samples required to be at a leaf node.
   %
   \default{1}
-  \item \xmlNode{max\_leaf\_nodes} , \xmlDesc{
+  \item \xmlNode{max\_leaf\_nodes}, \xmlDesc{
       integer, optional field},
   %
   Grow a tree with max\_leaf\_nodes in best-first fashion.
@@ -3406,7 +3393,7 @@ decision tree logic.
 %
 \skltype{Decision Tree Regressor}{tree|DecisionTreeRegressor}
 \begin{itemize}
-  \item \xmlNode{criterion} , \xmlDesc{string, optional field},
+  \item \xmlNode{criterion}, \xmlDesc{string, optional field},
   %
   The function to measure the quality of a split.
   %
@@ -3414,7 +3401,7 @@ decision tree logic.
   information gain.
   %
   \default{gini}
-  \item \xmlNode{splitter} , \xmlDesc{string, optional field},
+  \item \xmlNode{splitter}, \xmlDesc{string, optional field},
   %
   The strategy used to choose the split at each node.
   %
@@ -3422,7 +3409,7 @@ decision tree logic.
   choose the best random split.
   %
   \default{best}
-  \item \xmlNode{max\_features} , \xmlDesc{int, float or string,
+  \item \xmlNode{max\_features}, \xmlDesc{int, float or string,
       optional field},
   %
   The number of features to consider when looking for the best split:
@@ -3445,7 +3432,7 @@ decision tree logic.
   max\_features features.
   %
   \\\default{None}
-  \item \xmlNode{max\_depth} , \xmlDesc{integer, optional
+  \item \xmlNode{max\_depth}, \xmlDesc{integer, optional
       field},
   %
   The maximum depth of the tree.
@@ -3456,19 +3443,19 @@ decision tree logic.
   Ignored if max\_samples\_leaf is not None.
   %
   \default{None}
-  \item \xmlNode{min\_samples\_split} , \xmlDesc{
+  \item \xmlNode{min\_samples\_split}, \xmlDesc{
       integer, optional field},
   %
   The minimum number of samples required to split an internal node.
   %
   \default{2}
-  \item \xmlNode{min\_samples\_leaf} , \xmlDesc{
+  \item \xmlNode{min\_samples\_leaf}, \xmlDesc{
       integer, optional field},
   %
   The minimum number of samples required to be at a leaf node.
   %
   \default{1}
-  \item \xmlNode{max\_leaf\_nodes} , \xmlDesc{
+  \item \xmlNode{max\_leaf\_nodes}, \xmlDesc{
       integer, optional field},
   %
   Grow a tree with max\_leaf\_nodes in best-first fashion.
@@ -3498,7 +3485,7 @@ tree.
 %
 \skltype{Extra Tree Classifier}{tree|ExtraTreeClassifier}
 \begin{itemize}
-  \item \xmlNode{criterion} , \xmlDesc{string, optional field},
+  \item \xmlNode{criterion}, \xmlDesc{string, optional field},
   %
   The function to measure the quality of a split.
   %
@@ -3506,7 +3493,7 @@ tree.
   information gain.
   %
   \default{gini}
-  \item \xmlNode{splitter} , \xmlDesc{string, optional field},
+  \item \xmlNode{splitter}, \xmlDesc{string, optional field},
   %
   The strategy used to choose the split at each node.
   %
@@ -3514,7 +3501,7 @@ tree.
   choose the best random split.
   %
   \default{best}
-  \item \xmlNode{max\_features} , \xmlDesc{int, float or string,
+  \item \xmlNode{max\_features}, \xmlDesc{int, float or string,
       optional field},
   %
   The number of features to consider when looking for the best split:
@@ -3537,7 +3524,7 @@ tree.
   max\_features features.
   %
   \\\default{None}
-  \item \xmlNode{max\_depth} , \xmlDesc{integer, optional
+  \item \xmlNode{max\_depth}, \xmlDesc{integer, optional
       field},
   %
   The maximum depth of the tree.
@@ -3548,19 +3535,19 @@ tree.
   Ignored if max\_samples\_leaf is not None.
   %
   \default{None}
-  \item \xmlNode{min\_samples\_split} , \xmlDesc{
+  \item \xmlNode{min\_samples\_split}, \xmlDesc{
       integer, optional field},
   %
   The minimum number of samples required to split an internal node.
   %
   \default{2}
-  \item \xmlNode{min\_samples\_leaf} , \xmlDesc{
+  \item \xmlNode{min\_samples\_leaf}, \xmlDesc{
       integer, optional field},
   %
   The minimum number of samples required to be at a leaf node.
   %
   \default{1}
-  \item \xmlNode{max\_leaf\_nodes} , \xmlDesc{
+  \item \xmlNode{max\_leaf\_nodes}, \xmlDesc{
       integer, optional field},
   %
   Grow a tree with max\_leaf\_nodes in best-first fashion.
@@ -3590,7 +3577,7 @@ tree.
 %
 \skltype{Extra Tree Regressor}{tree|ExtraTreeRegressor}
 \begin{itemize}
-  \item \xmlNode{criterion} , \xmlDesc{string, optional field},
+  \item \xmlNode{criterion}, \xmlDesc{string, optional field},
   %
   The function to measure the quality of a split.
   %
@@ -3598,7 +3585,7 @@ tree.
   information gain.
   %
   \default{gini}
-  \item \xmlNode{splitter} , \xmlDesc{string, optional field},
+  \item \xmlNode{splitter}, \xmlDesc{string, optional field},
   %
   The strategy used to choose the split at each node.
   %
@@ -3606,7 +3593,7 @@ tree.
   choose the best random split.
   %
   \default{best}
-  \item \xmlNode{max\_features} , \xmlDesc{int, float or string,
+  \item \xmlNode{max\_features}, \xmlDesc{int, float or string,
       optional field},
   %
   The number of features to consider when looking for the best split:
@@ -3629,7 +3616,7 @@ tree.
   max\_features features.
   %
   \\\default{None}
-  \item \xmlNode{max\_depth} , \xmlDesc{integer, optional
+  \item \xmlNode{max\_depth}, \xmlDesc{integer, optional
       field},
   %
   The maximum depth of the tree.
@@ -3640,19 +3627,19 @@ tree.
   Ignored if max\_samples\_leaf is not None.
   %
   \default{None}
-  \item \xmlNode{min\_samples\_split} , \xmlDesc{
+  \item \xmlNode{min\_samples\_split}, \xmlDesc{
       integer, optional field},
   %
   The minimum number of samples required to split an internal node.
   %
   \default{2}
-  \item \xmlNode{min\_samples\_leaf} , \xmlDesc{
+  \item \xmlNode{min\_samples\_leaf}, \xmlDesc{
       integer, optional field},
   %
   The minimum number of samples required to be at a leaf node.
   %
   \default{1}
-  \item \xmlNode{max\_leaf\_nodes} , \xmlDesc{
+  \item \xmlNode{max\_leaf\_nodes}, \xmlDesc{
       integer, optional field},
   %
   Grow a tree with max\_leaf\_nodes in best-first fashion.
@@ -3707,7 +3694,7 @@ the sub-node \xmlNode{SKLtype}\texttt{GaussianProcess|GaussianProcess}\xmlNode{/
 %
 In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
-  \item \xmlNode{regr} , \xmlDesc{string, optional field},
+  \item \xmlNode{regr}, \xmlDesc{string, optional field},
   %
   A regression function returning an array of outputs of the linear regression
   functional basis.
@@ -3719,10 +3706,10 @@ In addition to this XML node, several others need (or not) to be inputted:
   'constant', 'linear', 'quadratic'.
   %
   \default{constant}
-  \item \xmlNode{corr} , \xmlDesc{string, optional field},
+  \item \xmlNode{corr}, \xmlDesc{string, optional field},
   %
   A stationary autocorrelation function returning the autocorrelation between
-  two points x and x’.
+  two points x and x'.
   %
   Default assumes a squared-exponential autocorrelation model.
   %
@@ -3731,21 +3718,21 @@ In addition to this XML node, several others need (or not) to be inputted:
   'cubic', 'linear'.
   %
   \default{squared\_exponential}
-  \item \xmlNode{beta0} , \xmlDesc{float, array-like, optional field},
+  \item \xmlNode{beta0}, \xmlDesc{float, array-like, optional field},
   %
   The regression weight vector to perform Ordinary Kriging (OK).
   %
   \default{Universal Kriging}
-  \item \xmlNode{storage\_mode} , \xmlDesc{string, optional
+  \item \xmlNode{storage\_mode}, \xmlDesc{string, optional
       field},
   %
   A string specifying whether the Cholesky decomposition of the correlation
-  matrix should be stored in the class (storage\_mode = ‘full’) or not
-  (storage\_mode = ‘light’).
+  matrix should be stored in the class (storage\_mode = `full') or not
+  (storage\_mode = `light').
   %
   \default{full}
   \item \verDescriptionA{False}
-  \item \xmlNode{theta0} , \xmlDesc{float, array-like, optional field},
+  \item \xmlNode{theta0}, \xmlDesc{float, array-like, optional field},
   %
   An array with shape (n\_features, ) or (1, ).
   %
@@ -3755,29 +3742,29 @@ In addition to this XML node, several others need (or not) to be inputted:
   point for the maximum likelihood estimation of the best set of parameters.
   %
   \default{[1e-1]}
-  \item \xmlNode{thetaL} , \xmlDesc{float, array-like, optional field},
+  \item \xmlNode{thetaL}, \xmlDesc{float, array-like, optional field},
   %
-  An array with shape matching theta0’s.
+  An array with shape matching theta0's.
   %
   Lower bound on the autocorrelation parameters for maximum likelihood
   estimation.
   %
   \default{None}
-  \item \xmlNode{thetaU} , \xmlDesc{float, array-like, optional field},
+  \item \xmlNode{thetaU}, \xmlDesc{float, array-like, optional field},
   %
-  An array with shape matching theta0’s.
+  An array with shape matching theta0's.
   %
   Upper bound on the autocorrelation parameters for maximum likelihood
   estimation.
   %
   \default{None}
-  \item \xmlNode{normalize} , \xmlDesc{boolean, optional field},
+  \item \xmlNode{normalize}, \xmlDesc{boolean, optional field},
   %
   Input X and observations y are centered and reduced wrt means and standard
   deviations estimated from the n\_samples observations provided.
   %
   \default{True}
-  \item \xmlNode{nugget} , \xmlDesc{float, optional field},
+  \item \xmlNode{nugget}, \xmlDesc{float, optional field},
   %
   Introduce a nugget effect to allow smooth predictions from noisy data.The
   nugget is added to the diagonal of the assumed training covariance; in this
@@ -3789,14 +3776,14 @@ In addition to this XML node, several others need (or not) to be inputted:
   \default{10.
     %
     * MACHINE\_EPSILON}
-  \item \xmlNode{optimizer} , \xmlDesc{string, optional field},
+  \item \xmlNode{optimizer}, \xmlDesc{string, optional field},
   %
   A string specifying the optimization algorithm to be used.
   %
   Available optimizers are: 'fmin\_cobyla', 'Welch'.
   %
   \default{fmin\_cobyla}
-  \item \xmlNode{random\_start} , \xmlDesc{integer, optional
+  \item \xmlNode{random\_start}, \xmlDesc{integer, optional
       field},
   %
   The number of times the Maximum Likelihood Estimation should be performed from
@@ -3807,7 +3794,7 @@ In addition to this XML node, several others need (or not) to be inputted:
   (log-uniform on [thetaL, thetaU]).
   %
   \default{1}
-  \item \xmlNode{random\_state} , \xmlDesc{integer, optional
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional
       field},
   %
   Seed of the internal random number generator.
@@ -4110,7 +4097,7 @@ def createNewInput(self,inputs,samplerType,**Kwargs):
 As stated previously, the only method the MUST be present in an External Module
 is the \textbf{run} function.
 %
-In this function , the user needs to implement the algorithm that RAVEN has to
+In this function, the user needs to implement the algorithm that RAVEN has to
 execute.
 %
 The \textbf{run} method is generally called after having inquired the
@@ -4161,12 +4148,14 @@ RAVEN supports several different types of PPs.
 %
 Currently in RAVEN the following Post-Processors are available:
 \begin{itemize}
-  \item \textbf{BasicStatistics;}
-  \item \textbf{ComparisonStatistics;}
-  \item \textbf{SafestPoint;}
-  \item \textbf{LimitSurface;}
-  \item \textbf{PrintCSV;}
-  \item \textbf{LoadCsvIntoInternalObject.}
+  \item \textbf{BasicStatistics}
+  \item \textbf{ComparisonStatistics}
+  \item \textbf{SafestPoint}
+  \item \textbf{LimitSurface}
+  \item \textbf{External}
+  \item \textbf{TopologicalDecomposition}
+  \item \textbf{PrintCSV}
+  \item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
 The specifications of this Model must be defined within the XML block
 \xmlNode{PostProcessor}.
@@ -4204,7 +4193,7 @@ to compute all the most important statistical quantities.
 %
 \skltype{BasicStatistics post-processor}{BasicStatistics}
 \begin{itemize}
-  \item \xmlNode{what} , \xmlDesc{comma separated string, required field},
+  \item \xmlNode{what}, \xmlDesc{comma separated string, required field},
   %
   List of quantities need to be computed.
   %
@@ -4229,12 +4218,12 @@ to compute all the most important statistical quantities.
   If all the quantities need to be computed, the user can input in the body of
   \xmlNode{what} the string ``all''.
   %
-  \item \xmlNode{parameters} , \xmlDesc{comma separated string, required
+  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required
       field},
   %
   List of the parameters on which the previous operations need to be applied on
   (e.g., massFlow, Temperature);
-  \item \xmlNode{methodsToRun} , \xmlDesc{comma separated string, optional
+  \item \xmlNode{methodsToRun}, \xmlDesc{comma separated string, optional
       field},
   %
   The method names of an external Function that need to be run before computing
@@ -4404,12 +4393,12 @@ zones that determine a change in the status of the system (Limit Surface).
 
 \skltype{LimitSurface}{LimitSurface}
 \begin{itemize}
-  \item \xmlNode{parameters} , \xmlDesc{comma separated string, required
+  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required
       field},
   %
   List of the parameters that define the uncertain domain and from which the LS
   needs to be computed;
-  \item \xmlNode{tollerance} , \xmlDesc{float, optional field},
+  \item \xmlNode{tollerance}, \xmlDesc{float, optional field},
   %
   Absolute value converge tollerance.
   %
@@ -4479,6 +4468,129 @@ zones that determine a change in the status of the system (Limit Surface).
    ...
 </Simulation>
 ----------------------------------------------
+\end{lstlisting}
+%%%%% PP External %%%%%%%
+\paragraph{External}
+\label{External}
+The \textbf{External} post-processor will execute an arbitrary python function
+defined externally using the \textit{Functions} interface (see 
+Section~\ref{sec:functions} for more details).
+%
+
+In order to use the \textit{External} post-processor, the user needs to set the
+\xmlAttr{subType} attribute to be ``External'': 
+\xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{External}}.
+% 
+The following sub-nodes need to be specified:
+
+\begin{itemize}
+  \item \xmlNode{method}, \xmlAttr{comma separated string, required field},
+  lists the method names of an external Function that will be computed.
+  \item \xmlNode{Assembler}, \xmlAttr{xml node, required field}, contains a 
+  ``list'' of Functions where the \textit{methods} listed above are defined.
+  %
+  The objects must be listed with a rigorous syntax that, except for the xml
+  node tag, is common among all the objects.
+  %
+  Each of these sub-nodes must contain 2 attributes that are used to map them
+  within the simulation framework:
+
+   \begin{itemize}
+     \item \xmlAttr{class}, \textit{required string attribute}, is the main
+     ``class'' the listed object is from, the only acceptable class for
+     this post-processor is \textit{Functions};
+     \item \xmlAttr{type}, \textit{required string attribute}, is the object
+     identifier or sub-type, the only acceptable type for this post-processor is
+     \textit{External}.
+  \end{itemize}
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="externalPP" subType='External' debug='True'>
+      <method>Delta,Sum</method>
+      <Assembler>
+        <Function class='Functions' type='External'>operators</Function> 
+          <!--Here, you can add a Function defined in the
+              Functions block. This should be present or
+              else RAVEN will not know where to find the
+              defined methods.
+            -->
+      </Assembler>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+%%%%% PP TopologicalDecomposition %%%%%%%
+\paragraph{TopologicalDecomposition}
+\label{TopologicalDecomposition}
+The \textbf{TopologicalDecomposition} post-processor will compute an 
+approximated hierarchical Morse-Smale complex and perform linear regression on
+each component. 
+%
+
+In order to use the \textbf{TopologicalDecomposition} post-processor, the user
+needs to set the attribute \xmlAttr{subType}: 
+\xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{TopologicalDecomposition}}. 
+The following is a list of acceptable sub-nodes:
+\begin{itemize}
+  \item \xmlNode{graph} \xmlDesc{, string, optional field}, specifies the type
+  of neighborhood graph used in the algorithm, available options are:
+  \begin{itemize}
+    \item Beta Skeleton
+    \item Relaxed Beta Skeleton
+    \item Approximate KNN
+    \item Delaunay \textit{(disabled)}
+  \end{itemize}
+  \default{Beta Skeleton}
+  \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the 
+  method used for estimating the gradient, available options are:
+  \begin{itemize}
+    \item Steepest
+    \item MaxFlow \textit{(disabled)}
+  \end{itemize}
+  \default{Steepest}
+  \item \xmlNode{beta}, \xmlDesc{float, optional field}, is only used when the
+  \texttt{graph} is set to \textit{Beta Skeleton} or \textit{Relaxed Beta
+  Skeleton}.
+  \default{1.0}
+  \item \xmlNode{knn}, \xmlDesc{integer, optional field}, is the number of
+  neighbors when using the \textit{Approximate KNN} for the \texttt{graph}
+  sub-node and used to speed up the computation of other graphs by using the
+  approximate knn graph as a starting point for pruning. -1 means use a fully
+  connected graph.
+  \default{-1}
+  \item \xmlNode{persistence}, \xmlDesc{float, optional field}, specifies the
+  amount of noise reduction to apply before returning labels. 
+  \default{0}
+  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
+  lists the parameters defining the input space.
+  \item \xmlNode{response}, \xmlDesc{string, required field}, is a single
+  variable name defining the scalar output space.
+\end{itemize}
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="***" subType='TopologicalDecomposition'>
+      <graph>Beta Skeleton</graph>
+      <gradient>Steepest</gradient>
+      <beta>1</beta>
+      <knn>8</knn>
+      <parameters>X,Y</parameters>
+      <response>Z</response>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
 \end{lstlisting}
 %%%%% PP PrintCSV %%%%%%%
 \paragraph{PrintCSV.}
