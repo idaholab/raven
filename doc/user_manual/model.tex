@@ -12,17 +12,36 @@
 % This will take a bit of work, but if later things are added it will make
 % finding the appropriate parameters easier.
 
-\renewcommand{\nameDescription}{\xmlAttr{name},
+\renewcommand{\nameDescription}
+{
+  \xmlAttr{name},
   \xmlDesc{required string attribute}, user-defined identifier of this model.
   \nb As with other objects, this identifier can be used to reference this
-  specific entity from other input blocks in the XML.}
-\renewcommand{\specBlock}[2]{The specifications of this model must be
-  defined within #1 \xmlNode{#2} XML block.}
+  specific entity from other input blocks in the XML.
+}
+\renewcommand{\specBlock}[2]{
+  The specifications of this model must be defined within #1 \xmlNode{#2} XML
+  block.
+}
 %
-\renewcommand{\subnodeIntro}{This model can be initialized with the following
-  child:}
-\renewcommand{\subnodesIntro}{This model can be initialized with the following
-  children:}
+\renewcommand{\subnodeIntro}
+{
+  This model can be initialized with the following child:
+}
+\renewcommand{\subnodesIntro}
+{
+  This model can be initialized with the following children:
+}
+
+\newcommand{\ppType}[2]
+{
+  In order to use the \textit{#1} PP, the user needs to set the
+  \xmlAttr{subType} of a \xmlNode{PostProcessor} node:
+
+  \xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{#2}/}.
+  
+  In addition, several sub-nodes are available:
+}
 
 \newcommand{\skltype}[2]
 {
@@ -748,7 +767,7 @@ to couple a new code.
 %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% Dummy Model  %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Dummy.}
+\subsection{Dummy}
 \label{subsec:models_dummy}
 The \textbf{Dummy} model is an object that acts as a pass-through tool.
 %
@@ -865,7 +884,7 @@ specified in the attribute \xmlAttr{subType}.
 In the sections that follow, the specifications of each type are reported.
 %
 %%%%% ROM Model - NDspline  %%%%%%%
-\subsubsection{NDspline.}
+\subsubsection{NDspline}
 \label{subsubsec:NDspline}
 The NDspline sub-type contains a single ROM type, based on an $N$-dimensional
 spline interpolation/extrapolation scheme.
@@ -906,7 +925,7 @@ Thus, it can only be trained from the outcomes of a grid sampling strategy.
 </Simulation>
 \end{lstlisting}
 %%%%% ROM Model - NDinvDistWeigth  %%%%%%%
-\subsubsection{NDinvDistWeigth.}
+\subsubsection{NDinvDistWeigth}
 \label{subsubsec:NDinvDistWeigth}
 The NDinvDistWeigth sub-type contains a single ROM type, based on an
 $N$-dimensional inverse distance weighting formulation.
@@ -953,14 +972,14 @@ below).
 </Simulation>
 \end{lstlisting}
 %%%%% ROM Model - MicroSphere  %%%%%%%
-\subsubsection{MicroSphere.}
+\subsubsection{MicroSphere}
 \label{subsubsec:microSphere}
 Not yet functional.
 %
 Its validity for prediction still needs to be assessed.
 %
 %%%%% ROM Model - SciKitLearn  %%%%%%%
-\subsubsection{SciKitLearn.}
+\subsubsection{SciKitLearn}
 \label{subsubsec:SciKitLearn}
 The SciKitLearn sub-type represents the container of several ROMs available in
 RAVEN through the external library scikit-learn~\cite{SciKitLearn}.
@@ -989,7 +1008,7 @@ In the following paragraphs a brief explanation and the input requirements are
 reported for each of them.
 %
 %%%%% ROM Model - SciKitLearn: Linear Models %%%%%%%
-\paragraph{Linear Models.}
+\paragraph{Linear Models}
 \label{LinearModels}
 The LinearModels' algorithms implement generalized linear models.
 %
@@ -1304,7 +1323,7 @@ absolute values of the coefficients.
 
 The \textit{Lasso linear model with iterative fitting along a regularization
 path} is Lasso linear model with iterative fitting along a regularization
-path. \maljdan{May need a better description.}
+path. \maljdan{May need a better description}
 \skltype{Lasso linear model with iterative fitting along a regularization path
 regressor}{linear\_model|LassoCV}
 \begin{itemize}
@@ -2384,7 +2403,7 @@ using only the Gram matrix, X.T * X, and the product, X.T * y.
 \end{itemize}
 
 %%%%% ROM Model - SciKitLearn: Support Vector Machines %%%%%%%
-\paragraph{Support Vector Machines.}
+\paragraph{Support Vector Machines}
 \label{SVM}
 In machine learning, \textbf{Support Vector Machines} (SVMs, also support vector
 networks) are supervised learning models with associated learning algorithms
@@ -2582,7 +2601,7 @@ The implementations is a based on libsvm.
   %
 \end{itemize}
  %%%%% ROM Model - SciKitLearn: MultiClass %%%%%%%
-\paragraph{Multi Class.}
+\paragraph{Multi Class}
 \label{Multiclass}
 Multiclass classification means a classification task with more than two
 classes; e.g., classify a set of images of fruits which may be oranges, apples,
@@ -2682,7 +2701,7 @@ can be controlled by the user, either for compressing the model ($0 < code_size
 %pass
 
  %%%%% ROM Model - SciKitLearn: naiveBayes %%%%%%%
-\paragraph{Naive Bayes.}
+\paragraph{Naive Bayes}
 \label{naiveBayes}
 Naive Bayes methods are a set of supervised learning algorithms based on
 applying Bayes' theorem with the ``naive'' assumption of independence between
@@ -2846,7 +2865,7 @@ It is advisable to evaluate both models, if time permits.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%% ROM Model - SciKitLearn: Neighbors %%%%%%%
-\paragraph{Neighbors.}
+\paragraph{Neighbors}
 \label{Neighbors}
 
 The \textit{Neighbors} class provides functionality for unsupervised and
@@ -3018,7 +3037,7 @@ drastically different variances, as equal variance in all dimensions is assumed.
 %pass
 
  %%%%% ROM Model - SciKitLearn: Quadratic Discriminant Analysis %%%%%%%
-\paragraph{Quadratic Discriminant Analysis.}
+\paragraph{Quadratic Discriminant Analysis}
 \label{QDA}
 
 The \textit{Quadratic Discriminant Analysis} is a classifier with a quadratic
@@ -3674,15 +3693,17 @@ def run(self,Input):
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{PostProcessor}
 \label{sec:models_postProcessor}
-A Post-Processor (PP) can be considered as an Action performed on a set of data
+A Post-Processor (PP) can be considered as an action performed on a set of data
 or other type of objects.
 %
 Most of the post-processors contained in RAVEN, employ a mathematical operation
-on the data given as ``input''/
-RAVEN supports several different types of PPs.
+on the data given as ``input''.
 %
-Currently in RAVEN the following Post-Processors are available:
+RAVEN supports several different types of PPs.
+
+Currently, the following PPs are available in RAVEN:
 \begin{itemize}
+  \itemsep0em
   \item \textbf{BasicStatistics}
   \item \textbf{ComparisonStatistics}
   \item \textbf{SafestPoint}
@@ -3692,78 +3713,75 @@ Currently in RAVEN the following Post-Processors are available:
   \item \textbf{PrintCSV}
   \item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
-The specifications of this Model must be defined within the XML block
+
+The specifications of these PPs must be defined within the XML block
 \xmlNode{PostProcessor}.
 %
 This XML node needs to contain the attributes:
 \vspace{-5mm}
 \begin{itemize}
   \itemsep0em
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of
-  this Model.
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined
+  identifier of this post-processor.
   %
-  N.B.
+  \nb As with other objects, this is the name that can be used to refer to this
+  specific entity from other input XML blocks.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, defines which of
+  the post-processors needs to be used, choosing among the previously reported 
+  types.
   %
-  As for the other objects, this is the name that can be used to refer to this
-  specific entity from other input blocks (xml);
-  \item \textbf{subType}, \textit{required string attribute}, in this attribute
-  the user defines which of the post-processors needs to be used, choosing among
-  the previously reported types.
-  %
-  Obviously, this choice conditions the subsequent the required and/or optional
+  This choice conditions the subsequent required and/or optional
   \xmlNode{PostProcessor} sub nodes.
   %
 \end{itemize}
 \vspace{-5mm}
+
 As already mentioned, all the types and meaning of the remaining sub-nodes
-depend on the post-processor type specified in the attribute \textit{subType}.
+depend on the post-processor type specified in the attribute \xmlAttr{subType}.
 %
 In the following sections the specifications of each type are reported.
-%
+
 %%%%% PP BasicStatistics %%%%%%%
-\paragraph{BasicStatistics.}
+\paragraph{BasicStatistics}
 \label{BasicStatistics}
 The \textbf{BasicStatistics} post-processor is the container of the algorithms
-to compute all the most important statistical quantities.
+to compute many of the most important statistical quantities.
 %
-\skltype{BasicStatistics post-processor}{BasicStatistics}
+\ppType{BasicStatistics post-processor}{BasicStatistics}
 \begin{itemize}
   \item \xmlNode{what}, \xmlDesc{comma separated string, required field},
   %
-  List of quantities need to be computed.
+  List of quantities to be computed.
   %
   Currently the quantities available are:
-\begin{itemize}
-    \item \textbf{covariance matrix,} Covariance matrix;
-    \item \textbf{NormalizedSensitivity,} Matrix of normalized sensitivity
-    coefficients;
-    \item \textbf{sensitivity,} Matrix of sensitivity coefficients;
-    \item \textbf{pearson,} Matrix of sensitivity coefficients;
-    \item \textbf{expectedValue}, Expected value;
-    \item \textbf{sigma,} Standard deviation;
-    \item \textbf{variationCoefficient,} Coefficient of variation
-    (sigma/expected value);
-    \item \textbf{variance,} Variance;
-    \item \textbf{skewness,} Skewness;
-    \item \textbf{kurtois,} Kurtois;
-    \item \textbf{median,} Data median;
-    \item \textbf{percentile,} 95 percentile.
+  \begin{itemize}
+    \item \textbf{covariance matrix} -- covariance matrix
+    \item \textbf{NormalizedSensitivity} -- matrix of normalized sensitivity
+    coefficients
+    \item \textbf{sensitivity} -- matrix of sensitivity coefficients
+    \item \textbf{pearson} -- matrix of sensitivity coefficients
+    \item \textbf{expectedValue} -- expected value or mean
+    \item \textbf{sigma} -- standard deviation
+    \item \textbf{variationCoefficient} -- coefficient of variation
+    (sigma/expected value)
+    \item \textbf{variance} --  variance
+    \item \textbf{skewness} -- skewness
+    \item \textbf{kurtois} -- kurtois
+    \item \textbf{median} -- median
+    \item \textbf{percentile} -- 95 percentile
     %
-\end{itemize}
+  \end{itemize}
   If all the quantities need to be computed, the user can input in the body of
-  \xmlNode{what} the string ``all''.
+  \xmlNode{what} the string ``all.''
   %
-  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required
-      field},
-  %
-  List of the parameters on which the previous operations need to be applied on
-  (e.g., massFlow, Temperature);
+  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
+  lists the parameters on which the previous operations need to be applied
+  (e.g., massFlow, Temperature)
   \item \xmlNode{methodsToRun}, \xmlDesc{comma separated string, optional
-      field},
+  field}, specifies the method names of an external Function that need to be run
+  before computing any of the predefined quantities.
   %
-  The method names of an external Function that need to be run before computing
-  any of the predefined quantities If this XML node is inputted, the
-  \xmlNode{Function} node must be present.
+  If this XML node is specified, the \xmlNode{Function} node must be present.
   %
   \default{None}
 % Assembler Objects
@@ -3775,172 +3793,164 @@ to compute all the most important statistical quantities.
   %
   Each of these nodes must contain 2 attributes that are used to map those
   within the simulation framework:
-   \begin{itemize}
-    \item \textbf{class}, \textit{required string attribute}, it is the main
+  \begin{itemize}
+    \item \xmlAttr{class}, \xmlDesc{required string attribute}, it is the main
     ``class'' the listed object is from;
-    \item \textbf{type}, \textit{required string attribute}, it is the object
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, it is the object
     identifier or sub-type.
     %
-    \end{itemize}
+  \end{itemize}
   The \textbf{BasicStatistics} post-processor approach optionally accepts the
   following object type:
-   \begin{itemize}
-    \item \xmlNode{Function}, \xmlDesc{string, required field},The body of
+  \begin{itemize}
+    \item \xmlNode{Function}, \xmlDesc{string, required field}, The body of
     this xml block needs to contain the name of an External Function defined
     within the \xmlNode{Functions} main block (see section \ref{sec:functions}).
     %
-    This object needs to containt the methods listed in the node
-    \xmlNode{methodsToRun}.;
-    \end{itemize}
+    This object needs to contain the methods listed in the node
+    \xmlNode{methodsToRun}.
+  \end{itemize}
 \end{itemize}
 \textbf{Example:}
-----------------------------------------------
-\begin{lstlisting}[style=XML]
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug}]
 <Simulation>
-   ...
-   <Models>
-      ...
-      <PostProcessor name="aUserDefinedName" subType='BasicStatistics'  debug='true'>
-          <!-- => you can here specify what type of figure of merit
-              you need to compute
-             <what>expectedValue,sigma,variance,kurtois,pearson,covariance</what>
-           -->
-          <what>expectedValue</what>
-          <parameters>x01,x02</parameters>
-          <methodsToRun>failureProbability</methodsToRun>
-      </PostProcessor>
-      ...
-   <Models>
-   ...
+  ...
+  <Models>
+    ...
+    <PostProcessor name='aUserDefinedName' subType='BasicStatistics'  debug='true'>
+      <!-- Here you can specify what type of figure of merit
+          you need to compute: expectedValue, sigma, variance, kurtosis, pearson, covariance, etc.
+       -->
+      <what>expectedValue</what>
+      <parameters>x01,x02</parameters>
+      <methodsToRun>failureProbability</methodsToRun>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
 <Simulation>
-----------------------------------------------
 \end{lstlisting}
 
 %%%%% PP ComparisonStatistics %%%%%%%
-\paragraph{ComparisonStatistics.}
+\paragraph{ComparisonStatistics}
 \label{ComparisonStatistics}
-To be finalized.
+\TODO{To be finalized}
 
 %%%%% PP SafestPoint %%%%%%%
-\paragraph{SafestPoint.}
+\paragraph{SafestPoint}
 \label{SafestPoint}
 The \textbf{SafestPoint} post-processor provides the coordinates of the farthest
 point from the limit surface that is given as an input.
 %
 The safest point coordinates are expected values of the coordinates of the
-farthest points from the limit surface in the space of the ''controllable''
-variables based on the probability distributions of the ''non-controllable''
+farthest points from the limit surface in the space of the ``controllable''
+variables based on the probability distributions of the ``non-controllable''
 variables.
-%
-\\The term ''controllable'' identifies those variables that are under control
-during the system operation, while the ''non-controllable'' variables are
+
+The term ``controllable'' identifies those variables that are under control
+during the system operation, while the ``non-controllable'' variables are
 stochastic parameters affecting the system behaviour randomly.
-%
-\\The ''SafestPoint'' post-processor requires the set of points belonging to the
+
+The ``SafestPoint'' post-processor requires the set of points belonging to the
 limit surface, which must be given as an input.
 %
-The probability distributions as ''Assembler Objects'' are required in the
-''Distribution'' section for both ''controllable'' and ''non-controllable''
+The probability distributions as ``Assembler Objects'' are required in the
+``Distribution'' section for both ``controllable'' and ``non-controllable''
 variables.
+
+The sampling method used by the ``SafestPoint'' is a ``value'' or ``CDF'' grid.
 %
-\\The sampling method used by the ''SafestPoint'' is a ''value'' or ''CDF''
-grid.
-%
-At present only the ''equal'' grid type is available.
-%
+At present only the ``equal'' grid type is available.
+
+\ppType{Safest Point}{SafestPoint}
+
 \begin{itemize}
-  	\item \xmlNode{Distribution}: the probability distributions of the ''controllable''
-  and ''non-controllable'' variables are required.
+  \item \xmlNode{Distribution}, \xmlDesc{Required}, represents the probability
+  distributions of the ``controllable'' and ''non-controllable'' variables.
   %
   These are \textbf{Assembler Objects}, each of these nodes must contain 2
   attributes that are used to map those within the simulation framework:
-   		\begin{itemize}
-    			\item \textbf{class}, \textit{required string attribute}, it is the main
-    ``class'' the listed object is from;
-    	 		\item \textbf{type}, \textit{required string attribute}, it is the
-    object identifier or sub-type.
-    %
-		\end{itemize}
-  	\item \xmlNode{controllable}: the list of the controllable variables is given here.
+	\begin{itemize}
+    \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
+    ``class'' the listed object is from.
+ 		\item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
+    identifier or sub-type.
+	\end{itemize}
+	\item \xmlNode{controllable} lists the controllable variables.
   %
   Each variable is associated with its name and the two items below:
-		\begin{itemize}
-    			\item \xmlNode{distribution}: the name of the probability distribution
-    associated with the controllable variable is specified here.
+	\begin{itemize}
+		\item \xmlNode{distribution} names the probability distribution associated
+    with the controllable variable.
     %
-    			\item \xmlNode{grid}: type, number of steps and tolerance of the sampling grid
-    are defined here.
+		\item \xmlNode{grid} specifies the \xmlAttr{type}, \xmlAttr{steps}, and
+    tolerance of the sampling grid.
     %
-		\end{itemize}
-  	\item \xmlNode{non-controllable}: the list of the non-controllable variables is
-  given here.
+	\end{itemize}
+	\item \xmlNode{non-controllable} lists the non-controllable variables.
   %
   Each variable is associated with its name and the two items below:
-		\begin{itemize}
-    			\item \xmlNode{distribution}: the name of the probability distribution
-    associated with the non-controllable variable is specified here.
+	\begin{itemize}
+		\item \xmlNode{distribution} names the probability distribution associated
+    with the non-controllable variable.
     %
-    			\item \xmlNode{grid}: type, number of steps and tolerance of the sampling grid
-    are defined here.
+		\item \xmlNode{grid} specifies the \xmlAttr{type}, \xmlAttr{steps}, and
+    tolerance of the sampling grid.
     %
 		\end{itemize}
 \end{itemize}
 
 \textbf{Example:}
-\begin{lstlisting}[style=XML]
-----------------------------------------------
+\begin{lstlisting}[style=XML,morekeywords={name,subType,class,type,steps}]
 <Simulation>
-   ...
-   <Models>
-      ...
-  <PostProcessor name='SP' subType='SafestPoint'>
-      <Distribution  class = 'Distributions'  type = 'Normal'>x1_dst</Distribution>
-      <Distribution  class = 'Distributions'  type = 'Normal'>x2_dst</Distribution>
-      <Distribution  class = 'Distributions'  type = 'Normal'>gammay_dst</Distribution>
+  ...
+    <Models>
+    ...
+    <PostProcessor name='SP' subType='SafestPoint'>
+      <Distribution  class='Distributions'  type='Normal'>x1_dst</Distribution>
+      <Distribution  class='Distributions'  type='Normal'>x2_dst</Distribution>
+      <Distribution  class='Distributions'  type='Normal'>gammay_dst</Distribution>
       <controllable>
-        <variable name = 'x1'>
+        <variable name='x1'>
           <distribution>x1_dst</distribution>
-          <grid type = 'value' steps = '20'>1</grid>
+          <grid type='value' steps='20'>1</grid>
         </variable>
-        <variable name = 'x2'>
+        <variable name='x2'>
           <distribution>x2_dst</distribution>
-          <grid type = 'value' steps = '20'>1</grid>
+          <grid type='value' steps='20'>1</grid>
         </variable>
-        </controllable>
-        <non-controllable>
-          <variable name = 'gammay'>
-            <distribution>gammay_dst</distribution>
-            <grid type = 'value' steps = '20'>2</grid>
-          </variable>
-        </non-controllable>
+      </controllable>
+      <non-controllable>
+        <variable name='gammay'>
+          <distribution>gammay_dst</distribution>
+          <grid type='value' steps='20'>2</grid>
+        </variable>
+      </non-controllable>
     </PostProcessor>
-      ...
-   </Models>
-   ...
+    ...
+  </Models>
+  ...
 </Simulation>
-----------------------------------------------
 \end{lstlisting}
 %%%%% PP LimitSurface %%%%%%%
-\paragraph{LimitSurface.}
+\paragraph{LimitSurface}
 \label{LimitSurface}
 The \textbf{LimitSurface} post-processor is aimed to identify the transition
 zones that determine a change in the status of the system (Limit Surface).
 
-\skltype{LimitSurface}{LimitSurface}
+\ppType{LimitSurface}{LimitSurface}
+
 \begin{itemize}
-  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required
-      field},
+  \item \xmlNode{parameters}, \xmlDesc{comma separated string, required field},
+  lists the parameters that define the uncertain domain and from which the LS
+  needs to be computed.
+  \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, sets the absolute
+  value of the convergence tolerance.
   %
-  List of the parameters that define the uncertain domain and from which the LS
-  needs to be computed;
-  \item \xmlNode{tollerance}, \xmlDesc{float, optional field},
-  %
-  Absolute value converge tollerance.
-  %
-  This value defines the coarsens of the evaluation grid.
+  This value defines the coarseness of the evaluation grid.
   %
   \textit{Default= 1.e-4}
-% Assembler Objects
+  % Assembler Objects
   \item \textbf{Assembler Objects} These objects are either required or optional
   depending on the functionality of the Adaptive Sampler.
   %
@@ -3950,24 +3960,23 @@ zones that determine a change in the status of the system (Limit Surface).
   Each of these nodes must contain 2 attributes that are used to map those
   within the simulation framework:
    \begin{itemize}
-    \item \textbf{class}, \textit{required string attribute}, it is the main
-    ``class'' the listed object is from.
+    \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
+    ``class'' of the listed object.
     %
-    For example, it can be ``Models'', ``Functions'', etc;
-    \item \textbf{type}, \textit{required string attribute}, it is the object
+    For example, it can be ``Models,'' ``Functions,'' etc.
+    \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the object
     identifier or sub-type.
     %
-    For example, it can be ``ROM'', ``External'', etc.
+    For example, it can be ``ROM,'' ``External,'' etc.
     %
-    \end{itemize}
+  \end{itemize}
   The \textbf{LimitSurface} post-processor requires or optionally accepts the
   following objects' types:
    \begin{itemize}
-    \item \xmlNode{ROM}, \xmlDesc{string, optional field},
-    %
-    If inputted, the body of this xml node must contain the name of a ROM
-    defined in the \xmlNode{Models} block (see section \ref{subsec:models_ROM});
-    \item \xmlNode{Function}, \xmlDesc{string, required field},The body of
+    \item \xmlNode{ROM}, \xmlDesc{string, optional field}, body of this xml
+    node must contain the name of a ROM defined in the \xmlNode{Models} block
+    (see section \ref{subsec:models_ROM}).
+    \item \xmlNode{Function}, \xmlDesc{string, required field}, the body of
     this xml block needs to contain the name of an External Function defined
     within the \xmlNode{Functions} main block (see section \ref{sec:functions}).
     %
@@ -3976,33 +3985,34 @@ zones that determine a change in the status of the system (Limit Surface).
     %
     This function must implement a method called
     \textit{\_\_residuumSign(self)}, that returns either -1 or 1, depending on
-    the system conditions (see section \ref{sec:functions}.
+    the system conditions (see section \ref{sec:functions}).
     %
     \end{itemize}
 \end{itemize}
 
 \textbf{Example:}
-\begin{lstlisting}[style=XML]
-----------------------------------------------
+\begin{lstlisting}[style=XML,morekeywords={name,subType,debug,class,type}]
 <Simulation>
-   ...
-   <Models>
-      ...
+ ...
+ <Models>
+  ...
     <PostProcessor name="computeLimitSurface" subType='LimitSurface' debug='True'>
-        <what>all</what>
-        <parameters>x0,y0</parameters>
-        <parameters>x0,y0</parameters>
-        <ROM      class='Models'           type='ROM'             >Acc</ROM>
-        <!--You can add here a ROM defined in Models block.If not Present,
-            a nearest algorithm is going to be used
-         -->
-        <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
+      <what>all</what>
+      <parameters>x0,y0</parameters>
+      <parameters>x0,y0</parameters>
+      <ROM class='Models' type='ROM'>Acc</ROM>
+      <!-- Here, you can add a ROM defined in Models block. 
+           If it is not Present, a nearest neighbor algorithm
+           will be used.
+       -->
+      <Function class='Functions' type='External'>
+        goalFunctionForLimitSurface
+      </Function>
     </PostProcessor>
-      ...
-   </Models>
-   ...
+    ...
+  </Models>
+  ...
 </Simulation>
-----------------------------------------------
 \end{lstlisting}
 %%%%% PP External %%%%%%%
 \paragraph{External}
@@ -4012,11 +4022,7 @@ defined externally using the \textit{Functions} interface (see
 Section~\ref{sec:functions} for more details).
 %
 
-In order to use the \textit{External} post-processor, the user needs to set the
-\xmlAttr{subType} attribute to be ``External'': 
-\xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{External}}.
-% 
-The following sub-nodes need to be specified:
+\ppType{External}{External}
 
 \begin{itemize}
   \item \xmlNode{method}, \xmlAttr{comma separated string, required field},
@@ -4128,10 +4134,10 @@ The following is a list of acceptable sub-nodes:
 <Simulation>
 \end{lstlisting}
 %%%%% PP PrintCSV %%%%%%%
-\paragraph{PrintCSV.}
+\paragraph{PrintCSV}
 \label{PrintCSV}
 TO BE MOVED TO STEP ``IOSTEP''
 %%%%% PP LoadCsvIntoInternalObject %%%%%%%
-\paragraph{LoadCsvIntoInternalObject.}
+\paragraph{LoadCsvIntoInternalObject}
 \label{LoadCsvIntoInternalObject}
 TO BE MOVED TO STEP ``IOSTEP''
