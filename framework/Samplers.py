@@ -113,8 +113,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _localWhatDoINeed(self):
     '''
-    This method is a local mirrow of the general whatDoINeed method.
-    It is implmented by the samplers that need to request special objects
+    This method is a local mirror of the general whatDoINeed method.
+    It is implemented by the samplers that need to request special objects
     @ In , None, None
     @ Out, needDict, list of objects needed
     '''
@@ -1324,6 +1324,8 @@ class DynamicEventTree(Grid):
     branchedLevelParent     = self.branchedLevel.pop(0)
     endInfo                 = self.endInfo.pop(0)
     self.branchCountOnLevel = 0 #?
+
+
     # n_branches = number of branches need to be run
     n_branches = endInfo['n_branches']
     # Check if the distribution that just triggered hitted the last probability threshold .
@@ -1340,7 +1342,7 @@ class DynamicEventTree(Grid):
       del self.inputInfo
       self.counter += 1
       self.branchCountOnLevel += 1
-      branchedLevel =branchedLevelParent
+      branchedLevel = branchedLevelParent
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
       rname = endInfo['parent_node'].get('name') + '-' + str(self.branchCountOnLevel)
 
@@ -1384,6 +1386,8 @@ class DynamicEventTree(Grid):
       endInfo['parent_node'].appendBranch(subGroup)
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
+      if str(endInfo['end_ts']) == 'None':
+        pass
       self.inputInfo = {'prefix':rname.encode(),'end_ts':endInfo['end_ts'],
                 'branch_changed_param':[subGroup.get('branch_changed_param')],
                 'branch_changed_param_value':[subGroup.get('branch_changed_param_value')],
@@ -1620,6 +1624,17 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
   @staticmethod
   def _checkCompleteHistory(treeValues): return treeValues['completedHistory']
 
+  def _localWhatDoINeed(self):
+    '''
+    This method is a local mirrow of the general whatDoINeed method.
+    It is implmented by the samplers that need to request special objects
+    @ In , None, None
+    @ Out, needDict, list of objects needed
+    '''
+    adaptNeed = AdaptiveSampler._localWhatDoINeed(self)
+    DETNeed   = DynamicEventTree._localWhatDoINeed(self)
+    return dict(adaptNeed.items()+ DETNeed.items())
+
   def _checkIfStartAdaptive(self):
     '''
     Function that checks if the adaptive needs to be started (mode 1)
@@ -1680,10 +1695,26 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
             #nntrain = np.append(nntrain, np.atleast_1d(np.array(copy.copy(pbth))), axis=0)
           mapping[nntrain.shape[0]] = ending
     if nntrain != None:
-      neigh = neighbors.NearestNeighbors(n_neighbors=1)
+      neigh = neighbors.NearestNeighbors(n_neighbors=len(mapping.keys()))
       neigh.fit(nntrain)
-      return mapping[neigh.kneighbors(lowerCdfValues.values())[1][0][0]+1],cdfValues
+      return self._checkValidityOfBranch(neigh.kneighbors(lowerCdfValues.values()),mapping),cdfValues
     else: return None,cdfValues
+
+  def _checkValidityOfBranch(self,branchSet,mapping):
+    """
+    Function that checks if the nearest branches found by method _checkClosestBranch are valid
+    @ In, tuple of branches
+    @ In, dictionary of candidated branches
+    @ Out, most valid branch (if noone found, return None)
+    """
+    validBranch   = None
+    idOfBranches  = branchSet[1][-1]
+    for closestBranch in idOfBranches:
+      if not mapping[closestBranch+1].get('completedHistory'):
+        validBranch = mapping[closestBranch+1]
+        break
+    return validBranch
+
 
   def _retrieveBranchInfo(self,branch):
     '''
@@ -1828,7 +1859,7 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
       #the adaptive sampler created the next point sampled vars
       #find the closest branch
       closestBranch, cdfValues = self._checkClosestBranch()
-      if not closestBranch: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> An usable branch for next candidate has not been found => create a parallel branch!')
+      if closestBranch == None: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> An usable branch for next candidate has not been found => create a parallel branch!')
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
@@ -1895,10 +1926,10 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
   def _generateDistributions(self,availableDist):
     DynamicEventTree._generateDistributions(self,availableDist)
 
-  def localInitialize(self,solutionExport = None,goalFunction = None,ROM = None):
+  def localInitialize(self,solutionExport = None):
     if self.detAdaptMode == 2: self.startAdaptive = True
     DynamicEventTree.localInitialize(self)
-    AdaptiveSampler.localInitialize(self,solutionExport=solutionExport,goalFunction=goalFunction,ROM=ROM)
+    AdaptiveSampler.localInitialize(self,solutionExport=solutionExport)
     self._endJobRunnable    = sys.maxsize
 
   def generateInput(self,model,oldInput):
@@ -1906,7 +1937,8 @@ class AdaptiveDET(DynamicEventTree, AdaptiveSampler):
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
     returncode = DynamicEventTree.localFinalizeActualSampling(self,jobObject,model,myInput,genRunQueue=False)
-    if returncode: self._createRunningQueue(model,myInput)
+    if returncode:
+      self._createRunningQueue(model,myInput)
 #
 #
 #

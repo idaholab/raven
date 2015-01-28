@@ -1,0 +1,131 @@
+<Simulation>
+
+<RunInfo>
+  <WorkingDir>IO_ROM_PICKLE</WorkingDir>
+  <Files>pickle1</Files>
+  <Sequence>step1,step2,step3,step4,step5,step6,step7</Sequence>
+  <batchSize>1</batchSize>
+</RunInfo>
+
+
+<Steps> 
+  <MultiRun name = 'step1' pauseAtEnd = 'False'>
+    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
+    <Input    class = 'Datas'     type = 'TimePointSet'   >Data1</Input>
+    <Model    class = 'Models'    type = 'ExternalModel'  >XM1</Model>
+    <Output   class = 'Datas'     type = 'TimePointSet'   >Data2</Output>    
+  </MultiRun >
+  <RomTrainer name='step2' debug='False'>
+        <Input   class='Datas'  type='TimePointSet'>Data2</Input>
+        <Output  class='Models' type='ROM'         >ROM1</Output>
+  </RomTrainer>
+  <IOStep name='step3' pauseAtEnd='False'>
+        <Input   class='Models'     type='ROM'>ROM1</Input>
+        <Output  class='Files'      type=''>pickle1</Output>
+  </IOStep>
+  <IOStep name='step4' pauseAtEnd='False'>
+        <Input   class='Files'      type=''>pickle1</Input>
+        <Output  class='Models'     type='ROM'>ROM2</Output>
+  </IOStep>
+  <MultiRun name = 'step5' pauseAtEnd = 'False'>
+    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
+    <Input    class = 'Datas'     type = 'TimePointSet'   >Data1</Input>
+    <Model    class = 'Models'    type = 'ROM'            >ROM1</Model>
+    <Output   class = 'Datas'     type = 'TimePointSet'   >Data3</Output>    
+  </MultiRun >
+  <MultiRun name = 'step6' pauseAtEnd = 'False'>
+    <Sampler  class = 'Samplers'  type = 'Grid'           >grid1</Sampler>
+    <Input    class = 'Datas'     type = 'TimePointSet'   >Data1</Input>
+    <Model    class = 'Models'    type = 'ROM'            >ROM2</Model>
+    <Output   class = 'Datas'     type = 'TimePointSet'   >Data4</Output>    
+  </MultiRun >
+  <IOStep name='step7' pauseAtEnd='False'>
+        <Input   class='Datas'      type='TimePointSet'>Data3</Input>
+        <Input   class='Datas'      type='TimePointSet'>Data4</Input>
+        <Output class='OutStreamManager' type='Print'>PrintData</Output>
+        <Output class='OutStreamManager' type='Print'>PrintData_Pickle</Output>
+  </IOStep>
+</Steps>
+
+
+<Samplers>  
+  <Grid name = 'grid1'>
+    <variable name = 'x1' >
+      <distribution>x1_dst</distribution>
+      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+    </variable>  
+    <variable name='x2' >
+      <distribution>x2_dst</distribution>
+      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+    </variable>
+  </Grid>
+</Samplers>
+
+
+<Datas> 
+  <TimePointSet name = 'Data1'>
+    <Input>x1,x2</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+ <TimePointSet name = 'Data2'>
+    <Input>x1,x2</Input>
+    <Output>y</Output>
+  </TimePointSet>
+  <TimePointSet name = 'Data3'>
+    <Input>x1,x2</Input>
+    <Output>y</Output>
+  </TimePointSet>
+  <TimePointSet name = 'Data4'>
+    <Input>x1,x2</Input>
+    <Output>y</Output>
+  </TimePointSet>
+</Datas>
+
+
+<Distributions>
+  <Normal name = 'x1_dst'>
+    <upperBound>10</upperBound>
+    <lowerBound>-10</lowerBound>
+  	<mean>0.5</mean>
+    <sigma>0.1</sigma>
+  </Normal>
+  <Normal name = 'x2_dst'>
+    <upperBound>10</upperBound>
+    <lowerBound>-10</lowerBound>
+    <mean>-0.15</mean>
+    <sigma>0.05</sigma>
+  </Normal>  
+</Distributions>
+
+
+<Models>
+  <ExternalModel name = 'XM1' subType = '' ModuleToLoad = 'IO_ROM_PICKLE/XM1_model'>
+    <variable>x1</variable>
+    <variable>x2</variable>
+    <variable>y</variable>
+  </ExternalModel>
+  <ROM name = 'ROM1' subType = 'SciKitLearn'>
+     <SKLtype>svm|SVR</SKLtype>
+    <Features>x1,x2</Features>
+    <Target>y</Target>
+  </ROM> 
+
+<ROM name = 'ROM2' subType = 'SciKitLearn'>
+     <SKLtype>svm|SVR</SKLtype>
+    <Features>x1,x2</Features>
+    <Target>y</Target>
+  </ROM>
+</Models>
+
+<OutStreamManager>
+    <Print name='PrintData'>
+      <type>csv</type>
+      <source>Data3</source>
+    </Print>
+    <Print name='PrintData_Pickle'>
+      <type>csv</type>
+      <source>Data4</source>
+    </Print>
+</OutStreamManager>
+
+</Simulation>
