@@ -494,8 +494,90 @@
 %%%%%%%%%%%%%%%%%%%%%%%% End Common Neighbor Parameters %%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% Common Tree Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\blankaDescription}[1]
+\newcommand{\criterionDescription}[1]
 {
+  \xmlNode{criterion}, \xmlDesc{string, optional field}, specifies the function
+  used to measure the quality of a split.
+  %
+  Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the
+  information gain.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\splitterDescription}[1]
+{
+  \xmlNode{splitter}, \xmlDesc{string, optional field}, specifies the strategy
+  used to choose the split at each node.
+  %
+  Supported strategies are ``best'' to choose the best split and ``random'' to
+  choose the best random split.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\maxFeaturesDescription}[1]
+{
+  \xmlNode{max\_features}, \xmlDesc{int, float or string, optional field}, sets
+  the number of features to consider when looking for the best split:
+  \begin{itemize}
+    \item If int, then consider max\_features features at each split.
+    %
+    \item If float, then max\_features is a percentage and int(max\_features *
+    n\_features) features are considered at each split.
+    %
+    \item If ``auto,'' then max\_features=sqrt(n\_features).
+    \item If ``sqrt,'' then max\_features=sqrt(n\_features).
+    \item If ``log2,'' then max\_features=log2(n\_features).
+    \item If None, then max\_features=n\_features.
+    %
+  \end{itemize}
+  \nb The search for a split does not stop until at least one valid partition of
+  the node samples is found, even if it requires to effectively inspect more
+  than max\_features features.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\maxDepthDescription}[1]
+{
+  \xmlNode{max\_depth}, \xmlDesc{integer, optional field}, determines the
+  maximum depth of the tree.
+  %
+  If None, then nodes are expanded until all leaves are pure or until all leaves
+  contain less than min\_samples\_split samples.
+  %
+  Ignored if max\_samples\_leaf is not None.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\minSamplesSplitDescription}[1]
+{
+  \xmlNode{min\_samples\_split}, \xmlDesc{integer, optional field}, sets the
+  minimum number of samples required to split an internal node.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\minSamplesLeafDescription}[1]
+{
+  \xmlNode{min\_samples\_leaf}, \xmlDesc{integer, optional field}, sets the
+  minimum number of samples required to be at a leaf node.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\maxLeafNodesDescription}[1]
+{
+  \xmlNode{max\_leaf\_nodes}, \xmlDesc{integer, optional field}, grow a tree
+  with max\_leaf\_nodes in best-first fashion.
+  %
+  Best nodes are defined by relative reduction in impurity.
+  %
+  If None then unlimited number of leaf nodes.
+  %
+  If not None then max\_depth will be ignored.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
@@ -2980,7 +3062,7 @@ learning simple decision rules inferred from the data features.
   Other techniques often require data normalization, dummy variables need to be
   created and blank values to be removed.
   %
-  Note however that this module does not support missing values.
+  Note however, that this module does not support missing values.
   %
   \item The cost of using the tree (i.e., predicting data) is logarithmic in the
   number of data points used to train the tree.
@@ -3045,92 +3127,26 @@ The disadvantages of decision trees include:
   decision tree.
   %
 \end{itemize}
+
 In the following, all the linear models available in RAVEN are reported.
-%
+
 %%%%%%%%%%%%%%%
 \subparagraph{Decision Tree Classifier}
 \mbox{}
 \\The \textit{Decision Tree Classifier} is a classifier that is based on the
 decision tree logic.
-%
+
 \skltype{Decision Tree Classifier}{tree|DecisionTreeClassifier}
 \begin{itemize}
-  \item \xmlNode{criterion}, \xmlDesc{string, optional field},
-  %
-  The function to measure the quality of a split.
-  %
-  Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the
-  information gain.
-  %
-  \default{gini}
-  \item \xmlNode{splitter}, \xmlDesc{string, optional field},
-  %
-  The strategy used to choose the split at each node.
-  %
-  Supported strategies are ``best'' to choose the best split and ``random'' to
-  choose the best random split.
-  %
-  \default{best}
-  \item \xmlNode{max\_features}, \xmlDesc{int, float or string,
-      optional field},
-  %
-  The number of features to consider when looking for the best split:
-\begin{itemize}
-    \item If int, then consider max\_features features at each split.
-    %
-    \item If float, then max\_features is a percentage and int(max\_features *
-    n\_features) features are considered at each split.
-    %
-    \item If ``auto'', then max\_features=sqrt(n\_features);
-    \item If ``sqrt'', then max\_features=sqrt(n\_features);
-    \item If ``log2'', then max\_features=log2(n\_features);
-    \item If None, then max\_features=n\_features.
-    %
+  \item \criterionDescription{gini}
+  \item \splitterDescription{best}
+  \item \maxFeaturesDescription{None}
+  \item \maxDepthDescription{None}
+  \item \minSamplesSplitDescription{2}
+  \item \minSamplesLeafDescription{1}
+  \item \maxLeafNodesDescription{None}
 \end{itemize}
-  NB.
-  %
-  The search for a split does not stop until at least one valid partition of the
-  node samples is found, even if it requires to effectively inspect more than
-  max\_features features.
-  %
-  \\\default{None}
-  \item \xmlNode{max\_depth}, \xmlDesc{integer, optional
-      field},
-  %
-  The maximum depth of the tree.
-  %
-  If None, then nodes are expanded until all leaves are pure or until all leaves
-  contain less than min\_samples\_split samples.
-  %
-  Ignored if max\_samples\_leaf is not None.
-  %
-  \default{None}
-  \item \xmlNode{min\_samples\_split}, \xmlDesc{
-      integer, optional field},
-  %
-  The minimum number of samples required to split an internal node.
-  %
-  \default{2}
-  \item \xmlNode{min\_samples\_leaf}, \xmlDesc{
-      integer, optional field},
-  %
-  The minimum number of samples required to be at a leaf node.
-  %
-  \default{1}
-  \item \xmlNode{max\_leaf\_nodes}, \xmlDesc{
-      integer, optional field},
-  %
-  Grow a tree with max\_leaf\_nodes in best-first fashion.
-  %
-  Best nodes are defined as relative reduction in impurity.
-  %
-  If None then unlimited number of leaf nodes.
-  %
-  If not None then max\_depth will be ignored.
-  %
-  \default{None}.
-  %
-\end{itemize}
+
 %%%%%%%%%%%%%%%%
 \subparagraph{Decision Tree Regressor}
 \mbox{}
@@ -3139,82 +3155,15 @@ decision tree logic.
 %
 \skltype{Decision Tree Regressor}{tree|DecisionTreeRegressor}
 \begin{itemize}
-  \item \xmlNode{criterion}, \xmlDesc{string, optional field},
-  %
-  The function to measure the quality of a split.
-  %
-  Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the
-  information gain.
-  %
-  \default{gini}
-  \item \xmlNode{splitter}, \xmlDesc{string, optional field},
-  %
-  The strategy used to choose the split at each node.
-  %
-  Supported strategies are ``best'' to choose the best split and ``random'' to
-  choose the best random split.
-  %
-  \default{best}
-  \item \xmlNode{max\_features}, \xmlDesc{int, float or string,
-      optional field},
-  %
-  The number of features to consider when looking for the best split:
-\begin{itemize}
-    \item If int, then consider max\_features features at each split.
-    %
-    \item If float, then max\_features is a percentage and int(max\_features *
-    n\_features) features are considered at each split.
-    %
-    \item If ``auto'', then max\_features=sqrt(n\_features);
-    \item If ``sqrt'', then max\_features=sqrt(n\_features);
-    \item If ``log2'', then max\_features=log2(n\_features);
-    \item If None, then max\_features=n\_features.
-    %
+  \item \criterionDescription{gini}
+  \item \splitterDescription{best}
+  \item \maxFeaturesDescription{None}
+  \item \maxDepthDescription{None}
+  \item \minSamplesSplitDescription{2}
+  \item \minSamplesLeafDescription{1}
+  \item \maxLeafNodesDescription{None}
 \end{itemize}
-  NB.
-  %
-  The search for a split does not stop until at least one valid partition of the
-  node samples is found, even if it requires to effectively inspect more than
-  max\_features features.
-  %
-  \\\default{None}
-  \item \xmlNode{max\_depth}, \xmlDesc{integer, optional
-      field},
-  %
-  The maximum depth of the tree.
-  %
-  If None, then nodes are expanded until all leaves are pure or until all leaves
-  contain less than min\_samples\_split samples.
-  %
-  Ignored if max\_samples\_leaf is not None.
-  %
-  \default{None}
-  \item \xmlNode{min\_samples\_split}, \xmlDesc{
-      integer, optional field},
-  %
-  The minimum number of samples required to split an internal node.
-  %
-  \default{2}
-  \item \xmlNode{min\_samples\_leaf}, \xmlDesc{
-      integer, optional field},
-  %
-  The minimum number of samples required to be at a leaf node.
-  %
-  \default{1}
-  \item \xmlNode{max\_leaf\_nodes}, \xmlDesc{
-      integer, optional field},
-  %
-  Grow a tree with max\_leaf\_nodes in best-first fashion.
-  %
-  Best nodes are defined as relative reduction in impurity.
-  %
-  If None then unlimited number of leaf nodes.
-  %
-  If not None then max\_depth will be ignored.
-  %
-  \default{None}.
-  %
-\end{itemize}
+
 %%%%%%%%%%%%%%%%
 \subparagraph{Extra Tree Classifier}
 \mbox{}
@@ -3228,89 +3177,25 @@ features and the best split among those is chosen.
 %
 When max\_features is set 1, this amounts to building a totally random decision
 tree.
-%
+
 \skltype{Extra Tree Classifier}{tree|ExtraTreeClassifier}
+
 \begin{itemize}
-  \item \xmlNode{criterion}, \xmlDesc{string, optional field},
-  %
-  The function to measure the quality of a split.
-  %
-  Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the
-  information gain.
-  %
-  \default{gini}
-  \item \xmlNode{splitter}, \xmlDesc{string, optional field},
-  %
-  The strategy used to choose the split at each node.
-  %
-  Supported strategies are ``best'' to choose the best split and ``random'' to
-  choose the best random split.
-  %
-  \default{best}
-  \item \xmlNode{max\_features}, \xmlDesc{int, float or string,
-      optional field},
-  %
-  The number of features to consider when looking for the best split:
-\begin{itemize}
-    \item If int, then consider max\_features features at each split.
-    %
-    \item If float, then max\_features is a percentage and int(max\_features *
-    n\_features) features are considered at each split.
-    %
-    \item If ``auto'', then max\_features=sqrt(n\_features);
-    \item If ``sqrt'', then max\_features=sqrt(n\_features);
-    \item If ``log2'', then max\_features=log2(n\_features);
-    \item If None, then max\_features=n\_features.
-    %
-\end{itemize}
-  NB.
-  %
-  The search for a split does not stop until at least one valid partition of the
-  node samples is found, even if it requires to effectively inspect more than
-  max\_features features.
-  %
-  \\\default{None}
-  \item \xmlNode{max\_depth}, \xmlDesc{integer, optional
-      field},
-  %
-  The maximum depth of the tree.
-  %
-  If None, then nodes are expanded until all leaves are pure or until all leaves
-  contain less than min\_samples\_split samples.
-  %
-  Ignored if max\_samples\_leaf is not None.
-  %
-  \default{None}
-  \item \xmlNode{min\_samples\_split}, \xmlDesc{
-      integer, optional field},
-  %
-  The minimum number of samples required to split an internal node.
-  %
-  \default{2}
-  \item \xmlNode{min\_samples\_leaf}, \xmlDesc{
-      integer, optional field},
-  %
-  The minimum number of samples required to be at a leaf node.
-  %
-  \default{1}
-  \item \xmlNode{max\_leaf\_nodes}, \xmlDesc{
-      integer, optional field},
-  %
-  Grow a tree with max\_leaf\_nodes in best-first fashion.
-  %
-  Best nodes are defined as relative reduction in impurity.
-  %
-  If None then unlimited number of leaf nodes.
-  %
-  If not None then max\_depth will be ignored.
-  %
-  \default{None}.
+  \item \criterionDescription{gini}
+  \item \splitterDescription{best}
+  \item \maxFeaturesDescription{None}
+  \item \maxDepthDescription{None}
+  \item \minSamplesSplitDescription{2}
+  \item \minSamplesLeafDescription{1}
+  \item \maxLeafNodesDescription{None}
   %
 \end{itemize}
+
 %%%%%%%%%%%%
 \subparagraph{Extra Tree Regressor}
 \mbox{}
-\\The \textit{Extra Tree Regressor} is an extremely randomized tree regressor.
+
+The \textit{Extra Tree Regressor} is an extremely randomized tree regressor.
 %
 Extra-trees differ from classic decision trees in the way they are built.
 %
@@ -3320,88 +3205,22 @@ features and the best split among those is chosen.
 %
 When max\_features is set 1, this amounts to building a totally random decision
 tree.
-%
+
 \skltype{Extra Tree Regressor}{tree|ExtraTreeRegressor}
+
 \begin{itemize}
-  \item \xmlNode{criterion}, \xmlDesc{string, optional field},
-  %
-  The function to measure the quality of a split.
-  %
-  Supported criteria are ``gini'' for the Gini impurity and ``entropy'' for the
-  information gain.
-  %
-  \default{gini}
-  \item \xmlNode{splitter}, \xmlDesc{string, optional field},
-  %
-  The strategy used to choose the split at each node.
-  %
-  Supported strategies are ``best'' to choose the best split and ``random'' to
-  choose the best random split.
-  %
-  \default{best}
-  \item \xmlNode{max\_features}, \xmlDesc{int, float or string,
-      optional field},
-  %
-  The number of features to consider when looking for the best split:
-\begin{itemize}
-    \item If int, then consider max\_features features at each split.
-    %
-    \item If float, then max\_features is a percentage and int(max\_features *
-    n\_features) features are considered at each split.
-    %
-    \item If ``auto'', then max\_features=sqrt(n\_features);
-    \item If ``sqrt'', then max\_features=sqrt(n\_features);
-    \item If ``log2'', then max\_features=log2(n\_features);
-    \item If None, then max\_features=n\_features.
-    %
+  \item \criterionDescription{gini}
+  \item \splitterDescription{best}
+  \item \maxFeaturesDescription{None}
+  \item \maxDepthDescription{None}
+  \item \minSamplesSplitDescription{2}
+  \item \minSamplesLeafDescription{1}
+  \item \maxLeafNodesDescription{None}
 \end{itemize}
-  NB.
-  %
-  The search for a split does not stop until at least one valid partition of the
-  node samples is found, even if it requires to effectively inspect more than
-  max\_features features.
-  %
-  \\\default{None}
-  \item \xmlNode{max\_depth}, \xmlDesc{integer, optional
-      field},
-  %
-  The maximum depth of the tree.
-  %
-  If None, then nodes are expanded until all leaves are pure or until all leaves
-  contain less than min\_samples\_split samples.
-  %
-  Ignored if max\_samples\_leaf is not None.
-  %
-  \default{None}
-  \item \xmlNode{min\_samples\_split}, \xmlDesc{
-      integer, optional field},
-  %
-  The minimum number of samples required to split an internal node.
-  %
-  \default{2}
-  \item \xmlNode{min\_samples\_leaf}, \xmlDesc{
-      integer, optional field},
-  %
-  The minimum number of samples required to be at a leaf node.
-  %
-  \default{1}
-  \item \xmlNode{max\_leaf\_nodes}, \xmlDesc{
-      integer, optional field},
-  %
-  Grow a tree with max\_leaf\_nodes in best-first fashion.
-  %
-  Best nodes are defined as relative reduction in impurity.
-  %
-  If None then unlimited number of leaf nodes.
-  %
-  If not None then max\_depth will be ignored.
-  %
-  \default{None}.
-  %
-\end{itemize}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%% ROM Model - SciKitLearn: Gaussian Process %%%%%%%
-\paragraph{Gaussian Process.}
+\paragraph{Gaussian Process}
 \label{GP}
 Gaussian Processes for Machine Learning (GPML) is a generic supervised learning
 method primarily designed to solve regression problems.
@@ -3409,11 +3228,11 @@ method primarily designed to solve regression problems.
 The advantages of Gaussian Processes for Machine Learning are:
 \begin{itemize}
   \item The prediction interpolates the observations (at least for regular
-  correlation models);
+  correlation models).
   \item The prediction is probabilistic (Gaussian) so that one can compute
   empirical confidence intervals and exceedance probabilities that might be used
   to refit (online fitting, adaptive fitting) the prediction in some region of
-  interest;
+  interest.
   \item Versatile: different linear regression models and correlation models can
   be specified.
   %
@@ -3425,114 +3244,98 @@ The disadvantages of Gaussian Processes for Machine Learning include:
 \begin{itemize}
   \item It is not sparse.
   %
-  It uses the whole samples/features information to perform the prediction;
+  It uses the whole samples/features information to perform the prediction.
   \item It loses efficiency in high dimensional spaces – namely when the
   number of features exceeds a few dozens.
   %
-  It might indeed give poor performance and it loses computational efficiency;
-  \item Classification is only a post-processing, meaning that one first need to
-  solve a regression problem by providing the complete scalar float precision
-  output y of the experiment one attempt to model.
+  It might indeed give poor performance and it loses computational efficiency.
+  \item Classification is only a post-processing, meaning that one first needs
+  to solve a regression problem by providing the complete scalar float precision
+  output $y$ of the experiment one is attempting to model.
   %
 \end{itemize}
-In order to use the \textit{Gaussian Process Regressor}, the user needs to set
-the sub-node \xmlNode{SKLtype}\texttt{GaussianProcess|GaussianProcess}\xmlNode{/SKLtype}.
-%
-In addition to this XML node, several others need (or not) to be inputted:
+
+\skltype{Gaussian Process Regressor}{GaussianProcess|GaussianProcess}
+
 \begin{itemize}
-  \item \xmlNode{regr}, \xmlDesc{string, optional field},
-  %
-  A regression function returning an array of outputs of the linear regression
-  functional basis.
+  \item \xmlNode{regr}, \xmlDesc{string, optional field}, is a regression
+  function returning an array of outputs of the linear regression functional
+  basis.
   %
   The number of observations n\_samples should be greater than the size p of
   this basis.
   %
-  Available built-in regression models are:
-  'constant', 'linear', 'quadratic'.
+  Available built-in regression models are `constant,' `linear,' and 
+  `quadratic.'
   %
   \default{constant}
-  \item \xmlNode{corr}, \xmlDesc{string, optional field},
-  %
-  A stationary autocorrelation function returning the autocorrelation between
-  two points x and x'.
+  \item \xmlNode{corr}, \xmlDesc{string, optional field}, is a stationary
+  autocorrelation function returning the autocorrelation between two points $x$
+  and $x'$.
   %
   Default assumes a squared-exponential autocorrelation model.
   %
-  Built-in correlation models are:
-  'absolute\_exponential', 'squared\_exponential','generalized\_exponential',
-  'cubic', 'linear'.
+  Built-in correlation models are `absolute\_exponential,' 
+  `squared\_exponential,' `generalized\_exponential,' `cubic,' and `linear.'
   %
   \default{squared\_exponential}
-  \item \xmlNode{beta0}, \xmlDesc{float, array-like, optional field},
-  %
-  The regression weight vector to perform Ordinary Kriging (OK).
+  \item \xmlNode{beta0}, \xmlDesc{float, array-like, optional field}, specifies
+  the regression weight vector to perform Ordinary Kriging (OK).
   %
   \default{Universal Kriging}
-  \item \xmlNode{storage\_mode}, \xmlDesc{string, optional
-      field},
-  %
-  A string specifying whether the Cholesky decomposition of the correlation
-  matrix should be stored in the class (storage\_mode = `full') or not
-  (storage\_mode = `light').
+  \item \xmlNode{storage\_mode}, \xmlDesc{string, optional field}, specifies
+  whether the Cholesky decomposition of the correlation matrix should be stored
+  in the class (storage\_mode = `full') or not (storage\_mode = `light').
   %
   \default{full}
   \item \verDescriptionA{False}
-  \item \xmlNode{theta0}, \xmlDesc{float, array-like, optional field},
+  \item \xmlNode{theta0}, \xmlDesc{float, array-like, optional field}, is an
+  array with shape (n\_features, ) or (1, ).
   %
-  An array with shape (n\_features, ) or (1, ).
-  %
-  The parameters in the autocorrelation model.
+  This represents the parameters in the autocorrelation model.
   %
   If thetaL and thetaU are also specified, theta0 is considered as the starting
   point for the maximum likelihood estimation of the best set of parameters.
   %
   \default{[1e-1]}
-  \item \xmlNode{thetaL}, \xmlDesc{float, array-like, optional field},
-  %
-  An array with shape matching theta0's.
+  \item \xmlNode{thetaL}, \xmlDesc{float, array-like, optional field}, is an
+  array with shape matching that defined by \xmlNode{theta0}.
   %
   Lower bound on the autocorrelation parameters for maximum likelihood
   estimation.
   %
   \default{None}
-  \item \xmlNode{thetaU}, \xmlDesc{float, array-like, optional field},
-  %
-  An array with shape matching theta0's.
+  \item \xmlNode{thetaU}, \xmlDesc{float, array-like, optional field}, is an
+  array with shape matching that defined by \xmlNode{theta0}.
   %
   Upper bound on the autocorrelation parameters for maximum likelihood
   estimation.
   %
   \default{None}
-  \item \xmlNode{normalize}, \xmlDesc{boolean, optional field},
-  %
-  Input X and observations y are centered and reduced wrt means and standard
-  deviations estimated from the n\_samples observations provided.
+  \item \xmlNode{normalize}, \xmlDesc{boolean, optional field}, if True, the
+  input $X$ and observations $y$ are centered and reduced w.r.t. means and
+  standard deviations estimated from the n\_samples observations provided.
   %
   \default{True}
-  \item \xmlNode{nugget}, \xmlDesc{float, optional field},
+  \item \xmlNode{nugget}, \xmlDesc{float, optional field},specifies a nugget
+  effect to allow smooth predictions from noisy data.
   %
-  Introduce a nugget effect to allow smooth predictions from noisy data.The
-  nugget is added to the diagonal of the assumed training covariance; in this
-  way it acts as a Tikhonov regularization in the problem.
+  The nugget is added to the diagonal of the assumed training covariance.
+  %
+  In this way it acts as a Tikhonov regularization in the problem.
   %
   In the special case of the squared exponential correlation function, the
   nugget mathematically represents the variance of the input values.
   %
-  \default{10.
-    %
-    * MACHINE\_EPSILON}
-  \item \xmlNode{optimizer}, \xmlDesc{string, optional field},
-  %
-  A string specifying the optimization algorithm to be used.
+  \default{10 * MACHINE\_EPSILON}
+  \item \xmlNode{optimizer}, \xmlDesc{string, optional field}, specifies the
+  optimization algorithm to be used.
   %
   Available optimizers are: 'fmin\_cobyla', 'Welch'.
   %
   \default{fmin\_cobyla}
-  \item \xmlNode{random\_start}, \xmlDesc{integer, optional
-      field},
-  %
-  The number of times the Maximum Likelihood Estimation should be performed from
+  \item \xmlNode{random\_start}, \xmlDesc{integer, optional field}, sets the
+  number of times the Maximum Likelihood Estimation should be performed from
   a random starting point.
   %
   The first MLE always uses the specified starting point (theta0), the next
@@ -3540,18 +3343,15 @@ In addition to this XML node, several others need (or not) to be inputted:
   (log-uniform on [thetaL, thetaU]).
   %
   \default{1}
-  \item \xmlNode{random\_state}, \xmlDesc{integer, optional
-      field},
+  \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, is the seed
+  of the internal random number generator.
   %
-  Seed of the internal random number generator.
-  %
-  \default{random}.
+  \default{random}
   %
 \end{itemize}
 
 \textbf{Example:}
-\begin{lstlisting}[style=XML]
-------------------------------------------------------------
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
   ...
   <Models>
@@ -3567,7 +3367,6 @@ In addition to this XML node, several others need (or not) to be inputted:
   </Models>
   ...
 </Simulation>
-------------------------------------------------------------
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -3582,47 +3381,46 @@ This object allows the user to create a python module that is going to be
 treated as a predefined internal model object.
 %
 In other words, the \textbf{External Model} is going to be treated by RAVEN as a
-normal external Code (e.g. it is going to be called in order to compute a
-whatever quantity, based on a whatever input).
+normal external Code (e.g. it is going to be called in order to compute an
+arbitrary quantity based on arbitrary input).
 %
-\\The specifications of an External Model must be defined within the XML block
+
+The specifications of an External Model must be defined within the XML block
 \xmlNode{ExternalModel}.
 %
 This XML node needs to contain the attributes:
+
 \vspace{-5mm}
 \begin{itemize}
   \itemsep0em
-  \item \textbf{name}, \textit{required string attribute}, user-defined name of
-  this External Model.
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name
+  of this External Model.
   %
-  N.B.
-  %
-  As for the other objects, this is the name that can be used to refer to this
-  specific entity from other input blocks (XML);
-  \item \textbf{subType}, \textit{required string attribute}, This string must
-  be kept empty;
-  \item \textbf{ModuleToLoad}, \textit{required string attribute}, file name
+  \nb As with the other objects, this is the name that can be used to refer to
+  this specific entity from other input blocks in the XML.
+  \item \xmlAttr{subType}, \xmlDesc{required string attribute}, must be kept
+  empty.
+  \item \xmlAttr{ModuleToLoad}, \xmlDesc{required string attribute}, file name
   with its absolute or relative path.
   %
-  NB.
-  %
-  If a relative path is specified, it must be noticed it is relative with
-  respect to where the user runs the code.
+  \nb If a relative path is specified, it must be relative with respect to where
+  the user runs the code.
   %
 \end{itemize}
 \vspace{-5mm}
+
 In order to make the RAVEN code aware of the variables the user is going to
-manipulate/use in its own python Module, the variables need to be specified in
-the \textbf{\xmlNode{ExternalModel}} input block.
+manipulate/use in her/his own python Module, the variables need to be specified
+in the \xmlNode{ExternalModel} input block.
 %
 The user needs to input, within this block, only the variables that RAVEN needs
 to be aware of (i.e. the variables are going to directly be used by the code)
 and not the local variables that the user does not want to, for example, store
 in a RAVEN internal object.
 %
-These variables are inputted within consecutive XML blocks called \xmlNode{variable}:
+These variables are specified within consecutive \xmlNode{variable} blocks:
 \begin{itemize}
-  \item \xmlNode{variable}, string, required parameter.
+  \item \xmlNode{variable}, \xmlDesc{string, required parameter}.
   %
   In the body of this XML node, the user needs to specify the name of the
   variable.
@@ -3631,46 +3429,46 @@ These variables are inputted within consecutive XML blocks called \xmlNode{varia
   model.
   %
 \end{itemize}
-When the external function variables are defined, at run time, RAVEN initialize
-those and take track of their values during the simulation.
+
+When the external function variables are defined, at run time, RAVEN initializes
+them and tracks their values during the simulation.
 %
-Each variable defined in the \xmlNode{ExternalModel} block is available in the module
-(each method implemented) as a python ``self''.
+Each variable defined in the \xmlNode{ExternalModel} block is available in the
+module (each method implemented) as a python ``self.''
 %
-\\ In the External Python module, the user can implement all the methods that
-are needed for the functionality of the model, but only the following methods
-are going, if present, called by the framework:
+
+In the External Python module, the user can implement all the methods that are
+needed for the functionality of the model, but only the following methods, if
+present, are called by the framework:
 \begin{itemize}
-  \item \textit{\textbf{def \_readMoreXML}, OPTIONAL METHOD}, This
-  method can be implemented by the user if the XML input that belongs to this
-  External Model needs to be extended to contain other information.
+  \item \texttt{\textbf{def \_readMoreXML}}, \xmlDesc{OPTIONAL METHOD}, can be
+  implemented by the user if the XML input that belongs to this External Model
+  needs to be extended to contain other information.
   %
   The information read needs to be stored in ``self'' in order to be available
   to all the other methods (e.g. if the user needs to add a couple of newer XML
   nodes with information needed by the algorithm implemented in the ``run''
-  method);
-  \item \textit{\textbf{def initialize}, OPTIONAL METHOD}, Initialization
-  method.
-  %
-  In this function the user can implement all the actions need to be performed
-  at the initialization stage;
-  \item \textit{\textbf{def createNewInput}, OPTIONAL METHOD}, Method to create
+  method).
+  \item \texttt{\textbf{def initialize}}, \xmlDesc{OPTIONAL METHOD}, can
+  implement all the actions need to be performed at the initialization stage.
+  \item \texttt{\textbf{def createNewInput}}, \xmlDesc{OPTIONAL METHOD}, creates
   a new input with the information coming from the RAVEN framework.
   %
   In this function the user can retrieve the information coming from the RAVEN
   framework, during the employment of a calculation flow, and use them to
-  construct a new input that is going to be transferred to the ``run'' method;
-  \item \textit{\textbf{def run}, REQUIRED METHOD}, This is the actual location
-  where the user needs to implement the model action (e.g. resolution of a set
-  of equations, etc.).
+  construct a new input that is going to be transferred to the ``run'' method.
+  \item \texttt{\textbf{def run}}, \xmlDesc{REQUIRED METHOD}, is the actual
+  location where the user needs to implement the model action (e.g. resolution
+  of a set of equations, etc.).
   %
-  This function is going to receive the Input(or Inputs) generated either by the
-  External Model ``createNewInput'' method or the internal RAVEN one;
+  This function is going to receive the Input (or Inputs) generated either by
+  the External Model ``createNewInput'' method or the internal RAVEN one.
 \end{itemize}
+
 In the following sub-sections, all the methods are going to be analyzed in
 detail.
-%
-\subsubsection{Method: def \_readMoreXML.}
+
+\subsubsection{Method: \texttt{def \_readMoreXML}}
 \label{subsubsec:externalReadMoreXML}
 As already mentioned, the \textbf{readMoreXML} method can be implemented by the
 user if the XML input that belongs to this External Model needs to be extended
@@ -3681,28 +3479,26 @@ all the other methods (e.g. if the user needs to add a couple of newer XML nodes
 with information needed by the algorithm implemented in the ``run'' method).
 %
 If this method is implemented in the \textbf{External Model}, RAVEN is going to
-call it when the node \xmlNode{ExternalModel} is found parsing XML input file.
+call it when the node \xmlNode{ExternalModel} is found parsing the XML input
+file.
 %
 The method receives from RAVEN an attribute of type ``xml.etree.ElementTree'',
 containing all the sub-nodes and attribute of the XML block \xmlNode{ExternalModel}.
 %
-\\In the following an example is reported:
-\begin{lstlisting}[style=XML]
-------------------------------------
+
+Example XML:
+\begin{lstlisting}[style=XML,morekeywords={subType,ModuleToLoad}]
 <Simulation>
   ...
   <Models>
      ...
-    <ExternalModel name='AnExtModule'
-                              subType=''
-                              ModuleToLoad='path_to_external_module'>
+    <ExternalModel name='AnExtModule' subType='' ModuleToLoad='path_to_external_module'>
        <variable>sigma</variable>
        <variable>rho</variable>
        <variable>outcome</variable>
        <!--
-          here we define other XML nodes RAVEN does not read automatically
-          => We need to implement, in the external module ``AnExtModule''
-          the readMoreXML method
+          here we define other XML nodes RAVEN does not read automatically.
+          We need to implement, in the external module ``AnExtModule'' the readMoreXML method
         -->
         <newNodeWeNeedToRead>
             whatNeedsToBeRead
@@ -3713,8 +3509,9 @@ containing all the sub-nodes and attribute of the XML block \xmlNode{ExternalMod
   ...
 </Simulation>
 \end{lstlisting}
+
+Corresponding Python function:
 \begin{lstlisting}[language=python]
-------------------------------------
 def _readMoreXML(self,xmlNode):
   # the xmlNode is passed in by RAVEN framework
   # <newNodeWeNeedToRead> is unknown (in the RAVEN framework)
@@ -3724,9 +3521,8 @@ def _readMoreXML(self,xmlNode):
   # get the information in the node
   self.ourNewVariable = ourNode.text
   # end function
-------------------------------------
 \end{lstlisting}
-\subsubsection{Method: def initialize.}
+\subsubsection{Method: \texttt{def initialize}}
 \label{subsubsec:externalInitialize}
 The \textbf{initialize} method can be implemented in the \textbf{External Model}
 in order to initialize some variables needed by it.
@@ -3746,59 +3542,58 @@ that are generally needed to perform a initialization:
   %
   It contains the following attributes:
   \begin{itemize}
-    \item \textit{DefaultInputFile}, Default input file to use
-    \item \textit{SimulationFiles}, the xml input file
-    \item \textit{ScriptDir}, the location of the pbs script interfaces
-    \item \textit{FrameworkDir}, the directory where the framework is located
-    \item \textit{WorkingDir}, the directory where the framework should be
+    \item \texttt{DefaultInputFile} -- default input file to use
+    \item \texttt{SimulationFiles} -- the xml input file
+    \item \texttt{ScriptDir} -- the location of the pbs script interfaces
+    \item \texttt{FrameworkDir} -- the directory where the framework is located
+    \item \texttt{WorkingDir} -- the directory where the framework should be
     running
-    \item \textit{TempWorkingDir}, the temporary directory where a simulation
+    \item \texttt{TempWorkingDir} -- the temporary directory where a simulation
     step is run
-    \item \textit{NumMPI}, the number of mpi process by run
-    \item \textit{NumThreads}, Number of Threads by run
-    \item \textit{numProcByRun}, Total number of core used by one run (number of
-    threads by number of mpi)
-    \item \textit{batchSize}, number of contemporaneous runs
-    \item \textit{ParallelCommand}, the command that should be used to submit
+    \item \texttt{NumMPI} -- the number of mpi process by run
+    \item \texttt{NumThreads} -- number of threads by run
+    \item \texttt{numProcByRun} -- total number of core used by one run (number 
+    of threads by number of mpi)
+    \item \texttt{batchSize} -- number of contemporaneous runs
+    \item \texttt{ParallelCommand} -- the command that should be used to submit
     jobs in parallel (mpi)
-    \item \textit{numNode}, number of nodes
-    \item \textit{procByNode}, number of processors by node
-    \item \textit{totalNumCoresUsed}, total number of cores used by driver
-    \item \textit{quequingSoftware}, quequing software name
-    \item \textit{stepName}, the name of the step currently running
-    \item \textit{precommand}, Add to the front of the command that is run
-    \item \textit{postcommand}, Added after the command that is run
-    \item \textit{delSucLogFiles}, If a simulation (code run) has not failed,
+    \item \texttt{numNode} -- number of nodes
+    \item \texttt{procByNode} -- number of processors by node
+    \item \texttt{totalNumCoresUsed} -- total number of cores used by driver
+    \item \texttt{queueingSoftware} -- queueing software name
+    \item \texttt{stepName} -- the name of the step currently running
+    \item \texttt{precommand} -- added to the front of the command that is run
+    \item \texttt{postcommand} -- added after the command that is run
+    \item \texttt{delSucLogFiles} -- if a simulation (code run) has not failed,
     delete the relative log file (if True)
-    \item \textit{deleteOutExtension}, If a simulation (code run) has not
+    \item \texttt{deleteOutExtension} -- if a simulation (code run) has not
     failed, delete the relative output files with the listed extension (comma
-    separated list, for example: 'e,r,txt')
-    \item \textit{mode}, Running mode.
-    %
-    Curently the only modes supported are pbsdsh and mpi
-    \item \textit{expectedTime}, How long the complete input is expected to run
-    \item \textit{logfileBuffer}, logfile buffer size in bytes
+    separated list, for example: `e,r,txt')
+    \item \texttt{mode} -- running mode, curently the only modes supported are
+    pbsdsh and mpi
+    \item \textit{expectedTime} -- how long the complete input is expected to
+    run
+    \item \textit{logfileBuffer} -- logfile buffer size in bytes
   \end{itemize}
   \item inputs, a list of all the inputs that have been specified in the
-  ``Step'' is using this model.
+  ``Step'' using this model.
   %
 \end{itemize}
 In the following an example is reported:
 \begin{lstlisting}[language=python]
-------------------------------------
 def initialize(self,runInfo,inputs):
  # Let's suppose we just need to initialize some variables
   self.sigma = 10.0
   self.rho   = 28.0
   # end function
-------------------------------------
 \end{lstlisting}
-\subsubsection{Method: def createNewInput.}
+\subsubsection{Method: \texttt{def createNewInput}}
 \label{subsubsec:externalcreateNewInput}
+
 The \textbf{createNewInput} method can be implemented by the user to create a
 new input with the information coming from the RAVEN framework.
 %
-In this function the user can retrieve the information coming from the RAVEN
+In this function, the user can retrieve the information coming from the RAVEN
 framework, during the employment of a calculation flow, and use them to
 construct a new input that is going to be transferred to the ``run'' method.
 %
@@ -3806,28 +3601,26 @@ The new input created needs to be returned to RAVEN (i.e. ``return NewInput'').
 %
 RAVEN communicates, thorough a set of method attributes, all the information
 that are generally needed to create a new input:
-myInput,samplerType,**Kwargs
+%myInput,samplerType,**Kwargs
 \begin{itemize}
-  \item inputs, python list, a list of all the inputs that have been defined in
-  the ``Step'' is using this model;
-  \item samplerType, string, the type of Sampler, if a Sampling strategy is
-  employed; None otherwise;
-  \item Kwargs, dictionary, a dictionary containing several informations (that
-  can change based on the ``Step'' type).
+  \item \texttt{inputs}, \xmlDesc{python list}, a list of all the inputs that
+  have been defined in the ``Step'' using this model.
+  \item \texttt{samplerType}, \xmlDesc{string}, the type of Sampler, if a
+  sampling strategy is employed; will be None otherwise.
+  \item \texttt{Kwargs}, \xmlDesc{dictionary}, a dictionary containing several
+  pieces of information (that can change based on the ``Step'' type).
   %
-  If a Sampling strategy is employed, this dictionary contains another one
-  identified by the keyword ``SampledVars'', in which the variables perturbed by
-  the sampler are reported;
+  If a sampling strategy is employed, this dictionary contains another
+  dictionary identified by the keyword ``SampledVars'', in which the variables
+  perturbed by the sampler are reported.
 \end{itemize}
-NB.
+\nb If the ``Step'' that is using this Model has as input(s) an object of main
+class type ``Datas'' (see section \ref{datas}), the internal ``createNewInput''
+method is going to convert it in a dictionary of values.
 %
-If the ``Step'' that is using this Model has as input(s) an object of main class
-type ``Datas'' (see section \ref{datas}), the internal ``createNewInput'' method
-is going to convert it in a dictionary of values.
-%
-\\In the following an example is reported:
+
+Here we present an example:
 \begin{lstlisting}[language=python]
-------------------------------------
 def createNewInput(self,inputs,samplerType,**Kwargs):
   # in here the actual createNewInput of the
   # model is implemented
@@ -3836,40 +3629,36 @@ def createNewInput(self,inputs,samplerType,**Kwargs):
   else:
     avariable = inputs[``something'']/inputs[``something2'']
   return avariable*Kwargs[``SampledVars''][``aSampledVar'']
-------------------------------------
 \end{lstlisting}
-\subsubsection{Method: def run.}
+
+\subsubsection{Method: \texttt{def run}}
 \label{subsubsec:externalRun}
-As stated previously, the only method the MUST be present in an External Module
-is the \textbf{run} function.
+As stated previously, the only method that \emph{must} be present in an
+External Module is the \textbf{run} function.
 %
-In this function, the user needs to implement the algorithm that RAVEN has to
+In this function, the user needs to implement the algorithm that RAVEN will
 execute.
 %
-The \textbf{run} method is generally called after having inquired the
+The \texttt{\textbf{run}} method is generally called after having inquired the
 ``createNewInput'' method (either the internal or the user-implemented one).
 %
-The only attribute this method is going to receive by is a Python list of inputs
-(the inputs coming from the ``createNewInput'' method).
+The only attribute this method is going to receive is a Python list of inputs
+(the inputs coming from the \texttt{createNewInput} method).
 %
 If the user wants RAVEN to collect the results of this method, the outcomes of
-interest need to be stored in ``self''.
+interest need to be stored in ``self.''
 %
-NB.
+\nb RAVEN is trying to collect the values of the variables listed only in the
+\xmlNode{ExternalModel} XML block.
 %
-RAVEN is trying to collect the values of the variables listed in the XML block
-\xmlNode{ExternalModel} only.
-%
-\\In the following an example is reported:
 
+In the following an example is reported:
 \begin{lstlisting}[language=python]
-------------------------------------
 def run(self,Input):
   # in here the actual run of the
   # model is implemented
   input = Input[0]
   self.outcome = self.sigma*self.rho*input[``whatEver'']
-------------------------------------
 \end{lstlisting}
 
 %\subsection{Projector}
