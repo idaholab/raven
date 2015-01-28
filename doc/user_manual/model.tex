@@ -6,6 +6,12 @@
 % these defined commands first. There is no point writing the same thing over
 % and over and over and over and over again, so these will help us reduce typos,
 % by just editing a template sentence or paragraph.
+
+% These should be organized according to whic section they are most often used
+% e.g. kernelDescription should go under a heading for SVMs.
+% This will take a bit of work, but if later things are added it will make
+% finding the appropriate parameters easier.
+
 \renewcommand{\nameDescription}{\xmlAttr{name},
   \xmlDesc{required string attribute}, user-defined identifier of this model.
   \nb As with other objects, this identifier can be used to reference this
@@ -33,7 +39,7 @@
   \xmlNode{n\_iter}, \xmlDesc{integer, optional field}, is the maximum number of
   iterations.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\nIterDescriptionB}[1]
@@ -41,7 +47,7 @@
   \xmlNode{n\_iter}, \xmlDesc{int, optional field}, specifies the number of
   passes over the training data (aka epochs).
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\tolDescriptionA}[1]
@@ -49,7 +55,7 @@
   \xmlNode{tol}, \xmlDesc{float, optional field}, stop the algorithm if $w$ has
   converged within the tolerance specified here. \maljdan{what is w?}
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\tolDescriptionB}[1]
@@ -58,7 +64,7 @@
   the optimization: if the updates are smaller than tol, the optimization code
   checks the dual gap for optimality and continues until it is smaller than tol.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\tolDescriptionC}[1]
@@ -66,7 +72,7 @@
   \xmlNode{tol}, \xmlDesc{float, optional field}, specifies the tolerance for
   stopping criteria.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\fitInterceptDescription}[1]
@@ -77,7 +83,7 @@
   If set to False, no intercept will be used in the calculations (e.g. data is
   expected to be already centered).
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\normalizeDescription}[1]
@@ -85,7 +91,7 @@
   \xmlNode{normalize}, \xmlDesc{boolean, optional field}, if True, the
   regressors X will be normalized before regression.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\verDescriptionA}[1]
@@ -93,15 +99,15 @@
   \xmlNode{verbose}, \xmlDesc{boolean, optional field}, use verbose mode
   when fitting the model.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
-\newcommand{\verDescriptionB}
+\newcommand{\verDescriptionB}[1]
 {
   \xmlNode{verbose}, \xmlDesc{boolean or integer, optional field}, use verbose
   mode when fitting the model.
   %
-  \default{0}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\maxIterDescription}[1]
@@ -109,7 +115,7 @@
 \xmlNode{max\_iter}, \xmlDesc{integer, optional field}, specifies the
   maximum number of iterations.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\warmStartDescription}[1]
@@ -118,7 +124,7 @@
   True, the model will reuse the solution of the previous call to fit as
   initialization, otherwise, it will just erase the previous solution.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\positiveDescription}[1]
@@ -126,7 +132,7 @@
   \xmlNode{positive}, \xmlDesc{float, optional field}, when set to True, this
   forces the coefficients to be positive.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\precomputeDescription}[1]
@@ -140,7 +146,7 @@
   %
   Available options are [True | False | `auto' | array-like].
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\nAlphasDescription}[1]
@@ -149,7 +155,7 @@
   maximum number of points on the path used to compute the residuals in the
   cross-validation.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\shuffleDescription}[1]
@@ -157,7 +163,7 @@
   \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, specifies whether
   or not the training data should be shuffled after each epoch.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\randomStateDescription}[1]
@@ -166,7 +172,7 @@
   sets the seed of the pseudo random number generator to use when shuffling the
   data.
   %
-  \default{#1}
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
 \newcommand{\solverDescription}%[1]
@@ -200,8 +206,309 @@
   \end{itemize}
   All three solvers support both dense and sparse data.
   %
-  %\default{#1}
+  %\ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%% Common Regression Parameters %%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%% End Common Regression Parameters %%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Common SVM Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\CSVMDescription}[1]
+{
+  \xmlNode{C}, \xmlDesc{boolean, optional field}, sets the penalty parameter C
+  of the error term.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+  %
+}
+
+\newcommand{\kernelDescription}[1]
+{
+  \xmlNode{kernel}, \xmlDesc{string, optional}, specifies the kernel type
+  to be used in the algorithm.
+  %
+  It must be one of:
+  \begin{itemize}
+    \item `linear'
+    \item `poly'
+    \item `rbf'
+    \item `sigmoid'
+    \item `precomputed'
+    \item a callable object
+  \end{itemize}
+  %
+  If a callable is given it is used to precompute the kernel matrix.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+  %
+}
+
+\newcommand{\degreeDescription}[1]
+{
+  \xmlNode{degree}, \xmlDesc{int, optional field}, determines the degree
+  of the polynomial kernel function (`poly').
+  %
+  Ignored by all other kernels.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\gammaDescription}[1]
+{
+  \xmlNode{gamma}, \xmlDesc{float, optional field}, sets the
+  kernel coefficient for the kernels `rbf,' `poly,' and `sigmoid.'
+  %
+  If gamma is 0.0 then 1/n\_features will be used instead.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\coefZeroDescription}[1]
+{
+  \xmlNode{coef0}, \xmlDesc{float, optional field}, is an independent term in
+  kernel function.
+  %
+  It is only significant in `poly' and `sigmoid.'
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\probabilityDescription}[1]
+{
+  \xmlNode{probability}, \xmlDesc{boolean, optional field}, determines whether
+  or not to enable probability estimates.
+  %
+  This must be enabled prior to calling fit, and will slow down that method.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\shrinkingDescription}[1]
+{
+  \xmlNode{shrinking}, \xmlDesc{boolean, optional field}, determines whether or
+  not to use the shrinking heuristic.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\cacheSizeDescription}[1]
+{
+  \xmlNode{cache\_size}, \xmlDesc{float, optional field}, specifies the
+  size of the kernel cache (in MB).
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\classWeightDescription}[1]
+{
+  \xmlNode{class\_weight}, \xmlDesc{{dict, `auto'}, optional}, sets the
+  parameter C of class i to class\_weight[i]*C for SVC.
+  %
+  If not given, all classes are assumed to have weight one.
+  %
+  The `auto' mode uses the values of y to automatically adjust weights inversely
+  proportional to class frequencies.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\tolSVMDescription}[1]
+{
+  \tolDescriptionC{#1}
+}
+
+\newcommand{\verSVMDescription}[1]
+{
+  \verDescriptionA{False}
+  %
+  \nb This setting takes advantage of a per-process runtime setting in libsvm
+  that, if enabled, may not work properly in a multithreaded context.
+}
+
+\newcommand{\randomStateSVMDescription}[1]
+{
+  \xmlNode{random\_state}, \xmlDesc{int seed, RandomState instance, or
+  None}, represents the seed of the pseudo random number generator to use when
+  shuffling the data for probability estimation.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% End Common SVM Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%% Common Multi-Class Parameters %%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\estimatorDescription}[1]
+{
+  \xmlNode{estimator}, \xmlDesc{boolean, required field},
+  %
+  An estimator object implementing fit and one of decision\_function or
+  predict\_proba.
+  %
+  This XML node needs to contain the following attribute:
+  \vspace{-5mm}
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{estimatorType}, \xmlDesc{required string attribute}, this
+    attribute is another reduced order mode type that needs to be used for the
+    construction of the multi-class algorithms.
+    %
+    Each sub-sequential node depends on the chosen ROM.
+  \end{itemize}
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+%%%%%%%%%%%%%%%%%%%%%%% End Common Multi-Class Parameters %%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% Common Bayesian Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\alphaBayesDescription}[1]
+{
+  \xmlNode{alpha}, \xmlDesc{float, optional field}, specifies an additive
+  (Laplace/Lidstone) smoothing parameter (0 for no smoothing).
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\fitPriorDescription}[1]
+{
+  \xmlNode{fit\_prior}, \xmlDesc{boolean, required field}, determines whether to
+  learn class prior probabilities or not.
+  %
+  If false, a uniform prior will be used.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\classPriorDescription}[1]
+{
+  \xmlNode{class\_prior}, \xmlDesc{array-like float (n\_classes), optional
+  field}, specifies prior probabilities of the classes.
+  %
+  If specified, the priors are not adjusted according to the data.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%% End Common Bayesian Parameters %%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% Common Neighbor Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\nNeighborsDescription}[1]
+{
+  \xmlNode{n\_neighbors}, \xmlDesc{integer, optional field}, specifies the
+  number of neighbors to use by default for `k\_neighbors' queries.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\radiusDescription}[1]
+{
+  \xmlNode{radius}, \xmlDesc{float, optional field}, specifies the range of
+  parameter space to use by default for `radius\_neighbors' queries.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\weightsDescription}[1]
+{
+  \xmlNode{weights}, \xmlDesc{string, optional field}, specifies the weight
+  function used in prediction.
+  %
+  Possible values:
+  \begin{itemize}
+    \item \textit{uniform} : uniform weights.
+    %
+    All points in each neighborhood are weighted equally;
+    \item \textit{distance} : weight points by the inverse of their distance.
+    %
+    In this case, closer neighbors of a query point will have a greater
+    influence than neighbors which are further away.
+    %
+  \end{itemize}
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\metricDescription}[1]
+{
+  \xmlNode{metric}, \xmlDesc{string, optional field}, sets the distance metric
+  to use for the tree.
+  %
+  The Minkowski metric with p=2 is equivalent to the standard Euclidean metric.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\algorithmDescription}[1]
+{
+  \xmlNode{algorithm}, \xmlDesc{string, optional field}, specifies the algorithm
+  used to compute the nearest neighbors:
+  \begin{itemize}
+    \item \textit{ball\_tree} will use BallTree.
+    \item \textit{kd\_tree} will use KDtree.
+    \item \textit{brute} will use a brute-force search.
+    \item \textit{auto} will attempt to decide the most appropriate algorithm
+    based on the values passed to fit method.
+    %
+  \end{itemize}
+  \nb Fitting on sparse input will override the setting of this parameter, using
+  brute force.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\leafSizeDescription}[1]
+{
+  \xmlNode{leaf\_size}, \xmlDesc{integer, optional field}, sets the leaf size
+  passed to the BallTree or KDTree.
+  %
+  This can affect the speed of the construction and query, as well as the memory
+  required to store the tree.
+  %
+  The optimal value depends on the nature of the problem.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\pDescription}[1]
+{
+  \xmlNode{p}, \xmlDesc{integer, optional field}, is a parameter for the
+  Minkowski metric.
+  %
+  When $p = 1$, this is equivalent to using manhattan distance (L1), and
+  euclidean distance (L2) for $p = 2$.
+  %
+  For arbitrary p, minkowski distance (L\_p) is used.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+\newcommand{\outlierLabelDescription}[1]
+{
+  \xmlNode{outlier\_label}, \xmlDesc{integer, optional field}, is a label, which
+  is given for outlier samples (samples with no neighbors on a given radius).
+  %
+  If set to None, ValueError is raised, when an outlier is detected.
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%% End Common Neighbor Parameters %%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Common Tree Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\blankaDescription}[1]
+{
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%% End Common Tree Parameters %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%% Common Gaussian Process Parameters %%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\blankbDescription}[1]
+{
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+%%%%%%%%%%%%%%%%%%%% End Common Gaussian Process Parameters %%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In RAVEN, \textbf{Models} are crucial entities.
@@ -933,7 +1240,7 @@ regressor}{linear\_model|LassoCV}
   \item \precomputeDescription{}
   \item \maxIterDescription{}
   \item \tolDescriptionB{1.e-4}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \positiveDescription{}
 \end{itemize}
 
@@ -948,7 +1255,7 @@ regressor}{linear\_model|LarsCV}
 
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \normalizeDescription{False}
   \item \precomputeDescription{}
   \item \maxIterDescription{}
@@ -970,7 +1277,7 @@ regressor}{linear\_model|LassoLarsCV}
 
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \normalizeDescription{False}
   \item \precomputeDescription{}
   \item \maxIterDescription{}
@@ -1005,7 +1312,7 @@ A good model explains the data well while maintaining simplicity.
   criterion to use.
   %
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \normalizeDescription{False}
   \item \precomputeDescription{}
   \item \maxIterDescription{}
@@ -1210,7 +1517,7 @@ regressor}{linear\_model|OrthogonalMatchingPursuitCV}
   see sklearn.cross\_validation.
   %
   \default{5-fold strategy}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
 \end{itemize}
 
 \subparagraph{Passive Aggressive Classifier}
@@ -1231,7 +1538,7 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
   \item \nIterDescriptionB{5}
   \item \shuffleDescription{False}
   \item \randomStateDescription{None}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, the loss function to
   be used:
   \begin{itemize}
@@ -1266,7 +1573,7 @@ parameter, $C$.
   \item \nIterDescriptionB{5}
   \item \shuffleDescription{False}
   \item \randomStateDescription{None}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, specifies the loss
   function to be used: 
   \maljdan{What reference paper?}
@@ -1307,7 +1614,7 @@ training set one at a time.
   \item \nIterDescriptionB{5}
   \item \shuffleDescription{False}
   \item \randomStateDescription{None}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \xmlNode{eta0}, \xmlDesc{double, optional field}, defines the constant
   multiplier for the updates.
   %
@@ -1363,7 +1670,7 @@ It is also known as stability selection.
   the score above for which features should be selected.
   %
   \item \fitInterceptDescription{True}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \normalizeDescription{True}
   \item \precomputeDescription{}
   \item \maxIterDescription{}
@@ -1429,7 +1736,7 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   %
   \item \fitInterceptDescription{True}
   %
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   \item \normalizeDescription{False}
   \item \tolDescriptionC{}
   \default{1=e-3}
@@ -1667,8 +1974,8 @@ training}{linear\_model|SGDClassifier}
   \item \fitInterceptDescription{True}
   \item \nIterDescriptionB{5}
   \item \shuffleDescription{False}
-  \item \randomStateDescription{None}
-  \item \verDescriptionB
+  \item \randomStateSVMDescription{None}
+  \item \verDescriptionB{}
   \item \xmlNode{epsilon}, \xmlDesc{int, optional field}, is the number of CPUs
   to use to do the OVA (One Versus All, for multi-class problems) computation.
   %
@@ -1705,7 +2012,7 @@ training}{linear\_model|SGDClassifier}
   %
   If not given, all classes are assumed to have weight one.
   %
-  The “auto” mode uses the values of y to automatically adjust weights
+  The ``auto'' mode uses the values of y to automatically adjust weights
   inversely proportional to class frequencies.
   %
   \item \warmStartDescription{}
@@ -1775,7 +2082,7 @@ floating point values for the features.
   \item \nIterDescriptionB{5}
   \item \shuffleDescription{False}
   \item \randomStateDescription{None}
-  \item \verDescriptionB
+  \item \verDescriptionB{}
   %
   \item \xmlNode{epsilon}, \xmlDesc{float}, sets the epsilon in the
   epsilon-insensitive loss functions; only if loss is `huber,'
@@ -1855,7 +2162,7 @@ regressor}{linear\_model|lars\_path}
   %
   \default{``np.finfo(np.float).eps''}
   %
-  \item \verDescriptionB
+  \item \verDescriptionB{}
 \end{itemize}
 
 \subparagraph{Compute Lasso path with coordinate descent}
@@ -1915,7 +2222,7 @@ i.e. the sum of norm of each row.
   \item \xmlNode{coef\_init}, \xmlDesc{array, shape (n\_features, ) | None}, is
   the initial set of values of the coefficients.
   %
-  \item \verDescriptionB
+  \item \verDescriptionB{}
 \end{itemize}
 
 \subparagraph{Stability path based on randomized Lasso estimates}
@@ -1963,7 +2270,7 @@ i.e. the sum of norm of each row.
   %
   \item \xmlNode{eps}, \xmlDesc{float, optional field}, is the smallest value of 
   alpha / alpha\_max considered.
-  \item \verDescriptionB
+  \item \verDescriptionB{}
 \end{itemize}
 
 \subparagraph{Gram Orthogonal Matching Pursuit (OMP)}
@@ -2023,7 +2330,7 @@ In the following, all the SVM models available in RAVEN are reported.
 \subparagraph{Linear Support Vector Classifier}
 \mbox{}
 \\The \textit{Linear Support Vector Classifier} is similar to SVC with parameter
-kernel='linear', but implemented in terms of liblinear rather than libsvm,
+kernel=`linear', but implemented in terms of liblinear rather than libsvm,
 so it has more flexibility in the choice of penalties and loss functions and
 should scale better (to large numbers of samples).
 %
@@ -2032,83 +2339,73 @@ handled according to a one-vs-the-rest scheme.
 %
 \skltype{Linear Support Vector Classifier}{svm|LinearSVC}
 \begin{itemize}
-  \item \xmlNode{C}, \xmlDesc{boolean, optional field (default=1.0)},
-  %
-  Penalty parameter C of the error term.
-  %
-  \item \xmlNode{loss}, \xmlDesc{string, `l1' or `l2'
-      (default='l2')},
-  %
-  Specifies the loss function.
+  \item \CSVMDescription{1.0}
+  \item \xmlNode{loss}, \xmlDesc{string, `l1' or `l2'}, specifies the loss
+  function.
   %
   `l1' is the hinge loss (standard SVM) while `l2' is the squared hinge
   loss.
   %
-  \item \xmlNode{penalty}, \xmlDesc{string, `l1' or `l2'
-      (default='l2')},
+  \default{`l2'}
   %
-  Specifies the norm used in the penalization.
+  \item \xmlNode{penalty}, \xmlDesc{string, `l1' or `l2'}, specifies the norm
+  used in the penalization.
   %
   The `l2' penalty is the standard used in SVC.
   %
   The `l1' leads to coef\_vectors that are sparse.
   %
-  \item \xmlNode{dual}, \xmlDesc{boolean (default=True)},
+  \default{`l2'}
   %
-  Select the algorithm to either solve the dual or primal optimization problem.
+  \item \xmlNode{dual}, \xmlDesc{boolean}, selects the algorithm to either solve
+  the dual or primal optimization problem.
   %
   Prefer dual=False when n\_samples > n\_features.
   %
-  \item \tolDescriptionC{}
+  \default{True}
   %
-  \item \xmlNode{multi\_class}, \xmlDesc{string, `ovr' or
-      `crammer\_singer' (default='ovr')},
+  \item \tolSVMDescription{}
+  %
+  \item \xmlNode{multi\_class}, \xmlDesc{string, `ovr' or `crammer\_singer'},
   %
   Determines the multi-class strategy if y contains more than two classes.
   %
   ovr trains n\_classes one-vs-rest classifiers, while
   crammer\_singer optimizes a joint objective over all classes.
   %
-  While crammer\_singer is interesting from an theoretical
-  perspective as it is consistent it is seldom used in practice and rarely leads
-  to better accuracy and is more expensive to compute.
+  While crammer\_singer is interesting from a theoretical perspective as it is
+  consistent, it is seldom used in practice and rarely leads to better accuracy
+  and is more expensive to compute.
   %
   If crammer\_singer is chosen, the options loss, penalty and dual
   will be ignored.
   %
+  \default{`ovr'}
+  %
   \item \fitInterceptDescription{True}
   %
-  \item \xmlNode{intercept\_scaling}, \xmlDesc{float, optional
-      field (default=1)},
-  %
-  when self.fit\_intercept is True, instance vector x becomes [x,
-  self.intercept\_scaling], i.e. a “synthetic” feature with
-  constant value equals to intercept\_scaling is appended to the
-  instance vector.
+  \item \xmlNode{intercept\_scaling}, \xmlDesc{float, optional field}, when
+  True, the instance vector x becomes [x,self.intercept\_scaling], i.e. a 
+  ``synthetic'' feature with constant value equals to intercept\_scaling is
+  appended to the instance vector.
   %
   The intercept becomes intercept\_scaling * synthetic feature
-  weight Note! the synthetic feature weight is subject to l1/l2 regularization
-  as all other features.
+  weight.
+  \nb The synthetic feature weight is subject to l1/l2 regularization as are all
+  other features.
   %
-  To lessen the effect of regularization on synthetic feature weight (and
-  therefore on the intercept) intercept\_scaling has to be
-  increased
-  \item \xmlNode{class\_weight}, \xmlDesc{{dict, `auto'},
-      optional field},
+  To lessen the effect of regularization on the synthetic feature weight (and
+  therefore on the intercept) intercept\_scaling has to be increased.
   %
-  Set the parameter C of class i to class\_weight[i]*C for SVC.
+  \default{1}
   %
-  If not given, all classes are supposed to have weight one.
+  \item \classWeightDescription{}
+  \item \verDescriptionB{}
   %
-  The `auto' mode uses the values of y to automatically adjust weights
-  inversely proportional to class frequencies.
+  \nb This setting takes advantage of a per-process runtime setting in liblinear 
+  that, if enabled, may not work properly in a multithreaded context.
   %
-  \item \verDescriptionB
-  %
-  \nb This setting takes advantage of a per-process runtime setting in
-  liblinear that, if enabled, may not work properly in a multithreaded context.
-  %
-  \item \randomStateDescription{None}
+  \item \randomStateSVMDescription{None}
 \end{itemize}
 
 \subparagraph{C-Support Vector Classification}
@@ -2116,158 +2413,57 @@ handled according to a one-vs-the-rest scheme.
 \\The \textit{C-Support Vector Classification} is a based on libsvm.
 %
 The fit time complexity is more than quadratic with the number of samples which
-makes it hard to scale to dataset with more than a couple of 10000 samples.
+makes it hard to scale to datasets with more than a couple of 10000 samples.
 %
 The multiclass support is handled according to a one-vs-one scheme.
 %
 \skltype{C-Support Vector Classifier}{svm|SVC}
 \begin{itemize}
-  \item \xmlNode{C}, \xmlDesc{float, optional field (default=1.0)},
-  %
-  Penalty parameter C of the error term.
-  %
-  \item \xmlNode{kernel}, \xmlDesc{string, optional (default='rbf')},
-  %
-  Specifies the kernel type to be used in the algorithm.
-  %
-  It must be one of `linear', `poly', `rbf', `sigmoid',
-  `precomputed' or a callable.
-  %
-  If none is given, `rbf' will be used.
-  %
-  If a callable is given it is used to precompute the kernel matrix.
-  %
-  \item \xmlNode{degree}, \xmlDesc{int, optional field (default=3)},
-  %
-  Degree of the polynomial kernel function (`poly').
-  %
-  Ignored by all other kernels.
-  %
-  \item \xmlNode{gamma}, \xmlDesc{float, optional field (default=0.0)},
-  %
-  Kernel coefficient for `rbf', `poly' and `sigmoid'.
-  %
-  If gamma is 0.0 then 1/n\_features will be used instead.
-  %
-  \item \xmlNode{coef0}, \xmlDesc{float, optional field (default=0.0)},
-  %
-  Independent term in kernel function.
-  %
-  It is only significant in `poly' and `sigmoid'.
-  %
-  \item \xmlNode{probability}, \xmlDesc{boolean, optional field
-      (default=False)},
-  %
-  Whether to enable probability estimates.
-  %
-  This must be enabled prior to calling fit, and will slow down that method.
-  %
-  \item \xmlNode{shrinking}, \xmlDesc{boolean, optional field
-      (default=True)},
-  %
-  Whether to use the shrinking heuristic.
-  %
-  \item \tolDescriptionC{}
-  %
-  \item \xmlNode{cache\_size}, \xmlDesc{float, optional
-      field},
-  %
-  Specify the size of the kernel cache (in MB)
-  \item \xmlNode{class\_weight}, \xmlDesc{{dict, `auto'},
-      optional},
-  %
-  Set the parameter C of class i to class\_weight[i]*C for SVC.
-  %
-  If not given, all classes are supposed to have weight one.
-  %
-  The `auto' mode uses the values of y to automatically adjust weights
-  inversely proportional to class frequencies.
-  %
-  \item \verDescriptionA{False}
-  %
-  \nb This setting takes advantage of a per-process runtime setting in
-  libsvm that, if enabled, may not work properly in a multithreaded context.
-  %
+  \item \CSVMDescription{1.0}
+  \item \kernelDescription{`rbf'}
+  \item \degreeDescription{3.0}
+  \item \gammaDescription{0.0}
+  \item \coefZeroDescription{0.0}
+  \item \probabilityDescription{False}
+  \item \shrinkingDescription{True}
+  \item \tolSVMDescription{}
+  \item \cacheSizeDescription{}
+  \item \classWeightDescription{}
+  \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
-  %
-  \item \xmlNode{random\_state}, \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data
-  for probability estimation.
+  \item \randomStateSVMDescription{None}
   %
 \end{itemize}
 
 \subparagraph{Nu-Support Vector Classification}
 \mbox{}
-\\The \textit{Nu-Support Vector Classification} is similar to SVC but uses a
+
+The \textit{Nu-Support Vector Classification} is similar to SVC but uses a
 parameter to control the number of support vectors.
 %
 The implementation is based on libsvm.
 %
 \skltype{Nu-Support Vector Classifier}{svm|NuSVC}
 \begin{itemize}
-  \item \xmlNode{nu}, \xmlDesc{float, optional field (default=0.5)},
-  %
-  An upper bound on the fraction of training errors and a lower bound of the
-  fraction of support vectors.
+  \item \xmlNode{nu}, \xmlDesc{float, optional field}, is an upper bound on the
+  fraction of training errors and a lower bound of the fraction of support
+  vectors.
   %
   Should be in the interval (0, 1].
   %
-  \item \xmlNode{kernel}, \xmlDesc{string, optional field
-      (default='rbf')},
+  \default{0.5}
   %
-  Specifies the kernel type to be used in the algorithm.
-  %
-  It must be one of `linear', `poly', `rbf', `sigmoid',
-  `precomputed' or a callable.
-  %
-  If none is given, `rbf' will be used.
-  %
-  If a callable is given it is used to precompute the kernel matrix.
-  %
-  \item \xmlNode{degree}, \xmlDesc{int, optional field (default=3)},
-  %
-  degree of kernel function is significant only in poly, rbf, sigmoid
-  \item \xmlNode{gamma}, \xmlDesc{float, optional field (default=0.0)},
-  %
-  kernel coefficient for rbf and poly, if gamma is 0.0 then 1/n\_features will be taken.
-  %
-  \item \xmlNode{coef0}, \xmlDesc{float, optional field (default=0.0)},
-  %
-  independent term in kernel function.
-  %
-  It is only significant in poly/sigmoid.
-  %
-  \item \xmlNode{probability}, \xmlDesc{boolean, optional field
-      (default=False)},
-  %
-  Whether to enable probability estimates.
-  %
-  This must be enabled prior to calling fit, and will slow down that method.
-  %
-  \item \xmlNode{shrinking}, \xmlDesc{boolean, optional field
-      (default=True)},
-  %
-  Whether to use the shrinking heuristic.
-  %
-  \item \tolDescriptionC{}
-  \item \xmlNode{cache\_size}, \xmlDesc{float, optional
-      field},
-  %
-  Specify the size of the kernel cache (in MB)
-  \item \verDescriptionA{False}
-  %
-  \nb This setting takes advantage of a per-process runtime setting in
-  libsvm that, if enabled, may not work properly in a multithreaded context.
-  %
+  \item \kernelDescription{`rbf'}
+  \item \degreeDescription{3.0}
+  \item \gammaDescription{0.0}
+  \item \coefZeroDescription{0.0}
+  \item \probabilityDescription{False}
+  \item \shrinkingDescription{True}
+  \item \tolSVMDescription{}
+  \item \cacheSizeDescription{}
+  \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
-  %
-  \item \xmlNode{random\_state}, \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data
-  for probability estimation.
+  \item \randomStateSVMDescription{None}
   %
 \end{itemize}
 
@@ -2276,77 +2472,31 @@ The implementation is based on libsvm.
 \\The \textit{Support Vector Regression} is an epsilon-Support Vector
 Regression.
 %
-The free parameters in the model are C and epsilon.
+The free parameters in this model are C and epsilon.
 %
 The implementations is a based on libsvm.
 %
 \skltype{Support Vector Regressor}{svm|SVR}
 \begin{itemize}
-  \item \xmlNode{C}, \xmlDesc{float, optional field (default=1.0)},
+  \item \CSVMDescription{1.0}
+  \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, specifies the
+  epsilon-tube within which no penalty is associated in the training loss
+  function with points predicted within a distance epsilon from the actual
+  value.
   %
-  penalty parameter C of the error term.
+  \default{0.1}
   %
-  \item \xmlNode{epsilon}, \xmlDesc{float, optional field (default=0.1)},
-  %
-  epsilon in the epsilon-SVR model.
-  %
-  It specifies the epsilon-tube within which no penalty is associated in the
-  training loss function with points predicted within a distance epsilon from
-  the actual value.
-  %
-  \item \xmlNode{kernel}, \xmlDesc{string, optional field
-      (default='rbf')},
-  %
-  Specifies the kernel type to be used in the algorithm.
-  %
-  It must be one of `linear', `poly', `rbf', `sigmoid',
-  `precomputed' or a callable.
-  %
-  If none is given, `rbf' will be used.
-  %
-  If a callable is given it is used to precompute the kernel matrix.
-  %
-  \item \xmlNode{degree}, \xmlDesc{float, optional field (default=3.0)},
-  %
-  degree of kernel function is significant only in poly, rbf, sigmoid
-  \item \xmlNode{gamma}, \xmlDesc{float, optional field (default=0.0)},
-  %
-  kernel coefficient for rbf and poly, if gamma is 0.0 then 1/n\_features will be taken.
-  %
-  \item \xmlNode{coef0}, \xmlDesc{float, optional field (default=0.0)},
-  %
-  independent term in kernel function.
-  %
-  It is only significant in poly/sigmoid.
-  %
-  \item \xmlNode{probability}, \xmlDesc{boolean, optional field
-      (default=False)},
-  %
-  Whether to enable probability estimates.
-  %
-  This must be enabled prior to calling fit, and will slow down that method.
-  %
-  \item \xmlNode{shrinking}, \xmlDesc{boolean, optional field
-      (default=True)},
-  %
-  Whether to use the shrinking heuristic.
-  %
-  \item \tolDescriptionC{}
-  \item \xmlNode{cache\_size}, \xmlDesc{float, optional
-      field},
-  %
-  Specify the size of the kernel cache (in MB)
-  \item \verDescriptionA{False}
-  Note that this setting takes advantage of a per-process runtime setting in
-  libsvm that, if enabled, may not work properly in a multithreaded context.
-  %
+  \item \kernelDescription{`rbf'}
+  \item \degreeDescription{3.0}
+  \item \gammaDescription{0.0}
+  \item \coefZeroDescription{0.0}
+  \item \probabilityDescription{False}
+  \item \shrinkingDescription{True}
+  \item \tolSVMDescription{}
+  \item \cacheSizeDescription{}
+  \item \verSVMDescription{False}
   \item \maxIterDescription{-1}
-  %
-  \item \xmlNode{random\_state}, \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data
-  for probability estimaton.
+  \item \randomStateSVMDescription{None}
   %
 \end{itemize}
  %%%%% ROM Model - SciKitLearn: MultiClass %%%%%%%
@@ -2365,7 +2515,8 @@ In the following, all the multi-class models available in RAVEN are reported.
 %%%%%%%%%
 \subparagraph{One-vs-the-rest (OvR) multiclass/multilabel strategy}
 \mbox{}
-\\The \textit{One-vs-the-rest (OvR) multiclass/multilabel strategy}, also known
+
+The \textit{One-vs-the-rest (OvR) multiclass/multilabel strategy}, also known
 as one-vs-all, consists in fitting one classifier per class.
 %
 For each classifier, the class is fitted against all the other classes.
@@ -2377,28 +2528,17 @@ Since each class is represented by one and one classifier only, it is possible
 to gain knowledge about the class by inspecting its corresponding classifier.
 %
 This is the most commonly used strategy and is a fair default choice.
-%
+
 \skltype{One-vs-the-rest (OvR) multiclass/multilabel classifier}{multiClass|OneVsRestClassifier}
 \begin{itemize}
-  \item \xmlNode{estimator}, \xmlDesc{boolean, required field},
-  %
-  An estimator object implementing fit and one of decision\_function or
-  predict\_proba.
-  %
-  This XML node needs to contain the attributes:
-  \vspace{-5mm}
-  \begin{itemize}
-    \itemsep0em
-    \item \textbf{estimatorType}, \textit{required string attribute}, this
-    attribute an other reduced order mode type that needs to be used for the
-    construction of the multi-class algorithms; each sub-sequential node depends
-    on the chosen ROM;
-  \end{itemize}
+  \item \estimatorDescription{}
 \end{itemize}
+
 %%%%%%%%%%%%
 \subparagraph{One-vs-one multiclass strategy}
 \mbox{}
-\\The \textit{One-vs-one multiclass strategy} consists in fitting one classifier
+
+The \textit{One-vs-one multiclass strategy} consists in fitting one classifier
 per class pair.
 %
 At prediction time, the class which received the most votes is selected.
@@ -2413,26 +2553,12 @@ algorithms which do not scale well with n\_samples.
 This is because each individual learning problem only involves a small subset of
 the data whereas, with one-vs-the-rest, the complete dataset is used n\_classes
 times.
-%
+
 \skltype{One-vs-one multiclass classifier}{multiClass|OneVsOneClassifier}
-%
-In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
-  \item \xmlNode{estimator}, \xmlDesc{boolean, required field},
-  %
-  An estimator object implementing fit and one of decision\_function or
-  predict\_proba.
-  %
-  This XML node needs to contain the attributes:
-  \vspace{-5mm}
-  \begin{itemize}
-    \itemsep0em
-    \item \textbf{estimatorType}, \textit{required string attribute}, this
-    attribute an other reduced order mode type that needs to be used for the
-    construction of the multi-class algorithms; each sub-sequential node depends
-    on the chosen ROM;
-  \end{itemize}
+  \item \estimatorDescription{}
 \end{itemize}
+
 %%%%%%%%%%%%%
 \subparagraph{Error-Correcting Output-Code multiclass strategy}
 \mbox{}
@@ -2447,26 +2573,12 @@ space and the class closest to the points is chosen.
 The main advantage of these strategies is that the number of classifiers used
 can be controlled by the user, either for compressing the model ($0 < code_size
 < 1$) or for making the model more robust to errors ($code_size > 1$).
-%
+
 \skltype{Error-Correcting Output-Code multiclass classifier}{multiClass|OutputCodeClassifier}
 \begin{itemize}
-  \item \xmlNode{estimator}, \xmlDesc{xml node, required field},
-  %
-  An estimator object implementing fit and one of decision\_function or
-  predict\_proba.
-  %
-  This XML node needs to contain the attributes:
-  \vspace{-5mm}
-\begin{itemize}
-    \itemsep0em
-    \item \textbf{estimatorType}, \textit{required string attribute}, this
-    attribute an other reduced order mode type that needs to be used for the
-    construction of the multi-class algorithms; each sub-sequential node depends
-    on the chosen ROM;
-\end{itemize}
-  \item \xmlNode{code\_size}, \xmlDesc{float, required field},
-  %
-  ercentage of the number of classes to be used to create the code book.
+  \item \estimatorDescription{}
+  \item \xmlNode{code\_size}, \xmlDesc{float, required field}, represents the
+  percentage of the number of classes to be used to create the code book.
   %
   A number between 0 and 1 will require fewer classifiers than one-vs-the-rest.
   %
@@ -2491,8 +2603,8 @@ can be controlled by the user, either for compressing the model ($0 < code_size
 \paragraph{Naive Bayes.}
 \label{naiveBayes}
 Naive Bayes methods are a set of supervised learning algorithms based on
-applying Bayes' theorem with the “naive” assumption of independence
-between every pair of features.
+applying Bayes' theorem with the ``naive'' assumption of independence between
+every pair of features.
 %
 Given a class variable y and a dependent feature vector x\_1 through x\_n,
 Bayes' theorem states the following relationship:
@@ -2524,7 +2636,7 @@ training set.
 %
 The different naive Bayes classifiers differ mainly by the assumptions they make
 regarding the distribution of $P(x_i \mid y)$.
-%
+
 In spite of their apparently over-simplified assumptions, naive Bayes
 classifiers have worked quite well in many real-world situations, famously
 document classification and spam filtering.
@@ -2542,7 +2654,7 @@ distribution can be independently estimated as a one dimensional distribution.
 %
 This in turn helps to alleviate problems stemming from the curse of
 dimensionality.
-%
+
 On the flip side, although naive Bayes is known as a decent classifier, it is
 known to be a bad estimator, so the probability outputs from predict\_proba are
 not to be taken too seriously.
@@ -2561,34 +2673,40 @@ P(x_i \mid y) = \frac{1}{\sqrt{2\pi\sigma^2_y}} \exp\left(-\frac{(x_i -
   \mu_y)^2}{2\sigma^2_y}\right)
 \end{equation}
 The parameters $\sigma_y$ and $\mu_y$ are estimated using maximum likelihood.
-%
-\skltype{Gaussian Naive Bayes strategy}{naiveBayes|GaussianNB}
+
+In order to use the \textit{Gaussian Naive Bayes strategy}, the user needs to
+set the sub-node:
+
+\xmlNode{SKLtype}\texttt{naiveBayes|GaussianNB}\xmlNode{/SKLtype}.
+
+There are no additional sub-nodes available for this method.
 %
 %%%%%%%%%%%%
 \subparagraph{Multinomial Naive Bayes}
 \mbox{}
 \\The \textit{Multinomial Naive Bayes} implements the naive Bayes algorithm for
 multinomially distributed data, and is one of the two classic naive Bayes
-variants used in text classification (where the data are typically represented
+variants used in text classification (where the data is typically represented
 as word vector counts, although tf-idf vectors are also known to work well in
 practice).
 %
 The distribution is parametrized by vectors $\theta_y =
-(\theta_{y1},\ldots,\theta_{yn})$ for each class $y$, where n is the number of
+(\theta_{y1},\ldots,\theta_{yn})$ for each class $y$, where $n$ is the number of
 features (in text classification, the size of the vocabulary) and $\theta_{yi}$
-is the probability $P(x_i \mid y)$ of feature i appearing in a sample belonging
-to class y.
+is the probability $P(x_i \mid y)$ of feature $i$ appearing in a sample
+belonging to class $y$.
 %
-The parameters $\theta_y$ is estimated by a smoothed version of maximum
+The parameters $\theta_y$ are estimated by a smoothed version of maximum
 likelihood, i.e. relative frequency counting:
 \begin{equation}
 \hat{\theta}_{yi} = \frac{ N_{yi} + \alpha}{N_y + \alpha n}
 \end{equation}
-where $N_{yi} = \sum_{x \in T} x_i$ is the number of times feature i appears in
-a sample of class y in the training set T, and $N_{y} = \sum_{i=1}^{|T|} N_{yi}$
-is the total count of all features for class y.
+where $N_{yi} = \sum_{x \in T} x_i$ is the number of times feature $i$ appears
+in a sample of class y in the training set T, and
+$N_{y} = \sum_{i=1}^{|T|} N_{yi}$ is the total count of all features for class
+$y$.
 %
-The smoothing priors $\alpha \ge 0$ accounts for features not present in the
+The smoothing priors $\alpha \ge 0$ account for features not present in the
 learning samples and prevents zero probabilities in further computations.
 %
 Setting $\alpha = 1$ is called Laplace smoothing, while $\alpha < 1$ is called
@@ -2596,28 +2714,9 @@ Lidstone smoothing.
 %
 \skltype{Multinomial Naive Bayes strategy}{naiveBayes|MultinomialNB}
 \begin{itemize}
-  \item \xmlNode{alpha}, \xmlDesc{float, optional field},
-  %
-  Additive (Laplace/Lidstone) smoothing parameter (0 for no smoothing).
-  %
-  \default{1.0}
-  \item \xmlNode{fit\_prior}, \xmlDesc{boolean, required
-      field},
-  %
-  Whether to learn class prior probabilities or not.
-  %
-  If false, a uniform prior will be used.
-  %
-  \default{False}
-  \item \xmlNode{class\_prior}, \xmlDesc{array-like float
-      (n\_classes), optional field},
-  %
-  Prior probabilities of the classes.
-  %
-  If specified the priors are not adjusted according to the data.
-  %
-  \default{None}.
-  %
+  \item \alphaBayesDescription{1.0}
+  \item \fitPriorDescription{False}
+  \item \classPriorDescription{None}
 \end{itemize}
 
 %%%%%%%%%%%%
@@ -2630,14 +2729,14 @@ assumed to be a binary-valued (Bernoulli, boolean) variable.
 %
 Therefore, this class requires samples to be represented as binary-valued
 feature vectors; if handed any other kind of data, a \textit{Bernoulli Naive
-  Bayes} instance may binarize its input (depending on the binarize parameter).
+Bayes} instance may binarize its input (depending on the binarize parameter).
 %
 The decision rule for Bernoulli naive Bayes is based on
 \begin{equation}
 P(x_i \mid y) = P(i \mid y) x_i + (1 - P(i \mid y)) (1 - x_i)
 \end{equation}
 which differs from multinomial NB's rule in that it explicitly penalizes the
-non-occurrence of a feature i that is an indicator for class y, where the
+non-occurrence of a feature $i$ that is an indicator for class $y$, where the
 multinomial variant would simply ignore a non-occurring feature.
 %
 In the case of text classification, word occurrence vectors (rather than word
@@ -2650,48 +2749,33 @@ It is advisable to evaluate both models, if time permits.
 %
 \skltype{Bernoulli Naive Bayes strategy}{naiveBayes|BernoulliNB}
 \begin{itemize}
-  \item \xmlNode{alpha}, \xmlDesc{float, optional field},
-  %
-  Additive (Laplace/Lidstone) smoothing parameter (0 for no smoothing).
-  %
-  \default{1.0}
+  \item \alphaBayesDescription{1.0}
   \item \xmlNode{binarize}, \xmlDesc{float, optional field},
   %
   Threshold for binarizing (mapping to booleans) of sample features.
   %
-  If None, input is presumed to already consist of binary vectors..
+  If None, input is presumed to already consist of binary vectors.
   %
   \default{None}
-  \item \xmlNode{fit\_prior}, \xmlDesc{boolean, optional field},
-  %
-  Whether to learn class prior probabilities or not.
-  %
-  If false, a uniform prior will be used.
-  %
-  \default{False}
-  \item \xmlNode{class\_prior}, \xmlDesc{array-like float (n\_classes),
-      optional field},
-  %
-  Prior probabilities of the classes.
-  %
-  If specified the priors are not adjusted according to the data.
-  %
-  \default{None}.
+  \item \fitPriorDescription{False}
+  \item \classPriorDescription{None}
   %
 \end{itemize}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%% ROM Model - SciKitLearn: Neighbors %%%%%%%
 \paragraph{Neighbors.}
 \label{Neighbors}
+
 The \textit{Neighbors} class provides functionality for unsupervised and
-supervised neighbors-based learning methods.
+supervised neighbor-based learning methods.
 %
-Unsupervised nearest neighbors is the foundation of many other learning methods,
-notably manifold learning and spectral clustering.
+The unsupervised nearest neighbors method is the foundation of many other
+learning methods, notably manifold learning and spectral clustering.
 %
 Supervised neighbors-based learning comes in two flavors: classification for
 data with discrete labels, and regression for data with continuous labels.
-%
+
 The principle behind nearest neighbor methods is to find a predefined number of
 training samples closest in distance to the new point, and predict the label
 from these.
@@ -2703,11 +2787,11 @@ learning).
 The distance can, in general, be any metric measure: standard Euclidean distance
 is the most common choice.
 %
-Neighbors-based methods are known as non-generalizing machine learning methods,
-since they simply “remember” all of its training data (possibly transformed
+Neighbor-based methods are known as non-generalizing machine learning methods,
+since they simply ``remember'' all of its training data (possibly transformed
 into a fast indexing structure such as a Ball Tree or KD Tree.).
-%
-\\In the following, all the Neighbors' models available in RAVEN are reported.
+
+In the following, all the Neighbors' models available in RAVEN are reported.
 %
 %%%%%%%%%%%%%%%
 \subparagraph{Nearest Neighbors}
@@ -2721,59 +2805,14 @@ BallTree, KDTree, and a brute-force algorithm.
 %The choice of neighbors search algorithm is controlled through the keyword 'algorithm', which must be one of ['auto', 'ball_tree', 'kd_tree', 'brute']. When the default value 'auto' is passed, the algorithm attempts to determine the best approach from the training data.
 \skltype{Nearest Neighbors strategy}{neighbors|NearestNeighbors}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional field},
-  %
-  Number of neighbors to use by default for k\_neighbors queries..
-  %
-  \default{5}
-  \item \xmlNode{radius}, \xmlDesc{float, optional field},
-  %
-  Range of parameter space to use by default for :meth`radius\_neighbors`
-  queries.
-  %
-  \default{1.0}
-  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
-  %
-  Algorithm used to compute the nearest neighbors:
-\begin{itemize}
-    \item \textit{ball\_tree} will use BallTree;
-    \item \textit{kd\_tree} will use KDtree;
-    \item \textit{brute} will use a brute-force search;
-    \item \textit{auto} will attempt to decide the most appropriate algorithm
-    based on the values passed to fit method.
-    %
-\end{itemize}
-  NB.
-  %
-  fitting on sparse input will override the setting of this parameter, using
-  brute force.
-  %
-  \default{auto}
-  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
-      field},
-  %
-  Leaf size passed to BallTree or KDTree.
-  %
-  This can affect the speed of the construction and query, as well as the memory
-  required to store the tree.
-  %
-  The optimal value depends on the nature of the problem.
-  %
-  \default{30}
-  \item \xmlNode{p}, \xmlDesc{integer, optional field},
-  %
-  Parameter for the Minkowski metric.
-  %
-  When $p = 1$, this is equivalent to using manhattan distance (L1), and
-  euclidean distance (L2) for $p = 2$.
-  %
-  For arbitrary p, minkowski distance (L\_p) is used.
-  %
-  \default{2}.
-  %
+  \item \nNeighborsDescription{5}
+  \item \radiusDescription{1.0}
+  \item \algorithmDescription{auto}
+  \item \leafSizeDescription{30}
+  \item \pDescription{2}
 \end{itemize}
 %%%%%%%%%%%%%%%
-\subparagraph{K Neighbors Classifier }
+\subparagraph{K Neighbors Classifier}
 \mbox{}
 \\The \textit{K Neighbors Classifier} is a type of instance-based learning or
 non-generalizing learning: it does not attempt to construct a general internal
@@ -2783,87 +2822,18 @@ Classification is computed from a simple majority vote of the nearest neighbors
 of each point: a query point is assigned the data class which has the most
 representatives within the nearest neighbors of the point.
 %
-It implements learning based on the k nearest neighbors of each query point,
-where k is an integer value specified by the user.
-%
+It implements learning based on the $k$ nearest neighbors of each query point,
+where $k$ is an integer value specified by the user.
+
 \skltype{K Neighbors Classifier}{neighbors|KNeighborsClassifier}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional
-      field},
-  %
-  Number of neighbors to use by default for k\_neighbors queries..
-  %
-  \default{5}
-  \item \xmlNode{weights}, \xmlDesc{string, optional field},
-  %
-  Weight function used in prediction.
-  %
-  Possible values:
-\begin{itemize}
-    \item \textit{uniform} : uniform weights.
-    %
-    All points in each neighborhood are weighted equally;
-    \item \textit{distance} : weight points by the inverse of their distance.
-    %
-    in this case, closer neighbors of a query point will have a greater
-    influence than neighbors which are further away.
-    %
-\end{itemize}
-  \default{uniform}
-
-  \item \xmlNode{radius}, \xmlDesc{float, optional field},
-  %
-  Range of parameter space to use by default for :meth`radius\_neighbors`
-  queries.
-  %
-  \default{1.0}
-  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
-  %
-  Algorithm used to compute the nearest neighbors:
-\begin{itemize}
-    \item \textit{ball\_tree} will use BallTree;
-    \item \textit{kd\_tree} will use KDtree;
-    \item \textit{brute} will use a brute-force search;
-    \item \textit{auto} will attempt to decide the most appropriate algorithm
-    based on the values passed to fit method.
-    %
-\end{itemize}
-  NB.
-  %
-  fitting on sparse input will override the setting of this parameter, using
-  brute force.
-  %
-  \default{auto}
-  \item \xmlNode{metric}, \xmlDesc{string, optional field},
-  %
-  the distance metric to use for the tree.
-  %
-  The default metric is minkowski, and with p=2 is equivalent to the standard
-  Euclidean metric.
-  %
-  \default{minkowski}
-  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
-      field},
-  %
-  Leaf size passed to BallTree or KDTree.
-  %
-  This can affect the speed of the construction and query, as well as the memory
-  required to store the tree.
-  %
-  The optimal value depends on the nature of the problem.
-  %
-  \default{30}
-  \item \xmlNode{p}, \xmlDesc{integer, optional field},
-  %
-  Parameter for the Minkowski metric.
-  %
-  When $p = 1$, this is equivalent to using manhattan distance (L1), and
-  euclidean distance (L2) for $p = 2$.
-  %
-  For arbitrary p, minkowski distance (L\_p) is used.
-  %
-  \default{2}.
-  %
+  \item \nNeighborsDescription{5}
+  \item \weightsDescription{uniform}
+  \item \radiusDescription{1.0}
+  \item \algorithmDescription{auto}
+  \item \metricDescription{minkowski}
+  \item \leafSizeDescription{30}
+  \item \pDescription{2}
 \end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{Radius Neighbors Classifier}
@@ -2876,304 +2846,88 @@ Classification is computed from a simple majority vote of the nearest neighbors
 of each point: a query point is assigned the data class which has the most
 representatives within the nearest neighbors of the point.
 %
-It implements learning based on the number of neighbors within a fixed radius r
-of each training point, where r is a floating-point value specified by the user.
-%
+It implements learning based on the number of neighbors within a fixed radius 
+$r$ of each training point, where $r$ is a floating-point value specified by the
+user.
+
 \skltype{Radius Neighbors Classifier}{neighbors|RadiusNeighbors}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional
-      field},
-  %
-  Number of neighbors to use by default for k\_neighbors queries..
-  %
-  \default{5}
-  \item \xmlNode{weights}, \xmlDesc{string, optional field},
-  %
-  Weight function used in prediction.
-  %
-  Possible values:
-\begin{itemize}
-    \item \textit{uniform} : uniform weights.
-    %
-    All points in each neighborhood are weighted equally;
-    \item \textit{distance} : weight points by the inverse of their distance.
-    %
-    in this case, closer neighbors of a query point will have a greater
-    influence than neighbors which are further away.
-    %
+  \item \nNeighborsDescription{5}
+  \item \weightsDescription{uniform}
+  \item \radiusDescription{1.0}
+  \item \algorithmDescription{auto}
+  \item \metricDescription{minkowski}
+  \item \leafSizeDescription{30}
+  \item \pDescription{2}
+  \item \outlierLabelDescription{None}
 \end{itemize}
-  \default{uniform}
-  \item \xmlNode{radius}, \xmlDesc{float, optional field},
-  %
-  Range of parameter space to use by default for :meth`radius\_neighbors`
-  queries.
-  %
-  \default{1.0}
-  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
-  %
-  Algorithm used to compute the nearest neighbors:
-\begin{itemize}
-    \item \textit{ball\_tree} will use BallTree;
-    \item \textit{kd\_tree} will use KDtree;
-    \item \textit{brute} will use a brute-force search;
-    \item \textit{auto} will attempt to decide the most appropriate algorithm
-    based on the values passed to fit method.
-    %
-\end{itemize}
-  NB.
-  %
-  fitting on sparse input will override the setting of this parameter, using
-  brute force.
-  %
-  \default{auto}
-  \item \xmlNode{metric}, \xmlDesc{string, optional field},
-  %
-  the distance metric to use for the tree.
-  %
-  The default metric is minkowski, and with p=2 is equivalent to the standard
-  Euclidean metric.
-  %
-  \default{minkowski}
-  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
-      field},
-  %
-  Leaf size passed to BallTree or KDTree.
-  %
-  This can affect the speed of the construction and query, as well as the memory
-  required to store the tree.
-  %
-  The optimal value depends on the nature of the problem.
-  %
-  \default{30}
-  \item \xmlNode{p}, \xmlDesc{integer, optional field},
-  %
-  Parameter for the Minkowski metric.
-  %
-  When $p = 1$, this is equivalent to using manhattan distance (L1), and
-  euclidean distance (L2) for $p = 2$.
-  %
-  For arbitrary p, minkowski distance (L\_p) is used.
-  %
-  \default{2}
-  \item \xmlNode{outlier\_label}, \xmlDesc{integer, optional
-      field},
-  %
-  Label, which is given for outlier samples (samples with no neighbors on given
-  radius).
-  %
-  If set to None, ValueError is raised, when outlier is detected.
-  %
-  \default{None}.
-  %
-\end{itemize}
+
 %%%%%%%%%%%%%%%
 \subparagraph{K Neighbors Regressor}
 \mbox{}
-\\The \textit{K Neighbors Regressor} can be used in cases where the data labels
+
+The \textit{K Neighbors Regressor} can be used in cases where the data labels
 are continuous rather than discrete variables.
 %
-The label assigned to a query point is computed based the mean of the labels of
-its nearest neighbors.
+The label assigned to a query point is computed based on the mean of the labels
+of its nearest neighbors.
 %
-It implements learning based on the k nearest neighbors of each query point,
-where k is an integer value specified by the user.
-%
+It implements learning based on the $k$ nearest neighbors of each query point,
+where $k$ is an integer value specified by the user.
+
 \skltype{K Neighbors Regressor}{neighbors|KNeighborsRegressor}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional field},
-  %
-  Number of neighbors to use by default for k\_neighbors queries..
-  %
-  \default{5}
-  \item \xmlNode{weights}, \xmlDesc{string, optional field},
-  %
-  Weight function used in prediction.
-  %
-  Possible values:
-\begin{itemize}
-    \item \textit{uniform} : uniform weights.
-    %
-    All points in each neighborhood are weighted equally;
-    \item \textit{distance} : weight points by the inverse of their distance.
-    %
-    in this case, closer neighbors of a query point will have a greater
-    influence than neighbors which are further away.
-    %
+  \item \nNeighborsDescription{5}
+  \item \weightsDescription{uniform}
+  \item \radiusDescription{1.0}
+  \item \algorithmDescription{auto}
+  \item \metricDescription{minkowski}
+  \item \leafSizeDescription{30}
+  \item \pDescription{2}
 \end{itemize}
-  \default{uniform}
 
-  \item \xmlNode{radius}, \xmlDesc{float, optional field},
-  %
-  Range of parameter space to use by default for :meth`radius\_neighbors`
-  queries.
-  %
-  \default{1.0}
-  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
-  %
-  Algorithm used to compute the nearest neighbors:
-\begin{itemize}
-    \item \textit{ball\_tree} will use BallTree;
-    \item \textit{kd\_tree} will use KDtree;
-    \item \textit{brute} will use a brute-force search;
-    \item \textit{auto} will attempt to decide the most appropriate algorithm
-    based on the values passed to fit method.
-    %
-\end{itemize}
-  NB.
-  %
-  fitting on sparse input will override the setting of this parameter, using
-  brute force.
-  %
-  \default{auto}
-  \item \xmlNode{metric}, \xmlDesc{string, optional field},
-  %
-  the distance metric to use for the tree.
-  %
-  The default metric is minkowski, and with p=2 is equivalent to the standard
-  Euclidean metric.
-  %
-  \default{minkowski}
-  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
-      field},
-  %
-  Leaf size passed to BallTree or KDTree.
-  %
-  This can affect the speed of the construction and query, as well as the memory
-  required to store the tree.
-  %
-  The optimal value depends on the nature of the problem.
-  %
-  \default{30}
-  \item \xmlNode{p}, \xmlDesc{integer, optional field},
-  %
-  Parameter for the Minkowski metric.
-  %
-  When $p = 1$, this is equivalent to using manhattan distance (L1), and
-  euclidean distance (L2) for $p = 2$.
-  %
-  For arbitrary p, minkowski distance (L\_p) is used.
-  %
-  \default{2}.
-  %
-\end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{Radius Neighbors Regressor}
 \mbox{}
-\\The \textit{Radius Neighbors Regressor} can be used in cases where the data
+
+The \textit{Radius Neighbors Regressor} can be used in cases where the data
 labels are continuous rather than discrete variables.
 %
-The label assigned to a query point is computed based the mean of the labels of
-its nearest neighbors.
+The label assigned to a query point is computed based on the mean of the labels
+of its nearest neighbors.
 %
-It implements learning based on the neighbors within a fixed radius r of the
-query point, where r is a floating-point value specified by the user.
-%
+It implements learning based on the neighbors within a fixed radius $r$ of the
+query point, where $r$ is a floating-point value specified by the user.
+
 \skltype{Radius Neighbors Regressor}{neighbors|RadiusNeighborsRegressor}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors}, \xmlDesc{integer, optional
-      field},
-  %
-  Number of neighbors to use by default for k\_neighbors queries..
-  %
-  \default{5}
-  \item \xmlNode{weights}, \xmlDesc{string, optional field},
-  %
-  Weight function used in prediction.
-  %
-  Possible values:
-\begin{itemize}
-    \item \textit{uniform} : uniform weights.
-    %
-    All points in each neighborhood are weighted equally;
-    \item \textit{distance} : weight points by the inverse of their distance.
-    %
-    in this case, closer neighbors of a query point will have a greater
-    influence than neighbors which are further away.
-    %
-\end{itemize}
-  \default{uniform}
-  \item \xmlNode{radius}, \xmlDesc{float, optional field},
-  %
-  Range of parameter space to use by default for :meth`radius\_neighbors`
-  queries.
-  %
-  \default{1.0}
-  \item \xmlNode{algorithm}, \xmlDesc{string, optional field},
-  %
-  Algorithm used to compute the nearest neighbors:
-\begin{itemize}
-    \item \textit{ball\_tree} will use BallTree;
-    \item \textit{kd\_tree} will use KDtree;
-    \item \textit{brute} will use a brute-force search;
-    \item \textit{auto} will attempt to decide the most appropriate algorithm
-    based on the values passed to fit method.
-    %
-\end{itemize}
-  NB.
-  %
-  fitting on sparse input will override the setting of this parameter, using
-  brute force.
-  %
-  \default{auto}
-  \item \xmlNode{metric}, \xmlDesc{string, optional field},
-  %
-  the distance metric to use for the tree.
-  %
-  The default metric is minkowski, and with p=2 is equivalent to the standard
-  Euclidean metric.
-  %
-  \default{minkowski}
-  \item \xmlNode{leaf\_size}, \xmlDesc{integer, optional
-      field},
-  %
-  Leaf size passed to BallTree or KDTree.
-  %
-  This can affect the speed of the construction and query, as well as the memory
-  required to store the tree.
-  %
-  The optimal value depends on the nature of the problem.
-  %
-  \default{30}
-  \item \xmlNode{p}, \xmlDesc{integer, optional field},
-  %
-  Parameter for the Minkowski metric.
-  %
-  When $p = 1$, this is equivalent to using manhattan distance (L1), and
-  euclidean distance (L2) for $p = 2$.
-  %
-  For arbitrary p, minkowski distance (L\_p) is used.
-  %
-  \default{2}
-  \item \xmlNode{outlier\_label}, \xmlDesc{integer, optional
-      field},
-  %
-  Label, which is given for outlier samples (samples with no neighbors on given
-  radius).
-  %
-  If set to None, ValueError is raised, when outlier is detected.
-  %
-  \default{None}.
-  %
+  \item \nNeighborsDescription{5}
+  \item \weightsDescription{uniform}
+  \item \radiusDescription{1.0}
+  \item \algorithmDescription{auto}
+  \item \metricDescription{minkowski}
+  \item \leafSizeDescription{30}
+  \item \pDescription{2}
+  \item \outlierLabelDescription{None}
 \end{itemize}
 %%%%%%%%%%%%%%%
 \subparagraph{Nearest Centroid Classifier}
 \mbox{}
-\\The \textit{Nearest Centroid classifier} is a simple algorithm that represents
+
+The \textit{Nearest Centroid classifier} is a simple algorithm that represents
 each class by the centroid of its members.
 %
 It also has no parameters to choose, making it a good baseline classifier.
 %
 It does, however, suffer on non-convex classes, as well as when classes have
 drastically different variances, as equal variance in all dimensions is assumed.
-%
+
 \skltype{Nearest Centroid Classifier}{neighbors|NearestCentroid}
 \begin{itemize}
-  \item \xmlNode{n\_neighbors}, \xmlDesc{float, optional
-      field},
+  \item \xmlNode{shrink\_threshold}, \xmlDesc{float, optional field}, defines
+  the threshold for shrinking centroids to remove features.
   %
-  Threshold for shrinking centroids to remove features.
-  %
-  \default{None}.
+  \default{None}
   %
 \end{itemize}
 %\subparagraph{Ball Tree}
@@ -3184,29 +2938,31 @@ drastically different variances, as equal variance in all dimensions is assumed.
  %%%%% ROM Model - SciKitLearn: Quadratic Discriminant Analysis %%%%%%%
 \paragraph{Quadratic Discriminant Analysis.}
 \label{QDA}
+
 The \textit{Quadratic Discriminant Analysis} is a classifier with a quadratic
 decision boundary, generated by fitting class conditional densities to the data
-and using Bayes' rule.The model fits a Gaussian density to each class.
+and using Bayes' rule.
 %
+The model fits a Gaussian density to each class.
+
 \skltype{Quadratic Discriminant Analysis Classifier}{qda|QDA}
 \begin{itemize}
   \item \xmlNode{priors}, \xmlDesc{array-like (n\_classes), optional field},
-  %
-  Priors on classes.
+  specifies the priors on the classes.
   %
   \default{None}
-  \item \xmlNode{reg\_param}, \xmlDesc{float, optional field},
-  %
-  Regularizes the covariance estimate as (1-reg\_param)*Sigma +
+  \item \xmlNode{reg\_param}, \xmlDesc{float, optional field}, regularizes the
+  covariance estimate as (1-reg\_param)*Sigma +
   reg\_param*Identity(n\_features).
   %
-  \default{0.0}.
+  \default{0.0}
   %
 \end{itemize}
 
  %%%%% ROM Model - SciKitLearn: Tree %%%%%%%
-\paragraph{Tree.}
+\paragraph{Tree}
 \label{tree}
+
 Decision Trees (DTs) are a non-parametric supervised learning method used for
 classification and regression.
 %
@@ -3325,9 +3081,9 @@ decision tree logic.
     \item If float, then max\_features is a percentage and int(max\_features *
     n\_features) features are considered at each split.
     %
-    \item If “auto”, then max\_features=sqrt(n\_features);
-    \item If “sqrt”, then max\_features=sqrt(n\_features);
-    \item If “log2”, then max\_features=log2(n\_features);
+    \item If ``auto'', then max\_features=sqrt(n\_features);
+    \item If ``sqrt'', then max\_features=sqrt(n\_features);
+    \item If ``log2'', then max\_features=log2(n\_features);
     \item If None, then max\_features=n\_features.
     %
 \end{itemize}
@@ -3409,9 +3165,9 @@ decision tree logic.
     \item If float, then max\_features is a percentage and int(max\_features *
     n\_features) features are considered at each split.
     %
-    \item If “auto”, then max\_features=sqrt(n\_features);
-    \item If “sqrt”, then max\_features=sqrt(n\_features);
-    \item If “log2”, then max\_features=log2(n\_features);
+    \item If ``auto'', then max\_features=sqrt(n\_features);
+    \item If ``sqrt'', then max\_features=sqrt(n\_features);
+    \item If ``log2'', then max\_features=log2(n\_features);
     \item If None, then max\_features=n\_features.
     %
 \end{itemize}
@@ -3501,9 +3257,9 @@ tree.
     \item If float, then max\_features is a percentage and int(max\_features *
     n\_features) features are considered at each split.
     %
-    \item If “auto”, then max\_features=sqrt(n\_features);
-    \item If “sqrt”, then max\_features=sqrt(n\_features);
-    \item If “log2”, then max\_features=log2(n\_features);
+    \item If ``auto'', then max\_features=sqrt(n\_features);
+    \item If ``sqrt'', then max\_features=sqrt(n\_features);
+    \item If ``log2'', then max\_features=log2(n\_features);
     \item If None, then max\_features=n\_features.
     %
 \end{itemize}
@@ -3593,9 +3349,9 @@ tree.
     \item If float, then max\_features is a percentage and int(max\_features *
     n\_features) features are considered at each split.
     %
-    \item If “auto”, then max\_features=sqrt(n\_features);
-    \item If “sqrt”, then max\_features=sqrt(n\_features);
-    \item If “log2”, then max\_features=log2(n\_features);
+    \item If ``auto'', then max\_features=sqrt(n\_features);
+    \item If ``sqrt'', then max\_features=sqrt(n\_features);
+    \item If ``log2'', then max\_features=log2(n\_features);
     \item If None, then max\_features=n\_features.
     %
 \end{itemize}
