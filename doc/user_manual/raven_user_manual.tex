@@ -61,7 +61,8 @@
     keywordstyle=\color{cyan},
     stringstyle=\ttfamily\color{black},
     tagstyle=\color{darkblue}\bf\ttfamily,
-    morekeywords={name,attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
+    morekeywords={name},
+%    morekeywords={name,attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
 }
 
 \usepackage{titlesec}
@@ -108,6 +109,10 @@ showstringspaces=false            %
 \newcommand\pythonexternal[2][]{{
 \pythonstyle
 \lstinputlisting[#1]{#2}}}
+
+\lstnewenvironment{xml}
+{}
+{}
 
 % Python for inline
 \newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}

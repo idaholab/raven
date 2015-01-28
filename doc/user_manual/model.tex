@@ -88,12 +88,12 @@
   \default{#1}
 }
 
-\newcommand{\verDescriptionA}
+\newcommand{\verDescriptionA}[1]
 {
   \xmlNode{verbose}, \xmlDesc{boolean, optional field}, use verbose mode
   when fitting the model.
   %
-  \default{False}
+  \default{#1}
 }
 
 \newcommand{\verDescriptionB}
@@ -129,6 +129,79 @@
   \default{#1}
 }
 
+\newcommand{\precomputeDescription}[1]
+{
+  \xmlNode{precompute}, \xmlDesc{boolean or string, optional field}, determines
+  whether to use a precomputed Gram matrix to speed up calculations.
+  %
+  If set to `auto,' RAVEN will decide.
+  %
+  The Gram matrix can also be passed as an argument.
+  %
+  Available options are [True | False | `auto' | array-like].
+  %
+  \default{#1}
+}
+
+\newcommand{\nAlphasDescription}[1]
+{
+  \xmlNode{max\_n\_alphas}, \xmlDesc{integer, optional field}, specifies the
+  maximum number of points on the path used to compute the residuals in the
+  cross-validation.
+  %
+  \default{#1}
+}
+
+\newcommand{\shuffleDescription}[1]
+{
+  \xmlNode{shuffle}, \xmlDesc{boolean, optional field}, specifies whether
+  or not the training data should be shuffled after each epoch.
+  %
+  \default{#1}
+}
+
+\newcommand{\randomStateDescription}[1]
+{
+  \xmlNode{random\_state} , \xmlDesc{int seed, RandomState instance, or None},
+  sets the seed of the pseudo random number generator to use when shuffling the
+  data.
+  %
+  \default{#1}
+}
+
+\newcommand{\solverDescription}%[1]
+{
+  \xmlNode{solver}, \xmlDesc{\{`auto', `svd', `cholesky', `lsqr', 
+  `sparse\_cg'\}}, specifies the solver to use in the computational routines:
+  \begin{itemize}
+    \item `auto' chooses the solver automatically based on the type of data.
+    %
+    \item `svd' uses a singular value decomposition of X to compute the ridge
+    coefficients.
+    %
+    More stable for singular matrices than `cholesky.'
+    %
+    \item `cholesky' uses the standard scipy.linalg.solve function to obtain a
+    closed-form solution.
+    %
+    \item `sparse\_cg' uses the conjugate gradient solver as found in
+    scipy.sparse.linalg.cg.
+    %
+    As an iterative algorithm, this solver is more appropriate than
+    `cholesky' for large-scale data (possibility to set tol and max\_iter).
+    %
+    \item `lsqr' uses the dedicated regularized least-squares routine
+    scipy.sparse.linalg.lsqr.
+    %
+    It is the fatest but may not be available in old scipy versions.
+    %
+    It also uses an iterative procedure.
+    %
+  \end{itemize}
+  All three solvers support both dense and sparse data.
+  %
+  %\default{#1}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 In RAVEN, \textbf{Models} are crucial entities.
@@ -464,7 +537,7 @@ below).
 
 \begin{itemize}
   \item \xmlNode{p}, \xmlDesc{integer, required field}, must be greater than
-  zero and represents the ``power parameter'.
+  zero and represents the ``power parameter''.
   %
   For the choice of value for \xmlNode{p},it is necessary to consider the degree
   of smoothing desired in the interpolation/extrapolation, the density and
@@ -589,7 +662,7 @@ ARD optimizes these hyperparameters to discover which inputs are relevant.
   %
   \item \normalizeDescription{False}
   %
-  \item \verDescriptionA
+  \item \verDescriptionA{False}
 \end{itemize}
 %%%%%%%%
 \subparagraph{Linear Model: Bayesian ridge regression}
@@ -651,15 +724,13 @@ The parameters are estimated by maximizing the marginal log likelihood.
   %
   \item \fitInterceptDescription{True}
   \item \normalizeDescription{False}
-  \item \verDescriptionA
-  %
-  \default{ False}
+  \item \verDescriptionA{False}
 \end{itemize}
 %%%%%%%
 \subparagraph{Linear Model: Elastic Net}
 \mbox{}
-\\The \textit{Elastic Net} is a linear regression with combined L1 and L2 priors
-as regularizers.
+\\The \textit{Elastic Net} is a linear regression technique with combined L1 and
+L2 priors as regularizers.
 %
 It minimizes the objective function:
 \begin{equation}
@@ -672,17 +743,17 @@ It minimizes the objective function:
   that multiplies the penalty terms.
   %
   $alpha = 0$ is equivalent to an ordinary least square, solved by the
-  LinearRegression object.
+  \textbf{LinearRegression} object.
   \default{1.0}
   %
   \item \xmlNode{l1\_ratio}, \xmlDesc{float, optional field}, specifies the
-  ElasticNet mixing parameter, with $0 <= l1_ratio <= 1$.
+  ElasticNet mixing parameter, with $0 <= l1\_ratio <= 1$.
   %
-  For $l1_ratio = 0$ the penalty is an L2 penalty.
+  For $l1\_ratio = 0$ the penalty is an L2 penalty.
   %
-  For $l1_ratio = 1$ it is an L1 penalty.
+  For $l1\_ratio = 1$ it is an L1 penalty.
   %
-  For $0 < l1_ratio < 1$, the penalty is a combination of L1 and L2.
+  For $0 < l1\_ratio < 1$, the penalty is a combination of L1 and L2.
   %
   \default{0.5}
   \item \fitInterceptDescription{True}
@@ -696,7 +767,7 @@ It minimizes the objective function:
 %%%%%%%%
 \subparagraph{Linear Model: Elastic Net CV}
 \mbox{}
-\\The \textit{Elastic Net CV} is a linear regression similar to Elastic Net
+\\The \textit{Elastic Net CV} is a linear regression similar to the Elastic Net
 model but with an iterative fitting along a regularization path.
 %
 The best model is selected by cross-validation.
@@ -704,47 +775,35 @@ The best model is selected by cross-validation.
 
 \skltype{Elastic Net CV regressor}{linear\_model|ElasticNetCV}
 \begin{itemize}
-  \item \xmlNode{l1\_ratio} , \xmlDesc{float, optional field},
+  \item \xmlNode{l1\_ratio}, \xmlDesc{float, optional field},
   %
   Float flag between 0 and 1 passed to ElasticNet (scaling between l1 and l2
   penalties).
   %
-  For $l1_ratio = 0$ the penalty is an L2 penalty.
+  For $l1\_ratio = 0$ the penalty is an L2 penalty.
   %
-  For $l1_ratio = 1$ it is an L1 penalty.
+  For $l1\_ratio = 1$ it is an L1 penalty.
   %
-  For $0 < l1_ratio < 1$, the penalty is a combination of L1 and L2 This
+  For $0 < l1\_ratio < 1$, the penalty is a combination of L1 and L2 This
   parameter can be a list, in which case the different values are tested by
   cross-validation and the one giving the best prediction score is used.
   %
-  Note that a good choice of list of values for $l1_ratio$ is often to put more
+  Note that a good choice of list of values for $l1\_ratio$ is often to put more
   values close to 1 (i.e. Lasso) and less close to 0 (i.e. Ridge), as in [.1,
   .5, .7, .9, .95, .99, 1].
   %
   \default{0.5}
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, specifies the length of 
+  the path.
   %
-  Length of the path.
-  %
-  eps=1e-3 means that $alpha_min / alpha_max = 1e-3$.
+  eps=1e-3 means that $alpha\_min / alpha\_max = 1e-3$.
   %
   \default{0.001}
-  \item \xmlNode{n\_alphas} , \xmlDesc{integer, optional field},
-  %
-  Number of alphas along the regularization path, used for each $l1_ratio$.
+  \item \xmlNode{n\_alphas}, \xmlDesc{integer, optional field}, the number of
+  alphas along the regularization path used for each $l1\_ratio$.
   %
   \default{100}
-  \item \xmlNode{precompute} , \xmlDesc{boolean or string, optional field},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
-  Available are [True | False | ‘auto’ | array-like].
-  %
-  \default{1.0}
+  \item \precomputeDescription{1.0}
   \item \maxIterDescription{300}
   \item \tolDescriptionB{1.e-4}
   %
@@ -757,53 +816,37 @@ The best model is selected by cross-validation.
 \\The \textit{Least Angle Regression model} (LARS) is a regression algorithm for
 high-dimensional data.
 %
-LARS algorithm provides a means of producing an estimate of which variables to
-include, as well as their coefficients, when a response variable is determined
-by a linear combination of a subset of potential covariate.
+The LARS algorithm provides a means of producing an estimate of which variables
+to include, as well as their coefficients, when a response variable is
+determined by a linear combination of a subset of potential covariates.
 %
 
 \skltype{Least Angle Regression model}{linear\_model|Lars}
 \begin{itemize}
-  \item \xmlNode{n\_nonzero\_coef} , \xmlDesc{integer, optional field},
-  %
-  Target number of non-zero coefficients.
+  \item \xmlNode{n\_nonzero\_coef}, \xmlDesc{integer, optional field}, 
+  represents the target number of non-zero coefficients.
   %
   \default{500}
   \item \fitInterceptDescription{True}
-  \item \verDescriptionA
-  %
-  \default{ False}
-  \item \xmlNode{precompute} , \xmlDesc{boolean or string, optional field},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
-  Available are [True | False | ‘auto’ | array-like].
-  %
-  \default{1.0}
+  \item \verDescriptionA{False}
+  \item \precomputeDescription{1.0}
   \item \normalizeDescription{False}
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
-  %
-  The machine-precision regularization in the computation of the Cholesky
-  diagonal factors.
+  \item \xmlNode{eps} , \xmlDesc{float, optional field}, represents the machine
+  precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
   %
-  Unlike the tol parameter in some iterative optimization-based algorithms, this
-  parameter does not control the tolerance of the optimization.
+  Unlike the \xmlNode{tol} parameter in some iterative optimization-based
+  algorithms, this parameter does not control the tolerance of the optimization.
   %
-  \textit{Default =2.22e-16}
-  \item \xmlNode{fit\_path} , \xmlDesc{boolean, optional field},
-  %
-  f True the full path is stored in the coef\_path\_attribute.
+  \default{2.22e-16}
+  \item \xmlNode{fit\_path} , \xmlDesc{boolean, optional field}, if True the
+  full path is stored in the coef\_path\_attribute.
   %
   If you compute the solution for a large problem or many targets, setting
   fit\_path to False will lead to a speedup, especially with a small alpha.
   %
-  \default{ True}.
+  \default{True}
   %
 \end{itemize}
 %%%%%%
@@ -812,45 +855,27 @@ by a linear combination of a subset of potential covariate.
 \\The \textit{Cross-validated Least Angle Regression model} is a regression
 algorithm for high-dimensional data.
 %
-It is similar to LARS method, but the best model is selected by
+It is similar to the LARS method, but the best model is selected by
 cross-validation.
 %
 \skltype{Cross-validated Least Angle Regression model}{linear\_model|LarsCV}
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  \item \verDescriptionA
-  %
-  \default{ False}
+  \item \verDescriptionA{False}
   \item \normalizeDescription{False}
-  \item \xmlNode{precompute} , \xmlDesc{boolean or string, optional field},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
-  Available are [True | False | ‘auto’ | array-like].
-  %
-  \default{1.0}
+  \item \precomputeDescription{1.0}
   \item \maxIterDescription{300}
-  \item \xmlNode{max\_n\_alphas}, \xmlDesc{integer, optional field},
-  %
-  The maximum number of points on the path used to compute the residuals in the
-  cross-validation.
-  %
-  \default{1000}
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
-  %
-  The machine-precision regularization in the computation of the Cholesky
-  diagonal factors.
+  \item \nAlphasDescription{1000}
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the
+  machine-precision regularization in the computation of the Cholesky diagonal
+  factors.
   %
   Increase this for very ill-conditioned systems.
   %
-  Unlike the tol parameter in some iterative optimization-based algorithms, this
-  parameter does not control the tolerance of the optimization.
+  Unlike the \textit{tol} parameter in some iterative optimization-based
+  algorithms, this parameter does not control the tolerance of the optimization.
   %
-  \textit{Default =2.22e-16}
+  \default{2.22e-16}
 \end{itemize}
 \subparagraph{Linear Model trained with L1 prior as regularizer (aka the Lasso)}
 \mbox{}
@@ -863,189 +888,129 @@ absolute values of the coefficients.
 \skltype{Linear Model trained with L1 prior as regularizer
   (Lasso)}{linear\_model|Lasso}
 \begin{itemize}
-  \item \xmlNode{alpha} , \xmlDesc{float, optional field},
-  %
-  Constant that multiplies the L1 term.
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, constant multiplier
+  for the L1 term.
   %
   Defaults to 1.0.
   %
   alpha = 0 is equivalent to an ordinary least square, solved by the
   LinearRegression object.
   %
-  For numerical reasons, using alpha = 0 is with the Lasso object is not advised
-  and you should prefer the LinearRegression object.
+  For numerical reasons, using alpha = 0 with the Lasso object is not advised
+  and you should instead use the LinearRegression object.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \normalizeDescription{False}
-  \item \xmlNode{precompute} , \xmlDesc{True | False | ‘auto’ |
-      array-like},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
-  For sparse input this option is always True to preserve sparsity.
-  %
+  \item \precomputeDescription{}
+  \nb For sparse input this option is always True to preserve sparsity.
   \item \maxIterDescription{}
   \item \tolDescriptionB{1.e-4}
-  %
   \item \warmStartDescription{}
-  %
   \item \positiveDescription{}
-  %
 \end{itemize}
 
 \subparagraph{Lasso linear model with iterative fitting along a regularization
   path}
 \mbox{}
-\\The \textit{Lasso linear model with iterative fitting along a regularization
-  path} is Lasso linear model with iterative fitting along a regularization path
-\skltype{Lasso linear model with iterative fitting along a
-  regularization path regressor}{linear\_model|LassoCV}
+
+The \textit{Lasso linear model with iterative fitting along a regularization
+path} is Lasso linear model with iterative fitting along a regularization 
+path. \maljdan{May need a more better description.}
+\skltype{Lasso linear model with iterative fitting along a regularization path
+regressor}{linear\_model|LassoCV}
 \begin{itemize}
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, represents the length of
+  the path.
   %
-  Length of the path.
+  eps=1e-3 means that alpha\_min / alpha\_max = 1e-3.
   %
-  eps=1e-3 means that alpha\_min / alpha\_max =
-  1e-3.
+  \item \xmlNode{n\_alphas} , \xmlDesc{int, optional field}, sets the number of
+  alphas along the regularization path.
+  \item \xmlNode{alphas}, \xmlDesc{numpy array, optional field}, lists the
+  locations of the alphas used to compute the models.
   %
-  \item \xmlNode{n\_alphas} , \xmlDesc{int, optional field},
-  %
-  Number of alphas along the regularization path
-  \item \xmlNode{alphas} , \xmlDesc{numpy array, optional field},
-  %
-  List of alphas where to compute the models.
-  %
-  If None alphas are set automatically
-  \item \xmlNode{precompute} , \xmlDesc{true | False | ‘auto’ |
-      array-like},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
+  If None, alphas are set automatically.
+  \item \precomputeDescription{}
   \item \maxIterDescription{}
   \item \tolDescriptionB{1.e-4}
-  %
   \item \verDescriptionB
-  %
   \item \positiveDescription{}
 \end{itemize}
 
-\subparagraph{Lasso model fit with Least Angle Regression }
+\subparagraph{Lasso model fit with Least Angle Regression}
 \mbox{}
-\\The \textit{Lasso model fit with Least Angle Regression} is a Cross-validated
-Least Angle Regression model
-\skltype{Cross-validated Least Angle Regression model regressor}{linear\_model|LarsCV}
+
+The \textit{Lasso model fit with Least Angle Regression} is a cross-validated
+least angle regression model.
+%
+\skltype{Cross-validated Least Angle Regression model
+regressor}{linear\_model|LarsCV}
+
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  %
   \item \verDescriptionB
   \item \normalizeDescription{False}
-  \item \xmlNode{precompute} , \xmlDesc{True | False | ‘auto’ |
-      array-like},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
+  \item \precomputeDescription{}
   \item \maxIterDescription{}
-  %
-  \item \xmlNode{max\_n\_alphas}, \xmlDesc{integer, optional field},
-  %
-  The maximum number of points on the path used to compute the residuals in the
-  cross-validation
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
-  %
-  The machine-precision regularization in the computation of the Cholesky
-  diagonal factors.
+  \item \nAlphasDescription{}
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, sets the machine
+  precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
-  %
 \end{itemize}
 
 \subparagraph{Cross-validated Lasso, using the LARS algorithm}
-p\mbox{}
-\\The \textit{Cross-validated Lasso, using the LARS algorithm} is a
-Cross-validated Lasso, using the LARS algorithm
-\skltype{Cross-validated Lasso, using the LARS algorithm regressor}{linear\_model|LassoLarsCV}
+\mbox{}
+
+The \textit{Cross-validated Lasso, using the LARS algorithm} is a
+cross-validated Lasso, using the LARS algorithm. 
+\maljdan{redundant}
+\skltype{Cross-validated Lasso, using the LARS algorithm
+regressor}{linear\_model|LassoLarsCV}
+
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  %
   \item \verDescriptionB
   \item \normalizeDescription{False}
-  \item \xmlNode{precompute} , \xmlDesc{True | False | ‘auto’ |
-      array-like},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
+  \item \precomputeDescription{}
   \item \maxIterDescription{}
-  %
-  \item \xmlNode{max\_n\_alphas}, \xmlDesc{integer, optional field},
-  %
-  The maximum number of points on the path used to compute the residuals in the
-  cross-validation
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
-  %
-  The machine-precision regularization in the computation of the Cholesky
-  diagonal factors.
+  \item \nAlphasDescription{}
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, specifies the machine
+  precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
-  %
 \end{itemize}
 
 \subparagraph{Lasso model fit with Lars using BIC or AIC for model selection}
 \mbox{}
-\\The \textit{Lasso model fit with Lars using BIC or AIC for model selection} is
-Lasso model fit with Lars using BIC or AIC for model selection
+
+The \textit{Lasso model fit with Lars using BIC or AIC for model selection} is
+a Lasso model fit with Lars using BIC or AIC for model selection. 
+\maljdan{redundant}
 The optimization objective for Lasso is:
 $(1 / (2 * n\_samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
-AIC is the Akaike information criterion and BIC is the Bayes Information
+AIC is the Akaike information criterion and BIC is the Bayes information
 criterion.
 %
-Such criteria are useful to select the value of the regularization parameter by
-making a trade-off between the goodness of fit and the complexity of the model.
+Such criteria are useful in selecting the value of the regularization parameter
+by making a trade-off between the goodness of fit and the complexity of the
+model.
 %
-A good model should explain well the data while being simple.
+A good model should explain the data well while being simple.
 %
 \skltype{Lasso model fit with Lars using BIC or AIC for
   model selection regressor}{linear\_model|LassoLarsIC}
 \begin{itemize}
-  \item \xmlNode{criterion} , \xmlDesc{‘bic’ | ‘aic’ },
-  %
-  The type of criterion to use.
+  \item \xmlNode{criterion} , \xmlDesc{‘bic’ | ‘aic’ }, specifies the type of
+  criterion to use.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \verDescriptionB
   \item \normalizeDescription{False}
-  \item \xmlNode{precompute} , \xmlDesc{True | False | ‘auto’ |
-      array-like},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to 'auto' let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
+  \item \precomputeDescription{}
   \item \maxIterDescription{}
-  %
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
-  %
-  The machine-precision regularization in the computation of the Cholesky
-  diagonal factors.
+  \item \xmlNode{eps} , \xmlDesc{float, optional field}, represents the machine
+  precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
   %
@@ -1056,124 +1021,107 @@ A good model should explain well the data while being simple.
 
 \subparagraph{Ordinary least squares Linear Regression}
 \mbox{}
-\\The \textit{Ordinary least squares Linear Regression} is a method for
+
+The \textit{Ordinary least squares Linear Regression} is a method for
 estimating the unknown parameters in a linear regression model, with the goal of
 minimizing the differences between the observed responses in some arbitrary
-dataset and the responses predicted by the linear approximation of the data
-\skltype{Ordinary least squares Linear Regressor}{linear\_model|LinearRegression}
+dataset and the responses predicted by the linear approximation of the data.
+%
+\skltype{Ordinary least squares Linear
+Regressor}{linear\_model|LinearRegression}
+
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  %
   \item \normalizeDescription{False}
 \end{itemize}
 
-\subparagraph{Logistic Regression }
+\subparagraph{Logistic Regression}
 \mbox{}
 \\The \textit{Logistic Regression} implements L1 and L2 regularized logistic
 regression using the liblinear library.
 %
 It can handle both dense and sparse input.
 %
-Use C-ordered arrays or CSR matrices containing 64-bit floats for optimal
-performance; any other input format will be converted (and copied).
+This regressor uses C-ordered arrays or CSR matrices containing 64-bit floats
+for optimal performance; any other input format will be converted (and copied).
 %
 \skltype{Logistic Regressor}{linear\_model|LogisticRegression}
 \begin{itemize}
-  \item \xmlNode{penalty} , \xmlDesc{string, ‘l1’ or ‘l2’},
+  \item \xmlNode{penalty}, \xmlDesc{string, ‘l1’ or ‘l2’}, specifies the norm
+  used in the penalization.
   %
-  Used to specify the norm used in the penalization.
+  \item \xmlNode{dual}, \xmlDesc{boolean}, specifies the dual or primal
+  formulation.
   %
-  \item \xmlNode{dual} , \xmlDesc{boolean},
-  %
-  Dual or primal formulation.
-  %
-  Dual formulation is only implemented for l2 penalty.
+  Dual formulation is only implemented for the l2 penalty.
   %
   Prefer dual=False when n\_samples > n\_features.
   %
-  \item \xmlNode{C} , \xmlDesc{float, optional field (default: 1.0)},
-  %
-  Inverse of regularization strength; must be a positive float.
+  \item \xmlNode{C} , \xmlDesc{float, optional field}, is the inverse of the
+  regularization strength; must be a positive float.
   %
   Like in support vector machines, smaller values specify stronger
   regularization.
   %
-  \item \xmlNode{fit\_intercept} , \xmlDesc{boolean (default:
-      True)},
+  \default{1.0}
+  \item \xmlNode{fit\_intercept}, \xmlDesc{boolean}, specifies if a constant
+  (a.k.a. bias or intercept) should be added to the decision function.
   %
-  Specifies if a constant (a.k.a.
-  %
-  bias or intercept) should be added the decision function.
-  %
-  \item \xmlNode{intercept\_scaling} , \xmlDesc{float, optional
-      field (default: 1.0)},
-  %
-  when self.fit\_intercept is True, instance vector x becomes [x,
-  self.intercept\_scaling], i.e. a “synthetic” feature with
-  constant value equals to intercept\_scaling is appended to the
-  instance vector.
+  \default{True}
+  \item \xmlNode{intercept\_scaling}, \xmlDesc{float, optional field}, when
+  self.fit\_intercept is True, instance vector x becomes [x,
+  self.intercept\_scaling], i.e. a ``synthetic'' feature with constant value
+  equal to intercept\_scaling is appended to the instance vector.
   %
   The intercept becomes intercept\_scaling * synthetic feature
-  weight Note! the synthetic feature weight is subject to l1/l2 regularization
-  as all other features.
+  weight.
+  \nb The synthetic feature weight is subject to l1/l2 regularization as are all
+  other features.
   %
   To lessen the effect of regularization on synthetic feature weight (and
-  therefore on the intercept) intercept\_scaling has to be
-  increased
-  \item \xmlNode{class\_weight} , \xmlDesc{{dict, ‘auto’},
-      optional},
-  %
-  Over-/undersamples the samples of each class according to the given weights.
+  therefore on the intercept) intercept\_scaling has to be increased.
+  \default{1.0}
+  \item \xmlNode{class\_weight}, \xmlDesc{\{dict, `auto'\}, optional},
+  over-/undersamples the samples of each class according to the given weights.
   %
   If not given, all classes are supposed to have weight one.
   %
-  The ‘auto’ mode selects weights inversely proportional to class
-  frequencies in the training set.
+  The `auto' mode selects weights inversely proportional to class frequencies
+  in the training set.
   %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data.
-  %
+  \item \randomStateDescription{None}
   \item \tolDescriptionC{}
-  %
 \end{itemize}
 
 \subparagraph{Multi-task Lasso model trained with L1/L2 mixed-norm as
-  regularizer }
+  regularizer}
 \mbox{}
 \\The \textit{Multi-task Lasso model trained with L1/L2 mixed-norm as
   regularizer} is a regressor where the optimization objective for Lasso is:
 $(1 / (2 * n\_samples)) * ||Y - XW||^2_Fro + alpha * ||W||_21$
 Where:
 $||W||_21 = \sum_i \sqrt{\sum_j w_{ij}^2}$
-i.e. the sum of norm of earch row.
+i.e. the sum of norm of each row.
 %
 \skltype{Multi-task Lasso model trained with L1/L2
   mixed-norm as regularizer regressor}{linear\_model|MultiTaskLasso}
 \begin{itemize}
-  \item \xmlNode{alpha} , \xmlDesc{float, optional field},
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, sets the constant 
+  multiplier for the L1/L2 term.
   %
-  Constant that multiplies the L1/L2 term.
-  %
-  Defaults to 1.0
+  \default{1.0}
   \item \fitInterceptDescription{True}
-  %
-  \item \xmlNode{normlaize} , \xmlDesc{boolean, optional field (default:
-      False)},
-  %
-  If True, the regressors X will be normalized before regression.
-  %
+  \item \normalizeDescription{False}
   \item \maxIterDescription{}
   \item \tolDescriptionB{1.e-4}
   \item \warmStartDescription{}
-  %
 \end{itemize}
 
-\subparagraph{Multi-task ElasticNet model trained with L1/L2 mixed-norm as
+\subparagraph{Multi-task Elastic Net model trained with L1/L2 mixed-norm as
   regularizer}
 \mbox{}
-\\The \textit{Multi-task ElasticNet model trained with L1/L2 mixed-norm as
+
+The \textit{Multi-task Elastic Net model trained with L1/L2 mixed-norm as
   regularizer} is a regressor where the optimization objective for
 MultiTaskElasticNet is:
 $(1 / (2 * n\_samples)) * ||Y - XW||^Fro_2
@@ -1186,14 +1134,12 @@ i.e. the sum of norm of each row.
 \skltype{Multi-task ElasticNet model trained with L1/L2
   mixed-norm as regularizer regressor}{linear\_model|MultiTaskElasticNet}
 \begin{itemize}
-  \item \xmlNode{alpha} , \xmlDesc{float, optional field},
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, represents a constant
+  multiplier for the L1/L2 term.
   %
-  Constant that multiplies the L1/L2 term.
-  %
-  Defaults to 1.0
-  \item \xmlNode{l1\_ratio} , \xmlDesc{float},
-  %
-  The ElasticNet mixing parameter, with $0 < l1\_ratio <= 1$.
+  \default{1.0}
+  \item \xmlNode{l1\_ratio}, \xmlDesc{float}, represents the Elastic Net mixing
+  parameter, with $0 < l1\_ratio <= 1$.
   %
   For $l1\_ratio = 0$ the penalty is an L1/L2 penalty.
   %
@@ -1203,170 +1149,141 @@ i.e. the sum of norm of each row.
   and L2.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \normalizeDescription{False}
   \item \maxIterDescription{}
   \item \tolDescriptionB{1.e-4}
   \item \warmStartDescription{}
-  %
 \end{itemize}
 
 \subparagraph{Orthogonal Mathching Pursuit model (OMP)}
 \mbox{}
-\\The \textit{Orthogonal Mathching Pursuit model (OMP)} is a type of sparse
-approximation which involves finding the "best matching" projections of
-multidimensional data onto an over-complete dictionary D.
+
+The \textit{Orthogonal Mathching Pursuit model (OMP)} is a type of sparse
+approximation which involves finding the ``best matching'' projections of
+multidimensional data onto an over-complete dictionary, $D$.
 %
-\skltype{Orthogonal Mathching Pursuit model (OMP) regressor}{linear\_model|OrthogonalMatchingPursuit}
+\skltype{Orthogonal Mathching Pursuit model (OMP)
+regressor}{linear\_model|OrthogonalMatchingPursuit}
 \begin{itemize}
-  \item \xmlNode{n\_nonzero\_coefs} , \xmlDesc{
-      int, optional field},
+  \item \xmlNode{n\_nonzero\_coefs}, \xmlDesc{int, optional field}, represents
+  the desired number of non-zero entries in the solution.
   %
-  Desired number of non-zero entries in the solution.
+  If None, this value is set to 10\% of n\_features.
   %
-  If None (by default) this value is set to 10\% of n\_features.
-  %
-  \item \xmlNode{tol} , \xmlDesc{float, optional field},
-  %
-  Maximum norm of the residual.
+  \default{None}
+  \item \xmlNode{tol}, \xmlDesc{float, optional field}, specifies the maximum
+  norm of the residual.
   %
   If not None, overrides n\_nonzero\_coefs.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \normalizeDescription{False}
-  \item \xmlNode{precompute} , \xmlDesc{{True, False, ‘auto’}, default
-      ‘auto’},
-  %
-  Whether to use a precomputed Gram and Xy matrix to speed up calculations.
+  \item \xmlNode{precompute}, \xmlDesc{\{True, False, `auto'\}}, specifies
+  whether to use a precomputed Gram and Xy matrix to speed up calculations.
   %
   Improves performance when n\_targets or n\_samples is very large.
   %
   Note that if you already have such matrices, you can pass them directly to the
   fit method.
   %
+  \default{`auto'}
 \end{itemize}
 
 \subparagraph{Cross-validated Orthogonal Mathching Pursuit model (OMP)}
 \mbox{}
-\\The \textit{Cross-validated Orthogonal Mathching Pursuit model (OMP)} is a
+
+The \textit{Cross-validated Orthogonal Mathching Pursuit model (OMP)} is a
 regressor similar to OMP which has good performance in sparse recovery.
 %
-\skltype{Cross-validated Orthogonal Mathching Pursuit model
-  (OMP) regressor}{linear\_model|OrthogonalMatchingPursuitCV}
+\skltype{Cross-validated Orthogonal Mathching Pursuit model (OMP)
+regressor}{linear\_model|OrthogonalMatchingPursuitCV}
 \begin{itemize}
   \item \fitInterceptDescription{True}
-  %
   \item \normalizeDescription{False}
-  %
   \item \maxIterDescription{}
   %
-  Maximum numbers of iterations to perform, therefore maximum features to
+  Maximum number of iterations to perform, therefore maximum features to
   include 10\% of n\_features but at least 5 if available.
   %
-  \item \xmlNode{cv} , \xmlDesc{cross-validation generator, optional},
+  \item \xmlNode{cv}, \xmlDesc{cross-validation generator, optional},
   %
   see sklearn.cross\_validation.
   %
-  If None is passed, default to a 5-fold strategy
+  \default{5-fold strategy}
   \item \verDescriptionB
 \end{itemize}
 
 \subparagraph{Passive Aggressive Classifier}
 \mbox{}
 \\The \textit{Passive Aggressive Classifier} is a principled approach to linear
-classification that advocates minimal weight updates i.e., the least required so
-that the current training instance is correctly classified.
+classification that advocates minimal weight updates i.e., the least required 
+to correctly classify the current training instance.
 %
-\skltype{Passive Aggressive Classifier}{linear\_model|PassiveAggressiveClassifier}
+\skltype{Passive Aggressive
+Classifier}{linear\_model|PassiveAggressiveClassifier}
 \begin{itemize}
-  \item \xmlNode{C} , \xmlDesc{float},
+  \item \xmlNode{C}, \xmlDesc{float}, specifies the maximum step size
+  (regularization).
   %
-  Maximum step size (regularization).
-  %
-  Defaults to 1.0.
+  \default{1.0}
   %
   \item \fitInterceptDescription{True}
-  %
   \item \nIterDescriptionB{5}
-  %
-  \item \xmlNode{shuffle} , \xmlDesc{boolean, optional field},
-  %
-  Whether or not the training data should be shuffled after each epoch.
-  %
-  Defaults to False.
-  %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data.
-  %
+  \item \shuffleDescription{False}
+  \item \randomStateDescription{None}
   \item \verDescriptionB
-  \item \xmlNode{loss} , \xmlDesc{string, optional field},
-  %
-  The loss function to be used: hinge: equivalent to PA-I in the reference
-  paper.
-  %
-  squared\_hinge: equivalent to PA-II in the reference paper.
+  \item \xmlNode{loss}, \xmlDesc{string, optional field}, the loss function to
+  be used:
+  \begin{itemize}
+    \item hinge: equivalent to PA-I in the reference paper. 
+    \item squared\_hinge: equivalent to PA-II in the reference paper.
+  \end{itemize}
+  \maljdan{what reference paper?}
   %
   \item \warmStartDescription{}
-  %
 \end{itemize}
 
 \subparagraph{Passive Aggressive Regressor}
 \mbox{}
 \\The \textit{Passive Aggressive Regressor} is similar to the Perceptron in that
-they do not require a learning rate.
+it does not require a learning rate.
 %
-However, contrary to the Perceptron, they include a regularization parameter C
+However, contrary to the Perceptron, this regressor includes a regularization
+parameter, $C$.
 
 \skltype{Passive Aggressive Regressor}{linear\_model|PassiveAggressiveRegressor}
-%
-In addition to this XML node, several others need (or not) to be inputted:
 \begin{itemize}
-  \item \xmlNode{C} , \xmlDesc{float},
+  \item \xmlNode{C}, \xmlDesc{float}, sets the maximum step size
+  (regularization).
   %
-  Maximum step size (regularization).
+  \default{1.0}
   %
-  Defaults to 1.0.
-  %
-  \item \xmlNode{epsilon} , \xmlDesc{float},
-  %
-  If the difference between the current prediction and the correct label is
-  below this threshold, the model is not updated.
+  \item \xmlNode{epsilon}, \xmlDesc{float}, if the difference between the
+  current prediction and the correct label is below this threshold, the model is
+  not updated.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \nIterDescriptionB{5}
-  %
-  \item \xmlNode{shuffle} , \xmlDesc{boolean, optional field},
-  %
-  Whether or not the training data should be shuffled after each epoch.
-  %
-  Defaults to False.
-  %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data.
-  %
+  \item \shuffleDescription{False}
+  \item \randomStateDescription{None}
   \item \verDescriptionB
-  \item \xmlNode{loss} , \xmlDesc{string, optional field},
-  %
-  The loss function to be used: epsilon\_insensitive: equivalent
-  to PA-I in the reference paper.
-  %
-  squared\_epsilon\_insensitive: equivalent to
-  PA-II in the reference paper.
+  \item \xmlNode{loss}, \xmlDesc{string, optional field}, specifies the loss
+  function to be used: 
+  \maljdan{What reference paper?}
+  \begin{itemize}
+    \item epsilon\_insensitive: equivalent to PA-I in the reference paper.
+    \item squared\_epsilon\_insensitive: equivalent to PA-II in the reference
+    paper.
+  \end{itemize}
   %
   \item \warmStartDescription{}
-  %
 \end{itemize}
 
 \subparagraph{Perceptron}
 \mbox{}
-\\The \textit{Perceptron} is an algorithm for supervised classification of an
-input into one of several possible non-binary outputs.
+
+The \textit{Perceptron} method is an algorithm for supervised classification of
+an input into one of several possible non-binary outputs.
 %
 It is a type of linear classifier, i.e. a classification algorithm that makes
 its predictions based on a linear predictor function combining a set of weights
@@ -1377,60 +1294,42 @@ training set one at a time.
 %
 \skltype{Perceptron classifier}{linear\_model|Perceptron}
 \begin{itemize}
-  \item \xmlNode{penalty} , \xmlDesc{None, ‘l2’ or ‘l1’ or
-      ‘elasticnet’},
+  \item \xmlNode{penalty}, \xmlDesc{None, ‘l2’ or ‘l1’ or ‘elasticnet’}, defines
+  the penalty (aka regularization term) to be used.
   %
-  The penalty (aka regularization term) to be used.
+  \default{None}
   %
-  Defaults to None.
+  \item \xmlNode{alpha}, \xmlDesc{float}, sets the constant multiplier for the
+  regularization term if regularization is used.
   %
-  \item \xmlNode{alpha} , \xmlDesc{float},
-  %
-  Constant that multiplies the regularization term if regularization is used.
-  %
-  Defaults to 0.0001
+  \default{0.0001}
   \item \fitInterceptDescription{True}
-  %
   \item \nIterDescriptionB{5}
-  %
-  \item \xmlNode{shuffle} , \xmlDesc{boolean, optional field},
-  %
-  Whether or not the training data should be shuffled after each epoch.
-  %
-  Defaults to False.
-  %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data.
-  %
+  \item \shuffleDescription{False}
+  \item \randomStateDescription{None}
   \item \verDescriptionB
-  \item \xmlNode{eta0} , \xmlDesc{double, optional field},
+  \item \xmlNode{eta0}, \xmlDesc{double, optional field}, defines the constant
+  multiplier for the updates.
   %
-  Constant by which the updates are multiplied.
+  \default{1.0}
   %
-  Defaults to 1.
-  %
-  \item \xmlNode{class\_weight} , \xmlDesc{dict, {class
-       \_label}},
-  %
-  Preset for the class\_weight fit parameter.
+  \item \xmlNode{class\_weight}, \xmlDesc{dict, {class\_label}}, specifies the
+  preset for the class\_weight fit parameter.
   %
   Weights associated with classes.
   %
   If not given, all classes are supposed to have weight one.
   %
-  The “auto” mode uses the values of y to automatically adjust weights
+  The ``auto'' mode uses the values of y to automatically adjust weights
   inversely proportional to class frequencies.
   %
   \item \warmStartDescription{}
-  %
 \end{itemize}
 
 \subparagraph{Randomized Lasso}
 \mbox{}
-\\The \textit{Randomized Lasso} works by resampling the train data and computing
-a Lasso on each resampling.
+\\The \textit{Randomized Lasso} works by resampling the training data and
+computing a Lasso on each resampling.
 %
 In short, the features selected more often are good features.
 %
@@ -1438,147 +1337,127 @@ It is also known as stability selection.
 %
 \skltype{Randomized Lasso regressor}{linear\_model|RandomizedLasso}
 \begin{itemize}
-  \item \xmlNode{alpha} , \xmlDesc{float, ‘aic’, or ‘bic’, optional},
-  %
-  The regularization parameter alpha parameter in the Lasso.
+  \item \xmlNode{alpha}, \xmlDesc{float, ‘aic’, or ‘bic’, optional}, defines the
+  regularization parameter $\alpha$ in the Lasso.
   %
   Warning: this is not the alpha parameter in the stability selection article
-  which is scaling.
+  which is scaling. \maljdan{Which article?}
   %
-  \item \xmlNode{scaling} , \xmlDesc{float, optional field},
-  %
-  The alpha parameter in the stability selection article used to randomly scale
-  the features.
+  \item \xmlNode{scaling}, \xmlDesc{float, optional field}, specifies the alpha
+  parameter in the stability selection article used to randomly scale the
+  features. \maljdan{Which article?}
   %
   Should be between 0 and 1.
   %
-  \item \xmlNode{sample\_fraction} , \xmlDesc{float, optional
-      field},
-  %
-  The fraction of samples to be used in each randomized design.
+  \item \xmlNode{sample\_fraction}, \xmlDesc{float, optional field}, defines
+  the fraction of samples to be used in each randomized design.
   %
   Should be between 0 and 1.
   %
   If 1, all samples are used.
   %
-  \item \xmlNode{n\_resampling} , \xmlDesc{int, optional
-      field},
+  \item \xmlNode{n\_resampling}, \xmlDesc{int, optional field}, is the number of
+  randomized models.
   %
-  Number of randomized models.
-  %
-  \item \xmlNode{selection\_threshold} , \xmlDesc{float, optional
-      field},
-  %
-  The score above which features should be selected.
+  \item \xmlNode{selection\_threshold}, \xmlDesc{float, optional field}, sets
+  the score above which features should be selected.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \verDescriptionB
   \item \normalizeDescription{True}
-  %
-  \item \xmlNode{precompute} , \xmlDesc{True | False | ‘auto’},
-  %
-  Whether to use a precomputed Gram matrix to speed up calculations.
-  %
-  If set to ‘auto’ let us decide.
-  %
-  The Gram matrix can also be passed as argument.
-  %
+  \item \precomputeDescription{}
   \item \maxIterDescription{}
-  %
-  \item \xmlNode{eps} , \xmlDesc{float, optional field},
-  %
-  The machine-precision regularization in the computation of the Cholesky
-  diagonal factors.
+  \item \xmlNode{eps}, \xmlDesc{float, optional field}, defines the machine
+  precision regularization in the computation of the Cholesky diagonal factors.
   %
   Increase this for very ill-conditioned systems.
   %
-  Unlike the ‘tol’ parameter in some iterative optimization-based
-  algorithms, this parameter does not control the tolerance of the optimization.
+  Unlike the `tol' parameter in some iterative optimization-based algorithms,
+  this parameter does not control the tolerance of the optimization.
   %
-  \item \xmlNode{random\_state} , \xmlDesc{int, RandomState
-      instance or None, optional (default=None)},
-  %
-  If int, random\_state is the seed used by the random number
+  \item \xmlNode{random\_state}, \xmlDesc{int, RandomState instance or None,
+  optional}, if int, random\_state is the seed used by the random number
   generator; If RandomState instance, random\_state is the random
   number generator; If None, the random number generator is the RandomState
   instance used by np.random.
   %
+  \default{None}
 \end{itemize}
 
 \subparagraph{Randomized Logistic Regression}
 \mbox{}
-\\The \textit{Randomized Logistic Regression} works by resampling the train data
-and computing a LogisticRegression on each resampling.
+
+The \textit{Randomized Logistic Regression} works by resampling the training
+data and computing a logistic regression on each resampling.
 %
 In short, the features selected more often are good features.
 %
 It is also known as stability selection.
 %
-\skltype{Randomized Logistic Regressor}{linear\_model|RandomizedLogisticRegression}
+\skltype{Randomized Logistic
+Regressor}{linear\_model|RandomizedLogisticRegression}
 \begin{itemize}
-  \item \xmlNode{C} , \xmlDesc{float, optional field (default=1)},
+  \item \xmlNode{C}, \xmlDesc{float, optional field}, specifies the
+  regularization parameter $C$ in the LogisticRegression.
   %
-  The regularization parameter C in the LogisticRegression.
+  \default{1}
   %
-  \item \xmlNode{scaling} , \xmlDesc{float, optional field (default=0.5)},
-  %
-  The alpha parameter in the stability selection article used to randomly scale
-  the features.
+  \item \xmlNode{scaling}, \xmlDesc{float, optional field (default=0.5)}, sets
+  the alpha parameter in the stability selection article used to randomly scale
+  the features. \maljdan{what article?}
   %
   Should be between 0 and 1.
   %
-  \item \xmlNode{sample\_fraction} , \xmlDesc{float, optional
-      field (default=0.75)},
-  %
-  The fraction of samples to be used in each randomized design.
+  \item \xmlNode{sample\_fraction} , \xmlDesc{float, optional field}, is the
+  fraction of samples to be used in each randomized design.
   %
   Should be between 0 and 1.
   %
   If 1, all samples are used.
   %
-  \item \xmlNode{n\_resampling} , \xmlDesc{int, optional field
-      (default=200)},
+  \default{0.75}
   %
-  Number of randomized models.
+  \item \xmlNode{n\_resampling} , \xmlDesc{int, optional field}, sets the number
+  of randomized models.
   %
-  \item \xmlNode{selection\_threshold} , \xmlDesc{float, optional
-      field (default=0.25)},
+  \default{200}
   %
-  The score above which features should be selected.
+  \item \xmlNode{selection\_threshold} , \xmlDesc{float, optional field}, sets
+  the score above which features should be selected.
+  %
+  \default{0.25}
   %
   \item \fitInterceptDescription{True}
   %
   \item \verDescriptionB
   \item \normalizeDescription{False}
-  %
   \item \tolDescriptionC{}
   \default{1=e-3}
   %
-  \item \xmlNode{random\_state} , \xmlDesc{int, RandomState
-      instance or None, optional (default=None)},
-  %
-  If int, random\_state is the seed used by the random number
+  \item \xmlNode{random\_state} , \xmlDesc{int, RandomState instance or None,
+  optional}, if int, random\_state is the seed used by the random number
   generator; If RandomState instance, random\_state is the random
   number generator; If None, the random number generator is the RandomState
   instance used by np.random.
+  %
+  \default{None}
   %
 \end{itemize}
 
 \subparagraph{Linear least squares with l2 regularization}
 \mbox{}
 \\The \textit{Linear least squares with l2 regularization} solves a regression
-model where the loss function is the linear least squares function and
+model where the loss function is the linear least squares function and the
 regularization is given by the l2-norm.
 %
 Also known as Ridge Regression or Tikhonov regularization.
 %
-This estimator has built-in support for multi-variate regression (i.e., when y
+This estimator has built-in support for multivariate regression (i.e., when y
 is a 2d-array of shape [n\_samples, n\_targets]).
 %
 \skltype{Linear least squares with l2 regularization}{linear\_model|Ridge}
 \begin{itemize}
-  \item \xmlNode{alpha} , \xmlDesc{float, array-like},
+  \item \xmlNode{alpha}, \xmlDesc{float, array-like},
   %
   shape = [n\_targets] Small positive values of alpha improve the
   conditioning of the problem and reduce the variance of the estimates.
@@ -1591,107 +1470,51 @@ is a 2d-array of shape [n\_samples, n\_targets]).
   Hence they must correspond in number.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
-  %
   \item \normalizeDescription{True}
-  %
-  \item \xmlNode{solver} , \xmlDesc{{‘auto’, ‘svd’, ‘cholesky’,
-        ‘lsqr’, ‘sparse\_cg’}},
-  %
-  Solver to use in the computational routines:
-				\begin{itemize}
-    				\item‘auto’ chooses the solver automatically based on the type of
-    data.
-    %
-    				\item‘svd’ uses a Singular Value Decomposition of X to compute the
-    Ridge coefficients.
-    %
-    More stable for singular matrices than ‘cholesky’.
-    %
-    				\item‘cholesky’ uses the standard scipy.linalg.solve function to
-    obtain a closed-form solution.
-    %
-    				\item‘sparse\_cg’ uses the conjugate gradient solver
-    as found in scipy.sparse.linalg.cg.
-    %
-    As an iterative algorithm, this solver is more appropriate than
-    ‘cholesky’ for large-scale data (possibility to set tol and
-    max\_iter).
-    %
-    				\item‘lsqr’ uses the dedicated regularized least-squares routine
-    scipy.sparse.linalg.lsqr.
-    %
-    It is the fatest but may not be available in old scipy versions.
-    %
-    It also uses an iterative procedure.
-    %
-				\end{itemize}
-  				All three solvers support both dense and sparse data.
-  %
+  \item \solverDescription
 \end{itemize}
 
 \subparagraph{Classifier using Ridge regression}
 \mbox{}
-\\The \textit{Classifier using Ridge regression} is a classifier based on Linear
-least squares with l2 regularization
+
+The \textit{Classifier using Ridge regression} is a classifier based on linear
+least squares with l2 regularization.
 \skltype{Classifier using Ridge regression}{linear\_model|RidgeClassifier}
+
 \begin{itemize}
-  \item \xmlNode{alpha} , \xmlDesc{float},
-  %
-  Small positive values of alpha improve the conditioning of the problem and
-  reduce the variance of the estimates.
+  \item \xmlNode{alpha}, \xmlDesc{float}, small positive values of alpha improve
+  the conditioning of the problem and reduce the variance of the estimates.
   %
   Alpha corresponds to $(2*C)^-1$ in other linear models such as
   LogisticRegression or LinearSVC.
   %
-  \item \xmlNode{class\_weight} , \xmlDesc{dic, optional
-      field},
-  %
-  Weights associated with classes in the form {class\_label :
-    weight}.
+  \item \xmlNode{class\_weight}, \xmlDesc{dict, optional field}, specifies
+  weights associated with classes in the form {class\_label: weight}.
   %
   If not given, all classes are supposed to have weight one.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
-  %
   \item \normalizeDescription{False}
-  %
-  \item \xmlNode{solver} , \xmlDesc{{‘auto’, ‘svd’, ‘cholesky’,
-        ‘lsqr’, ‘sparse\_cg’}},
-  %
-  Solver to use in the computational routines.
-  %
-  ‘svd’ will use a Singular value decomposition to obtain the solution,
-  ‘cholesky’ will use the standard scipy.linalg.solve function,
-  ‘sparse\_cg’ will use the conjugate gradient solver as found
-  in scipy.sparse.linalg.cg while ‘auto’ will chose the most appropriate
-  depending on the matrix X.
-  %
-  ‘lsqr’ uses a direct regularized least-squares routine provided by scipy.
-  %
-  \item \xmlNode{tol} , \xmlDesc{float},
-  %
-  Precision of the solution.
-  %
+  \item \solverDescription
+  \item \xmlNode{tol}, \xmlDesc{float}, defines the required precision of the
+  solution.
 \end{itemize}
 
 \subparagraph{Ridge classifier with built-in cross-validation}
 \mbox{}
 \\The \textit{Ridge classifier with built-in cross-validation} performs
-Generalized Cross-Validation, which is a form of efficient Leave-One-Out
+Generalized Cross-Validation, which is a form of efficient leave-one-out
 cross-validation.
 %
-Currently, only the n\_features > n\_samples case is
-handled efficiently.
+Currently, only the n\_features > n\_samples case is handled efficiently.
 %
-\skltype{Ridge classifier with built-in cross-validation classifier}{linear\_model|RidgeClassifierCV}
+\skltype{Ridge classifier with built-in cross-validation
+classifier}{linear\_model|RidgeClassifierCV}
 \begin{itemize}
-  \item \xmlNode{alphas} , \xmlDesc{numpy array of shape [n\_alphas]},
-  %
-  Array of alpha values to try.
+  \item \xmlNode{alphas}, \xmlDesc{numpy array of shape [n\_alphas]}, is an
+  array of alpha values to try.
   %
   Small positive values of alpha improve the conditioning of the problem and
   reduce the variance of the estimates.
@@ -1700,24 +1523,18 @@ handled efficiently.
   LogisticRegression or LinearSVC.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \normalizeDescription{False}
-  %
-  \item \xmlNode{scoring} , \xmlDesc{string, callable or None, optional,
-      default: None},
-  %
-  A string (see model evaluation documentation) or a scorer callable object /
+  \item \xmlNode{scoring}, \xmlDesc{string, callable or None, optional}, is a
+  string (see model evaluation documentation) or a scorer callable object /
   function with signature scorer(estimator, X, y).
   %
-  \item \xmlNode{cv} , \xmlDesc{cross-validation generator, optional},
+  \default{None}
+  \item \xmlNode{cv}, \xmlDesc{cross-validation generator, optional},
   %
-  If None, Generalized Cross-Validation (efficient Leave-One-Out) will be used.
+  If None, Generalized Cross-Validation (efficient leave-one-out) will be used.
   %
-  \item \xmlNode{class\_weight} , \xmlDesc{dic, optional
-      field},
-  %
-  Weights associated with classes in the form {class\_label :
-    weight}.
+  \item \xmlNode{class\_weight}, \xmlDesc{dic, optional field}, specifies 
+  weights associated with classes in the form {class\_label:weight}.
   %
   If not given, all classes are supposed to have weight one.
   %
@@ -1725,15 +1542,15 @@ handled efficiently.
 
 \subparagraph{Ridge regression with built-in cross-validation}
 \mbox{}
-\\The \textit{Ridge regression with built-in cross-validation} performs
-Generalized Cross-Validation, which is a form of efficient Leave-One-Out
+
+The \textit{Ridge regression with built-in cross-validation} performs
+Generalized Cross-Validation, which is a form of efficient leave-one-out
 cross-validation.
 %
 \skltype{Ridge regression with built-in cross-validation regressor}{linear\_model|RidgeCV}
 \begin{itemize}
-  \item \xmlNode{alphas} , \xmlDesc{numpy array of shape [n\_alphas] },
-  %
-  Array of alpha values to try.
+  \item \xmlNode{alphas}, \xmlDesc{numpy array of shape [n\_alphas]}, specifies
+  an array of alpha values to try.
   %
   Small positive values of alpha improve the conditioning of the problem and
   reduce the variance of the estimates.
@@ -1742,58 +1559,53 @@ cross-validation.
   LogisticRegression or LinearSVC.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \normalizeDescription{False}
-  %
-  \item \xmlNode{scoring} , \xmlDesc{string, callable or None, optional,
-      default: None},
-  %
-  A string (see model evaluation documentation) or a scorer callable object /
+  \item \xmlNode{scoring}, \xmlDesc{string, callable or None, optional}, is a
+  string (see model evaluation documentation) or a scorer callable object /
   function with signature scorer(estimator, X, y).
   %
-  \item \xmlNode{cv} , \xmlDesc{cross-validation generator, optional field},
+  \default{None}
   %
-  If None, Generalized Cross-Validation (efficient Leave-One-Out) will be used.
+  \item \xmlNode{cv}, \xmlDesc{cross-validation generator, optional field}, if
+  None, Generalized Cross-Validation (efficient leave-one-out) will be used.
   %
-  \item \xmlNode{gcv\_mode} , \xmlDesc{{None, ‘auto’,
-        ‘svd’, eigen’}, optional field},
-  %
-  Flag indicating which strategy to use when performing Generalized
+  \item \xmlNode{gcv\_mode}, \xmlDesc{\{None, `auto,' `svd,' `eigen'\}, optional
+  field}, is a flag indicating which strategy to use when performing Generalized
   Cross-Validation.
   %
   Options are:
-				\begin{itemize}
-    				 \item 'auto' : use svd if n\_samples > n\_features or when X is a sparse matrix, otherwise use eigen
-    				 \item 'svd' : force computation via singular value decomposition of $X$
+	\begin{itemize}
+    \item `auto:' use svd if n\_samples > n\_features or when X is a
+    sparse matrix, otherwise use eigen
+  	\item `svd:' force computation via singular value decomposition of $X$
     (does not work for sparse matrices)
-    				 \item 'eigen' : force computation via eigendecomposition of $X^T X$
-				 \end{itemize}
-  				The ‘auto’ mode is the default and is intended to pick the cheaper
+	  \item `eigen:' force computation via eigendecomposition of $X^T X$
+	\end{itemize}
+	The `auto' mode is the default and is intended to pick the cheaper
   option of the two depending upon the shape and format of the training data.
   %
-  \item \xmlNode{store\_cv\_values} , \xmlDesc{
-      boolean (default=False)},
-  %
-  Flag indicating if the cross-validation values corresponding to each alpha
-  should be stored in the cv\_values\_attribute (see
-  below).
+  \default{`auto'}
+  \item \xmlNode{store\_cv\_values}, \xmlDesc{boolean}, is a flag indicating if
+  the cross-validation values corresponding to each alpha should be stored in
+  the cv\_values\_attribute (see below).
   %
   This flag is only compatible with cv=None (i.e. using Generalized
   Cross-Validation).
   %
+  \default{False}
 \end{itemize}
 
 \subparagraph{Linear classifiers (SVM, logistic regression, a.o.) with SGD
 training}
 \mbox{}
-\\The \textit{Linear classifiers (SVM, logistic regression, a.o.) with SGD
-  training} implements regularized linear models with stochastic gradient
-descent (SGD) learning: the gradient of the loss is estimated each sample at a
-time and the model is updated along the way with a decreasing strength schedule
-(aka learning rate).
+
+The \textit{Linear classifiers (SVM, logistic regression, a.o.) with SGD
+training} implements regularized linear models with stochastic gradient
+descent (SGD) learning: the gradient of the loss is estimated for each sample at
+a time and the model is updated along the way with a decreasing strength
+schedule (aka learning rate).
 %
-SGD allows minibatch (online/out-of-core) learning, see the
-partial\_fit method.
+SGD allows minibatch (online/out-of-core) learning, see the partial\_fit method.
 %
 This implementation works with data represented as dense or sparse arrays of
 floating point values for the features.
@@ -1802,101 +1614,84 @@ The model it fits can be controlled with the loss parameter; by default, it fits
 a linear support vector machine (SVM).
 %
 The regularizer is a penalty added to the loss function that shrinks model
-parameters towards the zero vector using either the squared euclidean norm L2 or
+parameters towards the zero vector using either the squared Euclidean norm L2 or
 the absolute norm L1 or a combination of both (Elastic Net).
 %
 If the parameter update crosses the 0.0 value because of the regularizer, the
-update is truncated to 0.0 to allow for learning sparse models and achieve
+update is truncated to 0.0 to allow for learning sparse models and achieves
 online feature selection.
 %
-\skltype{Linear classifiers (SVM, logistic regression, a.o.) with SGD training}{linear\_model|SGDClassifier}
+\skltype{Linear classifiers (SVM, logistic regression, a.o.) with SGD
+training}{linear\_model|SGDClassifier}
 \begin{itemize}
-  \item \xmlNode{loss} , \xmlDesc{str, ‘hinge’, ‘log’,
-      ‘modified\_huber’, ‘squared\_hinge’,
-      ‘perceptron’, or a regression loss: ‘squared\_loss’,
-      ‘huber’, ‘epsilon\_insensitive’, or
-      ‘squared\_epsilon\_insensitive’},
+  \item \xmlNode{loss} , \xmlDesc{str, `hinge,' `log,' `modified\_huber,'
+  `squared\_hinge,' `perceptron,' or a regression loss: `squared\_loss,'
+  `huber,' `epsilon\_insensitive,' or `squared\_epsilon\_insensitive'},
   %
-  The loss function to be used.
+  dictates the loss function to be used.
   %
-  Defaults to ‘hinge’, which gives a linear SVM.
-  %
-  The ‘log’ loss gives logistic regression, a probabilistic classifier.
-  %
-  ‘modified\_huber’ is another smooth loss that brings
-  tolerance to outliers as well as probability estimates.
-  %
-  ‘squared\_hinge’ is like hinge but is quadratically
-  penalized.
-  %
-  ‘perceptron’ is the linear loss used by the perceptron algorithm.
-  %
+  The available options are:
+  \begin{itemize}
+    \item `hinge' gives a linear SVM.
+    \item `log' loss gives logistic regression, a probabilistic classifier.
+    \item `modified\_huber' is another smooth loss that brings tolerance to
+    outliers as well as probability estimates.
+    \item `squared\_hinge’ is like hinge but is quadratically penalized.
+    \item `perceptron’ is the linear loss used by the perceptron algorithm.
+  \end{itemize}
   The other losses are designed for regression but can be useful in
   classification as well; see SGDRegressor for a description.
   %
-  \item \xmlNode{penalty} , \xmlDesc{str, ‘l2’ or ‘l1’ or
-      ‘elasticnet’},
+  \default{`hinge'}
   %
-  The penalty (aka regularization term) to be used.
+  \item \xmlNode{penalty}, \xmlDesc{str, `l2' or `l1' or `elasticnet'}, defines
+  the penalty (aka regularization term) to be used.
   %
-  Defaults to ‘l2’ which is the standard regularizer for linear SVM models.
+  `l2' is the standard regularizer for linear SVM models.
   %
-  ‘l1’ and ‘elasticnet’ might bring sparsity to the model (feature
-  selection) not achievable with ‘l2’.
+  `l1' and `elasticnet' might bring sparsity to the model (feature
+  selection) not achievable with `l2.'
   %
-  \item \xmlNode{alpha} , \xmlDesc{float},
+  \default{`l2'}
+  \item \xmlNode{alpha}, \xmlDesc{float}, is the constant multiplier for the
+  regularization term.
   %
-  Constant that multiplies the regularization term.
+  \default{0.0001}
+  \item \xmlNode{l1\_ratio}, \xmlDesc{float}, is the Elastic Net mixing
+  parameter, with 0 <= l1\_ratio <= 1.
   %
-  Defaults to 0.0001
-  \item \xmlNode{l1\_ratio} , \xmlDesc{float},
+  l1\_ratio=0 corresponds to L2 penalty, l1\_ratio=1 to L1.
   %
-  The Elastic Net mixing parameter, with 0 <= l1\_ratio <= 1.
-  %
-  l1\_ratio=0 corresponds to L2 penalty, l1\_ratio=1
-  to L1.
-  %
-  Defaults to 0.15.
+  \default{0.15}
   %
   \item \fitInterceptDescription{True}
-  %
   \item \nIterDescriptionB{5}
-  %
-  \item \xmlNode{shuffle} , \xmlDesc{boolean, optional field},
-  %
-  Whether or not the training data should be shuffled after each epoch.
-  %
-  Defaults to False.
-  %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data.
-  %
+  \item \shuffleDescription{False}
+  \item \randomStateDescription{None}
   \item \verDescriptionB
-  \item \xmlNode{epsilon} , \xmlDesc{int, optional field},
+  \item \xmlNode{epsilon}, \xmlDesc{int, optional field}, is the number of CPUs
+  to use to do the OVA (One Versus All, for multi-class problems) computation.
   %
-  The number of CPUs to use to do the OVA (One Versus All, for multi-class
-  problems) computation.
+  -1 means `all CPUs.'
   %
-  -1 means ‘all CPUs’.
+  \default{1}
   %
-  Defaults to 1.
+  \item \xmlNode{learning\_rate}, \xmlDesc{string, optional field}, specifies
+  the learning rate:
+  \begin{itemize}
+    \item `constant:' eta = eta0 
+    \item `optimal:' eta = 1.0 / (t + t0)
+    \item `invscaling:' eta = eta0 / pow(t, power\_t)
+  \end{itemize}
+  \default{invscaling}
   %
-  \item \xmlNode{learning\_rate} , \xmlDesc{string, optional
-      field},
-  %
-  The learning rate: constant: eta = eta0 optimal: eta = 1.0 / (t + t0)
-  [default] invscaling: eta = eta0 / pow(t, power\_t)
-  \item \xmlNode{eta0} , \xmlDesc{double},
-  %
-  The initial learning rate for the ‘constant’ or ‘invscaling’
-  schedules.
+  \item \xmlNode{eta0}, \xmlDesc{double}, specifies the initial learning rate
+  for the `constant' or `invscaling' schedules.
   %
   The default value is 0.0 as eta0 is not used by the default schedule
-  ‘optimal’.
+  `optimal.'
   %
-  \item \xmlNode{power\_t} , \xmlDesc{double},
+  \item \xmlNode{power\_t}, \xmlDesc{double},
   %
   The exponent for inverse scaling learning rate [default 0.5].
   %
@@ -1981,20 +1776,9 @@ floating point values for the features.
   Defaults to 0.15.
   %
   \item \fitInterceptDescription{True}
-  %
   \item \nIterDescriptionB{5}
-  %
-  \item \xmlNode{shuffle} , \xmlDesc{boolean, optional field},
-  %
-  Whether or not the training data should be shuffled after each epoch.
-  %
-  Defaults to False.
-  %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data.
-  %
+  \item \shuffleDescription{False}
+  \item \randomStateDescription{None}
   \item \verDescriptionB
   %
   \item \xmlNode{epsilon} , \xmlDesc{float},
@@ -2049,7 +1833,7 @@ form of an implicit equation
   \item \xmlNode{gram} , \xmlDesc{None, ‘auto’, array, shape:
       (n\_features, n\_features), optional},
   %
-  Precomputed Gram matrix (X’ * X), if 'auto', the Gram matrix is precomputed
+  Precomputed Gram matrix (X’ * X), if `auto', the Gram matrix is precomputed
   from the given X, if there are more samples than features.
   %
   \item \xmlNode{alpha\_min} , \xmlDesc{float, optional field
@@ -2064,10 +1848,10 @@ form of an implicit equation
   %
   Specifies the returned model.
   %
-  Select 'lar' for Least Angle Regression, 'lasso' for the Lasso.
+  Select `lar' for Least Angle Regression, `lasso' for the Lasso.
   %
   \item \xmlNode{eps} , \xmlDesc{float, optional
-      (default=``np.finfo(np.float).eps``)},
+      (default=``np.finfo(np.float).eps'')},
   %
   The machine-precision regularization in the computation of the Cholesky
   diagonal factors.
@@ -2347,11 +2131,7 @@ handled according to a one-vs-the-rest scheme.
   \nb This setting takes advantage of a per-process runtime setting in
   liblinear that, if enabled, may not work properly in a multithreaded context.
   %
-  \item \xmlNode{random\_state} , \xmlDesc{int seed, RandomState
-      instance, or None (default)},
-  %
-  The seed of the pseudo random number generator to use when shuffling the data.
-  %
+  \item \randomStateDescription{None}
 \end{itemize}
 
 \subparagraph{C-Support Vector Classification}
@@ -2426,7 +2206,7 @@ The multiclass support is handled according to a one-vs-one scheme.
   The ‘auto’ mode uses the values of y to automatically adjust weights
   inversely proportional to class frequencies.
   %
-  \item \verDescriptionA
+  \item \verDescriptionA{False}
   %
   \nb This setting takes advantage of a per-process runtime setting in
   libsvm that, if enabled, may not work properly in a multithreaded context.
@@ -2499,7 +2279,7 @@ The implementation is based on libsvm.
       field},
   %
   Specify the size of the kernel cache (in MB)
-  \item \verDescriptionA
+  \item \verDescriptionA{False}
   %
   \nb This setting takes advantage of a per-process runtime setting in
   libsvm that, if enabled, may not work properly in a multithreaded context.
@@ -2579,7 +2359,7 @@ The implementations is a based on libsvm.
       field},
   %
   Specify the size of the kernel cache (in MB)
-  \item \verDescriptionA
+  \item \verDescriptionA{False}
   Note that this setting takes advantage of a per-process runtime setting in
   libsvm that, if enabled, may not work properly in a multithreaded context.
   %
@@ -3964,7 +3744,7 @@ In addition to this XML node, several others need (or not) to be inputted:
   (storage\_mode = ‘light’).
   %
   \default{full}
-  \item \verDescriptionA
+  \item \verDescriptionA{False}
   \item \xmlNode{theta0} , \xmlDesc{float, array-like, optional field},
   %
   An array with shape (n\_features, ) or (1, ).
