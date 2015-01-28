@@ -6,6 +6,10 @@
 % these defined commands first. There is no point writing the same thing over
 % and over and over and over and over again, so these will help us reduce typos,
 % by just editing a template sentence or paragraph.
+
+%% This guy doesn't work because of the lstlisting inside of the newcommand, I
+%% tried a work around, but it didn't work. Poke on the internet and you can
+%% probably fix this easily.
 \newcommand{\kwargsDescription}
 {
   \xmlNode{kwargs}, within this block the user can specify optional parameters
@@ -61,8 +65,18 @@
   In order to customize the plot, the user can define the following XML sub
   nodes:
 }
-\newcommand{\interpYDescription}[1]
+\newcommand{\interpXYDescription}[1]
 {
+  \xmlNode{interpPoints\uppercase{#1}}, \xmlDesc{integer, optional field}, sets
+  the number of points need to be used for interpolation of the \lowercase{#1}
+  axis.
+}
+\newcommand{\cmapDescription}[1]
+{
+  \xmlNode{cmap}, \xmlDesc{string, optional field}, defines the color map
+  to use for this plot.
+  %
+  \default{#1}
 }
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -911,10 +925,8 @@ are reported.
   \plotIntro{line}
   \begin{itemize}
     \item \interpolationDescription{linear}
-    \item \xmlNode{interpPointsX}, \xmlDesc{integer, optional field}, represents
-    the number of points to be use for interpolation of x axis.
-    \item \xmlNode{interpPointsY}, \xmlDesc{integer, optional field}, represents
-    the number of points to use for interpolation of y axis (only 3D line plot).
+    \item \interpXYDescription{x}
+    \item \interpXYDescription{y} (only 3D line plot).
   \end{itemize}
 
 \subsubsection{2D \& 3D Histogram plot}
@@ -1091,8 +1103,7 @@ are reported.
   \plotTwoIntro{pseudocolor}
   \begin{itemize}
     \item \interpolationDescription[linear]
-    \item \xmlNode{interpPointsX}, \xmlDesc{integer, optional field}, specifies
-    the number of points need to be used for interpolation of x axis.
+    \item \interpXYDescription{x}
     \item \xmlNode{kwargs}, within this block the user can specify optional
     parameters with the following format:
 
@@ -1125,8 +1136,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   %
   \default{5}
   \item \interpolationDescription{linear}
-  \item \xmlNode{interpPointsX}, \xmlDesc{integer, optional field}, is the
-  number of points need to be used for interpolation of x axis.
+  \item \interpXYDescription{x}
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
 
@@ -1158,10 +1168,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   array column stride (step size).
   %
   \default{1}
-  \item \xmlNode{cmap}, \xmlDesc{string, optional field}, defines the color map
-  to use.
-  %
-  \default{jet}
+  \item \cmapDescription{jet}
   \item \xmlNode{antialiased}, \xmlDesc{boolean, optional field}, determines
   whether or not the rendering should be antialiased.
   %
@@ -1174,10 +1181,8 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   %
   \default{0}
   \item \interpolationDescription{linear}
-  \item \xmlNode{interpPointsX}, \xmlDesc{integer, optional field}, sets the
-  number of points to use for interpolation of the x axis.
-  \item \xmlNode{interpPointsY}, \xmlDesc{integer, optional field}, sets the 
-  number of points to use for interpolation of the y axis.
+  \item \interpXYDescription{x}
+  \item \interpXYDescription{y}
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
 
@@ -1209,15 +1214,10 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   column stride (step size).
   %
   \default{1}
-  \item \xmlNode{cmap}, \xmlDesc{string, optional field}, defines the color map
-  to use for this plot.
-  %
-  \default{jet}
+  \item \cmapDescription{jet}
   \item \interpolationDescription{linear}
-  \item \xmlNode{interpPointsX}, \xmlDesc{integer, optional field}, sets the 
-  number of points need to be used for interpolation of the x axis.
-  \item \xmlNode{interpPointsY}, \xmlDesc{integer, optional field}, sets the 
-  number of points need to be used for interpolation of the y axis.
+  \item \interpXYDescription{x}
+  \item \interpXYDescription{y}
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
 
@@ -1249,10 +1249,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   to apply shading or not.
   %
   \default{False}
-  \item \xmlNode{cmap}, \xmlDesc{string, optional field}, defines the color map
-  to be used for this plot.
-  %
-  \default{jet}
+  \item \cmapDescription{jet}
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
 
@@ -1285,10 +1282,8 @@ nodes:
   %
   \default{5}
   \item \interpolationDescription{linear}
-  \item \xmlNode{interpPointsX}, \xmlDesc{integer, optional field}, sets the 
-  number of points need to be used for interpolation of the x axis.
-  \item \xmlNode{interpPointsY}, \xmlDesc{integer, optional field}, sets the 
-  number of points need to be used for interpolation of the y axis.
+  \item \interpXYDescription{x}
+  \item \interpXYDescription{y}
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
 
@@ -1346,4 +1341,3 @@ nodes:
   </Plot>
 </OutStreamManager>
 \end{lstlisting}
-
