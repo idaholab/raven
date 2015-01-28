@@ -4275,9 +4275,9 @@ to compute all the most important statistical quantities.
           <methodsToRun>failureProbability</methodsToRun>
       </PostProcessor>
       ...
-   <Models>
+   </Models>
    ...
-<Simulation>
+</Simulation>
 ----------------------------------------------
 \end{lstlisting}
 
@@ -4307,7 +4307,7 @@ There are two nodes that are used in the post-processor.
   This can either be a normal distribution or a datas:
   \begin{itemize}
   \item \xmlNode{data}: This will specify the data that is used.  The
-    different parts are separated by $\|$'s.
+    different parts are separated by $|$'s.
   \item \xmlNode{reference}: Specifies that a normal distribution will
     be used. It takes two attributes.
     \begin{itemize}
@@ -4317,6 +4317,46 @@ There are two nodes that are used in the post-processor.
     \end{itemize}
   \end{itemize}
 \end{itemize}
+
+The \textbf{ComparisonStatistics} post-processor generates a variety
+of data.  First for each data provided, it calculates bin boundaries,
+and counts the numbers of data points in each bin.  From the numbers
+in each bin, it creates a cdf function numerically, and from the cdf
+takes the derivative to generate a pdf.  It also calculates statistics
+of the data such as mean and standard deviation.
+
+The post-processor uses the generated pdf and cdf function to
+calculate various statistics.  The first is the cdf area difference which is:
+\begin{equation}
+  cdf\_area\_difference = \int_{-\infty}^{\infty}{\|CDF_a(x)-CDF_b(x)\|dx}
+\end{equation}
+This given an idea about how far apart the two pieces of data are, and
+it will have units of $x$.
+
+The common area between the two pdfs is calculated.  If there is
+perfect overlap, this will be 1.0, if there is no overlap, this will
+be 0.0.  The formula used is:
+\begin{equation}
+  pdf\_common\_area = \int_{-\infty}^{\infty}{\min(PDF_a(x),PDF_b(x))}dx
+\end{equation}
+
+The difference pdf between the two pdfs is calculated.  This is calculated as:
+\begin{equation}
+  f_Z(z) = \int_{-\infty}^{\infty}f_X(x)f_Y(x-z)dx
+\end{equation}
+This produces a pdf that contains information about the difference
+between the two pdfs.  The mean can be calculated as:
+\begin{equation}
+  \bar{z} = \int_{-\infty}^{\infty}{z f_Z(z)dz}
+\end{equation}
+The mean can be used to get an signed difference between the pdfs,
+which shows how their means compare.
+
+The variance of the difference pdf can be calculated as:
+\begin{equation}
+  var = \int_{-\infty}^{\infty}{(z-\bar{z})^2 f_Z(z)dz}
+\end{equation}
+
 
 \textbf{Example:}
 ----------------------------------------------
@@ -4343,9 +4383,9 @@ There are two nodes that are used in the post-processor.
         </compare>
       </PostProcessor>
       ...
-   <Models>
+   </Models>
    ...
-<Simulation>
+</Simulation>
 ----------------------------------------------
 \end{lstlisting}
 
