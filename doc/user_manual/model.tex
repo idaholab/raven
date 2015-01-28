@@ -4289,6 +4289,66 @@ for comparing two different datas.  This is an experimental
 post-processor, and it will definitely change as it is further
 developed.
 
+There are two nodes that are used in the post-processor.
+
+\begin{itemize}
+\item \xmlNode{kind}: specifies information to use for comparing the
+  data that is provided.  This takes either uniform\_bins which makes
+  the bin width uniform or equal\_probability which makes the number
+  of counts in each bin equal.  It can take the following attributes:
+  \begin{itemize}
+  \item \textbf{num\_bins} which takes a number that directly
+    specifies the number of bins
+  \item \textbf{bin\_method} which takes a string that specifies the
+    method used to calculate the number of bins.  This can be either
+    square-root or sturges.
+  \end{itemize}
+\item \xmlNode{compare}: specifies the data to use for comparison.
+  This can either be a normal distribution or a datas:
+  \begin{itemize}
+  \item \xmlNode{data}: This will specify the data that is used.  The
+    different parts are separated by $\|$'s.
+  \item \xmlNode{reference}: Specifies that a normal distribution will
+    be used. It takes two attributes.
+    \begin{itemize}
+    \item \textbf{mean} is the mean of the normal distribution
+    \item \textbf{sigma} is the standard deviation of the normal
+      distribution.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\textbf{Example:}
+----------------------------------------------
+\begin{lstlisting}[style=XML]
+<Simulation>
+   ...
+   <Models>
+      ...
+      <PostProcessor name="stat_stuff" subType="ComparisonStatistics">
+      <kind bin_method='sturges'>uniform_bins</kind>
+      <compare>
+        <data>OriData|Output|tsin_TEMPERATURE</data>
+        <reference mean="410.0" sigma="2.0" />
+      </compare>
+      <compare>
+        <data>OriData|Output|tsin_TEMPERATURE</data>
+        <data>OriData|Output|tsout_TEMPERATURE</data>
+      </compare>
+      </PostProcessor>
+      <PostProcessor name="stat_stuff2" subType="ComparisonStatistics">
+        <kind num_bins="6">equal_probability</kind>
+        <compare>
+          <data>OriData|Output|tsin_TEMPERATURE</data>
+        </compare>
+      </PostProcessor>
+      ...
+   <Models>
+   ...
+<Simulation>
+----------------------------------------------
+\end{lstlisting}
+
 %%%%% PP SafestPoint %%%%%%%
 \paragraph{SafestPoint.}
 \label{SafestPoint}
