@@ -9,7 +9,9 @@
 </RunInfo>
 
 <Models>
-    <Code name='Bison' subType='MooseBasedApp'><executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable></Code>
+    <Code name='Bison' subType='MooseBasedApp'>
+        <executable>%FRAMEWORK_DIR%/../../bison/bison-%METHOD%</executable>
+    </Code>
 </Models>
 
 <Distributions>
