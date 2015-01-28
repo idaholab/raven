@@ -55,7 +55,7 @@ class Distribution(BaseType):
     self.upperBound       = 0.0  # Right bound
     self.lowerBound       = 0.0  # Left bound
     self.__adjustmentType   = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
-    self.dimensionality   = None # Dimensionality of the distribution (1D or ND)
+    self.dimensionality   = None # Dimensionality of the distribution (>=1)
     self.printTag         = returnPrintTag('DISTRIBUTIONS')
 
   def _readMoreXML(self,xmlNode):
@@ -184,7 +184,7 @@ class BoostDistribution(Distribution):
   '''
   def __init__(self):
     Distribution.__init__(self)
-    self.dimensionality  = '1D'
+    self.dimensionality  = 1
     self.disttype        = 'Continuous'
 
   def cdf(self,x):
@@ -892,7 +892,7 @@ class NDimensionalDistributions(Distribution):
     self.data_filename = None
     self.function_type = None
     self.type = 'NDimensionalDistributions'
-    self.dimensionality  = 'ND'
+    self.dimensionality  = None
     
     self.RNGInitDisc = 10
     self.RNGtolerance = 0.1
@@ -901,17 +901,19 @@ class NDimensionalDistributions(Distribution):
     Distribution._readMoreXML(self, xmlNode)
     working_dir = xmlNode.find('working_dir')
     if working_dir != None: self.working_dir = working_dir.text
-    
+   
+    ''' 
     data_filename = xmlNode.find('data_filename')
     if data_filename != None: self.data_filename = self.working_dir+data_filename.text
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <data_filename> parameter needed for MultiDimensional Distributions!!!!')
-    
+      
     function_type = xmlNode.find('function_type')
     if not function_type: self.function_type = 'CDF'
     else:
       self.function_type = function_type.upper()
       if self.function_type not in ['CDF','PDF']:  raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <function_type> parameter needs to be either CDF or PDF in MultiDimensional Distributions!!!!')
-  
+    '''
+    
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['function_type'] = self.function_type
@@ -941,6 +943,15 @@ class NDInverseWeight(NDimensionalDistributions):
     p = xmlNode.find('p')
     if p.text != None: self.p = float(p.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Minkowski distance parameter <p> not found in NDInverseWeight distribution')
+    
+    data_filename = xmlNode.find('data_filename')
+    if data_filename != None: self.data_filename = self.working_dir+data_filename.text
+    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <data_filename> parameter needed for MultiDimensional Distributions!!!!')
+    
+    function_type = data_filename.attrib['type']
+    if function_type != None: self.function_type = function_type
+    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <function_type> parameter needed for MultiDimensional Distributions!!!!')    
+    
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -950,7 +961,10 @@ class NDInverseWeight(NDimensionalDistributions):
   def initializeDistribution(self):
     #NDimensionalDistributions.initializeDistribution()
     print('BasicMultiDimensional InverseWeight initialize Distribution')
-    self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.data_filename, self.p)
+    if self.function_type == 'CDF':
+      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.data_filename, self.p,True)
+    else:
+      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.data_filename, self.p,False)
 
   def cdf(self,x):
     return self._distribution.Cdf(x)

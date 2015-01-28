@@ -91,10 +91,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.inputInfo['SampledVarsPb'   ] = {}                        # this is the location where to get the probability of the sampled variables
     self.inputInfo['PointProbability'] = None                      # this is the location where the point wise probability is stored (probability associated to a sampled point)
     self.inputInfo['crowDist']         = {}                        # Stores a dictionary that contains the information to create a crow distribution.  Stored as a json object
-    self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is perfermed after a new reseeding
+    self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = returnPrintTag(self.type) # prefix for all prints (sampler type)
-    self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
+    self._endJobRunnable               = sys.maxsize               # max number of inputs created by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
     ######
     self.ND_sampling_params            = {}                      # parameters for ND distribution sampling
@@ -912,13 +912,9 @@ class Grid(Sampler):
     self.printTag = returnPrintTag('SAMPLER GRID')
     self.gridCoordinate       = []    # the grid point to be used for each distribution (changes at each step)
     self.axisName             = []    # the name of each axis (variable)
-    self.gridInfo             = {}    # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
+    self.gridInfo             = {}    # {'name of the variable':('Type','Construction',[values])}  --> Type: Probability/Value; Construction:Custom/Equal
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
-    
-    ####
-    #self.gridDic              = {}    # this dictionary stores the info regarding all the grid info for all variables. This was added as a need for the ND FW interface 
-    ####
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
@@ -953,7 +949,7 @@ class Grid(Sampler):
             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
     '''
-    # Modified xml reader to include ND distributions  
+    # Modified xml reader to include ND distributions
     for child in xmlNode:
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
@@ -962,26 +958,12 @@ class Grid(Sampler):
         varName = child.attrib['name']
       for childChild in child:
         if childChild.tag =='grid':
-          grid_varname = None
           self.axisName.append(varName)
-          if childChild.attrib['type'] == 'value': 
-            grid_varname = childChild.attrib['name']
-          
-            check=False
-            for var_name in varName.split(';'):
-              if var_name == grid_varname:
-                check=False or True
-            if check == False:
-              raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> name in grid is invalid : ' + str(grid_varname))
-              
           constrType = childChild.attrib['construction']
           if constrType == 'custom':
             tempList = [float(i) for i in childChild.text.split()]
             tempList.sort()
             self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
-            
-            #self.gridDic[grid_varname] = tempList
-            
             if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
             self.limit = len(tempList)*self.limit
           elif constrType == 'equal':
@@ -993,10 +975,13 @@ class Grid(Sampler):
               self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
               self.gridInfo[varName][2].sort()
             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
-          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
-  
+          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')  
+
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
+    
+    print('self.axisName' + str(self.axisName))
+    print('self.gridInfo' + str(self.gridInfo))
 
   def localAddInitParams(self,tempDict):
     for variable in self.gridInfo.items():
