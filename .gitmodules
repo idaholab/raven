@@ -4,3 +4,6 @@
 [submodule "crow"]
 	path = crow
 	url = git@hpcgitlab.inl.gov:idaholab/crow.git
+[submodule "relap-7"]
+	path = relap-7
+	url = git@hpcgitlab.inl.gov:idaholab/relap-7.git

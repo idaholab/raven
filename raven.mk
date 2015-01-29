@@ -1,5 +1,5 @@
 
-RAVEN_DIR := $(ROOT_DIR)/raven
+RAVEN_DIR := $(CURR_DIR)
 
 RAVEN_INC_DIRS := $(shell find $(RAVEN_DIR)/include -type d -not -path "*/.svn*")
 RAVEN_INCLUDE  := $(foreach i, $(RAVEN_INC_DIRS), -I$(i))
@@ -106,5 +106,5 @@ clobber::
           $(RAVEN_DIR)/control_modules/distribution1D_wrap.cxx \
           $(RAVEN_DIR)/control_modules/distribution1D.py
 
-cleanall:: 
-	make -C $(RAVEN_DIR) clean 
+cleanall::
+	make -C $(RAVEN_DIR) clean

@@ -7,11 +7,11 @@
   global_init_T = 300.
   model_type = 3
   stabilization_type = NONE
-  scaling_factor_var = '1e4 1e1 1e-2'
+  scaling_factor_1phase = '1e4 1e1 1e-2'
 []
 [EoS]
   [./eos]
-    type = NonIsothermalEquationOfState
+    type = LinearEquationOfState
     p_0 = 1.e5 # Pa
     rho_0 = 1.e3 # kg/m^3
     a2 = 1.e7 # m^2/s^2
@@ -57,21 +57,20 @@
     inputs = 'pipe1(out)'
     outputs = 'pipe2(in)'
     mass_flow_rate = 0.3141159265 # rho * u * A (kg/s)
-#Area = 2.624474
     Initial_pressure = 151.7e5
   [../]
   [./inlet_TDV]
     type = TimeDependentVolume
     input = 'pipe1(in)'
-    p_bc = 1.0e5
-    T_bc = 300.0
+    p = 1.0e5
+    T = 300.0
     eos = eos
   [../]
   [./outlet_TDV]
     type = TimeDependentVolume
     input = 'pipe2(out)'
-    p_bc = 1.e5
-    T_bc = 300.0
+    p = 1.e5
+    T = 300.0
     eos = eos
   [../]
 []
@@ -139,8 +138,8 @@
   [../]
 []
  [Outputs]
- output_initial = true
- []
+  output_initial = true
+[]
 #[Output]
   # Turn on performance logging
 #  exodus = true
@@ -189,32 +188,32 @@
   [../]
   [./inlet_TDV_p_bc]
     component_name = 'inlet_TDV'
-    property_name = 'p_bc'
+    property_name = 'p'
     data_type = double
   [../]
   [./inlet_TDV_T_bc]
     component_name = 'inlet_TDV'
-    property_name = 'T_bc'
+    property_name = 'T'
     data_type = double
   [../]
   [./inlet_TDV_void_fraction_bc]
     component_name = 'inlet_TDV'
-    property_name = 'volume_fraction_vapor_bc'
+    property_name = 'volume_fraction_vapor'
     data_type = double
   [../]
   [./outlet_TDV_p_bc]
     component_name = 'outlet_TDV'
-    property_name = 'p_bc'
+    property_name = 'p'
     data_type = double
   [../]
   [./outlet_TDV_T_bc]
     component_name = 'outlet_TDV'
-    property_name = 'T_bc'
+    property_name = 'T'
     data_type = double
   [../]
   [./outlet_TDV_void_fraction_bc]
     component_name = 'outlet_TDV'
-    property_name = 'volume_fraction_vapor_bc'
+    property_name = 'volume_fraction_vapor'
     data_type = double
   [../]
 []

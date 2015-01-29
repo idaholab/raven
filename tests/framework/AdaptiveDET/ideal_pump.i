@@ -7,11 +7,11 @@
   global_init_T = 300.
   model_type = 3
   stabilization_type = NONE
-  scaling_factor_var = '1e4 1e1 1e-2'
+  scaling_factor_1phase = '1e4 1e1 1e-2'
 []
 [EoS]
   [./eos]
-    type = NonIsothermalEquationOfState
+    type = LinearEquationOfState
     p_0 = 1.e5 # Pa
     rho_0 = 1.e3 # kg/m^3
     a2 = 1.e7 # m^2/s^2
@@ -57,21 +57,20 @@
     inputs = 'pipe1(out)'
     outputs = 'pipe2(in)'
     mass_flow_rate = 0.3141159265 # rho * u * A (kg/s)
-    Area = 2.624474
     Initial_pressure = 151.7e5
   [../]
   [./inlet_TDV]
     type = TimeDependentVolume
     input = 'pipe1(in)'
-    p_bc = 1.0e5
-    T_bc = 300.0
+    p = 1.0e5
+    T = 300.0
     eos = eos
   [../]
   [./outlet_TDV]
     type = TimeDependentVolume
     input = 'pipe2(out)'
-    p_bc = 1.e5
-    T_bc = 300.0
+    p = 1.e5
+    T = 300.0
     eos = eos
   [../]
 []
@@ -116,13 +115,14 @@
   [../]
 []
 [Executioner]
-  # These options *should* append to any options set in Preconditioning blocks above
-  # nl_abs_step_tol = 1e-15
-  # close Executioner section
   type = RavenExecutioner
   control_logic_file = 'ideal_pump_control.py'
   dt = 1.e-1
-  dtmin = 1.e-5
+  dtmin = 1.e-10
+  dtmax = 9999
+#e_tol = 10.0
+#e_max = 99999.
+#max_increase = 10
   petsc_options_iname = '-ksp_gmres_restart -pc_type'
   petsc_options_value = '300 lu'
   nl_rel_tol = 1e-6
@@ -131,25 +131,32 @@
   l_tol = 1e-8 # Relative linear tolerance for each Krylov solve
   l_max_its = 100 # Number of linear iterations for each Krylov solve
   start_time = 0.0
-  num_steps = 10 # The number of timesteps in a transient run
+  end_time = 5.0
+#num_steps = 10 # The number of timesteps in a transient run
   [./Quadrature]
     # Specify the order as FIRST, otherwise you will get warnings in DEBUG mode...
     type = TRAP
     order = FIRST
   [../]
 []
-#[Output]
+[Outputs]
   # Turn on performance logging
-#  exodus = true
-#  output_initial = true
-#  output_displaced = true
-#  perf_log = true
-#[]
+  exodus = true
+  output_initial = true
+#output_displaced = true
+#perf_log = true
+[]
 [Controlled]
   [./pipe1_Area]
     print_csv = true
     component_name = pipe1
     property_name = Area
+    data_type = double
+  [../]
+  [./pipe1_Dh]
+    print_csv = true
+    component_name = pipe1
+    property_name = Dh
     data_type = double
   [../]
   [./pipe1_Hw]
@@ -158,6 +165,12 @@
     property_name = Hw
     data_type = double
   [../]
+  #[./pipe1_aw]
+  #  print_csv = true
+  #  component_name = pipe1
+  #  property_name = aw
+  #  data_type = double
+  #[../]
   [./pipe1_f]
     component_name = pipe1
     property_name = f
@@ -168,98 +181,88 @@
     property_name = Area
     data_type = double
   [../]
+  [./pipe2_Dh]
+    component_name = pipe2
+    property_name = Dh
+    data_type = double
+  [../]
   [./pipe2_Hw]
     component_name = pipe2
     property_name = Hw
     data_type = double
   [../]
+  #[./pipe2_aw]
+  #  component_name = pipe2
+  #  property_name = aw
+  #  data_type = double
+  #[../]
   [./pipe2_f]
     component_name = pipe2
     property_name = f
     data_type = double
-     print_csv = True
   [../]
   [./pump_mass_flow_rate]
     print_csv = true
     component_name = pump
     property_name = 'mass_flow_rate'
     data_type = double
-    print_csv = True
   [../]
   [./inlet_TDV_p_bc]
     component_name = 'inlet_TDV'
-    property_name = 'p_bc'
+    property_name = 'p'
     data_type = double
-     print_csv = True
+    print_csv = True
   [../]
   [./inlet_TDV_T_bc]
     component_name = 'inlet_TDV'
-    property_name = 'T_bc'
-    data_type = double
-     print_csv = True
-  [../]
-  [./inlet_TDV_void_fraction_bc]
-    component_name = 'inlet_TDV'
-    property_name = 'volume_fraction_vapor_bc'
+    property_name = 'T'
     data_type = double
   [../]
   [./outlet_TDV_p_bc]
     component_name = 'outlet_TDV'
-    property_name = 'p_bc'
+    property_name = 'p'
     data_type = double
-    print_csv = True
   [../]
   [./outlet_TDV_T_bc]
     component_name = 'outlet_TDV'
-    property_name = 'T_bc'
-    data_type = double
-    print_csv = True
-  [../]
-  [./outlet_TDV_void_fraction_bc]
-    component_name = 'outlet_TDV'
-    property_name = 'volume_fraction_vapor_bc'
+    property_name = 'T'
     data_type = double
   [../]
 []
 [Monitored]
 []
 [Auxiliary]
-  [./aBoolean]
+  [./depressurizationOn]
     data_type =  bool
     initial_value =  False
     print_csv = True
   [../]
-[./dummy_for_branch]
-  data_type =  double
-  initial_value =  0.0
-  print_csv = True
-[../]
- [./testMCpreconditioned1]
+  [./systemFailed]
+    data_type =  bool
+    initial_value =  False
+    print_csv = True
+  [../]
+ [./endSimulation]
+    data_type =  bool
+    initial_value =  False
+    print_csv = True
+ [../]
+ [./depresSystemDistThreshold]
+ data_type =  double
+ initial_value =  1.0
+ print_csv = True
+ [../]
+ [./depressurizationOnTime]
  data_type =  double
  initial_value =  0.0
  print_csv = True
  [../]
- [./testMCpreconditioned2]
+ [./PressureFailureDistThreshold]
  data_type =  double
- initial_value =  0.0
+ initial_value =  1.0
  print_csv = True
  [../]
- [./testGridpreconditioned1]
- data_type =  double
- initial_value =  0.0
- print_csv = True
- [../]
- [./testGridpreconditioned2]
- data_type =  double
- initial_value =  0.0
- print_csv = True
- [../]
- [./testLHSpreconditioned1]
- data_type =  double
- initial_value =  0.0
- print_csv = True
- [../]
- [./testLHSpreconditioned2]
+ [./PressureFailureValue]
  data_type =  double
  initial_value =  0.0
  print_csv = True
@@ -267,28 +270,16 @@
 []
 [Distributions]
  RNG_seed = 1
- [./zeroToOne]
+ [./PressureFailureDist]
  type = UniformDistribution
- xMin = 0.0
- xMax = 1.0
- ProbabilityThreshold = 0.1
+ xMin = 1.01e5
+ xMax = 1.15e5
+ ProbabilityThreshold = 1.0
  [../]
- [./testPreconditionerMonteCarloDist2]
+ [./depresSystemDist]
  type = UniformDistribution
  xMin = 0.0
- xMax = 1.0
- ProbabilityThreshold = 0.1
- [../]
- [./testPreconditionerGridDist2]
- type = UniformDistribution
- xMin = 0.0
- xMax = 1.0
- ProbabilityThreshold = 0.1
- [../]
- [./testPreconditionerLHSDist2]
- type = UniformDistribution
- xMin = 0.0
- xMax = 1.0
- ProbabilityThreshold = 0.1
+ xMax = 5.0
+ ProbabilityThreshold = 1.0
  [../]
 []

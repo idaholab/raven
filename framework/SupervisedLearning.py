@@ -28,7 +28,7 @@ import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, find_interpolationND
+from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, find_interpolationND,stringsThatMeanFalse
 interpolationND = find_interpolationND()
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -54,17 +54,23 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
 
   def __init__(self,**kwargs):
     self.printTag = returnPrintTag('Super Visioned')
+    #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
+    self.normalizeData      = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
     if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Feature names not provided')
     if 'Target'   not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Target name not provided')
+    if 'NormalizeData' in self.initOptionDict.keys():
+      if self.initOptionDict['NormalizeData'].lower() in stringsThatMeanFalse(): self.normalizeData = False
+      self.initOptionDict.pop('NormalizeData')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
     self.initOptionDict.pop('Features')
     if self.features.count(self.target) > 0: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> The target and one of the features have the same name!!!!')
     #average value and sigma are used for normalization of the feature data
-    self.muAndSigmaFeatures = {} #a dictionary where for each feature a tuple (average value, sigma)
+    #a dictionary where for each feature a tuple (average value, sigma)
+    self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
 
@@ -91,7 +97,8 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
+        if self.normalizeData: self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
+        else                 : self.muAndSigmaFeatures[feat] = (0.0,1.0)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
@@ -288,7 +295,7 @@ class SciKitLearn(superVisedLearning):
   availImpl['linear_model']['LassoLars'                   ] = (linear_model.LassoLars                   , 'float'  ) #Lasso model fit with Least Angle Regression a.k.a.
   availImpl['linear_model']['LassoLarsCV'                 ] = (linear_model.LassoLarsCV                 , 'float'  ) #Cross-validated Lasso, using the LARS algorithm
   availImpl['linear_model']['LassoLarsIC'                 ] = (linear_model.LassoLarsIC                 , 'float'  ) #Lasso model fit with Lars using BIC or AIC for model selection
-  availImpl['linear_model']['LassoLarsIC'                 ] = (linear_model.LinearRegression            , 'float'  ) #Ordinary least squares Linear Regression.
+  availImpl['linear_model']['LinearRegression'            ] = (linear_model.LinearRegression            , 'float'  ) #Ordinary least squares Linear Regression.
   availImpl['linear_model']['LogisticRegression'          ] = (linear_model.LogisticRegression          , 'float'  ) #Logistic Regression (aka logit, MaxEnt) classifier.
   availImpl['linear_model']['MultiTaskLasso'              ] = (linear_model.MultiTaskLasso              , 'float'  ) #Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer
   availImpl['linear_model']['MultiTaskElasticNet'         ] = (linear_model.MultiTaskElasticNet         , 'float'  ) #Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer
@@ -303,7 +310,7 @@ class SciKitLearn(superVisedLearning):
   availImpl['linear_model']['RidgeClassifier'             ] = (linear_model.RidgeClassifier             , 'float'  ) #Classifier using Ridge regression.
   availImpl['linear_model']['RidgeClassifierCV'           ] = (linear_model.RidgeClassifierCV           , 'integer') #Ridge classifier with built-in cross-validation.
   availImpl['linear_model']['RidgeCV'                     ] = (linear_model.RidgeCV                     , 'float'  ) #Ridge regression with built-in cross-validation.
-  availImpl['linear_model']['RidgeCV'                     ] = (linear_model.SGDClassifier               , 'integer') #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
+  availImpl['linear_model']['SGDClassifier'               ] = (linear_model.SGDClassifier               , 'integer') #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
   availImpl['linear_model']['SGDRegressor'                ] = (linear_model.SGDRegressor                , 'float'  ) #Linear model fitted by minimizing a regularized empirical loss with SGD
   availImpl['linear_model']['lars_path'                   ] = (linear_model.lars_path                   , 'float'  ) #Compute Least Angle Regression or Lasso path using LARS algorithm [1]
   availImpl['linear_model']['lasso_path'                  ] = (linear_model.lasso_path                  , 'float'  ) #Compute Lasso path with coordinate descent
@@ -379,6 +386,8 @@ class SciKitLearn(superVisedLearning):
       except: pass
     self.ROM.set_params(**self.initOptionDict)
 
+  def _readdressEvaluate(self,edict): return self.myNumber
+
   def __trainLocal__(self,featureVals,targetVals):
     """
     Perform training on samples in featureVals with responses y.
@@ -393,10 +402,10 @@ class SciKitLearn(superVisedLearning):
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
-      self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
+      #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
     else:
-      myNumber = np.unique(targetVals)[0]
-      self.evaluate = lambda edict : myNumber
+      self.myNumber = np.unique(targetVals)[0]
+      self.evaluate = self._readdressEvaluate
 
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)

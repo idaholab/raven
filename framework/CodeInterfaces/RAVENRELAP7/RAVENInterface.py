@@ -38,11 +38,12 @@ class RAVENInterface:
     '''  '''
     return fileRoot + '.csv'
 
-  def finalizeCodeOutput(self,currentInputFiles,output):
+  def finalizeCodeOutput(self,currentInputFiles,output,workingDir):
     ''' this method is called by the RAVEN code at the end of each run (if the method is present).
         It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
         @ currentInputFiles, Input, the current input files (list)
         @ output, Input, the Output name root (string)
+        @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     '''
     return output
@@ -56,6 +57,8 @@ class RAVENInterface:
     self._samplersDictionary['Adaptive'                ] = self.gridForRAVEN # same Grid Fashion. It forces a dist to give a particular value
     self._samplersDictionary['LHS'                     ] = self.latinHyperCubeForRAVEN
     self._samplersDictionary['DynamicEventTree'        ] = self.dynamicEventTreeForRAVEN
+    self._samplersDictionary['FactorialDesign'         ] = self.gridForRAVEN
+    self._samplersDictionary['ResponseSurfaceDesign'   ] = self.gridForRAVEN
     self._samplersDictionary['AdaptiveDynamicEventTree'] = self.adaptiveDynamicEventTreeForRAVEN
     self._samplersDictionary['StochasticCollocation'   ] = self.stochasticCollocationForRAVEN
     if currentInputFiles[0].endswith('.i'): index = 0
@@ -65,12 +68,12 @@ class RAVENInterface:
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.deepcopy(currentInputFiles)
+    newInputFiles = copy.copy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1])
     else:
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1])
     parser.printInput(newInputFiles[index])
     return newInputFiles
 

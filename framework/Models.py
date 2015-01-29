@@ -68,7 +68,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible samplers
   validateDict['Sampler'].append(testDict.copy())
   validateDict['Sampler'][0]['class'       ] ='Samplers'
-  validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+  validateDict['Sampler'][0]['type'        ] = Samplers.knownTypes()
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
 
@@ -154,7 +154,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
     @return the new input in a list form
     '''
-    return [(copy.deepcopy(Kwargs))]
+    return [(copy.copy(Kwargs))]
 
   @abc.abstractmethod
   def run(self,Input,jobHandler):
@@ -236,7 +236,7 @@ class Dummy(Model):
     if None in inputDict.values(): raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
-    return [(inputDict)],copy.deepcopy(Kwargs)
+    return [(inputDict)],copy.copy(Kwargs)
 
   def run(self,Input,jobHandler):
     '''
@@ -252,7 +252,7 @@ class Dummy(Model):
 
   def collectOutput(self,finishedJob,output):
     if finishedJob.returnEvaluation() == -1: raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "-> No available Output to collect (Run probabably is not finished yet)")
-    exportDict = {'input_space_params':copy.deepcopy(finishedJob.returnEvaluation()[0]),'output_space_params':copy.deepcopy(finishedJob.returnEvaluation()[1]),'metadata':copy.deepcopy(finishedJob.returnMetadata())}
+    exportDict = {'input_space_params':finishedJob.returnEvaluation()[0],'output_space_params':finishedJob.returnEvaluation()[1],'metadata':finishedJob.returnMetadata()}
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] :
@@ -274,27 +274,41 @@ class ROM(Dummy):
 
   def __init__(self):
     Dummy.__init__(self)
-    self.initializzationOptionDict = {}
-    self.amITrained   = False
+    self.initializationOptionDict = {}          # ROM initialization options
+    self.amITrained                = False      # boolean flag, is the ROM trained?
+    self.howManyTargets            = 0          # how many targets?
+    self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = returnPrintTag('MODEL ROM')
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      try: self.initializzationOptionDict[child.tag] = int(child.text)
+      try: self.initializationOptionDict[child.tag] = int(child.text)
       except ValueError:
-        try: self.initializzationOptionDict[child.tag] = float(child.text)
-        except ValueError: self.initializzationOptionDict[child.tag] = child.text
+        try: self.initializationOptionDict[child.tag] = float(child.text)
+        except ValueError: self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
-    self.SupervisedEngine = SupervisedLearning.returnInstance(self.subType,**self.initializzationOptionDict)
+    # check how many targets
+    if not 'Target' in self.initializationOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
+    targets = self.initializationOptionDict['Target'].split(',')
+    self.howManyTargets = len(targets)
+    for target in targets:
+      self.initializationOptionDict['Target'] = target
+      self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
 
   def reset(self):
-    self.SupervisedEngine.reset()
+    '''
+    Reset the ROM
+    @ In,  None
+    @ Out, None
+    '''
+    for instrom in self.SupervisedEngine.values(): instrom.reset()
     self.amITrained   = False
 
   def addInitParams(self,originalDict):
     '''the ROM setting parameters are added'''
-    ROMdict = self.SupervisedEngine.returnInitialParameters()
+    ROMdict = {}
+    for target, instrom in self.SupervisedEngine.items(): ROMdict[self.name + '|' + target] = instrom.returnInitialParameters()
     for key in ROMdict.keys(): originalDict[key] = ROMdict[key]
 
   def train(self,trainingSet):
@@ -303,29 +317,50 @@ class ROM(Dummy):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-    self.SupervisedEngine.train(self.trainingSet)
-    self.amITrained = self.SupervisedEngine.amITrained
-    if self.debug:print('FIXME: add self.amITrained to currentParamters')
+    if type(trainingSet).__name__ == 'ROM':
+      self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
+      self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
+      self.trainingSet              = copy.copy(trainingSet.trainingSet)
+      self.amITrained               = copy.deepcopy(trainingSet.amITrained)
+      self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
+    else:
+      self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+      self.amITrained = True
+      for instrom in self.SupervisedEngine.values():
+        instrom.train(self.trainingSet)
+        self.aimITrained = self.amITrained and instrom.amITrained
+      if self.debug:print('FIXME: add self.amITrained to currentParamters')
 
-  def confidence(self,request):
+  def confidence(self,request,target = None):
     '''
     This is to get a value that is inversely proportional to the confidence that we have
     forecasting the target value for the given set of features. The reason to chose the inverse is because
     in case of normal distance this would be 1/distance that could be infinity
+    @ In, request, datatype, feature coordinates (request)
+    @ In, target, string, optional, target name (by default the first target entered in the input file)
     '''
     inputToROM = self._inputToInternal(request)
-    return self.SupervisedEngine.confidence(inputToROM)
+    if target != None: return self.SupervisedEngine[target].confidence(inputToROM)
+    else             : return self.SupervisedEngine.values()[0].confidence(inputToROM)
 
-  def evaluate(self,request):
-    '''when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used'''
+  def evaluate(self,request, target = None):
+    '''
+    when the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
+    @ In, request, datatype, feature coordinates (request)
+    @ In, target, string, optional, target name (by default the first target entered in the input file)
+    '''
     inputToROM = self._inputToInternal(request)
-    return self.SupervisedEngine.evaluate(inputToROM)
+    if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
+    else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
 
   def run(self,Input,jobHandler):
     '''This call run a ROM as a model'''
+    def lambdaReturnOut(inRun):
+      returnDict = {}
+      for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
+      return returnDict
     inRun = self._manipulateInput(Input[0])
-    lambdaReturnOut = lambda inRun: {self.SupervisedEngine.target:self.evaluate(inRun)}
+    #print(inRun)
     jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
 #
 #
@@ -374,8 +409,8 @@ class ExternalModel(Dummy):
     if 'createNewInput' in dir(self.sim):
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
       if extCreateNewInput== None: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
-      return ([(extCreateNewInput)],copy.deepcopy(Kwargs)),copy.deepcopy(modelVariableValues)
-    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.deepcopy(modelVariableValues)
+      return ([(extCreateNewInput)],copy.copy(Kwargs)),copy.copy(modelVariableValues)
+    else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -408,16 +443,16 @@ class ExternalModel(Dummy):
     '''
     class Object(object):pass
     externalSelf        = Object()
-    for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.deepcopy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.deepcopy(value)')
+    for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
     modelVariableValues = {}
     for key in self.modelVariableType.keys(): modelVariableValues[key] = None
-    for key in Input[1].keys(): modelVariableValues[key] = copy.deepcopy(Input[1][key])
+    for key in Input[1].keys(): modelVariableValues[key] = copy.copy(Input[1][key])
     if 'createNewInput' not in dir(self.sim):
-      for key in Input[0].keys(): modelVariableValues[key] = copy.deepcopy(Input[0][key])
-      for key in self.modelVariableType.keys() : execCommand('self.'+ key +' = copy.deepcopy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.deepcopy(modelVariableValues[key])')  #self.__uploadSolution()
+      for key in Input[0].keys(): modelVariableValues[key] = copy.copy(Input[0][key])
+      for key in self.modelVariableType.keys() : execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
     self.sim.run(externalSelf, Input[0])
-    for key in self.modelVariableType.keys()   : execCommand('object["'+key+'"]  = copy.deepcopy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.deepcopy(externalSelf.'+key+')') #self.__pointSolution()
-    for key in self.initExtSelf.__dict__.keys(): execCommand('self.' +key+' = copy.deepcopy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.deepcopy(externalSelf.'+key+')')
+    for key in self.modelVariableType.keys()   : execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
+    for key in self.initExtSelf.__dict__.keys(): execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():
       errorfound = False
       for key in self.modelVariableType.keys():
@@ -427,7 +462,7 @@ class ExternalModel(Dummy):
           errorfound = True
           print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key])
       if errorfound: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Errors detected. See above!!')
-    return copy.deepcopy(modelVariableValues)
+    return copy.copy(modelVariableValues)
 
   def run(self,Input,jobHandler):
     '''
@@ -435,7 +470,7 @@ class ExternalModel(Dummy):
     @ In, Input, list, list of the inputs needed for running the model
     @ In, jobHandler, jobHandler object, jobhandler instance
     '''
-    inRun = copy.deepcopy(self._manipulateInput(Input[0][0]))
+    inRun = copy.copy(self._manipulateInput(Input[0][0]))
     jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1])
 
   def collectOutput(self,finishedJob,output):
@@ -533,7 +568,7 @@ class Code(Model):
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
-    return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),copy.deepcopy(Kwargs))
+    return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
@@ -547,14 +582,12 @@ class Code(Model):
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
     if 'finalizeCodeOutput' in dir(self.code):
-      out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output)
+      out = self.code.finalizeCodeOutput(finisishedjob.command,finisishedjob.output,self.workingDir)
       if out: finisishedjob.output = out
     # TODO This errors if output doesn't have .type (csv for example), it will be necessary a file class
     attributes={"input_file":self.currentInputFiles,"type":"csv","name":os.path.join(self.workingDir,finisishedjob.output+'.csv')}
     metadata = finisishedjob.returnMetadata()
-    if metadata:
-      #for key in metadata: attributes[key] = metadata[key]
-      attributes['metadata'] = metadata
+    if metadata: attributes['metadata'] = metadata
     try:                   output.addGroup(attributes,attributes)
     except AttributeError:
       output.addOutput(os.path.join(self.workingDir,finisishedjob.output) + ".csv",attributes)
@@ -729,7 +762,7 @@ for classType in __interFaceDict.values():
   classType.generateValidateDict()
   classType.specializeValidateDict()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type,debug=False):

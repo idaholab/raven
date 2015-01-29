@@ -36,25 +36,21 @@ class MooseBasedAppInterface:
     self._samplersDictionary['LHS'                  ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['DynamicEventTree'     ] = self.dynamicEventTreeForMooseBasedApp
     self._samplersDictionary['StochasticCollocation'] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
-    #modifDict.append(copy.deepcopy({'name':['Outputs'],'special':set(['erase_block'])}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'],'exodus':'true'}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'],'interval':'1'}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'],'output_initial':'true'}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'],'csv':'true'}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'], 'special':set(['erase_block'])}))
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.deepcopy(currentInputFiles)
+    newInputFiles = copy.copy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1])
     else:
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1])
     parser.printInput(newInputFiles[index])
     return newInputFiles
 
