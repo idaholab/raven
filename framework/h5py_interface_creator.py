@@ -201,7 +201,7 @@ class hdf5Database(object):
     if source['type'] == 'csv':
       # Source in CSV format
       try: f = open(source['name'],'rb')
-      except: 
+      except:
        print("IVAN error...Maybe RELAP7 did crash!!!!!")
        return
       # Retrieve the headers of the CSV file
@@ -441,7 +441,7 @@ class hdf5Database(object):
     if source['type'] == 'csv':
       # Source in CSV format
       try: f = open(source['name'],'rb')
-      except: 
+      except:
        print("IVAN error...Maybe RELAP7 did crash!!!!!")
        return
       # Retrieve the headers of the CSV file
