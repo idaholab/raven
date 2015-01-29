@@ -73,7 +73,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   #validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
   #FIXME this is a temporary statick list assignment to fix the circular references
   #    generated in SamplingROM from inheriting both Model and Sampler (Issue #13 on the wiki)
-  #FIXMEMORE this isn't an issue since we scrapped SamplingROM, but circular references
+  #FIXME MORE this isn't an issue since we scrapped SamplingROM, but circular references
   #    are still a potential issue
   validateDict['Sampler'][0]['type'] = ['MonteCarlo',
                                         'DynamicEventTree',

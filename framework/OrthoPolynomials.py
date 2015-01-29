@@ -23,19 +23,21 @@ import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
 class OrthogonalPolynomial(object):
-  '''Provides polynomial generators for stochastic collocation.'''
+  '''Provides polynomial generators and evaluators for stochastic collocation.'''
   def __init__(self):
-    self.type = self.__class__.__name__
-    self.name = self.__class__.__name__
-    self.debug = True
-    self.params=[]
+    self.type    = self.__class__.__name__
+    self.name    = self.__class__.__name__
+    self.debug   = True
+    self._poly   = None #tool for generating orthopoly1d objects
+    self._evPoly = None #tool for evaluating 1d polynomials at (order,point)
+    self.params  = [] #additional parameters needed for polynomial (alpha, beta, etc)
 
   def initialize(self):
-    self._poly = None #self.monomial #orthogonal polynomial constructor function  
-    self._evPoly = None #self.evalMonomial #orthogonal polynomial constructor function  
+    pass #to be overwritten
 
   def __getitem__(self,order):
-    '''Returns the polynomial with order 'order', as poly[2]'''
+    '''Returns the polynomial with order 'order';
+       for example poly[2] returns the orthonormal 2nd-order polynomial object.'''
     return self._poly(order,*self.params) * self.norm(order)
 
   def __call__(self,order,pt):
@@ -44,53 +46,39 @@ class OrthogonalPolynomial(object):
     inps=self.params+[self.pointMod(pt)]
     return self._evPoly(order,*inps) * self.norm(order)
 
-  def _readMoreXML(self,xmlNode):
-    if self.debug:print('Quadrature: need to fix _readMoreXML')
-    self._localReadMoreXML(xmlNode)
-    return
-
-  def _localReadMoreXML(self,xmlNode):
-    self.params=[]
-
   def norm(self,order):
     '''Normalization constant for polynomials so that integrating two of them
-       w.r.t. the weight factor produces the kroenecker delta.'''
+       w.r.t. the weight factor produces the kroenecker delta. Default is 1.'''
     return 1
 
   def pointMod(self,pt):
-    '''Some scipy polys are orthogonal w.r.t. slightly different weights.
-       This change of variable function fixes orthogonality to what we want.'''
+    '''Some polys are orthonormal w.r.t. slightly different weights.
+       This change of variable function fixes orthonormality to what we want.'''
     return pt
 
   def stdPointMod(self,x):
+    '''Provides a default for inheriting classes.  This is the pointMod that
+       should be used with the 'default' choices.'''
     return x
 
-  def monomial(self,order): #these are default, but not orthogonal at all.
-    coeffs=[1]+[0]*(order-1)
-    return np.poly1d(coeffs)
-
-  def evalMonomial(self,order,pt):
-    return self.monomial(order)(pt)
-
   def setMeasures(self,quadSet):
-    #make a uniform distribution to use the quantile (ppf) function for cdf,CC case
-    if quadSet.type.startswith('CDF'):# in ['CDF','ClenshawCurtis']:
+    '''If you got here, it means the inheriting orthopoly object doesn't have a
+       specific implementation for the quadSet given.  Here we catch the universal
+       options.'''
+    if quadSet.type.startswith('CDF'): #covers CDFLegendre and CDFClenshawCurtis
       self.__distr=self.makeDistribution()
       self.pointMod = self.cdfPoint
     else:
       raise IOError('OrthoPolynomials: No implementation for',quadSet,'quadrature and',self.type,'polynomials.')
 
   def _getDistr(self):
+    '''Returns the private distribution used for the CDF-version quadratures; for debugging.'''
     return self.__distr
-
-  def samePoint(self,x):
-    return x
 
   def cdfPoint(self,x):
     '''ppf() converts to from [0,1] to distribution range,
-       0.5(x+1) converts from [-1,1] to [0,1],
-       sqrt(2) fixes scipy Legendre polynomial weighting'''
-    return self.__distr.ppf(0.5*(x+1.))#*self.scipyNorm()
+       0.5(x+1) converts from [-1,1] to [0,1].'''
+    return self.__distr.ppf(0.5*(x+1.))
 
   def scipyNorm(self):
     return 1.
@@ -98,8 +86,8 @@ class OrthogonalPolynomial(object):
 class Legendre(OrthogonalPolynomial):
   def initialize(self,quad):
     self.printTag = 'LEGENDRE-ORTHOPOLY'
-    self._poly = polys.legendre
-    self._evPoly = polys.eval_legendre
+    self._poly    = polys.legendre
+    self._evPoly  = polys.eval_legendre
     self.setMeasures(quad)
 
   def setMeasures(self,quad):
@@ -124,24 +112,20 @@ class Legendre(OrthogonalPolynomial):
     return uniform
 
   def stdPointMod(self,x):
-    return x#self.scipyNorm()
+    return x
 
   def scipyNorm(self):
     return np.sqrt(2)
 
   def norm(self,n):
-    return np.sqrt((2.*n+1.))#/2.)
-    #OLD NOTE the first 2 is included because scipy legendre poly1d is orthogonal
-    #over [-1,1] with with weight function 1:
-    #http://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.special.legendre.html#scipy.special.legendre 
-
+    return np.sqrt((2.*n+1.))
 
 
 class Hermite(OrthogonalPolynomial):
   def initialize(self,quad):
     self.printTag = 'HERMITE-ORTHOPOLY'
-    self._poly = polys.hermitenorm
-    self._evPoly = polys.eval_hermitenorm
+    self._poly    = polys.hermitenorm
+    self._evPoly  = polys.eval_hermitenorm
     self.setMeasures(quad)
 
   def setMeasures(self,quad):
@@ -164,17 +148,16 @@ class Hermite(OrthogonalPolynomial):
     return normal
 
   def norm(self,n):
-    #cof = 1/(2.*np.sqrt(2))
-    return 1.0/np.sqrt(factorial(n))#/(np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))
+    return 1.0/np.sqrt(factorial(n))
 
 
 
 class Laguerre(OrthogonalPolynomial):
   def initialize(self,quad):
     self.printTag = 'LAGUERRE-ORTHOPOLY'
-    self._poly = polys.genlaguerre
-    self._evPoly = polys.eval_genlaguerre
-    self.params=quad.params
+    self._poly    = polys.genlaguerre
+    self._evPoly  = polys.eval_genlaguerre
+    self.params   = quad.params
     self.setMeasures(quad)
 
   def setMeasures(self,quad):
@@ -204,20 +187,10 @@ class Laguerre(OrthogonalPolynomial):
 class Jacobi(OrthogonalPolynomial):
   def initialize(self,quad):
     self.printTag = 'JACOBI-ORTHOPOLY'
-    self._poly = polys.jacobi
-    self._evPoly = polys.eval_jacobi
-    self.params=quad.params
+    self._poly    = polys.jacobi
+    self._evPoly  = polys.eval_jacobi
+    self.params   = quad.params
     self.setMeasures(quad)
-
-#  def _localReadMoreXML(self,xmlNode):
-#    self.params = []
-#    if xmlNode.find('alpha') != None:
-#      alpha=float(xmlNode.find('alpha').text)
-#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi polynmials require alpha keyword; not found.')
-#    if xmlNode.find('beta') != None:
-#      beta=float(xmlNode.find('beta').text)
-#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi polynomials require beta keyword; not found.')
-#    self.params = [beta-1,alpha-1]
 
   def setMeasures(self,quad):
     if quad.type=='Jacobi':
@@ -238,34 +211,15 @@ class Jacobi(OrthogonalPolynomial):
     a=self.params[0]#+1
     b=self.params[1]#+1
     coeff=1.
-    #THESE THREE AS ARE work for uniform, stashing a copy of them
-    #coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
-    #coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))#=1 for a=b=0
-    #coeff*=np.sqrt(2)
-    #print('DEBUG n =',n)
-    #print('  DEBUG 1',(2.*n+a+b+1.) /2**(a+b+1))
-    #print('  DEBUG 2',factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
     coeff*=np.sqrt((2.*n+a+b+1.) /2**(a+b+1))
     coeff*=np.sqrt(factorial(n)*factorial(n+a+b)/(factorial(n+a)*factorial(n+b)))
     coeff*=np.sqrt(2)
-
-    #wtf
+    #not sure why I need this factor, but it corrects all cases I tested
+    #FIXME it might be wrong for n>1, though, it occurs to me...
     cof2 = 1
     cof2 *= 2.**(a+b)/(a+b+1.)
     cof2 *= factorial(a)*factorial(b)/factorial(a+b)
-
     coeff*=np.sqrt(cof2)
-
-    #coeff*=np.sqrt(16./15.) #a=5,b=2
-    #a+=1
-    #b+=1
-    #coeff*=np.sqrt(2**(a+b-2)*factorial(a)*factorial(b)/factorial(a+b+1))
-
-    #coeff*=np.sqrt(factorial(a+b-1)/(factorial(a-1)*factorial(b-1)))
-    #coeff*=np.sqrt(1./(2.*2**(a+b-2)))
-
-    #print('DEBUG poly norm',n,coeff)
-    #print('DEBUG norm',factorial(a+b-1)/(factorial(a-1)*factorial(b-1)))
     return coeff
 
 
@@ -282,7 +236,7 @@ __interFaceDict['Jacobi'] = Jacobi
 #__interFaceDict['Lagrange'] = Lagrange TODO
 __knownTypes = __interFaceDict.keys()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):

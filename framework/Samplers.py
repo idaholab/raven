@@ -2094,6 +2094,8 @@ class ResponseSurfaceDesign(Grid):
 class SparseGridCollocation(Grid):
   def __init__(self):
     Grid.__init__(self)
+    #self.axisName from Grid
+    #self.gridInfo from Grid
     self.type           = 'SparseGridCollocationSampler'
     self.printTag       = returnPrintTag(self.type)
     self.assemblerObjects={}    #dict of external objects required for assembly
@@ -2103,9 +2105,11 @@ class SparseGridCollocation(Grid):
     self.polyDict       = {}    #varName-indexed dict of polynomial types
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
+    self.maxPolyOrder   = None  #integer, relative maximum polynomial order to be used in any one dimension
     self.lastOutput     = None  #pointer to output datas object
     self.ROM            = None  #pointer to ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
+    self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     
   def _localWhatDoINeed(self):
     needDict={}
@@ -2170,10 +2174,11 @@ class SparseGridCollocation(Grid):
         raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' given interpolation rules but '+v+' not in sampler!')
       else:
         self.gridInfo[v] = ROMdata[v] #quad, poly, weight
+    #set defaults, then replace them if they're asked for
     for v in self.axisName:
       if v not in self.gridInfo.keys():
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1','cdf':'False'}
-    #build dimensional quad, poly
+    #establish all the right names for the desired types
     #FIXME this has grown gnarled, and should be simplified
     for varName,dat in self.gridInfo.items():
       #print('DEBUG dat',self.printTag,varName,dat)
@@ -2200,7 +2205,7 @@ class SparseGridCollocation(Grid):
           if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
           else: polyType = dat['poly']
           subType=None
-
+      #build the distribution, quadrature, polynomial, importance weight
       #TODO consistency checks between quads-polys-distros
       distr = self.distDict[varName]
       if quadType not in distr.compatibleQuadrature:
@@ -2215,6 +2220,7 @@ class SparseGridCollocation(Grid):
       self.polyDict[varName] = poly
 
       self.importanceDict[varName] = float(dat['weight'])
+    #print out the setup for each variable.   TODO should this always happen?
     print(self.printTag,'INTERPOLATION INFO:')
     print('    Variable | Distribution | Quadrature | Polynomials')
     for v in self.quadDict.keys():
@@ -2235,11 +2241,8 @@ class SparseGridCollocation(Grid):
     if self.debug: print(self.printTag,'Finished sampler generation.')
 
   def localGenerateInput(self,model,myInput):
+    '''Provide the next point in the sparse grid.'''
     pt,weight = self.sparseGrid[self.counter-1]
-    #actPt = np.zeros(len(pt))
-    #for i,p in enumerate(pt):
-    #  varName = self.distDict.keys()[i]
-    #  actPt[i] = self.distDict[varName].convertToDistr(self.quadDict[varName].type,p)
     for v,varName in enumerate(self.distDict.keys()):
       self.values[varName] = pt[v]
       self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
@@ -2248,6 +2251,9 @@ class SparseGridCollocation(Grid):
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
 
   def localFinalizeActualSampling(self,jobObject,model,myInput):
+    '''If all the samples have been provided, initialize the SVLs in the ROM so they're ready to go.'''
+    #TODO FIXME use the len(lastOutput) instead when you merge that in
+    #TODO is there any reason to wait until it's all done to initialize SVLs?
     try: self.lastOutput.sizeData('output')
     except: return
     if self.lastOutput.sizeData('output').values()[0]==len(self.sparseGrid)-1: #-1 because collection is after this call

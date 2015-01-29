@@ -247,18 +247,26 @@ class NDinterpolatorRom(superVisedLearning):
 
 class GaussPolynomialRom(NDinterpolatorRom):
   def __confidenceLocal__(self,edict):pass #TODO
-  def __resetLocal__(self):pass
-  def __returnCurrentSettingLocal__(self):pass
+
+  def __resetLocal__(self):pass #TODO
+
+  def __returnCurrentSettingLocal__(self):pass #TODO
 
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.interpolator = None #FIXME what's this?
     self.printTag     = returnPrintTag('GAUSSgpcROM('+self.target+')')
-    self.indexSetType = None
-    self.maxPolyOrder = None
+    self.indexSetType = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
+    self.maxPolyOrder = None #integer of relative maximum polynomial order to use in any one dimension
     self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
-    self.norm         = None
-    self.normalizeData = False #not desirable for this ROM
+    self.norm         = None #combined distribution normalization factors (product)
+    self.normalizeData = False #flag to prevent data normalization; not desirable for this ROM
+    self.sparseGrid = None #Quadratures.SparseGrid object, has points and weights
+    self.distDict = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
+    self.quads = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
+    self.polys = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
+    self.indexSet = None #array of tuples, polynomial order combinations
+    self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
 
   def _readMoreXML(self,xmlNode):
     NDinterpolatorRom._readMoreXML(self,xmlNode)
@@ -290,14 +298,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
       elif key == 'quads': self.quads      = value
       elif key == 'polys': self.polys      = value
       elif key == 'iSet' : self.indexSet   = value
-    #print('DEBUG',self.sparseGrid)
 
   def _multiDPolyBasisEval(self,orders,pts):
+    '''Evaluates each polynomial set at given orders and points, returns product.'''
     tot=1
     for i,(o,p) in enumerate(zip(orders,pts)):
-      #print('        poly',o,'\n',self.polys.values()[i][o])
       tot*=self.polys.values()[i](o,p)
-    #print('        order',orders,'polytot:',tot)
     return tot
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -338,20 +344,17 @@ class GaussPolynomialRom(NDinterpolatorRom):
         wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
-    #try a moment #TODO need a better solution for calling moment calculations, etc
     print('DEBUG polyDict',self.printTag)
-    #print('DEBUG polys')
-    #for i in range(3):
-    #  print(self.polys.values()[0][i],'} norm',self.polys.values()[0].norm(i))
     self.printPolyDict()
+    #do a few moments #TODO need a better solution for calling moment calculations, etc
     for r in range(5):
       print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
 
     #local evals
-    if len(self.features)==1:
-      tests=[(0),(0.2),(0.5),(0.7),(1.0)]
-    elif len(self.features)==2:
-     tests=[(0,0),(0,0.5),(0.5,0.5),(1.0,0.5),(1.0,1.0)]
+    #if len(self.features)==1:
+    #  tests=[(0),(0.2),(0.5),(0.7),(1.0)]
+    #elif len(self.features)==2:
+    # tests=[(0,0),(0,0.5),(0.5,0.5),(1.0,0.5),(1.0,1.0)]
     #for i in tests:
     #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
 
@@ -359,6 +362,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #pk.dump(self.__dict__,file('testROMdump.pk','w'))
 
   def printPolyDict(self,printZeros=False):
+    '''Human-readable version of the polynomial chaos expansion.'''
     data=[]
     for idx,val in self.polyCoeffDict.items():
       if val > 1e-14 or printZeros:
@@ -369,6 +373,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
       print('    ',idx,val)
 
   def __evaluateMoment__(self,r):
+    '''Use the ROM's built-in method to calculate moments.'''
+    #TODO is there a faster way still to do this?  I don't think so, tbh.
     tot=0
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
@@ -387,9 +393,9 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return tot
 
   def __returnInitialParametersLocal__(self):
-    return {'IndexSet:':self.indexSetType,
-            'PolynomialOrder':self.maxPolyOrder,
-             'Interpolation':interpolationInfo()}
+    return {}#TODO 'IndexSet:':self.indexSetType,
+             #'PolynomialOrder':self.maxPolyOrder,
+             # 'Interpolation':interpolationInfo()}
 #
 #
 #

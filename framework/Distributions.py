@@ -130,36 +130,47 @@ class Distribution(BaseType):
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def convertToDistr(self,qtype,pts):
+    '''Converts points from the quadrature "qtype" standard domain to the distribution domain.'''
     return self.convertToDistrDict[qtype](pts)
+
   def convertToQuad(self,qtype,pts):
+    '''Converts points from the distribution domain to the quadrature "qtype" standard domain.'''
     return self.convertToQuadDict[qtype](pts)
+
   def measureNorm(self,qtype):
+    '''Provides the integral/jacobian conversion factor between the distribution domain and the quadrature domain.'''
     return self.measureNormDict[qtype]()
 
   def _convertDistrPointsToCdf(self,pts):
+    '''Converts points in the distribution domain to [0,1].'''
     try: return self.cdf(pts.real)
     except TypeError: return list(self.cdf(x) for x in pts)
 
   def _convertCdfPointsToDistr(self,pts):
+    '''Converts points in [0,1] to the distribution domain.'''
     try: return self.ppf(pts.real)
     except TypeError: return list(self.ppf(x) for x in pts)
 
   def _convertCdfPointsToStd(self,pts):
+    '''Converts points in [0,1] to [-1,1], the uniform distribution's STANDARD domain.'''
     try: return 2.0*pts.real-1.0
     except TypeError: return list(2.0*x-1.0 for x in pts)
 
   def _convertStdPointsToCdf(self,pts):
+    '''Converts points in [-1,1] to [0,1] (CDF domain).'''
     try: return 0.5*(pts.real+1.0)
     except TypeError: return list(0.5*(x+1.0) for x in pts)
 
-  # currently these get overwritten but can be called in overwrite
   def CDFconvertToQuad(self,pts):
+    '''Converts all the way from distribution domain to [-1,1] quadrature domain.'''
     return self._convertCdfPointsToStd(self._convertDistrPointsToCdf(pts))
 
   def CDFconvertToDistr(self,pts):
+    '''Converts all the way from [-1,1] quadrature domain to distribution domain.'''
     return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
 
   def CDFMeasureNorm(self):
+    '''Integral norm/jacobian for [-1,1] Legendre quadrature.'''
     return 1.0/2.0;
 
 
@@ -317,9 +328,7 @@ class Uniform(BoostDistribution):
     if hi_find != None: self.hi = float(hi_find.text)
     elif high_find != None: self.hi = float(high_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for uniform distribution')
-#    self.initializeDistribution() this call is done by the sampler each time a new step start
     self.range=self.hi-self.low
-    # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
       self.upperBound     = self.hi
@@ -352,9 +361,11 @@ class Uniform(BoostDistribution):
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
 
   def convertUniformToLegendre(self,y):
+    '''Converts from distribution domain to standard Legendre [-1,1].'''
     return (y-self.untruncatedMean())/(self.range/2.)
 
   def convertLegendreToUniform(self,x):
+    '''Converts from standard Legendre [-1,1] to distribution domain.'''
     return self.range/2.*x+self.untruncatedMean()
 
 
@@ -397,6 +408,8 @@ class Normal(BoostDistribution):
     tempDict['sigma'] = self.sigma
 
   def initializeDistribution(self):
+    #A truncated normal is poorly-represented by Hermites, so make an exception
+    #TODO should truncated in general be handled somehow?
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma)
@@ -422,12 +435,12 @@ class Normal(BoostDistribution):
   def stdProbabilityNorm(self,std=False):
     '''Returns the factor to scale error norm by so that norm(probability)=1.'''
     return 1.0/np.sqrt(2.*np.pi)
-    #else: return 1.0/self.sigma/np.sqrt(2.*np.pi)
 
-  def probabilityWeight(self,x,std=False):
-    '''Evaluates probability weighting factor for distribution type.'''
-    if std: return np.exp(-x**2/2.)
-    else: return np.exp(-(x-self.mean)**2/2./self.sigma**2)
+  #def probabilityWeight(self,x,std=False):
+  #  '''Evaluates probability weighting factor for distribution type.'''
+    #TODO I believe this can be removed.
+  #  if std: return np.exp(-x**2/2.)
+  #  else: return np.exp(-(x-self.mean)**2/2./self.sigma**2)
 
   def convertNormalToHermite(self,y):
     return (y-self.untruncatedMean())/(self.sigma)
