@@ -188,9 +188,8 @@ class InternalRunner:
     self.__thread.daemon = True
     self.__runReturn     = None
     self.__hasBeenAdded  = False
-    try:   self.__input         = copy.deepcopy(Input[0])
-    except:self.__input         = copy.copy(Input[0])
-    self.__metadata      = copy.deepcopy(metadata)
+    self.__input         = copy.copy(Input[0])
+    self.__metadata      = copy.copy(metadata)
     self.retcode         = 0
 
   def isDone(self):
@@ -201,7 +200,7 @@ class InternalRunner:
   def returnEvaluation(self):
     if self.isDone():
       if not self.__hasBeenAdded:
-        self.__runReturn = copy.deepcopy(self.subque.get(timeout=1))
+        self.__runReturn = self.subque.get(timeout=1)
         self.__hasBeenAdded = True
       return (self.__input,self.__runReturn)
     else: return -1 #control return code

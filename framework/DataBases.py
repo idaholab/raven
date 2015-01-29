@@ -49,8 +49,8 @@ class DateBase(BaseType):
     @ Out, None
     '''
     # Check if a directory has been provided
-    if 'directory' in xmlNode.attrib.keys(): self.databaseDir = copy.deepcopy(xmlNode.attrib['directory'])
-    else:                                    self.databaseDir = copy.deepcopy(os.path.join(os.getcwd(),'DataBaseStorage'))
+    if 'directory' in xmlNode.attrib.keys(): self.databaseDir = copy.copy(xmlNode.attrib['directory'])
+    else:                                    self.databaseDir = copy.copy(os.path.join(os.getcwd(),'DataBaseStorage'))
 
   def addInitParams(self,tempDict):
     '''
@@ -107,7 +107,7 @@ class HDF5(DateBase):
     '''
     DateBase._readMoreXML(self, xmlNode)
     # Check if database directory exist, otherwise create it
-    if '~' in self.databaseDir: self.databaseDir = copy.deepcopy(os.path.expanduser(self.databaseDir))
+    if '~' in self.databaseDir: self.databaseDir = copy.copy(os.path.expanduser(self.databaseDir))
     if not os.path.exists(self.databaseDir): os.makedirs(self.databaseDir)
     print(self.printTag+': ' +returnPrintPostTag('Message') + '->  DataBase Directory is '+self.databaseDir+'!')
     # Check if a filename has been provided
@@ -198,7 +198,7 @@ class HDF5(DateBase):
     if (not self.exist) and (not self.built): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  Can not retrieve an History from data set' + self.name + '.It has not built yet.')
     if 'filter' in attributes.keys(): tupleVar = self.database.retrieveHistory(attributes['history'],attributes['filter'])
     else:                             tupleVar = self.database.retrieveHistory(attributes['history'])
-    return copy.deepcopy(tupleVar)
+    return tupleVar
 
   def __retrieveDataTimePoint(self,attributes):
     '''
@@ -324,7 +324,7 @@ class HDF5(DateBase):
                   outDict[key] = np.atleast_1d(np.array((actual_value-previous_value)/(actual_time-previous_time)*(time_float-previous_time)))
               else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '->  the parameter ' + key + ' has not been found')
     # return tuple of dictionaries
-    return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
+    return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
 
   def __retrieveDataTimePointSet(self,attributes):
     '''
@@ -462,7 +462,7 @@ class HDF5(DateBase):
                 else: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')
       del histVar
     # return tuple of timepointSet
-    return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
+    return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
 
   def __retrieveDataHistory(self,attributes):
     '''
@@ -542,7 +542,7 @@ class HDF5(DateBase):
             outDict[key] = histVar[0][:,histVar[1]['output_space_headers'].index(key)]
           else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> : the parameter ' + key + ' has not been found')
     # Return tuple of dictionaries containing the histories
-    return (copy.deepcopy(inDict),copy.deepcopy(outDict),copy.deepcopy(metaDict))
+    return (copy.copy(inDict),copy.copy(outDict),copy.copy(metaDict))
 
   def retrieveData(self,attributes):
     '''
@@ -572,7 +572,6 @@ class HDF5(DateBase):
     else: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Type' + attributes['type'] +' unknown.Caller: hdf5Manager.retrieveData')
     # return data
     gc.collect()
-    #return copy.deepcopy(data)
     return copy.copy(data)
 
 __base                  = 'DataBase'
@@ -580,7 +579,7 @@ __interFaceDict         = {}
 __interFaceDict['HDF5'] = HDF5
 __knownTypes            = __interFaceDict.keys()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):

@@ -176,16 +176,15 @@ showstringspaces=false            %
 % Set the title, author, and date
 %
     \title{RAVEN User Manual}
-
     \author{%
     \\
      \\\textbf{Andrea Alfonsi},   
       \\\textbf{Cristian Rabiti}, 
       \\\textbf{Joshua Cogliati},   
       \\\textbf{Diego Mandelli},  
-      \\\textbf{Robert Kinoshita}.
+      \\\textbf{Robert Kinoshita},
+      \\\textbf{Sonat Sen}.
     }
-
     % There is a "Printed" date on the title page of a SAND report, so
     % the generic \date should [WorkingDir:]generally be empty.
     \date{}
@@ -194,8 +193,8 @@ showstringspaces=false            %
 % ---------------------------------------------------------------------------- %
 % Set some things we need for SAND reports. These are mandatory
 %
-\SANDnum{INL/EXT-14-xxxxx}
-\SANDprintDate{December 2014}
+\SANDnum{INL/EXT-15-34123}
+\SANDprintDate{January 2015}
 \SANDauthor{ }
 \SANDreleaseType{Draft Release}
 
@@ -216,7 +215,7 @@ showstringspaces=false            %
 % Start the document
 %
 \begin{document}
-    \maketitle[Title]
+    \maketitle
 
     % ------------------------------------------------------------------------ %
     % An Abstract is required for SAND reports
@@ -231,11 +230,15 @@ showstringspaces=false            %
     % contributions or helped beyond the normal part of a work assignment.
     % Use \section* since we don't want it in the table of context
     %
-%    \clearpage
-%    \section*{Acknowledgment}
-%	Thanks to Ron Weasly for valuable discussions and helping
-%	us finding new uses of magic.
-%
+    \clearpage
+    \section*{Acknowledgment}
+     Thanks to the following people for their contributions in the drawing up of this Manual:
+     \begin{itemize}
+     \item Ivan Rinaldi;
+     \item Alessandro Bandini.
+     \end{itemize}
+    
+
 %	The format of this report is based on information found
 %	in~\cite{Sand98-0730}.
 
@@ -302,13 +305,13 @@ showstringspaces=false            %
 \input{HowToRun.tex}
 \input{ravenStructure.tex}
 \input{runInfo.tex}
+\input{step.tex}
 \input{ProbabilityDistributions.tex}
 \input{sampler.tex}
 \input{database_data.tex}
 \input{functions.tex}
 \input{model.tex}
 \input{OutStreamSystem.tex}
-\input{step.tex}
 \input{existing_interfaces.tex}
 
 
