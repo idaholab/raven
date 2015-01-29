@@ -37,19 +37,6 @@
 </Distributions>
 
 <Samplers>
-    <!-- <MonteCarlo name='MC_external'  limit='3'>
-        <variable name='k0'>
-            <distribution>k0_distrib</distribution>
-        </variable>
-        <variable name='x0;y0,z0'>
-            <distribution>testInverse</distribution>
-            <dist_init>
-                <initial_grid_disc>10</initial_grid_disc>
-                <tolerance>0.1</tolerance>
-            </dist_init>
-        </variable>
-    </MonteCarlo> -->
-     
     <MonteCarlo name='MC_external'>
         <sampler_init>
             <limit>10</limit>
@@ -101,8 +88,21 @@
             <grid type='value' construction='custom'>20.5 21.0 20.0</grid>
         </variable>
     </Grid>
-
-    <!--<Grid name='grid_value'>
+    
+    <!-- <MonteCarlo name='MC_external'  limit='3'>
+        <variable name='k0'>
+            <distribution>k0_distrib</distribution>
+        </variable>
+        <variable name='x0;y0,z0'>
+            <distribution>testInverse</distribution>
+        <dist_init>
+            <initial_grid_disc>10</initial_grid_disc>
+            <tolerance>0.1</tolerance>
+            </dist_init>
+        </variable>
+    </MonteCarlo>
+    
+    <Grid name='grid_value'>
         <variable name='k0'>
             <distribution>k0_distrib</distribution>
             <grid type='value' construction='custom'>10.5 11.0 10.0</grid>
