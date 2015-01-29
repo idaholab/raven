@@ -75,6 +75,8 @@ if __name__ == '__main__':
     if not os.path.isabs(inputFiles[i]):
       inputFiles[i] = os.path.join(workingDir,inputFiles[i])
 
+  inputFiles = ["/Users/senrs/Desktop/RAVEN/Assembler_test/test_safest_point.xml"]
+
   simulation.setInputFiles(inputFiles)
   #Parse the input
   #!!!!!!!!!!!!   Please do not put the parsing in a try statement... we need to make the parser able to print errors out

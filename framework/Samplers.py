@@ -26,7 +26,8 @@ from sklearn import neighbors
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import metaclass_insert,find_le,index,find_le_index,returnPrintTag,returnPrintPostTag,stringsThatMeanTrue
-from BaseClasses import BaseType, Assembler
+from BaseClasses import BaseType
+from Assembler import Assembler
 import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
@@ -95,21 +96,25 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = returnPrintTag(self.type) # prefix for all prints (sampler type)
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
+    
+    self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+    self.requiredAssObject = (True,(['Distribution'],['n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+                                                      # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
 
-  def whatDoINeed(self):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for inquiring the Sampler about the kind of objects the Sampler needs to
-    be initialize. It is an abstract method that comes from the base class Assembler(see BaseClasses.py)
-    @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:list(tuple(object type{if None, Simulation does not check the type}, object name))). (eg. {'Distributions':[(type1,distname1),(type2,distname2)]} )
-    '''
-    # call the local method for getting additional needed objects
-    needDict = self._localWhatDoINeed()
-    # the distributions are the common things that are needed by each sampler
-    if 'Distributions' not in needDict.keys(): needDict['Distributions'] = []
-    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
-    return needDict
+#  def whatDoINeed(self):
+#    '''
+#    This method is used mainly by the Simulation class at the Step construction stage.
+#    It is used for inquiring the Sampler about the kind of objects the Sampler needs to
+#    be initialize. It is an abstract method that comes from the base class Assembler(see BaseClasses.py)
+#    @ In , None, None
+#    @ Out, needDict, dictionary of objects needed (class:list(tuple(object type{if None, Simulation does not check the type}, object name))). (eg. {'Distributions':[(type1,distname1),(type2,distname2)]} )
+#    '''
+#    # call the local method for getting additional needed objects
+#    needDict = self._localWhatDoINeed()
+#    # the distributions are the common things that are needed by each sampler
+#    if 'Distributions' not in needDict.keys(): needDict['Distributions'] = []
+#    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+#    return needDict
 
   def _localWhatDoINeed(self):
     '''
@@ -118,7 +123,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     @ In , None, None
     @ Out, needDict, list of objects needed
     '''
-    return {}
+    needDict = {}
+    needDict['Distributions'] = []
+    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+    return needDict
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -187,12 +195,14 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
     pass
 
-  def generateAssembler(self,initDict):
+#  def generateAssembler(self,initDict):
+#    availableDist = initDict['Distributions']
+#    self._generateDistributions(availableDist)
+#    self._localGenerateAssembler(initDict)
+
+  def _localGenerateAssembler(self,initDict): 
     availableDist = initDict['Distributions']
     self._generateDistributions(availableDist)
-    self._localGenerateAssembler(initDict)
-
-  def _localGenerateAssembler(self,initDict): pass
 
   def _generateDistributions(self,availableDist):
     '''
@@ -220,7 +230,9 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else                              :
       Distributions.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
-    for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
+    for key in self.toBeSampled.keys():
+        print(key)
+        self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
     else                      : self.localInitialize()

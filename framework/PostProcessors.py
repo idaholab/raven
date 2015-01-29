@@ -20,7 +20,7 @@ import Datas
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import toString, toBytes, first, returnPrintTag, returnPrintPostTag
-from BaseClasses import Assembler
+from Assembler import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -44,21 +44,21 @@ class BasePostProcessor(Assembler):
     self.debug             = False
 
 
-  def whatDoINeed(self):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
-    be initialize. It is an abstract method -> It must be implemented in the derived class!
-    NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
-    @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
-    '''
-    needDict = self._localWhatDoINeed()
-    for val in self.assemblerObjects.values():
-      for value in val:
-        if value[0] not in needDict.keys(): needDict[value[0]] = []
-        needDict[value[0]].append((value[1],value[2]))
-    return needDict
+#  def whatDoINeed(self):
+#    '''
+#    This method is used mainly by the Simulation class at the Step construction stage.
+#    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
+#    be initialize. It is an abstract method -> It must be implemented in the derived class!
+#    NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
+#    @ In , None, None
+#    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
+#    '''
+#    needDict = self._localWhatDoINeed()
+#    for val in self.assemblerObjects.values():
+#      for value in val:
+#        if value[0] not in needDict.keys(): needDict[value[0]] = []
+#        needDict[value[0]].append((value[1],value[2]))
+#    return needDict
 
   def _localWhatDoINeed(self):
     '''
@@ -68,16 +68,16 @@ class BasePostProcessor(Assembler):
     '''
     return {}
 
-  def generateAssembler(self,initDict):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-    It is an abstract method -> It must be implemented in the derived class!
-    NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
-    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
-    @ Out, None, None
-    '''
-    self._localGenerateAssembler(initDict)
+#  def generateAssembler(self,initDict):
+#    '''
+#    This method is used mainly by the Simulation class at the Step construction stage.
+#    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+#    It is an abstract method -> It must be implemented in the derived class!
+#    NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
+#    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
+#    @ Out, None, None
+#    '''
+#    self._localGenerateAssembler(initDict)
 
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
@@ -87,44 +87,46 @@ class BasePostProcessor(Assembler):
     #if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
     self.inputs           = inputs
 
-  def _readMoreXML(self,xmlNode):
-    self.type = xmlNode.tag
-    self.name = xmlNode.attrib['name']
-    self.printTag = self.type.ljust(25)
-    if 'debug' in xmlNode.attrib.keys():self.debug = bool(xmlNode.attrib['debug'])
-    if self.requiredAssObject[0]:
-        testObjects = {}
-        for token in self.requiredAssObject[1][0]:
-            testObjects[token] = 0
-        found = False
-        for subNode in xmlNode:
-            for token in self.requiredAssObject[1][0]:
-                if subNode.tag in token:
-                    found = True
-                    if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-                    if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
-                    self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
-                    testObjects[token] += 1
-        if not found:
-            for tofto in self.requiredAssObject[1][0]:
-                if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'):
-                    raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
-        # test the objects found
-        else:
-            for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
-                numerosity = str(self.requiredAssObject[1][1][cnt])
-                if numerosity.strip().startswith('-'):
-                # optional
-                    if tofto in testObjects.keys():
-                        numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
-                else:
-                # required
-                    if tofto not in testObjects.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
-                    else:
-                        numerosity = numerosity.replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
-    self._localReadMoreXML(xmlNode)
+#  def _readMoreXML(self,xmlNode):
+#    self.type = xmlNode.tag
+#    self.name = xmlNode.attrib['name']
+#    self.printTag = self.type.ljust(25)
+#    if 'debug' in xmlNode.attrib.keys():self.debug = bool(xmlNode.attrib['debug'])
+#    if self.requiredAssObject[0]:
+#        testObjects = {}
+#        for token in self.requiredAssObject[1][0]:
+#            testObjects[token] = 0
+#        found = False
+#        for subNode in xmlNode:
+#            for token in self.requiredAssObject[1][0]:
+#                if subNode.tag in token:
+#                    found = True
+#                    if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+#                    if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
+#                    self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
+#                    testObjects[token] += 1
+#        if not found:
+#            for tofto in self.requiredAssObject[1][0]:
+#                if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'):
+#                    raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
+#        # test the objects found
+#        else:
+#            for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
+#                numerosity = str(self.requiredAssObject[1][1][cnt])
+#                if numerosity.strip().startswith('-'):
+#                # optional
+#                    if tofto in testObjects.keys():
+#                        numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
+#                        if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+#                else:
+#                # required
+#                    if tofto not in testObjects.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
+#                    else:
+#                        numerosity = numerosity.replace('n',str(testObjects[tofto]))
+#                        if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
+#    self._localReadMoreXML(xmlNode)
+
+
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
 
   def run(self, Input): pass
