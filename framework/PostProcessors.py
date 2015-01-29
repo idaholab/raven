@@ -54,6 +54,39 @@ class BasePostProcessor(Assembler):
     self.debug             = False
 
 
+  def errorString(self,message):
+    '''
+      Function to format an error string for printing.
+      @ In, message: A string describing the error
+      @ Out, A formatted string with the appropriate tags listed
+    '''
+    # This function can be promoted for printing error functions more easily and
+    # consistently.
+    return (self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> '
+           + self.__class__.__name__ + ': ' + message)
+
+  def warningString(self,message):
+    '''
+      Function to format a warning string for printing.
+      @ In, message: A string describing the warning
+      @ Out, A formatted string with the appropriate tags listed
+    '''
+    # This function can be promoted for printing error functions more easily and
+    # consistently.
+    return (self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '
+           + self.__class__.__name__ + ': ' + message)
+
+  def messageString(self,message):
+    '''
+      Function to format a message string for printing.
+      @ In, message: A string describing the message
+      @ Out, A formatted string with the appropriate tags listed
+    '''
+    # This function can be promoted for printing error functions more easily and
+    # consistently.
+    return (self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
+           + self.__class__.__name__ + ': ' + message)
+
   def whatDoINeed(self):
     '''
     This method is used mainly by the Simulation class at the Step construction stage.
@@ -1246,39 +1279,6 @@ class ExternalPostProcessor(BasePostProcessor):
     self.printTag = returnPrintTag('POSTPROCESSOR EXTERNAL FUNCTION')
     self.requiredAssObject = (True,(['Function'],['n']))
 
-  def errorString(self,message):
-    '''
-      Function to format an error string for printing.
-      @ In, message: A string describing the error
-      @ Out, A formatted string with the appropriate tags listed
-    '''
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> '
-           + self.__class__.__name__ + ': ' + message)
-
-  def warningString(self,message):
-    '''
-      Function to format a warning string for printing.
-      @ In, message: A string describing the warning
-      @ Out, A formatted string with the appropriate tags listed
-    '''
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '
-           + self.__class__.__name__ + ': ' + message)
-
-  def messageString(self,message):
-    '''
-      Function to format a message string for printing.
-      @ In, message: A string describing the message
-      @ Out, A formatted string with the appropriate tags listed
-    '''
-    # This function can be promoted for printing error functions more easily and
-    # consistently.
-    return (self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
-           + self.__class__.__name__ + ': ' + message)
-
   def _localGenerateAssembler(self,initDict):
     ''' see generateAssembler method '''
     for key, value in self.assemblerObjects.items():
@@ -1532,9 +1532,10 @@ class TopologicalDecomposition(BasePostProcessor):
   '''
   def __init__(self):
     BasePostProcessor.__init__(self)
-    self.acceptedGraphParam = ['Approximate KNN','Delaunay','Beta Skeleton',\
-                               'Relaxed Beta Skeleton']
-    self.acceptedGradientParam = ['steepest','MaxFlow']
+    self.acceptedGraphParam = ['approximate knn','delaunay','beta skeleton',\
+                               'relaxed beta skeleton']
+    self.acceptedGradientParam = ['steepest','maxflow']
+    self.acceptedNormalizationParam = ['feature','zscore','none']
 
     # Some default arguments
     self.gradient = 'steepest'
@@ -1542,6 +1543,7 @@ class TopologicalDecomposition(BasePostProcessor):
     self.beta = 1
     self.knn = -1
     self.persistence = 0
+    self.normalization = None
 
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The 
@@ -1593,37 +1595,40 @@ class TopologicalDecomposition(BasePostProcessor):
     '''
     for child in xmlNode:
       if child.tag =="graph":
-        self.graph = child.text.encode('ascii')
+        self.graph = child.text.encode('ascii').lower()
         if self.graph not in self.acceptedGraphParam: 
-          raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
-                + '-> ' + self.__class__.__name__ /
-                + ' postprocessor requested unknown graph type: ' + self.graph /
-                + '. Available '+str(self.acceptedGraphParam))
+          raise IOError(errorString('Requested unknown graph type: ' /
+                                    + self.graph /
+                                    + '. Available options: ' /
+                                    + str(self.acceptedGraphParam)))
       elif child.tag =="gradient":
-        self.gradient = child.text.encode('ascii')
+        self.gradient = child.text.encode('ascii').lower()
         if self.gradient not in self.acceptedGradientParam:
-          raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
-                + '-> ' + self.__class__.__name__ /
-                + ' postprocessor requested unknown gradient method: ' /
-                + self.gradient + '. Available '/
-                + str(self.acceptedGradientParam))
+          raise IOError(errorString('Requested unknown gradient method: ' /
+                                    + self.gradient + '. Available options: ' /
+                                    + str(self.acceptedGradientParam)))
       elif child.tag =="beta":
         self.beta = float(child.text)
         if self.beta <= 0 or self.beta > 2:
-          raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') /
-                + '-> ' + self.__class__.__name__ /
-                + ' postprocessor requested invalid beta value: ' + self.beta
-                + '. Allowable range: (0,2]')
-      elif child.tag =="knn":
+          raise IOError(errorString('Requested invalid beta value: ' /
+                                    + self.beta + '. Allowable range: (0,2]'))
+      elif child.tag == 'knn':
         self.knn = int(child.text)
-      elif child.tag =="persistence":
+      elif child.tag == 'persistence':
         self.persistence = float(child.text)
-      elif child.tag =="parameters": 
+      elif child.tag == 'parameters': 
         self.params = child.text.strip().split(',')
         for i,param in enumerate(self.params):
           self.params[i] = self.params[i].encode('ascii')
-      elif child.tag =='response':
+      elif child.tag == 'response':
         self.response = child.text
+      elif child.tag == 'normalization':
+        self.normalization = child.text.encode('ascii').lower()
+        if self.normalization not in self.acceptedNormalizationParam:
+          raise IOError(errorString('Requested unknown normalization type: ' /
+                                    + self.normalization /
+                                    + '. Available options:' /
+                                    + str(self.acceptedGradientParam)))
 
   def collectOutput(self,finishedJob,output):
     '''
@@ -1746,7 +1751,19 @@ class TopologicalDecomposition(BasePostProcessor):
 #                            vectorString(names), \
 #                            graph,self.gradient)
 
-    self.__amsc = AMSCFloat(vectorFloat(inputData.flatten()), \
+    normedInputData = np.array(inputData)
+    if self.normalization == 'feature':
+      for d in xrange(0,self.dimensionCount):
+        dMin = min(normedInputData[:,d])
+        dRange = max(normedInputData[:,d])-dMin
+        normedInputData[:,d] = (normedInputData[:,d] - dMin) / (dRange)
+    elif self.normalization == 'zscore':
+      for d in xrange(0,self.dimensionCount):
+        dMu = np.average(normedInputData[:,d])
+        dSigma = np.std(normedInputData[:,d])
+        normedInputData[:,d] = (normedInputData[:,d] - dMu) / (dSigma)
+
+    self.__amsc = AMSCFloat(vectorFloat(normedInputData.flatten()), \
                             vectorFloat(outputData), \
                             vectorString(names), \
                             self.graph,self.gradient, self.knn,self.beta)

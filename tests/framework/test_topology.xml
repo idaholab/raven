@@ -15,6 +15,7 @@
     <gradient>steepest</gradient>
     <beta>1</beta>
     <knn>8</knn>
+    <normalization>None</normalization>
     <parameters>X,Y</parameters>
     <response>Z</response>
   </PostProcessor>

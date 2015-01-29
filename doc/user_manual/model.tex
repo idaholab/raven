@@ -1749,12 +1749,12 @@ The following is a list of acceptable sub-nodes:
   \item $<$\texttt{graph}$>$ \textbf{\textit{, string, optional field.}} The 
         type of neighborhood graph used in the algorithm, available options are:
         \begin{itemize}
-          \item Beta Skeleton
-          \item Relaxed Beta Skeleton
-          \item Approximate KNN
+          \item beta skeleton
+          \item relaxed beta skeleton
+          \item approximate knn
           \item Delaunay \textit{(disabled)}
         \end{itemize}
-        \textit{Default = Beta Skeleton};
+        \textit{Default = beta skeleton};
   \item $<$\texttt{gradient}$>$ \textbf{\textit{, string, optional field.}} The 
         method used for estimating the gradient, available options are:
         \begin{itemize}
@@ -1762,6 +1762,15 @@ The following is a list of acceptable sub-nodes:
           \item MaxFlow \textit{(disabled)}
         \end{itemize}
         \textit{Default = Steepest};
+  \item $<$\texttt{normalization}$>$ \textbf{\textit{, string, optional field.}}
+      The type of normalization to apply to the parameter space, available
+      options are:
+        \begin{itemize}
+          \item feature
+          \item zscore
+          \item none
+        \end{itemize}
+        \textit{Default = none};
   \item $<$\texttt{beta}$>$ \textbf{\textit{, float, optional field.}}. Only 
         used when the \texttt{graph} is set to \textit{Beta Skeleton} or 
         \textit{Relaxed Beta Skeleton}. \textit{Default = 1.0};
