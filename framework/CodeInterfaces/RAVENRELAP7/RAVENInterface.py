@@ -15,13 +15,18 @@ import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from utils import toString
 import Distributions
+from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class RAVENInterface:
+class RAVENInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
   def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
-    if inputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    found = False
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile.endswith(('.i','.inp','.in')):
+        found = True
+        break
+    if not found: raise Exception('RAVEN INTERFACE ERROR -> None of the input files has one of the following extensions ".i", ".inp", or ".in"!')
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     if flags: precommand = executable + flags
     else    : precommand = executable
@@ -105,8 +110,7 @@ class RAVENInterface:
     listDict.append(modifDict)
     return listDict
 
-  def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs):
-    return self.dynamicEventTreeForRAVEN(**Kwargs)
+  def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs): return self.dynamicEventTreeForRAVEN(**Kwargs)
 
   def dynamicEventTreeForRAVEN(self,**Kwargs):
 

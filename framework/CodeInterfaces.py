@@ -42,11 +42,10 @@ for moduleIndex in range(len(__moduleInterfaceList)):
       if 'createNewInput' in modClass.__dict__.keys():__interFaceDict[key.replace("Interface","")] = modClass
 __knownTypes      = list(__interFaceDict.keys())
 
-def knownTypes():
-  return __knownTypes
+def knownTypes(): return __knownTypes
 
 def returnCodeInterface(Type):
   '''this allow to the code(model) class to interact with a specific
      code for which the interface is present in the CodeInterfaces module'''
-  try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)
+  if Type not in knownTypes(): raise NameError('not known '+__base+' type '+Type)
+  return __interFaceDict[Type]()

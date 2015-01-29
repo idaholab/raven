@@ -15,9 +15,10 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import shutil
-import math
 
-class HOBOInterface:
+from CodeInterfaceBaseClass import CodeInterfaceBase
+
+class HOBOInterface(CodeInterfaceBase):
   '''this class is used a part of a code dictionary to specialize Model.Code for ExampleCode'''
   def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''

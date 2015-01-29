@@ -47,12 +47,14 @@ if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''
   # Retrieve the framework directory path and working dir
   printStatement()
-
+  debug          = False
+  interfaceCheck = False
   workingDir = os.getcwd()
-  if 'debug=True' in sys.argv: debug=True
-  else                       : debug=False
+  for item in sys.argv:
+    if item.lower() == 'debug'         : debug = True
+    if item.lower() == 'interfacecheck': interfaceCheck = True
 
-  simulation = Simulation(frameworkDir,debug=debug)
+  simulation = Simulation(frameworkDir,debug=debug,interfaceCheck=interfaceCheck)
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
   if os.path.exists(configFile):
