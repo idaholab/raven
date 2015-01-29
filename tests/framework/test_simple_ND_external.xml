@@ -25,7 +25,7 @@
 </Models>
 
 <Distributions>
-    <NDInverseWeight name='testInverse'>
+    <NDInverseWeight name='ND_InverseWeight'>
         <p>2.5</p>
         <data_filename type='CDF'>TriangularExponential2D_scattered.txt</data_filename>
         <working_dir>/Users/mandd/projects/raven/tests/framework/ND_test/</working_dir>
@@ -59,44 +59,45 @@
                   <initial_grid_disc>10</initial_grid_disc>
                   <tolerance>0.1</tolerance>
                 </distribution>
-                <distribution name="ND_Spline">
-                    <initial_grid_disc>10</initial_grid_disc>
-                    <tolerance>0.1</tolerance>
-                </distribution>
             </dist_init>
         </sampler_init>
         <variable name='k0'>
             <distribution>k0_distrib</distribution>
         </variable>
         <variable name='x0'>
-            <distribution dim='1'>testInverse</distribution>
+            <distribution dim='1'>ND_InverseWeight</distribution>
         </variable>
         <variable name='y0,z0'>
-            <distribution dim='2'>testInverse</distribution>
+            <distribution dim='2'>ND_InverseWeight</distribution>
         </variable>
     </MonteCarlo>
     
-    <!-- <Grid name='grid_CDF'>
+    <Grid name='grid_CDF'>
         <variable name='k0'>
             <distribution>k0_distrib</distribution>
             <grid type='CDF' construction='custom'>0.5 1.0 0.0</grid>
         </variable>
-        <variable name='x0;y0,z0'>
-            <distribution>testInverse</distribution>
+        <variable name='x0'>
+            <distribution dim='1'>ND_InverseWeight</distribution>
             <grid type='CDF' construction='custom'>0.5 2.0 1.0</grid>
         </variable>
-    </Grid> -->
+        <variable name='y0,z0'>
+            <distribution dim='2'>ND_InverseWeight</distribution>
+            <grid type='CDF' construction='custom'>0.5 2.0 1.0</grid>
+        </variable>
+    </Grid>
+    
     <Grid name='grid_value'>
         <variable name='k0'>
             <distribution>k0_distrib</distribution>
             <grid type='value' construction='custom'>10.5 11.0 10.0</grid>
         </variable>
         <variable name='x0'>
-            <distribution dim='1'>testInverse</distribution>
+            <distribution dim='1'>ND_InverseWeight</distribution>
             <grid type='value' construction='custom'>30.5 31.0 30.0</grid>
         </variable>
         <variable name='y0,z0'>
-            <distribution dim='2'>testInverse</distribution>
+            <distribution dim='2'>ND_InverseWeight</distribution>
             <grid type='value' construction='custom'>20.5 21.0 20.0</grid>
         </variable>
     </Grid>
