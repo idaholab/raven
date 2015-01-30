@@ -355,6 +355,9 @@ class AdaptiveSampler(Sampler):
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
     self.printTag         = returnPrintTag('SAMPLER ADAPTIVE')
 
+    self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+    self.requiredAssObject = (True,(['Distribution',],['n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+
   def _localWhatDoINeed(self):
     '''
     This method is a local mirrow of the general whatDoINeed method.
@@ -362,11 +365,12 @@ class AdaptiveSampler(Sampler):
     @ In , None, None
     @ Out, needDict, list of objects needed
     '''
-    needDict = {}
-    for value in self.assemblerObjects.values():
-      if value[0] not in needDict.keys(): needDict[value[0]] = []
-      needDict[value[0]].append((value[1],value[2]))
-    return needDict
+#    needDict = {}
+#    for value in self.assemblerObjects.values():
+#      if value[0] not in needDict.keys(): needDict[value[0]] = []
+#      needDict[value[0]].append((value[1],value[2]))
+#    return needDict
+    return {}
 
   def _localGenerateAssembler(self,initDict):
     for key, value in self.assemblerObjects.items():

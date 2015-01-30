@@ -37,7 +37,6 @@ class Assembler(object):
     @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     '''
     needDict = self._localWhatDoINeed()
-    print(self)
     for val in self.assemblerObjects.values():
       for value in val:
         if value[0] not in needDict.keys(): needDict[value[0]] = []
