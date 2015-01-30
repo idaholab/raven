@@ -129,16 +129,27 @@ showstringspaces=false            %
 \definecolor{DMcolor}{HTML}{276605}  % Diego (adjusted for clarity)
 \definecolor{PTcolor}{HTML}{D10B8C}  % Paul
 
+%\def\DRAFT{} % Uncomment this if you want to see the notes people have been adding
 % Comment command for developers (Should only be used under active development)
-\newcommand{\alfoa}[1] {\textcolor{AAcolor}{Andrea:[[#1]]}}
-\newcommand{\cristr}[1] {\textcolor{CRcolor}{Cristian:[[#1]]}}
-\newcommand{\mandd}[1] {\textcolor{DMcolor}{Diego:[[#1]]}}
-\newcommand{\maljdan}[1] {\textcolor{DPMcolor}{Dan:[[#1]]}}
-\newcommand{\cogljj}[1] {\textcolor{JCcolor}{Josh:[[#1]]}}
-\newcommand{\bobk}[1] {\textcolor{RKcolor}{Bob:[[#1]]}}
-\newcommand{\senrs}[1] {\textcolor{RScolor}{Sonat:[[#1]]}}
-\newcommand{\talbpaul}[1] {\textcolor{PTcolor}{Paul:[[#1]]}}
-
+\ifdefined\DRAFT
+  \newcommand{\alfoa}[1] {\textcolor{AAcolor}{Andrea:[[#1]]}}
+  \newcommand{\cristr}[1] {\textcolor{CRcolor}{Cristian:[[#1]]}}
+  \newcommand{\mandd}[1] {\textcolor{DMcolor}{Diego:[[#1]]}}
+  \newcommand{\maljdan}[1] {\textcolor{DPMcolor}{Dan:[[#1]]}}
+  \newcommand{\cogljj}[1] {\textcolor{JCcolor}{Josh:[[#1]]}}
+  \newcommand{\bobk}[1] {\textcolor{RKcolor}{Bob:[[#1]]}}
+  \newcommand{\senrs}[1] {\textcolor{RScolor}{Sonat:[[#1]]}}
+  \newcommand{\talbpaul}[1] {\textcolor{PTcolor}{Paul:[[#1]]}}
+\else
+  \newcommand{\alfoa}[1] {}
+  \newcommand{\cristr}[1] {}
+  \newcommand{\mandd}[1] {}
+  \newcommand{\maljdan}[1] {}
+  \newcommand{\cogljj}[1] {}
+  \newcommand{\bobk}[1] {}
+  \newcommand{\senrs}[1] {}
+  \newcommand{\talbpaul}[1] {}
+\fi
 % Commands for making the LaTeX a bit more uniform and cleaner
 \newcommand{\TODO}[1]    {\textcolor{red}{\textit{(#1)}}}
 \newcommand{\xmlAttrRequired}[1] {\textcolor{red}{\textbf{\texttt{#1}}}}
