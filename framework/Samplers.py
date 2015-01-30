@@ -1924,11 +1924,11 @@ class FactorialDesign(Grid):
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'FactorialSettings xml node not found!!!')
-    facttype = factsettings.find("type")
+    facttype = factsettings.find("algorithm_type")
     if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in FactorialSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
-    self.factOpt['type'] = facttype.text.lower()
-    if self.factOpt['type'] == '2levelfract':
+    self.factOpt['algorithm_type'] = facttype.text.lower()
+    if self.factOpt['algorithm_type'] == '2levelfract':
       self.factOpt['options'] = {}
       self.factOpt['options']['gen'] = factsettings.find("gen")
       self.factOpt['options']['genMap'] = factsettings.find("genMap")
@@ -1945,7 +1945,7 @@ class FactorialDesign(Grid):
         if var not in self.gridInfo.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' variable "'+var+'" defined in genMap block not among the inputted variables!')
         rightOrder[self.axisName.index(var)] = self.factOpt['options']['gen'][ii]
       self.factOpt['options']['orderedGen'] = rightOrder
-    if self.factOpt['type'] != 'full':
+    if self.factOpt['algorithm_type'] != 'full':
       self.externalgGridCoord = True
       for varname in self.gridInfo.keys():
         if len(self.gridInfo[varname][2]) != 2:
@@ -1966,8 +1966,8 @@ class FactorialDesign(Grid):
     This method initialize the factorial matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     '''
     Grid.localInitialize(self)
-    if   self.factOpt['type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
-    elif self.factOpt['type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
+    if   self.factOpt['algorithm_type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
+    elif self.factOpt['algorithm_type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
     if self.designMatrix != None:
       # convert all -1 in 0 => we can access to the grid info directly
       self.designMatrix[self.designMatrix == -1] = 0
@@ -1975,7 +1975,7 @@ class FactorialDesign(Grid):
       self.limit = self.designMatrix.shape[0]
 
   def localGenerateInput(self,model,myInput):
-    if self.factOpt['type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
+    if self.factOpt['algorithm_type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
       Grid.localGenerateInput(self,model, myInput)
@@ -2006,20 +2006,20 @@ class ResponseSurfaceDesign(Grid):
     # Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'ResponseSurfaceDesignSettings xml node not found!!!')
-    facttype = factsettings.find("type")
+    facttype = factsettings.find("algorithm_type")
     if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in ResponseSurfaceDesignSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedOptions.keys():raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
-    self.respOpt['type'] = facttype.text.lower()
+    self.respOpt['algorithm_type'] = facttype.text.lower()
     # set defaults
-    if self.respOpt['type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
+    if self.respOpt['algorithm_type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
     else                                   : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
     for child in factsettings:
-      if child.tag not in 'type': self.respOpt['options'][child.tag] = child.text.lower()
+      if child.tag not in 'algorithm_type': self.respOpt['options'][child.tag] = child.text.lower()
     # start checking
     for key,value in self.respOpt['options'].items():
       if key not in self.acceptedOptions[facttype.text.lower()]:
         raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
-      if self.respOpt['type'] == 'boxbehnken':
+      if self.respOpt['algorithm_type'] == 'boxbehnken':
         if key == 'ncenters':
           try   : self.respOpt['options'][key] = int(value)
           except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'"'+key+'" is not an integer!')
