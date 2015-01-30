@@ -104,7 +104,7 @@ class SparseQuad(object):
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
   def quadRule(self,idx):
-   '''Collects the cumulative effect of quadrature rules across the dimensions.'''
+    '''Collects the cumulative effect of quadrature rules across the dimensions.'''
     tot=np.zeros(len(idx))
     for i,ix in enumerate(idx):
       tot[i]=self.quadDict.values()[i].quadRule(ix)
