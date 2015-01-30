@@ -40,6 +40,12 @@ def checkCrowDist(comment,dist,expected_crow_dist):
   else:
     results["pass"] += 1
 
+#Test module methods
+print(Distributions.knownTypes())
+#Test error
+try: Distributions.returnInstance("unknown")
+except: print("error worked")
+
 #Test Uniform
 
 uniformElement = ET.Element("uniform")
@@ -71,6 +77,32 @@ for i in range(1,7):
 
 print(uniform.rvs(5),uniform.rvs())
 
+#check rvsWithinCDFbounds
+uniform.rvsWithinbounds(1.5,2.5)
+# fake quadrature
+uniform.setQuad({},2)
+uniform.quad()
+uniform.polyOrder()
+
+#uniform.norm(2)
+#uniform.standardToActualPoint(-1)
+#uniform.actualToStandardPoint(2.0)
+#uniform.standardToActualWeight(0.5)
+#uniform.probNorm(0.5)
+uniform.addInitParams({})
+for _ in range(10): Distributions.randomIntegers(0,1)
+
+uniform.poly_norm(2)
+uniform.actual_point(-1)
+uniform.std_point(2.0)
+uniform.actual_weight(0.5)
+uniform.probability_norm(0.5)
+
+uniform.addInitParams({})
+for _ in range(10): Distributions.randomIntegers(0,1)
+
+Distributions.randomIntegers(2,1)
+
 #Test Normal
 mean=1.0
 sigma=2.0
@@ -95,8 +127,6 @@ checkAnswer("normal ppf(0.9)",normal.ppf(0.9),3.56310313109)
 checkAnswer("normal mean()",normal.untruncatedMean(),1.0)
 checkAnswer("normal median()",normal.untruncatedMedian(),1.0)
 checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
-
-checkAnswer("normal probNorm",normal.stdProbabilityNorm(),0.3989422804014327)
 
 checkAnswer("normal probWeight act (-1)",normal.probabilityWeight(-1,std=False),0.60653065971263342)
 checkAnswer("normal probWeight act (1)" ,normal.probabilityWeight( 1,std=False),1.0)
@@ -141,6 +171,21 @@ checkAnswer("truncNormal ppf(0.1)",truncNormal.ppf(0.1),-0.498029197939)
 checkAnswer("truncNormal ppf(0.5)",truncNormal.ppf(0.5),1.0)
 checkAnswer("truncNormal ppf(0.9)",truncNormal.ppf(0.9),2.49802919794)
 
+lowtruncNormalElement = ET.Element("lowtruncnorm")
+lowtruncNormalElement.append(createElement("mean",text="1.0"))
+lowtruncNormalElement.append(createElement("sigma",text="2.0"))
+lowtruncNormalElement.append(createElement("lowerBound",text="-1.0"))
+lowtruncNormal = Distributions.Normal()
+lowtruncNormal._readMoreXML(lowtruncNormalElement)
+lowtruncNormal.initializeDistribution()
+
+uptruncNormalElement = ET.Element("uptruncnorm")
+uptruncNormalElement.append(createElement("mean",text="1.0"))
+uptruncNormalElement.append(createElement("sigma",text="2.0"))
+uptruncNormalElement.append(createElement("upperBound",text="3.0"))
+uptruncNormal = Distributions.Normal()
+uptruncNormal._readMoreXML(uptruncNormalElement)
+uptruncNormal.initializeDistribution()
 #Test Gamma
 
 gammaElement = ET.Element("gamma")
@@ -152,6 +197,8 @@ gamma = Distributions.Gamma()
 gamma._readMoreXML(gammaElement)
 gamma.initializeDistribution()
 
+gamma.addInitParams({})
+
 checkCrowDist("gamma",gamma,{'xMin': 0.0, 'theta': 2.0, 'k': 1.0, 'type': 'GammaDistribution', 'low': 0.0})
 
 checkAnswer("gamma cdf(0.0)",gamma.cdf(0.0),0.0)
@@ -161,6 +208,20 @@ checkAnswer("gamma cdf(10.0)",gamma.cdf(10.0),0.993262053001)
 checkAnswer("gamma ppf(0.1)",gamma.ppf(0.1),0.210721031316)
 checkAnswer("gamma ppf(0.5)",gamma.ppf(0.5),1.38629436112)
 checkAnswer("gamma ppf(0.9)",gamma.ppf(0.9),4.60517018599)
+
+gamma.poly_norm(2)
+gamma.actual_point(-1)
+gamma.std_point(2.0)
+gamma.actual_weight(0.5)
+gamma.probability_norm(0.5)
+
+nobeta_gammaElement = ET.Element("nobeta_gamma")
+nobeta_gammaElement.append(createElement("alpha",text="1.0"))
+nobeta_gammaElement.append(createElement("low",text="0.0"))
+nobeta_gammaElement.append(createElement("upperBound",text="10.0"))
+nobeta_gamma = Distributions.Gamma()
+nobeta_gamma._readMoreXML(nobeta_gammaElement)
+nobeta_gamma.initializeDistribution()
 
 #print(gamma.rvs(5),gamma.rvs())
 
@@ -200,7 +261,7 @@ print(beta.rvs(5),beta.rvs())
 
 betaElement = ET.Element("beta")
 betaElement.append(createElement("low",text="0.0"))
-betaElement.append(createElement("hi",text="4.0"))
+betaElement.append(createElement("high",text="4.0"))
 betaElement.append(createElement("alpha",text="5.0"))
 betaElement.append(createElement("beta",text="1.0"))
 
@@ -276,6 +337,8 @@ poisson = Distributions.Poisson()
 poisson._readMoreXML(poissonElement)
 poisson.initializeDistribution()
 
+poisson.addInitParams({})
+
 checkCrowDist("poisson",poisson,{'mu': 4.0, 'type': 'PoissonDistribution'})
 
 checkAnswer("poisson cdf(1.0)",poisson.cdf(1.0),0.0915781944437)
@@ -298,6 +361,8 @@ binomial = Distributions.Binomial()
 binomial._readMoreXML(binomialElement)
 binomial.initializeDistribution()
 
+binomial.addInitParams({})
+
 checkCrowDist("binomial",binomial,{'p': 0.25, 'type': 'BinomialDistribution', 'n': 10.0})
 
 checkAnswer("binomial cdf(1)",binomial.cdf(1),0.244025230408)
@@ -316,6 +381,8 @@ bernoulliElement.append(createElement("p",text="0.4"))
 bernoulli = Distributions.Bernoulli()
 bernoulli._readMoreXML(bernoulliElement)
 bernoulli.initializeDistribution()
+
+bernoulli.addInitParams({})
 
 checkCrowDist("bernoulli",bernoulli,{'p': 0.4, 'type': 'BernoulliDistribution'})
 
@@ -337,6 +404,8 @@ logistic = Distributions.Logistic()
 logistic._readMoreXML(logisticElement)
 logistic.initializeDistribution()
 
+logistic.addInitParams({})
+
 checkCrowDist("logistic",logistic,{'scale': 1.0, 'type': 'LogisticDistribution', 'location': 4.0})
 
 checkAnswer("logistic cdf(0)",logistic.cdf(0.0),0.0179862099621)
@@ -347,6 +416,21 @@ checkAnswer("logistic ppf(0.25)",logistic.ppf(0.25),2.90138771133)
 checkAnswer("logistic ppf(0.50)",logistic.ppf(0.50),4.0)
 checkAnswer("logistic ppf(0.75)",logistic.ppf(0.75),5.09861228867)
 
+lowLogisticElement = ET.Element("lowlogistic")
+lowLogisticElement.append(createElement("location",text="4.0"))
+lowLogisticElement.append(createElement("scale",text="1.0"))
+lowLogisticElement.append(createElement("lowerBound",text="3.0"))
+lowLogistic = Distributions.Logistic()
+lowLogistic._readMoreXML(lowLogisticElement)
+lowLogistic.initializeDistribution()
+
+upLogisticElement = ET.Element("uplogistic")
+upLogisticElement.append(createElement("location",text="4.0"))
+upLogisticElement.append(createElement("scale",text="1.0"))
+upLogisticElement.append(createElement("upperBound",text="5.0"))
+upLogistic = Distributions.Logistic()
+upLogistic._readMoreXML(upLogisticElement)
+upLogistic.initializeDistribution()
 #Test Exponential
 
 exponentialElement = ET.Element("exponential")
@@ -366,26 +450,18 @@ checkAnswer("exponential ppf(0.7768698399)",exponential.ppf(0.7768698399),0.3)
 checkAnswer("exponential ppf(0.2)",exponential.ppf(0.2),0.0446287102628)
 checkAnswer("exponential ppf(0.5)",exponential.ppf(0.5),0.138629436112)
 
-#Test shifted Exponential
-shExponentialElement = ET.Element("shExponential")
-shExponentialElement.append(createElement("lambda",text="5.0"))
-shExponentialElement.append(createElement("low",text="2.0"))
-
-shExponential = Distributions.Exponential()
-shExponential._readMoreXML(shExponentialElement)
-shExponential.initializeDistribution()
-
-checkCrowDist("shExponential",shExponential,{'xMin': 2.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low': 2.0})
-
-checkAnswer("shExponential cdf(2.0)",shExponential.cdf(2.0),0.0)
-checkAnswer("shExponential cdf(2.1)",shExponential.cdf(2.1),0.393469340288)
-checkAnswer("shExponential cdf(3.0)",shExponential.cdf(3.0),0.993262053002)
-checkAnswer("shExponential cdf(4.0)",shExponential.cdf(4.0),0.999954600071)
-
-checkAnswer("shExponential ppf(0.1)",shExponential.ppf(0.1),2.02107210313)
-checkAnswer("shExponential ppf(0.5)",shExponential.ppf(0.5),2.13862943611)
-checkAnswer("shExponential ppf(0.9)",shExponential.ppf(0.9),2.4605170186)
-
+lowExponentialElement = ET.Element("lowExponential")
+lowExponentialElement.append(createElement("lambda",text="5.0"))
+lowExponentialElement.append(createElement("lowerBound",text="0.0"))
+lowExponential = Distributions.Exponential()
+lowExponential._readMoreXML(lowExponentialElement)
+lowExponential.initializeDistribution()
+upExponentialElement = ET.Element("upExponential")
+upExponentialElement.append(createElement("lambda",text="5.0"))
+upExponentialElement.append(createElement("upperBound",text="10.0"))
+upExponential = Distributions.Exponential()
+upExponential._readMoreXML(upExponentialElement)
+upExponential.initializeDistribution()
 #Test truncated exponential
 
 truncExponentialElement = ET.Element("truncexponential")
@@ -418,6 +494,8 @@ logNormal = Distributions.LogNormal()
 logNormal._readMoreXML(logNormalElement)
 logNormal.initializeDistribution()
 
+logNormal.addInitParams({})
+
 checkCrowDist("logNormal",logNormal,{'mu': 3.0, 'sigma': 2.0, 'type': 'LogNormalDistribution'})
 
 checkAnswer("logNormal cdf(2.0)",logNormal.cdf(2.0),0.124367703363)
@@ -427,6 +505,22 @@ checkAnswer("logNormal cdf(3.0)",logNormal.cdf(3.0),0.170879904093)
 checkAnswer("logNormal ppf(0.1243677033)",logNormal.ppf(0.124367703363),2.0)
 checkAnswer("logNormal ppf(0.1)",logNormal.ppf(0.1),1.54789643258)
 checkAnswer("logNormal ppf(0.5)",logNormal.ppf(0.5),20.0855369232)
+
+lowlogNormalElement = ET.Element("lowlogNormal")
+lowlogNormalElement.append(createElement("mean",text="3.0"))
+lowlogNormalElement.append(createElement("sigma",text="2.0"))
+lowlogNormalElement.append(createElement("lowerBound",text="0.0"))
+lowlogNormal = Distributions.LogNormal()
+lowlogNormal._readMoreXML(lowlogNormalElement)
+lowlogNormal.initializeDistribution()
+
+uplogNormalElement = ET.Element("uplogNormal")
+uplogNormalElement.append(createElement("mean",text="3.0"))
+uplogNormalElement.append(createElement("sigma",text="2.0"))
+uplogNormalElement.append(createElement("upperBound",text="10.0"))
+uplogNormal = Distributions.LogNormal()
+uplogNormal._readMoreXML(uplogNormalElement)
+uplogNormal.initializeDistribution()
 
 #Test log normal with low mean
 
@@ -458,7 +552,9 @@ weibull = Distributions.Weibull()
 weibull._readMoreXML(weibullElement)
 weibull.initializeDistribution()
 
-checkCrowDist("weibull",weibull,{'xMin': 0.0, 'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0})
+weibull.addInitParams({})
+
+checkCrowDist("weibull",weibull,{'k': 1.5, 'type': 'WeibullDistribution', 'lambda': 1.0})
 
 checkAnswer("weibull cdf(0.5)",weibull.cdf(0.5),0.29781149863)
 checkAnswer("weibull cdf(0.2)",weibull.cdf(0.2),0.0855593563928)
@@ -467,6 +563,66 @@ checkAnswer("weibull cdf(2.0)",weibull.cdf(2.0),0.940894253438)
 checkAnswer("weibull ppf(0.29781149863)",weibull.ppf(0.29781149863),0.5)
 checkAnswer("weibull ppf(0.1)",weibull.ppf(0.1),0.223075525637)
 checkAnswer("weibull ppf(0.9)",weibull.ppf(0.9),1.7437215136)
+
+lowWeibullElement = ET.Element("lowweibull")
+lowWeibullElement.append(createElement("k", text="1.5"))
+lowWeibullElement.append(createElement("lambda", text="1.0"))
+lowWeibullElement.append(createElement("lowerBound",text="0.001"))
+lowWeibull = Distributions.Weibull()
+lowWeibull._readMoreXML(lowWeibullElement)
+lowWeibull.initializeDistribution()
+
+upWeibullElement = ET.Element("upweibull")
+upWeibullElement.append(createElement("k", text="1.5"))
+upWeibullElement.append(createElement("lambda", text="1.0"))
+upWeibullElement.append(createElement("upperBound",text="10.0"))
+upWeibull = Distributions.Weibull()
+upWeibull._readMoreXML(upWeibullElement)
+upWeibull.initializeDistribution()
+
+#Testing N-Dimensional Distributions
+
+#InverseWeight
+
+ndInverseWeightElement = ET.Element("NDInverseWeight")
+ndInverseWeightElement.append(createElement("data_filename", text="ND_data.dat"))
+ndInverseWeightElement.append(createElement("p", text="0.5"))
+
+ndInverseWeight = Distributions.NDInverseWeight()
+ndInverseWeight._readMoreXML(ndInverseWeightElement)
+ndInverseWeight.initializeDistribution()
+
+ndInverseWeight.addInitParams({})
+
+checkCrowDist("NDInverseWeight",ndInverseWeight,{'type': 'NDInverseWeightDistribution'})
+
+#Scattered MS
+
+ndScatteredMSElement = ET.Element("NDScatteredMS")
+ndScatteredMSElement.append(createElement("data_filename", text="ND_data.dat"))
+ndScatteredMSElement.append(createElement("precision", text="1"))
+ndScatteredMSElement.append(createElement("p", text="0.5"))
+
+ndScatteredMS = Distributions.NDScatteredMS()
+ndScatteredMS._readMoreXML(ndScatteredMSElement)
+ndScatteredMS.initializeDistribution()
+
+ndScatteredMS.addInitParams({})
+
+checkCrowDist("NDScatteredMS",ndScatteredMS,{'type': 'NDScatteredMSDistribution'})
+
+#Cartesian Spline
+
+ndCartesianSplineElement = ET.Element("NDCartesianSpline")
+ndCartesianSplineElement.append(createElement("data_filename", text="ND_data.dat"))
+
+ndCartesianSpline = Distributions.NDCartesianSpline()
+ndCartesianSpline._readMoreXML(ndCartesianSplineElement)
+ndCartesianSpline.initializeDistribution()
+
+ndCartesianSpline.addInitParams({})
+
+checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineDistribution'})
 
 
 

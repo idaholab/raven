@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation>
+<Simulation debug="True">
 <RunInfo>
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
@@ -17,10 +17,10 @@
         <what>all</what>
         <parameters>x0,y0</parameters>
         <parameters>x0,y0</parameters>
-        <Assembler>
+<!--        <Assembler> -->
             <ROM      class='Models'           type='ROM'             >Acc</ROM> <!--You can add here a ROM defined in Models block.If not Present, a nearest algorithm is going to be used-->
             <Function class='Functions'        type='External'        >goalFunctionForLimitSurface</Function>
-        </Assembler>
+<!--        </Assembler> -->
     </PostProcessor>
     <ROM name='Acc' subType='SciKitLearn'>
         <Features>x0,y0</Features>

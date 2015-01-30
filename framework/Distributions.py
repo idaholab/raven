@@ -40,7 +40,10 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'Logistic':'LogisticDistribution',
                               'Exponential':'ExponentialDistribution',
                               'LogNormal':'LogNormalDistribution',
-                              'Weibull':'WeibullDistribution'  }
+                              'Weibull':'WeibullDistribution',
+                              'NDInverseWeight':'NDInverseWeightDistribution',
+                              'NDScatteredMS':'NDScatteredMSDistribution',
+                              'NDCartesianSpline':'NDCartesianSplineDistribution'  }
 
 
 class Distribution(BaseType):
@@ -115,8 +118,8 @@ class Distribution(BaseType):
     @ In, upperBound, float -> upper bound
     @ In,           , float -> random number
     '''
-    point = np.random.rand(1)*(upperBound-LowerBound)+LowerBound
-    return self._distribution.ppf(point)
+    point = float(np.random.rand(1))*(upperBound-LowerBound)+LowerBound
+    return self._distribution.InverseCdf(point)
 
   def rvsWithinbounds(self,LowerBound,upperBound):
     '''
@@ -125,8 +128,8 @@ class Distribution(BaseType):
     @ In, upperBound, float -> upper bound
     @ Out,          , float -> random number
     '''
-    CDFupper = self._distribution.cdf(upperBound)
-    CDFlower = self._distribution.cdf(LowerBound)
+    CDFupper = self._distribution.Cdf(upperBound)
+    CDFlower = self._distribution.Cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def convertToDistr(self,qtype,pts):
@@ -523,9 +526,9 @@ class Gamma(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
+    if (not self.upperBoundUsed): # and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
-      self.lowerBoundUsed = 0.0
+      #self.lowerBoundUsed = 0.0
       self.upperBound     = sys.float_info.max
       self.preferredQuadrature  = 'Laguerre'
       self.preferredPolynomials = 'Laguerre'
@@ -586,10 +589,12 @@ class Beta(BoostDistribution):
     if low_find != None: self.low = float(low_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> low value needed for Beta distribution')
     hi_find = xmlNode.find('hi')
-    high_find = xmlNode.find('high')
+    #high_find = xmlNode.find('high')
     if hi_find != None: self.hi = float(hi_find.text)
-    elif high_find != None: self.hi = float(high_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
+    #elif high_find != None: self.hi = float(high_find.text)
+    else:
+        if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text)
+        else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
     alpha_find = xmlNode.find('alpha')
     if alpha_find != None: self.alpha = float(alpha_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> alpha value needed for Beta distribution')
@@ -1017,10 +1022,10 @@ class Weibull(BoostDistribution):
     if k_find != None: self.k = float(k_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> k (shape) value needed for Weibull distribution')
     # check if lower  bound is set, otherwise default
-    if not self.lowerBoundUsed:
-      self.lowerBoundUsed = True
-      # lower bound = 0 since no location parameter available
-      self.lowerBound     = 0.0
+    #if not self.lowerBoundUsed:
+    #  self.lowerBoundUsed = True
+    #  # lower bound = 0 since no location parameter available
+    #  self.lowerBound     = 0.0
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1029,7 +1034,7 @@ class Weibull(BoostDistribution):
     tempDict['k'     ] = self.k
 
   def initializeDistribution(self):
-    if (self.lowerBoundUsed == False and self.upperBoundUsed == False) or self.lowerBound == 0.0:
+    if (self.lowerBoundUsed == False and self.upperBoundUsed == False): # or self.lowerBound == 0.0:
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var)
     else:
       if self.lowerBoundUsed == False:
@@ -1045,6 +1050,7 @@ class Weibull(BoostDistribution):
 
 
 class NDimensionalDistributions(Distribution):
+
   def __init__(self):
     Distribution.__init__(self)
     self.data_filename = None
@@ -1068,6 +1074,7 @@ class NDimensionalDistributions(Distribution):
 
 
 class NDInverseWeight(NDimensionalDistributions):
+
   def __init__(self):
     NDimensionalDistributions.__init__(self)
     self.p  = None
@@ -1075,8 +1082,8 @@ class NDInverseWeight(NDimensionalDistributions):
 
   def _readMoreXML(self,xmlNode):
     NDimensionalDistributions._readMoreXML(self, xmlNode)
-    self.p = xmlNode.find('p')
-    if self.p != None: self.p = float(self.p)
+    p_find = xmlNode.find('p')
+    if p_find != None: self.p = float(p_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Minkowski distance parameter <p> not found in NDInverseWeight distribution')
     self.initializeDistribution()
 
@@ -1085,7 +1092,7 @@ class NDInverseWeight(NDimensionalDistributions):
     tempDict['p'] = self.p
 
   def initializeDistribution(self):
-    NDimensionalDistributions.initializeDistribution()
+#    NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.p)
 
   def cdf(self,x):
@@ -1116,6 +1123,7 @@ class NDInverseWeight(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
+
 class NDScatteredMS(NDimensionalDistributions):
   def __init__(self):
     NDimensionalDistributions.__init__(self)
@@ -1123,13 +1131,13 @@ class NDScatteredMS(NDimensionalDistributions):
     self.precision = None
     self.type = 'NDScatteredMS'
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self,xmlNode): #Diego! Please check the type of the parameters (precision)!....SS
     NDimensionalDistributions._readMoreXML(self, xmlNode)
-    self.p = xmlNode.find('p')
-    if self.p != None: self.p = float(self.p)
+    p_find = xmlNode.find('p')
+    if p_find != None: self.p = float(p_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Minkowski distance parameter <p> not found in NDScatteredMS distribution')
-    self.precision = xmlNode.find('precision')
-    if self.precision != None: self.precision = float(self.precision)
+    precision_find = xmlNode.find('precision')
+    if precision_find != None: self.precision = int(precision_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> precision parameter <precision> not found in NDScatteredMS distribution')
     self.initializeDistribution()
 
@@ -1139,7 +1147,7 @@ class NDScatteredMS(NDimensionalDistributions):
     tempDict['precision'] = self.precision
 
   def initializeDistribution(self):
-    NDimensionalDistributions.initializeDistribution()
+    #NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalScatteredMS(self.p,self.precision)
 
   def cdf(self,x):
@@ -1170,6 +1178,7 @@ class NDScatteredMS(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
+
 class NDCartesianSpline(NDimensionalDistributions):
   def __init__(self):
     NDimensionalDistributions.__init__(self)
@@ -1183,7 +1192,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     NDimensionalDistributions.addInitParams(self, tempDict)
 
   def initializeDistribution(self):
-    NDimensionalDistributions.initializeDistribution()
+    #NDimensionalDistributions.initializeDistribution()
     self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline()
 
   def cdf(self,x):
