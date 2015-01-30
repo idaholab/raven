@@ -67,7 +67,7 @@ if __name__ == '__main__':
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]))
     else:
-      print(returnPrintTag('DRIVER') +': ' +utils.returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
+      print(returnPrintTag('DRIVER') +': ' +returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
 
   # Find the XML input file
   if len(sys.argv) == 1:
