@@ -16,6 +16,7 @@ from scipy.fftpack import ifft
 from scipy.misc import factorial
 from itertools import product
 from collections import OrderedDict as OrdDict
+from operator import itemgetter
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
@@ -26,21 +27,29 @@ from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 
 
 class SparseQuad(object):
-  '''Base class to produce sparse-grid multiple-dimension quadrature.
-     Requires: dimension N, max polynomial level L, quadrature generation rules for each dimension, distributions?
-  '''
+  '''Base class to produce sparse-grid multiple-dimension quadrature.'''
+  #TODO is this where this class should be defined?  It's not a Quadrature, but it's related.
   def __init__(self):
-    self.c = [] #array of coefficient terms for component tensor grid entries
-    self.type='SparseQuad'
-    self.printTag='SparseQuad'
+    self.type     = 'SparseQuad'
+    self.printTag = 'SparseQuad'
+    self.c        = [] #array of coefficient terms for component tensor grid entries
+    self.oldsg    = [] #storage space for re-ordered versions of sparse grid
+    self.indexSet = None #IndexSet object
+    self.distDict = None #dict{varName: Distribution object}
+    self.quadDict = None #dict{varName: Quadrature object}
+    self.polyDict = None #dict{varName: OrthoPolynomial object}
+    self.varNames = []   #array of names, in order of distDict.keys()
+    self.N        = None #dimensionality of input space
+    self.SG       = None #dict{ (point,point,point): weight}
 
-  def initialize(self, indexSet, maxPoly, distrList, quadDict, polyDict, handler):
+  def initialize(self, indexSet, maxPoly, distDict, quadDict, polyDict, handler):
     self.indexSet = np.array(indexSet[:])
-    self.distrList = distrList
+    self.distDict = distDict
     self.quadDict = quadDict
     self.polyDict = polyDict
-    self.N= len(distrList.keys())
-    #we can cheat if it's tensor product index set!
+    self.varNames = self.distDict.keys()
+    self.N        = len(self.varNames)
+    #we know how this ends if it's tensor product index set
     if indexSet.type=='Tensor Product':
       self.c=[1]
       self.indexSet=[self.indexSet[-1]]
@@ -68,6 +77,7 @@ class SparseQuad(object):
             self.SG[newpt] = newwt
 
   def parallelSparseQuadGen(self,handler):
+    '''Generates sparse quadrature points in parallel.'''
     numRunsNeeded=len(self.c)
     j=-1
     while True:
@@ -94,18 +104,21 @@ class SparseQuad(object):
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
   def quadRule(self,idx):
+   '''Collects the cumulative effect of quadrature rules across the dimensions.'''
     tot=np.zeros(len(idx))
     for i,ix in enumerate(idx):
       tot[i]=self.quadDict.values()[i].quadRule(ix)
     return tot
 
   def __getitem__(self,n):
+    '''Returns the point and weight for entry 'n'.'''
     return self.points(n),self.weights(n)
 
   def __len__(self):
     return len(self.weights())
 
   def __repr__(self):
+    '''Slightly more human-readable version of printout.'''
     msg='SparseQuad: (point) | weight\n'
     for p in range(len(self)):
       msg+='    ('
@@ -119,9 +132,40 @@ class SparseQuad(object):
       #msg+='    '+str(self[p])+'\n'
     return msg
 
+  def _remap(self,newNames):
+    '''Reorders data in the sparse grid.  For instance,
+       original:       { (a1,b1,c1): w1,
+                         (a2,b2,c2): w2,...}
+       remap([a,c,b]): { (a1,c1,b1): w1,
+                         (a2,c2,b2): w2,...}'''
+    #TODO optimize me!~~
+    oldNames = self.varNames[:]
+    #check consistency
+    if len(oldNames)!=len(newNames): raise KeyError('SPARSEGRID: Remap mismatch! Dimensions are not the same!')
+    for name in oldNames:
+      if name not in newNames: raise KeyError('SPARSEGRID: Remap mismatch! '+name+' not found in original variables!')
+    wts = self.weights()
+    #split by columns (dim) instead of rows (points)
+    oldlists = self._xy()
+    #stash point lists by name
+    oldDict = {}
+    for n,name in enumerate(oldNames):
+      oldDict[name]=oldlists[n]
+    #make new lists
+    newlists = list(oldDict[name] for name in newNames)
+    #sort new list
+    newptwt = list( list(pt)+[wts[p]] for p,pt in enumerate(zip(*newlists)))
+    newptwt.sort(key=itemgetter(*range(len(newptwt[0]))))
+    #recompile as ordered dict
+    newSG=OrdDict()
+    for combo in newptwt:
+      newSG[tuple(combo[:-1])]=combo[-1] #weight is last entry
+    self.oldsg.append(self.SG)
+    self.SG = newSG
+    self.varNames = newNames
+
   def _extrema(self):
-    import matplotlib.pyplot as plt
-    #find lowest pt
+    '''Finds largest and smallest point among all points by dimension.'''
     points = self.point()
     low= np.ones(len(points[0]))*1e300
     hi = np.ones(len(points[0]))*(-1e300)
@@ -132,11 +176,15 @@ class SparseQuad(object):
     return low,hi
 
   def _xy(self):
+    '''Returns reordered points.
+       Points = [(a1,b1,...,z1),
+                 (a2,b2,...,z2),
+                 ...]
+       Returns [(a1,a2,a3,...),
+                (b1,b2,b3,...),
+                ...,
+                (z1,z2,z3,...)]'''
     return zip(*self.points())
-
-  def _pointKey(self):
-    #return self.distrList.keys()
-    return list(d.type for d in self.distrList.values())
 
   def points(self,n=None):
     if n==None:
@@ -145,6 +193,7 @@ class SparseQuad(object):
       return self.SG.keys()[n]
 
   def weights(self,n=None):
+    '''Either returns the list of weights, or the weight indexed at n, or the weight corresponding to point n.  Thank you, weakly-typed python.'''
     if n==None:
       return self.SG.values()
     else:
@@ -155,6 +204,7 @@ class SparseQuad(object):
     '''Brute force method to create coefficients for each index set in the sparse grid approximation.
       This particular implementation is faster for 2 dimensions, but slower for
       more than 2 dimensions, than the smarterMakeCeoffs.'''
+    #TODO FIXME or just remove me.
     print('WARNING: serialMakeCoeffs may be broken.  smarterMakeCoeffs is better.')
     self.c=np.zeros(len(self.indexSet))
     jIter = product([0,1],repeat=self.N) #all possible combinations in the sum
@@ -180,22 +230,8 @@ class SparseQuad(object):
         if all(np.logical_and(d>=0,d<=1)):
           self.c[i]+=(-1)**sum(d)
 
-# THIS is potentially memory-costly
-#  def parallelMakeCoeffs(self,handler):
-#    N=len(self.indexSet)
-#    self.c=np.zeros(N)
-#    for i in range(N):
-#      handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),self.makeSingleCoeff,str(i))
-#    while True:
-#      finishedJobs = handler.getFinished()
-#      for job in finishedJobs:
-#        if job.getReturnCode() == 0:
-#          self.c[int(job.identifier)]=job.returnEvaluation()[1]
-#        else:
-#          print(self.printTag+': Sparse grid index',job.identifier,'failed...')
-#      if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
-#
   def parallelMakeCoeffs(self,handler):
+    '''Same thing as smarterMakeCoeffs, but in parallel.'''
     N=len(self.indexSet)
     self.c=np.zeros(N)
     i=-1
@@ -224,10 +260,11 @@ class SparseQuad(object):
     return c
 
   def tensorGrid(self,args):
+    '''Creates a tensor product of quadrature points.'''
     m,idx = args
     pointLists=[]
     weightLists=[]
-    for n,distr in enumerate(self.distrList.values()):
+    for n,distr in enumerate(self.distDict.values()):
       quad = self.quadDict.values()[n]
       mn = m[n]
       pts,wts=quad(mn)
@@ -250,56 +287,22 @@ class QuadratureSet(object):
      Points and weights are obtained as
 
      myQuad = Legendre()
-     pts,wts = myQuad(n)
-  '''
+     pts,wts = myQuad(n)'''
   def __init__(self):
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
-    self.debug = False
-    self.rule  = None
+    self.debug = False #toggles print statements
+    self.rule  = None #tool for generating points and weights for a given order
+    self.params = [] #additional parameters for quadrature (alpha,beta, etc)
 
   def __call__(self,order):
     '''Defines operations to return correct pts, wts'''
     pts,wts = self.rule(order,*self.params)
-    pts = np.around(pts,decimals=15) #helps with nesting, might not be desirable
-    if self.debug: print(self.printTag,'TODO this could probably be optimized further')
+    pts = np.around(pts,decimals=15) #TODO helps with checking equivalence, might not be desirable
     return pts,wts
 
-  def whatDoINeed(self):
-    needDict = self._localWhatDoINeed()
-    for val in self.assemblerObjects.values():
-      for value in val:
-        if value[0] not in needDict.keys(): needDict[value[0]] = []
-        needDict[value[0]].append((value[1],value[2]))
-    return needDict
-
-  def _localWhatDoINeed(self):
-    return {}
-
-  def generateAssembler(self,initDict):
-    self._localGenerateAssembler(initDict)
-
-  def _localGenerateAssembler(self,initDict):
-    pass
-
-  def initialize(self,*params):
-    self.rule   = None   # Function as rule(n) that takes an integer order and returns pts, wts
-    self.params = params # list of additional parameters necessary for some quadratures
-
-  def _readMoreXML(self,xmlNode):
-    if self.debug:print('Quadrature: need to fix _readMoreXML')
-    self._localReadMoreXML(xmlNode)
-    return
-    try:
-      self.type = xmlNode.tag
-      self.name = xmlNode.attrib['name']
-      self.printTag = self.type.ljust(25)
-      if 'debug' in xmlNode.attrib.keys(): self.debug = bool(xmlNode.attrib['debug'])
-      #TODO assembler stuff
-      if self.debug:print('TODO Quadrature needs to implement assembler stuff in readXML')
-    except: pass
-
-  def _localReadMoreXML(self,xmlNode):
+  def initialize(self,distr):
+    '''Initializes specific settings for quadratures.  Must be overwritten.'''
     pass
 
   def quadRule(self,i):
@@ -319,7 +322,6 @@ class Hermite(QuadratureSet):
     self.params = []
     self.pointRule = GaussQuadRule
 
-
 class Laguerre(QuadratureSet):
   def initialize(self,distr):
     self.rule   = quads.la_roots
@@ -329,36 +331,18 @@ class Laguerre(QuadratureSet):
     else:
       raise IOError('No implementation for Laguerre quadrature on '+distr.type+' distribution!')
 
-#  def _localReadMoreXML(self,xmlNode):
-#    self.params=[]
-#    if xmlNode.find('alpha') != None:
-#      alpha = float(xmlNode.find('alpha').text)
-#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Laguerre quadrature requires alpha keyword; not found.')
-#    self.params = [alpha-1]
-
 class Jacobi(QuadratureSet):
   def initialize(self,distr):
     self.rule   = quads.j_roots
     self.pointRule = GaussQuadRule
     if distr.type=='Beta':
       self.params=[distr.beta-1,distr.alpha-1]
-    else:
-      raise IOError('No implementation for Jacobi quadrature on '+distr.type+' distribution!')
     #NOTE this looks totally backward, BUT it is right!
     #The Jacobi measure switches the exponent naming convention
     #for Beta distribution, it's  x^(alpha-1) * (1-x)^(beta-1)
     #for Jacobi measure, it's (1+x)^alpha * (1-x)^beta
-
-#  def _localReadMoreXML(self,xmlNode):
-#    self.params = []
-#    if xmlNode.find('alpha') != None:
-#      alpha=float(xmlNode.find('alpha').text)
-#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi quadrature requires alpha keyword; not found.')
-#    if xmlNode.find('beta') != None:
-#      beta=float(xmlNode.find('beta').text)
-#    else: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'->Jacobi quadrature requires beta keyword; not found.')
-#    self.params = [beta-1,alpha-1]
-
+    else:
+      raise IOError('No implementation for Jacobi quadrature on '+distr.type+' distribution!')
 
 class ClenshawCurtis(QuadratureSet):
   def initialize(self,distr):
@@ -368,6 +352,7 @@ class ClenshawCurtis(QuadratureSet):
 
   def cc_roots(self,o):
     '''Computes Clenshaw Curtis nodes and weights for given order n=2^o+1'''
+    #TODO FIXME a depreciation warning is being thrown in this prodedure
     n1=o
     if o==1:
       return np.array([np.array([0]),np.array([2])])
@@ -392,11 +377,14 @@ class CDFClenshawCurtis(ClenshawCurtis): #added just for name distinguish; equiv
 
 
 def CCQuadRule(i):
+  '''In order to get nested points, we need 2**i on Clenshaw-Curtis points instead of just i.
+     For example, i=2 is not nested in i==1, but i==2**2 is.'''
   try: return np.array(list((0 if p==0 else 2**p) for p in i))
   except TypeError: return 0 if i==0 else 2**i
 
 
 def GaussQuadRule(i):
+  '''We need no modification for Gauss rules, as we don't expect them to be nested.'''
   return i
 
 
@@ -414,7 +402,7 @@ __interFaceDict['Jacobi'] = Jacobi
 __interFaceDict['ClenshawCurtis'] = ClenshawCurtis
 __knownTypes = __interFaceDict.keys()
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type,Subtype=None):
@@ -425,8 +413,8 @@ def returnInstance(Type,Subtype=None):
   '''
   # some modification necessary to distinguish CDF on Legendre versus CDF on ClenshawCurtis
   if Type=='CDF':
-    if Subtype=='Legendre'      : return __interFaceDict['CDFLegendre']
-    if Subtype=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']
+    if Subtype=='Legendre'      : return __interFaceDict['CDFLegendre']()
+    if Subtype=='ClenshawCurtis': return __interFaceDict['CDFClenshawCurtis']()
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)
 

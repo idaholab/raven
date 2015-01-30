@@ -6,24 +6,31 @@ import numpy as np
 from itertools import product
 import sys
 
-#TODO make preamble correct, inherit from BaseClass
-
 class IndexSet(object):
+  '''In stochastic collocation for generalised polynomial chaos, the Index Set
+     is a set of all combinations of polynomial orders needed to represent the
+     original model to a "level" L (maxPolyOrder).'''
   def __init__(self):
-    self.impWeights = None #weights for anisotropic case
-    self.type       = None #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
-    self.maxOrds    = None #maximum requested polynomial order requested for each distribution
+    self.type          = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
+    self.printTag      = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
+    self.maxOrds       = None #maximum requested polynomial order requested for each distribution
+    self.points        = []   #array of polynomial order tuples
+    self.maxPolyOrder  = None #integer, maximum order polynomial to use in any one dimension -> misleading! Relative order for anisotropic case
+    self.polyOrderList = []   #array of lists containing all the polynomial orders needed for each dimension
+    self.impWeights    = []   #array of scalars for assigning importance weights to each dimension
 
   def __len__(self):
     return len(self.points)
 
   def __getitem__(self,i=None):
+    '''Returns as if called on self.points.'''
     if i==None: return np.array(self.points)
     else: return self.points[i]
 
   def __repr__(self):
+    '''Produces a more human-readable version of the index set.'''
     msg='IndexSet Printout:\n'
-    if len(self.points[0])==2: #graphical visualization
+    if len(self.points[0])==2: #graphical block visualization
       left=0
       p=0
       while p<len(self.points)-1:
@@ -34,12 +41,13 @@ class IndexSet(object):
         else:
           msg+='\n'
           left+=1
-    else:
+    else: #just list them
       for pt in self.points:
         msg+='  '+str(pt)+'\n'
     return msg
 
   def _extrema(self):
+    '''Finds the low and hi maxima and minima among all dimensions.'''
     low=np.ones(len(self.points[0]))*1e300
     hi =np.ones(len(self.points[0]))*(-1e300)
     for pt in self.points:
@@ -49,36 +57,38 @@ class IndexSet(object):
     return low,hi
 
   def _xy(self):
+    '''Returns reordered data.  Originally,
+       Points = [(a1,b1,...,z1),
+                 (a2,b2,...,z2),
+                 ...]
+       Returns [(a1,a2,a3,...),
+                (b1,b2,b3,...),
+                ...,
+                (z1,z2,z3,...)]'''
     return zip(*self.points)
 
   def initialize(self,distrList,impList,maxPolyOrder):
     numDim = len(distrList)
     #set up and normalize weights
-    impWeights = list(impList[v] for v in distrList.keys())
-    impWeights = np.array(impWeights)
-    #this algorithm assures higher weight means more importance,
+    #  this algorithm assures higher weight means more importance,
     #  and end product is normalized so smallest is 1
-    impWeights=impWeights/np.max(impWeights)
-    impWeights=1.0/impWeights
-    self.impWeights = impWeights
+    self.impWeights = np.array(list(impList[v] for v in distrList.keys()))
+    self.impWeights/= np.max(self.impWeights)
+    self.impWeights = 1.0/self.impWeights
     #establish max orders
-    N = len(distrList.keys())
-    #TODO make this input-able from user side
-    #  - readMoreXML on distr, if maxPolyOrder not set, set it to the problem maxOrder or error out
     self.maxOrder=maxPolyOrder
     self.polyOrderList=[]
     for distr in distrList.values():
       self.polyOrderList.append(range(self.maxOrder+1))
-    #  self.maxOrder = max(self.maxOrder,distr.maxPolyOrder())
 
   def generateMultiIndex(self,N,rule,I=None,MI=None):
-    #recursive tool to build monotonically-increasing-order multi-index set
+    '''Recursive algorithm to build monotonically-increasing-order index set.'''
     L = self.maxOrder
     if I ==None: I =[]
     if MI==None: MI=[]
     if len(I)!=N:
       i=0
-      while rule(I+[i]):
+      while rule(I+[i]): #rule is defined by subclasses, limits number of index points by criteria
         MI = self.generateMultiIndex(N,rule,I+[i],MI)
         i+=1
     else:
@@ -86,23 +96,25 @@ class IndexSet(object):
     return MI
 
 class TensorProduct(IndexSet):
+  '''This Index Set requires only that the max poly order in the index point i is less than maxPolyOrder ( max(i)<=L ).'''
   def initialize(self,distrList,impList,maxPolyOrder):
     IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Tensor Product'
+    self.printTag='TensorProductIndexSet'
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
     def rule(i):
       big=0
       for j,p in enumerate(i):
         big=max(big,p*self.impWeights[j])
       return big <= target
-    #self.points = list(product(range(maxPolyOrder), repeat=len(distrList)))
-    #self.points = list(product(*points))
     self.points = self.generateMultiIndex(len(distrList),rule)
 
 class TotalDegree(IndexSet):
+  '''This Index Set requires the sum of poly orders in the index point is less than maxPolyOrder ( sum(i)<=L ).'''
   def initialize(self,distrList,impList,maxPolyOrder):
     IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Total Degree'
+    self.printTag='TotalDegreeIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = sum(self.impWeights)/float(len(self.impWeights))*self.maxOrder
@@ -114,9 +126,11 @@ class TotalDegree(IndexSet):
     self.points = self.generateMultiIndex(len(distrList),rule)
 
 class HyperbolicCross(IndexSet):
+  '''This Index Set requires the product of poly orders in the index point is less than maxPolyOrder ( prod(i+1)<=L+1 ).'''
   def initialize(self,distrList,impList,maxPolyOrder):
     IndexSet.initialize(self,distrList,impList,maxPolyOrder)
     self.type='Hyperbolic Cross'
+    self.printTag='HyperbolicCrossIndexSet'
     #TODO if user has set max poly orders (levels), make it so you never use more
     #  - right now is only limited by the maximum overall level (and importance weight)
     target = (self.maxOrder+1)**(sum(self.impWeights)/max(1,float(len(self.impWeights))))

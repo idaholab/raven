@@ -39,6 +39,7 @@ class MooseBasedAppInterface:
     self._samplersDictionary['FactorialDesign'      ] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['ResponseSurfaceDesign'] = self.pointSamplerForMooseBasedApp
     self._samplersDictionary['Adaptive']              = self.pointSamplerForMooseBasedApp
+    self._samplersDictionary['SparseGridCollocation'] = self.pointSamplerForMooseBasedApp
     if currentInputFiles[0].endswith('.i'): index = 0
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])

@@ -25,6 +25,8 @@ import numpy as np
 import numpy
 import abc
 import ast
+import cPickle as pk
+from operator import itemgetter
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -78,7 +80,7 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     pass
 
   def initialize(self,idict):
-    pass #TODO FIXME
+    pass #Overloaded by (at least) GaussPolynomialRom
 
   def train(self,tdict):
     '''
@@ -245,19 +247,26 @@ class NDinterpolatorRom(superVisedLearning):
 
 class GaussPolynomialRom(NDinterpolatorRom):
   def __confidenceLocal__(self,edict):pass #TODO
-  def __resetLocal__(self):pass
-  def __returnCurrentSettingLocal__(self):pass
-  def __returnInitialParametersLocal__(self):pass
+
+  def __resetLocal__(self):pass #TODO
+
+  def __returnCurrentSettingLocal__(self):pass #TODO
 
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
     self.interpolator = None #FIXME what's this?
-    self.printTag     = returnPrintTag('GAUSS gPC ROM')
-    self.indexSetType = None
-    self.maxPolyOrder = None
+    self.printTag     = returnPrintTag('GAUSSgpcROM('+self.target+')')
+    self.indexSetType = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
+    self.maxPolyOrder = None #integer of relative maximum polynomial order to use in any one dimension
     self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
-    self.norm         = None
-    self.normalizeData = False #not desirable for this ROM
+    self.norm         = None #combined distribution normalization factors (product)
+    self.normalizeData = False #flag to prevent data normalization; not desirable for this ROM
+    self.sparseGrid = None #Quadratures.SparseGrid object, has points and weights
+    self.distDict = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
+    self.quads = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
+    self.polys = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
+    self.indexSet = None #array of tuples, polynomial order combinations
+    self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
 
   def _readMoreXML(self,xmlNode):
     NDinterpolatorRom._readMoreXML(self,xmlNode)
@@ -265,6 +274,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     else: raise IOError(self.printTag+' No IndexSet specified!')
     if xmlNode.find('PolynomialOrder')!=None: self.maxPolyOrder = int(xmlNode.find('PolynomialOrder').text)
     else: raise IOError(self.printTag+' No PolynomialOrder specified!')
+    if self.maxPolyOrder < 1:
+      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
     self.itpDict={}
     for child in xmlNode:
       if child.tag=='Interpolation':
@@ -287,42 +298,71 @@ class GaussPolynomialRom(NDinterpolatorRom):
       elif key == 'quads': self.quads      = value
       elif key == 'polys': self.polys      = value
       elif key == 'iSet' : self.indexSet   = value
-    print('DEBUG',self.sparseGrid)
 
   def _multiDPolyBasisEval(self,orders,pts):
+    '''Evaluates each polynomial set at given orders and points, returns product.'''
     tot=1
     for i,(o,p) in enumerate(zip(orders,pts)):
-      #print('        poly',o,'\n',self.polys.values()[i][o])
       tot*=self.polys.values()[i](o,p)
-    #print('        order',orders,'polytot:',tot)
     return tot
 
   def __trainLocal__(self,featureVals,targetVals):
     self.polyCoeffDict={}
-    #TODO can parallelize this!
+    #check consistency of featureVals
+    if len(featureVals)!=len(self.sparseGrid):
+      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(needpts))+' points, but only '+str(len(havepts))+' provided!')
+    #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
+    self.sparseGrid._remap(self.features)
+    #check equality of point space
+    fvs = featureVals[:]
+    sgs = self.sparseGrid.points()[:]
+    fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
+    sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
+    #print('DEBUG fvs | sgs:')
+    #for i in range(len(fvs)):
+    #  print('  ',fvs[i],' | ',sgs[i])
+    if not np.allclose(fvs,sgs,rtol=1e-15):
+      print('DEBUG fvs | sgs:')
+      for i in range(len(fvs)):
+        print('  ',fvs[i],' | ',sgs[i])
+      raise IOError(self.printTag+' ERROR: input values do not match required values!')
+    #make translation matrix between lists
+    translate={}
+    for i in range(len(fvs)):
+      translate[tuple(fvs[i])]=sgs[i]
+    #TODO can parallelize this! Worth it?
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
-    #for i,idx in enumerate(self.sparseGrid.indexSet):
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
-      #for k,(pt,wt) in enumerate(self.sparseGrid): #int, tuple, float for k,pt,wt
       wtsum=0
       for pt,soln in zip(featureVals,targetVals):
         stdPt = np.zeros(len(pt))
         for i,p in enumerate(pt):
           varName = self.distDict.keys()[i]
           stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
-        wt = self.sparseGrid.weights(pt)
+        wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
-    print('DEBUG norm',self.norm)
     print('DEBUG polyDict',self.printTag)
     self.printPolyDict()
-    #try a moment
+    #do a few moments #TODO need a better solution for calling moment calculations, etc
     for r in range(5):
-      print('DEBUG moment',r,'=',self.__evaluateMoment__(r))
+      print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
+
+    #local evals
+    #if len(self.features)==1:
+    #  tests=[(0),(0.2),(0.5),(0.7),(1.0)]
+    #elif len(self.features)==2:
+    # tests=[(0,0),(0,0.5),(0.5,0.5),(1.0,0.5),(1.0,1.0)]
+    #for i in tests:
+    #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
+
+    #try stashing myself -> fails #TODO overwrite getstate and setstate for pickle
+    #pk.dump(self.__dict__,file('testROMdump.pk','w'))
 
   def printPolyDict(self,printZeros=False):
+    '''Human-readable version of the polynomial chaos expansion.'''
     data=[]
     for idx,val in self.polyCoeffDict.items():
       if val > 1e-14 or printZeros:
@@ -333,16 +373,16 @@ class GaussPolynomialRom(NDinterpolatorRom):
       print('    ',idx,val)
 
   def __evaluateMoment__(self,r):
+    '''Use the ROM's built-in method to calculate moments.'''
+    #TODO is there a faster way still to do this?  I don't think so, tbh.
     tot=0
     for pt,wt in self.sparseGrid:
-      tot+=self.__evaluateLocal__([pt])**r*wt#*self.norm#**(1-r)
+      tot+=self.__evaluateLocal__([pt])**r*wt
     tot*=self.norm
-    #FIXME I don't know why the norm^(1-r) needs to be there.  It fixes uniform  at least.
-    #for normals, just *norm fixes it, without any exponent
     return tot
 
   def __evaluateLocal__(self,featureVals):
-    featureVals=featureVals[0] #FIXME why do I need the [0]?  Does it come in bigger sizes?
+    featureVals=featureVals[0]
     tot=0
     stdPt = np.zeros(len(featureVals))
     for p,pt in enumerate(featureVals):
@@ -353,9 +393,9 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return tot
 
   def __returnInitialParametersLocal__(self):
-    return {'IndexSet:':self.indexSetType,
-            'PolynomialOrder':self.maxPolyOrder,
-             'Interpolation':interpolationInfo()}
+    return {}#TODO 'IndexSet:':self.indexSetType,
+             #'PolynomialOrder':self.maxPolyOrder,
+             # 'Interpolation':interpolationInfo()}
 #
 #
 #
