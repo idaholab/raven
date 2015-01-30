@@ -1,7 +1,7 @@
 '''
 Created on Oct 20, 2013
 
-@author: crisr
+@author: alfoa
 '''
 import numpy as np
 import math

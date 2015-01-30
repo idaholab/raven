@@ -139,8 +139,8 @@
   [../]
 []
  [Outputs]
- output_initial = true
- []
+  output_initial = true
+[]
 #[Output]
   # Turn on performance logging
 #  exodus = true

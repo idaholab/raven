@@ -65,14 +65,14 @@ class HOBOInputParser:
             for cnt2,T in enumerate(modifDict['strategy1']['FissionRate']):
               self.lines[key].append(str(modifDict['strategy1']['time'][cnt2]) + "\t" + str(modifDict['strategy1']['FissionRate'][cnt2])+'\n')
       else:
-        rowNumber     = int(copy.deepcopy(value['row']))-1
-        valueToChange = copy.deepcopy(value['value'])
+        rowNumber     = int(value['row'])-1
+        valueToChange = value['value']
         if rowNumber > len(temp): raise IOError("ExampleCodeInputParser: ERROR -> row number defined in sampler bigger than input lines. Got" + str(rowNumber) + '>' +str(len(temp)))
         temp[rowNumber] = str(valueToChange)+'\n'
     if save:
       if type(self.lines) != dict:
-        self.lines=copy.deepcopy(temp)
+        self.lines=copy.copy(temp)
       else:
-        self.lines=copy.deepcopy(self.lines)
+        self.lines=copy.copy(self.lines)
     return self.lines
 
