@@ -1,7 +1,7 @@
 \documentclass{beamer}
 
 \title{Raven Comparison Statistics}
-\author{Josh Cogliati\\ (and this would not have happened without\\ Ivan Rinaldi and Cristian Rabiti)}
+\author{Josh Cogliati\\ (and this would not have happened without\\ Ivan Rinaldi and Cristian Rabiti.  \\Thanks also to Andrea Alfonsi and Diego Mandelli)}
 
 
 \begin{document}
@@ -92,13 +92,55 @@
 \section{Implementation}
 
 %getting bins
+\begin{frame}
+  \frametitle{Getting the Numeric CDF and PDF}
+  \begin{enumerate}
+  \item Get the data and sort it
+  \item Choose bins boundaries, and count the number of points in each bin
+  \item Normalize the number of bins, and then calculate the running total to get the CDF
+  \item Take the derivative of the CDF to get the PDF.
+  \end{enumerate}
+\end{frame}
 
 %creating interpolation functions
+\begin{frame}
+  \frametitle{Interpolation functions}
+  \begin{itemize}
+  \item Using scipy's intererpolate.interp1d with the numeric data
+  \item For the pdf, force the numbers outside the data to be zero
+  \item For the cdf, force the numbers lower that the data to zero and higher to one
+  \end{itemize}
+\end{frame}
 
 %integrating
+\begin{frame}
+  \frametitle{Integrating functions}
+  \begin{itemize}
+  \item Use Simpson method for calculating numbers
+  \item For the pdfs and cdfs, use $-3\sigma+\mu$ to $3\sigma+\mu$ as
+    the bounds (and the min and max of these if there are multiple
+    ones)
+  \item For the $f_Z$, the midpoint is $\mu_X-\mu_Y$ and the lower and
+    upper bounds are $3\sigma_{max}$ away (where the largest $\sigma$
+    is used).
+  \end{itemize}
+\end{frame}
 
 \section{Future Directions}
 
+\begin{frame}
+  \frametitle{Future things to do}
+  \begin{itemize}
+  \item Multidimensional data
+  \item Correlated data (input and output correlated)
+  \item Flexibility for statistics (plugins or interfaces)
+  \end{itemize}
+\end{frame}
 
+\section{Comments}
+
+\begin{frame}
+  \frametitle{Comments, complaints, concerns, contraindications, contributions \ldots ?}
+\end{frame}
 
 \end{document}
