@@ -51,10 +51,10 @@ if __name__ == '__main__':
   interfaceCheck = False
   workingDir = os.getcwd()
   for item in sys.argv:
-    if item.lower() == 'debug'         : 
+    if item.lower() == 'debug'         :
       debug = True
       sys.argv.pop(sys.argv.index(item))
-    if item.lower() == 'interfacecheck': 
+    if item.lower() == 'interfacecheck':
       interfaceCheck = True
       sys.argv.pop(sys.argv.index(item))
   if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'

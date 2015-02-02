@@ -26,7 +26,7 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
   """
   def genCommand(self,inputFiles,executable,flags=None):
     """
-      This method is used to retrieve the command (in string format) needed to launch the Code. 
+      This method is used to retrieve the command (in string format) needed to launch the Code.
       This method checks a bolean enviroment variable called 'RAVENinterfaceCheck':
       if true, the subcodeCommand is going to be overwritten with an empty string. In this way we can check the functionality of the interface without having an executable.
       See Driver.py to understand how this Env variable is set
