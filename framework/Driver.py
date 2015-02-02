@@ -57,8 +57,9 @@ if __name__ == '__main__':
     if item.lower() == 'interfacecheck': 
       interfaceCheck = True
       sys.argv.pop(sys.argv.index(item))
-
-  simulation = Simulation(frameworkDir,debug=debug,interfaceCheck=interfaceCheck)
+  if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
+  else             : os.environ['RAVENinterfaceCheck'] = 'False'
+  simulation = Simulation(frameworkDir,debug=debug)
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
   if os.path.exists(configFile):
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]))
     else:
-      print(returnPrintTag('DRIVER') +': ' +utils.returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
+      print(returnPrintTag('DRIVER') +': ' +returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
 
   # Find the XML input file
   if len(sys.argv) == 1:

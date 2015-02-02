@@ -256,9 +256,8 @@ class Simulation(object):
   Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   '''
 
-  def __init__(self,frameworkDir,debug=False,interfaceCheck=False):
+  def __init__(self,frameworkDir,debug=False):
     self.FIXME          = False
-    self.interfaceCheck = interfaceCheck
     self.debug          = debug
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
@@ -545,9 +544,7 @@ class Simulation(object):
       for [key,b,_,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
         if key == 'Input' or key == 'Output': stepInputDict[key].append(self.whichDict[b][d])
-        else:
-          stepInputDict[key] = self.whichDict[b][d]
-          stepInputDict[key]._addOrModifyGlobalAttribute('interfaceCheck',self.interfaceCheck)
+        else: stepInputDict[key] = self.whichDict[b][d]
         if key == 'Input' and b == 'Files': self.__checkExistPath(d) #if the input is a file, check if it exists
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
