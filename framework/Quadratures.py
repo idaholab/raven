@@ -42,6 +42,115 @@ class SparseQuad(object):
     self.N        = None #dimensionality of input space
     self.SG       = None #dict{ (point,point,point): weight}
 
+  ##### OVERWRITTEN BUILTINS #####
+  def __getitem__(self,n):
+    '''Returns the point and weight for entry 'n'.'''
+    return self.points(n),self.weights(n)
+
+  def __len__(self):
+    return len(self.weights())
+
+  def __repr__(self):
+    '''Slightly more human-readable version of printout.'''
+    msg='SparseQuad: (point) | weight\n'
+    for p in range(len(self)):
+      msg+='    ('
+      pt,wt = self[p]
+      for i in pt:
+        if i<0:
+          msg+='%1.9f,' %i
+        else:
+          msg+=' %1.9f,' %i
+      msg=msg[:-1]+') | %1.9f'%wt+'\n'
+      #msg+='    '+str(self[p])+'\n'
+    return msg
+
+  def __getstate__(self):
+    '''Determines picklable items'''
+    return [self.points(),self.weights()]
+
+  def __setstate__(self,state):
+    '''Determines how to load from picklable items'''
+    if   type(state)==dict: self.__initFromDict(state)
+    elif type(state)==list: self.__initFromPoints(state[0],state[1])
+
+  def __eq__(self,other):
+    if not isinstance(other,self.__class__): return False
+    if len(self.SG)!=len(other.SG):return False
+    for pt,wt in self.SG.items():
+      if wt != other.SG[pt]:
+        return False
+    return True
+
+  def __ne__(self,other):
+    return not self.__eq__(other)
+
+  ##### PRIVATE MEMBERS #####
+  def __initFromPoints(self,pts,wts):
+    newSG={}
+    for p,pt in enumerate(pts):
+      newSG[pt]=wts[p]
+    self.SG=newSG
+
+  def __initFromDict(self,ndict):
+    self.SG=ndict.copy()
+
+  ##### PROTECTED MEMBERS #####
+  def _remap(self,newNames):
+    '''Reorders data in the sparse grid.  For instance,
+       original:       { (a1,b1,c1): w1,
+                         (a2,b2,c2): w2,...}
+       remap([a,c,b]): { (a1,c1,b1): w1,
+                         (a2,c2,b2): w2,...}'''
+    #TODO optimize me!~~
+    oldNames = self.varNames[:]
+    #check consistency
+    if len(oldNames)!=len(newNames): raise KeyError('SPARSEGRID: Remap mismatch! Dimensions are not the same!')
+    for name in oldNames:
+      if name not in newNames: raise KeyError('SPARSEGRID: Remap mismatch! '+name+' not found in original variables!')
+    wts = self.weights()
+    #split by columns (dim) instead of rows (points)
+    oldlists = self._xy()
+    #stash point lists by name
+    oldDict = {}
+    for n,name in enumerate(oldNames):
+      oldDict[name]=oldlists[n]
+    #make new lists
+    newlists = list(oldDict[name] for name in newNames)
+    #sort new list
+    newptwt = list( list(pt)+[wts[p]] for p,pt in enumerate(zip(*newlists)))
+    newptwt.sort(key=itemgetter(*range(len(newptwt[0]))))
+    #recompile as ordered dict
+    newSG=OrdDict()
+    for combo in newptwt:
+      newSG[tuple(combo[:-1])]=combo[-1] #weight is last entry
+    self.oldsg.append(self.SG)
+    self.SG = newSG
+    self.varNames = newNames
+
+  def _extrema(self):
+    '''Finds largest and smallest point among all points by dimension.'''
+    points = self.point()
+    low= np.ones(len(points[0]))*1e300
+    hi = np.ones(len(points[0]))*(-1e300)
+    for pt in pts:
+      for i,p in enumerate(pt):
+        low[i]=min(low[i],p)
+        hi[i] =max(hi[i] ,p)
+    return low,hi
+
+  def _xy(self):
+    '''Returns reordered points.
+       Points = [(a1,b1,...,z1),
+                 (a2,b2,...,z2),
+                 ...]
+       Returns [(a1,a2,a3,...),
+                (b1,b2,b3,...),
+                ...,
+                (z1,z2,z3,...)]'''
+    return zip(*self.points())
+
+  ##### PUBLIC MEMBERS #####
   def initialize(self, indexSet, maxPoly, distDict, quadDict, polyDict, handler):
     self.indexSet = np.array(indexSet[:])
     self.distDict = distDict
@@ -109,82 +218,6 @@ class SparseQuad(object):
     for i,ix in enumerate(idx):
       tot[i]=self.quadDict.values()[i].quadRule(ix)
     return tot
-
-  def __getitem__(self,n):
-    '''Returns the point and weight for entry 'n'.'''
-    return self.points(n),self.weights(n)
-
-  def __len__(self):
-    return len(self.weights())
-
-  def __repr__(self):
-    '''Slightly more human-readable version of printout.'''
-    msg='SparseQuad: (point) | weight\n'
-    for p in range(len(self)):
-      msg+='    ('
-      pt,wt = self[p]
-      for i in pt:
-        if i<0:
-          msg+='%1.9f,' %i
-        else:
-          msg+=' %1.9f,' %i
-      msg=msg[:-1]+') | %1.9f'%wt+'\n'
-      #msg+='    '+str(self[p])+'\n'
-    return msg
-
-  def _remap(self,newNames):
-    '''Reorders data in the sparse grid.  For instance,
-       original:       { (a1,b1,c1): w1,
-                         (a2,b2,c2): w2,...}
-       remap([a,c,b]): { (a1,c1,b1): w1,
-                         (a2,c2,b2): w2,...}'''
-    #TODO optimize me!~~
-    oldNames = self.varNames[:]
-    #check consistency
-    if len(oldNames)!=len(newNames): raise KeyError('SPARSEGRID: Remap mismatch! Dimensions are not the same!')
-    for name in oldNames:
-      if name not in newNames: raise KeyError('SPARSEGRID: Remap mismatch! '+name+' not found in original variables!')
-    wts = self.weights()
-    #split by columns (dim) instead of rows (points)
-    oldlists = self._xy()
-    #stash point lists by name
-    oldDict = {}
-    for n,name in enumerate(oldNames):
-      oldDict[name]=oldlists[n]
-    #make new lists
-    newlists = list(oldDict[name] for name in newNames)
-    #sort new list
-    newptwt = list( list(pt)+[wts[p]] for p,pt in enumerate(zip(*newlists)))
-    newptwt.sort(key=itemgetter(*range(len(newptwt[0]))))
-    #recompile as ordered dict
-    newSG=OrdDict()
-    for combo in newptwt:
-      newSG[tuple(combo[:-1])]=combo[-1] #weight is last entry
-    self.oldsg.append(self.SG)
-    self.SG = newSG
-    self.varNames = newNames
-
-  def _extrema(self):
-    '''Finds largest and smallest point among all points by dimension.'''
-    points = self.point()
-    low= np.ones(len(points[0]))*1e300
-    hi = np.ones(len(points[0]))*(-1e300)
-    for pt in pts:
-      for i,p in enumerate(pt):
-        low[i]=min(low[i],p)
-        hi[i] =max(hi[i] ,p)
-    return low,hi
-
-  def _xy(self):
-    '''Returns reordered points.
-       Points = [(a1,b1,...,z1),
-                 (a2,b2,...,z2),
-                 ...]
-       Returns [(a1,a2,a3,...),
-                (b1,b2,b3,...),
-                ...,
-                (z1,z2,z3,...)]'''
-    return zip(*self.points())
 
   def points(self,n=None):
     if n==None:
@@ -300,6 +333,12 @@ class QuadratureSet(object):
     pts,wts = self.rule(order,*self.params)
     pts = np.around(pts,decimals=15) #TODO helps with checking equivalence, might not be desirable
     return pts,wts
+
+  def __eq__(self,other):
+    return self.rule==other.rule and self.params==other.params
+
+  def __ne__(self,other):
+    return not self.__eq__(other)
 
   def initialize(self,distr):
     '''Initializes specific settings for quadratures.  Must be overwritten.'''

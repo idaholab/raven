@@ -358,8 +358,20 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #for i in tests:
     #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
 
-    #try stashing myself -> fails #TODO overwrite getstate and setstate for pickle
-    #pk.dump(self.__dict__,file('testROMdump.pk','w'))
+    #pk.dump(self.distDict,file('testROMdump.pk','w'))
+    #dud=pk.load(file('testROMdump.pk','r'))
+    #print('dud:',dud)
+    #print('pickle test:',dud==self.distDict)
+
+    # THESE members pickle ok now, and check out as equal
+    # - sparseGrid
+    # - quads
+    # - maxPolyOrder
+    # - polys
+    # - indexSet
+
+    # THESE members are problems still. TODO
+    # - distDict -> SWIG problems.
 
   def printPolyDict(self,printZeros=False):
     '''Human-readable version of the polynomial chaos expansion.'''
@@ -396,6 +408,12 @@ class GaussPolynomialRom(NDinterpolatorRom):
     return {}#TODO 'IndexSet:':self.indexSetType,
              #'PolynomialOrder':self.maxPolyOrder,
              # 'Interpolation':interpolationInfo()}
+
+  def __getstate__(self): #for pickling
+    pass
+
+  def __setstate__(self,state): #for unpickling
+    pass
 #
 #
 #

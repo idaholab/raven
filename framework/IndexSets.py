@@ -46,6 +46,14 @@ class IndexSet(object):
         msg+='  '+str(pt)+'\n'
     return msg
 
+  def __eq__(self,other):
+    return self.type == other.type and \
+           self.points == other.points and \
+           (self.impWeights == other.impWeights).all()
+
+  def __ne__(self,other):
+    return not self.__eq__(other)
+
   def _extrema(self):
     '''Finds the low and hi maxima and minima among all dimensions.'''
     low=np.ones(len(self.points[0]))*1e300

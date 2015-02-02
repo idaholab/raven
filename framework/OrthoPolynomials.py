@@ -20,6 +20,7 @@ import xml.etree.ElementTree as ET
 from BaseClasses import BaseType
 from utils import returnPrintTag, returnPrintPostTag, find_distribution1D
 import Distributions
+import Quadratures
 #Internal Modules End--------------------------------------------------------------------------------
 
 class OrthogonalPolynomial(object):
@@ -28,6 +29,7 @@ class OrthogonalPolynomial(object):
     self.type    = self.__class__.__name__
     self.name    = self.__class__.__name__
     self.debug   = True
+    self.qType   = None #string of the quadrature applied
     self._poly   = None #tool for generating orthopoly1d objects
     self._evPoly = None #tool for evaluating 1d polynomials at (order,point)
     self.params  = [] #additional parameters needed for polynomial (alpha, beta, etc)
@@ -46,6 +48,19 @@ class OrthogonalPolynomial(object):
     inps=self.params+[self.pointMod(pt)]
     return self._evPoly(order,*inps) * self.norm(order)
 
+  def __getstate__(self):
+    return self.quad
+
+  def __setstate__(self,quad):
+    self.initialize(quad)
+
+  def __eq__(self,other):
+    print('test',other,self)
+    return self._poly==other._poly and self._evPoly==other._evPoly and self.params==other.params
+
+  def __ne__(self,other):
+    return not self.__eq__(other)
+
   def norm(self,order):
     '''Normalization constant for polynomials so that integrating two of them
        w.r.t. the weight factor produces the kroenecker delta. Default is 1.'''
@@ -61,15 +76,16 @@ class OrthogonalPolynomial(object):
        should be used with the 'default' choices.'''
     return x
 
-  def setMeasures(self,quadSet):
+  def setMeasures(self,quad):
     '''If you got here, it means the inheriting orthopoly object doesn't have a
        specific implementation for the quadSet given.  Here we catch the universal
        options.'''
-    if quadSet.type.startswith('CDF'): #covers CDFLegendre and CDFClenshawCurtis
+    if quad.type.startswith('CDF'): #covers CDFLegendre and CDFClenshawCurtis
       self.__distr=self.makeDistribution()
       self.pointMod = self.cdfPoint
+      self.quad = quad
     else:
-      raise IOError('OrthoPolynomials: No implementation for',quadSet,'quadrature and',self.type,'polynomials.')
+      raise IOError('OrthoPolynomials: No implementation for',quad.type,'quadrature and',self.type,'polynomials.')
 
   def _getDistr(self):
     '''Returns the private distribution used for the CDF-version quadratures; for debugging.'''
@@ -83,6 +99,8 @@ class OrthogonalPolynomial(object):
   def scipyNorm(self):
     return 1.
 
+
+
 class Legendre(OrthogonalPolynomial):
   def initialize(self,quad):
     self.printTag = 'LEGENDRE-ORTHOPOLY'
@@ -93,8 +111,7 @@ class Legendre(OrthogonalPolynomial):
   def setMeasures(self,quad):
     if quad.type in ['Legendre','ClenshawCurtis']:
       self.pointMod = self.stdPointMod
-    elif quad.type=='ClenshawCurtis':
-      self.pointMod = self.stdPointMod
+      self.quad = quad
     else:
       OrthogonalPolynomial.setMeasures(self,quad)
 
@@ -131,8 +148,9 @@ class Hermite(OrthogonalPolynomial):
   def setMeasures(self,quad):
     if quad.type=='Hermite':
       self.pointMod = self.stdPointMod
+      self.quad = quad
     else:
-      OrthogonalPolynomial.setMeasures(self,quad)
+      OrthogonalPolynomial.setMeasures(self,quad.type)
 
   def makeDistribution(self):
     normalElement = ET.Element("normal")
@@ -163,6 +181,7 @@ class Laguerre(OrthogonalPolynomial):
   def setMeasures(self,quad):
     if quad.type=='Laguerre':
       self.pointMod = self.stdPointMod
+      self.quad = quad
     else:
       OrthogonalPolynomial.setMeasures(self,quad)
 
@@ -195,6 +214,7 @@ class Jacobi(OrthogonalPolynomial):
   def setMeasures(self,quad):
     if quad.type=='Jacobi':
       self.pointMod = self.stdPointMod
+      self.quad = quad
     else:
       OrthogonalPolynomial.setMeasures(self,quad)
 
