@@ -68,13 +68,6 @@ checkAnswer("uniform ppf(0.0)",uniform.ppf(0.0),1.0)
 checkAnswer("uniform ppf(0.5)",uniform.ppf(0.5),2.0)
 checkAnswer("uniform ppf(1.0)",uniform.ppf(1.0),3.0)
 
-checkAnswer("uniform probNorm",uniform.stdProbabilityNorm(),0.5)
-for i in range(1,7):
-  checkAnswer("uniform probWeight standard",uniform.probabilityWeight(i,std=True),0.5)
-  checkAnswer("uniform probWeight arbitrary",uniform.probabilityWeight(i,std=False),0.5)
-#FIXME this is an unfortunate range choice for testing the probability weight function.
-#  Perhaps the uniform test should be changed to have a range different than 2.
-
 print(uniform.rvs(5),uniform.rvs())
 
 #check rvsWithinCDFbounds
@@ -84,11 +77,6 @@ uniform.setQuad({},2)
 uniform.quad()
 uniform.polyOrder()
 
-#uniform.norm(2)
-#uniform.standardToActualPoint(-1)
-#uniform.actualToStandardPoint(2.0)
-#uniform.standardToActualWeight(0.5)
-#uniform.probNorm(0.5)
 uniform.addInitParams({})
 for _ in range(10): Distributions.randomIntegers(0,1)
 
@@ -96,7 +84,6 @@ uniform.poly_norm(2)
 uniform.actual_point(-1)
 uniform.std_point(2.0)
 uniform.actual_weight(0.5)
-uniform.probability_norm(0.5)
 
 uniform.addInitParams({})
 for _ in range(10): Distributions.randomIntegers(0,1)
@@ -127,14 +114,6 @@ checkAnswer("normal ppf(0.9)",normal.ppf(0.9),3.56310313109)
 checkAnswer("normal mean()",normal.untruncatedMean(),1.0)
 checkAnswer("normal median()",normal.untruncatedMedian(),1.0)
 checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
-
-checkAnswer("normal probWeight act (-1)",normal.probabilityWeight(-1,std=False),0.60653065971263342)
-checkAnswer("normal probWeight act (1)" ,normal.probabilityWeight( 1,std=False),1.0)
-checkAnswer("normal probWeight act (5)" ,normal.probabilityWeight( 5,std=False),0.1353352832366127)
-
-checkAnswer("normal probWeight std (-2)",normal.probabilityWeight(-2,std=True),0.1353352832366127)
-checkAnswer("normal probWeight std (0)" ,normal.probabilityWeight( 0,std=True),1.0)
-checkAnswer("normal probWeight std (1)" ,normal.probabilityWeight( 1,std=True),0.60653065971263342)
 
 print(normal.rvs(5),normal.rvs())
 
@@ -208,12 +187,6 @@ checkAnswer("gamma cdf(10.0)",gamma.cdf(10.0),0.993262053001)
 checkAnswer("gamma ppf(0.1)",gamma.ppf(0.1),0.210721031316)
 checkAnswer("gamma ppf(0.5)",gamma.ppf(0.5),1.38629436112)
 checkAnswer("gamma ppf(0.9)",gamma.ppf(0.9),4.60517018599)
-
-gamma.poly_norm(2)
-gamma.actual_point(-1)
-gamma.std_point(2.0)
-gamma.actual_weight(0.5)
-gamma.probability_norm(0.5)
 
 nobeta_gammaElement = ET.Element("nobeta_gamma")
 nobeta_gammaElement.append(createElement("alpha",text="1.0"))
