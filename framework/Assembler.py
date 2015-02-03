@@ -37,12 +37,7 @@ class Assembler(object):
     @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     '''
     needDict = self._localWhatDoINeed()
-    for val in self.assemblerObjects.values():
-      for value in val:
-        if value[0] not in needDict.keys(): needDict[value[0]] = []
-        needDict[value[0]].append((value[1],value[2]))
     return needDict
-#    pass
 
   def generateAssembler(self,initDict):
     '''

@@ -98,8 +98,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
     
     self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    self.requiredAssObject = (True,(['Distribution'],['n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
-                                                      # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
+    self.requiredAssObject = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
+                                                       # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
 
 #  def whatDoINeed(self):
 #    '''
@@ -200,7 +200,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 #    self._generateDistributions(availableDist)
 #    self._localGenerateAssembler(initDict)
 
-  def _localGenerateAssembler(self,initDict): 
+  def _localGenerateAssembler(self,initDict):
     availableDist = initDict['Distributions']
     self._generateDistributions(availableDist)
 
@@ -231,7 +231,6 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       Distributions.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
     for key in self.toBeSampled.keys():
-        print(key)
         self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
@@ -331,7 +330,7 @@ class AdaptiveSampler(Sampler):
   '''This is a general adaptive sampler'''
   def __init__(self):
     Sampler.__init__(self)
-    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
+#    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
@@ -355,8 +354,7 @@ class AdaptiveSampler(Sampler):
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
     self.printTag         = returnPrintTag('SAMPLER ADAPTIVE')
 
-    self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    self.requiredAssObject = (True,(['Distribution',],['n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+    self.requiredAssObject = (True,(['TargetEvaluation','ROM','Function'],['n','n','-n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def _localWhatDoINeed(self):
     '''
@@ -365,14 +363,18 @@ class AdaptiveSampler(Sampler):
     @ In , None, None
     @ Out, needDict, list of objects needed
     '''
-#    needDict = {}
-#    for value in self.assemblerObjects.values():
-#      if value[0] not in needDict.keys(): needDict[value[0]] = []
-#      needDict[value[0]].append((value[1],value[2]))
-#    return needDict
-    return {}
+    needDict = {}
+    needDict['Distributions'] = []
+#    for token in self.requiredAssObject[1][0]: needDict[token] = []
+    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+    for val in self.assemblerObjects.values():
+      if val[0] not in needDict.keys(): needDict[val[0]] = []
+      needDict[val[0]].append((val[1],val[2]))    
+    return needDict
 
   def _localGenerateAssembler(self,initDict):
+    availableDist = initDict['Distributions']
+    self._generateDistributions(availableDist)
     for key, value in self.assemblerObjects.items():
       if key in 'TargetEvaluation' : self.lastOutput = initDict[value[0]][value[2]]
       if key in 'ROM'              : self.ROM = initDict[value[0]][value[2]]
@@ -865,6 +867,12 @@ class Grid(Sampler):
     self.gridInfo             = {}    # {'name of the variable':('Type',Construction,[values])} gridType: Probability/Value, gridConstruction:Custom/Equal
     self.externalgGridCoord   = False # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
     #gridInfo[var][0] is type, ...[1] is construction, ...[2] is values
+
+  def _localWhatDoINeed(self):
+    needDict = {}
+    needDict['Distributions'] = []
+    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+    return needDict
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''

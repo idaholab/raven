@@ -704,6 +704,7 @@ class PostProcessor(Model, Assembler):
     @ In , None, None
     @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     '''
+    print(self.interface)
     return self.interface.whatDoINeed()
 
   def generateAssembler(self,initDict):
