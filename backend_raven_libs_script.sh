@@ -235,7 +235,7 @@ else
     fi
 fi
 
-if $PYTHON_CMD -c 'import matplotlib,sys; sys.exit(not matplotlib.__version__ > "1.3")'
+if $PYTHON_CMD -c 'import matplotlib,sys; sys.exit(not matplotlib.__version__ >= "1.4")'
 then
     echo matplotlib module already built
 else

@@ -9,8 +9,9 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
+from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class ExternalTest:
+class ExternalTest(CodeInterfaceBase):
   def generateCommand(self,inputFiles,executable,flags=None):
     return '', ''
   def findOutputFile(self,command):
