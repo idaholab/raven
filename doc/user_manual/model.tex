@@ -835,6 +835,7 @@ These sub-types are specified in the \xmlAttr{subType} attribute and should be
 one of the following:
 \begin{itemize}
   \item \xmlString{NDspline}
+  \item \xmlString{GaussPolynomialRom}
   \item \xmlString{NDinvDistWeigth}
   \item \xmlString{microSphere}
   \item \xmlString{SciKitLearn}
@@ -925,39 +926,114 @@ Thus, it can only be trained from the outcomes of a grid sampling strategy.
 </Simulation>
 \end{lstlisting}
 
-%%%%% ROM Model - GaussPolynomialRom  %%%%%%% TODO WORKING
-\subsubsection{GaussPolynomialRom.}
+%%%%% ROM Model - GaussPolynomialRom  %%%%%%% 
+\subsubsection{GaussPolynomialRom}
+\talbpaul{Work in progress.}
 \label{subsubsec:GaussPolynomialRom}
-The ``class'' GaussPolynomialRom contains a single ROM type, based on stochastic collocation for generalized polynomial chaos. Generalized polynomial chaos is a form of interpolation where the interpolant is a multidimensional orthogonal polynomial constructed from sets of characteristic orthonormal polynomials. 
-\\In order to use this Reduced Order Model, the $<ROM>$ attribute \textit{subType} needs to be ``GaussPolynomialRom'' (i.e. \textit{subType = ``GaussPolynomialRom''}). Additionally, stochastic collocation for generalized polynomial chaos requires all variables listed in the Sampler be listed as Features in the ROM.  The following XML sub-nodes are available in addition to those specified in the general \textbf{ROM}:
+The GaussPolynomialRom sub-type contains a single ROM type, based on a 
+characteristic Gaussian polynomial fitting scheme: generalized polynomial chaos
+expansion (gPC).
+%
+In gPC, sets of polynomials orthogonal with respect to the distribution of uncertainty 
+are used to represent the original model.  The method converges moments of the original
+model faster than Monte Carlo for small-dimension uncertainty spaces ($N<15$).
+%
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{GaussPolynomialRom} (see the example below).
+%
+In addition to the common \xmlNode{Target} and \xmlNode{Features}, this ROM requires
+two more nodes and can accept multiple entries of a third optional node.
 \begin{itemize}
-\item $<IndexSet>$\textbf{\textit{,string, required field}}.  In this node, the user specifies one of several methods for choosing combinations of orthonormal polynomial bases.  The choices are \textit{TensorProduct, TotalDegree,} and \textit{HyperbolicCross}.
-\item $<PolynomialOrder>$\textbf{\textit{,integer, required field}}. This node identifies the polynomial expansion level to use in the polynomial representation.  The IndexSet uses this integer as a limit when picking combinations of polynomials to keep in the expansion.  N. B. When using an anisotropic sparse grid sampling regime, it is possible to obtain polynomials with degrees greater than this PolynomialOrder; however, it still serves to limit the overall polynomial order.
-\item $<Interpolation>$\textbf{\textit{,XML-node, optional field}}. This node provides the opportunity to define the quadrature type, polynomial types, importance weights, and distribution representation options for each uncertain input variable.  Each \textbf{Interpolation} node may be applied to one or more variables; any variables for which an interpolation scheme is not specified will default to unity-weight characteristic Gauss quadrature and polynomials (where possible, else Clenshaw Curtis quadrature through a CDF-based distribution transformation).  Interpolation methods may not be defined for any variables which are not listed as Features.
+  \item \xmlNode{IndexSet}, \xmlDesc{string, required field},
+  specifies the rules by which to construct multidimensional polynomials.  The options are
+  ``TensorProduct,'' ``TotalDegree,'' and ``HyperbolicCross.''  
+  %
+  Total degree is efficient for
+  uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
+  for low-regularity input spaces.
+  %
+  \item \xmlNode{PolynomialOrder}, \xmlDesc{integer, required field},
+  indicates the maximum polynomial order in any one dimension to use in the
+  polynomial chaos expansion. \nb If non-equal importance weights are supplied in the optional
+  \xmlNode{Interpolation} node, the actual polynomial order in dimensions with high
+  importance might exceed this value; however, this value is still used to limit the 
+  relative overall order.
+  %
+  \item \xmlNode{Interpolation}, \xmlDesc{string, optional field},
+  offers the option to specify quadrature, polynomials, and importance weights for the given
+  variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the 
+  dimensionality of the input space.  This node accepts several attributes, all of which are 
+  optional and default to
+  the code-defined optimal choices based on the input dimension uncertainty distribution:
+  \begin{itemize}
+    \item \xmlAttr{quad}, \xmlDesc{string, optional field},
+      specifies the quadrature type to use for collocation in this dimension.  The default options 
+      depend on the uncertainty distribution of the input dimension, as shown in Table 
+      \ref{tab:gpcCompatible}. Additionally, Clenshaw Curtis quadrature can be used for any
+      distribution that doesn't include an infinite bound.
+      \default{see Table \ref{tab:gpcCompatible}.}
+      \nb For an uncertain distribution aside from the four listed on Table
+      \ref{tab:gpcCompatible}, this ROM
+      makes use of the uniform-like range of the distribution's CDF to apply quadrature that is
+      suited uniform uncertainty (Legendre).  It converges more slowly than the four listed, but are
+      viable choices. 
+    \item \xmlAttr{poly}, \xmlDesc{string,optional field},
+      specifies the interpolating polynomial family to use for the polynomial expansion in this 
+      dimension.  The default options depend on the quadrature type chosen, as shown in Table
+      \ref{tab:gpcCompatible}.  Currently, no polynomials are available outside the
+      default. \default{see Table \ref{tab:gpcCompatible}.}
+    \item  \xmlAttr{weight}, \xmlDesc{float, optional field}, 
+      delineates the importance weighting of this dimension.  A larger importance weight will
+      result in increased resolution for this dimension at the cost of resolution in lower-weighted
+      dimensions.  The algorithm normalizes weights at run-time.\default{1}.
+    \item \xmlAttr{cdf}, \xmlDesc{boolean, option field},
+      indicates that the code should use the CDF of the distribution instead of the distribution
+      itself (see note for \xmlAttr{quad}).  Default is \xmlString{false} for the four distributions
+      in Table \ref{tab:gpcCompatible} and \xmlString{true} otherwise.
+      \default{``false'' if listed on Table \ref{tab:gpcCompatible}, ``true'' otherwise.}
+  \end{itemize}
+  %
 \end{itemize}
-NB. This ROM type must be trained from a SparseGridCollocation sampling strategy.
+\begin{table}[htb]
+  \centering
+  \begin{tabular}{c | c c}
+    Unc. Distribution & Default Quadrature & Default Polynomials \\ \hline
+    Uniform & Legendre & Legendre \\
+    Normal & Hermite & Hermite \\ \hline
+    Gamma & Laguerre & Laguerre \\
+    Beta & Jacobi & Jacobi \\ \hline
+    Other & Legendre* & Legendre*
+  \end{tabular}
+  \caption{GaussPolynomialRom defaults}
+  \label{tab:gpcCompatible}
+\end{table}
+%
+\nb This ROM type must be trained from a collocation quadrature set.
+%
+Thus, it can only be trained from the outcomes of a SparseGridCollocation sampler.
+Also, this ROM must be referenced in the SparseGridCollocation sampler in order to
+accurately produce the necessary sparse grid points to train this ROM.
 
 \textbf{Example:}
-\begin{lstlisting}[style=XML]
-------------------------------------------------------------
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
   ...
   <Models>
     ...
-    <ROM name='SCROM' subType='GaussPolynomialRom'>
+    <ROM name='myRom' subType='GaussPolynomialRom'>
       <Target>ans</Target>
       <Features>x1,x2</Features>
-      <IndexSet>HyperbolicCross</IndexSet>
-      <PolynomialOrder>5</PolynomialOrder>
-      <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1,x2</In
-      <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='2' cdf='False'>x3</In
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>4</PolynomialOrder>
+      <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
+      <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2' cdf='False'>x2</Interpolation>
     </ROM>
     ...
   </Models>
   ...
 </Simulation>
-------------------------------------------------------------
 \end{lstlisting}
+
 
 %%%%% ROM Model - NDinvDistWeigth  %%%%%%%
 \subsubsection{NDinvDistWeigth}
