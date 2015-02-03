@@ -1526,8 +1526,8 @@ class ExternalPostProcessor(BasePostProcessor):
 #
 class TopologicalDecomposition(BasePostProcessor):
   '''
-    TopologicalDecomposition class - Computes an approximated hierarchical 
-    Morse-Smale decomposition from an input point cloud consisting of an 
+    TopologicalDecomposition class - Computes an approximated hierarchical
+    Morse-Smale decomposition from an input point cloud consisting of an
     arbitrary number of input parameters and a response value per input point
   '''
   def __init__(self):
@@ -1546,7 +1546,7 @@ class TopologicalDecomposition(BasePostProcessor):
     self.normalization = None
 
   def inputToInternal(self,currentInp):
-    # each post processor knows how to handle the coming inputs. The 
+    # each post processor knows how to handle the coming inputs. The
     # TopologicalDecomposition postprocessor accepts all the input types:
     # (files (csv only), hdf5, and datas
     if type(currentInp) == list:
@@ -1572,7 +1572,7 @@ class TopologicalDecomposition(BasePostProcessor):
       if currentInput.endswith('csv'):
         pass
     elif inType == 'HDF5':
-      pass 
+      pass
     elif inType in ['TimePointSet']:
       for targetP in self.inputs:
         if targetP in currentInput.getParaKeys('input' ):
@@ -1596,7 +1596,7 @@ class TopologicalDecomposition(BasePostProcessor):
     for child in xmlNode:
       if child.tag =="graph":
         self.graph = child.text.encode('ascii').lower()
-        if self.graph not in self.acceptedGraphParam: 
+        if self.graph not in self.acceptedGraphParam:
           raise IOError(errorString('Requested unknown graph type: ' /
                                     + self.graph /
                                     + '. Available options: ' /
@@ -1616,7 +1616,7 @@ class TopologicalDecomposition(BasePostProcessor):
         self.knn = int(child.text)
       elif child.tag == 'persistence':
         self.persistence = float(child.text)
-      elif child.tag == 'parameters': 
+      elif child.tag == 'parameters':
         self.params = child.text.strip().split(',')
         for i,param in enumerate(self.params):
           self.params[i] = self.params[i].encode('ascii')
@@ -1734,7 +1734,7 @@ class TopologicalDecomposition(BasePostProcessor):
 
     names = self.params + [self.response]
 
-### NGL will perform a brute force search unless we give it a starting set, 
+### NGL will perform a brute force search unless we give it a starting set,
 ###  but I still need to figure out how to inject a pre-built graph into
 ###  NGL. It may be easier just to write my own code for pruning edges.
 #    knnAlgorithm = neighbors.NearestNeighbors(n_neighbors=self.knn+1)
@@ -1783,7 +1783,7 @@ class TopologicalDecomposition(BasePostProcessor):
       for d in xrange(0,self.__amsc.Dimension()):
         line += sep + str(inputData[i,d])
       line += sep + str(outputData[i])
-      line += sep + str(self.__amsc.MinLabel(i)) 
+      line += sep + str(self.__amsc.MinLabel(i))
       line += sep + str(self.__amsc.MaxLabel(i))
       outputDict['minLabel'][i] = self.__amsc.MinLabel(i)
       outputDict['maxLabel'][i] = self.__amsc.MaxLabel(i)
@@ -1805,26 +1805,41 @@ class TopologicalDecomposition(BasePostProcessor):
       key = key.replace(',','_')
       coefficients[key] = beta_hat.tolist()
       R2s[key] = rSquared
-      
+
       print(key)
       print('\t' + u"\u03B2\u0302: " + str(coefficients[key]))
       print('\t' + u"R\u00B2: " + str(R2s[key]) + '\n')
-    
+
     for key,value in coefficients.iteritems():
       outputDict['coefficients_' + key] = value
     for key,value in R2s.iteritems():
       outputDict['R2_' + key] = value
     print('========== Gaussian Fits: ==========')
-    print(u'a*e^(-(x-\u03BC)TA(x-\u03BC)) + c - a\t(\u03BC & c are fixed, ' + 
+    print(u'a*e^(-(x-\u03BC)TA(x-\u03BC)) + c - a\t(\u03BC & c are fixed, ' +
           ' A and a are estimated)')
+
+    partitions = self.__amsc.GetPartitions(self.persistence)
+
     minFlowSet = {}
-    for idx in xrange(0,len(outputData)):
-      minIdx = self.__amsc.MinLabel(idx)
+    for key,items in partitions.iteritems():
+      print(key)
+      minIdx = int(key.split(',')[0])
       if minIdx not in minFlowSet.keys():
         minFlowSet[minIdx] = []
-      minFlowSet[minIdx].append(idx)
+      for idx in items:
+        minFlowSet[minIdx].append(idx)
+
+#    for idx in xrange(0,len(outputData)):
+#      minIdx = self.__amsc.MinLabel(idx)
+#      if minIdx not in minFlowSet.keys():
+#        minFlowSet[minIdx] = []
+#      minFlowSet[minIdx].append(idx)
 
     for minIdx,indices in minFlowSet.iteritems():
+      if len(indices) < self.dimensionCount+1:
+        print('Too few samples, skipping this segment')
+        continue
+
       X = inputData[indices,]
       Y = outputData[indices]
       # For fitting a constrained multivariate Gaussian, we will fix the mean
@@ -1848,7 +1863,7 @@ class TopologicalDecomposition(BasePostProcessor):
           err.append(yvec[idx] - yPredicted)
         return err
 
-      paramGuess = [] 
+      paramGuess = []
       # Not sure what is a good starting place for the covariance, so just use
       # the identity matrix
       for d in xrange(0,self.dimensionCount):
@@ -1859,24 +1874,49 @@ class TopologicalDecomposition(BasePostProcessor):
       paramGuess.append(outputData[minIdx]-max(outputData[indices]))
 
       test = leastsq(residuals, paramGuess, args=(X,Y))
-      print(str(minIdx) + u':\n\t\u03BC=' + str(mu))
+
+      a = test[0][2]
+      A = np.identity(self.dimensionCount)*test[0][0:-1]
+
+      print(str(minIdx) + ':')
+      print(u':\t\u03BC=' + str(mu))
       print('\tc=' + str(c))
-      print('\ta=' + str(test[0][2]))
-      print('\tA=\n' + str(np.identity(2)*test[0][0:-1]) + '\n')
+      print('\ta=' + str(a))
+      print('\tA=\n' + str(A)+'\n')
 
-      def GaussFit():
-        pass
+      def GaussFit(x):
+        v = mu - x
+        return a*np.exp(-(v.dot(A).dot(v))) + c - a
 
-      outputDict['Gaussian_' + str(minIdx)] = GaussFit
+      yHat = np.zeros(X.shape[0])
+      for i in xrange(X.shape[0]):
+        yHat[i] = GaussFit(X[i,])
+
+      rSquared = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
+      print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
+
+#      outputDict['Gaussian_' + str(minIdx)] = GaussFit
 
     maxFlowSet = {}
-    for idx in xrange(0,len(outputData)):
-      maxIdx = self.__amsc.MaxLabel(idx)
+    for key,items in partitions.iteritems():
+      maxIdx = int(key.split(',')[1])
       if maxIdx not in maxFlowSet.keys():
         maxFlowSet[maxIdx] = []
-      maxFlowSet[maxIdx].append(idx)
+      for idx in items:
+        maxFlowSet[maxIdx].append(idx)
+
+#    maxFlowSet = {}
+#    for idx in xrange(0,len(outputData)):
+#      maxIdx = self.__amsc.MaxLabel(idx)
+#      if maxIdx not in maxFlowSet.keys():
+#        maxFlowSet[maxIdx] = []
+#      maxFlowSet[maxIdx].append(idx)
 
     for maxIdx,indices in maxFlowSet.iteritems():
+      if len(indices) < self.dimensionCount+1:
+        print('Too few samples, skipping this segment')
+        continue
+
       X = inputData[indices,]
       Y = outputData[indices]
       # For fitting a constrained multivariate Gaussian, we will fix the mean
@@ -1900,7 +1940,7 @@ class TopologicalDecomposition(BasePostProcessor):
           err.append(yvec[idx] - yPredicted)
         return err
 
-      paramGuess = [] 
+      paramGuess = []
       # Not sure what is a good starting place for the covariance, so just use
       # the identity matrix
       for d in xrange(0,self.dimensionCount):
@@ -1911,15 +1951,31 @@ class TopologicalDecomposition(BasePostProcessor):
       paramGuess.append(outputData[maxIdx]-min(outputData[indices]))
 
       test = leastsq(residuals, paramGuess, args=(X,Y))
-      print(str(maxIdx) + u':\n\t\u03BC=' + str(mu))
+
+      a = test[0][2]
+      A = np.identity(self.dimensionCount)*test[0][0:-1]
+
+      print(str(maxIdx) + ':')
+      print(u':\t\u03BC=' + str(mu))
       print('\tc=' + str(c))
-      print('\ta=' + str(test[0][2]))
-      print('\tA=' + str(np.identity(2)*test[0][0:-1]) + '\n')
+      print('\ta=' + str(a))
+      print('\tA=\n' + str(A)+'\n')
 
-      def GaussFit():
-        pass
+      def GaussFit(x):
+        v = mu - x
+        return a*np.exp(-(v.dot(A).dot(v))) + c - a
 
-      outputDict['Gaussian_' + str(maxIdx)] = GaussFit
+      yHat = np.zeros(X.shape[0])
+      for i in xrange(X.shape[0]):
+        yHat[i] = GaussFit(X[i,])
+
+      rSquared = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
+      print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
+
+#      def GaussFit():
+#        pass
+
+#      outputDict['Gaussian_' + str(maxIdx)] = GaussFit
 
 #    pairs = partitions.keys()
 #    mins = set(map(lambda x: int(x.split(',')[0]),pairs))
