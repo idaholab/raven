@@ -134,12 +134,12 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     The text i supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
     '''
+    
+    '''
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
     except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
     if 'reseedAtEachIteration' in xmlNode.attrib.keys():
       if xmlNode.attrib['reseedAtEachIteration'].lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
-    
-    '''
     for child in xmlNode:
       for childChild in child:
         if childChild.tag =='distribution':
@@ -153,39 +153,51 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
           if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
     '''
-    prefix = ""
+    
     for child in xmlNode:
+      prefix = ""
       if child.tag == 'Distribution':
         for childChild in child:
           if childChild.tag =='distribution':
             prefix = "<distribution>"
             tobesampled = childChild.text
             if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
+        self.toBeSampled[prefix+child.attrib['name']] = tobesampled    
       elif child.tag == 'variable':
         for childChild in child:
           if childChild.tag =='distribution':
             tobesampled = childChild.text
-            self.distributions2variablesMapping[child.attrib['name']] = childChild.text
-            if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
-          if childChild.tag == "dist_init":
-            NDdistData = {}
-            for childChildChild in childChild:
-              if childChildChild.tag == 'initial_grid_disc':
-                NDdistData[childChildChild.tag] = int(childChildChild.text)
-              if childChildChild.tag == 'tolerance':
-                NDdistData[childChildChild.tag] = float(childChildChild.text)
-            self.ND_sampling_params[child.attrib['name']] = NDdistData
+            varData={}
+            varData['name']=childChild.text
+            if childChild.get('dim') == None:
+              dim=1
+            else:
+              dim=childChild.attrib['dim']
+            varData['dim']=int(dim)
+            self.distributions2variablesMapping[child.attrib['name']] = varData           
+        self.toBeSampled[prefix+child.attrib['name']] = tobesampled 
+      elif child.tag == "sampler_init":
+        self.initSeed = Distributions.randomIntegers(0,2**31)
+        for childChild in child:
+          if childChild.tag == "limit":
+            self.limit = childChild.text
+          elif childChild.tag == "initial_seed":
+            self.initSeed = int(childChild.text)
+          elif childChild.tag == "dist_init":
+            for childChildChild in childChild:              
+              NDdistData = {}
+              for childChildChildChild in childChildChild:
+                if childChildChildChild.tag == 'initial_grid_disc':
+                  NDdistData[childChildChildChild.tag] = int(childChildChildChild.text)
+                if childChildChildChild.tag == 'tolerance':
+                  NDdistData[childChildChildChild.tag] = float(childChildChildChild.text)
+              self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
             
-      else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
-          
-      self.toBeSampled[prefix+child.attrib['name']] = tobesampled
-    
+      else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')     
+      
     print("self.ND_sampling_params: " + str(self.ND_sampling_params))
       
     self.localInputAndChecks(xmlNode)
-    print("distributions2variablesMapping: " + str(self.distributions2variablesMapping))
-    
-    print("self.ND_sampling_params" + str(self.ND_sampling_params))
 
   def endJobRunnable(self): return self._endJobRunnable
 
@@ -854,25 +866,29 @@ class MonteCarlo(Sampler):
     self.printTag = returnPrintTag('SAMPLER MONTECARLO')
 
   def localInputAndChecks(self,xmlNode):
+    '''
     if 'limit' in xmlNode.attrib.keys():
       try: self.limit = int(xmlNode.attrib['limit'])
       except ValueError:
         IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
     else:
       raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+    '''
+    
+    if self.limit == None:
+      raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+    else:
+      try: self.limit = int(self.limit)
+      except ValueError:
+        IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
 
   def localGenerateInput(self,model,myInput):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
-    print('self.distDict: ' + str(self.distDict))
-    print('XXX self.distributions2variablesMapping: ' + str(self.distributions2variablesMapping))
     
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      print('XXX key: ' + str(key))
-      print('XXX self.ND_sampling_params: ' + str(self.ND_sampling_params))
-      print('XXX self.ND_sampling_params.keys(): ' + str(self.ND_sampling_params.keys()))
       #if key in self.ND_sampling_params.keys(): 
       
       for distrib in self.ND_sampling_params:

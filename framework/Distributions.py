@@ -981,6 +981,7 @@ class NDInverseWeight(NDimensionalDistributions):
     return self._distribution.InverseCdf(x)
 
   def pdf(self,x):
+    print('x: ' + str(x))
     return self._distribution.Pdf(x)
 
   def untruncatedCdfComplement(self, x):
