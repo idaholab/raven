@@ -344,21 +344,15 @@ class SafestPoint(BasePostProcessor):
         for ncVarIndex in range(len(self.nonControllableOrd)):
           dataCollector.updateInputValue(self.nonControllableOrd[ncVarIndex],copy.copy(queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex]))
           if queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound:
-            if self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].type == 'Bernoulli':
-              prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].p
+            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
             else:
-              if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-                prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
-              else:
-                prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
+              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].lowerBound+self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
           elif queryPointsMatrix[indexList[distList.index(max(distList))],len(self.controllableOrd)+ncVarIndex] == self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound:
-            if self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].type == 'Bernoulli':
-              prob = self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].p
+            if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
+              prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
             else:
-              if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
-                prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2)
-              else:
-                prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
+              prob = 1-self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].cdf(self.nonControllableDist[self.nonControllableOrd[ncVarIndex]].upperBound-self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]/float(2))
           else:
             if self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][0] == 'CDF':
               prob = self.nonControllableGrid[self.nonControllableOrd[ncVarIndex]][2]
@@ -476,6 +470,7 @@ class PrintCSV(BasePostProcessor):
         else: self.paramters[param]
 
   def collectOutput(self,finishedjob,output):
+    import csv
     # Check the input type
     if(self.inObj.type == "HDF5"):
       #  Input source is a database (HDF5)
@@ -530,74 +525,71 @@ class PrintCSV(BasePostProcessor):
           addcsvfile.write(toBytes(str(attributes['end_time']))+b'\n')
           addcsvfile.write(b'#number of time-steps,\n')
           addcsvfile.write(toBytes(str(attributes['n_ts']))+b'\n')
-          if 'initiator_distribution' in attributes:
-            init_dist = attributes['initiator_distribution']
-            addcsvfile.write(b'#number of branches in this history,\n')
-            addcsvfile.write(toBytes(str(len(init_dist)))+b'\n')
-            string_work = ''
-            for i in range(len(init_dist)):
-              string_work_2 = ''
-              for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','
-            addcsvfile.write(b'#initiator distributions,\n')
-            addcsvfile.write(toBytes(string_work)+b'\n')
-          if 'end_timestep' in attributes:
-            string_work = ''
-            end_ts = attributes['end_timestep']
-            for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','
-            addcsvfile.write('#end time step,\n')
-            addcsvfile.write(str(string_work)+'\n')
-          if 'branch_changed_param' in attributes:
-            string_work = ''
-            branch_changed_param = attributes['branch_changed_param']
-            for i in range(len(branch_changed_param)):
-              string_work_2 = ''
-              for j in branch_changed_param[i]:
-                if not j: string_work_2 = string_work_2 + 'None' + ' '
-                else: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','
-            addcsvfile.write(b'#changed parameters,\n')
-            addcsvfile.write(toBytes(str(string_work))+b'\n')
-          if 'branch_changed_param_value' in attributes:
-            string_work = ''
-            branch_changed_param_value = attributes['branch_changed_param_value']
-            for i in range(len(branch_changed_param_value)):
-              string_work_2 = ''
-              for j in branch_changed_param_value[i]:
-                if not j: string_work_2 = string_work_2 + 'None' + ' '
-                else: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','
-            addcsvfile.write(b'#changed parameters values,\n')
-            addcsvfile.write(toBytes(str(string_work))+b'\n')
-          if 'conditional_prb' in attributes:
-            string_work = ''
-            cond_pbs = attributes['conditional_prb']
-            for i in range(len(cond_pbs)):
-              string_work_2 = ''
-              for j in cond_pbs[i]:
-                if not j: string_work_2 = string_work_2 + 'None' + ' '
-                else: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','
-            addcsvfile.write(b'#conditional probability,\n')
-            addcsvfile.write(toBytes(str(string_work))+b'\n')
-          if 'PbThreshold' in attributes:
-            string_work = ''
-            pb_thresholds = attributes['PbThreshold']
-            for i in range(len(pb_thresholds)):
-              string_work_2 = ''
-              for j in pb_thresholds[i]:
-                if not j: string_work_2 = string_work_2 + 'None' + ' '
-                else: string_work_2 = string_work_2 + str(j) + ' '
-              string_work = string_work + string_work_2 + ','
-            addcsvfile.write(b'#Probability threshold,\n')
-            addcsvfile.write(toBytes(str(string_work))+b'\n')
+          # remove because not needed!!!!!!
+#             for cnt,item in enumerate(attributes['metadata']):
+#               if 'initiator_distribution' in item.keys():
+#                 init_dist = attributes['initiator_distribution']
+#                 addcsvfile.write(b'#number of branches in this history,\n')
+#                 addcsvfile.write(toBytes(str(len(init_dist)))+b'\n')
+#                 string_work = ''
+#                 for i in range(len(init_dist)):
+#                   string_work_2 = ''
+#                   for j in init_dist[i]: string_work_2 = string_work_2 + str(j) + ' '
+#                   string_work = string_work + string_work_2 + ','
+#                 addcsvfile.write(b'#initiator distributions,\n')
+#                 addcsvfile.write(toBytes(string_work)+b'\n')
+#               if 'end_timestep' in item.keys():
+#                 string_work = ''
+#                 end_ts = attributes['end_timestep']
+#                 for i in xrange(len(end_ts)): string_work = string_work + str(end_ts[i]) + ','
+#                 addcsvfile.write('#end time step,\n')
+#                 addcsvfile.write(str(string_work)+'\n')
+#               if 'branch_changed_param' in attributes['metadata'][-1].keys():
+#                 string_work = ''
+#                 branch_changed_param = attributes['branch_changed_param']
+#                 for i in range(len(branch_changed_param)):
+#                   string_work_2 = ''
+#                   for j in branch_changed_param[i]:
+#                     if not j: string_work_2 = string_work_2 + 'None' + ' '
+#                     else: string_work_2 = string_work_2 + str(j) + ' '
+#                   string_work = string_work + string_work_2 + ','
+#                 addcsvfile.write(b'#changed parameters,\n')
+#                 addcsvfile.write(toBytes(str(string_work))+b'\n')
+#               if 'branch_changed_param_value' in attributes['metadata'][-1].keys():
+#                 string_work = ''
+#                 branch_changed_param_value = attributes['branch_changed_param_value']
+#                 for i in range(len(branch_changed_param_value)):
+#                   string_work_2 = ''
+#                   for j in branch_changed_param_value[i]:
+#                     if not j: string_work_2 = string_work_2 + 'None' + ' '
+#                     else: string_work_2 = string_work_2 + str(j) + ' '
+#                   string_work = string_work + string_work_2 + ','
+#                 addcsvfile.write(b'#changed parameters values,\n')
+#                 addcsvfile.write(toBytes(str(string_work))+b'\n')
+#               if 'conditional_prb' in attributes['metadata'][-1].keys():
+#                 string_work = ''
+#                 cond_pbs = attributes['conditional_prb']
+#                 for i in range(len(cond_pbs)):
+#                   string_work_2 = ''
+#                   for j in cond_pbs[i]:
+#                     if not j: string_work_2 = string_work_2 + 'None' + ' '
+#                     else: string_work_2 = string_work_2 + str(j) + ' '
+#                   string_work = string_work + string_work_2 + ','
+#                 addcsvfile.write(b'#conditional probability,\n')
+#                 addcsvfile.write(toBytes(str(string_work))+b'\n')
+#               if 'PbThreshold' in attributes['metadata'][-1].keys():
+#                 string_work = ''
+#                 pb_thresholds = attributes['PbThreshold']
+#                 for i in range(len(pb_thresholds)):
+#                   string_work_2 = ''
+#                   for j in pb_thresholds[i]:
+#                     if not j: string_work_2 = string_work_2 + 'None' + ' '
+#                     else: string_work_2 = string_work_2 + str(j) + ' '
+#                   string_work = string_work + string_work_2 + ','
+#                 addcsvfile.write(b'#Probability threshold,\n')
+#                 addcsvfile.write(toBytes(str(string_work))+b'\n')
           addcsvfile.write(b' \n')
-
-    elif(self.inObj.type == "Datas"):
-      # we have the capability...so do that (AndreA)
-      pass
-    else:
-      raise NameError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> for input type ' + self.inObj.type + ' not yet implemented.')
+    else: raise NameError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
     '''
@@ -615,7 +607,7 @@ class BasicStatistics(BasePostProcessor):
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtois','median','percentile']  # accepted calculation parameters
+    self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
     self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction  = None
@@ -803,9 +795,9 @@ class BasicStatistics(BasePostProcessor):
       if what == 'variationCoefficient':
         for myIndex, targetP in enumerate(parameterSet):
           sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2,weights=pbweights)/(sumPbWeights-sumSquarePbWeights/sumPbWeights))
-          outputDict[what][targetP] = copy.deepcopy(sigma/outputDict['expectedValue'][targetP])
-      #kurtois
-      if what == 'kurtois':
+          outputDict[what][targetP] = sigma/outputDict['expectedValue'][targetP]
+      #kurtosis
+      if what == 'kurtosis':
         for myIndex, targetP in enumerate(parameterSet):
           if pbPresent:
               sigma = np.sqrt(np.average((Input['targets'][targetP]-expValues[myIndex])**2, weights=pbweights))
@@ -1028,7 +1020,7 @@ class LimitSurface(BasePostProcessor):
 
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.__workingDir = copy.deepcopy(runInfo['WorkingDir'])
+    self.__workingDir = runInfo['WorkingDir']
     indexes = [-1,-1]
     for index,inp in enumerate(self.inputs):
       if type(inp) in [str,bytes,unicode]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor only accepts Data(s) as inputs!')
@@ -1096,7 +1088,7 @@ class LimitSurface(BasePostProcessor):
     child = xmlNode.find("parameters")
     if child == None: raise IOError(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> No Parameters specified in XML input!!!!')
     self.parameters['targets'] = child.text.split(',')
-    child = xmlNode.find("tollerance")
+    child = xmlNode.find("tolerance")
     if child != None: self.subGridTol = float(child.text)
 
   def collectOutput(self,finishedjob,output):
@@ -1134,7 +1126,7 @@ class LimitSurface(BasePostProcessor):
     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
 
     for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.functionValue.items(): tempDict[key] = copy.deepcopy(value[myIndex])
+      for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
@@ -1181,7 +1173,7 @@ class LimitSurface(BasePostProcessor):
     listsurfPoint = []
     myIdList      = np.zeros(self.nVar)
     for coordinate in np.rollaxis(toBeTested,0):
-      myIdList[:] = copy.deepcopy(coordinate)
+      myIdList[:] = coordinate
       if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
         for iVar in range(self.nVar):
           if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n

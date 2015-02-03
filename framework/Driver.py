@@ -47,11 +47,18 @@ if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''
   # Retrieve the framework directory path and working dir
   printStatement()
-
+  debug          = False
+  interfaceCheck = False
   workingDir = os.getcwd()
-  if 'debug=True' in sys.argv: debug=True
-  else                       : debug=False
-
+  for item in sys.argv:
+    if item.lower() == 'debug'         :
+      debug = True
+      sys.argv.pop(sys.argv.index(item))
+    if item.lower() == 'interfacecheck':
+      interfaceCheck = True
+      sys.argv.pop(sys.argv.index(item))
+  if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
+  else             : os.environ['RAVENinterfaceCheck'] = 'False'
   simulation = Simulation(frameworkDir,debug=debug)
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
@@ -61,7 +68,7 @@ if __name__ == '__main__':
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
       simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]))
     else:
-      print(returnPrintTag('DRIVER') +': ' +utils.returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
+      print(returnPrintTag('DRIVER') +': ' +returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
 
   # Find the XML input file
   if len(sys.argv) == 1:

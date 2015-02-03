@@ -31,7 +31,8 @@ class Function(BaseType):
     BaseType.__init__(self)
     self.__functionFile                  = ''                                # function file name
     self.__actionDictionary              = {}                                # action dictionary
-    self.__actionImplemented             = {}                                # dictionary of implemented actions
+    # dictionary of implemented actions
+    self.__actionImplemented             = {'residuumSign':False,'supportBoundingTest':False,'residuum':False,'gradient':False}
     self.__inputVariables                = []                                # list of variables' names' given in input (xml)
     self.__inputFromWhat                 = {}                                # dictionary of input data type
     self.__inputFromWhat['dict']         = self.__inputFromDict
@@ -53,22 +54,18 @@ class Function(BaseType):
             self.__residuumSign                                =  importedModule.__dict__[method]
             self.__actionDictionary['residuumSign' ]           = self.__residuumSign
             self.__actionImplemented['residuumSign']           = True
-          else:self.__actionImplemented['residuumSign']        = False
           if method in ['__supportBoundingTest__','__supportBoundingTest','supportBoundingTest']:
             self.__supportBoundingTest                         =  importedModule.__dict__[method]
             self.__actionDictionary['supportBoundingTest' ]    = self.__supportBoundingTest
             self.__actionImplemented['supportBoundingTest']    = True
-          else:self.__actionImplemented['supportBoundingTest'] = False
           if method in ['__residuum__','__residuum','residuum']:
             self.__residuum                                    =  importedModule.__dict__[method]
             self.__actionDictionary['residuum' ]               = self.__residuum
             self.__actionImplemented['residuum']               = True
-          else:self.__actionImplemented['residuum']            = False
           if method in ['__gradient__','__gradient','gradient']:
             self.__gradient                                    =  importedModule.__dict__[method]
             self.__actionDictionary['gradient']                = self.__gradient
             self.__actionImplemented['gradient']               = True
-          else:self.__actionImplemented['gradient']            = False
         else:
           #custom
           self.__actionDictionary[method]                    = importedModule.__dict__[method]

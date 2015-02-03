@@ -22,7 +22,7 @@ class BaseType(object):
     self.name             = ''      # name of this istance (alias)
     self.type             = ''      # specific type within this class
     self.debug            = False   #set up the debug status of the code
-    self.globalAttributes = None    #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
+    self.globalAttributes = {}      #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
     self._knownAttribute  = []      #this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','debug']
     self.printTag         = returnPrintTag('BaseType')
@@ -49,6 +49,8 @@ class BaseType(object):
   def _readMoreXML(self,xmlNode):
     '''method to be overloaded to collect the additional input'''
     pass
+
+  #def _addOrModifyGlobalAttribute(self,name,value): self.globalAttributes[name] = value
 
   def whoAreYou(self):
     '''This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes'''

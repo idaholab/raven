@@ -701,16 +701,12 @@
 
 [Outputs]
   # Define output file(s)
-
   interval = 1
   output_initial = true
+  csv = true
+  print_perf_log = true
   [./out]
     type = Exodus
-    linear_residuals = true
+    output_linear = true
   [../]
-  [./console]
-    type = Console
-    perf_log = true
-  [../]
-  csv = true
 []

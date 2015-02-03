@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation>
+<Simulation debug="True">
 <RunInfo>
     <WorkingDir>test_rom_trainer_no_norm</WorkingDir>
     <Files>.</Files>

@@ -12,6 +12,7 @@ if not 'xrange' in dir(__builtins__): xrange = range
 #External Modules------------------------------------------------------------------------------------
 import time
 import abc
+import pickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -480,15 +481,24 @@ class IOStep(Step):
     #determine if this is a DATAS->HDF5, HDF5->DATAS or both.
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
-      if (inDictionary['Input'][i].type != 'HDF5'):
-        if not isinstance(inDictionary['Input'][i],Data): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts HDF5 as Input only. Got ' + inDictionary['Input'][i].type)
-        elif(outputs[i].type != 'HDF5'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
-        else:
-          self.actionType.append('DATAS-HDF5')
-      else:
-        if not isinstance(outputs[i],Data): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
-        else:
-          self.actionType.append('HDF5-DATAS')
+      if type(inDictionary['Input'][i]).__name__ == 'HDF5':
+          if isinstance(outputs[i],Data):
+            self.actionType.append('HDF5-DATAS')
+          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts A Datas as Output only, when the Input is an HDF5. Got ' + inDictionary['Output'][i].type)
+      elif  isinstance(inDictionary['Input'][i],Data):
+          if type(outputs[i]).__name__ == 'HDF5':
+            self.actionType.append('DATAS-HDF5')
+          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts ' + 'HDF5' + ' as Output only, when the Input is a Datas. Got ' + inDictionary['Output'][i].type)
+      elif isinstance(inDictionary['Input'][i],Models.ROM):
+          if type(outputs[i]).__name__ in ['str','bytes','unicode']:
+            self.actionType.append('ROM-FILES')
+          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts A Files as Output only, when the Input is a ROM. Got ' + inDictionary['Output'][i].type)
+      elif type(inDictionary['Input'][i]).__name__ in ['str','bytes','unicode']:
+         if isinstance(outputs[i],Models.ROM):
+            self.actionType.append('FILES-ROM')
+         else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts A ROM as Output only, when the Input is a Files. Got ' + inDictionary['Output'][i].type)
+
+      else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In Step named ' + self.name + '. This step accepts Datas, HDF5, ROM and Files as Input only. Got ' + inDictionary['Input'][i].type)
 
     #Initialize all the HDF5 outputs.
     for i in range(len(outputs)):
@@ -508,7 +518,7 @@ class IOStep(Step):
 
     #Initialize all the OutStreamPrint and OutStreamPlot outputs
     for output in inDictionary['Output']:
-      if output.type in ['OutStreamPrint','OutStreamPlot']:
+      if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
         output.initialize(inDictionary)
         if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
 
@@ -521,10 +531,21 @@ class IOStep(Step):
       elif self.actionType[i] == 'DATAS-HDF5':
         #inDictionary['Input'][i] is a datas, outputs[i] is HDF5
         outputs[i].addGroupDatas({'group':inDictionary['Input'][i].name},inDictionary['Input'][i])
+      elif self.actionType[i] == 'ROM-FILES':
+        #inDictionary['Input'][i] is a ROM, outputs[i] is Files
+        fileobj = open(outputs[i],'w+')
+        pickle.dump(inDictionary['Input'][i],fileobj)
+        fileobj.close()
+      elif self.actionType[i] == 'FILES-ROM':
+        #inDictionary['Input'][i] is a Files, outputs[i] is ROM
+        fileobj = open(inDictionary['Input'][i],'r+')
+        unpickledObj = pickle.load(fileobj)
+        outputs[i].train(unpickledObj)
+        fileobj.close()
       else:
         raise IOError("Unknown action type "+self.actionType[i])
     for output in inDictionary['Output']:
-      if output.type in ['OutStreamPrint','OutStreamPlot']:output.addOutput()
+      if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:output.addOutput()
 
   def _localAddInitParams(self,tempDict):
     return tempDict # no inputs
