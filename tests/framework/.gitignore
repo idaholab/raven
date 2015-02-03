@@ -1,3 +1,4 @@
 *.xml
 *.pdf
 *.eps
+coverage_html_report
