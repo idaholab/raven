@@ -561,9 +561,6 @@ class Simulation(object):
             neededobjs    = {}
             neededObjects = stp.whatDoINeed()
             for mainClassStr in neededObjects.keys():
-              print(self.whichDict.keys())
-              print(neededObjects.keys())
-              print(stp, dir(stp))
               if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal': raise IOError(self.printTag+': ERROR -> Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
               neededobjs[mainClassStr] = {}
               for obj in neededObjects[mainClassStr]:

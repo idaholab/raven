@@ -61,12 +61,12 @@ class BasePostProcessor(Assembler):
 #    return needDict
 
   def _localWhatDoINeed(self):
-    '''
-    local whatDoINeed method.
-    In here there is the common implementation if the  self.assemblerObjects dictionary has the form:
-    {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    '''
-    return {}
+    needDict = {}
+    for val in self.assemblerObjects.values():
+      for value  in val:
+        if value[0] not in needDict.keys(): needDict[value[0]] = []
+        needDict[value[0]].append((value[1],value[2]))
+    return needDict
 
 #  def generateAssembler(self,initDict):
 #    '''
