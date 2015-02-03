@@ -327,4 +327,11 @@
   csv = 'IO_ROM_PICKLE/PrintData_Pickle.csv IO_ROM_PICKLE/PrintData.csv'
  [../]
 
+ [./stochPolyTest]
+  type = 'RavenFramework'
+  input = 'testRom.xml'
+  output = 'StochasticPolyTest/Udump.xml StochasticPolyTest/UCdump.xml StochasticPolyTest/Ndump.xml StochasticPolyTest/Gdump.xml StochasticPolyTest/Bdump.xml StochasticPolyTest/Tdump.xml StochasticPolyTest/Edump.xml'
+  output = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
+ [../]
+
 []

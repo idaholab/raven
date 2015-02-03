@@ -297,10 +297,14 @@ class ROM(Dummy):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
       #FIXME is there anything that is a float that will raise an exception for int?
-      try: self.initializationOptionDict[child.tag] = int(child.text)
-      except ValueError:
-        try: self.initializationOptionDict[child.tag] = float(child.text)
-        except ValueError: self.initializationOptionDict[child.tag] = child.text
+      if child.attrib:
+        self.initializationOptionDict[child.tag]={'text':child.text}
+        self.initializationOptionDict[child.tag].update(child.attrib)
+      else:
+        try: self.initializationOptionDict[child.tag] = int(child.text)
+        except ValueError:
+          try: self.initializationOptionDict[child.tag] = float(child.text)
+          except ValueError: self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
@@ -309,7 +313,6 @@ class ROM(Dummy):
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
-      self.SupervisedEngine[target]._readMoreXML(xmlNode)
 
   def reset(self):
     '''

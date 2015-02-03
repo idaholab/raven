@@ -66,6 +66,12 @@ class Distribution(BaseType):
     self.convertToDistrDict   = {} #dict of methods keyed on quadrature types to convert points from quadrature measure and domain to distribution measure and domain
     self.convertToQuadDict    = {} #dict of methods keyed on quadrature types to convert points from distribution measure and domain to quadrature measure and domain
     self.measureNormDict     = {} #dict of methods keyed on quadrature types to provide scalar adjustment for measure transformation (from quad to distr)
+    self.convertToDistrDict['CDFLegendre'] = self.CDFconvertToDistr
+    self.convertToQuadDict ['CDFLegendre'] = self.CDFconvertToQuad
+    self.measureNormDict   ['CDFLegendre'] = self.CDFMeasureNorm
+    self.convertToDistrDict['CDFClenshawCurtis'] = self.CDFconvertToDistr
+    self.convertToQuadDict ['CDFClenshawCurtis'] = self.CDFconvertToQuad
+    self.measureNormDict   ['CDFClenshawCurtis'] = self.CDFMeasureNorm
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -79,12 +85,6 @@ class Distribution(BaseType):
       self.lowerBoundUsed = True
     if xmlNode.find('adjustment') !=None: self.__adjustment = xmlNode.find('adjustment').text
     else: self.__adjustment = 'scaling'
-    self.convertToDistrDict['CDFLegendre'] = self.CDFconvertToDistr
-    self.convertToQuadDict ['CDFLegendre'] = self.CDFconvertToQuad
-    self.measureNormDict   ['CDFLegendre'] = self.CDFMeasureNorm
-    self.convertToDistrDict['CDFClenshawCurtis'] = self.CDFconvertToDistr
-    self.convertToQuadDict ['CDFClenshawCurtis'] = self.CDFconvertToQuad
-    self.measureNormDict   ['CDFClenshawCurtis'] = self.CDFMeasureNorm
 
   def getCrowDistDict(self):
     '''
@@ -133,47 +133,79 @@ class Distribution(BaseType):
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
   def convertToDistr(self,qtype,pts):
-    '''Converts points from the quadrature "qtype" standard domain to the distribution domain.'''
+    '''Converts points from the quadrature "qtype" standard domain to the distribution domain.
+    @ In qtype, string, type of quadrature to convert from
+    @ In pts, array of floats, points to convert
+    @ Out, array of floats, converted points
+    '''
     return self.convertToDistrDict[qtype](pts)
 
   def convertToQuad(self,qtype,pts):
-    '''Converts points from the distribution domain to the quadrature "qtype" standard domain.'''
+    '''Converts points from the distribution domain to the quadrature "qtype" standard domain.
+    @ In qtype, string, type of quadrature to convert to
+    @ In pts, array of floats, points to convert
+    @ Out, array of floats, converted points
+    '''
     return self.convertToQuadDict[qtype](pts)
 
   def measureNorm(self,qtype):
-    '''Provides the integral/jacobian conversion factor between the distribution domain and the quadrature domain.'''
+    '''Provides the integral/jacobian conversion factor between the distribution domain and the quadrature domain.
+    @ In qtype, string, type of quadrature to convert to
+    @ Out, float, conversion factor
+    '''
     return self.measureNormDict[qtype]()
 
   def _convertDistrPointsToCdf(self,pts):
-    '''Converts points in the distribution domain to [0,1].'''
+    '''Converts points in the distribution domain to [0,1].
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
     try: return self.cdf(pts.real)
     except TypeError: return list(self.cdf(x) for x in pts)
 
   def _convertCdfPointsToDistr(self,pts):
-    '''Converts points in [0,1] to the distribution domain.'''
+    '''Converts points in [0,1] to the distribution domain.
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
     try: return self.ppf(pts.real)
     except TypeError: return list(self.ppf(x) for x in pts)
 
   def _convertCdfPointsToStd(self,pts):
-    '''Converts points in [0,1] to [-1,1], the uniform distribution's STANDARD domain.'''
+    '''Converts points in [0,1] to [-1,1], the uniform distribution's STANDARD domain.
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
     try: return 2.0*pts.real-1.0
     except TypeError: return list(2.0*x-1.0 for x in pts)
 
   def _convertStdPointsToCdf(self,pts):
-    '''Converts points in [-1,1] to [0,1] (CDF domain).'''
+    '''Converts points in [-1,1] to [0,1] (CDF domain).
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
     try: return 0.5*(pts.real+1.0)
     except TypeError: return list(0.5*(x+1.0) for x in pts)
 
   def CDFconvertToQuad(self,pts):
-    '''Converts all the way from distribution domain to [-1,1] quadrature domain.'''
+    '''Converts all the way from distribution domain to [-1,1] quadrature domain.
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
     return self._convertCdfPointsToStd(self._convertDistrPointsToCdf(pts))
 
   def CDFconvertToDistr(self,pts):
-    '''Converts all the way from [-1,1] quadrature domain to distribution domain.'''
+    '''Converts all the way from [-1,1] quadrature domain to distribution domain.
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
     return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
 
   def CDFMeasureNorm(self):
-    '''Integral norm/jacobian for [-1,1] Legendre quadrature.'''
+    '''Integral norm/jacobian for [-1,1] Legendre quadrature.
+    @ In None, None
+    @ Out float, normalization factor
+    '''
     return 1.0/2.0;
 
 
@@ -338,21 +370,13 @@ class Uniform(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
-    self.convertToDistrDict['Legendre']       = self.convertLegendreToUniform
-    self.convertToQuadDict ['Legendre']       = self.convertUniformToLegendre
-    self.measureNormDict   ['Legendre']       = self.stdProbabilityNorm
-    self.convertToDistrDict['ClenshawCurtis'] = self.convertLegendreToUniform
-    self.convertToQuadDict ['ClenshawCurtis'] = self.convertUniformToLegendre
-    self.measureNormDict   ['ClenshawCurtis'] = self.stdProbabilityNorm
 
   def stdProbabilityNorm(self):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
+    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+    '''
     return 0.5
-
-  def probabilityWeight(self,x,std=False):
-    '''Evaluates probability weighting factor for distribution type.'''
-    if std: return 1.0/2.0
-    else: return 1.0/self.range
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
@@ -361,14 +385,26 @@ class Uniform(BoostDistribution):
     # no other additional parameters required
 
   def initializeDistribution(self):
+    self.convertToDistrDict['Legendre']       = self.convertLegendreToUniform
+    self.convertToQuadDict ['Legendre']       = self.convertUniformToLegendre
+    self.measureNormDict   ['Legendre']       = self.stdProbabilityNorm
+    self.convertToDistrDict['ClenshawCurtis'] = self.convertLegendreToUniform
+    self.convertToQuadDict ['ClenshawCurtis'] = self.convertUniformToLegendre
+    self.measureNormDict   ['ClenshawCurtis'] = self.stdProbabilityNorm
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
 
   def convertUniformToLegendre(self,y):
-    '''Converts from distribution domain to standard Legendre [-1,1].'''
+    '''Converts from distribution domain to standard Legendre [-1,1].
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
     return (y-self.untruncatedMean())/(self.range/2.)
 
   def convertLegendreToUniform(self,x):
-    '''Converts from standard Legendre [-1,1] to distribution domain.'''
+    '''Converts from standard Legendre [-1,1] to distribution domain.
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
     return self.range/2.*x+self.untruncatedMean()
 
 
@@ -400,9 +436,6 @@ class Normal(BoostDistribution):
     sigma_find = xmlNode.find('sigma')
     if sigma_find != None: self.sigma = float(sigma_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> sigma value needed for normal distribution')
-    self.convertToDistrDict['Hermite'] = self.convertHermiteToNormal
-    self.convertToQuadDict ['Hermite'] = self.convertNormalToHermite
-    self.measureNormDict   ['Hermite'] = self.stdProbabilityNorm
     self.initializeDistribution() #FIXME no other distros have this...needed?
 
   def addInitParams(self,tempDict):
@@ -411,8 +444,9 @@ class Normal(BoostDistribution):
     tempDict['sigma'] = self.sigma
 
   def initializeDistribution(self):
-    #A truncated normal is poorly-represented by Hermites, so make an exception
-    #TODO should truncated in general be handled somehow?
+    self.convertToDistrDict['Hermite'] = self.convertHermiteToNormal
+    self.convertToQuadDict ['Hermite'] = self.convertNormalToHermite
+    self.measureNormDict   ['Hermite'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma)
@@ -436,45 +470,50 @@ class Normal(BoostDistribution):
                                                                   a,b)
 
   def stdProbabilityNorm(self,std=False):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
+    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+    '''
     return 1.0/np.sqrt(2.*np.pi)
 
-  #def probabilityWeight(self,x,std=False):
-  #  '''Evaluates probability weighting factor for distribution type.'''
-    #TODO I believe this can be removed.
-  #  if std: return np.exp(-x**2/2.)
-  #  else: return np.exp(-(x-self.mean)**2/2./self.sigma**2)
-
   def convertNormalToHermite(self,y):
+    '''Converts from distribution domain to standard Hermite [-inf,inf].
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
     return (y-self.untruncatedMean())/(self.sigma)
 
   def convertHermiteToNormal(self,x):
+    '''Converts from standard Hermite [-inf,inf] to distribution domain.
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
     return self.sigma*x+self.untruncatedMean()
 
-  def _constructBeta(self,numStdDev=5):
-    '''Using data from normal distribution and the number of standard deviations
-    to include, constructs a Beta distribution with the same mean, variance, and
-    skewness as the initial normal distribution.  Effectively simulates a truncated
-    Gaussian.'''
-    L = self.mean-numStdDev*self.sigma
-    R = self.mean+numStdDev*self.sigma
-    d = R-L
-    a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
-    b = a
-    print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
-    def createElement(tag,attrib={},text={}):
-      element = ET.Element(tag,attrib)
-      element.text = text
-      return element
-    betaElement = ET.Element("beta")
-    betaElement.append(createElement("low"  ,text="%f" %L))
-    betaElement.append(createElement("hi"   ,text="%f" %R))
-    betaElement.append(createElement("alpha",text="%f" %a))
-    betaElement.append(createElement("beta" ,text="%f" %b))
-    beta = Beta()
-    beta._readMoreXML(betaElement)
-    beta.initializeDistribution()
-    return beta
+#  def _constructBeta(self,numStdDev=5):
+#    '''Using data from normal distribution and the number of standard deviations
+#    to include, constructs a Beta distribution with the same mean, variance, and
+#    skewness as the initial normal distribution.  Effectively simulates a truncated
+#    Gaussian.'''
+#    L = self.mean-numStdDev*self.sigma
+#    R = self.mean+numStdDev*self.sigma
+#    d = R-L
+#    a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
+#    b = a
+#    print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
+#    def createElement(tag,attrib={},text={}):
+#      element = ET.Element(tag,attrib)
+#      element.text = text
+#      return element
+#    betaElement = ET.Element("beta")
+#    betaElement.append(createElement("low"  ,text="%f" %L))
+#    betaElement.append(createElement("hi"   ,text="%f" %R))
+#    betaElement.append(createElement("alpha",text="%f" %a))
+#    betaElement.append(createElement("beta" ,text="%f" %b))
+#    beta = Beta()
+#    beta._readMoreXML(betaElement)
+#    beta.initializeDistribution()
+#    return beta
 
 
 
@@ -514,10 +553,7 @@ class Gamma(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
-    self.convertToDistrDict['Laguerre'] = self.convertLaguerreToGamma
-    self.convertToQuadDict ['Laguerre'] = self.convertGammaToLaguerre
-    self.measureNormDict   ['Laguerre'] = self.stdProbabilityNorm
-    self.initializeDistribution()
+    self.initializeDistribution() #TODO this exists in a couple classes; does it really need to be here and not in Simulation? - No. - Andrea
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
@@ -526,6 +562,9 @@ class Gamma(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
+    self.convertToDistrDict['Laguerre'] = self.convertLaguerreToGamma
+    self.convertToQuadDict ['Laguerre'] = self.convertGammaToLaguerre
+    self.measureNormDict   ['Laguerre'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed): # and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
       #self.lowerBoundUsed = 0.0
@@ -546,19 +585,26 @@ class Gamma(BoostDistribution):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
 
   def convertGammaToLaguerre(self,y):
+    '''Converts from distribution domain to standard Laguerre [0,inf].
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
     return (y-self.low)*(self.beta)
 
   def convertLaguerreToGamma(self,x):
+    '''Converts from standard Laguerre [0,inf] to distribution domain.
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
     return x/self.beta+self.low
 
   def stdProbabilityNorm(self):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
+    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+    '''
     #return self.beta**self.alpha/factorial(self.alpha-1.)
     return 1./factorial(self.alpha-1)
-
-  def ProbabilityWeight(self,x):
-    '''Evaluates probability weighting factor for distribution type.'''
-    return x**(self.alpha-1)*np.exp(-x/self.beta)
 
 
 class Beta(BoostDistribution):
@@ -609,9 +655,6 @@ class Beta(BoostDistribution):
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
     self.initializeDistribution()
-    self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
-    self.convertToQuadDict ['Jacobi'] = self.convertBetaToJacobi
-    self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
@@ -621,6 +664,9 @@ class Beta(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
+    self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
+    self.convertToQuadDict ['Jacobi'] = self.convertBetaToJacobi
+    self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
     else:
@@ -634,26 +680,31 @@ class Beta(BoostDistribution):
     self.compatibleQuadrature.append('ClenshawCurtis')
 
   def convertBetaToJacobi(self,y):
+    '''Converts from distribution domain to standard Beta [0,1].
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
     u = 0.5*(self.hi+self.low)
     s = 0.5*(self.hi-self.low)
     return (y-u)/(s)
 
   def convertJacobiToBeta(self,x):
+    '''Converts from standard Jacobi [0,1] to distribution domain.
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
     u = 0.5*(self.hi+self.low)
     s = 0.5*(self.hi-self.low)
     return s*x+u
 
   def stdProbabilityNorm(self):
-    '''Returns the factor to scale error norm by so that norm(probability)=1.'''
-    #return factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
+    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+    '''
     B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
-    norm = 1.0/(2**(self.alpha+self.beta-1)*B)#*np.sqrt(16./15.)
+    norm = 1.0/(2**(self.alpha+self.beta-1)*B)
     return norm
-    #return 1.0/(B*(self.hi-self.low))
-
-  def probabilityWeight(self,x):
-    '''Evaluates probability weighting factor for distribution type.'''
-    return x**(self.alpha-1)*(1.-x)**(self.beta-1)
 
 
 

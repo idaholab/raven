@@ -29,7 +29,6 @@ class OrthogonalPolynomial(object):
     self.type    = self.__class__.__name__
     self.name    = self.__class__.__name__
     self.debug   = True
-    self.qType   = None #string of the quadrature applied
     self._poly   = None #tool for generating orthopoly1d objects
     self._evPoly = None #tool for evaluating 1d polynomials at (order,point)
     self.params  = [] #additional parameters needed for polynomial (alpha, beta, etc)
@@ -39,47 +38,83 @@ class OrthogonalPolynomial(object):
 
   def __getitem__(self,order):
     '''Returns the polynomial with order 'order';
-       for example poly[2] returns the orthonormal 2nd-order polynomial object.'''
+       for example poly[2] returns the orthonormal 2nd-order polynomial object.
+    @ In order, int, order of polynomial to return
+    @ Out orthopoly1d object, requested polynomial
+    '''
     return self._poly(order,*self.params) * self.norm(order)
 
   def __call__(self,order,pt):
     '''Returns the polynomial of order 'order' evaluated at 'pt'.
-       Has to be overwritten if parameters are required.'''
+       Has to be overwritten if parameters are required.
+    @ In order, int, order at which polynomial should be evaluated
+    @ In pt, float, value at which polynomial should be evaluated
+    @ Out, float, evaluation of polynomial
+    '''
     inps=self.params+[self.pointMod(pt)]
     return self._evPoly(order,*inps) * self.norm(order)
 
   def __getstate__(self):
+    '''Pickle dump method.
+    @ In, None, None
+    @ Out, Quadrature instance, defining quad for polynomial
+    '''
     return self.quad
 
   def __setstate__(self,quad):
+    '''Pickle load method.
+    @ In, quad, Quadrature instance
+    @ Out, None, None
+    '''
     self.initialize(quad)
 
   def __eq__(self,other):
-    print('test',other,self)
+    '''
+    Equality method.
+    @ In other, object, object to compare equivalence
+    @ Out boolean, truth of matching equality 
+    '''
     return self._poly==other._poly and self._evPoly==other._evPoly and self.params==other.params
 
   def __ne__(self,other):
+    '''
+    Inequality method.
+    @ In other, object, object to compare equivalence
+    @ Out boolean, truth of matching inequality 
+    '''
     return not self.__eq__(other)
 
   def norm(self,order):
     '''Normalization constant for polynomials so that integrating two of them
-       w.r.t. the weight factor produces the kroenecker delta. Default is 1.'''
+       w.r.t. the weight factor produces the kroenecker delta. Default is 1.
+    @ In order, int, polynomial order to get norm of
+    @ Out, float, value of poly norm
+    '''
     return 1
 
   def pointMod(self,pt):
     '''Some polys are orthonormal w.r.t. slightly different weights.
-       This change of variable function fixes orthonormality to what we want.'''
+       This change of variable function fixes orthonormality to what we want.
+    @ In pt, float, point to modify
+    @ Out, float, modified point
+    '''
     return pt
 
   def stdPointMod(self,x):
     '''Provides a default for inheriting classes.  This is the pointMod that
-       should be used with the 'default' choices.'''
+       should be used with the 'default' choices.
+    @ In x, float, point to modify
+    @ Out, float, modified point
+    '''
     return x
 
   def setMeasures(self,quad):
     '''If you got here, it means the inheriting orthopoly object doesn't have a
        specific implementation for the quadSet given.  Here we catch the universal
-       options.'''
+       options.
+    @ In quad, Quadrature object, quadrature that will make coeffs for these polys
+    @ Out, None, None
+    '''
     if quad.type.startswith('CDF'): #covers CDFLegendre and CDFClenshawCurtis
       self.__distr=self.makeDistribution()
       self.pointMod = self.cdfPoint
@@ -88,17 +123,33 @@ class OrthogonalPolynomial(object):
       raise IOError('OrthoPolynomials: No implementation for',quad.type,'quadrature and',self.type,'polynomials.')
 
   def _getDistr(self):
-    '''Returns the private distribution used for the CDF-version quadratures; for debugging.'''
+    '''Returns the private distribution used for the CDF-version quadratures; for debugging.
+    @ In None, None
+    @ Out Disribution object, standardized associated distribution
+    '''
     return self.__distr
 
   def cdfPoint(self,x):
     '''ppf() converts to from [0,1] to distribution range,
-       0.5(x+1) converts from [-1,1] to [0,1].'''
+       0.5(x+1) converts from [-1,1] to [0,1].
+    @ In x, float, point
+    @ Out, float, converted point
+    '''
     return self.__distr.ppf(0.5*(x+1.))
 
   def scipyNorm(self):
+    '''Some functions are slightly different in scipy; this is for fixing that.
+    @ In None, None
+    @ Out, float, required norm
+    '''
     return 1.
 
+  def makeDistribution(self):
+    ''' Used to make standardized distribution for this poly type.
+    @ In None, None
+    @ Out None, None
+    '''
+    pass
 
 
 class Legendre(OrthogonalPolynomial):
@@ -265,5 +316,5 @@ def returnInstance(Type):
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
   '''
-  try: return __interFaceDict[Type]()
-  except KeyError: raise NameError('not known '+__base+' type '+Type)
+  if Type in knownTypes(): return __interFaceDict[Type]()
+  else: raise NameError('not known '+__base+' type '+Type)
