@@ -72,18 +72,6 @@ print(uniform.rvs(5),uniform.rvs())
 
 #check rvsWithinCDFbounds
 uniform.rvsWithinbounds(1.5,2.5)
-# fake quadrature
-uniform.setQuad({},2)
-uniform.quad()
-uniform.polyOrder()
-
-uniform.addInitParams({})
-for _ in range(10): Distributions.randomIntegers(0,1)
-
-uniform.poly_norm(2)
-uniform.actual_point(-1)
-uniform.std_point(2.0)
-uniform.actual_weight(0.5)
 
 uniform.addInitParams({})
 for _ in range(10): Distributions.randomIntegers(0,1)
@@ -116,17 +104,6 @@ checkAnswer("normal median()",normal.untruncatedMedian(),1.0)
 checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
 
 print(normal.rvs(5),normal.rvs())
-
-#Test Truncated Normal as Beta
-
-tbn=normal._constructBeta(numStdDev=5)
-
-checkAnswer("Beta-truncated normal cdf(-5)",tbn.cdf(-5.0),5.97393708692e-4)
-checkAnswer("Beta-truncated normal cdf( 1)",tbn.cdf( 1.0),0.5)
-checkAnswer("Beta-truncated normal cdf( 7)",tbn.cdf( 7.0),0.999402606291)
-checkAnswer("Beta-truncated normal ppf(0.1)",tbn.ppf(0.1),-1.59767602774)
-checkAnswer("Beta-truncated normal ppf(0.5)",tbn.ppf(0.5),1.0)
-checkAnswer("Beta-truncated normal ppf(0.9)",tbn.ppf(0.9),3.59767602774)
 
 #Test Truncated Normal
 
