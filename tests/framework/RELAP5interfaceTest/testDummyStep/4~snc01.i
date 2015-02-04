@@ -1,3 +1,7 @@
+*RAVEN INPUT VALUES
+*20290000    4   0.0339949595587
+*9890201    2   73.3374551676
+*RAVEN INPUT VALUES
 * deck snc01.i
 *
 * Changes made by Paul Bayless, INL, January 2013
@@ -2092,7 +2096,7 @@
 9890200            3
 *
 *               time     pres       temp
-9890201          0.0    79.618    278.33  *69.618    278.33
+9890201  0.0  73.3374551676  278.33  *69.618  278.33
 *
 **=====================================================================*
 *  time dependent pressurizer junction                                 *
@@ -2928,7 +2932,7 @@
 *                          core power
 *
 *              table    trip    time coef     power coef
-20290000       power     503          1.0         0.0327
+20290000  power  503  1.0  0.0339949595587
 *
 *               time     power    (60 kw power)
 20290001        0.0      1.000

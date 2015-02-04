@@ -50,7 +50,7 @@ class BaseType(object):
     '''method to be overloaded to collect the additional input'''
     pass
 
-  def _addOrModifyGlobalAttribute(self,name,value): self.globalAttributes[name] = value
+  #def _addOrModifyGlobalAttribute(self,name,value): self.globalAttributes[name] = value
 
   def whoAreYou(self):
     '''This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes'''

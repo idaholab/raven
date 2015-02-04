@@ -576,7 +576,7 @@ class Code(Model):
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles[0]
-    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable,checkInterfaceOnly=self.globalAttributes['interfaceCheck'], flags=self.codeFlags)
+    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.codeFlags)
     #executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
     for index, inputFile in enumerate(self.currentInputFiles):

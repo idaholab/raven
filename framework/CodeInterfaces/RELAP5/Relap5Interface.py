@@ -25,7 +25,8 @@ class Relap5(CodeInterfaceBase):
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     if flags: addflags = flags
     else    : addflags = ''
-    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
+    #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
+    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[0] + outputfile + '.o' + ' -r ' + os.path.split(inputFiles[index])[0] + outputfile + '.r '+ addflags
     return executeCommand,outputfile
 
   def finalizeCodeOutput(self,command,output,workingDir):
@@ -36,7 +37,7 @@ class Relap5(CodeInterfaceBase):
         @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     '''
-    outfile = os.path.join(workingDir,command.split('-o')[0].split('-i')[-1].strip()+'.o')
+    outfile = os.path.join(workingDir,output+'.o')
     outputobj=relapdata.relapdata(outfile)
     if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
     else: raise IOError('ERROR! Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')

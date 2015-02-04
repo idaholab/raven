@@ -51,14 +51,15 @@ if __name__ == '__main__':
   interfaceCheck = False
   workingDir = os.getcwd()
   for item in sys.argv:
-    if item.lower() == 'debug'         : 
+    if item.lower() == 'debug'         :
       debug = True
       sys.argv.pop(sys.argv.index(item))
-    if item.lower() == 'interfacecheck': 
+    if item.lower() == 'interfacecheck':
       interfaceCheck = True
       sys.argv.pop(sys.argv.index(item))
-
-  simulation = Simulation(frameworkDir,debug=debug,interfaceCheck=interfaceCheck)
+  if interfaceCheck: os.environ['RAVENinterfaceCheck'] = 'True'
+  else             : os.environ['RAVENinterfaceCheck'] = 'False'
+  simulation = Simulation(frameworkDir,debug=debug)
   #If a configuration file exists, read it in
   configFile = os.path.join(os.path.expanduser("~"),".raven","default_runinfo.xml")
   if os.path.exists(configFile):
