@@ -71,8 +71,7 @@
 
 \newcommand{\tolDescriptionA}[1]
 {
-  \xmlNode{tol}, \xmlDesc{float, optional field}, stop the algorithm if $w$ has
-  converged within the tolerance specified here. \maljdan{what is w?}
+  \xmlNode{tol}, \xmlDesc{float, optional field}, stop the algorithm if the convergence error felt below the tolerance specified here. 
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
@@ -1322,8 +1321,9 @@ absolute values of the coefficients.
 \mbox{}
 
 The \textit{Lasso linear model with iterative fitting along a regularization
-path} is Lasso linear model with iterative fitting along a regularization
-path. \maljdan{May need a better description}
+path} is an algorithm of the Lasso family, that computes the linear regressor weights, 
+identifying the regularization path in an iterative fitting (see http://www.jstatsoft.org/v33/i01/paper)
+
 \skltype{Lasso linear model with iterative fitting along a regularization path
 regressor}{linear\_model|LassoCV}
 \begin{itemize}
@@ -1372,7 +1372,7 @@ regressor}{linear\_model|LarsCV}
 
 The \textit{Cross-validated Lasso, using the LARS algorithm} is a
 cross-validated Lasso, using the LARS algorithm. 
-\maljdan{redundant}
+
 \skltype{Cross-validated Lasso, using the LARS algorithm
 regressor}{linear\_model|LassoLarsCV}
 
@@ -1643,10 +1643,10 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, the loss function to
   be used:
   \begin{itemize}
-    \item hinge: equivalent to PA-I in the reference paper. 
-    \item squared\_hinge: equivalent to PA-II in the reference paper.
+    \item hinge: equivalent to PA-I (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf)
+    \item squared\_hinge: equivalent to PA-II (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf)
   \end{itemize}
-  \maljdan{what reference paper?}
+ 
   %
   \item \warmStartDescription{}
 \end{itemize}
@@ -1677,11 +1677,9 @@ parameter, $C$.
   \item \verDescriptionB{}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, specifies the loss
   function to be used: 
-  \maljdan{What reference paper?}
   \begin{itemize}
-    \item epsilon\_insensitive: equivalent to PA-I in the reference paper.
-    \item squared\_epsilon\_insensitive: equivalent to PA-II in the reference
-    paper.
+    \item epsilon\_insensitive: equivalent to PA-I in the reference paper (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf).
+    \item squared\_epsilon\_insensitive: equivalent to PA-II in the reference paper (http://jmlr.csail.mit.edu/papers/volume7/crammer06a/crammer06a.pdf).
   \end{itemize}
   %
   \item \warmStartDescription{}
@@ -1748,12 +1746,9 @@ It is also known as stability selection.
   \item \xmlNode{alpha}, \xmlDesc{float, `aic', or `bic', optional}, defines the
   regularization parameter $\alpha$ in the Lasso.
   %
-  Warning: this is not the alpha parameter in the stability selection article
-  which is \xmlNode{scaling} (see below). \maljdan{Which article?}
   %
   \item \xmlNode{scaling}, \xmlDesc{float, optional field}, specifies the alpha
-  parameter in the stability selection article used to randomly scale the
-  features. \maljdan{Which article?}
+  parameter used to randomly scale the
   %
   Should be between 0 and 1.
   %
@@ -1811,8 +1806,8 @@ Regressor}{linear\_model|RandomizedLogisticRegression}
   \default{1}
   %
   \item \xmlNode{scaling}, \xmlDesc{float, optional field (default=0.5)}, sets
-  the alpha parameter in the stability selection article used to randomly scale
-  the features. \maljdan{what article?}
+  the alpha parameter used to randomly scale
+  the features. 
   %
   Should be between 0 and 1.
   %
@@ -2338,8 +2333,8 @@ i.e. the sum of norm of each row.
   target values.
   %
   \item \xmlNode{scaling}, \xmlDesc{float, optional, default=0.5},sets the alpha
-  parameter in the stability selection article used to randomly scale the
-  features. \maljdan{what article?}
+  parameter used to randomly scale the
+  features.
   %
   Should be between 0 and 1.
   %
