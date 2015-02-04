@@ -10,38 +10,37 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import relapdata
+from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class Relap5:
+class Relap5(CodeInterfaceBase):
   '''this class is used a part of a code dictionary to specialize Model.Code for RELAP5-3D Version 4.0.3'''
   def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
-    index = -1
-    for i in range(len(inputFiles)):
-      ''.lower()
-      if inputFiles[i].lower().endswith('.i') or inputFiles[i].lower().endswith('.inp') or inputFiles[i].lower().endswith('.in'):
-        index = i
+    found = False
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile.endswith(('.i','.inp','.in')):
+        found = True
         break
-    if index < 0: raise IOError('ERROR! Relap5 interface did not find an input file. a Relap5 input file needs to have the following extensions: ".i,.inp,.in"!!')
+    if not found: raise Exception('Relap5 INTERFACE ERROR -> None of the input files has one of the following extensions ".i", ".inp", or ".in"!')
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     if flags: addflags = flags
     else    : addflags = ''
-    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
+    #executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[1] + '.o' + ' -r ' + os.path.split(inputFiles[index])[1] +'.r '+ addflags
+    executeCommand = executable +' -i '+os.path.split(inputFiles[index])[1]+' -o ' + os.path.split(inputFiles[index])[0] + outputfile + '.o' + ' -r ' + os.path.split(inputFiles[index])[0] + outputfile + '.r '+ addflags
     return executeCommand,outputfile
 
-  def appendLoadFileExtension(self,fileRoot):
-    '''  '''
-    return fileRoot + '.csv'
-
-  def finalizeCodeOutput(self,command,output):
+  def finalizeCodeOutput(self,command,output,workingDir):
     ''' this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
         It can be used for those codes, that do not create CSV files to convert the whaterver output formato into a csv
         @ command, Input, the command used to run the just ended job
         @ output, Input, the Output name root (string)
+        @ workingDir, Input, actual working dir (string)
         @ return is optional, in case the root of the output file gets changed in this method.
     '''
-    outfile = command.split('-o')[0].split('-i')[-1]+'.o'
+    outfile = os.path.join(workingDir,output+'.o')
     outputobj=relapdata.relapdata(outfile)
-    outputobj.write_csv(output+'.csv')
+    if outputobj.hasAtLeastMinorData(): outputobj.write_csv(os.path.join(workingDir,output+'.csv'))
+    else: raise IOError('ERROR! Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler is chosen'''
@@ -67,8 +66,8 @@ class Relap5:
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,True)
     temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.deepcopy(currentInputFiles)
-    newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+    newInputFiles = copy.copy(currentInputFiles)
+    newInputFiles[index] = copy.copy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
     parser.printInput(newInputFiles[index])
     return newInputFiles
 

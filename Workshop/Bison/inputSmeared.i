@@ -200,7 +200,7 @@
     block = pellet_type_2
     variable = grain_radius
     temp = temp
-    execute_on = residual
+    execute_on = linear
   [../]
 
   [./stress_xx]               # computes stress components for output
@@ -215,21 +215,21 @@
     tensor = stress
     variable = stress_yy
     index = 1
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./stress_zz]
     type = MaterialTensorAux
     tensor = stress
     variable = stress_zz
     index = 2
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./vonmises]
     type = MaterialTensorAux
     tensor = stress
     variable = vonmises
     quantity = vonmises
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./creep_strain_mag]
     type = MaterialTensorAux
@@ -237,7 +237,7 @@
     tensor = creep_strain
     variable = creep_strain_mag
     quantity = plasticstrainmag
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
   [./creep_strain_hoop]
     type = MaterialTensorAux
@@ -245,7 +245,7 @@
     tensor = creep_strain
     variable = creep_strain_hoop
     quantity = Hoop
-    execute_on = timestep
+    execute_on = timestep_end
   [../]
 
 
@@ -701,16 +701,12 @@
 
 [Outputs]
   # Define output file(s)
-
   interval = 1
   output_initial = true
+  csv = true
+  print_perf_log = true
   [./out]
     type = Exodus
-    linear_residuals = true
+    output_linear = true
   [../]
-  [./console]
-    type = Console
-    perf_log = true
-  [../]
-  csv = true
 []

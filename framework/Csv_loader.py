@@ -72,28 +72,28 @@ class CsvLoader:
     '''
     return self.all_field_names
 
-  def parseFilesToGrepDimensions(self,filesin):
-    '''
-    Function to grep max dimensions in multiple csv files
-    @ In, filesin, csv files list
-    @ Out, None
-    filesin        = file names
-    NtimeSteps     = maxNumberOfTs
-    maxNumOfParams = max number of parameters
-    NSamples       = number of Samples
-    '''
-    NSamples       = len(filesin)
-    maxNumOfParams = 0
-    NtimeSteps     = 0
-    for i in range(filesin):
-      with open(filesin[i],'rb') as f:
-        reader = csv.DictReader(f)
-        #reader.next #XXX This line does nothing
-        if(len(reader.fieldnames) > maxNumOfParams): maxNumOfParams = len(reader.fieldnames)
-        countTimeSteps = 1
-        for _ in reader: countTimeSteps = countTimeSteps + 1
-        if(countTimeSteps>NtimeSteps): NtimeSteps = countTimeSteps
-    return (NtimeSteps,maxNumOfParams,NSamples)
+#   def parseFilesToGrepDimensions(self,filesin):
+#     '''
+#     Function to grep max dimensions in multiple csv files
+#     @ In, filesin, csv files list
+#     @ Out, None
+#     filesin        = file names
+#     NtimeSteps     = maxNumberOfTs
+#     maxNumOfParams = max number of parameters
+#     NSamples       = number of Samples
+#     '''
+#     NSamples       = len(filesin)
+#     maxNumOfParams = 0
+#     NtimeSteps     = 0
+#     for i in range(filesin):
+#       with open(filesin[i],'rb') as f:
+#         reader = csv.DictReader(f)
+#         #reader.next #XXX This line does nothing
+#         if(len(reader.fieldnames) > maxNumOfParams): maxNumOfParams = len(reader.fieldnames)
+#         countTimeSteps = 1
+#         for _ in reader: countTimeSteps = countTimeSteps + 1
+#         if(countTimeSteps>NtimeSteps): NtimeSteps = countTimeSteps
+#     return (NtimeSteps,maxNumOfParams,NSamples)
 
   def csvLoadData(self,filein,options):
     '''

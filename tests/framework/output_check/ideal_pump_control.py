@@ -2,10 +2,10 @@ import distribution1D
 
 def initial_function(monitored, controlled, auxiliary):
     print("monitored",monitored,"controlled",controlled,"auxiliary",auxiliary)
-    mult = 1.01
+    mult = 1.01+distributions.zeroToOne.getDistributionRandom()/10.0
     controlled.pipe1_Area = mult*controlled.pipe1_Area
     controlled.pipe1_Dh = mult*controlled.pipe1_Dh
-    controlled.pipe1_Hw = 0.001
+    controlled.pipe1_Hw = 0.001*mult
     #controlled.pipe1_aw = 0.002
     controlled.pipe1_f = mult*controlled.pipe1_f
     controlled.pipe2_Area = mult*controlled.pipe2_Area
@@ -26,7 +26,7 @@ def initial_function(monitored, controlled, auxiliary):
 
 def control_function(monitored, controlled, auxiliary):
     print("monitored",monitored,"controlled",controlled,"auxiliary",auxiliary)
-    mult = 1.01
+    mult = 1.01+distributions.zeroToOne.getDistributionRandom()/10.0
     if auxiliary.dummy_for_branch < 1.0:
         auxiliary.dummy_for_branch = auxiliary.dummy_for_branch + 0.25
     print('THRESHOLDDDDDD ' + str(distributions.zeroToOne.getVariable('ProbabilityThreshold')))
