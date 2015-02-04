@@ -15,13 +15,16 @@ class RavenFramework(Tester):
     params.addParam('csv','',"List of csv files to check")
     params.addParam('rel_err','','Relative Error for csv files')
     params.addParam('required_executable','','Skip test if this executable is not found')
+    params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
     return params
 
   def getCommand(self, options):
+    ravenflag = ''
+    if self.specs['test_interface_only'].lower() == 'true': ravenflag = 'interfaceCheck '
     if RavenUtils.inPython3():
-      return "python3 ../../framework/Driver.py "+self.specs["input"]
+      return "python3 ../../framework/Driver.py " + ravenflag + self.specs["input"]
     else:
-      return "python ../../framework/Driver.py "+self.specs["input"]
+      return "python ../../framework/Driver.py " + ravenflag + self.specs["input"]
 
 
   def __init__(self, name, params):

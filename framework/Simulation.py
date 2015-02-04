@@ -257,8 +257,8 @@ class Simulation(object):
   '''
 
   def __init__(self,frameworkDir,debug=False):
-    self.FIXME = False
-    self.debug= debug
+    self.FIXME          = False
+    self.debug          = debug
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
@@ -377,7 +377,7 @@ class Simulation(object):
       if child.tag in list(self.whichDict.keys()):
         if self.debug: print('\n' + self.printTag+': ' +returnPrintPostTag('Message') + '-> ' +2*'-'+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
-        if len(child.attrib.keys()) == 0: globalAttributes = None
+        if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
           globalAttributes = child.attrib
           if 'debug' in  globalAttributes.keys():
@@ -388,7 +388,7 @@ class Simulation(object):
           for childChild in child:
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
-              if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ------Reading type '+str(childChild.tag)+' with name '+name)
+              if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
@@ -428,8 +428,7 @@ class Simulation(object):
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
       print(self.printTag+": " +returnPrintPostTag('Warning') + " -> overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
-    for key in self.filesDict.keys():
-      self.__createAbsPath(key)
+    for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)
@@ -553,10 +552,9 @@ class Simulation(object):
       stepInputDict['Output']          = []                         #set the Output to an empty list
       #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
       for [key,b,_,d] in stepInstance.parList:
-        if key == 'Input' or key == 'Output':                        #Only for input and output we allow more than one object passed to the step, so for those we build a list
-          stepInputDict[key].append(self.whichDict[b][d])
-        else:
-          stepInputDict[key] = self.whichDict[b][d]
+        #Only for input and output we allow more than one object passed to the step, so for those we build a list
+        if key == 'Input' or key == 'Output': stepInputDict[key].append(self.whichDict[b][d])
+        else: stepInputDict[key] = self.whichDict[b][d]
         if key == 'Input' and b == 'Files': self.__checkExistPath(d) #if the input is a file, check if it exists
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler

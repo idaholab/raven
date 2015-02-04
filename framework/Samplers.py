@@ -905,6 +905,7 @@ class Grid(Sampler):
     It could not have been done earlier since the distribution might not have been initialized first
     '''
     for varName in self.gridInfo.keys():
+      print('DEBUG',self.printTag,varName,self.gridInfo[varName])
       if self.gridInfo[varName][0]=='value':
         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
@@ -2128,8 +2129,6 @@ class ResponseSurfaceDesign(Grid):
 class SparseGridCollocation(Grid):
   def __init__(self):
     Grid.__init__(self)
-    #self.axisName from Grid
-    #self.gridInfo from Grid
     self.type           = 'SparseGridCollocationSampler'
     self.printTag       = returnPrintTag(self.type)
     self.assemblerObjects={}    #dict of external objects required for assembly
@@ -2162,7 +2161,7 @@ class SparseGridCollocation(Grid):
   def _readMoreXML(self,xmlNode):
     Grid._readMoreXML(self,xmlNode)
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
-    #assembler node
+    #assembler node -> to be changed when Sonnet gets it in the base class
     assemblerNode = xmlNode.find('Assembler')
     if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
     targEvalCounter = 0
@@ -2187,7 +2186,7 @@ class SparseGridCollocation(Grid):
       self.axisName.append(varName)
 
   def localInitialize(self):
-    Grid.localInitialize(self)
+    #Grid.localInitialize(self)
     SVLs = self.ROM.SupervisedEngine.values()
     SVL = SVLs[0] #often need only one
     ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
@@ -2224,7 +2223,7 @@ class SparseGridCollocation(Grid):
         if dat['poly']=='DEFAULT': polyType = 'Legendre'
         else: polyType = dat['poly']
       else: #not flagged as cdf by user
-        if dat['quad']=='DEFAULT':
+        if dat['quad']=='DEFAULT': # FIXME-> consider checking names first, then setting subTypes
           quadType = self.distDict[varName].preferredQuadrature
           if quadType == 'CDF':
             subType = 'Legendre'
@@ -2245,7 +2244,7 @@ class SparseGridCollocation(Grid):
       if quadType not in distr.compatibleQuadrature:
         raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
 
-      quad = Quadratures.returnInstance(quadType,subType)
+      quad = Quadratures.returnInstance(quadType,Subtype=subType)
       quad.initialize(distr)
       self.quadDict[varName]=quad
 
@@ -2255,12 +2254,13 @@ class SparseGridCollocation(Grid):
 
       self.importanceDict[varName] = float(dat['weight'])
     #print out the setup for each variable.   TODO should this always happen?
-    print(self.printTag,'INTERPOLATION INFO:')
-    print('    Variable | Distribution | Quadrature | Polynomials')
-    for v in self.quadDict.keys():
-      print('   ',' | '.join([self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
-    print('    Polynomial Set Degree:',self.maxPolyOrder)
-    print('    Polynomial Set Type  :',SVL.indexSetType)
+    if self.debug:
+      print(self.printTag,'INTERPOLATION INFO:')
+      print('    Variable | Distribution | Quadrature | Polynomials')
+      for v in self.quadDict.keys():
+        print('   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
+      print('    Polynomial Set Degree:',self.maxPolyOrder)
+      print('    Polynomial Set Type  :',SVL.indexSetType)
 
     if self.debug: print(self.printTag,'Starting index set generation...')
     self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
@@ -2271,8 +2271,14 @@ class SparseGridCollocation(Grid):
     # NOTE this is the most expensive step thus far; try to do checks before here
     self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
     self.limit=len(self.sparseGrid)
-    print(self.printTag,'Size of Sparse Grid  :',self.limit)
+    if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
     if self.debug: print(self.printTag,'Finished sampler generation.')
+    for SVL in self.ROM.SupervisedEngine.values():
+      SVL.initialize({'SG':self.sparseGrid,
+                      'dists':self.distDict,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet':self.indexSet})
 
   def localGenerateInput(self,model,myInput):
     '''Provide the next point in the sparse grid.'''
@@ -2283,21 +2289,6 @@ class SparseGridCollocation(Grid):
     self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
-
-  def localFinalizeActualSampling(self,jobObject,model,myInput):
-    '''If all the samples have been provided, initialize the SVLs in the ROM so they're ready to go.'''
-    #TODO FIXME use the len(lastOutput) instead when you merge that in
-    #TODO is there any reason to wait until it's all done to initialize SVLs?
-    try: self.lastOutput.sizeData('output')
-    except: return
-    if self.lastOutput.sizeData('output').values()[0]==len(self.sparseGrid)-1: #-1 because collection is after this call
-      print(self.printTag,'Number of samples:',len(self.sparseGrid))
-      for SVL in self.ROM.SupervisedEngine.values():
-        SVL.initialize({'SG':self.sparseGrid,
-                        'dists':self.distDict,
-                        'quads':self.quadDict,
-                        'polys':self.polyDict,
-                        'iSet':self.indexSet})
 
 #
 #

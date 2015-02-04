@@ -20,10 +20,10 @@
             <alpha>2</alpha>
         </Gamma>
         <Beta name="BetaDist">
-            <low>0</low> <!--0-->
-            <high>1</high> <!--1-->
-            <alpha>4</alpha> <!--2-->
-            <beta>3</beta> <!--5-->
+            <low>0</low>
+            <high>1</high>
+            <alpha>2</alpha>
+            <beta>5</beta>
         </Beta>
         <Triangular name='TriDist'>
             <min>1</min>

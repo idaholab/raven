@@ -76,9 +76,6 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
 
-  def _readMoreXML(self,xmlNode):
-    pass
-
   def initialize(self,idict):
     pass #Overloaded by (at least) GaussPolynomialRom
 
@@ -254,39 +251,40 @@ class GaussPolynomialRom(NDinterpolatorRom):
 
   def __init__(self,**kwargs):
     superVisedLearning.__init__(self,**kwargs)
-    self.interpolator = None #FIXME what's this?
-    self.printTag     = returnPrintTag('GAUSSgpcROM('+self.target+')')
-    self.indexSetType = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
-    self.maxPolyOrder = None #integer of relative maximum polynomial order to use in any one dimension
-    self.itpDict      = {}   #dict of quad,poly,weight choices keyed on varName
-    self.norm         = None #combined distribution normalization factors (product)
+    self.interpolator  = None #FIXME what's this?
+    self.printTag      = returnPrintTag('GAUSSgpcROM('+self.target+')')
+    self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
+    self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
+    self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
+    self.norm          = None #combined distribution normalization factors (product)
     self.normalizeData = False #flag to prevent data normalization; not desirable for this ROM
-    self.sparseGrid = None #Quadratures.SparseGrid object, has points and weights
-    self.distDict = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
-    self.quads = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
-    self.polys = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
-    self.indexSet = None #array of tuples, polynomial order combinations
+    self.sparseGrid    = None #Quadratures.SparseGrid object, has points and weights
+    self.distDict      = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
+    self.quads         = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
+    self.polys         = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
+    self.indexSet      = None #array of tuples, polynomial order combinations
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
+    self.itpDict       = {}   #dict{varName: dict{attribName:value} }
 
-  def _readMoreXML(self,xmlNode):
-    NDinterpolatorRom._readMoreXML(self,xmlNode)
-    if xmlNode.find('IndexSet')!=None: self.indexSetType = xmlNode.find('IndexSet').text
-    else: raise IOError(self.printTag+' No IndexSet specified!')
-    if xmlNode.find('PolynomialOrder')!=None: self.maxPolyOrder = int(xmlNode.find('PolynomialOrder').text)
-    else: raise IOError(self.printTag+' No PolynomialOrder specified!')
-    if self.maxPolyOrder < 1:
-      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
-    self.itpDict={}
-    for child in xmlNode:
-      if child.tag=='Interpolation':
-        var = child.text
+    for key,val in kwargs.items():
+      if key=='IndexSet': self.indexSetType = val
+      if key=='PolynomialOrder': self.maxPolyOrder = val
+      if key=='Interpolation':
+        var = val.pop('text')
         self.itpDict[var]={'poly'  :'DEFAULT',
                            'quad'  :'DEFAULT',
                            'weight':'1',
                            'cdf'   :'False'}
         for atr in ['poly','quad','weight','cdf']:
-          if atr in child.attrib.keys(): self.itpDict[var][atr]=child.attrib[atr]
+          if atr in val.keys(): self.itpDict[var][atr]=val[atr]
           else: raise IOError(self.printTag+' Unrecognized option: '+child.attrib[atr])
+
+    if not self.indexSetType:
+      raise IOError(self.printTag+' No IndexSet specified!')
+    if not self.maxPolyOrder:
+      raise IOError(self.printTag+' No IndexSet specified!')
+    if self.maxPolyOrder < 1:
+      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
 
   def interpolationInfo(self):
     return dict(self.itpDict)
@@ -300,7 +298,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
       elif key == 'iSet' : self.indexSet   = value
 
   def _multiDPolyBasisEval(self,orders,pts):
-    '''Evaluates each polynomial set at given orders and points, returns product.'''
+    '''Evaluates each polynomial set at given orders and points, returns product.
+    @ In orders, tuple(int), polynomial orders to evaluate
+    @ In pts, tuple(float), values at which to evaluate polynomials
+    @ Out, float, product of polynomial evaluations
+    '''
     tot=1
     for i,(o,p) in enumerate(zip(orders,pts)):
       tot*=self.polys.values()[i](o,p)
@@ -344,7 +346,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
         wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
-    print('DEBUG polyDict',self.printTag)
     self.printPolyDict()
     #do a few moments #TODO need a better solution for calling moment calculations, etc
     for r in range(5):
@@ -373,8 +374,14 @@ class GaussPolynomialRom(NDinterpolatorRom):
     # THESE members are problems still. TODO
     # - distDict -> SWIG problems.
 
+    # UNTESTED
+    # SVL
+
   def printPolyDict(self,printZeros=False):
-    '''Human-readable version of the polynomial chaos expansion.'''
+    '''Human-readable version of the polynomial chaos expansion.
+    @ In printZeros,boolean,optional flag for printing even zero coefficients
+    @ Out, None, None
+    '''
     data=[]
     for idx,val in self.polyCoeffDict.items():
       if val > 1e-14 or printZeros:
@@ -385,8 +392,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
       print('    ',idx,val)
 
   def __evaluateMoment__(self,r):
-    '''Use the ROM's built-in method to calculate moments.'''
-    #TODO is there a faster way still to do this?  I don't think so, tbh.
+    '''Use the ROM's built-in method to calculate moments.
+    @ In r, int, moment to calculate
+    @ Out, float, evaluation of moment
+    '''
+    #TODO is there a faster way still to do this?
     tot=0
     for pt,wt in self.sparseGrid:
       tot+=self.__evaluateLocal__([pt])**r*wt
