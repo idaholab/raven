@@ -14,10 +14,11 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 #External Modules--------------------end
-from utils import returnPrintTag, returnPrintPostTag, find_crow, add_contrib
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+sys.path.append(os.path.join(frameworkDir,'utils'))
+from utils import returnPrintTag, returnPrintPostTag, find_crow, add_path 
 find_crow(frameworkDir)
-add_contrib(frameworkDir)
+add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
 #Internal Modules
