@@ -1961,7 +1961,7 @@ class FactorialDesign(Grid):
     factsettings = xmlNode.find("FactorialSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'FactorialSettings xml node not found!!!')
     facttype = factsettings.find("algorithm_type")
-    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in FactorialSettings xml node!!!')
+    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "algorithm_type" not found in FactorialSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
     self.factOpt['algorithm_type'] = facttype.text.lower()
     if self.factOpt['algorithm_type'] == '2levelfract':
@@ -1986,7 +1986,7 @@ class FactorialDesign(Grid):
       for varname in self.gridInfo.keys():
         if len(self.gridInfo[varname][2]) != 2:
           raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' The number of levels for type '+
-                        self.factOpt['type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
+                        self.factOpt['algorithm_type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
                         str(len(self.gridInfo[varname][2])))
     else: self.externalgGridCoord = False
 
@@ -2043,7 +2043,7 @@ class ResponseSurfaceDesign(Grid):
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'ResponseSurfaceDesignSettings xml node not found!!!')
     facttype = factsettings.find("algorithm_type")
-    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in ResponseSurfaceDesignSettings xml node!!!')
+    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "algorithm_type" not found in ResponseSurfaceDesignSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedOptions.keys():raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
     self.respOpt['algorithm_type'] = facttype.text.lower()
     # set defaults
@@ -2088,7 +2088,7 @@ class ResponseSurfaceDesign(Grid):
           except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> node "upper" or "lower" must be float')
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
-    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['type']]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
+    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithm_type']]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
     self.externalgGridCoord = True
 
   def localAddInitParams(self,tempDict):
@@ -2102,8 +2102,8 @@ class ResponseSurfaceDesign(Grid):
     '''
     This method initialize the response matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     '''
-    if   self.respOpt['type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
-    elif self.respOpt['type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
+    if   self.respOpt['algorithm_type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
+    elif self.respOpt['algorithm_type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
     for cnt, varName in enumerate(self.axisName):
       column = np.unique(self.designMatrix[:,cnt])
       yi = np.array([self.bounds[varName][0], self.bounds[varName][1]])
