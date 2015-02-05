@@ -35,7 +35,7 @@ def checkAnswer(comment,value,expected):
 def checkCrowDist(comment,dist,expected_crow_dist):
   crow_dist = dist.getCrowDistDict()
   if crow_dist != expected_crow_dist:
-    print(comment,crow_dist,expected_crow_dist)
+    print(comment,'\n',crow_dist,'\n',expected_crow_dist)
     results["fail"] += 1
   else:
     results["pass"] += 1
@@ -72,24 +72,6 @@ print(uniform.rvs(5),uniform.rvs())
 
 #check rvsWithinCDFbounds
 uniform.rvsWithinbounds(1.5,2.5)
-# fake quadrature
-uniform.setQuad({},2)
-uniform.quad()
-uniform.polyOrder()
-
-#uniform.norm(2)
-#uniform.standardToActualPoint(-1)
-#uniform.actualToStandardPoint(2.0)
-#uniform.standardToActualWeight(0.5)
-#uniform.probNorm(0.5)
-uniform.addInitParams({})
-for _ in range(10): Distributions.randomIntegers(0,1)
-
-uniform.poly_norm(2)
-uniform.actual_point(-1)
-uniform.std_point(2.0)
-uniform.actual_weight(0.5)
-uniform.probability_norm(0.5)
 
 uniform.addInitParams({})
 for _ in range(10): Distributions.randomIntegers(0,1)
@@ -97,10 +79,11 @@ for _ in range(10): Distributions.randomIntegers(0,1)
 Distributions.randomIntegers(2,1)
 
 #Test Normal
-
+mean=1.0
+sigma=2.0
 normalElement = ET.Element("normal")
-normalElement.append(createElement("mean",text="1.0"))
-normalElement.append(createElement("sigma",text="2.0"))
+normalElement.append(createElement("mean",text="%f" %mean))
+normalElement.append(createElement("sigma",text="%f" %sigma))
 
 normal = Distributions.Normal()
 normal._readMoreXML(normalElement)
@@ -119,13 +102,6 @@ checkAnswer("normal ppf(0.9)",normal.ppf(0.9),3.56310313109)
 checkAnswer("normal mean()",normal.untruncatedMean(),1.0)
 checkAnswer("normal median()",normal.untruncatedMedian(),1.0)
 checkAnswer("normal mode()",normal.untruncatedMode(),1.0)
-
-normal.poly_norm(2)
-normal.actual_point(-1)
-normal.std_point(2.0)
-normal.actual_weight(0.5)
-normal.probability_norm(0.5)
-
 
 print(normal.rvs(5),normal.rvs())
 
@@ -189,12 +165,6 @@ checkAnswer("gamma ppf(0.1)",gamma.ppf(0.1),0.210721031316)
 checkAnswer("gamma ppf(0.5)",gamma.ppf(0.5),1.38629436112)
 checkAnswer("gamma ppf(0.9)",gamma.ppf(0.9),4.60517018599)
 
-gamma.poly_norm(2)
-gamma.actual_point(-1)
-gamma.std_point(2.0)
-gamma.actual_weight(0.5)
-gamma.probability_norm(0.5)
-
 nobeta_gammaElement = ET.Element("nobeta_gamma")
 nobeta_gammaElement.append(createElement("alpha",text="1.0"))
 nobeta_gammaElement.append(createElement("low",text="0.0"))
@@ -217,9 +187,7 @@ beta = Distributions.Beta()
 beta._readMoreXML(betaElement)
 beta.initializeDistribution()
 
-beta.addInitParams({})
-
-checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+checkCrowDist("beta",beta,{'scale': 1.0, 'beta': 2.0, 'low':0.0, 'xMax': 1.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
 checkAnswer("beta cdf(0.1)",beta.cdf(0.1),5.5e-05)
 checkAnswer("beta cdf(0.5)",beta.cdf(0.5),0.109375)
@@ -251,7 +219,7 @@ beta = Distributions.Beta()
 beta._readMoreXML(betaElement)
 beta.initializeDistribution()
 
-checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+checkCrowDist("scaled beta",beta,{'scale': 4.0, 'beta': 1.0, 'low':0.0, 'xMax': 4.0, 'xMin': 0.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
 
 checkAnswer("scaled beta cdf(0.1)",beta.cdf(0.1),9.765625e-09)
 checkAnswer("scaled beta cdf(0.5)",beta.cdf(0.5),3.0517578125e-05)
@@ -260,6 +228,30 @@ checkAnswer("scaled beta cdf(0.9)",beta.cdf(0.9),0.000576650390625)
 checkAnswer("scaled beta ppf(0.1)",beta.ppf(0.1),2.52382937792)
 checkAnswer("scaled beta ppf(0.5)",beta.ppf(0.5),3.48220225318)
 checkAnswer("scaled beta ppf(0.9)",beta.ppf(0.9),3.91659344944)
+
+print(beta.rvs(5),beta.rvs())
+
+#Test Beta Shifted and Scaled
+
+betaElement = ET.Element("beta")
+betaElement.append(createElement("low",text="-1.0"))
+betaElement.append(createElement("hi",text="5.0"))
+betaElement.append(createElement("alpha",text="5.0"))
+betaElement.append(createElement("beta",text="2.0"))
+
+beta = Distributions.Beta()
+beta._readMoreXML(betaElement)
+beta.initializeDistribution()
+
+checkCrowDist("shifted beta",beta,{'scale': 6.0, 'beta': 2.0, 'low':-1.0, 'xMax': 5.0, 'xMin': -1.0, 'alpha': 5.0, 'type': 'BetaDistribution'})
+
+checkAnswer("shifted beta cdf(-0.5)",beta.cdf(-0.5),2.2438164437585733882e-5)
+checkAnswer("shifted beta cdf( 0.5)",beta.cdf( 0.5),4.638671875e-3)
+checkAnswer("shifted beta cdf( 3.5)",beta.cdf( 3.5),5.33935546875e-1)
+
+checkAnswer("shifted beta ppf(0.1)",beta.ppf(0.1),1.93810216069)
+checkAnswer("shifted beta ppf(0.5)",beta.ppf(0.5),3.41330010023)
+checkAnswer("shifted beta ppf(0.9)",beta.ppf(0.9),4.44442844652)
 
 print(beta.rvs(5),beta.rvs())
 
@@ -398,9 +390,7 @@ exponential = Distributions.Exponential()
 exponential._readMoreXML(exponentialElement)
 exponential.initializeDistribution()
 
-exponential.addInitParams({})
-
-checkCrowDist("exponential",exponential,{'type': 'ExponentialDistribution', 'lambda': 5.0})
+checkCrowDist("exponential",exponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'lambda': 5.0, 'low':0.0})
 
 checkAnswer("exponential cdf(0.3)",exponential.cdf(0.3),0.7768698399)
 checkAnswer("exponential cdf(1.0)",exponential.cdf(1.0),0.993262053001)
@@ -433,7 +423,7 @@ truncExponential = Distributions.Exponential()
 truncExponential._readMoreXML(truncExponentialElement)
 truncExponential.initializeDistribution()
 
-checkCrowDist("truncExponential",truncExponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'xMax': 10.0, 'lambda': 5.0})
+checkCrowDist("truncExponential",truncExponential,{'xMin': 0.0, 'type': 'ExponentialDistribution', 'xMax': 10.0, 'lambda': 5.0, 'low':0.0})
 
 checkAnswer("truncExponential cdf(0.1)",truncExponential.cdf(0.1),0.393469340287)
 checkAnswer("truncExponential cdf(5.0)",truncExponential.cdf(5.0),0.999999999986)

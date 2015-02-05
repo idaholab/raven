@@ -22,7 +22,7 @@ from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
-import Samplers
+#import Samplers
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -69,9 +69,22 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible samplers
   validateDict['Sampler'].append(testDict.copy())
   validateDict['Sampler'][0]['class'       ] ='Samplers'
-  validateDict['Sampler'][0]['type'        ] = Samplers.knownTypes()
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
+  #validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+  #FIXME this is a temporary statick list assignment to fix the circular references
+  #    generated in SamplingROM from inheriting both Model and Sampler (Issue #13 on the wiki)
+  #FIXME MORE this isn't an issue since we scrapped SamplingROM, but circular references
+  #    are still a potential issue
+  validateDict['Sampler'][0]['type'] = ['MonteCarlo',
+                                        'DynamicEventTree',
+                                        'LHS',
+                                        'Grid',
+                                        'Adaptive',
+                                        'AdaptiveDynamicEventTree',
+                                        'FactorialDesign',
+                                        'ResponseSurfaceDesign',
+                                        'SparseGridCollocation']
 
   @classmethod
   def generateValidateDict(cls):
@@ -284,10 +297,15 @@ class ROM(Dummy):
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      try: self.initializationOptionDict[child.tag] = int(child.text)
-      except ValueError:
-        try: self.initializationOptionDict[child.tag] = float(child.text)
-        except ValueError: self.initializationOptionDict[child.tag] = child.text
+      #FIXME is there anything that is a float that will raise an exception for int?
+      if child.attrib:
+        self.initializationOptionDict[child.tag]={'text':child.text}
+        self.initializationOptionDict[child.tag].update(child.attrib)
+      else:
+        try: self.initializationOptionDict[child.tag] = int(child.text)
+        except ValueError:
+          try: self.initializationOptionDict[child.tag] = float(child.text)
+          except ValueError: self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
@@ -652,12 +670,6 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
-    from Distributions import _FrameworkToCrowDistNames
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][3]['class'       ] = 'Distributions'
-    cls.validateDict['Input'  ][3]['type'        ] = _FrameworkToCrowDistNames.keys()
-    cls.validateDict['Input'  ][3]['required'    ] = False
-    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']
@@ -767,6 +779,11 @@ __knownTypes                      = list(__interFaceDict.keys())
 for classType in __interFaceDict.values():
   classType.generateValidateDict()
   classType.specializeValidateDict()
+
+def addKnownTypes(newDict):
+  for name,value in newDict.items():
+    __interFaceDict[name]=value
+    __knownTypes.append(name)
 
 def knownTypes():
   return __knownTypes
