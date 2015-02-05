@@ -72,7 +72,7 @@ for f in texFiles:
       elif codeListing:
         newString += line + '\n'
         continue
-        
+
       # If the line's length  > lineWidth, then start storing lineWidth
       # components
       if len(indent+line) > lineWidth:
@@ -98,7 +98,7 @@ for f in texFiles:
           # No matter what happens if we have reached the end of a sentence,
           # then we need a new line
           if currentLine.endswith('.') and 'e.g.' not in token and 'i.e.' not in token:
-            newString += currentLine + '\n' 
+            newString += currentLine + '\n'
             indent = GetIndent(newString)
             newString += indent + '%\n'
             currentLine = indent
@@ -154,7 +154,7 @@ for f in texFiles:
   newString = re.sub(r'\$<(.*?)>\$', r'\xmlNode{\1}', newString)
   newString = re.sub(r'\textbf{\textit{(.*?)\.?}}\.', r' \xmlDesc{\1}', newString)
   newString = newString.replace('\\xmlDesc{, ', ', \\xmlDesc{')
-  
+
   newFile = f + '2'
   fout = open(newFile,'w')
   fout.write(newString)
