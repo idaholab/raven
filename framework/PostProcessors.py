@@ -1335,7 +1335,9 @@ class ExternalPostProcessor(BasePostProcessor):
           if param not in inputDict['targets']:
             raise IOError(self.errorString('variable \"' + param + '\" unknown.'
                                           + ' Please verify your external'
-                                          + ' script variables match the data'
+                                          + ' script (' 
+                                          + interface.functionFile
+                                          + ') variables match the data'
                                           + ' available in your dataset.'))
 
     return inputDict
@@ -1386,42 +1388,56 @@ class ExternalPostProcessor(BasePostProcessor):
       dataLength = None
       for inputData in inputList:
         # Pass inputs from input data to output data
-        for key,value in inputData.getParametersValues('input').items():
-          if key in requestedInput:
-            # We need the size to ensure the data size is consistent, but there
-            # is no guarantee the data is not scalar, so this check is necessary
-            myLength = 1
-            if hasattr(value, "__len__"):
-              myLength = len(value)
+        #   OR
+        # If the user is updating the input, then use that instead for the
+        # output
+        for key in requestedInput:
+          value = []
+          if key in outputDict:
+            value = outputDict[key]
+          elif key in inputData.getParametersValues('input').items():
+            value = inputData.getParametersValues('input')[key]
+          # We need the size to ensure the data size is consistent, but there
+          # is no guarantee the data is not scalar, so this check is necessary
+          myLength = 1
+          if hasattr(value, "__len__"):
+            myLength = len(value)
 
-            if dataLength is None:
-              dataLength = myLength
-            elif dataLength != myLength:
-              dataLength = max(dataLength,myLength)
-              print(self.warningString('Data size is inconsistent. Currently '
+          if dataLength is None:
+            dataLength = myLength
+          elif dataLength != myLength:
+            dataLength = max(dataLength,myLength)
+            print(self.warningString('Data size is inconsistent. Currently '
                                       + 'set to ' + str(dataLength) + '.'))
 
-            for val in value:
-              output.updateInputValue(key, val)
+          for val in value:
+            output.updateInputValue(key, val)
 
         # Pass outputs from input data to output data
-        for key,value in inputData.getParametersValues('output').items():
-          if key in requestedOutput:
+        #   OR
+        # If the user is updating the input, then use that instead for the
+        # output
+        for key in requestedOutput:
+          value = []
+          if key in outputDict:
+            value = outputDict[key]
+          elif key in inputData.getParametersValues('output').items():
+            value = inputData.getParametersValues('output')[key]
             # We need the size to ensure the data size is consistent, but there
             # is no guarantee the data is not scalar, so this check is necessary
-            myLength = 1
-            if hasattr(value, "__len__"):
-              myLength = len(value)
+          myLength = 1
+          if hasattr(value, "__len__"):
+            myLength = len(value)
 
-            if dataLength is None:
-              dataLength = myLength
-            elif dataLength != myLength:
-              dataLength = max(dataLength,myLength)
-              print(self.warningString('Data size is inconsistent. Currently '
-                                      + 'set to ' + str(dataLength) + '.'))
+          if dataLength is None:
+            dataLength = myLength
+          elif dataLength != myLength:
+            dataLength = max(dataLength,myLength)
+            print(self.warningString('Data size is inconsistent. Currently '
+                                    + 'set to ' + str(dataLength) + '.'))
 
-            for val in value:
-              output.updateOutputValue(key,val)
+          for val in value:
+            output.updateOutputValue(key,val)
 
       # Figure out where the computed data should go in the output data and put
       # it there
@@ -1503,6 +1519,9 @@ class ExternalPostProcessor(BasePostProcessor):
 
     for methodName,(interface,method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method,Input['targets'])
+      for target in Input['targets']:
+        if hasattr(interface,target):
+          outputDict[target] = getattr(interface, target)
 
     return outputDict
 #
