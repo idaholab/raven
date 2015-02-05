@@ -1,4 +1,10 @@
 *.xml
 *.pdf
 *.eps
+*.png
+*.h5
+pickle1
+out*snc01
+RELAP5interfaceTest/testDummyStep/tpfh2o
+AdaptiveDET/AdaptiveDETrunTest/
 coverage_html_report
