@@ -91,7 +91,7 @@ class Distribution(BaseType):
     self.type             = pdict.pop('type')
     self._localSetState(pdict)
     self.initializeDistribution()
-    
+
 
   def _readMoreXML(self,xmlNode):
     '''
