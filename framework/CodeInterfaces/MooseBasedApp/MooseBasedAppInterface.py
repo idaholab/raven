@@ -9,23 +9,24 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
+from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class MooseBasedAppInterface:
+class MooseBasedAppInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
   def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
-    if inputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    found = False
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile.endswith(('.i','.inp','.in')):
+        found = True
+        break
+    if not found: raise Exception('MOOSEBASEDAPP INTERFACE ERROR -> None of the input files has one of the following extensions ".i", ".inp", or ".in"!')
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                         ' Outputs/file_base='+ outputfile +
                         ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true')
 
     return executeCommand,outputfile
-
-  def appendLoadFileExtension(self,fileRoot):
-    '''  '''
-    return fileRoot + '.csv'
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''

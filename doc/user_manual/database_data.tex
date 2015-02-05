@@ -183,9 +183,13 @@ XML block \xmlNode{HDF5}, that recognizes the following attributes:
   \nb As with other objects, this is name can be used to reference this specific
   entity from other input blocks in the XML.
   \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
-  can be used to specify a particular directory path where to create the
-  database, if no \textit{filename} is specified, or from where open an already
-  existing one, if \textit{filename} is provided. \maljdan{Huh?}
+  can be used to specify a particular directory path where the database will be
+  created, if no \textit{filename} is specified, or where to find an already
+  existing one if \textit{filename} is provided.
+%  \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
+%  can be used to specify a particular directory path where to create the
+%  database, if no \textit{filename} is specified, or from where open an already
+%  existing one, if \textit{filename} is provided. \maljdan{Huh?}
   %
   \default{raven/framework/DataBaseStorage}
   \item \xmlAttr{filename}, \xmlDesc{optional string attribute}, specifies the

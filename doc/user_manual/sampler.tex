@@ -260,8 +260,8 @@ As reported in section \ref{sec:existingInterface}, the variable naming syntax,
 for external driven codes, depends on the way the ``code interface'' has been
 implemented.
 %
-For example, if the code has an input structure like the one reported below, the
-variable name would be\xmlString{I-Level|II-Level|variable}.
+For example, if the code has an input structure like the one reported below (YAML), the
+variable name might be\xmlString{I-Level|II-Level|variable}.
 %
 In this way, the relative code interface (and input parser) will know which
 variable needs to be perturbed and the ``recipe'' to access it.
@@ -270,7 +270,8 @@ As reported in \ref{sec:existingInterface}, its syntax is chosen by the
 developer of the ``code interface'' and is implemented in the interface only
 (no modifications are needed in the RAVEN code).
 
-\maljdan{Where does this type of input come from? Should the user care?}
+%\maljdan{Where does this type of input come from? Should the user care?}
+%\alfoa{Dan, this is an example (in this case, a YAML structure)}
 
 Example Input:
 \begin{lstlisting}
@@ -614,11 +615,11 @@ additional sub-node called \xmlNode{ResponseSurfaceDesignSettings}.
 In this sub-node, the user needs to specify different settings depending on the
 algorithm being used:
      \begin{itemize}
-      \item \xmlNode{type}, \xmlDesc{string, required field}, this XML node
+      \item \xmlNode{algorithm\_type}, \xmlDesc{string, required field}, this XML node
         will contain the name of the algorithm to be used.
         Based on the chosen algorithm, other nodes need to be defined:
         \begin{itemize}
-          \item \xmlNode{type}\texttt{BoxBehnken}\xmlNode{type/}. If Box-Behnken
+          \item \xmlNode{algorithm\_type}\texttt{BoxBehnken}\xmlNode{algorithm\_type/}. If Box-Behnken
             is specified, the following additional node is recognized:
          \begin{itemize}
           \item \xmlNode{ncenters}, \xmlDesc{integer, optional field}, the
@@ -629,7 +630,7 @@ algorithm being used:
          \end{itemize}
          \nb In order to employ the ``Box-Behnken'' design, at least 3 variables
          must be used.
-         \item \xmlNode{type}\texttt{CentralComposite}\xmlNode{type/}. If
+         \item \xmlNode{algorithm\_type}\texttt{CentralComposite}\xmlNode{algorithm\_type/}. If
            Central Composite is specified, the following additional nodes will
            be recognized:
          \begin{itemize}
@@ -662,10 +663,12 @@ algorithm being used:
       variables must be used.
     \end{itemize}
 
-\maljdan{Is it weird that one of these uses ncenters and the other uses centers?}
+%\maljdan{Is it weird that one of these uses ncenters and the other uses centers?}
+%\alfoa{The names of those parameters are different in order to avoid confusion, since the meaning (and the way ) to input them is different}
 
-\maljdan{This is the first example where type is an attribute and a node...This
-is confusing.}
+%\maljdan{This is the first example where type is an attribute and a node...This
+%is confusing.}
+%\alfoa{Changed.}
 
 Example:
 \begin{lstlisting}[style=XML,morekeywords={}]
@@ -673,7 +676,7 @@ Example:
   ...
     <ResponseSurfaceDesign name='BoxBehnkenRespDesign'>
         <ResponseSurfaceDesignSettings>
-            <type>BoxBehnken</type>
+            <algorithm_type>BoxBehnken</algorithm_type>
             <ncenters>1</ncenters>
         </ResponseSurfaceDesignSettings>
         <variable name='var1' >
@@ -689,7 +692,7 @@ Example:
     </ResponseSurfaceDesign>
     <ResponseSurfaceDesign name='CentralCompositeRespDesign'>
         <ResponseSurfaceDesignSettings>
-            <type>CentralComposite</type>
+            <algorithm_type>CentralComposite</algorithm_type>
             <centers>1, 2</centers>
             <alpha>orthogonal</alpha>
             <face>circumscribed</face>
@@ -780,18 +783,18 @@ called\\\xmlNode{FactorialSettings}.
 In this sub-node, the user needs to specify different settings depending on the
 algorithm being used:
    \begin{itemize}
-    \item \xmlNode{type}, \xmlDesc{string, required field}, specifies the
+    \item \xmlNode{algorithm\_type}, \xmlDesc{string, required field}, specifies the
       algorithm to be used.
       %
       Based on the chosen algorithm, other nodes may be defined:
       \begin{itemize}
-        \item \xmlNode{type}\texttt{full}\xmlNode{type/}. Full factorial design.
+        \item \xmlNode{algorithm\_type}\texttt{full}\xmlNode{algorithm\_type/}. Full factorial design.
           If \texttt{full} is specified, no additional nodes are necessary.
           \\
           \nb The full factorial design does not have any limitations on the
           number of discretization bins that can be used in the \xmlNode{grid}
           XML node for each \xmlNode{variable} specified.
-        \item \xmlNode{type}\texttt{2levelFract}\xmlNode{type/}. Two-level
+        \item \xmlNode{algorithm\_type}\texttt{2levelFract}\xmlNode{algorithm\_type/}. Two-level
           Fractional-Factorial design.
           %
           If \\\texttt{2levelFract}  is specified, the following additional
@@ -802,8 +805,8 @@ algorithm being used:
               %
               For instance, in this block the user defines the decisions on a
               fraction of the full-factorial by allowing some of the factor main
-              effects to be confounded with other factor interaction effects.
-              \maljdan{compounded?}
+              effects to be compounded with other factor interaction effects.
+              %\maljdan{compounded?} \alfoa{Right Dan.}
               %
               This is done by defining an alias structure that defines,
               symbolically, these interactions.
@@ -820,7 +823,7 @@ algorithm being used:
           \nb The Two-levels Fractional-Factorial design is limited to 2
           discretization bins in the \xmlNode{grid} node for each
           \xmlNode{variable}.
-       \item \xmlNode{type}\texttt{pb}\xmlNode{type/}. Plackett-Burman design.
+       \item \xmlNode{algorithm\_type}\texttt{pb}\xmlNode{algorithm\_type/}. Plackett-Burman design.
          If \texttt{pb} is specified, no additional nodes are necessary.
          \\ 
          \nb The Plackett-Burman design does not have any limitations on the
@@ -835,7 +838,7 @@ Example:
   ...
   <FactorialDesign name='fullFactorial'>
     <FactorialSettings>
-      <type>full</type>
+      <algorithm_type>full</algorithm_type>
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock1
@@ -850,7 +853,7 @@ Example:
   </FactorialDesign>
   <FactorialDesign name='2levelFractFactorial'>
     <FactorialSettings>
-      <type>2levelFract</type>
+      <algorithm_type>2levelFract</algorithm_type>
       <gen>a,b,ab</gen>
       <genMap>var1,var2,var3</genMap>
     </FactorialSettings>
@@ -872,7 +875,7 @@ Example:
   </FactorialDesign>
   <FactorialDesign name='pbFactorial'>
     <FactorialSettings>
-      <type>pb</type>
+      <algorithm_type>pb</algorithm_type>
     </FactorialSettings>
     <variable name='var1' >
       <distribution>aDistributionNameDefinedInDistributionBlock6
@@ -1434,15 +1437,21 @@ Example:
       1e-2
     </Convergence>
     <variable name = 'var1'>
-        <distribution>aDistributionNameDefinedInDistributionBlock1</distribution> 
+        <distribution>
+         aDistributionNameDefinedInDistributionBlock1
+        </distribution> 
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
     <variable name = 'var2'>
-        <distribution>aDistributionNameDefinedInDistributionBlock2</distribution> 
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock2
+        </distribution> 
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
     <variable name = 'var3'>
-        <distribution>aDistributionNameDefinedInDistributionBlock3</distribution> 
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock3
+        </distribution> 
         <grid type='CDF' construction='custom'>0.1 0.8</grid>
     </variable>
   </AdaptiveDynamicEventTree>

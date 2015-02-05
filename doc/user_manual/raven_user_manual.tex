@@ -29,6 +29,9 @@
 \usepackage{listings}
 \usepackage{fullpage}
 \usepackage{xcolor}          % Using xcolor for more robust color specification
+\usepackage{ifthen}          % For simple checking in newcommand blocks
+%\usepackage{authblk}         % For making the author list look prettier
+%\renewcommand\Authsep{,~\,}
 
 % Custom colors
 \definecolor{deepblue}{rgb}{0,0,0.5}
@@ -127,16 +130,27 @@ showstringspaces=false            %
 \definecolor{DMcolor}{HTML}{276605}  % Diego (adjusted for clarity)
 \definecolor{PTcolor}{HTML}{D10B8C}  % Paul
 
+%\def\DRAFT{} % Uncomment this if you want to see the notes people have been adding
 % Comment command for developers (Should only be used under active development)
-\newcommand{\alfoa}[1] {\textcolor{AAcolor}{Andrea:[[#1]]}}
-\newcommand{\cristr}[1] {\textcolor{CRcolor}{Cristian:[[#1]]}}
-\newcommand{\mandd}[1] {\textcolor{DMcolor}{Diego:[[#1]]}}
-\newcommand{\maljdan}[1] {\textcolor{DPMcolor}{Dan:[[#1]]}}
-\newcommand{\cogljj}[1] {\textcolor{JCcolor}{Josh:[[#1]]}}
-\newcommand{\bobk}[1] {\textcolor{RKcolor}{Bob:[[#1]]}}
-\newcommand{\senrs}[1] {\textcolor{RScolor}{Sonat:[[#1]]}}
-\newcommand{\talbpaul}[1] {\textcolor{PTcolor}{Paul:[[#1]]}}
-
+\ifdefined\DRAFT
+  \newcommand{\alfoa}[1] {\textcolor{AAcolor}{Andrea:[[#1]]}}
+  \newcommand{\cristr}[1] {\textcolor{CRcolor}{Cristian:[[#1]]}}
+  \newcommand{\mandd}[1] {\textcolor{DMcolor}{Diego:[[#1]]}}
+  \newcommand{\maljdan}[1] {\textcolor{DPMcolor}{Dan:[[#1]]}}
+  \newcommand{\cogljj}[1] {\textcolor{JCcolor}{Josh:[[#1]]}}
+  \newcommand{\bobk}[1] {\textcolor{RKcolor}{Bob:[[#1]]}}
+  \newcommand{\senrs}[1] {\textcolor{RScolor}{Sonat:[[#1]]}}
+  \newcommand{\talbpaul}[1] {\textcolor{PTcolor}{Paul:[[#1]]}}
+\else
+  \newcommand{\alfoa}[1] {}
+  \newcommand{\cristr}[1] {}
+  \newcommand{\mandd}[1] {}
+  \newcommand{\maljdan}[1] {}
+  \newcommand{\cogljj}[1] {}
+  \newcommand{\bobk}[1] {}
+  \newcommand{\senrs}[1] {}
+  \newcommand{\talbpaul}[1] {}
+\fi
 % Commands for making the LaTeX a bit more uniform and cleaner
 \newcommand{\TODO}[1]    {\textcolor{red}{\textit{(#1)}}}
 \newcommand{\xmlAttrRequired}[1] {\textcolor{red}{\textbf{\texttt{#1}}}}
@@ -224,19 +238,46 @@ showstringspaces=false            %
 %
 % Set the title, author, and date
 %
-    \title{RAVEN User Manual}
-    \author{%
-    \\
-     \\\textbf{Cristian Rabiti}
-      \textbf{Andrea Alfonsi}
-      \\\textbf{Joshua Cogliati}
-      \textbf{Diego Mandelli}
-      \\\textbf{Robert Kinoshita}
-      \textbf{Sonat Sen}
-    }
-    % There is a "Printed" date on the title page of a SAND report, so
-    % the generic \date should [WorkingDir:]generally be empty.
-    \date{}
+\title{RAVEN User Manual}
+%\author{%
+%\begin{tabular}{c} Author 1 \\ University1 \\ Mail1 \\ \\
+%Author 3 \\ University3 \\ Mail3 \end{tabular} \and
+%\begin{tabular}{c} Author 2 \\ University2 \\ Mail2 \\ \\
+%Author 4 \\ University4 \\ Mail4\\
+%\end{tabular} }
+
+
+\author{
+\textbf{\textit{Principal Investigator (PI):}}
+ \\Cristian Rabiti\\ 
+\textbf{\textit{Main Developers:}}  
+\\Andrea Alfonsi
+\\Joshua Cogliati
+\\Diego Mandelli
+\\Robert Kinoshita
+\\Sonat Sen\\
+\textbf{\textit{Contributors:}} \\Alessandro Bandini
+\\Daniel P. Maljovec
+\\Ivan Rinaldi
+\\Paul W. Talbot}
+%\author{\textbf{\textit{Main Developers:}}  \\Andrea Alfonsi}
+%\author{\\Joshua Cogliati}
+%\author{\\Diego Mandelli}
+%\author{\\Robert Kinoshita}
+%\author{\\Sonat Sen}
+%
+%\author{Cristian Rabiti}
+%\author{Andrea Alfonsi}
+%\author{Joshua Cogliati}
+%\author{Diego Mandelli}
+%\author{Robert Kinoshita}
+%\author{Sonat Sen}
+%\affil{Idaho National Laboratory, Idaho Falls, ID 83402}
+%\\\{cristian.rabiti, andrea.alfonsi, joshua.cogliati, diego.mandelli, robert.kinoshita, ramazan.sen\}@inl.gov}
+
+% There is a "Printed" date on the title page of a SAND report, so
+% the generic \date should [WorkingDir:]generally be empty.
+\date{}
 
 
 % ---------------------------------------------------------------------------- %
@@ -244,7 +285,8 @@ showstringspaces=false            %
 %
 \SANDnum{INL/EXT-15-34123}
 \SANDprintDate{January 2015}
-\SANDauthor{ }
+\SANDauthor{Cristian Rabiti, Andrea Alfonsi, Joshua Cogliati, Diego Mandelli, 
+Robert Kinoshita, Sonat Sen}
 \SANDreleaseType{Draft Release}
 
 % ---------------------------------------------------------------------------- %
@@ -279,13 +321,9 @@ showstringspaces=false            %
     % contributions or helped beyond the normal part of a work assignment.
     % Use \section* since we don't want it in the table of context
     %
-    \clearpage
-    \section*{Acknowledgment}
-     Thanks to the following people for their contributions in the drawing up of this Manual:
-     \begin{itemize}
-     \item Ivan Rinaldi;
-     \item Alessandro Bandini.
-     \end{itemize}
+%    \clearpage
+%    \section*{Acknowledgment}
+
     
 
 %	The format of this report is based on information found

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation>
+<RunInfo>
+    <WorkingDir>RELAP5interfaceTest</WorkingDir>
+    <Files>snc01.i,tpfh2o</Files>
+    <Sequence>testDummyStep</Sequence>
+    <batchSize>2</batchSize>
+</RunInfo>
+
+<Models>
+    <Code name='MyRELAP' subType='Relap5'>
+        <executable> <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty --> </executable>
+    </Code>
+</Models>
+
+<Distributions>
+    <Normal name='Prim_Pres'>
+        <mean>69.618</mean>
+        <sigma>14.5037</sigma>
+        <lowerBound>67</lowerBound>
+        <!--<upperBound>84</upperBound>-->
+    </Normal>   
+    <Normal name='Core_Power'>
+        <mean>0.0327</mean>
+        <sigma>0.001</sigma>
+        <upperBound>0.034</upperBound>
+    </Normal>
+</Distributions>
+
+<Samplers>
+    <MonteCarlo     name='MC_samp'  limit='5'>
+     <variable name='9890201:2'>
+      <distribution>Prim_Pres</distribution>
+     </variable>
+     <variable name='20290000:4'>
+      <distribution>Core_Power</distribution>
+     </variable>
+    </MonteCarlo>
+</Samplers>
+
+<Steps>
+    <MultiRun name='testDummyStep' re-seeding='1'>
+        <Input   class='Files'     type=''          >snc01.i</Input>
+        <Input   class='Files'     type=''          >tpfh2o</Input>
+        <Model   class='Models'    type='Code'      >MyRELAP</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'>MC_samp</Sampler>
+        <Output  class='DataBases' type='HDF5'      >DataB_REL5_1</Output>
+    </MultiRun >
+</Steps>
+<DataBases>
+    <HDF5 name="DataB_REL5_1"/>
+</DataBases>
+
+</Simulation>
