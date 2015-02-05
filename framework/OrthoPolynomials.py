@@ -72,7 +72,7 @@ class OrthogonalPolynomial(object):
     '''
     Equality method.
     @ In other, object, object to compare equivalence
-    @ Out boolean, truth of matching equality 
+    @ Out boolean, truth of matching equality
     '''
     return self._poly==other._poly and self._evPoly==other._evPoly and self.params==other.params
 
@@ -80,7 +80,7 @@ class OrthogonalPolynomial(object):
     '''
     Inequality method.
     @ In other, object, object to compare equivalence
-    @ Out boolean, truth of matching inequality 
+    @ Out boolean, truth of matching inequality
     '''
     return not self.__eq__(other)
 

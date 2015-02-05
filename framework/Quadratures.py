@@ -293,7 +293,7 @@ class SparseQuad(object):
     else:
       try: return self.SG[tuple(n)]
       except TypeError:  return self.SG.values()[n]
-  
+
 #  def serialMakeCoeffs(self):
 #    '''Brute force method to create coefficients for each index set in the sparse grid approximation.
 #      This particular implementation is faster for 2 dimensions, but slower for
@@ -429,14 +429,14 @@ class QuadratureSet(object):
   def initialize(self,distr):
     '''Initializes specific settings for quadratures.  Must be overwritten.
     @ In distr, Distribution object, distro represented by this quad
-    @ Out, None, None 
+    @ Out, None, None
     '''
     pass
 
   def quadRule(self,i):
     '''Quadrature rule to use for order.  Defaults to Gauss, CC should set its own.
     @ In i, int, quadrature level
-    @ Out, int, quadrature order 
+    @ Out, int, quadrature order
     '''
     return GaussQuadRule(i)
 
@@ -514,7 +514,7 @@ def CCQuadRule(i):
   '''In order to get nested points, we need 2**i on Clenshaw-Curtis points instead of just i.
      For example, i=2 is not nested in i==1, but i==2**2 is.
   @ In i,int,level desired
-  @ Out, int,desired quad order   
+  @ Out, int,desired quad order
   '''
   try: return np.array(list((0 if p==0 else 2**p) for p in i))
   except TypeError: return 0 if i==0 else 2**i
@@ -523,7 +523,7 @@ def CCQuadRule(i):
 def GaussQuadRule(i):
   '''We need no modification for Gauss rules, as we don't expect them to be nested.
   @ In i,int,level desired
-  @ Out, int,desired quad order   
+  @ Out, int,desired quad order
   '''
   return i
 

@@ -408,7 +408,7 @@ class Simulation(object):
       if samplingROM.type in ['StochasticPolynomials','AdaptiveStochasticPolynomials']:
         self.whichDict['Models'][name] = samplingROM
     # it's a ROM really.
-    
+
   def initialize(self):
     '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
     #check/generate the existence of the working directory

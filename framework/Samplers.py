@@ -2143,7 +2143,7 @@ class SparseGridCollocation(Grid):
     self.ROM            = None  #pointer to ROM
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
-    
+
   def _localWhatDoINeed(self):
     needDict={}
     for value in self.assemblerObjects.values():
