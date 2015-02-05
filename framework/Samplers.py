@@ -31,7 +31,13 @@ import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
+import Quadratures
+import OrthoPolynomials
+import IndexSets
 #Internal Modules End--------------------------------------------------------------------------------
+
+#Internal Submodules---------------------------------------------------------------------------------
+#Internal Submodules End--------------------------------------------------------------------------------
 
 class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   '''
@@ -899,6 +905,7 @@ class Grid(Sampler):
     It could not have been done earlier since the distribution might not have been initialized first
     '''
     for varName in self.gridInfo.keys():
+      print('DEBUG',self.printTag,varName,self.gridInfo[varName])
       if self.gridInfo[varName][0]=='value':
         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
@@ -2118,6 +2125,171 @@ class ResponseSurfaceDesign(Grid):
     gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
     for cnt, varName in enumerate(self.axisName): self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
     Grid.localGenerateInput(self,model, myInput)
+
+class SparseGridCollocation(Grid):
+  def __init__(self):
+    Grid.__init__(self)
+    self.type           = 'SparseGridCollocationSampler'
+    self.printTag       = returnPrintTag(self.type)
+    self.assemblerObjects={}    #dict of external objects required for assembly
+    self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
+    self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
+    self.adaptive       = False #TODO
+    self.polyDict       = {}    #varName-indexed dict of polynomial types
+    self.quadDict       = {}    #varName-indexed dict of quadrature types
+    self.importanceDict = {}    #varName-indexed dict of importance weights
+    self.maxPolyOrder   = None  #integer, relative maximum polynomial order to be used in any one dimension
+    self.lastOutput     = None  #pointer to output datas object
+    self.ROM            = None  #pointer to ROM
+    self.jobHandler     = None  #pointer to job handler for parallel runs
+    self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
+
+  def _localWhatDoINeed(self):
+    needDict={}
+    for value in self.assemblerObjects.values():
+      if value[0] not in needDict.keys(): needDict[value[0]]=[]
+      needDict[value[0]].append((value[1],value[2]))
+    needDict['internal'] = [(None,'jobHandler')]
+    return needDict
+
+  def _localGenerateAssembler(self,initDict):
+    for key, value in self.assemblerObjects.items():
+      if   key in 'TargetEvaluation': self.lastOutput = initDict[value[0]][value[2]]
+      elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
+    self.jobHandler = initDict['internal']['jobHandler']
+
+  def _readMoreXML(self,xmlNode):
+    Grid._readMoreXML(self,xmlNode)
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+    #assembler node -> to be changed when Sonnet gets it in the base class
+    assemblerNode = xmlNode.find('Assembler')
+    if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
+    targEvalCounter = 0
+    romCounter      = 0
+    for subNode in assemblerNode:
+      if subNode.tag in ['TargetEvaluation','ROM']:
+        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+        self.assemblerObjects[subNode.tag] = [subNode.attrib['class'],subNode.attrib['type'],subNode.text]
+        if 'TargetEvaluation' in subNode.tag: targEvalCounter+=1
+        if 'ROM'              in subNode.tag: romCounter+=1
+      else:
+        raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
+    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
+    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
+
+  def localInputAndChecks(self,xmlNode):
+    for child in xmlNode:
+      if   child.tag=='Assembler'   :continue
+      elif child.tag=='Distribution': varName = '<distribution>'+child.attrib['name']
+      elif child.tag=='variable'    : varName =                  child.attrib['name']
+      self.axisName.append(varName)
+
+  def localInitialize(self):
+    #Grid.localInitialize(self)
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0] #often need only one
+    ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
+    self.maxPolyOrder = SVL.maxPolyOrder
+    #check input space consistency
+    samVars=self.axisName[:]
+    romVars=SVL.features[:]
+    try:
+      for v in self.axisName:
+        samVars.remove(v)
+        romVars.remove(v)
+    except ValueError:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
+    if len(romVars)>0:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
+    for v in ROMdata.keys():
+      if v not in self.axisName:
+        raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' given interpolation rules but '+v+' not in sampler!')
+      else:
+        self.gridInfo[v] = ROMdata[v] #quad, poly, weight
+    #set defaults, then replace them if they're asked for
+    for v in self.axisName:
+      if v not in self.gridInfo.keys():
+        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1','cdf':'False'}
+    #establish all the right names for the desired types
+    #FIXME this has grown gnarled, and should be simplified
+    for varName,dat in self.gridInfo.items():
+      #print('DEBUG dat',self.printTag,varName,dat)
+      if dat['cdf'].lower() in ['t','true','y','yes','1']:
+        quadType='CDF'
+        #TODO is Legendre the right default?
+        if dat['quad']=='DEFAULT': subType = 'Legendre'
+        else: subType = dat['quad']
+        if dat['poly']=='DEFAULT': polyType = 'Legendre'
+        else: polyType = dat['poly']
+      else: #not flagged as cdf by user
+        if dat['quad']=='DEFAULT': # FIXME-> consider checking names first, then setting subTypes
+          quadType = self.distDict[varName].preferredQuadrature
+          if quadType == 'CDF':
+            subType = 'Legendre'
+            if dat['poly']=='DEFAULT': polyType = 'Legendre'
+            else: polyType = dat['poly']
+          else:
+            if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
+            else: polyType = dat['poly']
+            subType=None
+        else: #quad not default
+          quadType = dat['quad']
+          if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
+          else: polyType = dat['poly']
+          subType=None
+      #build the distribution, quadrature, polynomial, importance weight
+      #TODO consistency checks between quads-polys-distros
+      distr = self.distDict[varName]
+      if quadType not in distr.compatibleQuadrature:
+        raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+
+      quad = Quadratures.returnInstance(quadType,Subtype=subType)
+      quad.initialize(distr)
+      self.quadDict[varName]=quad
+
+      poly = OrthoPolynomials.returnInstance(polyType)
+      poly.initialize(quad)
+      self.polyDict[varName] = poly
+
+      self.importanceDict[varName] = float(dat['weight'])
+    #print out the setup for each variable.   TODO should this always happen?
+    if self.debug:
+      print(self.printTag,'INTERPOLATION INFO:')
+      print('    Variable | Distribution | Quadrature | Polynomials')
+      for v in self.quadDict.keys():
+        print('   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
+      print('    Polynomial Set Degree:',self.maxPolyOrder)
+      print('    Polynomial Set Type  :',SVL.indexSetType)
+
+    if self.debug: print(self.printTag,'Starting index set generation...')
+    self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+
+    if self.debug: print(self.printTag,'Starting sparse grid generation...')
+    self.sparseGrid = Quadratures.SparseQuad()
+    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
+    self.limit=len(self.sparseGrid)
+    if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
+    if self.debug: print(self.printTag,'Finished sampler generation.')
+    for SVL in self.ROM.SupervisedEngine.values():
+      SVL.initialize({'SG':self.sparseGrid,
+                      'dists':self.distDict,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet':self.indexSet})
+
+  def localGenerateInput(self,model,myInput):
+    '''Provide the next point in the sparse grid.'''
+    pt,weight = self.sparseGrid[self.counter-1]
+    for v,varName in enumerate(self.distDict.keys()):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = weight
+    self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+
 #
 #
 #
@@ -2135,10 +2307,20 @@ __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
+__interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __knownTypes = list(__interFaceDict.keys())
+
+def addKnownTypes(newDict):
+  for name, value in newDict.items():
+    __interFaceDict[name]=value
 
 def knownTypes():
   return __knownTypes
+
+def addKnownTypes(newDict):
+  for name, value in newDict.items():
+    __interFaceDict[name]=value
+    __knownTypes.append(name)
 
 def returnInstance(Type):
   '''
