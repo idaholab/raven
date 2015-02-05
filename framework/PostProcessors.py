@@ -18,6 +18,7 @@ import os
 from glob import glob
 import copy
 import Datas
+import math
 #External Modules End--------------------------------------------------------------------------------
 
 # There is probably a better way to do this
@@ -1713,6 +1714,160 @@ class TopologicalDecomposition(BasePostProcessor):
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
+  def fitLinearPatches(self, inputData, outputData):
+    partitions = self.__amsc.GetPartitions(self.persistence)
+    fits = {}
+
+    for key,items in partitions.iteritems():
+      X = inputData[np.array(items),:]
+      y = outputData[np.array(items)]
+      beta_hat,residuals,rank,s = np.linalg.lstsq(X,y)
+      yHat = X.dot(beta_hat)
+      rSquared = 1 - np.sum((yHat - y)**2)/np.sum((y - np.mean(y))**2)
+      key = key.replace(',','_')
+      fits[key] = (beta_hat.tolist(),rSquared)
+
+    return fits
+
+  def fitGaussianPatches(self, inputData, outputData):
+    # For now, if we are doing anything more than a moderate amount of
+    # dimensions, use a constrained Gaussian
+    constrainedGaussian = (self.dimensionCount > 6)
+#############DEBUG##############################################################
+    constrainedGaussian = True
+#############END DEBUG##########################################################
+
+    partitions = self.__amsc.GetPartitions(self.persistence)
+    fits = {}
+    for extType in [0,1]:
+      extFlowSet = {}
+      for key,items in partitions.iteritems():
+        extIdx = int(key.split(',')[extType])
+        if extIdx not in extFlowSet.keys():
+          extFlowSet[extIdx] = []
+        for idx in items:
+          extFlowSet[extIdx].append(idx)
+
+      paramCount = 1
+      if constrainedGaussian:
+        paramCount += self.dimensionCount
+      else:
+        for d in xrange(self.dimensionCount+1):
+          paramCount += d
+
+      for extIdx,indices in extFlowSet.iteritems():
+        if len(indices) < paramCount:
+          print('Too few samples, skipping this segment')
+          continue
+
+        X = inputData[indices,]
+        Y = outputData[indices]
+        # For fitting a multivariate Gaussian, we will fix the mean to be at the
+        # extrema and the y-offset to match the output value at the extrema's
+        # location
+        mu = inputData[extIdx]
+        c = outputData[extIdx]
+
+        paramGuess = []
+
+        if constrainedGaussian:
+          # Define a variable number of inputs for our constrained Gaussian, it
+          # is constrained because we are only fitting diagonal components of
+          # the covariance matrix
+          def residuals(*arg):
+            a = arg[0][-1]
+            xvec = arg[1]
+            yvec = arg[2]
+            err = []
+            A = np.identity(len(arg[0][:-1]))*np.array(arg[0][:-1])
+            Adet = np.linalg.det(np.linalg.inv(A))
+            for idx in xrange(0,len(yvec)):
+              v = mu-xvec[idx]
+              C = a # a*(1/math.sqrt(2*math.pi**self.dimensionCount*Adet))
+              yPredicted = C*np.exp(-(v.dot(A).dot(v))) + c - C
+              err.append(yvec[idx] - yPredicted)
+            return err
+          # Not sure what is a good starting place for the covariance, so just
+          # use the identity matrix
+          for d in xrange(0,paramCount-1):
+            paramGuess.append(1.0)
+        else:
+          # Define a variable number of inputs for our Gaussian
+          def residuals(*arg):
+            a = arg[0][-1]
+            xvec = arg[1]
+            yvec = arg[2]
+            err = []
+
+            A = np.zeros((self.dimensionCount,self.dimensionCount))
+            idx = 0
+            for dRow in xrange(self.dimensionCount):
+              for dCol in xrange(dRow,self.dimensionCount):
+                A[dRow,dCol] = A[dCol,dRow] = arg[0][idx]
+                idx += 1
+
+            # Fastest way to tell if a matrix is positive definite
+            try:
+              np.linalg.cholesky(A)
+            except np.linalg.LinAlgError as msg:
+#              if 'Matrix is not positive definite' in msg.args:
+                # Return a large value to penalize non-conformant solution.
+                return 1e50*np.ones(len(yvec))
+#                return sys.float_info.max*np.ones(len(yvec))
+
+            #Adet = np.linalg.det(np.linalg.inv(A))
+            for idx in xrange(0,len(yvec)):
+              v = mu-xvec[idx]
+              C = a # a*(1/math.sqrt(2*math.pi**self.dimensionCount*Adet))
+              yPredicted = C*np.exp(-(v.dot(A).dot(v))) + c - C
+              err.append(yvec[idx] - yPredicted)
+            return err
+
+
+          # Not sure what is a good starting place for the covariance, so just
+          # use the identity matrix
+          for dRow in xrange(self.dimensionCount):
+            for dCol in xrange(dRow,self.dimensionCount):
+              paramGuess.append(1.0*(dRow==dCol))
+
+        if extType:
+          # Amplitude estimate (the range of this data, opens down for the maxima
+          # thus amplitude should be positive
+          paramGuess.append(outputData[extIdx]-min(outputData[indices]))
+        else:
+          # Amplitude estimate (the range of this data, opens up for minima
+          # thus the amplitude should be negative
+          paramGuess.append(outputData[extIdx]-max(outputData[indices]))
+
+        test = leastsq(residuals, paramGuess, args=(X,Y), full_output=True)
+#        print(test)
+
+        a = test[0][-1]
+        if constrainedGaussian:
+          A = np.identity(self.dimensionCount)*test[0][0:-1]
+        else:
+          A = np.zeros((self.dimensionCount,self.dimensionCount))
+          idx = 0
+          for dRow in xrange(self.dimensionCount):
+            for dCol in xrange(dRow,self.dimensionCount):
+              A[dRow,dCol] = A[dCol,dRow] = test[0][idx]
+              idx += 1
+        #Adet = np.linalg.det(np.linalg.inv(A))
+
+        def GaussFit(x):
+          v = mu - x
+          C = a # a*(1/sqrt(2*pi**self.dimensionCount*Adet))
+          return C*np.exp(-(v.dot(A).dot(v))) + c - C
+
+        yHat = np.zeros(X.shape[0])
+        for i in xrange(X.shape[0]):
+          yHat[i] = GaussFit(X[i,])
+
+        rSquared = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
+        fits[extIdx] = (mu,c,a,A,rSquared)
+
+    return fits
+
   def run(self, InputIn):
     '''
      Function to finalize the filter => execute the filtering
@@ -1792,185 +1947,35 @@ class TopologicalDecomposition(BasePostProcessor):
     print(self.__amsc.XMLFormattedHierarchy())
     outputDict['hierarchy'] = self.__amsc.PrintHierarchy()
     print('========== Linear Regressors: ==========')
-    partitions = self.__amsc.GetPartitions(self.persistence)
-    coefficients = {}
-    R2s = {}
+    linearFits = self.fitLinearPatches(inputData,outputData)
 
-    for key,items in partitions.iteritems():
-      X = inputData[np.array(items),:]
-      y = outputData[np.array(items)]
-      beta_hat,residuals,rank,s = np.linalg.lstsq(X,y)
-      yHat = X.dot(beta_hat)
-      rSquared = 1 - np.sum((yHat - y)**2)/np.sum((y - np.mean(y))**2)
-      key = key.replace(',','_')
-      coefficients[key] = beta_hat.tolist()
-      R2s[key] = rSquared
-
+    for key,(coefficients,rSquared) in linearFits.iteritems():
       print(key)
-      print('\t' + u"\u03B2\u0302: " + str(coefficients[key]))
-      print('\t' + u"R\u00B2: " + str(R2s[key]) + '\n')
+      print('\t' + u"\u03B2\u0302: " + str(coefficients))
+      print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
+      outputDict['coefficients_' + key] = coefficients
+      outputDict['R2_' + key] = rSquared
 
-    for key,value in coefficients.iteritems():
-      outputDict['coefficients_' + key] = value
-    for key,value in R2s.iteritems():
-      outputDict['R2_' + key] = value
     print('========== Gaussian Fits: ==========')
-    print(u'a*e^(-(x-\u03BC)TA(x-\u03BC)) + c - a\t(\u03BC & c are fixed, ' +
-          ' A and a are estimated)')
+    print(u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - ' +
+          u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)')
+    gaussianFits = self.fitGaussianPatches(inputData,outputData)
 
-    partitions = self.__amsc.GetPartitions(self.persistence)
-
-    minFlowSet = {}
-    for key,items in partitions.iteritems():
-      print(key)
-      minIdx = int(key.split(',')[0])
-      if minIdx not in minFlowSet.keys():
-        minFlowSet[minIdx] = []
-      for idx in items:
-        minFlowSet[minIdx].append(idx)
-
-#    for idx in xrange(0,len(outputData)):
-#      minIdx = self.__amsc.MinLabel(idx)
-#      if minIdx not in minFlowSet.keys():
-#        minFlowSet[minIdx] = []
-#      minFlowSet[minIdx].append(idx)
-
-    for minIdx,indices in minFlowSet.iteritems():
-      if len(indices) < self.dimensionCount+1:
-        print('Too few samples, skipping this segment')
-        continue
-
-      X = inputData[indices,]
-      Y = outputData[indices]
-      # For fitting a constrained multivariate Gaussian, we will fix the mean
-      # to be at the extrema and the y-offset to match the output value at the
-      # extrema's location
-      mu = inputData[minIdx]
-      c = outputData[minIdx]
-
-      # Define a variable number of inputs for our constrained Gaussian, it is
-      # constrained because we are only fitting diagonal components of the
-      # covariance matrix
-      def residuals(*arg):
-        a = arg[0][-1]
-        xvec = arg[1]
-        yvec = arg[2]
-        err = []
-        A = np.identity(len(arg[0][:-1]))*np.array(arg[0][:-1])
-        for idx in xrange(0,len(yvec)):
-          v = mu-xvec[idx]
-          yPredicted = (a*np.exp(-(v.dot(A).dot(v))) + c - a)
-          err.append(yvec[idx] - yPredicted)
-        return err
-
-      paramGuess = []
-      # Not sure what is a good starting place for the covariance, so just use
-      # the identity matrix
-      for d in xrange(0,self.dimensionCount):
-        paramGuess.append(1)
-
-      # Amplitude estimate (the range of this data, opens up for minima thus
-      # the amplitude should be negative
-      paramGuess.append(outputData[minIdx]-max(outputData[indices]))
-
-      test = leastsq(residuals, paramGuess, args=(X,Y))
-
-      a = test[0][2]
-      A = np.identity(self.dimensionCount)*test[0][0:-1]
-
-      print(str(minIdx) + ':')
+    for key,(mu,c,a,A,rSquared) in gaussianFits.iteritems():
+      print(str(key) + ':')
       print(u':\t\u03BC=' + str(mu))
       print('\tc=' + str(c))
       print('\ta=' + str(a))
-      print('\tA=\n' + str(A)+'\n')
-
-      def GaussFit(x):
-        v = mu - x
-        return a*np.exp(-(v.dot(A).dot(v))) + c - a
-
-      yHat = np.zeros(X.shape[0])
-      for i in xrange(X.shape[0]):
-        yHat[i] = GaussFit(X[i,])
-
-      rSquared = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
+      print('\t\u03A3=\n' + str(A)+'\n')
       print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
+
+      outputDict['mu_' + str(key)] = mu
+      outputDict['c_' + str(key)] = c
+      outputDict['a_' + str(key)] = a
+      outputDict['Sigma_' + str(key)] = A
+      outputDict['R2_' + str(key)] = rSquared
 
 #      outputDict['Gaussian_' + str(minIdx)] = GaussFit
-
-    maxFlowSet = {}
-    for key,items in partitions.iteritems():
-      maxIdx = int(key.split(',')[1])
-      if maxIdx not in maxFlowSet.keys():
-        maxFlowSet[maxIdx] = []
-      for idx in items:
-        maxFlowSet[maxIdx].append(idx)
-
-#    maxFlowSet = {}
-#    for idx in xrange(0,len(outputData)):
-#      maxIdx = self.__amsc.MaxLabel(idx)
-#      if maxIdx not in maxFlowSet.keys():
-#        maxFlowSet[maxIdx] = []
-#      maxFlowSet[maxIdx].append(idx)
-
-    for maxIdx,indices in maxFlowSet.iteritems():
-      if len(indices) < self.dimensionCount+1:
-        print('Too few samples, skipping this segment')
-        continue
-
-      X = inputData[indices,]
-      Y = outputData[indices]
-      # For fitting a constrained multivariate Gaussian, we will fix the mean
-      # to be at the extrema and the y-offset to match the output value at the
-      # extrema's location
-      mu = inputData[maxIdx]
-      c = outputData[maxIdx]
-
-      # Define a variable number of inputs for our constrained Gaussian, it is
-      # constrained because we are only fitting diagonal components of the
-      # covariance matrix
-      def residuals(*arg):
-        a = arg[0][-1]
-        xvec = arg[1]
-        yvec = arg[2]
-        err = []
-        A = np.identity(len(arg[0][:-1]))*np.array(arg[0][:-1])
-        for idx in xrange(0,len(yvec)):
-          v = mu-xvec[idx]
-          yPredicted = (a*np.exp(-(v.dot(A).dot(v))) + c - a)
-          err.append(yvec[idx] - yPredicted)
-        return err
-
-      paramGuess = []
-      # Not sure what is a good starting place for the covariance, so just use
-      # the identity matrix
-      for d in xrange(0,self.dimensionCount):
-        paramGuess.append(1)
-
-      # Amplitude estimate (the range of this data, opens down for the maxima
-      # thus amplitude should be positive
-      paramGuess.append(outputData[maxIdx]-min(outputData[indices]))
-
-      test = leastsq(residuals, paramGuess, args=(X,Y))
-
-      a = test[0][2]
-      A = np.identity(self.dimensionCount)*test[0][0:-1]
-
-      print(str(maxIdx) + ':')
-      print(u':\t\u03BC=' + str(mu))
-      print('\tc=' + str(c))
-      print('\ta=' + str(a))
-      print('\tA=\n' + str(A)+'\n')
-
-      def GaussFit(x):
-        v = mu - x
-        return a*np.exp(-(v.dot(A).dot(v))) + c - a
-
-      yHat = np.zeros(X.shape[0])
-      for i in xrange(X.shape[0]):
-        yHat[i] = GaussFit(X[i,])
-
-      rSquared = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
-      print('\t' + u"R\u00B2: " + str(rSquared) + '\n')
 
 #      def GaussFit():
 #        pass
@@ -1996,6 +2001,10 @@ class TopologicalDecomposition(BasePostProcessor):
 #            gradients[n].append(deltaY / dXn)
 #          else:
 #            gradients[n].append(None)
+
+################################################################################
+################################################################################
+################################################################################
 
     return outputDict
 
