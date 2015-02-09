@@ -1257,6 +1257,7 @@ class LHS(Grid):
       self.sampledCoordinate[i][:] = [tempFillingCheck[j][i] for j in range(len(tempFillingCheck))]
 
   def localGenerateInput(self,model,myInput):
+    '''
     j=0
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
@@ -1293,7 +1294,45 @@ class LHS(Grid):
     
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
-    self.inputInfo['SamplerType'] = 'Stratified'
+    self.inputInfo['SamplerType'] = 'Stratified'  
+    '''
+    j=0
+    #self.inputInfo['distributionInfo'] = {}
+    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
+    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
+    weight = 1.0
+    for varName in self.axisName:
+      upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
+      lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
+      j +=1
+      intervalFraction = Distributions.random()
+      coordinate = lower + (upper-lower)*intervalFraction
+      # check if the varName is a comma separated list of strings
+      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+      if self.gridInfo[varName][0] =='CDF':
+        ppfvalue = self.distDict[varName].ppf(coordinate)
+        ppflower = self.distDict[varName].ppf(min(upper,lower))
+        ppfupper = self.distDict[varName].ppf(max(upper,lower))
+      for kkey in varName.strip().split(','):
+        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+        if self.gridInfo[varName][0] =='CDF':
+          self.values[kkey] = ppfvalue
+          self.inputInfo['upper'][kkey] = ppfupper
+          self.inputInfo['lower'][kkey] = ppflower
+          self.inputInfo['SampledVarsPb'][varName] = coordinate
+          weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
+        elif self.gridInfo[varName][0]=='value':
+          self.values[varName] = coordinate
+          self.inputInfo['upper'][kkey] = max(upper,lower)
+          self.inputInfo['lower'][kkey] = min(upper,lower)
+          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+      if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
+      else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
+    
+    self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight' ] = weight
+    self.inputInfo['SamplerType'] = 'Stratified'     
 #
 #
 #
