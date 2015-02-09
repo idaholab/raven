@@ -75,6 +75,22 @@ class SparseQuad(object):
       #msg+='    '+str(self[p])+'\n'
     return msg
 
+  def __csv__(self):
+    '''Slightly more human-readable version of printout.
+    @ In None, None
+    @ Out string, list of points and weights
+    '''
+    msg=''
+    for _ in range(len(self[0][0])):
+      msg+='pt,'
+    msg+='wt\n'
+    for p in range(len(self)):
+      pt,wt = self[p]
+      for i in pt:
+        msg+='%1.9f,' %i
+      msg+='%1.9f\n' %wt
+    return msg
+
   def __getstate__(self):
     '''Determines picklable items
     @ In None, None
