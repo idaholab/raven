@@ -268,7 +268,7 @@ class SparseQuad(object):
     @ In idx, tuple(int), index set point
     @ Out, tuple(int), quadrature orders to use
     '''
-    tot=np.zeros(len(idx))
+    tot=np.zeros(len(idx),dtype=np.int64)
     for i,ix in enumerate(idx):
       tot[i]=self.quadDict.values()[i].quadRule(ix)
     return tot
