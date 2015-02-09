@@ -347,6 +347,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
     self.printPolyDict()
+    print(self.sparseGrid)
+    print('sum wts:',sum(self.sparseGrid.weights()))
+    outFile=file('SG.out','w')
+    outFile.writelines(str(self.sparseGrid)+'\n')
+    outFile.close()
     #do a few moments #TODO need a better solution for calling moment calculations, etc
     for r in range(5):
       print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
