@@ -356,7 +356,9 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for i in range(1,5):
       print('DEBUG  ',self.quads.values()[0](i))
     import scipy
-    print('DEBUG scipy',scipy.__version__)
+    print('DEBUG python',sys.version_info)
+    print('DEBUG numpy ',np.__version__)
+    print('DEBUG scipy ',scipy.__version__)
     #local evals
     #if len(self.features)==1:
     #  tests=[(0),(0.2),(0.5),(0.7),(1.0)]
