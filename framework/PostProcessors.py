@@ -468,7 +468,6 @@ class PrintCSV(BasePostProcessor):
         else: self.paramters[param]
 
   def collectOutput(self,finishedjob,output):
-    import csv
     # Check the input type
     if(self.inObj.type == "HDF5"):
       #  Input source is a database (HDF5)
@@ -1143,7 +1142,7 @@ class LimitSurface(BasePostProcessor):
         print(','.join([str(self.functionValue[key][index]) for key in keyList]))
     #printing----------------------
     tempDict = {}
-    for name in self.axisName: tempDict[name] = self.functionValue[name]
+    for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
