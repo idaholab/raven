@@ -14,6 +14,7 @@ import sys
 import xml.etree.ElementTree as ET #used for creating Beta in Normal distribution
 import copy
 import numpy as np
+import scipy
 import scipy.special as polys
 from scipy.misc import factorial
 #External Modules End--------------------------------------------------------------------------------
@@ -474,7 +475,11 @@ class Normal(BoostDistribution):
     @ In None, None
     @ Out float, norm
     '''
-    return 1.0/np.sqrt(2.*np.pi)
+    sv = str(scipy.__version__).split('.')
+    if int(sv[0])==0 and int(sv[1])<15:
+      return 1.0/np.sqrt(2.*np.pi)
+    else:
+      return 1.0/np.sqrt(np.pi/2.)
 
   def convertNormalToHermite(self,y):
     '''Converts from distribution domain to standard Hermite [-inf,inf].
