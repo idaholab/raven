@@ -19,15 +19,15 @@ class c1darray(object):
       if type(values).__name__ != 'ndarray': raise IOError("Only ndarray is accepted as type.Got "+type(values).__name__)
       self.values = values
       self.size = values.size
-    else: 
+    else:
       self.values = ndarray(shape, dtype, buff, offset, strides, order)
       self.size = 0
     self.capacity = self.values.shape[0]
     self.ndim = self.values.ndim
-   
+
   def __iter__(self): return self.values[:self.size].__iter__()
-  
-  def __getitem__(self, val): 
+
+  def __getitem__(self, val):
     """
       Get item method. slicing available:
       example 1. c1darrayInstance[5], is going to return the 6th element in  the array
@@ -36,15 +36,15 @@ class c1darray(object):
       @ Out, the element or the slicing
     """
     return self.values[:self.size].__getitem__(val)
-   
-  def __len__(self): 
+
+  def __len__(self):
     """
      Return size
      @ In, None
      @ Out, integer, size
     """
     return self.size
-  
+
   def append(self,x):
     """
     Append method. call format c1darrayInstance.append(value)
@@ -69,9 +69,9 @@ class c1darray(object):
       for index in range(x.size):
         self.values[self.size] = x[index]
         self.size  += 1
-  
+
   def __add__(self, x):
-    """ 
+    """
     Method to mimic the addition of two arrays
     @ In, x, c1darray
     @ Out, sum of the two arrays
@@ -80,7 +80,7 @@ class c1darray(object):
     return c1darray(shape = self.values[:self.size].shape[0]+x.shape[0], values=self.values[:self.size]+x)
 
   def __radd__(self, x):
-    """ 
+    """
     reversed-order (LHS <-> RHS) addition
     Method to mimic the addition of two arrays
     @ In, x, c1darray
@@ -90,12 +90,12 @@ class c1darray(object):
     return c1darray(shape = x.shape[0]+self.values[:self.size].shape[0], values=x+self.values[:self.size])
 
   def __array__(self, dtype = None):
-    """ 
+    """
     so that numpy's array() returns values
     """
-    if dtype != None: 
+    if dtype != None:
       return ndarray((self.size,), dtype, buff=None, offset=0, strides=None, order=None)
-    else            : 
+    else            :
       return self.values[:self.size]
 
   def __repr__(self):

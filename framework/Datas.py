@@ -502,11 +502,11 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, typeVar, input or output
     @ In, keyword, keyword
     @ Out, Reference to the parameter
-    '''          
-    if self.type == 'Histories': 
+    '''
+    if self.type == 'Histories':
       acceptedType = ['str','unicode','bytes','int']
       convertArr = lambda x: x
-    else                       : 
+    else                       :
       acceptedType = ['str','unicode','bytes']
       convertArr = lambda x: np.asarray(x)
     if type(typeVar).__name__ not in ['str','unicode','bytes'] : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter typeVar needs to be a string. Function: Data.getParam')
@@ -999,7 +999,7 @@ class TimePointSet(Data):
     else:
       if name in self._dataContainer['inputs'].keys():
         #popped = self._dataContainer['inputs'].pop(name)
-        self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)[-1])) 
+        self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)[-1]))
         #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
@@ -1031,7 +1031,7 @@ class TimePointSet(Data):
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
       if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
-      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(value),dtype=type(value))   
+      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(value),dtype=type(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
