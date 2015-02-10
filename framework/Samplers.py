@@ -560,7 +560,7 @@ class AdaptiveSampler(Sampler):
       for index in range(indexEnd+1): print(','.join([str(self.functionValue[key][index]) for key in list(self.functionValue.keys())]))
     #printing----------------------
     tempDict = {}
-    for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = self.functionValue[name]
+    for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
     self.ROM.train(tempDict)
 
@@ -1288,7 +1288,7 @@ class DynamicEventTree(Grid):
     self.inputInfo['ValueThreshold'            ] = []
     self.inputInfo['branch_changed_param'      ] = [b'None']
     self.inputInfo['branch_changed_param_value'] = [b'None']
-    self.inputInfo['start_time'                ] = b'Initial'
+    self.inputInfo['start_time'                ] = -sys.float_info.max
     self.inputInfo['end_ts'                    ] = 0
     self.inputInfo['parent_id'                 ] = 'root'
     self.inputInfo['conditional_prb'           ] = [1.0]
