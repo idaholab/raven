@@ -8,6 +8,7 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
 import os
+import sys
 import copy
 import utils
 import xml.etree.ElementTree as ET
@@ -133,7 +134,7 @@ class RAVENInterface(CodeInterfaceBase):
         del modifDict
     # add the initial time for this new branch calculation
     if 'start_time' in Kwargs.keys():
-      if Kwargs['start_time'] not in ['Initial',b'Initial']:
+      if Kwargs['start_time'] != -sys.float_info.max:
         modifDict = {}
         st_time = Kwargs['start_time']
         modifDict['name'] = ['Executioner']
@@ -145,7 +146,7 @@ class RAVENInterface(CodeInterfaceBase):
     if 'end_ts' in Kwargs.keys():
       #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
 
-      if Kwargs['start_time'] not in ['Initial',b'Initial']:
+      if Kwargs['start_time'] !=  -sys.float_info.max:
         modifDict = {}
         end_ts_str = str(Kwargs['end_ts'])
         if(Kwargs['end_ts'] <= 9999):
