@@ -25,7 +25,7 @@ import numpy as np
 import numpy
 import abc
 import ast
-import cPickle as pk
+import pickle as pk
 from operator import itemgetter
 #External Modules End--------------------------------------------------------------------------------
 
@@ -367,11 +367,13 @@ class GaussPolynomialRom(NDinterpolatorRom):
     #for i in tests:
     #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
 
-    #pk.dump(self.distDict,file('testROMdump.pk','w'))
+    #pk.dump(self,file('testROMdump.pk','w'))
     #dud=pk.load(file('testROMdump.pk','r'))
     #print('dud:',dud)
     #print('pickle test:',dud==self.distDict)
 
+    #for r in range(5):
+    #  print('ROM moment',r,'= %1.16f' %dud.__evaluateMoment__(r))
     # THESE members pickle ok now, and check out as equal
     # - sparseGrid
     # - quads
@@ -427,11 +429,11 @@ class GaussPolynomialRom(NDinterpolatorRom):
              #'PolynomialOrder':self.maxPolyOrder,
              # 'Interpolation':interpolationInfo()}
 
-  def __getstate__(self): #for pickling
-    pass
-
-  def __setstate__(self,state): #for unpickling
-    pass
+  #def __getstate__(self): #for pickling
+  #  pass
+#
+#  def __setstate__(self,state): #for unpickling
+#    pass
 #
 #
 #
