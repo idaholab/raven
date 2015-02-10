@@ -5,6 +5,8 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
 import sys, os
+frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+sys.path.append(os.path.join(frameworkDir,'utils'))
 
 from utils import find_crow
 

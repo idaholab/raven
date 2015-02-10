@@ -25,6 +25,7 @@ from BaseClasses import BaseType
 from Csv_loader import CsvLoader as ld
 import utils
 import TreeStructure as TS
+from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
 # Custom exceptions
@@ -50,7 +51,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
-    self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8]
+    self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8,c1darray]
     self.type = self.__class__.__name__
     self.printTag  = utils.returnPrintTag('DATAS')
 
@@ -424,7 +425,7 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
   def isItEmpty(self):
     '''
-    Functions to check if the data is empty
+    Function to check if the data is empty
     @ In, None
     '''
     if len(self.getInpParametersValues().keys()) == 0 and len(self.getOutParametersValues()) == 0: return True
@@ -501,9 +502,13 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     @ In, typeVar, input or output
     @ In, keyword, keyword
     @ Out, Reference to the parameter
-    '''
-    if self.type == 'Histories': acceptedType = ['str','unicode','bytes','int']
-    else                       : acceptedType = ['str','unicode','bytes']
+    '''          
+    if self.type == 'Histories': 
+      acceptedType = ['str','unicode','bytes','int']
+      convertArr = lambda x: x
+    else                       : 
+      acceptedType = ['str','unicode','bytes']
+      convertArr = lambda x: np.asarray(x)
     if type(typeVar).__name__ not in ['str','unicode','bytes'] : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter typeVar needs to be a string. Function: Data.getParam')
     if type(keyword).__name__ not in acceptedType        : raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of parameter keyword needs to be '+str(acceptedType)+' . Function: Data.getParam')
     if nodeid:
@@ -515,10 +520,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       else: return self.getHierParam(typeVar.lower(),nodeid,keyword,serialize)
     else:
       if typeVar.lower() in ['input','inputs']:
-        if keyword in self._dataContainer['inputs'].keys(): return self._dataContainer['inputs'][keyword]
+        if keyword in self._dataContainer['inputs'].keys(): return convertArr(self._dataContainer['inputs'][keyword])
         else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in inpParametersValues dictionary. Available keys are '+str(self._dataContainer['inputs'].keys())+'.Function: Data.getParam')
       elif typeVar.lower() in ['output','outputs']:
-        if keyword in self._dataContainer['outputs'].keys(): return self._dataContainer['outputs'][keyword]
+        if keyword in self._dataContainer['outputs'].keys(): return convertArr(self._dataContainer['outputs'][keyword])
         else: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> parameter ' + str(keyword) + ' not found in outParametersValues dictionary. Available keys are '+str(self._dataContainer['outputs'].keys())+'.Function: Data.getParam')
 
   def extractValue(self,varTyp,varName,varID=None,stepID=None,nodeid='root'):
@@ -579,9 +584,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
               elif typeVar in ['inputs','input']   and not keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
               elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
               elif typeVar in 'metadata'           and not keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-              elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-              elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
-              elif typeVar in 'metadata'           and     keyword: nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])
+              elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
+              elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+              elif typeVar in 'metadata'           and     keyword: nodesDict[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
       else:
         for TSData in self.TSData.values():
           for node in TSData.iter():
@@ -589,9 +594,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             elif typeVar in ['inputs','input']   and not keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ]
             elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ]
             elif typeVar in 'metadata'           and not keyword: nodesDict[node.name] = node.get('dataContainer')['metadata']
-            elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name] = node.get('dataContainer')['inputs'  ][keyword]
-            elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name] = node.get('dataContainer')['outputs' ][keyword]
-            elif typeVar in 'metadata'           and     keyword: nodesDict[node.name] = node.get('dataContainer')['metadata'][keyword]
+            elif typeVar in ['inputs','input']   and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['inputs'  ][keyword])
+            elif typeVar in ['output','outputs'] and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['outputs' ][keyword])
+            elif typeVar in 'metadata'           and     keyword: nodesDict[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
     elif nodeid == 'ending':
       for TSDat in self.TSData.values():
         for ending in TSDat.iterEnding():
@@ -599,9 +604,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           elif typeVar in ['inputs','input']   and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ]
           elif typeVar in ['output','outputs'] and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ]
           elif typeVar in 'metadata'           and not keyword: nodesDict[ending.name] = ending.get('dataContainer')['metadata']
-          elif typeVar in ['inputs','input']   and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['inputs'  ][keyword]
-          elif typeVar in ['output','outputs'] and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['outputs' ][keyword]
-          elif typeVar in 'metadata'           and     keyword: nodesDict[ending.name] = ending.get('dataContainer')['metadata'][keyword]
+          elif typeVar in ['inputs','input']   and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['inputs'  ][keyword])
+          elif typeVar in ['output','outputs'] and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['outputs' ][keyword])
+          elif typeVar in 'metadata'           and     keyword: nodesDict[ending.name] = np.asarray(ending.get('dataContainer')['metadata'][keyword])
     elif nodeid == 'RecontructEnding':
       # if history, reconstruct the history... if timepoint set take the last one (see below)
       backTrace = {}
@@ -614,9 +619,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
               elif typeVar in ['inputs','input']   and not keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ])
               elif typeVar in ['output','outputs'] and not keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ])
               elif typeVar in 'metadata'           and not keyword: backTrace[node.name].append( se.get('dataContainer')['metadata'])
-              elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-              elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name].append( se.get('dataContainer')['outputs' ][keyword])
-              elif typeVar in 'metadata'           and     keyword: backTrace[node.name].append( se.get('dataContainer')['metadata'][keyword])
+              elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
+              elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+              elif typeVar in 'metadata'           and     keyword: backTrace[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
             #reconstruct history
             nodesDict[node.name] = None
             for element in backTrace[node.name]:
@@ -642,9 +647,9 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
             elif typeVar in ['inputs','input']   and not keyword: backTrace[node.name] = node.get('dataContainer')['inputs'  ]
             elif typeVar in ['output','outputs'] and not keyword: backTrace[node.name] = node.get('dataContainer')['outputs' ]
             elif typeVar in 'metadata'           and not keyword: backTrace[node.name] = node.get('dataContainer')['metadata']
-            elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name] = node.get('dataContainer')['inputs'  ][keyword]
-            elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name] = node.get('dataContainer')['outputs' ][keyword]
-            elif typeVar in 'metadata'           and     keyword: backTrace[node.name] = node.get('dataContainer')['metadata'][keyword]
+            elif typeVar in ['inputs','input']   and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['inputs'  ][keyword])
+            elif typeVar in ['output','outputs'] and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['outputs' ][keyword])
+            elif typeVar in 'metadata'           and     keyword: backTrace[node.name] = np.asarray(node.get('dataContainer')['metadata'][keyword])
             if type(backTrace[node.name]) == dict:
               for innerkey in backTrace[node.name].keys():
                 if type(backTrace[node.name][innerkey]) == dict:
@@ -685,17 +690,17 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           elif typeVar in ['inputs','input'] and not keyword  : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ])
           elif typeVar in ['output','outputs'] and not keyword: nodesDict[node.name].append( se.get('dataContainer')['outputs' ])
           elif typeVar in 'metadata' and not keyword          : nodesDict[node.name].append( se.get('dataContainer')['metadata'])
-          elif typeVar in ['inputs','input'] and keyword      : nodesDict[node.name].append( se.get('dataContainer')['inputs'  ][keyword])
-          elif typeVar in ['output','outputs'] and keyword    : nodesDict[node.name].append( se.get('dataContainer')['outputs' ][keyword])
-          elif typeVar in 'metadata' and keyword              : nodesDict[node.name].append( se.get('dataContainer')['metadata'][keyword])
+          elif typeVar in ['inputs','input'] and keyword      : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['inputs'  ][keyword]))
+          elif typeVar in ['output','outputs'] and keyword    : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['outputs' ][keyword]))
+          elif typeVar in 'metadata' and keyword              : nodesDict[node.name].append( np.asarray(se.get('dataContainer')['metadata'][keyword]))
       else:
         if typeVar   in 'inout'              and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')
         elif typeVar in ['inputs','input']   and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['inputs'  ]
         elif typeVar in ['output','outputs'] and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['outputs' ]
         elif typeVar in 'metadata'           and not keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['metadata']
-        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['inputs'  ][keyword]
-        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['outputs' ][keyword]
-        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = nodelist[-1].get('dataContainer')['metadata'][keyword]
+        elif typeVar in ['inputs','input']   and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['inputs'  ][keyword])
+        elif typeVar in ['output','outputs'] and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['outputs' ][keyword])
+        elif typeVar in 'metadata'           and     keyword: nodesDict[nodeid] = np.asarray(nodelist[-1].get('dataContainer')['metadata'][keyword])
     return nodesDict
 
   def retrieveNodeInTreeMode(self,nodeName,parentName=None):
@@ -741,7 +746,10 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         if 'parent_id' in options.keys(): parent_id = options['parent_id']
       if not parent_id: raise ConstructError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> the parent_id must be provided if a new node needs to be appended')
       self.retrieveNodeInTreeMode(parent_id).appendBranch(tsnode)
-
+#
+#
+#
+#
 class TimePoint(Data):
   '''
   TimePoint is an object that stores a set of inputs and outputs for a particular point in time!
@@ -786,7 +794,7 @@ class TimePoint(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['inputs'].pop(name)
     if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-    self._dataContainer['inputs'][name] = np.atleast_1d(np.array(value))
+    self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -807,7 +815,7 @@ class TimePoint(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['outputs'].pop(name)
     if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-    self._dataContainer['outputs'][name] = np.atleast_1d(np.array(value))
+    self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(value))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -986,15 +994,16 @@ class TimePointSet(Data):
       if name in self._dataContainer['inputs'].keys():
         self._dataContainer['inputs'].pop(name)
       if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-      self._dataContainer['inputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
+      self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['inputs'].keys():
-        popped = self._dataContainer['inputs'].pop(name)
-        self._dataContainer['inputs'][name] = copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
+        #popped = self._dataContainer['inputs'].pop(name)
+        self._dataContainer['inputs'][name].append(np.atleast_1d(np.atleast_1d(value)[-1])) 
+        #self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))                     copy.copy(np.concatenate((np.atleast_1d(np.array(popped)), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-        self._dataContainer['inputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
+        self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1]))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1021,12 +1030,12 @@ class TimePointSet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
-      else                                             : self._dataContainer['metadata'][name] = np.atleast_1d(value)
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
+      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(value),dtype=type(value))   
       self.addNodeInTreeMode(tsnode,options)
     else:
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
-      else                                             : self._dataContainer['metadata'][name] = np.atleast_1d(value)
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value)))
+      else                                             : self._dataContainer['metadata'][name] = c1darray(values=np.atleast_1d(value),dtype=type(value))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     '''
@@ -1055,16 +1064,16 @@ class TimePointSet(Data):
         self._dataContainer = tsnode.get('dataContainer')
       if name in self._dataContainer['outputs'].keys():
         self._dataContainer['outputs'].pop(name)
-      if name not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(name)
-      self._dataContainer['outputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
+      if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
+      self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(value)) #np.atleast_1d(np.atleast_1d(value)[-1])
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['outputs'].keys():
-        popped = self._dataContainer['outputs'].pop(name)
-        self._dataContainer['outputs'][name] = copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
+        #popped = self._dataContainer['outputs'].pop(name)
+        self._dataContainer['outputs'][name].append(np.atleast_1d(value)[-1])   #= copy.copy(np.concatenate((np.array(popped), np.atleast_1d(np.atleast_1d(value)[-1]))))
       else:
         if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-        self._dataContainer['outputs'][name] = np.atleast_1d(np.atleast_1d(value)[-1])
+        self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(np.atleast_1d(value)[-1])) # np.atleast_1d(np.atleast_1d(value)[-1])
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -1294,7 +1303,7 @@ class History(Data):
     if name in self._dataContainer['inputs'].keys():
       self._dataContainer['inputs'].pop(name)
     if name not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(name)
-    self._dataContainer['inputs'][name] = np.atleast_1d(np.array(value))
+    self._dataContainer['inputs'][name] = c1darray(values=np.atleast_1d(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1316,7 +1325,7 @@ class History(Data):
     if name in self._dataContainer['outputs'].keys():
       self._dataContainer['outputs'].pop(name)
     if name not in self._dataParameters['outParam']: self._dataParameters['outParam'].append(name)
-    self._dataContainer['outputs'][name] = np.atleast_1d(np.array(value))
+    self._dataContainer['outputs'][name] = c1darray(values=np.atleast_1d(value))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
@@ -1543,7 +1552,7 @@ class Histories(Data):
       if namep in self._dataContainer['inputs'].keys():
         self._dataContainer['inputs'].pop(name)
       if namep not in self._dataParameters['inParam']: self._dataParameters['inParam'].append(namep)
-      self._dataContainer['inputs'][namep] = np.atleast_1d(np.array(value))
+      self._dataContainer['inputs'][namep] = c1darray(values=np.atleast_1d(value)) # np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if type(name) == list:
@@ -1552,19 +1561,19 @@ class Histories(Data):
           gethistory = self._dataContainer['inputs'].pop(name[0])
           popped = gethistory[name[1]]
           if name[1] in popped.keys():
-            gethistory[name[1]] = np.atleast_1d(np.array(value))
+            gethistory[name[1]] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
             self._dataContainer['inputs'][name[0]] = gethistory
         else:
-          self._dataContainer['inputs'][name[0]] = {name[1]:np.atleast_1d(np.array(value))}
+          self._dataContainer['inputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = {name:np.atleast_1d(np.array(value))}
+        if len(self._dataContainer['inputs'].keys()) == 0: self._dataContainer['inputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))}
         else:
           hisn = max(self._dataContainer['inputs'].keys())
           if name in list(self._dataContainer['inputs'].values())[-1]:
             hisn += 1
             self._dataContainer['inputs'][hisn] = {}
-          self._dataContainer['inputs'][hisn][name] = np.atleast_1d(np.array(value))
+          self._dataContainer['inputs'][hisn][name] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) # np.atleast_1d(np.array(value))
 
   def _updateSpecializedMetadata(self,name,value,options=None):
     '''
@@ -1604,13 +1613,13 @@ class Histories(Data):
         self._dataContainer = tsnode.get('dataContainer')
       else:
         if 'metadata' not in self._dataContainer.keys(): self._dataContainer['metadata'] ={}
-      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name] = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.copy(np.atleast_1d(value))
+      if name in self._dataContainer['metadata'].keys(): self._dataContainer['metadata'][name].append(np.atleast_1d(np.array(value))) #= copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if name in self._dataContainer['metadata'].keys():
-        self._dataContainer['metadata'][name] = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
-      else                                             : self._dataContainer['metadata'][name] = copy.copy(np.atleast_1d(value))
+        self._dataContainer['metadata'][name].append(np.atleast_1d(value)) # = copy.copy(np.concatenate((self._dataContainer['metadata'][name],np.atleast_1d(value))))
+      else                                             : self._dataContainer['metadata'][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value)),dtype=type(value)))
 
   def _updateSpecializedOutputValue(self,name,value,options=None):
     '''
@@ -1650,10 +1659,9 @@ class Histories(Data):
       if not self._dataContainer:
         tsnode.add('dataContainer',{'inputs':{},'outputs':{}})
         self._dataContainer = tsnode.get('dataContainer')
-      if namep in self._dataContainer['outputs'].keys():
-        self._dataContainer['outputs'].pop(namep)
+      if namep in self._dataContainer['outputs'].keys(): self._dataContainer['outputs'].pop(namep)
       if namep not in self._dataParameters['inParam']: self._dataParameters['outParam'].append(namep)
-      self._dataContainer['outputs'][namep] = np.atleast_1d(np.array(value))
+      self._dataContainer['outputs'][namep] = c1darray(values=np.atleast_1d(np.array(value,dtype=float))) #np.atleast_1d(np.array(value))
       self.addNodeInTreeMode(tsnode,options)
     else:
       if type(name) == list:
@@ -1665,16 +1673,16 @@ class Histories(Data):
             gethistory[name[1]] = np.atleast_1d(np.array(value))
             self._dataContainer['outputs'][name[0]] =gethistory
         else:
-          self._dataContainer['outputs'][name[0]] = {name[1]:np.atleast_1d(np.array(value))}
+          self._dataContainer['outputs'][name[0]] = {name[1]:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
       else:
         # no info regarding the history number => use internal counter
-        if len(self._dataContainer['outputs'].keys()) == 0: self._dataContainer['outputs'][1] = {name:np.atleast_1d(np.array(value))}
+        if len(self._dataContainer['outputs'].keys()) == 0: self._dataContainer['outputs'][1] = {name:c1darray(values=np.atleast_1d(np.array(value,dtype=float)))} #np.atleast_1d(np.array(value))}
         else:
           hisn = max(self._dataContainer['outputs'].keys())
           if name in list(self._dataContainer['outputs'].values())[-1]:
             hisn += 1
             self._dataContainer['outputs'][hisn] = {}
-          self._dataContainer['outputs'][hisn][name] = copy.copy(np.atleast_1d(np.array(value)))
+          self._dataContainer['outputs'][hisn][name] = copy.copy(c1darray(values=np.atleast_1d(np.array(value,dtype=float)))) #np.atleast_1d(np.array(value)))
 
   def specializedPrintCSV(self,filenameLocal,options):
     '''
