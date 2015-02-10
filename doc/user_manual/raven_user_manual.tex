@@ -26,29 +26,46 @@
 \usepackage{amssymb}
 \usepackage{pifont}
 \usepackage{enumerate}
-\usepackage{listings, color}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{xcolor}          % Using xcolor for more robust color specification
+\usepackage{ifthen}          % For simple checking in newcommand blocks
+%\usepackage{authblk}         % For making the author list look prettier
+%\renewcommand\Authsep{,~\,}
+
+% Custom colors
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
 \definecolor{forestgreen}{RGB}{34,139,34}
 \definecolor{orangered}{RGB}{239,134,64}
 \definecolor{darkblue}{rgb}{0.0,0.0,0.6}
 \definecolor{gray}{rgb}{0.4,0.4,0.4}
+
+\lstset {
+  basicstyle=\ttfamily,
+  frame=single
+}
+
 \setcounter{secnumdepth}{5}
 \lstdefinestyle{XML} {
     language=XML,
     extendedchars=true, 
     breaklines=true,
     breakatwhitespace=true,
-    emph={name,dim,interactive,overwrite},
+%    emph={name,dim,interactive,overwrite},
     emphstyle=\color{red},
     basicstyle=\ttfamily,
-    columns=fullflexible,
+%    columns=fullflexible,
     commentstyle=\color{gray}\upshape,
     morestring=[b]",
     morecomment=[s]{<?}{?>},
     morecomment=[s][\color{forestgreen}]{<!--}{-->},
     keywordstyle=\color{cyan},
-    stringstyle=\ttfamily\color{black}\normalfont,
-    tagstyle=\color{darkblue}\bf,
-    morekeywords={attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
+    stringstyle=\ttfamily\color{black},
+    tagstyle=\color{darkblue}\bf\ttfamily,
+    morekeywords={name},
+%    morekeywords={name,attribute,source,variables,version,type,release,x,z,y,xlabel,ylabel,how,text,param1,param2,color,label},
 }
 
 \usepackage{titlesec}
@@ -66,12 +83,6 @@
 % Default fixed font does not support bold face
 \DeclareFixedFont{\ttb}{T1}{txtt}{bx}{n}{9} % for bold
 \DeclareFixedFont{\ttm}{T1}{txtt}{m}{n}{9}  % for normal
-
-% Custom colors
-\usepackage{color}
-\definecolor{deepblue}{rgb}{0,0,0.5}
-\definecolor{deepred}{rgb}{0.6,0,0}
-\definecolor{deepgreen}{rgb}{0,0.5,0}
 
 \usepackage{listings}
 
@@ -102,8 +113,54 @@ showstringspaces=false            %
 \pythonstyle
 \lstinputlisting[#1]{#2}}}
 
+\lstnewenvironment{xml}
+{}
+{}
+
 % Python for inline
 \newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
+
+% Named Colors for the comments below (Attempted to match git symbol colors)
+\definecolor{RScolor}{HTML}{8EB361}  % Sonat (adjusted for clarity)
+\definecolor{DPMcolor}{HTML}{E28B8D} % Dan
+\definecolor{JCcolor}{HTML}{82A8D9}  % Josh (adjusted for clarity)
+\definecolor{AAcolor}{HTML}{8D7F44}  % Andrea
+\definecolor{CRcolor}{HTML}{AC39CE}  % Cristian
+\definecolor{RKcolor}{HTML}{3ECC8D}  % Bob (adjusted for clarity)
+\definecolor{DMcolor}{HTML}{276605}  % Diego (adjusted for clarity)
+\definecolor{PTcolor}{HTML}{990000}  % Paul
+
+\def\DRAFT{} % Uncomment this if you want to see the notes people have been adding
+% Comment command for developers (Should only be used under active development)
+\ifdefined\DRAFT
+  \newcommand{\nameLabeler}[3]{\textcolor{#2}{[[#1: #3]]}}
+\else
+  \newcommand{\nameLabeler}[3]{}
+\fi
+\newcommand{\alfoa}[1] {\nameLabeler{Andrea}{AAcolor}{#1}}
+\newcommand{\cristr}[1] {\nameLabeler{Cristian}{CRcolor}{#1}}
+\newcommand{\mandd}[1] {\nameLabeler{Diego}{DMcolor}{#1}}
+\newcommand{\maljdan}[1] {\nameLabeler{Dan}{DPMcolor}{#1}}
+\newcommand{\cogljj}[1] {\nameLabeler{Josh}{JCcolor}{#1}}
+\newcommand{\bobk}[1] {\nameLabeler{Bob}{RKcolor}{#1}}
+\newcommand{\senrs}[1] {\nameLabeler{Sonat}{RScolor}{#1}}
+\newcommand{\talbpaul}[1] {\nameLabeler{Paul}{PTcolor}{#1}}
+% Commands for making the LaTeX a bit more uniform and cleaner
+\newcommand{\TODO}[1]    {\textcolor{red}{\textit{(#1)}}}
+\newcommand{\xmlAttrRequired}[1] {\textcolor{red}{\textbf{\texttt{#1}}}}
+\newcommand{\xmlAttr}[1] {\textcolor{cyan}{\textbf{\texttt{#1}}}}
+\newcommand{\xmlNodeRequired}[1] {\textcolor{deepblue}{\textbf{\texttt{<#1>}}}}
+\newcommand{\xmlNode}[1] {\textcolor{darkblue}{\textbf{\texttt{<#1>}}}}
+\newcommand{\xmlString}[1] {\textcolor{black}{\textbf{\texttt{'#1'}}}}
+\newcommand{\xmlDesc}[1] {\textbf{\textit{#1}}} % Maybe a misnomer, but I am
+                                                % using this to detail the data
+                                                % type and necessity of an XML
+                                                % node or attribute,
+                                                % xmlDesc = XML description
+\newcommand{\default}[1]{~\\*\textit{Default: #1}}
+\newcommand{\nb} {\textcolor{deepgreen}{\textbf{~\\*Note:}}~}
+
+
 %%%%%%%% End comands definition to input python code into document
 
 %\usepackage[dvips,light,first,bottomafter]{draftcopy}
@@ -175,19 +232,46 @@ showstringspaces=false            %
 %
 % Set the title, author, and date
 %
-    \title{RAVEN User Manual}
-    \author{%
-    \\
-     \\\textbf{Andrea Alfonsi},   
-      \\\textbf{Cristian Rabiti}, 
-      \\\textbf{Joshua Cogliati},   
-      \\\textbf{Diego Mandelli},  
-      \\\textbf{Robert Kinoshita},
-      \\\textbf{Sonat Sen}.
-    }
-    % There is a "Printed" date on the title page of a SAND report, so
-    % the generic \date should [WorkingDir:]generally be empty.
-    \date{}
+\title{RAVEN User Manual}
+%\author{%
+%\begin{tabular}{c} Author 1 \\ University1 \\ Mail1 \\ \\
+%Author 3 \\ University3 \\ Mail3 \end{tabular} \and
+%\begin{tabular}{c} Author 2 \\ University2 \\ Mail2 \\ \\
+%Author 4 \\ University4 \\ Mail4\\
+%\end{tabular} }
+
+
+\author{
+\textbf{\textit{Principal Investigator (PI):}}
+ \\Cristian Rabiti\\ 
+\textbf{\textit{Main Developers:}}  
+\\Andrea Alfonsi
+\\Joshua Cogliati
+\\Diego Mandelli
+\\Robert Kinoshita
+\\Sonat Sen\\
+\textbf{\textit{Contributors:}} \\Alessandro Bandini
+\\Daniel P. Maljovec
+\\Ivan Rinaldi
+\\Paul W. Talbot}
+%\author{\textbf{\textit{Main Developers:}}  \\Andrea Alfonsi}
+%\author{\\Joshua Cogliati}
+%\author{\\Diego Mandelli}
+%\author{\\Robert Kinoshita}
+%\author{\\Sonat Sen}
+%
+%\author{Cristian Rabiti}
+%\author{Andrea Alfonsi}
+%\author{Joshua Cogliati}
+%\author{Diego Mandelli}
+%\author{Robert Kinoshita}
+%\author{Sonat Sen}
+%\affil{Idaho National Laboratory, Idaho Falls, ID 83402}
+%\\\{cristian.rabiti, andrea.alfonsi, joshua.cogliati, diego.mandelli, robert.kinoshita, ramazan.sen\}@inl.gov}
+
+% There is a "Printed" date on the title page of a SAND report, so
+% the generic \date should [WorkingDir:]generally be empty.
+\date{}
 
 
 % ---------------------------------------------------------------------------- %
@@ -195,7 +279,8 @@ showstringspaces=false            %
 %
 \SANDnum{INL/EXT-15-34123}
 \SANDprintDate{January 2015}
-\SANDauthor{ }
+\SANDauthor{Cristian Rabiti, Andrea Alfonsi, Joshua Cogliati, Diego Mandelli, 
+Robert Kinoshita, Sonat Sen}
 \SANDreleaseType{Draft Release}
 
 % ---------------------------------------------------------------------------- %
@@ -230,13 +315,9 @@ showstringspaces=false            %
     % contributions or helped beyond the normal part of a work assignment.
     % Use \section* since we don't want it in the table of context
     %
-    \clearpage
-    \section*{Acknowledgment}
-     Thanks to the following people for their contributions in the drawing up of this Manual:
-     \begin{itemize}
-     \item Ivan Rinaldi;
-     \item Alessandro Bandini.
-     \end{itemize}
+%    \clearpage
+%    \section*{Acknowledgment}
+
     
 
 %	The format of this report is based on information found
@@ -250,8 +331,8 @@ showstringspaces=false            %
     %
     \cleardoublepage		% TOC needs to start on an odd page
     \tableofcontents
-    \listoffigures
-    \listoftables
+    %\listoffigures
+    %\listoftables
 
 
     % ---------------------------------------------------------------------- %
@@ -301,6 +382,7 @@ showstringspaces=false            %
     \SANDmain		% Start the main part of the report
 
 \input{introduction.tex}
+\input{nomenclature.tex}
 \input{install.tex}
 \input{HowToRun.tex}
 \input{ravenStructure.tex}
@@ -313,6 +395,7 @@ showstringspaces=false            %
 \input{model.tex}
 \input{OutStreamSystem.tex}
 \input{existing_interfaces.tex}
+\input{couplingAcode.tex}
 
 
     % ---------------------------------------------------------------------- %
@@ -325,7 +408,7 @@ showstringspaces=false            %
     \phantomsection
     \addcontentsline{toc}{section}{References}
     \bibliographystyle{ieeetr}
-    \bibliography{raven_user_manual.bib}
+    \bibliography{raven_user_manual}
 
 
     % ---------------------------------------------------------------------- %
