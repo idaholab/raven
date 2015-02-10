@@ -401,9 +401,9 @@ class SparseQuad(object):
     weights= list(product(*weightLists))
     for k,wtset in enumerate(weights):
       weights[k]=np.product(wtset)
-    print('DEBUG idx',idx)
-    for p,pt in enumerate(points):
-      print('DEBUG  ',pt,weights[p])
+    #print('DEBUG idx',idx)
+    #for p,pt in enumerate(points):
+    #  print('DEBUG  ',pt,weights[p])
     return points,weights
 
 
