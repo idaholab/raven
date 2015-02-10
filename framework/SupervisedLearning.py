@@ -351,6 +351,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     for r in range(5):
       print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
 
+    print('DEBUG sparsegrid:\n'+str(self.sparseGrid))
     #local evals
     #if len(self.features)==1:
     #  tests=[(0),(0.2),(0.5),(0.7),(1.0)]
