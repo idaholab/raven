@@ -74,6 +74,26 @@ class Distribution(BaseType):
     self.convertToQuadDict ['CDFClenshawCurtis'] = self.CDFconvertToQuad
     self.measureNormDict   ['CDFClenshawCurtis'] = self.CDFMeasureNorm
 
+  def __getstate__(self):
+    pdict={}
+    self.addInitParams(pdict)
+    pdict['type']=self.type
+    return pdict
+
+  def __setstate__(self,pdict):
+    self.__init__()
+    self.upperBoundUsed   = pdict.pop('upperBoundUsed'  )
+    self.lowerBoundUsed   = pdict.pop('lowerBoundUsed'  )
+    self.hasInfiniteBound = pdict.pop('hasInfiniteBound')
+    self.upperBound       = pdict.pop('upperBound'      )
+    self.lowerBound       = pdict.pop('lowerBound'      )
+    self.__adjustmentType = pdict.pop('adjustmentType'  )
+    self.dimensionality   = pdict.pop('dimensionality'  )
+    self.type             = pdict.pop('type')
+    self._localSetState(pdict)
+    self.initializeDistribution()
+
+
   def _readMoreXML(self,xmlNode):
     '''
     Readmore xml, see BaseType.py explaination.
@@ -105,12 +125,13 @@ class Distribution(BaseType):
     Function to get the input params that belong to this class
     @ In, tempDict, temporary dictionary
     '''
-    tempDict['upperBoundUsed'] = self.upperBoundUsed
-    tempDict['lowerBoundUsed'] = self.lowerBoundUsed
-    tempDict['upperBound'    ] = self.upperBound
-    tempDict['lowerBound'    ] = self.lowerBound
-    tempDict['adjustmentType'] = self.__adjustmentType
-    tempDict['dimensionality'] = self.dimensionality
+    tempDict['upperBoundUsed'  ] = self.upperBoundUsed
+    tempDict['lowerBoundUsed'  ] = self.lowerBoundUsed
+    tempDict['hasInfiniteBound'] = self.hasInfiniteBound
+    tempDict['upperBound'      ] = self.upperBound
+    tempDict['lowerBound'      ] = self.lowerBound
+    tempDict['adjustmentType'  ] = self.__adjustmentType
+    tempDict['dimensionality'  ] = self.dimensionality
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
     '''
@@ -341,12 +362,18 @@ class Uniform(BoostDistribution):
     BoostDistribution.__init__(self)
     self.low = 0.0
     self.hi = 0.0
+    self.range = 0.0
     self.type = 'Uniform'
     self.compatibleQuadrature.append('Legendre')
     self.compatibleQuadrature.append('ClenshawCurtis')
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature = 'Legendre'
     self.preferredPolynomials = 'Legendre'
+
+  def _localSetState(self,pdict):
+    self.low   = pdict.pop('low'  )
+    self.hi    = pdict.pop('hi'   )
+    self.range = pdict.pop('range')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -383,6 +410,7 @@ class Uniform(BoostDistribution):
     BoostDistribution.addInitParams(self,tempDict)
     tempDict['low'] = self.low
     tempDict['hi'] = self.hi
+    tempDict['range'] = self.range
     # no other additional parameters required
 
   def initializeDistribution(self):
@@ -422,6 +450,10 @@ class Normal(BoostDistribution):
     #THESE get set in initializeDistribution, since it depends on truncation
     #self.preferredQuadrature  = 'Hermite'
     #self.preferredPolynomials = 'Hermite'
+
+  def _localSetState(self,pdict):
+    self.mean  = pdict.pop('mean' )
+    self.sigma = pdict.pop('sigma')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -536,6 +568,11 @@ class Gamma(BoostDistribution):
     self.preferredQuadrature  = 'Laguerre'
     self.preferredPolynomials = 'Laguerre'
 
+  def _localSetState(self,pdict):
+    self.low   = pdict.pop('low'  )
+    self.alpha = pdict.pop('alpha')
+    self.beta  = pdict.pop('beta' )
+
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['k'] = self.alpha
@@ -625,6 +662,12 @@ class Beta(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'Jacobi'
     self.preferredPolynomials = 'Jacobi'
+
+  def _localSetState(self,pdict):
+    self.low   = pdict.pop('low'  )
+    self.hi    = pdict.pop('hi'   )
+    self.alpha = pdict.pop('alpha')
+    self.beta  = pdict.pop('beta' )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -724,6 +767,11 @@ class Triangular(BoostDistribution):
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
 
+  def _localSetState(self,pdict):
+    self.apex = pdict.pop('apex')
+    self.min  = pdict.pop('min' )
+    self.max  = pdict.pop('max' )
+
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['xPeak'] = self.apex
@@ -775,6 +823,10 @@ class Poisson(BoostDistribution):
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
 
+  def _localSetState(self,pdict):
+    self.mu = pdict.pop('mu')
+
+
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['mu'] = self.mu
@@ -811,6 +863,10 @@ class Binomial(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.n = pdict.pop('n')
+    self.p = pdict.pop('p')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -851,6 +907,9 @@ class Bernoulli(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.p = pdict.pop('p')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -902,6 +961,10 @@ class Logistic(BoostDistribution):
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
 
+  def _localSetState(self,pdict):
+    self.location = pdict.pop('location')
+    self.scale    = pdict.pop('scale'   )
+
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['scale'] = self.scale
@@ -944,6 +1007,10 @@ class Exponential(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.lambda_var = pdict.pop('lambda')
+    self.low        = pdict.pop('low'   )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -1014,6 +1081,10 @@ class LogNormal(BoostDistribution):
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
 
+  def _localSetState(self,pdict):
+    self.mean  = pdict.pop('mean' )
+    self.sigma = pdict.pop('sigma')
+
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['mu'] = self.mean
@@ -1062,6 +1133,10 @@ class Weibull(BoostDistribution):
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.lambda_var = pdict.pop('lambda')
+    self.k          = pdict.pop('k'     )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)

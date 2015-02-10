@@ -341,6 +341,13 @@
   csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
  [../]
 
+ [./stochPolyPickleTest]
+  type = 'RavenFramework'
+  input = 'test_stochpoly_pickle.xml'
+  output = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+  csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+ [../]
+
  [./RELAP5interfaceTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface.xml'
