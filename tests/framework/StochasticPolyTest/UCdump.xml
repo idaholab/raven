@@ -1,43 +1,51 @@
-<data name="UCdump" type="timepointset"><input>x2,x1</input><output>ans</output><input_filename>UCdump.csv</input_filename><metadata><SamplerType>u'Sparse Grid Collocation' u'Sparse Grid Collocation'
- u'Sparse Grid Collocation' u'Sparse Grid Collocation'
- u'Sparse Grid Collocation' u'Sparse Grid Collocation'
- u'Sparse Grid Collocation' u'Sparse Grid Collocation'
- u'Sparse Grid Collocation' u'Sparse Grid Collocation'
- u'Sparse Grid Collocation' u'Sparse Grid Collocation'
- u'Sparse Grid Collocation' u'Sparse Grid Collocation'
- u'Sparse Grid Collocation'</SamplerType><crowDist> 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'
- 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0'</crowDist><SampledVars>'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659
- 'x2': 5.0, 'x1': 4.5491933384829659</SampledVars><ProbabilityWeight> 0.03703704  0.05925926  0.03703704  0.2962963   0.47407407  0.2962963
-  0.44444444  0.71111111  0.44444444  0.2962963   0.47407407  0.2962963
-  0.03703704  0.05925926  0.03703704</ProbabilityWeight><prefix>'1' '2' '3' '4' '5' '6' '7' '8' '9' '10' '11' '12' '13' '14' '15'</prefix><PointProbability>None None None None None None None None None None None None None None None</PointProbability><SampledVarsPb>'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25
- 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25
- 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25
- 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25
- 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25 'x2': 0.25, 'x1': 0.25</SampledVarsPb><PointsProbability> 0.0625  0.0625  0.0625  0.0625  0.0625  0.0625  0.0625  0.0625  0.0625
-  0.0625  0.0625  0.0625  0.0625  0.0625  0.0625</PointsProbability></metadata></data>
+<data name="UCdump" type="timepointset"><input>x2,x1</input><output>ans</output><input_filename>UCdump.csv</input_filename><metadata><SamplerType>array(u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+       u'Sparse Grid Collocation', u'Sparse Grid Collocation',
+       u'Sparse Grid Collocation', 
+      dtype='&lt;U23')</SamplerType><crowDist>array( 'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0',
+       'x2': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', 'x1': '"xMin": 1.0, "type": "UniformDistribution", "xMax": 5.0', dtype=object)</crowDist><SampledVars>array('x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659,
+       'x2': 5.0, 'x1': 4.5491933384829659, dtype=object)</SampledVars><ProbabilityWeight>array( 0.03703704,  0.05925926,  0.03703704,  0.2962963 ,  0.47407407,
+        0.2962963 ,  0.44444444,  0.71111111,  0.44444444,  0.2962963 ,
+        0.47407407,  0.2962963 ,  0.03703704,  0.05925926,  0.03703704)</ProbabilityWeight><prefix>array('1', '2', '3', '4', '5', '6', '7', '8', '9', '1', '1', '1', '1',
+       '1', '1', 
+      dtype='|S1')</prefix><PointProbability>array(None, None, None, None, None, None, None, None, None, None, None,
+       None, None, None, None, dtype=object)</PointProbability><SampledVarsPb>array('x2': 0.25, 'x1': 0.25, 'x2': 0.25, 'x1': 0.25,
+       'x2': 0.25, 'x1': 0.25, 'x2': 0.25, 'x1': 0.25,
+       'x2': 0.25, 'x1': 0.25, 'x2': 0.25, 'x1': 0.25,
+       'x2': 0.25, 'x1': 0.25, 'x2': 0.25, 'x1': 0.25,
+       'x2': 0.25, 'x1': 0.25, 'x2': 0.25, 'x1': 0.25,
+       'x2': 0.25, 'x1': 0.25, 'x2': 0.25, 'x1': 0.25,
+       'x2': 0.25, 'x1': 0.25, 'x2': 0.25, 'x1': 0.25,
+       'x2': 0.25, 'x1': 0.25, dtype=object)</SampledVarsPb><PointsProbability>array( 0.0625,  0.0625,  0.0625,  0.0625,  0.0625,  0.0625,  0.0625,
+        0.0625,  0.0625,  0.0625,  0.0625,  0.0625,  0.0625,  0.0625,
+        0.0625)</PointsProbability></metadata></data>

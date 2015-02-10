@@ -54,7 +54,7 @@ class c1darray(object):
     if type(x).__name__ != 'ndarray':
       if self.size  == self.capacity:
         self.capacity *= 4
-        newdata = np.zeros((self.capacity,),dtype=type(x).__name__)
+        newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
         newdata[:self.size] = self.values[:]
         self.values = newdata
       self.values[self.size] = x
@@ -62,13 +62,13 @@ class c1darray(object):
     else:
       if (self.capacity - self.size) < x.size:
         # to be safer
-        self.capacity += self.capacity + x.size*4
-        newdata = np.zeros((self.capacity,),dtype=x.dtype)
+        self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
+        newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
         newdata[:self.size] = self.values[:]
         self.values = newdata
-      for index in range(x.size):
-        self.values[self.size] = x[index]
-        self.size  += 1
+      #for index in range(x.size):
+      self.values[self.size:self.size+x.size] = x[:]
+      self.size  += x.size
 
   def __add__(self, x):
     """
@@ -77,7 +77,7 @@ class c1darray(object):
     @ Out, sum of the two arrays
     """
     x = np.array(x) # make sure input is numpy compatible
-    return c1darray(shape = self.values[:self.size].shape[0]+x.shape[0], values=self.values[:self.size]+x)
+    return c1darray(shape = self.size+x.shape[0], values=self.values[:self.size]+x)
 
   def __radd__(self, x):
     """
@@ -87,7 +87,7 @@ class c1darray(object):
     @ Out, sum of the two arrays
     """
     x = np.array(x) # make sure input is numpy compatible
-    return c1darray(shape = x.shape[0]+self.values[:self.size].shape[0], values=x+self.values[:self.size])
+    return c1darray(shape = x.shape[0]+self.size, values=x+self.values[:self.size])
 
   def __array__(self, dtype = None):
     """
