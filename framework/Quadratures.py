@@ -75,6 +75,22 @@ class SparseQuad(object):
       #msg+='    '+str(self[p])+'\n'
     return msg
 
+  def __csv__(self):
+    '''Slightly more human-readable version of printout.
+    @ In None, None
+    @ Out string, list of points and weights
+    '''
+    msg=''
+    for _ in range(len(self[0][0])):
+      msg+='pt,'
+    msg+='wt\n'
+    for p in range(len(self)):
+      pt,wt = self[p]
+      for i in pt:
+        msg+='%1.9f,' %i
+      msg+='%1.9f\n' %wt
+    return msg
+
   def __getstate__(self):
     '''Determines picklable items
     @ In None, None
@@ -247,7 +263,7 @@ class SparseQuad(object):
           new = job.returnEvaluation()[1]
           for i in range(len(new[0])):
             newpt = tuple(new[0][i])
-            newwt = new[1][i]*self.c[j]
+            newwt = new[1][i]*float(job.identifier)
             if newpt in self.SG.keys():
               self.SG[newpt]+= newwt
             else:
@@ -257,9 +273,10 @@ class SparseQuad(object):
       if j<numRunsNeeded-1:
         for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
           j+=1
+          cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(j))
+          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(cof))
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
@@ -268,7 +285,7 @@ class SparseQuad(object):
     @ In idx, tuple(int), index set point
     @ Out, tuple(int), quadrature orders to use
     '''
-    tot=np.zeros(len(idx))
+    tot=np.zeros(len(idx),dtype=np.int64)
     for i,ix in enumerate(idx):
       tot[i]=self.quadDict.values()[i].quadRule(ix)
     return tot
@@ -384,6 +401,9 @@ class SparseQuad(object):
     weights= list(product(*weightLists))
     for k,wtset in enumerate(weights):
       weights[k]=np.product(wtset)
+    #print('DEBUG idx',idx)
+    #for p,pt in enumerate(points):
+    #  print('DEBUG  ',pt,weights[p])
     return points,weights
 
 
