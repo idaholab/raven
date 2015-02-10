@@ -8,3 +8,5 @@ out*snc01
 RELAP5interfaceTest/testDummyStep/tpfh2o
 AdaptiveDET/AdaptiveDETrunTest/
 coverage_html_report
+testDistrDump.pk
+StochasticPolyPickleTest
