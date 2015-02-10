@@ -474,7 +474,7 @@ class Normal(BoostDistribution):
     @ In None, None
     @ Out float, norm
     '''
-    return 1.0/np.sqrt(2.*np.pi)
+    return 1.0/np.sqrt(np.pi/2.)
 
   def convertNormalToHermite(self,y):
     '''Converts from distribution domain to standard Hermite [-inf,inf].
