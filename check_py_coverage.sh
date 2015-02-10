@@ -58,5 +58,6 @@ do
     coverage run $EXTRA ../../framework/Driver.py  $I
 done
 coverage run $EXTRA ../../framework/TestDistributions.py
+coverage run $EXTRA ../../framework/Driver.py test_relap5_code_interface.xml interfacecheck
 coverage html
 
