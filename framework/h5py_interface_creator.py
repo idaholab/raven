@@ -200,7 +200,10 @@ class hdf5Database(object):
           if gname == splgroup: raise IOError(self.printTag+": ERROR -> Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
-      f = open(source['name'],'rb')
+      try: f = open(source['name'],'rb')
+      except:
+       print("IVAN error...Maybe RELAP7 did crash!!!!!")
+       return
       # Retrieve the headers of the CSV file
       firstRow = f.readline().strip(b"\r\n")
       #firstRow = f.readline().translate(None,"\r\n")
@@ -290,14 +293,14 @@ class hdf5Database(object):
       groups.attrs[b'source_type'] = b'Dictionary'
       # I keep this structure here because I want to mantain the possibility to add a whatever dictionary even if not prepared and divided into output and input sub-sets. A.A.
       if set(['input_space_params']).issubset(set(source['name'].keys())):
-        groups.attrs[b'input_space_headers' ] = copy.deepcopy(list(toBytesIterative(source['name']['input_space_params'].keys()))  )
-        groups.attrs[b'input_space_values'  ] = copy.deepcopy(list(toBytesIterative(source['name']['input_space_params'].values())))
+        groups.attrs[b'input_space_headers' ] = list(toBytesIterative(source['name']['input_space_params'].keys()))
+        groups.attrs[b'input_space_values'  ] = list(toBytesIterative(source['name']['input_space_params'].values()))
       if set(['output_space_params']).issubset(set(source['name'].keys())): outDict = source['name']['output_space_params']
       else: outDict = dict((key,value) for (key,value) in source['name'].iteritems() if key not in ['input_space_params'])
-      out_headers = list(toBytesIterative(outDict.keys())  )
+      out_headers = list(toBytesIterative(outDict.keys()))
       out_values  = list(toBytesIterative(outDict.values()))
       groups.attrs[b'n_params'   ] = len(out_headers)
-      groups.attrs[b'output_space_headers'] = copy.deepcopy(out_headers)
+      groups.attrs[b'output_space_headers'] = out_headers
       groups.attrs[b'EndGroup'   ] = True
       groups.attrs[b'parent_id'  ] = parent_name
       maxsize = 0
@@ -305,25 +308,20 @@ class hdf5Database(object):
         if type(value) == np.ndarray:
           if maxsize < value.size : actualone = value.size
         elif type(value) in [int,float,bool,np.float64,np.float32,np.float16,np.int64,np.int32,np.int16,np.int8,np.bool8]: actualone = 1
-        else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The type of the dictionary paramaters must be within float,bool,int,numpy.ndarray')
+        else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The type of the dictionary parameters must be within float,bool,int,numpy.ndarray')
         if maxsize < actualone: maxsize = actualone
       groups.attrs[b'n_ts'  ] = maxsize
       dataout = np.zeros((maxsize,len(out_headers)))
       for index in range(len(out_headers)):
-        if type(out_values[index]) == np.ndarray:  dataout[0:out_values[index].size,index] =  copy.deepcopy(out_values[index][:])
-        else: dataout[0,index] = copy.deepcopy(out_values[index])
+        if type(out_values[index]) == np.ndarray:  dataout[0:out_values[index].size,index] =  out_values[index][:]
+        else: dataout[0,index] = out_values[index]
       # create the data set
       groups.create_dataset(gname + "_data", dtype="float", data=dataout)
       # add metadata if present
       for attr in attributes.keys():
-        #print(type(attributes[attr]))
-        #if type(attributes[attr]) in [np.ndarray]: objectToConvert = attributes[attr].tolist()
-        #else:                                      objectToConvert = attributes[attr]
         objectToConvert = convertNumpyToLists(attributes[attr])
-
         converted = json.dumps(objectToConvert)
         if converted and attr != 'name': groups.attrs[toBytes(attr)]=converted
-
       if parent_group_name != "/":
         self.allGroupPaths.append(parent_group_name + "/" + gname)
         self.allGroupEnds[parent_group_name + "/" + gname] = True
@@ -355,25 +353,24 @@ class hdf5Database(object):
           groups[run].attrs[b'EndGroup'   ] = True
           groups[run].attrs[b'parent_id'  ] = parent_name
           if source['name'].type == 'Histories':
-            groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([toBytes(list(data_in[run].keys())[i])  for i in range(len(data_in[run].keys()))])
-            groups[run].attrs[b'output_space_headers'] = copy.deepcopy([toBytes(list(data_out[run].keys())[i])  for i in range(len(data_out[run].keys()))])
-            groups[run].attrs[b'input_space_values'  ] = copy.deepcopy(list(data_in[run].values()))
+            groups[run].attrs[b'input_space_headers' ] = [toBytes(list(data_in[run].keys())[i])  for i in range(len(data_in[run].keys()))]
+            groups[run].attrs[b'output_space_headers'] = [toBytes(list(data_out[run].keys())[i])  for i in range(len(data_out[run].keys()))]
+            groups[run].attrs[b'input_space_values'  ] = list(data_in[run].values())
             groups[run].attrs[b'n_params'            ] = len(data_out[run].keys())
             #collect the outputs
             dataout = np.zeros((next(iter(data_out[run].values())).size,len(data_out[run].values())))
             for param in range(len(data_out[run].values())): dataout[:,param] = list(data_out[run].values())[param][:]
-            groups[run].create_dataset(gname +'|' +str(run)+"_data" , dtype="float", data=copy.deepcopy(dataout))
+            groups[run].create_dataset(gname +'|' +str(run)+"_data" , dtype="float", data=dataout)
             groups[run].attrs[b'n_ts'                ] = next(iter(data_out[run].values())).size
           else:
-            groups[run].attrs[b'input_space_headers' ] = copy.deepcopy([toBytes(headers_in[i])  for i in range(len(headers_in))])
-            groups[run].attrs[b'output_space_headers'] = copy.deepcopy([toBytes(headers_out[i])  for i in range(len(headers_out))])
-            groups[run].attrs[b'input_space_values'  ] = copy.deepcopy([np.atleast_1d(np.array(data_in[x][run])) for x in range(len(data_in))])
+            groups[run].attrs[b'input_space_headers' ] = [toBytes(headers_in[i])  for i in range(len(headers_in))]
+            groups[run].attrs[b'output_space_headers'] = [toBytes(headers_out[i])  for i in range(len(headers_out))]
+            groups[run].attrs[b'input_space_values'  ] = [np.atleast_1d(np.array(data_in[x][run])) for x in range(len(data_in))]
             groups[run].attrs[b'n_params'            ] = len(headers_out)
             groups[run].attrs[b'n_ts'                ] = 1
             #collect the outputs
             dataout = np.zeros((1,len(data_out)))
-            for param in range(len(data_out)):
-              dataout[0,param] = copy.deepcopy(data_out[param][run])
+            for param in range(len(data_out)): dataout[0,param] = data_out[param][run]
             groups[run].create_dataset(gname +'|' +str(run)+"_data", dtype="float", data=dataout)
           # add metadata if present
           for attr in attributes.keys():
@@ -397,18 +394,18 @@ class hdf5Database(object):
           groups = parentgroup_obj.require_group(gname)
           del groups[gname+"_data"]
         else: groups = parentgroup_obj.create_group(gname)
-        groups.attrs[b'main_class' ] = b'Datas'
-        groups.attrs[b'source_type'] = toBytes(source['name'].type)
-        groups.attrs[b'n_params'   ] = len(headers_out)
-        groups.attrs[b'input_space_headers' ] = copy.deepcopy([toBytes(headers_in[i])  for i in range(len(headers_in))])
-        groups.attrs[b'output_space_headers'] = copy.deepcopy([toBytes(headers_out[i])  for i in range(len(headers_out))])
-        groups.attrs[b'input_space_values' ] = copy.deepcopy([np.array(data_in[i])  for i in range(len(data_in))])
-        groups.attrs[b'source_type'] = toBytes(source['name'].type)
-        groups.attrs[b'EndGroup'   ] = True
-        groups.attrs[b'parent_id'  ] = parent_name
+        groups.attrs[b'main_class'          ] = b'Datas'
+        groups.attrs[b'source_type'         ] = toBytes(source['name'].type)
+        groups.attrs[b'n_params'            ] = len(headers_out)
+        groups.attrs[b'input_space_headers' ] = [toBytes(headers_in[i])  for i in range(len(headers_in))]
+        groups.attrs[b'output_space_headers'] = [toBytes(headers_out[i])  for i in range(len(headers_out))]
+        groups.attrs[b'input_space_values'  ] = [np.array(data_in[i])  for i in range(len(data_in))]
+        groups.attrs[b'source_type'         ] = toBytes(source['name'].type)
+        groups.attrs[b'EndGroup'            ] = True
+        groups.attrs[b'parent_id'           ] = parent_name
         dataout = np.zeros((data_out[0].size,len(data_out)))
         groups.attrs[b'n_ts'  ] = data_out[0].size
-        for run in range(len(data_out)): dataout[:,int(run)] = copy.deepcopy(data_out[run][:])
+        for run in range(len(data_out)): dataout[:,int(run)] = data_out[run][:]
         groups.create_dataset(gname + "_data", dtype="float", data=dataout)
         # add metadata if present
         for attr in attributes.keys():
@@ -443,7 +440,10 @@ class hdf5Database(object):
         if gname == splgroup: raise IOError(self.printTag+": ERROR -> Group named " + gname + " already present in database " + self.name + ". new group " + gname + " is equal to old group " + comparisonName)
     if source['type'] == 'csv':
       # Source in CSV format
-      f = open(source['name'],'rb')
+      try: f = open(source['name'],'rb')
+      except:
+       print("IVAN error...Maybe RELAP7 did crash!!!!!")
+       return
       # Retrieve the headers of the CSV file
       # Retrieve the header of the CSV file
       headers = f.readline().split(b",")
@@ -665,7 +665,7 @@ class hdf5Database(object):
           if i == 0: n_params = int(grp.attrs['n_params'])
           if n_params != int(grp.attrs['n_params']): raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Can not merge datasets with different number of parameters')
           # Get numpy array
-          gb_res[i]   = copy.deepcopy(dataset[:,:])
+          gb_res[i]   = dataset[:,:]
           gb_attrs[i] = copy.copy(grp.attrs   )
           n_tot_ts = n_tot_ts + int(grp.attrs['n_ts'])
         # Create the numpy array
@@ -795,7 +795,7 @@ class hdf5Database(object):
         else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Filter not recognized in hdf5Database.retrieveHistory function. Filter = ' + str(filter))
     else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> History named ' + name + ' not found in database')
 
-    return(copy.deepcopy(result),copy.deepcopy(attrs))
+    return(result,attrs)
 
   def closeDataBaseW(self):
     '''

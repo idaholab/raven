@@ -15,13 +15,18 @@ import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from utils import toString
 import Distributions
+from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class RAVENInterface:
+class RAVENInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
   def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
-    if inputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    found = False
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile.endswith(('.i','.inp','.in')):
+        found = True
+        break
+    if not found: raise Exception('RAVEN INTERFACE ERROR -> None of the input files has one of the following extensions ".i", ".inp", or ".in"!')
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     if flags: precommand = executable + flags
     else    : precommand = executable
@@ -68,12 +73,12 @@ class RAVENInterface:
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.deepcopy(currentInputFiles)
+    newInputFiles = copy.copy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1])
     else:
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1])
     parser.printInput(newInputFiles[index])
     return newInputFiles
 
@@ -105,8 +110,7 @@ class RAVENInterface:
     listDict.append(modifDict)
     return listDict
 
-  def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs):
-    return self.dynamicEventTreeForRAVEN(**Kwargs)
+  def adaptiveDynamicEventTreeForRAVEN(self,**Kwargs): return self.dynamicEventTreeForRAVEN(**Kwargs)
 
   def dynamicEventTreeForRAVEN(self,**Kwargs):
 

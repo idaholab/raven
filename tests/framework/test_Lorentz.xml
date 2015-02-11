@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation>
+<Simulation debug="True">
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
     <Files>lorentzAttractor.py</Files>
     <Sequence>FirstMRun</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>3</batchSize>
 </RunInfo>
 
 <Models>
