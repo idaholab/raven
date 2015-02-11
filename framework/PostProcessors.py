@@ -1718,14 +1718,23 @@ class TopologicalDecomposition(BasePostProcessor):
     partitions = self.__amsc.GetPartitions(self.persistence)
     fits = {}
 
+    self.linearNRMSD = 0
+    count = 0
+
     for key,items in partitions.iteritems():
       X = inputData[np.array(items),:]
       y = outputData[np.array(items)]
       beta_hat,residuals,rank,s = np.linalg.lstsq(X,y)
       yHat = X.dot(beta_hat)
       rSquared = 1 - np.sum((yHat - y)**2)/np.sum((y - np.mean(y))**2)
+
       key = key.replace(',','_')
       fits[key] = (beta_hat.tolist(),rSquared)
+      self.linearNRMSD += np.sum((yHat - y)**2)
+      count += len(yHat)
+
+    self.linearNRMSD = math.sqrt(self.linearNRMSD/count)
+    self.linearNRMSD /= (max(outputData)-min(outputData))
 
     return fits
 
@@ -1737,9 +1746,13 @@ class TopologicalDecomposition(BasePostProcessor):
     constrainedGaussian = True
 #############END DEBUG##########################################################
 
+    self.gaussianNRMSD = []
+
     partitions = self.__amsc.GetPartitions(self.persistence)
     fits = {}
     for extType in [0,1]:
+      self.gaussianNRMSD.append(0)
+      count = 0
       extFlowSet = {}
       for key,items in partitions.iteritems():
         extIdx = int(key.split(',')[extType])
@@ -1864,8 +1877,12 @@ class TopologicalDecomposition(BasePostProcessor):
           yHat[i] = GaussFit(X[i,])
 
         rSquared = 1 - np.sum((yHat - Y)**2)/np.sum((Y - np.mean(Y))**2)
+        self.gaussianNRMSD[extType] += np.sum((yHat - Y)**2)
+        count += len(yHat)
         fits[extIdx] = (mu,c,a,A,rSquared)
 
+      self.gaussianNRMSD[extType] = math.sqrt(self.gaussianNRMSD[extType] / count)
+      self.gaussianNRMSD[extType] /= (max(outputData)-min(outputData))
     return fits
 
   def run(self, InputIn):
@@ -1956,6 +1973,7 @@ class TopologicalDecomposition(BasePostProcessor):
       outputDict['coefficients_' + key] = coefficients
       outputDict['R2_' + key] = rSquared
 
+    print('RMSD  = %f' % (self.linearNRMSD))
     print('========== Gaussian Fits: ==========')
     print(u'a/\u221A(2\u03C0^d|\u03A3|)*e^(-(x-\u03BC)T\u03A3(x-\u03BC)) + c - ' +
           u'a\t(\u03BC & c are fixed, \u03A3 and a are estimated)')
@@ -1974,6 +1992,8 @@ class TopologicalDecomposition(BasePostProcessor):
       outputDict['a_' + str(key)] = a
       outputDict['Sigma_' + str(key)] = A
       outputDict['R2_' + str(key)] = rSquared
+
+    print('RMSD  = %f and %f' % (self.gaussianNRMSD[0],self.gaussianNRMSD[1]))
 
 #      outputDict['Gaussian_' + str(minIdx)] = GaussFit
 
