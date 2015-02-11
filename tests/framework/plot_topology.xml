@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A Simple Example of the Approximate Morse-Smale Complex Interface -->
+<Simulation>
+<RunInfo>
+  <WorkingDir>topologyPP</WorkingDir>
+  <Sequence>
+    load,
+    decompose,
+    seg1,
+    seg2,
+    seg3,
+    seg4,
+    plot
+  </Sequence>
+</RunInfo>
+<Models>
+<!-- The definition of the topological partition and all of its parameters -->
+  <PostProcessor name='AMSC' subType='TopologicalDecomposition' debug='true'>
+    <graph>Beta Skeleton</graph>
+    <gradient>steepest</gradient>
+    <beta>1</beta>
+    <knn>8</knn>
+    <normalization>None</normalization>
+    <parameters>X,Y</parameters>
+    <response>Z</response>
+  </PostProcessor>
+  <PostProcessor name='seg1' subType='External' debug='true'>
+    <method>seg1</method>
+    <Function class='Functions' type='External'>segment</Function>
+  </PostProcessor>
+  <PostProcessor name='seg2' subType='External' debug='true'>
+    <method>seg2</method>
+    <Function class='Functions' type='External'>segment</Function>
+  </PostProcessor>
+  <PostProcessor name='seg3' subType='External' debug='true'>
+    <method>seg3</method>
+    <Function class='Functions' type='External'>segment</Function>
+  </PostProcessor>
+  <PostProcessor name='seg4' subType='External' debug='true'>
+    <method>seg4</method>
+    <Function class='Functions' type='External'>segment</Function>
+  </PostProcessor>
+</Models>
+<Functions>
+  <External name='segment' file='topologyPP/GrabSegments'>
+    <variable>X</variable>
+    <variable>Y</variable>
+    <variable>Z</variable>
+    <variable>minLabel</variable>
+    <variable>maxLabel</variable>
+  </External>
+</Functions>
+<Steps>
+<!-- Load the data from a csv into the hdf5 database used by this run -->
+    <IOStep name='load' fromDirectory='.'>
+      <Input  class='Datas'    type='TimePointSet'>testData</Input>
+      <Output   class='DataBases' type='HDF5'   >myDB</Output>
+    </IOStep> 
+<!-- Perform the topological decomposition -->
+    <PostProcess name='decompose'>
+        <Input   class='Datas'    type='TimePointSet'>testData</Input>
+        <Model   class='Models'   type='PostProcessor'>AMSC</Model>
+        <Output  class='Datas'    type='TimePointSet'>outTPS</Output>
+        <Output  class='OutStreamManager' type='Print'>myDump</Output>
+    </PostProcess>
+<!-- Subselect data -->
+    <PostProcess name='seg1'>
+        <Input   class='Datas'    type='TimePointSet'>outTPS</Input>
+        <Model   class='Models'   type='PostProcessor'>seg1</Model>
+        <Output  class='Datas'    type='TimePointSet'>seg1</Output>
+    </PostProcess>
+    <PostProcess name='seg2'>
+        <Input   class='Datas'    type='TimePointSet'>outTPS</Input>
+        <Model   class='Models'   type='PostProcessor'>seg2</Model>
+        <Output  class='Datas'    type='TimePointSet'>seg2</Output>
+    </PostProcess>
+    <PostProcess name='seg3'>
+        <Input   class='Datas'    type='TimePointSet'>outTPS</Input>
+        <Model   class='Models'   type='PostProcessor'>seg3</Model>
+        <Output  class='Datas'    type='TimePointSet'>seg3</Output>
+    </PostProcess>
+    <PostProcess name='seg4'>
+        <Input   class='Datas'    type='TimePointSet'>outTPS</Input>
+        <Model   class='Models'   type='PostProcessor'>seg4</Model>
+        <Output  class='Datas'    type='TimePointSet'>seg4</Output>
+    </PostProcess>
+<!-- Plot the data -->
+  <OutStreamStep name='plot' pauseAtEnd='True'>
+    <Input  class='Datas'            type='TimePointSet'>seg1</Input>
+    <Input  class='Datas'            type='TimePointSet'>seg2</Input>
+    <Input  class='Datas'            type='TimePointSet'>seg3</Input>
+    <Input  class='Datas'            type='TimePointSet'>seg4</Input>
+    <Output class='OutStreamManager' type='Plot'        >Topological Decomposition</Output>
+  </OutStreamStep>
+</Steps>
+
+<OutStreamManager>
+<!-- A csv file containing the output of the example -->
+  <Print name='myDump'>
+    <type>csv</type>
+    <source>outTPS</source>
+  </Print>
+  <Plot name='Topological Decomposition' dim='3' interactive='True'>
+    <actions>
+      <how>screen</how>
+    </actions>
+    <plotSettings>
+      <plot>
+      <type>scatter</type>
+      <x>seg1|Input|X</x>
+      <y>seg1|Input|Y</y>
+      <z>seg1|Output|Z</z>
+      <c>yellow</c>
+<!--      <colorMap>seg1|Output|Z</colorMap>-->
+<!--      <cmap>jet</cmap>-->
+      <kwargs></kwargs>
+      </plot>
+      <plot>
+      <type>scatter</type>
+      <x>seg2|Input|X</x>
+      <y>seg2|Input|Y</y>
+      <z>seg2|Output|Z</z>
+      <c>red</c>
+      <kwargs></kwargs>
+      </plot>
+      <plot>
+      <type>scatter</type>
+      <x>seg3|Input|X</x>
+      <y>seg3|Input|Y</y>
+      <z>seg3|Output|Z</z>
+      <c>blue</c>
+      <kwargs></kwargs>
+      </plot>
+      <plot>
+      <type>scatter</type>
+      <x>seg4|Input|X</x>
+      <y>seg4|Input|Y</y>
+      <z>seg4|Output|Z</z>
+      <c>green</c>
+      <kwargs></kwargs>
+      </plot>
+    </plotSettings>
+  </Plot>
+</OutStreamManager>
+
+<DataBases>
+<!-- The necessary database object -->
+  <HDF5 name="myDB"/> 
+</DataBases>
+<Datas>
+<!-- The input TimePointSet objects -->
+  <TimePointSet name='testData'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+<!-- The output TimePointSet objects -->
+  <TimePointSet name='outTPS'>
+    <Input>X,Y</Input>
+    <Output>Z,minLabel,maxLabel</Output>
+  </TimePointSet>
+<!-- The first segment -->
+  <TimePointSet name='seg1'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+<!-- The second segment -->
+  <TimePointSet name='seg2'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+<!-- The third segment -->
+  <TimePointSet name='seg3'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+<!-- The fourth segment -->
+  <TimePointSet name='seg4'>
+    <Input>X,Y</Input>
+    <Output>Z</Output>
+  </TimePointSet>
+</Datas>
+</Simulation>
