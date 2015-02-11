@@ -1335,7 +1335,7 @@ class ExternalPostProcessor(BasePostProcessor):
           if param not in inputDict['targets']:
             raise IOError(self.errorString('variable \"' + param + '\" unknown.'
                                           + ' Please verify your external'
-                                          + ' script (' 
+                                          + ' script ('
                                           + interface.functionFile
                                           + ') variables match the data'
                                           + ' available in your dataset.'))
