@@ -96,15 +96,22 @@ class SparseQuad(object):
     @ In None, None
     @ Out tuple(tuple(float),float), points and weights
     '''
-    return [self.points(),self.weights()]
+    pdict={}
+    self.addInitParams(pdict)
+    return pdict
 
-  def __setstate__(self,state):
+  def __setstate__(self,pdict):
     '''Determines how to load from picklable items
     @ In tuple(tuple(float),float), points and weights
     @ Out None, None
     '''
-    if   type(state)==dict: self.__initFromDict(state)
-    elif type(state)==list: self.__initFromPoints(state[0],state[1])
+    self.__init__()
+    self.indexSet = pdict.pop('indexSet')
+    self.distDict = pdict.pop('distDict')
+    self.varNames = pdict.pop('names')
+    points        = pdict.pop('points')
+    weights       = pdict.pop('weights')
+    self.__initFromPoints(points,weights)
 
   def __eq__(self,other):
     '''Checks equivalency between sparsequads
@@ -206,6 +213,7 @@ class SparseQuad(object):
     return zip(*self.points())
 
   ##### PUBLIC MEMBERS #####
+  #FIXME remove maxPoly and polyDict, as they are no longer needed.
   def initialize(self, indexSet, maxPoly, distDict, quadDict, polyDict, handler):
     '''Initializes sparse quad to be functional.
     @ In indexSet, IndexSet object, index set
@@ -248,6 +256,14 @@ class SparseQuad(object):
             self.SG[newpt]+=newwt
           else:
             self.SG[newpt] = newwt
+
+  def addInitParams(self,adict):
+    adict['indexSet']=self.indexSet
+    adict['distDict']=self.distDict
+    adict['quadDict']=self.quadDict
+    adict['names'   ]=self.varNames
+    adict['points'  ]=self.points()
+    adict['weights' ]=self.weights()
 
   def parallelSparseQuadGen(self,handler):
     '''Generates sparse quadrature points in parallel.
