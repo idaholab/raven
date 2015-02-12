@@ -578,7 +578,7 @@ class AdaptiveSampler(Sampler):
       for index in range(indexEnd+1): print(','.join([str(self.functionValue[key][index]) for key in list(self.functionValue.keys())]))
     #printing----------------------
     tempDict = {}
-    for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = self.functionValue[name]
+    for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
     self.ROM.train(tempDict)
 
@@ -1312,7 +1312,7 @@ class DynamicEventTree(Grid):
     self.inputInfo['ValueThreshold'            ] = []
     self.inputInfo['branch_changed_param'      ] = [b'None']
     self.inputInfo['branch_changed_param_value'] = [b'None']
-    self.inputInfo['start_time'                ] = b'Initial'
+    self.inputInfo['start_time'                ] = -sys.float_info.max
     self.inputInfo['end_ts'                    ] = 0
     self.inputInfo['parent_id'                 ] = 'root'
     self.inputInfo['conditional_prb'           ] = [1.0]
@@ -2185,6 +2185,7 @@ class SparseGridCollocation(Grid):
   def _readMoreXML(self,xmlNode):
     Grid._readMoreXML(self,xmlNode)
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     #assembler node -> to be changed when Sonnet gets it in the base class
     assemblerNode = xmlNode.find('Assembler')
     if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
@@ -2294,6 +2295,13 @@ class SparseGridCollocation(Grid):
     self.sparseGrid = Quadratures.SparseQuad()
     # NOTE this is the most expensive step thus far; try to do checks before here
     self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
+
+    if self.writeOut != None:
+      msg=self.sparseGrid.__csv__()
+      outFile=file(self.writeOut,'w')
+      outFile.writelines(msg)
+      outFile.close()
+
     self.limit=len(self.sparseGrid)
     if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
     if self.debug: print(self.printTag,'Finished sampler generation.')

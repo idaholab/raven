@@ -66,6 +66,7 @@ class OrthogonalPolynomial(object):
     @ In, quad, Quadrature instance
     @ Out, None, None
     '''
+    self.__init__()
     self.initialize(quad)
 
   def __eq__(self,other):
