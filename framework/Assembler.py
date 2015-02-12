@@ -15,10 +15,10 @@ from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stri
 
 
 class Assembler(object):
-  '''
+  """
   Assembler class is used as base class for all the objects that need, for initialization purposes,
   to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
-  '''
+  """
   def __init__(self):
     self.type               = self.__class__.__name__  # type
     self.name               = self.__class__.__name__  # name
@@ -29,30 +29,42 @@ class Assembler(object):
 
 
   def whatDoINeed(self):
-    '''
+    """
     This method is used mainly by the Simulation class at the Step construction stage.
     It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
     be initialize.
     @ In , None, None
     @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
-    '''
-    needDict = self._localWhatDoINeed()
+    """
+    print ('BURAYA geldim')
+    if '_localWhatDoINeed' in dir(self):
+       needDict = self._localWhatDoINeed()
+    else:
+      needDict = {}
+    for val in self.assemblerObjects.values():
+      for value  in val:
+        if value[0] not in needDict.keys(): needDict[value[0]] = []
+        needDict[value[0]].append((value[1],value[2]))
     return needDict
 
   def generateAssembler(self,initDict):
-    '''
+    """
     This method is used mainly by the Simulation class at the Step construction stage.
     It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
     It is an abstract method -> It must be implemented in the derived class!
     @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
     @ Out, None, None
-    '''
-    self._localGenerateAssembler(initDict)
-    pass
+    """
+    if '_localGenerateAssembler' in dir(self):
+      self._localGenerateAssembler(initDict)
+    for key, value in self.assemblerObjects.items():
+      self.assemblerDict[key] =  []
+      for interface in value:
+         self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
 
   def _readMoreXML(self,xmlNode):
     self.type = xmlNode.tag
-    self.name = xmlNode.attrib['name']
+    if 'name' in xmlNode.attrib: self.name = xmlNode.attrib['name']
     self.printTag = self.type.ljust(25)
     if 'debug' in xmlNode.attrib.keys():self.debug = bool(xmlNode.attrib['debug'])
     if self.requiredAssObject[0]:
@@ -87,4 +99,4 @@ class Assembler(object):
                     else:
                         numerosity = numerosity.replace('n',str(testObjects[tofto]))
                         if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
-    self._localReadMoreXML(xmlNode)
+    if '_localReadMoreXML' in dir(self): self._localReadMoreXML(xmlNode)
