@@ -57,14 +57,10 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
   def __init__(self,**kwargs):
     self.printTag = returnPrintTag('SuperVised')
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    self.normalizeData      = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
     if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Feature names not provided')
     if 'Target'   not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Target name not provided')
-    if 'NormalizeData' in self.initOptionDict.keys():
-      if self.initOptionDict['NormalizeData'].lower() in stringsThatMeanFalse(): self.normalizeData = False
-      self.initOptionDict.pop('NormalizeData')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
@@ -102,13 +98,23 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        if self.normalizeData: self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
-        else                 : self.muAndSigmaFeatures[feat] = (0.0,1.0)
+        self._localNormalizeData(values,names,feat)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
+
+  def _localNormalizeData(self,values,names,feat):
+    '''
+    Method to normalize data based on the mean and standard deviation.  If undesired for a particular ROM,
+    this method can be overloaded to simply pass (see, e.g., GaussPolynomialRom).
+    @ In, values, list of feature values (from tdict)
+    @ In, names, names of features (from tdict)
+    @ In, feat, list of features (from ROM)
+    @ Out, None
+    '''
+    self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
 
   def confidence(self,edict):
     '''
@@ -257,7 +263,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
     self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
     self.norm          = None #combined distribution normalization factors (product)
-    self.normalizeData = False #flag to prevent data normalization; not desirable for this ROM
     self.sparseGrid    = None #Quadratures.SparseGrid object, has points and weights
     self.distDict      = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
     self.quads         = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
@@ -285,6 +290,9 @@ class GaussPolynomialRom(NDinterpolatorRom):
       raise IOError(self.printTag+' No IndexSet specified!')
     if self.maxPolyOrder < 1:
       raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
+
+  def _localNormalizeData(self,values,names,feat):
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def interpolationInfo(self):
     return dict(self.itpDict)
