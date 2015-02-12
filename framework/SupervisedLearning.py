@@ -313,7 +313,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
     '''
     tot=1
     for i,(o,p) in enumerate(zip(orders,pts)):
-      tot*=self.polys.values()[i](o,p)
+      varName = self.sparseGrid.varNames[i]
+      tot*=self.polys[varName](o,p)
     return tot
 
   def __trainLocal__(self,featureVals,targetVals):
@@ -342,6 +343,8 @@ class GaussPolynomialRom(NDinterpolatorRom):
       translate[tuple(fvs[i])]=sgs[i]
     #TODO can parallelize this! Worth it?
     self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    #outFile=file('debugout.txt','w')
+    #outFile.writelines(str(list(v for v in self.sparseGrid.varNames))+'\n')
     for i,idx in enumerate(self.indexSet):
       idx=tuple(idx)
       self.polyCoeffDict[idx]=0
@@ -349,11 +352,15 @@ class GaussPolynomialRom(NDinterpolatorRom):
       for pt,soln in zip(featureVals,targetVals):
         stdPt = np.zeros(len(pt))
         for i,p in enumerate(pt):
-          varName = self.distDict.keys()[i]
+          varName = self.sparseGrid.varNames[i]
           stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
+        #outFile.writelines('DEBUG pt,stdpt\n')
+        #outFile.writelines('  '+str(pt)+'\n')
+        #outFile.writelines('  '+str(stdPt)+'\n')
         wt = self.sparseGrid.weights(translate[tuple(pt)])
         self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
       self.polyCoeffDict[idx]*=self.norm
+    #outFile.close()
     self.printPolyDict()
     #do a few moments #TODO need a better solution for calling moment calculations, etc
     for r in range(5):
@@ -426,7 +433,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     tot=0
     stdPt = np.zeros(len(featureVals))
     for p,pt in enumerate(featureVals):
-      varName = self.distDict.keys()[p]
+      varName = self.sparseGrid.varNames[p]
       stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,pt)
     for idx,coeff in self.polyCoeffDict.items():
       tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
