@@ -76,7 +76,7 @@ def createAndRunQSUB(simulation):
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
   jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub_comm'
-  command = ["qsub","-N",simulation.runInfoDict['JobName'],"-l",
+  command = ["qsub","-N",jobName,"-l",
              "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
              "-l","place=free","-v",
