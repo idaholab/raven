@@ -2164,14 +2164,14 @@ class SparseGridCollocation(Grid):
 
 
   def _localWhatDoINeed(self):
-#    gridDict = Grid._localWhatDoINeed(self)
-#    gridDict['internal'] = [(None,'jobHandler')]
-#    return gridDict
-    needDict = {}
-    needDict['Distributions'] = [] # Every sampler requires Distributions
-    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
-    needDict['internal'] = [(None,'jobHandler')]
-    return needDict
+    gridDict = Grid._localWhatDoINeed(self)
+    gridDict['internal'] = [(None,'jobHandler')]
+    return gridDict
+#    needDict = {}
+#    needDict['Distributions'] = [] # Every sampler requires Distributions
+#    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+#    needDict['internal'] = [(None,'jobHandler')]
+#    return needDict
 
 
   def _localGenerateAssembler(self,initDict):

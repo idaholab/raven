@@ -25,6 +25,7 @@ class Assembler(object):
     self.assemblerObjects   = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
     self.requiredAssObjects = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
                                                        # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
+    self.assemblerDict      = {}                       # {'class':[['subtype','name',instance]]}
     self.debug              = False
 
 
