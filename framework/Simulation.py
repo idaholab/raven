@@ -75,7 +75,8 @@ def createAndRunQSUB(simulation):
   batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
-  command = ["qsub","-l",
+  jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub_comm'
+  command = ["qsub","-N",simulation.runInfoDict['JobName'],"-l",
              "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
              "-l","place=free","-v",
@@ -464,6 +465,7 @@ class Simulation(object):
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
         else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
+      elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
