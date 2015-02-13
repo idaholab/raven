@@ -1,0 +1,363 @@
+\appendix
+\section{Appendix: Example Primer \\ \vspace{2 mm} {\small }}
+\label{sec:examplePrimer}
+In this Appendix, a set of examples are reported. In order to be as general as possible, the \textit{Model} type ``ExternalModel'' has been used.
+%%%% EXAMPLE 1 
+\subsection{Example 1.}
+\label{subsec:ex1}
+This simple example is about the construction of a ``Lorentz attractor'', sampling the relative input space. The parameters that are sampled represent the initial coordinate (x0,y0,z0) of the attractor origin. 
+
+\begin{lstlisting}[style=XML,morekeywords={debug,re,seeding,class,subType,limit}]
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="True">
+<!-- RUNINFO -->
+<RunInfo>
+    <WorkingDir>externalModel</WorkingDir>
+    <Files>lorentzAttractor.py</Files>
+    <Sequence>FirstMRun</Sequence>
+    <batchSize>3</batchSize>
+</RunInfo>
+<!-- STEPS -->
+<Steps>
+    <MultiRun name='FirstMRun'  re-seeding='25061978'>
+        <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
+        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
+        <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
+        <Output  class='DataBases' type='HDF5'           >test_external_db</Output>
+        <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
+    </MultiRun >
+</Steps>
+<!-- MODELS -->
+<Models>
+    <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
+       <variable>sigma</variable>
+       <variable>rho</variable>
+       <variable>beta</variable>
+       <variable>x</variable>
+       <variable>y</variable>
+       <variable>z</variable>
+       <variable>time</variable>
+       <variable>x0</variable>
+       <variable>y0</variable>
+       <variable>z0</variable>
+    </ExternalModel>
+</Models>
+<!-- DISTRIBUTIONS -->
+<Distributions>
+    <Normal name='x0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='y0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+    <Normal name='z0_distrib'>
+        <mean>4</mean>
+        <sigma>1</sigma>
+    </Normal>
+</Distributions>
+<!-- SAMPLERS -->
+<Samplers>
+    <MonteCarlo name='MC_external'  limit='3' >
+      <variable name='x0' >
+        <distribution  >x0_distrib</distribution>
+      </variable>
+      <variable name='y0' >
+        <distribution  >y0_distrib</distribution>
+      </variable>
+      <variable name='z0' >
+        <distribution  >z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+</Samplers>
+<!-- DATABASES -->
+<DataBases>
+  <HDF5 name="test_external_db"/>
+</DataBases>
+<!-- OUTSTREAMS -->
+<OutStreamManager>
+  <Print name='testPrintHistories_dump'>
+    <type>csv</type>
+    <source>testPrintHistories</source>
+  </Print>
+</OutStreamManager>
+<!-- DATA OBJECTS -->
+<Datas>
+    <Histories name='testPrintHistories'>
+        <Input>x0,y0,z0</Input>
+        <Output>time,x,y,z</Output>
+   </Histories>
+</Datas>
+</Simulation>
+\end{lstlisting}
+The Python \textit{ExternalModel} is reported below:
+\begin{lstlisting}[language=python]
+import numpy as np
+
+def run(self,Input):
+  max_time = 0.03
+  t_step = 0.01
+
+  numberTimeSteps = int(max_time/t_step)
+
+  self.x = np.zeros(numberTimeSteps)
+  self.y = np.zeros(numberTimeSteps)
+  self.z = np.zeros(numberTimeSteps)
+  self.time = np.zeros(numberTimeSteps)
+
+  self.x0 = Input['x0']
+  self.y0 = Input['y0']
+  self.z0 = Input['z0']
+
+  self.x[0] = Input['x0']
+  self.y[0] = Input['y0']
+  self.z[0] = Input['z0']
+  self.time[0]= 0
+
+  for t in range (numberTimeSteps-1):
+    self.time[t+1] = self.time[t] + t_step
+    self.x[t+1]    = self.x[t] +  self.sigma*
+                      (self.y[t]-self.x[t]) * t_step
+    self.y[t+1]    = self.y[t] + (self.x[t]*
+                      (self.rho-self.z[t])-self.y[t]) * t_step
+    self.z[t+1]    = self.z[t] + (self.x[t]*
+                          self.y[t]-self.beta*self.z[t]) * t_step
+\end{lstlisting}
+%%%% EXAMPLE 2 
+\subsection{Example 2.}
+\label{subsec:ex1}
+This example shows a slightly more complicated example, that employs the usage of:
+\begin{itemize}
+    \item \textit{Samplers:} Grid and Adaptive;
+    \item \textit{Models:} External, Reduce Order Models and Post-Processors;
+    \item \textit{OutStreams:} Prints and Plots;
+    \item \textit{Data Objects:} TimePointSets;
+    \item \textit{Functions:} ExternalFunctions.
+\end{itemize}
+The goal of this input is to compute the ``SafestPoint''.
+It provides the coordinates of the farthest
+point from the limit surface that is given as an input.
+%
+The safest point coordinates are expected values of the coordinates of the
+farthest points from the limit surface in the space of the ``controllable''
+variables based on the probability distributions of the ``non-controllable''
+variables.
+
+The term ``controllable'' identifies those variables that are under control
+during the system operation, while the ``non-controllable'' variables are
+stochastic parameters affecting the system behaviour randomly.
+
+The ``SafestPoint'' post-processor requires the set of points belonging to the
+limit surface, which must be given as an input.
+
+\begin{lstlisting}[style=XML,morekeywords={debug,re,seeding,class,subType,limit}]
+<Simulation debug="True">
+
+<!-- RUNINFO -->
+<RunInfo>
+  <WorkingDir>SafestPointPP</WorkingDir>
+  <Sequence>pth1,pth2,pth3,pth4</Sequence>
+  <batchSize>50</batchSize>
+</RunInfo>
+
+<!-- STEPS -->
+<Steps>  
+  <MultiRun name = 'pth1' pauseAtEnd = 'False'>
+    <Sampler  class = 'Samplers'  type = 'Grid'           >grd_vl_ql_smp_dpt</Sampler>
+    <Input    class = 'Datas'     type = 'TimePointSet'   >grd_vl_ql_smp_dpt_dt</Input>
+    <Model    class = 'Models'    type = 'ExternalModel'  >xtr_mdl</Model>
+    <Output   class = 'Datas'     type = 'TimePointSet'   >nt_phy_dpt_dt</Output>    
+  </MultiRun >
+  
+  <MultiRun name = 'pth2' pauseAtEnd = 'True'>
+    <Sampler          class = 'Samplers'  type = 'Adaptive'      >dpt_smp</Sampler>
+    <Input            class = 'Datas'     type = 'TimePointSet'  >bln_smp_dt</Input>   
+    <Model            class = 'Models'    type = 'ExternalModel' >xtr_mdl</Model>
+    <Output           class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</Output>            
+    <SolutionExport   class = 'Datas'     type = 'TimePointSet'  >lmt_srf_dt</SolutionExport>
+  </MultiRun>
+  
+  <PostProcess name='pth3' pauseAtEnd = 'False'>
+    <Input    class = 'Datas'          type = 'TimePointSet'       >lmt_srf_dt</Input>
+    <Model    class = 'Models'         type = 'PostProcessor'  >SP</Model>
+    <Output   class = 'Datas'          type = 'TimePointSet'     >sfs_pnt_dt</Output>
+  </PostProcess>  
+  
+  <OutStreamStep name = 'pth4' pauseAtEnd = 'True'>
+  	<Input  class = 'Datas'            type = 'TimePointSet'  >lmt_srf_dt</Input>
+  	<Output class = 'OutStreamManager' type = 'Print'         >lmt_srf_dmp</Output>
+    <Input  class = 'Datas'            type = 'TimePointSet'  >sfs_pnt_dt</Input>
+  	<Output class = 'OutStreamManager' type = 'Print'         >sfs_pnt_dmp</Output>
+  </OutStreamStep>
+</Steps>
+
+<!-- DATA OBJECTS -->
+<Datas> 
+  <TimePointSet name = 'grd_vl_ql_smp_dpt_dt'>
+    <Input>x1,x2,gammay</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+  
+  <TimePointSet name = 'nt_phy_dpt_dt'>
+    <Input>x1,x2,gammay</Input>
+    <Output>g</Output>
+  </TimePointSet>
+    
+  <TimePointSet name = 'bln_smp_dt'>
+    <Input>x1,x2,gammay</Input>
+    <Output>OutputPlaceHolder</Output>
+  </TimePointSet>
+    
+  <TimePointSet name = 'lmt_srf_dt'>
+    <Input>x1,x2,gammay</Input>
+    <Output>g_zr</Output>
+  </TimePointSet>
+  
+  <TimePointSet name = 'sfs_pnt_dt'>
+    <Input>x1,x2,gammay</Input>
+    <Output>p</Output>
+  </TimePointSet>
+</Datas>
+
+<!-- DISTRIBUTIONS -->
+<Distributions>
+  <Normal name = 'x1_dst'>
+    <upperBound>10</upperBound>
+    <lowerBound>-10</lowerBound>
+  	<mean>0.5</mean>
+    <sigma>0.1</sigma>
+  </Normal>
+  
+  <Normal name = 'x2_dst'>
+    <upperBound>10</upperBound>
+    <lowerBound>-10</lowerBound>
+    <mean>-0.15</mean>
+    <sigma>0.05</sigma>
+  </Normal>
+  
+  <Normal name = 'gammay_dst'>
+    <upperBound>20</upperBound>
+    <lowerBound>-20</lowerBound>
+    <mean>0</mean>
+    <sigma>15</sigma>
+  </Normal>
+</Distributions>
+
+<!-- SAMPLERS -->
+<Samplers>  
+  <Grid name = 'grd_vl_ql_smp_dpt'>
+    <variable name = 'x1' >
+      <distribution>x1_dst</distribution>
+      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+    </variable>  
+    <variable name='x2' >
+      <distribution>x2_dst</distribution>
+      <grid type = 'value' construction = 'equal' steps = '10' upperBound = '10'>2</grid>
+    </variable>
+    <variable name='gammay' >
+      <distribution>gammay_dst</distribution>
+      <grid type = 'value' construction = 'equal' steps = '10' lowerBound = '-20'>4</grid>
+    </variable>
+  </Grid>
+  
+  <Adaptive name = 'dpt_smp' debug='True'>
+    <ROM              class = 'Models'    type = 'ROM'           >accelerated_ROM</ROM>
+    <Function         class = 'Functions' type = 'External'      >g_zr</Function>
+    <TargetEvaluation class = 'Datas'     type = 'TimePointSet'  >nt_phy_dpt_dt</TargetEvaluation>
+    <Convergence limit = '3000' forceIteration = 'False' weight = 'none' persistence = '5'>1e-2</Convergence>
+      <variable name = 'x1'>
+        <distribution>x1_dst</distribution>
+      </variable>
+      <variable name = 'x2'>
+        <distribution>x2_dst</distribution>
+      </variable>
+      <variable name = 'gammay'>
+        <distribution>gammay_dst</distribution>
+      </variable>
+  </Adaptive>
+</Samplers>
+
+<!-- MODELS -->
+<Models>  
+  <ExternalModel name = 'xtr_mdl' subType = '' ModuleToLoad = 'SafestPointPP/safest_point_test_xtr_mdl'>
+    <variable>x1</variable>
+    <variable>x2</variable>
+    <variable>gammay</variable>
+    <variable>g</variable>
+  </ExternalModel>
+  
+  <ROM name = 'accelerated_ROM' subType = 'SciKitLearn'>
+    <Features>x1,x2,gammay</Features>
+    <Target>g_zr</Target>
+    <SKLtype>svm|SVC</SKLtype>
+    <kernel>rbf</kernel>
+    <gamma>10</gamma>
+    <tol>1e-5</tol>
+    <C>50</C>
+  </ROM>
+
+  <PostProcessor name='SP' subType='SafestPoint'>
+    <!-- List of Objects (external with respect to this PP) needed by this post-processor -->
+    <Distribution     class = 'Distributions'  type = 'Normal'>x1_dst</Distribution>
+    <Distribution     class = 'Distributions'  type = 'Normal'>x2_dst</Distribution>
+    <Distribution     class = 'Distributions'  type = 'Normal'>gammay_dst</Distribution>
+    <!- end of the list -->
+    <controllable>
+    	<variable name = 'x1'>
+    		<distribution>x1_dst</distribution>
+    		<grid type = 'value' steps = '20'>1</grid>   		
+    	</variable>
+    	<variable name = 'x2'>
+    		<distribution>x2_dst</distribution>
+    		<grid type = 'value' steps = '20'>1</grid>   		
+    	</variable>
+    </controllable>
+    <non-controllable>
+    	<variable name = 'gammay'>
+    		<distribution>gammay_dst</distribution>
+    		<grid type = 'value' steps = '20'>2</grid>
+    	</variable> 	
+    </non-controllable>
+  </PostProcessor>
+</Models>
+
+<!-- FUNCTIONS -->
+<Functions>
+  <External name='g_zr' file='SafestPointPP/safest_point_test_g_zr.py'>
+    <variable>g</variable>
+  </External>
+</Functions>
+
+<!-- OUT-STREAMS -->
+<OutStreamManager> 
+  <Print name = 'lmt_srf_dmp'>
+  	<type>csv</type>
+  	<source>lmt_srf_dt</source>
+  </Print>
+  
+  <Print name = 'sfs_pnt_dmp'>
+  	<type>csv</type>
+  	<source>sfs_pnt_dt</source>
+  </Print>
+</OutStreamManager>
+
+</Simulation>
+\end{lstlisting}
+The Python \textit{ExternalModel} is reported below:
+\begin{lstlisting}[language=python]
+def run(self,Input): 
+  self.g = self.x1+4*self.x2-self.gammay
+\end{lstlisting}
+The ``Goal Function'',the function that defines the transitions with respect the input space coordinates, is as follows:
+\begin{lstlisting}[language=python]
+def __residuumSign(self):
+  if self.g<0 : return  1
+  else        : return -1
+\end{lstlisting}
+
+%%%%% EXAMPLE 3
+%\subsection{Example3}
+%\label{subsec:ex1}
+%example 3
