@@ -45,6 +45,12 @@ code instances, e.g. RELAP5-3D, that RAVEN will spawn at the same time).
 an ordered list of the step names that RAVEN will run (see 
 Section~\ref{sec:steps}).
 
+%%%%%% JOBNAME 
+\item \xmlNode{JobName}, \xmlDesc{string, optional field}, specifies
+the name to use for the job when submitting to a pbs queue.
+%
+\default{raven\_qsub}
+
 %%%%%% NumThreads
 \item \xmlNode{NumThreads}, \xmlDesc{integer, optional field}, can be used to
 specify the number of threads RAVEN should associate when running the driven

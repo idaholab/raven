@@ -2160,8 +2160,8 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
 
-    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
-
+#    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+    self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
   def _localWhatDoINeed(self):
     gridDict = Grid._localWhatDoINeed(self)
@@ -2217,11 +2217,11 @@ class SparseGridCollocation(Grid):
 
   def localInitialize(self):
     for key in self.assemblerDict.keys():
-      if 'TargetEvaluation' in key:
-        indice = 0
-        for value in self.assemblerDict[key]:
-          self.lastOutput = self.assemblerDict[key][indice][3]
-          indice += 1
+#      if 'TargetEvaluation' in key:
+#        indice = 0
+#        for value in self.assemblerDict[key]:
+#          self.lastOutput = self.assemblerDict[key][indice][3]
+#          indice += 1
       if 'ROM' in key:
         indice = 0
         for value in self.assemblerDict[key]:
