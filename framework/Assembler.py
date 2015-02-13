@@ -36,7 +36,6 @@ class Assembler(object):
     @ In , None, None
     @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     """
-    print ('BURAYA geldim')
     if '_localWhatDoINeed' in dir(self):
        needDict = self._localWhatDoINeed()
     else:

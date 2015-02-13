@@ -7,7 +7,11 @@
     </RunInfo>
 
     <Distributions>
-        <Uniform name="UniDist">
+        <Uniform name="UniDist1">
+            <low>1</low>
+            <high>5</high>
+        </Uniform>
+         <Uniform name="UniDist2">
             <low>1</low>
             <high>5</high>
         </Uniform>
@@ -16,39 +20,39 @@
     <Samplers>
         <SparseGridCollocation name="TPSG" parallel="1" outfile='testTPSG.csv'>
             <variable name="x1">
-                <distribution>UniDist</distribution>
+                <distribution>UniDist1</distribution>
             </variable>
             <variable name="x2">
-                <distribution>UniDist</distribution>
+                <distribution>UniDist2</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >TPROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>TPsolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
         <SparseGridCollocation name="TDSG" parallel="1" outfile='testTDSG.csv'>
             <variable name="x1">
-                <distribution>UniDist</distribution>
+                <distribution>UniDist1</distribution>
             </variable>
             <variable name="x2">
-                <distribution>UniDist</distribution>
+                <distribution>UniDist2</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >TDROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>TDsolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
         <SparseGridCollocation name="HCSG" parallel="1" outfile='testHCSG.csv'>
             <variable name="x1">
-                <distribution>UniDist</distribution>
+                <distribution>UniDist1</distribution>
             </variable>
             <variable name="x2">
-                <distribution>UniDist</distribution>
+                <distribution>UniDist2</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >HCROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>HCsolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
     </Samplers>
 

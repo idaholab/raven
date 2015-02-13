@@ -134,7 +134,6 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     The text i supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
     """
-    print("AHANDA", xmlNode)
     Assembler._readMoreXML(self,xmlNode)
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
     except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
@@ -146,7 +145,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           if child.tag == 'Distribution':
             #Add <distribution> to name so we know it is not the direct variable
             self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
-          elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = childChild.text
+          elif child.tag == 'variable':
+            self.toBeSampled[child.attrib['name']] = childChild.text
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
           if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
     self.localInputAndChecks(xmlNode)
@@ -874,7 +874,6 @@ class Grid(Sampler):
 
   def localInputAndChecks(self,xmlNode):
     '''reading and construction of the grid'''
-    print('AMK YAW', xmlNode)
     if 'limit' in xmlNode.attrib.keys(): raise IOError('limit is not used in Grid sampler')
     self.limit = 1
     if not self.axisName: self.axisName = []
@@ -922,7 +921,7 @@ class Grid(Sampler):
     It could not have been done earlier since the distribution might not have been initialized first
     '''
     for varName in self.gridInfo.keys():
-      print('DEBUG',self.printTag,varName,self.gridInfo[varName])
+      #print('DEBUG',self.printTag,varName,self.gridInfo[varName])
       if self.gridInfo[varName][0]=='value':
         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
@@ -1530,7 +1529,6 @@ class DynamicEventTree(Grid):
     for preconditioner in self.preconditionerToApply.values(): preconditioner._generateDistributions(availableDist)
 
   def localInputAndChecks(self,xmlNode):
-    print('HASSSIKTIR', xmlNode)
     Grid.localInputAndChecks(self,xmlNode)
     self.limit = sys.maxsize
     if 'print_end_xml' in xmlNode.attrib.keys():
@@ -2162,10 +2160,19 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
 
+    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+
+
   def _localWhatDoINeed(self):
-    gridDict = Grid._localWhatDoINeed(self)    
-    gridDict['internal'] = [(None,'jobHandler')]
-    return gridDict
+#    gridDict = Grid._localWhatDoINeed(self)    
+#    gridDict['internal'] = [(None,'jobHandler')]
+#    return gridDict
+    needDict = {}
+    needDict['Distributions'] = [] # Every sampler requires Distributions
+    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+    needDict['internal'] = [(None,'jobHandler')]
+    return needDict
+
 
   def _localGenerateAssembler(self,initDict):
  #   availableDist = initDict['Distributions']
@@ -2176,37 +2183,39 @@ class SparseGridCollocation(Grid):
 #      elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
     self.jobHandler = initDict['internal']['jobHandler']
 
-  def _readMoreXML(self,xmlNode):
-    Grid._readMoreXML(self,xmlNode)
-    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
-    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+#  def _readMoreXML(self,xmlNode):
+#    Grid._readMoreXML(self,xmlNode)
+#    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+#    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     #assembler node -> to be changed when Sonnet gets it in the base class
-    assemblerNode = xmlNode.find('Assembler')
-    if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
-    targEvalCounter = 0
-    romCounter      = 0
-    for subNode in assemblerNode:
-      if subNode.tag in ['TargetEvaluation','ROM']:
-        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-        self.assemblerObjects[subNode.tag] = [[subNode.attrib['class'],subNode.attrib['type'],subNode.text]]
-        if 'TargetEvaluation' in subNode.tag: targEvalCounter+=1
-        if 'ROM'              in subNode.tag: romCounter+=1
-      else:
-        raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
-    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
-    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
-    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
+#    assemblerNode = xmlNode.find('Assembler')
+#    if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
+#    targEvalCounter = 0
+#    romCounter      = 0
+#    for subNode in xmlNode:
+#      if subNode.tag in ['TargetEvaluation','ROM']:
+#        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+#        self.assemblerObjects[subNode.tag] = [[subNode.attrib['class'],subNode.attrib['type'],subNode.text]]
+#        if 'TargetEvaluation' in subNode.tag: targEvalCounter+=1
+#        if 'ROM'              in subNode.tag: romCounter+=1
+#      else:
+#        raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
+#    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
+#    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+#    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
 
   def localInputAndChecks(self,xmlNode):
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
-      if   child.tag=='Assembler'   :continue
-      elif child.tag=='Distribution': 
-          varName = '<distribution>'+child.attrib['name']
-      elif child.tag=='variable'    : varName =                  child.attrib['name']
-      self.axisName.append(varName)
+#      if   child.tag=='Assembler'   :continue
+      if child.tag == 'Distribution': 
+        varName = '<distribution>'+child.attrib['name']
+      elif child.tag == 'variable':
+        varName = child.attrib['name']
+        self.axisName.append(varName)
 
   def localInitialize(self):
-    #Grid.localInitialize(self)
     for key in self.assemblerDict.keys():
       if 'TargetEvaluation' in key:
         indice = 0
