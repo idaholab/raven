@@ -65,7 +65,7 @@
             </variable>
 <!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >UCROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>UCsolns</TargetEvaluation>
+<!--                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>UCsolns</TargetEvaluation> -->
 <!--            </Assembler> -->
         </SparseGridCollocation>
 
@@ -78,7 +78,7 @@
             </variable>
 <!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >NROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Nsolns</TargetEvaluation>
+<!--                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Nsolns</TargetEvaluation> -->
 <!--            </Assembler> -->
         </SparseGridCollocation>
 
@@ -91,7 +91,7 @@
             </variable>
 <!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >GROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Gsolns</TargetEvaluation>
+<!--                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Gsolns</TargetEvaluation> -->
 <!--            </Assembler> -->
         </SparseGridCollocation>
 
@@ -104,7 +104,7 @@
             </variable>
 <!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >BROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Bsolns</TargetEvaluation>
+<!--                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Bsolns</TargetEvaluation> -->
 <!--            </Assembler> -->
         </SparseGridCollocation>
 
@@ -117,7 +117,7 @@
             </variable>
 <!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >TROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Tsolns</TargetEvaluation>
+<!--                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Tsolns</TargetEvaluation> -->
 <!--            </Assembler> -->
         </SparseGridCollocation>
 
@@ -130,7 +130,7 @@
             </variable>
 <!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >EROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Esolns</TargetEvaluation>
+<!--                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Esolns</TargetEvaluation> -->
 <!--            </Assembler> -->
         </SparseGridCollocation>
     </Samplers>
