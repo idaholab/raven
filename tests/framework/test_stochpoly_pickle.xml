@@ -22,10 +22,10 @@
             <variable name="x2">
                 <distribution>UniDist</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Usolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
         <Grid name='grid'>
             <variable name="x1">
