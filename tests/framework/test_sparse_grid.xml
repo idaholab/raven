@@ -25,10 +25,7 @@
             <variable name="x2">
                 <distribution>UniDist2</distribution>
             </variable>
-<!--            <Assembler> -->
-                <ROM              class = 'Models' type = 'ROM'         >TPROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>TPsolns</TargetEvaluation>
-<!--            </Assembler> -->
+            <ROM              class = 'Models' type = 'ROM'         >TPROM</ROM>
         </SparseGridCollocation>
         <SparseGridCollocation name="TDSG" parallel="1" outfile='testTDSG.csv'>
             <variable name="x1">
@@ -37,10 +34,7 @@
             <variable name="x2">
                 <distribution>UniDist2</distribution>
             </variable>
-<!--            <Assembler> -->
-                <ROM              class = 'Models' type = 'ROM'         >TDROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>TDsolns</TargetEvaluation>
-<!--            </Assembler> -->
+            <ROM              class = 'Models' type = 'ROM'         >TDROM</ROM>
         </SparseGridCollocation>
         <SparseGridCollocation name="HCSG" parallel="1" outfile='testHCSG.csv'>
             <variable name="x1">
@@ -49,10 +43,7 @@
             <variable name="x2">
                 <distribution>UniDist2</distribution>
             </variable>
-<!--            <Assembler> -->
-                <ROM              class = 'Models' type = 'ROM'         >HCROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>HCsolns</TargetEvaluation>
-<!--            </Assembler> -->
+            <ROM              class = 'Models' type = 'ROM'         >HCROM</ROM>
         </SparseGridCollocation>
     </Samplers>
 

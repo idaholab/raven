@@ -215,6 +215,34 @@ XML node and the requirements for other attributes change:
         ``TimePointSet'' only.
     \end{itemize}
 }
+\newcommand{\assemblerROMDescription}
+{
+  \textbf{Assembler Objects} These objects are either required or optional
+    depending on the functionality of the SparseGridCollocation Sampler.
+    %
+    The objects must be listed with a rigorous syntax that, except for the XML
+    node tag, is common among all the objects.
+    %
+    Each of these nodes must contain 2 attributes that are used to map them
+    within the simulation framework:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+        ``class'' of the listed object.
+        %
+        For example, it can be \xmlString{Models}, \xmlString{Functions}, etc.
+      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+        identifier or sub-type.
+        %
+        For example, it can be \xmlString{ROM}, \xmlString{External}, etc.
+    \end{itemize}
+    The \textbf{SparseGridCollocation Sampler} approach requires  the
+    following object types:
+    \begin{itemize}
+      \item \xmlNode{ROM}, \xmlDesc{, string, optional  field}, if used, the
+        body of this XML node must contain the name of a ROM defined in the
+        \xmlNode{Models} block (see Section~\ref{subsec:models_ROM}).
+    \end{itemize}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The sampler is probably the most important entity in the RAVEN framework.
@@ -448,7 +476,8 @@ Example:
 
 %%% Once-Through Samplers: Sparse Grid Collocation
 \subsubsection{Sparse Grid Collocation.}
-\talbpaul{Work in progress.}
+%\talbpaul{Work in progress.}
+%\senrs{Assembler section updated}
 \label{subsubsubsec:SparseGridCollocation}
 \textbf{Sparse Grid Collocation} builds on generic \textbf{Grid} sampling by selecting evaluation points based on characteristic quadratures as part of stochastic collocation for generalized polynomial chaos uncertainty quantification.  In collocation you construct an N-dimensional grid, with each uncertain variable providing an axis.  Along each axis, the points of evaluation correspond to quadrature points necessary to integrate polynomials (see \ref{subsubsec:GaussPolynomialRom}).  In the simplest (and most  naive) case, a N-Dimensional tensor product of all possible combinations of points from each dimension's quadrature is constructed as sampling points.  The number of necessary samples can be reduced by employing Smolyak-like sparse grid algorithms, which use reduced combinations of polynomial orders to reduce the necessary sampling space.  \specBlock{a}{SparseGridCollocation}.
 \begin{itemize}
@@ -463,23 +492,29 @@ Example:
  \begin{itemize}
     \item \distributionDescription
  \end{itemize} \end{itemize}
-Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).  It also needs access to the TimePointSet where solutions are being stored, so it knows when to inform the ROM.  \talbpaul{I wonder if this could be done after Sampler is initiated instead of waiting until the sampling is done...} Both the TimePointSet and the ROM are specified through an Assembler tag: \talbpaul{TODO I recognize the Assembler node is dead; however, until assembly is done in the BaseClass, I'm still making use of it.}
+Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).  %\senrs{No TimePointSet anymore}It also needs access to the TimePointSet where solutions are being stored, so it knows when to inform the ROM.  \talbpaul{I wonder if this could be done after Sampler is initiated instead of waiting until the sampling is done...} Both the TimePointSet and the ROM are specified through an Assembler tag: 
+%\begin{itemize}
+%   \item \xmlNode{Assembler}, \xmlDesc{xml node, required field} This xml node contains a ``list'' of objects that are required for the functionality of the Sparse Grid Collocation sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
+%Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
+%   \begin{itemize}
+%     \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main ``class'' of the listed object.
+%        %
+%        It can be \xmlString{Models} or \xmlString{Datas} for this sampler.
+%      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object identifier or sub-type.
+%        %
+%        It can be \xmlString{ROM} or \xmlString{TimePointSet} for this sampler.
+%    \end{itemize}
+%The \textbf{Sparse Grid Collocation} approach requires the following object types in the \xmlNode{Assembler}:
+%   \begin{itemize}
+%     \item \xmlNode{ROM}, \xmlDesc{string, optional  field} The body of this xml node must contain the name of a ROM defined in the \xmlNode{Models} block (see section \ref{subsec:models_ROM}), and is restricted to ROM objects compatible with stochastic collocation for generalized polynomial chaos (GaussPolynomialRom and LagrangePolynomialRom, for example);
+%        \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field} The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this xml node must contain the name of a Data defined in the \xmlNode{Datas} block (see section \ref{sec:Datas}). Sparse grid collocation accepts a \textbf{Datas} object of type \textbf{TimePointSet} only. \nb The provided  \textbf{Datas} object's output should contain as output the solutions from the \textbf{Model}'s evaluation of this \textbf{Sampler}'s points.
+%    \end{itemize}    
+%\end{itemize}
 \begin{itemize}
-   \item \xmlNode{Assembler}, \xmlDesc{xml node, required field} This xml node contains a ``list'' of objects that are required for the functionality of the Sparse Grid Collocation sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
-Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
-   \begin{itemize}
-     \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main ``class'' of the listed object.
-        %
-        It can be \xmlString{Models} or \xmlString{Datas} for this sampler.
-      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object identifier or sub-type.
-        %
-        It can be \xmlString{ROM} or \xmlString{TimePointSet} for this sampler.
-    \end{itemize}
-The \textbf{Sparse Grid Collocation} approach requires the following object types in the \xmlNode{Assembler}:
-   \begin{itemize}
-     \item \xmlNode{ROM}, \xmlDesc{string, optional  field} The body of this xml node must contain the name of a ROM defined in the \xmlNode{Models} block (see section \ref{subsec:models_ROM}), and is restricted to ROM objects compatible with stochastic collocation for generalized polynomial chaos (GaussPolynomialRom and LagrangePolynomialRom, for example);
-        \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field} The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this xml node must contain the name of a Data defined in the \xmlNode{Datas} block (see section \ref{sec:Datas}). Sparse grid collocation accepts a \textbf{Datas} object of type \textbf{TimePointSet} only. \nb The provided  \textbf{Datas} object's output should contain as output the solutions from the \textbf{Model}'s evaluation of this \textbf{Sampler}'s points.
-    \end{itemize}    
+
+  % Assembler Objects
+  \item \assemblerROMDescription
+
 \end{itemize}
 \footnotesize
 \begin{lstlisting}[style=XML]
@@ -494,10 +529,7 @@ Example:
     <variable name="x2">
       <distribution>myDist2</distribution>
     </variable>
-    <Assembler>
-      <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
-      <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
-    </Assembler>
+    <ROM class = 'Models' type = 'ROM' >SCROM</ROM>
   </SparseGridCollocation>
   ...
 </Samplers>
