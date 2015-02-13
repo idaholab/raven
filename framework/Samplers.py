@@ -2164,7 +2164,7 @@ class SparseGridCollocation(Grid):
 
 
   def _localWhatDoINeed(self):
-#    gridDict = Grid._localWhatDoINeed(self)    
+#    gridDict = Grid._localWhatDoINeed(self)
 #    gridDict['internal'] = [(None,'jobHandler')]
 #    return gridDict
     needDict = {}
@@ -2209,7 +2209,7 @@ class SparseGridCollocation(Grid):
     self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
 #      if   child.tag=='Assembler'   :continue
-      if child.tag == 'Distribution': 
+      if child.tag == 'Distribution':
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
         varName = child.attrib['name']
