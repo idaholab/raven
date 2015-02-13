@@ -75,7 +75,6 @@ def createAndRunQSUB(simulation):
   batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
-  #Generate the qsub command needed to run input #FIXME added -k o, for output -talbpaul
   command = ["qsub","-l",
              "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
