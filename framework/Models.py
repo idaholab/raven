@@ -18,7 +18,8 @@ import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType, Assembler
+from BaseClasses import BaseType
+from Assembler import Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 #import Samplers

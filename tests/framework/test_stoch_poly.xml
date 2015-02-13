@@ -50,10 +50,10 @@
             <variable name="x2">
                 <distribution>UniDist</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Usolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
 
         <SparseGridCollocation name="UCSG" parallel="1">
@@ -63,10 +63,10 @@
             <variable name="x2">
                 <distribution>UniDist</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >UCROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>UCsolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
 
         <SparseGridCollocation name="NSG" parallel="1">
@@ -76,10 +76,10 @@
             <variable name="x2">
                 <distribution>NormDist</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >NROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Nsolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
 
         <SparseGridCollocation name="GSG" parallel="1">
@@ -89,10 +89,10 @@
             <variable name="x2">
                 <distribution>GammaDist</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >GROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Gsolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
 
         <SparseGridCollocation name="BSG" parallel="1">
@@ -102,10 +102,10 @@
             <variable name="x2">
                 <distribution>BetaDist</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >BROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Bsolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
 
         <SparseGridCollocation name="TSG" parallel="1">
@@ -115,10 +115,10 @@
             <variable name="x2">
                 <distribution>TriDist</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >TROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Tsolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
 
         <SparseGridCollocation name="ESG" parallel="1">
@@ -128,10 +128,10 @@
             <variable name="x2">
                 <distribution>ExpDist</distribution>
             </variable>
-            <Assembler>
+<!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >EROM</ROM>
                 <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Esolns</TargetEvaluation>
-            </Assembler>
+<!--            </Assembler> -->
         </SparseGridCollocation>
     </Samplers>
 
