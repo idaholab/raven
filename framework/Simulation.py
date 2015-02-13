@@ -73,7 +73,7 @@ def createAndRunQSUB(simulation):
   """Generates a PBS qsub command to run the simulation"""
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
   #while true, this is not the number that we want to select
-  coresNeeded = simulation.runInfoDict['totalNumCoresUsed']
+  coresNeeded = simulation.runInfoDict['batchSize']*simulation.runInfoDict['NumMPI']
   #batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
