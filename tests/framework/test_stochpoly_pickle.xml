@@ -24,7 +24,7 @@
             </variable>
 <!--            <Assembler> -->
                 <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
-                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Usolns</TargetEvaluation>
+<!--                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>Usolns</TargetEvaluation> -->
 <!--            </Assembler> -->
         </SparseGridCollocation>
         <Grid name='grid'>
