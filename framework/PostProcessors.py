@@ -20,7 +20,7 @@ import Datas
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import toString, toBytes, first, returnPrintTag, returnPrintPostTag
-from BaseClasses import Assembler
+from Assembler import Assembler
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ import SupervisedLearning
 '''
 
 class BasePostProcessor(Assembler):
-  '''This is the base class for postprocessors'''
+  """"This is the base class for postprocessors"""
   def __init__(self):
     self.type              = self.__class__.__name__  # pp type
     self.name              = self.__class__.__name__  # pp name
@@ -42,89 +42,12 @@ class BasePostProcessor(Assembler):
     self.requiredAssObject = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
                                                       # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
     self.debug             = False
-
-
-  def whatDoINeed(self):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
-    be initialize. It is an abstract method -> It must be implemented in the derived class!
-    NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
-    @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
-    '''
-    needDict = self._localWhatDoINeed()
-    for val in self.assemblerObjects.values():
-      for value in val:
-        if value[0] not in needDict.keys(): needDict[value[0]] = []
-        needDict[value[0]].append((value[1],value[2]))
-    return needDict
-
-  def _localWhatDoINeed(self):
-    '''
-    local whatDoINeed method.
-    In here there is the common implementation if the  self.assemblerObjects dictionary has the form:
-    {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    '''
-    return {}
-
-  def generateAssembler(self,initDict):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-    It is an abstract method -> It must be implemented in the derived class!
-    NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
-    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
-    @ Out, None, None
-    '''
-    self._localGenerateAssembler(initDict)
-
-  def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
-    pass
+    self.assemblerDict     = {}  # {'class':[['subtype','name',instance]]}
 
   def initialize(self, runInfo, inputs, initDict) :
     #if 'externalFunction' in initDict.keys(): self.externalFunction = initDict['externalFunction']
     self.inputs           = inputs
 
-  def _readMoreXML(self,xmlNode):
-    self.type = xmlNode.tag
-    self.name = xmlNode.attrib['name']
-    self.printTag = self.type.ljust(25)
-    if 'debug' in xmlNode.attrib.keys():self.debug = bool(xmlNode.attrib['debug'])
-    if self.requiredAssObject[0]:
-        testObjects = {}
-        for token in self.requiredAssObject[1][0]:
-            testObjects[token] = 0
-        found = False
-        for subNode in xmlNode:
-            for token in self.requiredAssObject[1][0]:
-                if subNode.tag in token:
-                    found = True
-                    if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In '+self.type+' PostProcessor ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-                    if  subNode.tag not in self.assemblerObjects.keys(): self.assemblerObjects[subNode.tag] = []
-                    self.assemblerObjects[subNode.tag].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text])
-                    testObjects[token] += 1
-        if not found:
-            for tofto in self.requiredAssObject[1][0]:
-                if not str(self.requiredAssObject[1][1][0]).strip().startswith('-'):
-                    raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the required object ' +tofto+ ' is missed in the definition of the '+self.type+' PostProcessor!')
-        # test the objects found
-        else:
-            for cnt,tofto in enumerate(self.requiredAssObject[1][0]):
-                numerosity = str(self.requiredAssObject[1][1][cnt])
-                if numerosity.strip().startswith('-'):
-                # optional
-                    if tofto in testObjects.keys():
-                        numerosity = numerosity.replace('-', '').replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are optionally required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
-                else:
-                # required
-                    if tofto not in testObjects.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Required object/s "'+tofto+'" not found. PostProcessor '+self.name + '!')
-                    else:
-                        numerosity = numerosity.replace('n',str(testObjects[tofto]))
-                        if testObjects[tofto] != int(numerosity): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only '+numerosity+' '+tofto+' object/s is/are required. PostProcessor '+self.name + ' got '+str(testObjects[tofto]) + '!')
-    self._localReadMoreXML(xmlNode)
   def inputToInternal(self,currentInput): return [(copy.deepcopy(currentInput))]
 
   def run(self, Input): pass
@@ -384,10 +307,10 @@ class SafestPoint(BasePostProcessor):
           for key,value in dataCollector.getAllMetadata().items(): output.updateMetadata(key,value)
 
 class ComparisonStatistics(BasePostProcessor):
-  '''
+  """
   ComparisonStatistics is to calculate statistics that compare
   two different codes or code to experimental data.
-  '''
+  """
 
   def __init__(self):
     BasePostProcessor.__init__(self)
@@ -413,10 +336,10 @@ class ComparisonStatistics(BasePostProcessor):
 
 
   def run(self, Input): # inObj,workingDir=None):
-    '''
+    """
      Function to finalize the filter => execute the filtering
      @ Out, None      : Print of the CSV file
-    '''
+    """
     self.dataDict[Input.name] = Input
     #print("input",Input,"input name",Input.name,"input input",Input.getParametersValues('inputs'),
     #      "input output",Input.getParametersValues('outputs'))
@@ -436,9 +359,9 @@ class ComparisonStatistics(BasePostProcessor):
       print("data",dataPull,"average",sum(data)/len(data))
 
 class PrintCSV(BasePostProcessor):
-  '''
+  """
   PrintCSV PostProcessor class. It prints a CSV file loading data from a hdf5 database or other sources
-  '''
+  """
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.paramters  = ['all']
@@ -455,12 +378,12 @@ class PrintCSV(BasePostProcessor):
     except:                         print(self.printTag+': ' +returnPrintPostTag('Warning') + '->current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
 
   def _localReadMoreXML(self,xmlNode):
-    '''
+    """
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
-    '''
+    """
     for child in xmlNode:
       if child.tag == 'parameters':
         param = child.text
@@ -468,7 +391,6 @@ class PrintCSV(BasePostProcessor):
         else: self.paramters[param]
 
   def collectOutput(self,finishedjob,output):
-    import csv
     # Check the input type
     if(self.inObj.type == "HDF5"):
       #  Input source is a database (HDF5)
@@ -590,32 +512,25 @@ class PrintCSV(BasePostProcessor):
     else: raise NameError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> for input type ' + self.inObj.type + ' not yet implemented.')
 
   def run(self, Input): # inObj,workingDir=None):
-    '''
+    """
      Function to finalize the filter => execute the filtering
      @ Out, None      : Print of the CSV file
-    '''
+    """
     self.inObj = Input[-1]
-#
-#
-#
+
 class BasicStatistics(BasePostProcessor):
-  '''
+  """
     BasicStatistics filter class. It computes all the most popular statistics
-  '''
+  """
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.parameters        = {}                                                                                                      #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.acceptedCalcParam = ['covariance','NormalizedSensitivity','sensitivity','pearson','expectedValue','sigma','variationCoefficient','variance','skewness','kurtosis','median','percentile']  # accepted calculation parameters
     self.what              = self.acceptedCalcParam                                                                                  # what needs to be computed... default...all
     self.methodsToRun      = []                                                                                                      # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
-    self.externalFunction  = None
+    self.externalFunction  = []
     self.printTag = returnPrintTag('POSTPROCESSOR BASIC STATISTIC')
     self.requiredAssObject = (True,(['Function'],[-1]))
-
-  def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
-    for key, value in self.assemblerObjects.items():
-      if key in 'Function'         : self.externalFunction = initDict[value[0]][value[2]]
 
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
@@ -648,12 +563,12 @@ class BasicStatistics(BasePostProcessor):
     self.__workingDir = runInfo['WorkingDir']
 
   def _localReadMoreXML(self,xmlNode):
-    '''
+    """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
       @ In, xmlNode    : Xml element node
       @ Out, None
-    '''
+    """
     for child in xmlNode:
       if child.tag =="what":
         self.what = child.text
@@ -737,11 +652,11 @@ class BasicStatistics(BasePostProcessor):
     else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> BasicStatistics postprocessor: Output type '+ str(output.type) + ' unknown!!')
 
   def run(self, InputIn):
-    '''
+    """
      Function to finalize the filter => execute the filtering
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
-    '''
+    """
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
 
@@ -915,9 +830,9 @@ class BasicStatistics(BasePostProcessor):
 #
 
 class LoadCsvIntoInternalObject(BasePostProcessor):
-  '''
+  """
     LoadCsvIntoInternalObject pp class. It is in charge of loading CSV files into one of the internal object (Data(s) or HDF5)
-  '''
+  """
   def __init__(self):
     BasePostProcessor.__init__(self)
     self.sourceDirectory = None
@@ -937,12 +852,12 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
   def inputToInternal(self,currentInput): return self.listOfCsvFiles
 
   def _localReadMoreXML(self,xmlNode):
-    '''
+    """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
       @ In, xmlNode    : Xml element node
       @ Out, None
-    '''
+    """
     for child in xmlNode:
       if child.tag =="directory": self.sourceDirectory = child.text
     if not self.sourceDirectory: raise IOError(self.printTag+': ' +returnPrintPostTag("ERROR") + "-> The PostProcessor "+ self.name + "needs a directory for loading the csv files!")
@@ -963,14 +878,11 @@ class LoadCsvIntoInternalObject(BasePostProcessor):
           for key,value in metadata.items(): output.updateMetadata(key,value,attributes)
 
   def run(self, InputIn):  return self.listOfCsvFiles
-#
-#
-#
 
 class LimitSurface(BasePostProcessor):
-  '''
+  """
     LimitSurface filter class. It computes the limit surface associated to a dataset
-  '''
+  """
 
   def __init__(self):
     BasePostProcessor.__init__(self)
@@ -980,19 +892,10 @@ class LimitSurface(BasePostProcessor):
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
     self.ROM               = None
+    self.externalFunction  = None
     self.subGridTol        = 1.0e-4
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = returnPrintTag('POSTPROCESSOR LIMITSURFACE')
-
-  def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
-    for key, value in self.assemblerObjects.items():
-      if key in 'ROM'              : self.ROM = initDict[value[0][0]][value[0][2]]
-      if key in 'Function'         : self.externalFunction = initDict[value[0][0]][value[0][2]]
-    if self.ROM==None:
-      mySrting= ','.join(list(self.parameters['targets']))
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.externalFunction.name})
-    self.ROM.reset()
 
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
@@ -1018,6 +921,12 @@ class LimitSurface(BasePostProcessor):
 
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.externalFunction = self.assemblerDict['Function'][0][3]
+    if 'ROM' not in self.assemblerDict.keys():
+      mySrting= ','.join(list(self.parameters['targets']))
+      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.externalFunction.name})
+    else: self.ROM = self.assemblerDict['ROM'][0][3]
+    self.ROM.reset()
     self.__workingDir = runInfo['WorkingDir']
     indexes = [-1,-1]
     for index,inp in enumerate(self.inputs):
@@ -1073,16 +982,13 @@ class LimitSurface(BasePostProcessor):
     self.axisStepSize = {}
     for varName in self.parameters['targets']:
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
-
-
-
   def _localReadMoreXML(self,xmlNode):
-    '''
+    """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
       @ In, xmlNode    : Xml element node
       @ Out, None
-    '''
+    """
     child = xmlNode.find("parameters")
     if child == None: raise IOError(self.printTag+': ' +returnPrintPostTag("ERROR") + '-> No Parameters specified in XML input!!!!')
     self.parameters['targets'] = child.text.split(',')
@@ -1103,11 +1009,11 @@ class LimitSurface(BasePostProcessor):
       for value in limitSurf[1]: output.updateOutputValue('OutputPlaceOrder',copy.copy(value))
 
   def run(self, InputIn): # inObj,workingDir=None):
-    '''
+    """
      Function to finalize the filter => execute the filtering
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
-    '''
+    """
     #Input  = self.inputToInternal(InputIn)
     print('Initiate training')
     self.functionValue.update(InputIn[-1].getParametersValues('input'))
@@ -1143,7 +1049,7 @@ class LimitSurface(BasePostProcessor):
         print(','.join([str(self.functionValue[key][index]) for key in keyList]))
     #printing----------------------
     tempDict = {}
-    for name in self.axisName: tempDict[name] = self.functionValue[name]
+    for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
     self.ROM.train(tempDict)
     print(self.printTag+': ' +returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
@@ -1208,13 +1114,14 @@ class LimitSurface(BasePostProcessor):
 #
 #
 #
+
 class ExternalPostProcessor(BasePostProcessor):
-  '''
+  """
     ExternalPostProcessor class. It will apply an arbitrary python function to
     a dataset and append each specified function's output to the output data
     object, thus the function should produce a scalar value per row of data. I
     have no idea what happens if the function produces multiple outputs.
-  '''
+  """
   def __init__(self):
     '''
       Initialization.
@@ -1224,7 +1131,7 @@ class ExternalPostProcessor(BasePostProcessor):
                                         # methods the user wants to compute from
                                         # the external interfaces
 
-    self.externalInterfaces = []        # A list of Function objects that
+    self.externalInterfaces = []          # A list of Function objects that
                                         # hopefully contain definitions for all
                                         # of the methods the user wants
 
@@ -1232,59 +1139,46 @@ class ExternalPostProcessor(BasePostProcessor):
     self.requiredAssObject = (True,(['Function'],['n']))
 
   def errorString(self,message):
-    '''
+    """
       Function to format an error string for printing.
       @ In, message: A string describing the error
       @ Out, A formatted string with the appropriate tags listed
-    '''
+    """
     # This function can be promoted for printing error functions more easily and
     # consistently.
     return (self.printTag + ': ' + returnPrintPostTag('ERROR') + '-> '
            + self.__class__.__name__ + ': ' + message)
 
   def warningString(self,message):
-    '''
+    """
       Function to format a warning string for printing.
       @ In, message: A string describing the warning
       @ Out, A formatted string with the appropriate tags listed
-    '''
+    """
     # This function can be promoted for printing error functions more easily and
     # consistently.
     return (self.printTag + ': ' + returnPrintPostTag('Warning') + '-> '
            + self.__class__.__name__ + ': ' + message)
 
   def messageString(self,message):
-    '''
+    """
       Function to format a message string for printing.
       @ In, message: A string describing the message
       @ Out, A formatted string with the appropriate tags listed
-    '''
+    """
     # This function can be promoted for printing error functions more easily and
     # consistently.
     return (self.printTag + ': ' + returnPrintPostTag('Message') + '-> '
            + self.__class__.__name__ + ': ' + message)
 
-  def _localGenerateAssembler(self,initDict):
-    ''' see generateAssembler method '''
-    for key, value in self.assemblerObjects.items():
-      if key in 'Function':
-        for interface in value:
-          # interface holds the information about an Assembler's subnode, in
-          # this case we know it is a Function node, and has the following
-          # components:
-          # interface[0] = the class name (e.g. "Functions")
-          # interface[1] = the type name (e.g. "External")
-          # interface[2] = the object name specified by the user
-          self.externalInterfaces.append(initDict[interface[0]][interface[2]])
-
   def inputToInternal(self,currentInp):
-    '''
+    """
       Function to convert the received input into a format this object can
       understand
       @ In, currentInp: Some form of data object or list of data objects handed
                         to the post-processor
       @ Out, An input dictionary this object can process
-    '''
+    """
 
     if type(currentInp) == dict:
       if 'targets' in currentInp.keys():
@@ -1343,27 +1237,33 @@ class ExternalPostProcessor(BasePostProcessor):
   def initialize(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.__workingDir = runInfo['WorkingDir']
+    for key in self.assemblerDict.keys():
+      if 'Function' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.externalInterfaces.append(self.assemblerDict[key][indice][3])
+          indice += 1
 
   def _localReadMoreXML(self,xmlNode):
-    '''
+    """
       Function to grab the names of the methods this post-processor will be
       using
       @ In, xmlNode    : Xml element node
       @ Out, None
-    '''
+    """
     for child in xmlNode:
       if child.tag == 'method':
         methods = child.text.split(',')
         self.methodsToRun.extend(methods)
 
   def collectOutput(self,finishedJob,output):
-    '''
+    """
       Function to place all of the computed data into the output object
       @ In, finishedJob: A JobHandler object that is in charge of running this
                          post-processor
       @ In, output: The object where we want to place our computed results
       @ Out, None
-    '''
+    """
     if finishedJob.returnEvaluation() == -1:
       #TODO This does not feel right
       raise Exception(self.errorString('No available Output to collect (Run '
@@ -1470,11 +1370,11 @@ class ExternalPostProcessor(BasePostProcessor):
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
 
   def run(self, InputIn):
-    '''
+    """
      Function to finalize the filter => execute the filtering
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
-    '''
+    """
     Input  = self.inputToInternal(InputIn)
     outputDict = {}
 
@@ -1505,11 +1405,6 @@ class ExternalPostProcessor(BasePostProcessor):
       outputDict[methodName] = interface.evaluate(method,Input['targets'])
 
     return outputDict
-#
-#
-#
-#
-
 
 '''
  Interface Dictionary (factory) (private)
@@ -1529,10 +1424,10 @@ def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):
-  '''
+  """
     function used to generate a Filter class
     @ In, Type : Filter type
     @ Out,Instance of the Specialized Filter class
-  '''
+  """
   try: return __interFaceDict[Type]()
   except KeyError: raise NameError('not known '+__base+' type '+Type)

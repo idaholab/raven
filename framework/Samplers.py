@@ -26,15 +26,22 @@ from sklearn import neighbors
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import metaclass_insert,find_le,index,find_le_index,returnPrintTag,returnPrintPostTag,stringsThatMeanTrue
-from BaseClasses import BaseType, Assembler
+from BaseClasses import BaseType
+from Assembler import Assembler
 import Distributions
 import TreeStructure as ETS
 import SupervisedLearning
 import pyDOE as doe
+import Quadratures
+import OrthoPolynomials
+import IndexSets
 #Internal Modules End--------------------------------------------------------------------------------
 
+#Internal Submodules---------------------------------------------------------------------------------
+#Internal Submodules End--------------------------------------------------------------------------------
+
 class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
-  '''
+  """
   This is the base class for samplers
   Samplers own the sampling strategy (Type) and they generate the
   input values using the associate distribution. They do not have distributions inside!!!!
@@ -75,7 +82,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   self.localInitialize()
   self.localStillReady(ready)
   self.localFinalizeActualSampling(jobObject,model,myInput)
-  '''
+  """
 
   def __init__(self):
     BaseType.__init__(self)
@@ -96,39 +103,38 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.printTag                      = returnPrintTag(self.type) # prefix for all prints (sampler type)
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
-  def whatDoINeed(self):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for inquiring the Sampler about the kind of objects the Sampler needs to
-    be initialize. It is an abstract method that comes from the base class Assembler(see BaseClasses.py)
-    @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:list(tuple(object type{if None, Simulation does not check the type}, object name))). (eg. {'Distributions':[(type1,distname1),(type2,distname2)]} )
-    '''
-    # call the local method for getting additional needed objects
-    needDict = self._localWhatDoINeed()
-    # the distributions are the common things that are needed by each sampler
-    if 'Distributions' not in needDict.keys(): needDict['Distributions'] = []
-    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
-    return needDict
+    self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+    self.requiredAssObject = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
+                                                      # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
+    self.assemblerDict     = {}  # {'class':[['subtype','name',instance]]}
+
+  def _localGenerateAssembler(self,initDict):
+    ''' see generateAssembler method '''
+    availableDist = initDict['Distributions']
+    self._generateDistributions(availableDist)
 
   def _localWhatDoINeed(self):
-    '''
+    """
     This method is a local mirror of the general whatDoINeed method.
     It is implemented by the samplers that need to request special objects
     @ In , None, None
     @ Out, needDict, list of objects needed
-    '''
-    return {}
+    """
+    needDict = {}
+    needDict['Distributions'] = [] # Every sampler requires Distributions
+    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+    return needDict
 
   def _readMoreXML(self,xmlNode):
-    '''
+    """
     Function to read the portion of the xml input that belongs to this specialized class
     and initialize some stuff based on the inputs got
     @ In, xmlNode    : Xml element node
     @ Out, None
     The text i supposed to contain the info where and which variable to change.
     In case of a code the syntax is specified by the code interface itself
-    '''
+    """
+    Assembler._readMoreXML(self,xmlNode)
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
     except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
     if 'reseedAtEachIteration' in xmlNode.attrib.keys():
@@ -139,7 +145,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           if child.tag == 'Distribution':
             #Add <distribution> to name so we know it is not the direct variable
             self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
-          elif child.tag == 'variable': self.toBeSampled[child.attrib['name']] = childChild.text
+          elif child.tag == 'variable':
+            self.toBeSampled[child.attrib['name']] = childChild.text
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
           if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
     self.localInputAndChecks(xmlNode)
@@ -151,12 +158,12 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     pass
 
   def addInitParams(self,tempDict):
-    '''
+    """
     This function is called from the base class to print some of the information inside the class.
     Whatever is permanent in the class and not inherited from the parent class should be mentioned here
     The information is passed back in the dictionary. No information about values that change during the simulation are allowed
     @ In/Out tempDict: {'attribute name':value}
-    '''
+    """
     for variable in self.toBeSampled.items():
       tempDict[variable[0]] = 'is sampled using the distribution ' +variable[1]
     tempDict['limit' ]        = self.limit
@@ -164,17 +171,17 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localAddInitParams(tempDict)
 
   def localAddInitParams(self,tempDict):
-    '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
+    """use this function to export to the printer in the base class the additional PERMANENT your local class have"""
 
   def addCurrentSetting(self,tempDict):
-    '''
+    """
     This function is called from the base class to print some of the information inside the class.
     Whatever is a temporary value in the class and not inherited from the parent class should be mentioned here
     The information is passed back in the dictionary
     Function adds the current settings in a temporary dictionary
     @ In, tempDict
     @ Out, tempDict
-    '''
+    """
     tempDict['counter'       ] = self.counter
     tempDict['initial seed'  ] = self.initSeed
     for key in self.inputInfo:
@@ -184,22 +191,15 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localAddCurrentSetting(tempDict)
 
   def localAddCurrentSetting(self,tempDict):
-    '''use this function to export to the printer in the base class the additional PERMANENT your local class have'''
+    """use this function to export to the printer in the base class the additional PERMANENT your local class have"""
     pass
 
-  def generateAssembler(self,initDict):
-    availableDist = initDict['Distributions']
-    self._generateDistributions(availableDist)
-    self._localGenerateAssembler(initDict)
-
-  def _localGenerateAssembler(self,initDict): pass
-
   def _generateDistributions(self,availableDist):
-    '''
+    """
     here the needed distribution are made available to the step as also the initialization
     of the seeding (the siding could be overriden by the step by calling the initialize method
     @in availableDist: {'distribution name':instance}
-    '''
+    """
     if self.initSeed != None:
       Distributions.randomSeed(self.initSeed)
     for key in self.toBeSampled.keys():
@@ -208,10 +208,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
 
   def initialize(self,externalSeeding=None,solutionExport=None):
-    '''
+    """
     This function should be called every time a clean sampler is needed. Called before takeAstep in <Step>
     @in solutionExport: in goal oriented sampling (a.k.a. adaptive sampling this is where the space/point satisfying the constrains)
-    '''
+    """
     self.counter = 0
     if   not externalSeeding          :
       Distributions.randomSeed(self.initSeed)       #use the sampler initialization seed
@@ -220,7 +220,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else                              :
       Distributions.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
-    for key in self.toBeSampled.keys(): self.distDict[key].initializeDistribution()   #now we can initialize the distributions
+    for key in self.toBeSampled.keys():
+        self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
     else                      : self.localInitialize()
@@ -319,7 +320,7 @@ class AdaptiveSampler(Sampler):
   '''This is a general adaptive sampler'''
   def __init__(self):
     Sampler.__init__(self)
-    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
+#    self.assemblerObjects = {}               #this dictionary contains information about the object needed by the adaptive sampler in order to work (ROM,targetEvaluation, etc)
     self.goalFunction     = None             #this is the pointer to the function defining the goal
     self.tolerance        = None             #this is norm of the error threshold
     self.subGridTol       = None             #This is the tolerance used to construct the testing sub grid
@@ -343,28 +344,10 @@ class AdaptiveSampler(Sampler):
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
     self.printTag         = returnPrintTag('SAMPLER ADAPTIVE')
 
-  def _localWhatDoINeed(self):
-    '''
-    This method is a local mirrow of the general whatDoINeed method.
-    It is implmented by the samplers that need to request special objects
-    @ In , None, None
-    @ Out, needDict, list of objects needed
-    '''
-    needDict = {}
-    for value in self.assemblerObjects.values():
-      if value[0] not in needDict.keys(): needDict[value[0]] = []
-      needDict[value[0]].append((value[1],value[2]))
-    return needDict
+    self.requiredAssObject = (True,(['TargetEvaluation','ROM','Function'],['n','n','-n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
-  def _localGenerateAssembler(self,initDict):
-    for key, value in self.assemblerObjects.items():
-      if key in 'TargetEvaluation' : self.lastOutput = initDict[value[0]][value[2]]
-      if key in 'ROM'              : self.ROM = initDict[value[0]][value[2]]
-      if key in 'Function'         : self.goalFunction = initDict[value[0]][value[2]]
-    if self.ROM==None:
-      mySrting= ','.join(list(self.distDict.keys()))
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
-    self.ROM.reset()
+#  def _localGenerateAssembler(self,initDict):
+#    Sampler._localGenerateAssembler(self, initDict)
 
   def localInputAndChecks(self,xmlNode):
     if 'limit' in xmlNode.attrib.keys():
@@ -398,14 +381,15 @@ class AdaptiveSampler(Sampler):
       elif convergenceNode.attrib['forceIteration']=='False': self.forceIteration   = False
       else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Reading the convergence setting for the adaptive sampler '+self.name+' the forceIteration keyword had an unknown value: '+str(convergenceNode.attrib['forceIteration']))
     #assembler node: Hidden from User
+    '''
     targEvalNode = xmlNode.find('TargetEvaluation')
     if targEvalNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> TargetEvaluation object is required. Not found in Sampler '+self.name + '!')
-    self.assemblerObjects[targEvalNode.tag] = [targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]
+    self.assemblerObjects[targEvalNode.tag] = [[targEvalNode.attrib['class'],targEvalNode.attrib['type'],targEvalNode.text]]
     functionNode = xmlNode.find('Function')
     if functionNode == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Function object is required. Not Found in Sampler '+self.name + '!')
-    self.assemblerObjects[functionNode.tag] = [functionNode.attrib['class'],functionNode.attrib['type'],functionNode.text]
+    self.assemblerObjects[functionNode.tag] = [[functionNode.attrib['class'],functionNode.attrib['type'],functionNode.text]]
     romNode = xmlNode.find('ROM')
-    if romNode != None: self.assemblerObjects[romNode.tag] = [romNode.attrib['class'],romNode.attrib['type'],romNode.text]
+    if romNode != None: self.assemblerObjects[romNode.tag] = [[romNode.attrib['class'],romNode.attrib['type'],romNode.text]]
     targEvalCounter  = 0
     romCounter       = 0
     functionCounter  = 0
@@ -419,6 +403,7 @@ class AdaptiveSampler(Sampler):
     if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
     if functionCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One Function object is required. Sampler '+self.name + ' got '+str(functionCounter) + '!')
     if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+    '''
     # set subgrid
     if self.subGridTol == None: self.subGridTol = self.tolerance
     if self.subGridTol> self.tolerance: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The sub grid tolerance '+str(self.subGridTol)+' must be smaller than the tolerance: '+str(self.tolerance))
@@ -440,6 +425,43 @@ class AdaptiveSampler(Sampler):
       tempDict['The coordinate for the convergence test grid on variable '+str(varName)+' are'] = str(self.gridVectors[varName])
 
   def localInitialize(self,solutionExport=None):
+#    for key, value in self.assemblerObjects.items():
+#      if key in 'TargetEvaluation' :
+#        for val in value:
+#          self.lastOutput = initDict[val[0]][val[2]]
+#      if key in 'ROM'              :
+#        for val in value:
+#          self.ROM = initDict[val[0]][val[2]]
+#      if key in 'Function'         :
+#        for val in value:
+#          self.goalFunction = initDict[val[0]][val[2]]
+#    if self.ROM==None:
+#      mySrting= ','.join(list(self.distDict.keys()))
+#      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
+#    self.ROM.reset()
+
+    for key in self.assemblerDict.keys():
+      if 'Function' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.goalFunction = self.assemblerDict[key][indice][3]
+          indice += 1
+      if 'TargetEvaluation' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.lastOutput = self.assemblerDict[key][indice][3]
+          indice += 1
+      if 'ROM' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.ROM = self.assemblerDict[key][indice][3]
+          indice += 1
+#
+    if self.ROM==None:
+      mySrting= ','.join(list(self.distDict.keys()))
+      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
+    self.ROM.reset()
+
     self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "Datas" type "TimePointSet"
@@ -554,7 +576,7 @@ class AdaptiveSampler(Sampler):
       for index in range(indexEnd+1): print(','.join([str(self.functionValue[key][index]) for key in list(self.functionValue.keys())]))
     #printing----------------------
     tempDict = {}
-    for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = self.functionValue[name]
+    for name in [key.replace('<distribution>','') for key in self.axisName]: tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.goalFunction.name] = self.functionValue[self.goalFunction.name]
     self.ROM.train(tempDict)
 
@@ -899,6 +921,7 @@ class Grid(Sampler):
     It could not have been done earlier since the distribution might not have been initialized first
     '''
     for varName in self.gridInfo.keys():
+      #print('DEBUG',self.printTag,varName,self.gridInfo[varName])
       if self.gridInfo[varName][0]=='value':
         valueMax, indexMax = max(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(max(self.gridInfo[varName][2]))
         valueMin, indexMin = min(self.gridInfo[varName][2]), self.gridInfo[varName][2].index(min(self.gridInfo[varName][2]))
@@ -1087,7 +1110,7 @@ class DynamicEventTree(Grid):
     self.printTag = returnPrintTag('SAMPLER DYNAMIC ET')
 
   def _localWhatDoINeed(self):
-    needDict = {}
+    needDict = Sampler._localWhatDoINeed(self)
     for preconditioner in self.preconditionerToApply.values():
       preneedDict = preconditioner.whatDoINeed()
       for key,value in preneedDict.items():
@@ -1281,7 +1304,7 @@ class DynamicEventTree(Grid):
     self.inputInfo['ValueThreshold'            ] = []
     self.inputInfo['branch_changed_param'      ] = [b'None']
     self.inputInfo['branch_changed_param_value'] = [b'None']
-    self.inputInfo['start_time'                ] = b'Initial'
+    self.inputInfo['start_time'                ] = -sys.float_info.max
     self.inputInfo['end_ts'                    ] = 0
     self.inputInfo['parent_id'                 ] = 'root'
     self.inputInfo['conditional_prb'           ] = [1.0]
@@ -1960,11 +1983,11 @@ class FactorialDesign(Grid):
     Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("FactorialSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'FactorialSettings xml node not found!!!')
-    facttype = factsettings.find("type")
-    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in FactorialSettings xml node!!!')
+    facttype = factsettings.find("algorithm_type")
+    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "algorithm_type" not found in FactorialSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedTypes:raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedTypes))
-    self.factOpt['type'] = facttype.text.lower()
-    if self.factOpt['type'] == '2levelfract':
+    self.factOpt['algorithm_type'] = facttype.text.lower()
+    if self.factOpt['algorithm_type'] == '2levelfract':
       self.factOpt['options'] = {}
       self.factOpt['options']['gen'] = factsettings.find("gen")
       self.factOpt['options']['genMap'] = factsettings.find("genMap")
@@ -1981,12 +2004,12 @@ class FactorialDesign(Grid):
         if var not in self.gridInfo.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' variable "'+var+'" defined in genMap block not among the inputted variables!')
         rightOrder[self.axisName.index(var)] = self.factOpt['options']['gen'][ii]
       self.factOpt['options']['orderedGen'] = rightOrder
-    if self.factOpt['type'] != 'full':
+    if self.factOpt['algorithm_type'] != 'full':
       self.externalgGridCoord = True
       for varname in self.gridInfo.keys():
         if len(self.gridInfo[varname][2]) != 2:
           raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' The number of levels for type '+
-                        self.factOpt['type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
+                        self.factOpt['algorithm_type'] +' must be 2! In variable '+varname+ ' got number of levels = ' +
                         str(len(self.gridInfo[varname][2])))
     else: self.externalgGridCoord = False
 
@@ -2002,8 +2025,8 @@ class FactorialDesign(Grid):
     This method initialize the factorial matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     '''
     Grid.localInitialize(self)
-    if   self.factOpt['type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
-    elif self.factOpt['type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
+    if   self.factOpt['algorithm_type'] == '2levelfract': self.designMatrix = doe.fracfact(' '.join(self.factOpt['options']['orderedGen'])).astype(int)
+    elif self.factOpt['algorithm_type'] == 'pb'         : self.designMatrix = doe.pbdesign(len(self.gridInfo.keys())).astype(int)
     if self.designMatrix != None:
       # convert all -1 in 0 => we can access to the grid info directly
       self.designMatrix[self.designMatrix == -1] = 0
@@ -2011,7 +2034,7 @@ class FactorialDesign(Grid):
       self.limit = self.designMatrix.shape[0]
 
   def localGenerateInput(self,model,myInput):
-    if self.factOpt['type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
+    if self.factOpt['algorithm_type'] == 'full':  Grid.localGenerateInput(self,model, myInput)
     else:
       self.gridCoordinate = self.designMatrix[self.counter - 1][:].tolist()
       Grid.localGenerateInput(self,model, myInput)
@@ -2042,20 +2065,20 @@ class ResponseSurfaceDesign(Grid):
     # Grid.localInputAndChecks(self,xmlNode)
     factsettings = xmlNode.find("ResponseSurfaceDesignSettings")
     if factsettings == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'ResponseSurfaceDesignSettings xml node not found!!!')
-    facttype = factsettings.find("type")
-    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "type" not found in ResponseSurfaceDesignSettings xml node!!!')
+    facttype = factsettings.find("algorithm_type")
+    if facttype == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node "algorithm_type" not found in ResponseSurfaceDesignSettings xml node!!!')
     elif not facttype.text.lower() in self.acceptedOptions.keys():raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +' "type" '+facttype.text+' unknown! Available are ' + ' '.join(self.acceptedOptions.keys()))
-    self.respOpt['type'] = facttype.text.lower()
+    self.respOpt['algorithm_type'] = facttype.text.lower()
     # set defaults
-    if self.respOpt['type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
+    if self.respOpt['algorithm_type'] == 'boxbehnken': self.respOpt['options'] = {'ncenters':None}
     else                                   : self.respOpt['options'] = {'centers':(4,4),'alpha':'orthogonal','face':'circumscribed'}
     for child in factsettings:
-      if child.tag not in 'type': self.respOpt['options'][child.tag] = child.text.lower()
+      if child.tag not in 'algorithm_type': self.respOpt['options'][child.tag] = child.text.lower()
     # start checking
     for key,value in self.respOpt['options'].items():
       if key not in self.acceptedOptions[facttype.text.lower()]:
         raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'node '+key+' unknown. Available are "'+' '.join(self.acceptedOptions[facttype.text.lower()])+'"!!')
-      if self.respOpt['type'] == 'boxbehnken':
+      if self.respOpt['algorithm_type'] == 'boxbehnken':
         if key == 'ncenters':
           try   : self.respOpt['options'][key] = int(value)
           except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ' +'"'+key+'" is not an integer!')
@@ -2088,7 +2111,7 @@ class ResponseSurfaceDesign(Grid):
           except: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> node "upper" or "lower" must be float')
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
-    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['type']]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
+    if len(self.gridCoordinate) < self.minNumbVars[self.respOpt['algorithm_type']]: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> minimum number of variables for type "'+ self.respOpt['type'] +'" is '+str(self.minNumbVars[self.respOpt['type']])+'!!')
     self.externalgGridCoord = True
 
   def localAddInitParams(self,tempDict):
@@ -2102,8 +2125,8 @@ class ResponseSurfaceDesign(Grid):
     '''
     This method initialize the response matrix. No actions are taken for full-factorial since it is equivalent to the Grid sampling this sampler is based on
     '''
-    if   self.respOpt['type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
-    elif self.respOpt['type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
+    if   self.respOpt['algorithm_type'] == 'boxbehnken'      : self.designMatrix = doe.bbdesign(len(self.gridInfo.keys()),center=self.respOpt['options']['ncenters'])
+    elif self.respOpt['algorithm_type'] == 'centralcomposite': self.designMatrix = doe.ccdesign(len(self.gridInfo.keys()), center=self.respOpt['options']['centers'], alpha=self.respOpt['options']['alpha'], face=self.respOpt['options']['face'])
     for cnt, varName in enumerate(self.axisName):
       column = np.unique(self.designMatrix[:,cnt])
       yi = np.array([self.bounds[varName][0], self.bounds[varName][1]])
@@ -2118,6 +2141,202 @@ class ResponseSurfaceDesign(Grid):
     gridcoordinate = self.designMatrix[self.counter - 1][:].tolist()
     for cnt, varName in enumerate(self.axisName): self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
     Grid.localGenerateInput(self,model, myInput)
+
+class SparseGridCollocation(Grid):
+  def __init__(self):
+    Grid.__init__(self)
+    self.type           = 'SparseGridCollocationSampler'
+    self.printTag       = returnPrintTag(self.type)
+    self.assemblerObjects={}    #dict of external objects required for assembly
+    self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
+    self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
+    self.adaptive       = False #TODO
+    self.polyDict       = {}    #varName-indexed dict of polynomial types
+    self.quadDict       = {}    #varName-indexed dict of quadrature types
+    self.importanceDict = {}    #varName-indexed dict of importance weights
+    self.maxPolyOrder   = None  #integer, relative maximum polynomial order to be used in any one dimension
+    self.lastOutput     = None  #pointer to output datas object
+    self.ROM            = None  #pointer to ROM
+    self.jobHandler     = None  #pointer to job handler for parallel runs
+    self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
+
+    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+
+
+  def _localWhatDoINeed(self):
+    gridDict = Grid._localWhatDoINeed(self)
+    gridDict['internal'] = [(None,'jobHandler')]
+    return gridDict
+#    needDict = {}
+#    needDict['Distributions'] = [] # Every sampler requires Distributions
+#    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
+#    needDict['internal'] = [(None,'jobHandler')]
+#    return needDict
+
+
+  def _localGenerateAssembler(self,initDict):
+ #   availableDist = initDict['Distributions']
+ #   self._generateDistributions(availableDist)
+    Grid._localGenerateAssembler(self, initDict)
+#    for key, value in self.assemblerObjects.items():
+#      if   key in 'TargetEvaluation': self.lastOutput = initDict[value[0]][value[2]]
+#      elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
+    self.jobHandler = initDict['internal']['jobHandler']
+
+#  def _readMoreXML(self,xmlNode):
+#    Grid._readMoreXML(self,xmlNode)
+#    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+#    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+    #assembler node -> to be changed when Sonnet gets it in the base class
+#    assemblerNode = xmlNode.find('Assembler')
+#    if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
+#    targEvalCounter = 0
+#    romCounter      = 0
+#    for subNode in xmlNode:
+#      if subNode.tag in ['TargetEvaluation','ROM']:
+#        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+#        self.assemblerObjects[subNode.tag] = [[subNode.attrib['class'],subNode.attrib['type'],subNode.text]]
+#        if 'TargetEvaluation' in subNode.tag: targEvalCounter+=1
+#        if 'ROM'              in subNode.tag: romCounter+=1
+#      else:
+#        raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
+#    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
+#    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
+#    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
+
+  def localInputAndChecks(self,xmlNode):
+    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
+    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
+    for child in xmlNode:
+#      if   child.tag=='Assembler'   :continue
+      if child.tag == 'Distribution':
+        varName = '<distribution>'+child.attrib['name']
+      elif child.tag == 'variable':
+        varName = child.attrib['name']
+        self.axisName.append(varName)
+
+  def localInitialize(self):
+    for key in self.assemblerDict.keys():
+      if 'TargetEvaluation' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.lastOutput = self.assemblerDict[key][indice][3]
+          indice += 1
+      if 'ROM' in key:
+        indice = 0
+        for value in self.assemblerDict[key]:
+          self.ROM = self.assemblerDict[key][indice][3]
+          indice += 1
+    SVLs = self.ROM.SupervisedEngine.values()
+    SVL = SVLs[0] #often need only one
+    ROMdata = SVL.interpolationInfo() #they are all the same? -> yes, I think so
+    self.maxPolyOrder = SVL.maxPolyOrder
+    #check input space consistency
+    samVars=self.axisName[:]
+    romVars=SVL.features[:]
+    try:
+      for v in self.axisName:
+        samVars.remove(v)
+        romVars.remove(v)
+    except ValueError:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' used in sampler but not ROM features! Collocation requires all vars in both.')
+    if len(romVars)>0:
+      raise IOError(self.printTag+' | '+self.ROM.printTag+' variables '+str(romVars)+' specified in ROM but not sampler! Collocation requires all vars in both.')
+    for v in ROMdata.keys():
+      if v not in self.axisName:
+        raise IOError(self.printTag+' | '+self.ROM.printTag+' variable '+v+' given interpolation rules but '+v+' not in sampler!')
+      else:
+        self.gridInfo[v] = ROMdata[v] #quad, poly, weight
+    #set defaults, then replace them if they're asked for
+    for v in self.axisName:
+      if v not in self.gridInfo.keys():
+        self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1','cdf':'False'}
+    #establish all the right names for the desired types
+    #FIXME this has grown gnarled, and should be simplified
+    for varName,dat in self.gridInfo.items():
+      #print('DEBUG dat',self.printTag,varName,dat)
+      if dat['cdf'].lower() in ['t','true','y','yes','1']:
+        quadType='CDF'
+        #TODO is Legendre the right default?
+        if dat['quad']=='DEFAULT': subType = 'Legendre'
+        else: subType = dat['quad']
+        if dat['poly']=='DEFAULT': polyType = 'Legendre'
+        else: polyType = dat['poly']
+      else: #not flagged as cdf by user
+        if dat['quad']=='DEFAULT': # FIXME-> consider checking names first, then setting subTypes
+          quadType = self.distDict[varName].preferredQuadrature
+          if quadType == 'CDF':
+            subType = 'Legendre'
+            if dat['poly']=='DEFAULT': polyType = 'Legendre'
+            else: polyType = dat['poly']
+          else:
+            if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
+            else: polyType = dat['poly']
+            subType=None
+        else: #quad not default
+          quadType = dat['quad']
+          if dat['poly']=='DEFAULT': polyType = self.distDict[varName].preferredPolynomials
+          else: polyType = dat['poly']
+          subType=None
+      #build the distribution, quadrature, polynomial, importance weight
+      #TODO consistency checks between quads-polys-distros
+      distr = self.distDict[varName]
+      if quadType not in distr.compatibleQuadrature:
+        raise IOError(self.printTag+': Quad type "'+quadType+'" is not compatible with variable "'+varName+'" distribution "'+distr.type+'"')
+
+      quad = Quadratures.returnInstance(quadType,Subtype=subType)
+      quad.initialize(distr)
+      self.quadDict[varName]=quad
+
+      poly = OrthoPolynomials.returnInstance(polyType)
+      poly.initialize(quad)
+      self.polyDict[varName] = poly
+
+      self.importanceDict[varName] = float(dat['weight'])
+    #print out the setup for each variable.   TODO should this always happen?
+    if self.debug:
+      print(self.printTag,'INTERPOLATION INFO:')
+      print('    Variable | Distribution | Quadrature | Polynomials')
+      for v in self.quadDict.keys():
+        print('   ',' | '.join([v,self.distDict[v].type,self.quadDict[v].type,self.polyDict[v].type]))
+      print('    Polynomial Set Degree:',self.maxPolyOrder)
+      print('    Polynomial Set Type  :',SVL.indexSetType)
+
+    if self.debug: print(self.printTag,'Starting index set generation...')
+    self.indexSet = IndexSets.returnInstance(SVL.indexSetType)
+    self.indexSet.initialize(self.distDict,self.importanceDict,self.maxPolyOrder)
+
+    if self.debug: print(self.printTag,'Starting sparse grid generation...')
+    self.sparseGrid = Quadratures.SparseQuad()
+    # NOTE this is the most expensive step thus far; try to do checks before here
+    self.sparseGrid.initialize(self.indexSet,self.maxPolyOrder,self.distDict,self.quadDict,self.polyDict,self.jobHandler)
+
+    if self.writeOut != None:
+      msg=self.sparseGrid.__csv__()
+      outFile=file(self.writeOut,'w')
+      outFile.writelines(msg)
+      outFile.close()
+
+    self.limit=len(self.sparseGrid)
+    if self.debug: print(self.printTag,'Size of Sparse Grid  :',self.limit)
+    if self.debug: print(self.printTag,'Finished sampler generation.')
+    for SVL in self.ROM.SupervisedEngine.values():
+      SVL.initialize({'SG':self.sparseGrid,
+                      'dists':self.distDict,
+                      'quads':self.quadDict,
+                      'polys':self.polyDict,
+                      'iSet':self.indexSet})
+
+  def localGenerateInput(self,model,myInput):
+    '''Provide the next point in the sparse grid.'''
+    pt,weight = self.sparseGrid[self.counter-1]
+    for v,varName in enumerate(self.distDict.keys()):
+      self.values[varName] = pt[v]
+      self.inputInfo['SampledVarsPb'][varName] = self.distDict[varName].pdf(self.values[varName])
+    self.inputInfo['PointsProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
+    self.inputInfo['ProbabilityWeight'] = weight
+    self.inputInfo['SamplerType'] = 'Sparse Grid Collocation'
+
 #
 #
 #
@@ -2135,10 +2354,20 @@ __interFaceDict['Adaptive'                ] = AdaptiveSampler
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDET
 __interFaceDict['FactorialDesign'         ] = FactorialDesign
 __interFaceDict['ResponseSurfaceDesign'   ] = ResponseSurfaceDesign
+__interFaceDict['SparseGridCollocation'   ] = SparseGridCollocation
 __knownTypes = list(__interFaceDict.keys())
+
+def addKnownTypes(newDict):
+  for name, value in newDict.items():
+    __interFaceDict[name]=value
 
 def knownTypes():
   return __knownTypes
+
+def addKnownTypes(newDict):
+  for name, value in newDict.items():
+    __interFaceDict[name]=value
+    __knownTypes.append(name)
 
 def returnInstance(Type):
   '''

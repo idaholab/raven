@@ -55,6 +55,7 @@ tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
 
 # python
 *.pyc
+*~
 
 #coverage
 tests/framework/.coverage

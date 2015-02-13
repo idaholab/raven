@@ -25,6 +25,8 @@ import numpy as np
 import numpy
 import abc
 import ast
+import pickle as pk
+from operator import itemgetter
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -53,16 +55,12 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     return (True,'')
 
   def __init__(self,**kwargs):
-    self.printTag = returnPrintTag('Super Visioned')
+    self.printTag = returnPrintTag('SuperVised')
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    self.normalizeData      = True
     if kwargs != None: self.initOptionDict = kwargs
     else             : self.initOptionDict = {}
     if 'Features' not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Feature names not provided')
     if 'Target'   not in self.initOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> Target name not provided')
-    if 'NormalizeData' in self.initOptionDict.keys():
-      if self.initOptionDict['NormalizeData'].lower() in stringsThatMeanFalse(): self.normalizeData = False
-      self.initOptionDict.pop('NormalizeData')
     self.features = self.initOptionDict['Features'].split(',')
     self.target   = self.initOptionDict['Target'  ]
     self.initOptionDict.pop('Target')
@@ -73,6 +71,9 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
     self.amITrained         = False
+
+  def initialize(self,idict):
+    pass #Overloaded by (at least) GaussPolynomialRom
 
   def train(self,tdict):
     '''
@@ -97,13 +98,23 @@ class superVisedLearning(metaclass_insert(abc.ABCMeta)):
         resp = self.checkArrayConsistency(values[names.index(feat)])
         if not resp[0]: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set for feature '+feat+':'+resp[1])
         if values[names.index(feat)].size != featureValues[:,0].size: raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        if self.normalizeData: self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
-        else                 : self.muAndSigmaFeatures[feat] = (0.0,1.0)
+        self._localNormalizeData(values,names,feat)
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],np.max(np.absolute(values[names.index(feat)])))
         if self.muAndSigmaFeatures[feat][1]==0: self.muAndSigmaFeatures[feat] = (self.muAndSigmaFeatures[feat][0],1.0)
         featureValues[:,cnt] = (values[names.index(feat)] - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
+
+  def _localNormalizeData(self,values,names,feat):
+    '''
+    Method to normalize data based on the mean and standard deviation.  If undesired for a particular ROM,
+    this method can be overloaded to simply pass (see, e.g., GaussPolynomialRom).
+    @ In, values, list of feature values (from tdict)
+    @ In, names, names of features (from tdict)
+    @ In, feat, list of features (from ROM)
+    @ Out, None
+    '''
+    self.muAndSigmaFeatures[feat] = (np.average(values[names.index(feat)]),np.std(values[names.index(feat)]))
 
   def confidence(self,edict):
     '''
@@ -236,6 +247,208 @@ class NDinterpolatorRom(superVisedLearning):
 
   def __returnCurrentSettingLocal__(self):
     raise NotImplemented('NDinterpRom   : __returnCurrentSettingLocal__ method must be implemented!!!!!')
+
+class GaussPolynomialRom(NDinterpolatorRom):
+  def __confidenceLocal__(self,edict):pass #TODO
+
+  def __resetLocal__(self):pass #TODO
+
+  def __returnCurrentSettingLocal__(self):pass #TODO
+
+  def __init__(self,**kwargs):
+    superVisedLearning.__init__(self,**kwargs)
+    self.interpolator  = None #FIXME what's this?
+    self.printTag      = returnPrintTag('GAUSSgpcROM('+self.target+')')
+    self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
+    self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
+    self.itpDict       = {}   #dict of quad,poly,weight choices keyed on varName
+    self.norm          = None #combined distribution normalization factors (product)
+    self.sparseGrid    = None #Quadratures.SparseGrid object, has points and weights
+    self.distDict      = None #dict{varName: Distribution object}, has point conversion methods based on quadrature
+    self.quads         = None #dict{varName: Quadrature object}, has keys for distribution's point conversion methods
+    self.polys         = None #dict{varName: OrthoPolynomial object}, has polynomials for evaluation
+    self.indexSet      = None #array of tuples, polynomial order combinations
+    self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
+    self.itpDict       = {}   #dict{varName: dict{attribName:value} }
+
+    for key,val in kwargs.items():
+      if key=='IndexSet': self.indexSetType = val
+      if key=='PolynomialOrder': self.maxPolyOrder = val
+      if key=='Interpolation':
+        var = val.pop('text')
+        self.itpDict[var]={'poly'  :'DEFAULT',
+                           'quad'  :'DEFAULT',
+                           'weight':'1',
+                           'cdf'   :'False'}
+        for atr in ['poly','quad','weight','cdf']:
+          if atr in val.keys(): self.itpDict[var][atr]=val[atr]
+          else: raise IOError(self.printTag+' Unrecognized option: '+child.attrib[atr])
+
+    if not self.indexSetType:
+      raise IOError(self.printTag+' No IndexSet specified!')
+    if not self.maxPolyOrder:
+      raise IOError(self.printTag+' No IndexSet specified!')
+    if self.maxPolyOrder < 1:
+      raise IOError(self.printTag+' Polynomial order cannot be less than 1 currently.')
+
+  def _localNormalizeData(self,values,names,feat):
+    self.muAndSigmaFeatures[feat] = (0.0,1.0)
+
+  def interpolationInfo(self):
+    return dict(self.itpDict)
+
+  def initialize(self,idict):
+    for key,value in idict.items():
+      if   key == 'SG'   : self.sparseGrid = value
+      elif key == 'dists': self.distDict   = value
+      elif key == 'quads': self.quads      = value
+      elif key == 'polys': self.polys      = value
+      elif key == 'iSet' : self.indexSet   = value
+
+  def _multiDPolyBasisEval(self,orders,pts):
+    '''Evaluates each polynomial set at given orders and points, returns product.
+    @ In orders, tuple(int), polynomial orders to evaluate
+    @ In pts, tuple(float), values at which to evaluate polynomials
+    @ Out, float, product of polynomial evaluations
+    '''
+    tot=1
+    for i,(o,p) in enumerate(zip(orders,pts)):
+      varName = self.sparseGrid.varNames[i]
+      tot*=self.polys[varName](o,p)
+    return tot
+
+  def __trainLocal__(self,featureVals,targetVals):
+    self.polyCoeffDict={}
+    #check consistency of featureVals
+    if len(featureVals)!=len(self.sparseGrid):
+      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(needpts))+' points, but only '+str(len(havepts))+' provided!')
+    #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
+    self.sparseGrid._remap(self.features)
+    #check equality of point space
+    fvs = featureVals[:]
+    sgs = self.sparseGrid.points()[:]
+    fvs=sorted(fvs,key=itemgetter(*range(len(fvs[0]))))
+    sgs=sorted(sgs,key=itemgetter(*range(len(sgs[0]))))
+    #print('DEBUG fvs | sgs:')
+    #for i in range(len(fvs)):
+    #  print('  ',fvs[i],' | ',sgs[i])
+    if not np.allclose(fvs,sgs,rtol=1e-15):
+      print('DEBUG fvs | sgs:')
+      for i in range(len(fvs)):
+        print('  ',fvs[i],' | ',sgs[i])
+      raise IOError(self.printTag+' ERROR: input values do not match required values!')
+    #make translation matrix between lists
+    translate={}
+    for i in range(len(fvs)):
+      translate[tuple(fvs[i])]=sgs[i]
+    #TODO can parallelize this! Worth it?
+    self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    #outFile=file('debugout.txt','w')
+    #outFile.writelines(str(list(v for v in self.sparseGrid.varNames))+'\n')
+    for i,idx in enumerate(self.indexSet):
+      idx=tuple(idx)
+      self.polyCoeffDict[idx]=0
+      wtsum=0
+      for pt,soln in zip(featureVals,targetVals):
+        stdPt = np.zeros(len(pt))
+        for i,p in enumerate(pt):
+          varName = self.sparseGrid.varNames[i]
+          stdPt[i] = self.distDict[varName].convertToQuad(self.quads[varName].type,p)
+        #outFile.writelines('DEBUG pt,stdpt\n')
+        #outFile.writelines('  '+str(pt)+'\n')
+        #outFile.writelines('  '+str(stdPt)+'\n')
+        wt = self.sparseGrid.weights(translate[tuple(pt)])
+        self.polyCoeffDict[idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
+      self.polyCoeffDict[idx]*=self.norm
+    #outFile.close()
+    self.printPolyDict()
+    #do a few moments #TODO need a better solution for calling moment calculations, etc
+    for r in range(5):
+      print('ROM moment',r,'= %1.16f' %self.__evaluateMoment__(r))
+
+    #print('DEBUG sparsegrid:\n'+str(self.sparseGrid))
+    #print('DEBUG scipy tests')
+    #for i in range(1,5):
+    #  print('DEBUG  ',self.quads.values()[0](i))
+    #import scipy
+    #print('DEBUG python',sys.version_info)
+    #print('DEBUG numpy ',np.__version__)
+    #print('DEBUG scipy ',scipy.__version__)
+    #local evals
+    #if len(self.features)==1:
+    #  tests=[(0),(0.2),(0.5),(0.7),(1.0)]
+    #elif len(self.features)==2:
+    # tests=[(0,0),(0,0.5),(0.5,0.5),(1.0,0.5),(1.0,1.0)]
+    #for i in tests:
+    #  print('DEBUG eval'+str(i)+':',self.__evaluateLocal__([i]))
+
+    #pk.dump(self,file('testROMdump.pk','w'))
+    #dud=pk.load(file('testROMdump.pk','r'))
+    #print('dud:',dud)
+    #print('pickle test:',dud==self.distDict)
+
+    #for r in range(5):
+    #  print('ROM moment',r,'= %1.16f' %dud.__evaluateMoment__(r))
+    # THESE members pickle ok now, and check out as equal
+    # - sparseGrid
+    # - quads
+    # - maxPolyOrder
+    # - polys
+    # - indexSet
+
+    # THESE members are problems still. TODO
+    # - distDict -> SWIG problems.
+
+    # UNTESTED
+    # SVL
+
+  def printPolyDict(self,printZeros=False):
+    '''Human-readable version of the polynomial chaos expansion.
+    @ In printZeros,boolean,optional flag for printing even zero coefficients
+    @ Out, None, None
+    '''
+    data=[]
+    for idx,val in self.polyCoeffDict.items():
+      if val > 1e-14 or printZeros:
+        data.append([idx,val])
+    data.sort()
+    print('polyDict:')
+    for idx,val in data:
+      print('    ',idx,val)
+
+  def __evaluateMoment__(self,r):
+    '''Use the ROM's built-in method to calculate moments.
+    @ In r, int, moment to calculate
+    @ Out, float, evaluation of moment
+    '''
+    #TODO is there a faster way still to do this?
+    tot=0
+    for pt,wt in self.sparseGrid:
+      tot+=self.__evaluateLocal__([pt])**r*wt
+    tot*=self.norm
+    return tot
+
+  def __evaluateLocal__(self,featureVals):
+    featureVals=featureVals[0]
+    tot=0
+    stdPt = np.zeros(len(featureVals))
+    for p,pt in enumerate(featureVals):
+      varName = self.sparseGrid.varNames[p]
+      stdPt[p] = self.distDict[varName].convertToQuad(self.quads[varName].type,pt)
+    for idx,coeff in self.polyCoeffDict.items():
+      tot+=coeff*self._multiDPolyBasisEval(idx,stdPt)
+    return tot
+
+  def __returnInitialParametersLocal__(self):
+    return {}#TODO 'IndexSet:':self.indexSetType,
+             #'PolynomialOrder':self.maxPolyOrder,
+             # 'Interpolation':interpolationInfo()}
+
+  #def __getstate__(self): #for pickling
+  #  pass
+#
+#  def __setstate__(self,state): #for unpickling
+#    pass
 #
 #
 #
@@ -427,12 +640,17 @@ class SciKitLearn(superVisedLearning):
 #
 #
 #
-__interfaceDict                      = {}
-__interfaceDict['NDspline'         ] = NDsplineRom
-__interfaceDict['NDinvDistWeigth'  ] = NDinvDistWeigth
-__interfaceDict['microSphere'      ] = NDmicroSphere
-__interfaceDict['SciKitLearn'      ] = SciKitLearn
-__base                               = 'superVisedLearning'
+__interfaceDict                         = {}
+__interfaceDict['NDspline'            ] = NDsplineRom
+__interfaceDict['NDinvDistWeigth'     ] = NDinvDistWeigth
+__interfaceDict['microSphere'         ] = NDmicroSphere
+__interfaceDict['SciKitLearn'         ] = SciKitLearn
+__interfaceDict['GaussPolynomialRom'] = GaussPolynomialRom
+__base                                  = 'superVisedLearning'
+
+def addToInterfaceDict(newDict):
+  for key,val in newDict.items():
+    __interfaceDict[key]=val
 
 def returnInstance(ROMclass,**kwargs):
   '''This function return an instance of the request model type'''
