@@ -1,3 +1,0 @@
-time,Controlled:inlet_TDV_T_bc,Controlled:inlet_TDV_p_bc,Controlled:inlet_TDV_volume_fraction_vapor_bc,Controlled:outlet_TDV_T_bc,Controlled:outlet_TDV_p_bc,Controlled:outlet_TDV_volume_fraction_vapor_bc,Controlled:pipe1_Area,Controlled:pipe1_Hw,Controlled:pipe1_f,Controlled:pipe2_Area,Controlled:pipe2_Hw,Controlled:pipe2_f,Controlled:pump_mass_flow_rate
-0,300,100000,1,300,100000,1,0.000314159265,0,0.01,7.85398163e-05,0,0.01,0.3141159265
-

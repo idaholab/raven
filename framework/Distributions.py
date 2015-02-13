@@ -250,6 +250,9 @@ class BoostDistribution(Distribution):
     @ Out, flaot, requested Mode
     '''
     return self._distribution.untrMode()
+  
+  def returnDimensionality(self):
+    return 1
 
   def rvs(self,*args):
     '''
@@ -928,19 +931,21 @@ class NDimensionalDistributions(Distribution):
     
   #######  
   def updateRNGParam(self, dictParam):
-    print('ZZZ dictParam' + str(dictParam))
+    self.RNGtolerance = 0.1
+    self.RNGInitDisc  = 10 
     for key in dictParam:
       if key == 'tolerance':
         self.RNGtolerance = dictParam['tolerance']
-      if key == 'initial_grid_disc':
+      elif key == 'initial_grid_disc':
         self.RNGInitDisc  = dictParam['initial_grid_disc']
     
     print('python distributions: updateRNGParam')
     self._distribution.updateRNGparameter(self.RNGtolerance,self.RNGInitDisc)
   ######
   
+  def returnDimensionality(self):
+    return  self._distribution.returnDimensionality()
   
-
 class NDInverseWeight(NDimensionalDistributions):
 
   def __init__(self):
@@ -969,21 +974,40 @@ class NDInverseWeight(NDimensionalDistributions):
     tempDict['p'] = self.p
 
   def initializeDistribution(self):
-    #NDimensionalDistributions.initializeDistribution()
-    print('BasicMultiDimensional InverseWeight initialize Distribution')
+    print('====== BasicMultiDimensional InverseWeight initialize Distribution ======')
     if self.function_type == 'CDF':
       self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.data_filename, self.p,True)
     else:
       self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.data_filename, self.p,False)
 
   def cdf(self,x):
-    return self._distribution.Cdf(x)
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Cdf(coordinate)
 
   def ppf(self,x):
     return self._distribution.InverseCdf(x)
-
+    
   def pdf(self,x):
-    return self._distribution.Pdf(x)
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Pdf(coordinate)
+  
+  def cellIntegral(self,x,dx):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    dxs        = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+      dxs[i]=dx[i]
+    return self._distribution.cellIntegral(coordinate,dxs)
+  
+  def inverseMarginalDistribution (self, x, variable):
+    if (x>0.0) and (x<1.0):
+      return self._distribution.inverseMarginal(x, variable)
+    else:
+      raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
 
   def untruncatedCdfComplement(self, x):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedCdfComplement not yet implemented for ' + self.type)
@@ -1005,6 +1029,80 @@ class NDInverseWeight(NDimensionalDistributions):
     #raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
+class NDCartesianSpline(NDimensionalDistributions):
+  def __init__(self):
+    NDimensionalDistributions.__init__(self)
+    self.type = 'NDCartesianSpline'
+
+  def _readMoreXML(self,xmlNode):
+    NDimensionalDistributions._readMoreXML(self, xmlNode)
+    
+    data_filename = xmlNode.find('data_filename')
+    if data_filename != None: self.data_filename = self.working_dir+data_filename.text
+    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <data_filename> parameter needed for MultiDimensional Distributions!!!!')
+    
+    function_type = data_filename.attrib['type']
+    if function_type != None: self.function_type = function_type
+    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <function_type> parameter needed for MultiDimensional Distributions!!!!')    
+
+    self.initializeDistribution()
+
+  def addInitParams(self,tempDict):
+    NDimensionalDistributions.addInitParams(self, tempDict)
+
+  def initializeDistribution(self):
+    print('====== BasicMultiDimensional NDCartesianSpline initialize Distribution ======')
+    if self.function_type == 'CDF':
+      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(self.data_filename,True)
+    else:
+      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(self.data_filename,False)
+
+  def cdf(self,x):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Cdf(coordinate)
+
+  def ppf(self,x):
+    return self._distribution.InverseCdf(x)
+    
+  def pdf(self,x):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+    return self._distribution.Pdf(coordinate)
+  
+  def cellIntegral(self,x,dx):
+    coordinate = distribution1D.vectord_cxx(len(x))
+    dxs        = distribution1D.vectord_cxx(len(x))
+    for i in range(len(x)):
+      coordinate[i] = x[i]
+      dxs[i]=dx[i]
+    return self._distribution.cellIntegral(coordinate,dxs)
+  
+  def inverseMarginalDistribution (self, x, variable):
+    if (x>0.0) and (x<1.0):
+      return self._distribution.inverseMarginal(x, variable)
+    else:
+      raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> NDInverseWeight: inverseMarginalDistribution(x) with x outside [0.0,1.0]')
+
+  def untruncatedCdfComplement(self, x):
+    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedCdfComplement not yet implemented for ' + self.type)
+
+  def untruncatedHazard(self, x):
+    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedHazard not yet implemented for ' + self.type)
+
+  def untruncatedMean(self):
+    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMean not yet implemented for ' + self.type)
+
+  def untruncatedMedian(self):
+    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMedian not yet implemented for ' + self.type)
+
+  def untruncatedMode(self):
+    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
+
+  def rvs(self,*args):
+    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 class NDScatteredMS(NDimensionalDistributions):
   def __init__(self):
@@ -1013,7 +1111,7 @@ class NDScatteredMS(NDimensionalDistributions):
     self.precision = None
     self.type = 'NDScatteredMS'
 
-  def _readMoreXML(self,xmlNode): #Diego! Please check the type of the parameters (precision)!....SS
+  def _readMoreXML(self,xmlNode): 
     NDimensionalDistributions._readMoreXML(self, xmlNode)
     p_find = xmlNode.find('p')
     if p_find != None: self.p = float(p_find.text)
@@ -1059,50 +1157,6 @@ class NDScatteredMS(NDimensionalDistributions):
   def rvs(self,*args):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
-
-
-class NDCartesianSpline(NDimensionalDistributions):
-  def __init__(self):
-    NDimensionalDistributions.__init__(self)
-    self.type = 'NDCartesianSpline'
-
-  def _readMoreXML(self,xmlNode):
-    NDimensionalDistributions._readMoreXML(self, xmlNode)
-    self.initializeDistribution()
-
-  def addInitParams(self,tempDict):
-    NDimensionalDistributions.addInitParams(self, tempDict)
-
-  def initializeDistribution(self):
-    #NDimensionalDistributions.initializeDistribution()
-    self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline()
-
-  def cdf(self,x):
-    return self._distribution.Cdf(x)
-
-  def ppf(self,x):
-    return self._distribution.InverseCdf(x)
-
-  def pdf(self,x):
-    return self._distribution.Pdf(x)
-
-  def untruncatedCdfComplement(self, x):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedCdfComplement not yet implemented for ' + self.type)
-
-  def untruncatedHazard(self, x):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedHazard not yet implemented for ' + self.type)
-
-  def untruncatedMean(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMean not yet implemented for ' + self.type)
-
-  def untruncatedMedian(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMedian not yet implemented for ' + self.type)
-
-  def untruncatedMode(self):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
-
-  def rvs(self,*args):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
 __base                        = 'Distribution'
