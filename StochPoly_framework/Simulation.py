@@ -155,7 +155,7 @@ class Simulation:
     self.runInfoDict['numNode'           ] = 1            # number of nodes
     self.runInfoDict['procByNode'        ] = 1            # number of processors by node
     self.runInfoDict['totNumbCores'      ] = 1            # total number of cores available
-    self.runInfoDict['quequingSoftware'  ] = ''           # quequing software name
+    self.runInfoDict['queueingSoftware'  ] = ''           # queueing software name
     self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
     self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
     self.runInfoDict['postcommand'       ] = ''           # Added after the command is run.
@@ -177,10 +177,10 @@ class Simulation:
 
     self.stepSequenceList  = [] #the list of step of the simulation
 
-    #list of supported quequing software:
-    self.knownQuequingSoftware = []
-    self.knownQuequingSoftware.append('None')
-    self.knownQuequingSoftware.append('PBS Professional')
+    #list of supported queueing software:
+    self.knownQueueingSoftware = []
+    self.knownQueueingSoftware.append('None')
+    self.knownQueueingSoftware.append('PBS Professional')
 
     #Class Dictionary when a new function is added to the simulation this dictionary need to be expanded
     #this dictionary is used to generate an instance of a class which name is among the keyword of the dictionary
@@ -276,7 +276,7 @@ class Simulation:
         else:
           self.runInfoDict['WorkingDir'        ] = os.path.abspath(element.text)
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
-      elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
+      elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)

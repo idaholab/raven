@@ -31,7 +31,8 @@ class Function(BaseType):
     BaseType.__init__(self)
     self.__functionFile                  = ''                                # function file name
     self.__actionDictionary              = {}                                # action dictionary
-    self.__actionImplemented             = {}                                # dictionary of implemented actions
+    # dictionary of implemented actions
+    self.__actionImplemented             = {'residuumSign':False,'supportBoundingTest':False,'residuum':False,'gradient':False}
     self.__inputVariables                = []                                # list of variables' names' given in input (xml)
     self.__inputFromWhat                 = {}                                # dictionary of input data type
     self.__inputFromWhat['dict']         = self.__inputFromDict
@@ -53,22 +54,18 @@ class Function(BaseType):
             self.__residuumSign                                =  importedModule.__dict__[method]
             self.__actionDictionary['residuumSign' ]           = self.__residuumSign
             self.__actionImplemented['residuumSign']           = True
-          else:self.__actionImplemented['residuumSign']        = False
           if method in ['__supportBoundingTest__','__supportBoundingTest','supportBoundingTest']:
             self.__supportBoundingTest                         =  importedModule.__dict__[method]
             self.__actionDictionary['supportBoundingTest' ]    = self.__supportBoundingTest
             self.__actionImplemented['supportBoundingTest']    = True
-          else:self.__actionImplemented['supportBoundingTest'] = False
           if method in ['__residuum__','__residuum','residuum']:
             self.__residuum                                    =  importedModule.__dict__[method]
             self.__actionDictionary['residuum' ]               = self.__residuum
             self.__actionImplemented['residuum']               = True
-          else:self.__actionImplemented['residuum']            = False
           if method in ['__gradient__','__gradient','gradient']:
             self.__gradient                                    =  importedModule.__dict__[method]
             self.__actionDictionary['gradient']                = self.__gradient
             self.__actionImplemented['gradient']               = True
-          else:self.__actionImplemented['gradient']            = False
         else:
           #custom
           self.__actionDictionary[method]                    = importedModule.__dict__[method]
@@ -156,10 +153,19 @@ class Function(BaseType):
   def evaluate(self,what,myInput):
     '''return the result of the type of action described by 'what' '''
     self.__importValues(myInput)
-    toBeReturned=self.__actionDictionary[what](self)
-    return toBeReturned
 
+    if what not in self.__actionDictionary:
+      raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR')
+                    + '-> Method ' + what + ' not defined in ' + self.name)
+    return self.__actionDictionary[what](self)
 
+  def availableMethods(self):
+    ''' Get a list of the callable methods this interface provides '''
+    return self.__actionDictionary.keys()
+
+  def parameterNames(self):
+    ''' Get a list of the variables this function needs '''
+    return self.__inputVariables[:]
 
 '''
  Interface Dictionary (factory) (private)
@@ -171,10 +177,10 @@ __interFaceDict['External'] = Function
 __knownTypes                = __interFaceDict.keys()
 
 
-def knonwnTypes():
+def knownTypes():
   return __knownTypes
 
 def returnInstance(Type):
   '''This function return an instance of the request model type'''
-  if Type in knonwnTypes():return __interFaceDict[Type]()
+  if Type in knownTypes():return __interFaceDict[Type]()
   else: raise NameError('not known '+__base+' type '+Type)

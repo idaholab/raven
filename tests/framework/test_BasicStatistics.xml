@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation>
+<Simulation debug="True">
 <RunInfo>
     <WorkingDir>basicStatistics</WorkingDir>
     <Files>basicStatisticsExternalModelTest.py,output_basicStatistics_PP1.csv,output_basicStatistics_PP2.csv,output_basicStatistics_PP3.csv</Files>

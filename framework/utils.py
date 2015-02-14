@@ -1,6 +1,8 @@
 import numpy as np
 import bisect
 import sys, os
+from scipy.interpolate import Rbf,griddata
+import copy
 
 def getPrintTagLenght(): return 25
 
@@ -188,6 +190,50 @@ def metaclass_insert(metaclass,*base_classes):
   namespace={}
   return metaclass("NewMiddleMeta",base_classes,namespace)
 
+def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
+  """
+   Function to interpolate 2D/3D points
+  """
+  options = copy.copy(option)
+  if x.size <= 2: xi = x
+  else          : xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
+  if z != None:
+    if y.size <= 2: yi = y
+    else          : yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
+    xig, yig = np.meshgrid(xi, yi)
+    try:
+      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
+        if options['interpolationType'] != 'nearest' and z.size > 3: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
+        else: zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
+      else:
+        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        zi  = rbf(xig, yig)
+    except Exception as ae:
+      if 'interpolationTypeBackUp' in options.keys():
+        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        zi = interpolateFunction(x,y,z,options)
+      else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+    if returnCoordinate: return xig,yig,zi
+    else               : return zi
+  else:
+    try:
+      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
+        if options['interpolationType'] != 'nearest' and y.size > 3: yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
+        else: yi = griddata((x), y, (xi[:]), method='nearest')
+      else:
+        xig, yig = np.meshgrid(xi, yi)
+        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
+        yi  = rbf(xi)
+    except Exception as ae:
+      if 'interpolationTypeBackUp' in options.keys():
+        print(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
+        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
+        yi = interpolateFunction(x,y,options)
+      else: raise Exception(returnPrintTag('UTILITIES')+': ' +returnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
+    if returnCoordinate: return xi,yi
+    else               : return yi
+
 class abstractstatic(staticmethod):
   """This can be make an abstract static method
   import abc
@@ -223,11 +269,16 @@ def find_crow(framework_dir):
     #print("pmoduleDir",pmoduleDir)
     if not os.path.exists(pmoduleDir): raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
 
+def add_path(absolutepath):
+  """ Add absolutepath path is in the python path. """
+  if not os.path.exists(absolutepath):
+    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '"directory has not been found!')
+  sys.path.append(absolutepath)
+
 def add_contrib(framework_dir):
   """ Add contrib path is in the python path. """
-  if not os.path.exists(os.path.join(framework_dir,"contrib")):
-    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "contrib" directory in framework folder has not been found!')
-  sys.path.append(os.path.join(framework_dir,"contrib"))
+  if not os.path.exists(os.path.join(framework_dir,"contrib")): raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "contrib" directory in framework folder has not been found!')
+  add_path(os.path.join(framework_dir,"contrib"))
 
 def find_distribution1D():
   """ find the crow distribution1D module and return it. """
@@ -254,3 +305,17 @@ def find_interpolationND():
     else:
       import interpolationNDpy2
       return interpolationNDpy2
+    
+       
+      
+    
+    
+    
+  
+  
+  
+  
+  
+  
+
+

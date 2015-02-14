@@ -257,8 +257,8 @@ class Simulation(object):
   '''
 
   def __init__(self,frameworkDir,debug=False):
-    self.FIXME = False
-    self.debug= debug
+    self.FIXME          = False
+    self.debug          = debug
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
@@ -303,9 +303,9 @@ class Simulation(object):
     self.stepSequenceList     = [] #the list of step of the simulation
 
     #list of supported queue-ing software:
-    self.knownQuequingSoftware = []
-    self.knownQuequingSoftware.append('None')
-    self.knownQuequingSoftware.append('PBS Professional')
+    self.knownQueueingSoftware = []
+    self.knownQueueingSoftware.append('None')
+    self.knownQueueingSoftware.append('PBS Professional')
 
     #Dictionary of mode handlers for the
     self.__modeHandlerDict           = {}
@@ -377,7 +377,7 @@ class Simulation(object):
       if child.tag in list(self.whichDict.keys()):
         if self.debug: print('\n' + self.printTag+': ' +returnPrintPostTag('Message') + '-> ' +2*'-'+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
-        if len(child.attrib.keys()) == 0: globalAttributes = None
+        if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
           globalAttributes = child.attrib
           if 'debug' in  globalAttributes.keys():
@@ -388,7 +388,7 @@ class Simulation(object):
           for childChild in child:
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
-              if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ------Reading type '+str(childChild.tag)+' with name '+name)
+              if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
@@ -421,8 +421,7 @@ class Simulation(object):
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
       print(self.printTag+": " +returnPrintPostTag('Warning') + " -> overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
-    for key in self.filesDict.keys():
-      self.__createAbsPath(key)
+    for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)
@@ -457,7 +456,7 @@ class Simulation(object):
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
         else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
-      elif element.tag == 'quequingSoftware'  : self.runInfoDict['quequingSoftware'  ] = element.text.strip()
+      elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
       elif element.tag == 'NumThreads'        : self.runInfoDict['NumThreads'        ] = int(element.text)
       elif element.tag == 'numNode'           : self.runInfoDict['numNode'           ] = int(element.text)
@@ -543,10 +542,9 @@ class Simulation(object):
       stepInputDict['Output']          = []                         #set the Output to an empty list
       #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
       for [key,b,_,d] in stepInstance.parList:
-        if key == 'Input' or key == 'Output':                        #Only for input and output we allow more than one object passed to the step, so for those we build a list
-          stepInputDict[key].append(self.whichDict[b][d])
-        else:
-          stepInputDict[key] = self.whichDict[b][d]
+        #Only for input and output we allow more than one object passed to the step, so for those we build a list
+        if key == 'Input' or key == 'Output': stepInputDict[key].append(self.whichDict[b][d])
+        else: stepInputDict[key] = self.whichDict[b][d]
         if key == 'Input' and b == 'Files': self.__checkExistPath(d) #if the input is a file, check if it exists
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
@@ -554,15 +552,19 @@ class Simulation(object):
       for key in stepInputDict.keys():
         if type(stepInputDict[key]) == list: stepindict = stepInputDict[key]
         else                               : stepindict = [stepInputDict[key]]
+        # check assembler. NB. If the assembler refers to an internal object the relative dictionary
+        # needs to have the format {'internal':[(None,'variableName'),(None,'variable name')]}
         for stp in stepindict:
           if "whatDoINeed" in dir(stp):
             neededobjs    = {}
             neededObjects = stp.whatDoINeed()
             for mainClassStr in neededObjects.keys():
-              if mainClassStr not in self.whichDict.keys(): raise IOError(self.printTag+': ERROR -> Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
+              if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal': raise IOError(self.printTag+': ERROR -> Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
               neededobjs[mainClassStr] = {}
               for obj in neededObjects[mainClassStr]:
-                if obj[1] in self.whichDict[mainClassStr].keys():
+                if obj[1] in vars(self):
+                  neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
+                elif obj[1] in self.whichDict[mainClassStr].keys():
                   if obj[0]:
                     if obj[0] not in self.whichDict[mainClassStr][obj[1]].type: raise IOError(self.printTag+': ERROR -> Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
                   neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]

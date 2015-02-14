@@ -9,14 +9,20 @@
 #
 ###############################################################################
 MOOSE_SUBMODULE    := $(CURDIR)/moose
+RELAP7_SUBMODULE   := $(CURDIR)/relap-7
 ifneq ($(wildcard $(MOOSE_SUBMODULE)/framework/Makefile),)
   MOOSE_DIR        ?= $(MOOSE_SUBMODULE)
 else
+RELAP7_MOOSE_SUBMODULE := $(RELAP7_SUBMODULE)/moose
+ifneq ($(wildcard $(RELAP7_MOOSE_SUBMODULE)/framework/Makefile),)
+  MOOSE_DIR        ?= $(RELAP7_MOOSE_SUBMODULE)
+else
   MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
 endif
+endif
+
 HERD_TRUNK_DIR     ?= $(shell dirname `pwd`)
 FRAMEWORK_DIR      ?= $(MOOSE_DIR)/framework
-RELAP7_SUBMODULE   := $(CURDIR)/relap-7
 ifneq ($(wildcard $(RELAP7_SUBMODULE)/Makefile),)
   RELAP7_DIR         ?= $(RELAP7_SUBMODULE)
 else

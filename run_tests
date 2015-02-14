@@ -36,8 +36,13 @@ except:
   missing = RavenUtils.checkForMissingModules()
   if len(missing) > 0:
     print "No raven_libs found and missing modules "+",".join(missing)
-
-from TestHarness import TestHarness
-
-# Run the tests!
-TestHarness.buildAndRun(sys.argv, app_name, MOOSE_DIR)
+coverage = False
+for i in sys.argv:
+  if i == "--check_coverage": coverage = True
+if coverage:
+  from subprocess import call
+  call(["./check_py_coverage.sh"])
+else:
+  from TestHarness import TestHarness
+  # Run the tests!
+  TestHarness.buildAndRun(sys.argv, app_name, MOOSE_DIR)

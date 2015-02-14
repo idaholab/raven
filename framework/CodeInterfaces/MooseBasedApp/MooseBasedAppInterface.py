@@ -9,23 +9,24 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
+from CodeInterfaceBaseClass import CodeInterfaceBase
 
-class MooseBasedAppInterface:
+class MooseBasedAppInterface(CodeInterfaceBase):
   '''this class is used as part of a code dictionary to specialize Model.Code for RAVEN'''
   def generateCommand(self,inputFiles,executable,flags=None):
     '''seek which is which of the input files and generate According the running command'''
-    if inputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    found = False
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile.endswith(('.i','.inp','.in')):
+        found = True
+        break
+    if not found: raise Exception('MOOSEBASEDAPP INTERFACE ERROR -> None of the input files has one of the following extensions ".i", ".inp", or ".in"!')
     outputfile = 'out~'+os.path.split(inputFiles[index])[1].split('.')[0]
     executeCommand = (executable+' -i '+os.path.split(inputFiles[index])[1] +
                         ' Outputs/file_base='+ outputfile +
                         ' Outputs/interval=1'+ ' Outputs/output_initial=true' + ' Outputs/csv=true')
 
     return executeCommand,outputfile
-
-  def appendLoadFileExtension(self,fileRoot):
-    '''  '''
-    return fileRoot + '.csv'
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     '''this generate a new input file depending on which sampler has been chosen'''
@@ -43,20 +44,14 @@ class MooseBasedAppInterface:
     else: index = 1
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index])
     modifDict = self._samplersDictionary[samplerType](**Kwargs)
-    #modifDict.append(copy.deepcopy({'name':['Outputs'],'special':set(['erase_block'])}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'],'exodus':'true'}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'],'interval':'1'}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'],'output_initial':'true'}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'],'csv':'true'}))
-#     modifDict.append(copy.deepcopy({'name':['Outputs'], 'special':set(['erase_block'])}))
     parser.modifyOrAdd(modifDict,False)
     temp = str(oriInputFiles[index][:])
-    newInputFiles = copy.deepcopy(currentInputFiles)
+    newInputFiles = copy.copy(currentInputFiles)
     #TODO fix this? storing unwieldy amounts of data in 'prefix'
     if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],Kwargs['prefix']+"~"+os.path.split(temp)[1])
     else:
-      newInputFiles[index] = copy.deepcopy(os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1]))
+      newInputFiles[index] = os.path.join(os.path.split(temp)[0],str(Kwargs['prefix'][1][0])+"~"+os.path.split(temp)[1])
     parser.printInput(newInputFiles[index])
     return newInputFiles
 

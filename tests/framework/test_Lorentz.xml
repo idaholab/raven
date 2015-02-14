@@ -1,12 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Simulation>
+<Simulation debug="True">
+
+<!-- RUNINFO -->
 <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
     <Files>lorentzAttractor.py</Files>
     <Sequence>FirstMRun</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>3</batchSize>
 </RunInfo>
 
+<!-- STEPS -->
+<Steps>
+    <MultiRun name='FirstMRun'  re-seeding='25061978'>
+        <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
+        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
+        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
+        <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
+        <Output  class='DataBases' type='HDF5'           >test_external_db</Output>
+        <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
+    </MultiRun >
+</Steps>
+
+<!-- MODELS -->
 <Models>
     <ExternalModel name='PythonModule' subType='' ModuleToLoad='externalModel/lorentzAttractor'>  
        <variable>sigma</variable>
@@ -20,8 +35,9 @@
        <variable>y0</variable>
        <variable>z0</variable>
     </ExternalModel>
-</Models> 
+</Models>
 
+<!-- DISTRIBUTIONS -->
 <Distributions>
     <Normal name='x0_distrib'>
         <mean>4</mean>
@@ -37,6 +53,7 @@
     </Normal>
 </Distributions>
 
+<!-- SAMPLERS -->
 <Samplers>
     <MonteCarlo name='MC_external'  limit='3' >
       <variable name='x0' >
@@ -51,36 +68,26 @@
     </MonteCarlo>
 </Samplers>
 
-<Steps>
-    <MultiRun name='FirstMRun'  re-seeding='25061978'>
-        <Input   class='Files'     type=''               >lorentzAttractor.py</Input>
-        <Model   class='Models'    type='ExternalModel'  >PythonModule</Model>
-        <Sampler class='Samplers'  type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'     type='Histories'      >testPrintHistories</Output>
-        <Output  class='DataBases' type='HDF5'           >test_external_db</Output>
-        <Output  class='OutStreamManager' type='Print'   >testPrintHistories_dump</Output>
-    </MultiRun >
-</Steps>
+<!-- DATABASES -->
 <DataBases>
-        <HDF5 name="test_external_db"/> 
+  <HDF5 name="test_external_db"/>
 </DataBases>
 
+<!-- OUTSTREAMS -->
 <OutStreamManager>
   <Print name='testPrintHistories_dump'>
     <type>csv</type>
     <source>testPrintHistories</source>
   </Print>
 </OutStreamManager>
-    
-    
+
+<!-- DATA OBJECTS -->
 <Datas>
     <Histories name='testPrintHistories'>
         <Input>x0,y0,z0</Input>
         <Output>time,x,y,z</Output>
    </Histories>
 </Datas>
-
-
 </Simulation>
 
 
