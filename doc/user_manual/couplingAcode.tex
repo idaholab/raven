@@ -48,9 +48,9 @@ The Python input parser would be as simple as:
 \begin{lstlisting}[language=python]
 class simpleInputParser():
   def __init__(self,filename):
-    """ 
-      @ In, string, filename, input file name (with path)
-    """
+    # 
+    # @ In, string, filename, input file name (with path)
+    #
     self.keywordDictionary = {}
     # open the file
     fileobject = open(filename)
@@ -72,25 +72,27 @@ class simpleInputParser():
     fileobject.close()
    
   def modifyInternalDictionary(self,inDictionary):
-    """ 
-      @ In, dictionary {keyword:value}, 
-        inDictionary, dictionary containing
-        the keywords to perturb 
-    """
+      # 
+      # @ In, dictionary {keyword:value}, 
+      # inDictionary, dictionary containing
+      # the keywords to perturb 
+      #
+
     # we just parse the dictionary and replace the
     # matching keywords
     for keyword,newvalue in inDictionary.items():
       self.keywordDictionary[keyword] = newvalue
 
   def writeNewInput(self,filename):
-    """ 
-       @ In, string, filename, newer input file name (with path)
-    """
+    #
+    # @ In, string, filename, newer input file name (with path)
+    #
+
     # open the file
     fileobject = open(filename)
     # write line by line
     for keyword,newvalue in self.keywordDictionary.items():
-      fileobject.write(keyword + "=" + str(newvalue) + "\n")
+      fileobject.write(keyword + ``='' + str(newvalue) + ``\n'')
     # close the file
     fileobject.close()
 \end{lstlisting} 
@@ -147,82 +149,113 @@ As already mentioned, RAVEN imports all the ``Code Interfaces'' at run-time,
 without actually knowing the syntax of the driven codes. In order to make RAVEN
 able to drive a newer software, the developer needs to code a Python module 
 that will contain few methods (with strict syntax) that are called by RAVEN during the simulation.
-\\ When loading a newer ``Code Interface'', RAVEN expects to find, in the class representing the code,
+\\ When loading a ``Code Interface'', RAVEN expects to find, in the class representing the code,
  the following functions:
 \begin{lstlisting}[language=python]
 from CodeInterfaceBaseClass import CodeInterfaceBase
 class NewCode(CodeInterfaceBase):
-  def generateCommand(self,inputFiles,executable)
-  def createNewInput(self,currentInputFiles,oriInputFiles,
-                                samplerType,**Kwargs)                           
-  def finalizeCodeOutput(self,command,output,workingDir):
+  def generateCommand(self, inputFiles, executable, flags = None)
+  def createNewInput(self, currentInputFiles, oriInputFiles,
+                                samplerType, **Kwargs)                           
+  def finalizeCodeOutput(self, command, output, workingDir):
 \end{lstlisting} 
 In the following sub-sections all the methods are fully explained, providing examples
  (referring to the simple code used as example for the previous sections)
 \subsubsection{Method: \textit{def generateCommand(self, inputFiles, executable)}} 
 \label{subsubsec:generateCommand}
-The ``generateCommand'' method is used to retrieve the command 
-(in string format) needed to launch the driven Code.
-
-
-aaaaaaaaaaaaaaaaaaaaaaaa
+The \textbf{generateCommand} method is used to retrieve the command 
+(in string format) needed to launch the driven Code and the root of the newer output (string).
+ In other words, this 
+method needs to return a string containing the full command 
+that the internal JobHandler is going to use to run the Code this interface refers to. 
+Hence, the return data type must be a TUPLE.
+\\RAVEN is going to call this function passing in the following arguments:
+\begin{itemize}
+  \item \textbf{\textit{inputFiles}}, data type = list: List of input files (lenght of the list depends on the 
+           number of inputs  have been added in the Step is running this code);
+  \item \textbf{\textit{executable}} , data type = string, executable name with absolute 
+            path \\(e.g. /home/path\_to\_executable/code.exe);
+  \item  \textbf{\textit{flags}} , data type = string, a string containing the flags the 
+               user can specify in the input (e.g. under the node $<Code><flags>-u -r</flags></Code>$).
+\end{itemize}
+For the example referred in the previous section, this method would be implemented as follows:
+\newline
 \begin{lstlisting}[language=python]
-from CodeInterfaceBaseClass import CodeInterfaceBase
-class NewCode(CodeInterfaceBase):
-
-  def generateCommand(self, inputFiles, executable)
-      """
-      This method is used to retrieve the command 
-      (in string format) needed to launch the Code.
-      @ In , inputFiles, list, List of input files (lenght 
-                of the list depends on the number of inputs 
-                have been added in the Step is running this code)
-      @ In , executable, string, executable name with absolute 
-               path (e.g. /home/path_to_executable/code.exe)
-      @ In , flags, string, a string containing the flags the 
-               user can specify in the input 
-               (e.g. under the node 
-               <Code><flags>-u -r</flags></Code>)
-      @ Out, string, string containing the full command 
-           that the internal JobHandler is going to use to run
-           the Code this interface refers to
-    """
-  def createNewInput(self,currentInputFiles,oriInputFiles,
-                                samplerType,**Kwargs)
-    """
-    This method is used to generate an input 
-    based on the information passed in.
-    @ In , currentInputFiles, list,  list of current 
-              input files (input files from last this method call)
-    @ In , oriInputFiles, list, list of the original input files
-    @ In , samplerType, string, Sampler type (e.g. MonteCarlo,
-               Adaptive, etc. see manual Samplers section)
-    @ In , Kwargs, kwarded dictionary, dictionary of parameters.
+  def generateCommand(self,inputFiles,executable,flags=None):
+    found = False
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile.endswith(('.i','.inp','.in')):
+        found = True
+        break
+    if not found: raise Exception(``NEWER CODE INTERFACE ERROR ->
+                      None of the input files has one of the
+                      following extensions ".i", ".inp"!'')
+    outputfile = 'out~'+
+       os.path.split(inputFiles[index])[1].split('.')[0]
+    if flags: precommand = executable + flags
+    else    : precommand = executable
+    executeCommand = (precommand +
+       `` -i '' +os.path.split(inputFiles[index])[1])
+    return executeCommand,outputfile
+\end{lstlisting} 
+\subsubsection{Method: \textit{def createNewInput(self,currentInputFiles,
+                                       \\oriInputFiles, samplerType,**Kwargs)}} 
+\label{subsubsec:generateCommand}
+The \textbf{createNewInput} method is used to generate an input based 
+on the information RAVEN passes in. In this function the developer needs to 
+call the driven code input parser in order to modify the input file, accordingly with
+respect to the variables RAVEN is providing. This method needs to return a list containing 
+the path and filenames of the modified input files. \nb RAVEN expects that at least one input 
+file of the original list gets modified and re-named.
+\\RAVEN is going to call this function passing in the following arguments:
+\begin{itemize}
+  \item \textbf{\textit{currentInputFiles}}, data type = list: List of current 
+              input files (input files from last this method call);
+  \item \textbf{\textit{oriInputFiles}} , data type = list, List of the original input files; 
+  \item  \textbf{\textit{samplerType}} , data type = string, Sampler type (e.g. MonteCarlo,
+               Adaptive, etc.). \nb None if no Sampler has been used;
+  \item  \textbf{\textit{Kwargs}} , data type = kwarded dictionary, dictionary of parameters.
                In this dictionary there is another dictionary
                called "SampledVars" where RAVEN stores the 
                variables that got sampled 
-               (Kwargs['SampledVars'] => {'var1':10,'var2':40})
-    @ Out, newInputFiles, list of newer input files, list of the 
-               new input files (modified and not)
-    """                                
-  def finalizeCodeOutput(self,command,output,workingDir):
-    ''' 
-       this method is called by the RAVEN code at the end of
-       each run (if the method is present, since it is optional).
-       It can be used for those codes, that do not create CSV 
-       files to convert the whaterver output formato into a csv
-       @ command, Input, the command used to run 
-            the just ended job
-       @ output, Input, the Output name root (string)
-       @ workingDir, Input, actual working dir (string)
-       @ return is optional, in case the root of the output 
-           file gets changed in this method.
-    '''
+               (Kwargs['SampledVars'] => {'var1':10,'var2':40});
+\end{itemize}
+For the example referred in the previous section, this method would implemented as follows:
+\newline
+\begin{lstlisting}[language=python]
+  def createNewInput(self,currentInputFiles,
+        oriInputFiles,samplerType,**Kwargs):
+    for index, inputFile in enumerate(inputFiles):
+      if inputFile.endswith(('.i','.inp','.in')):
+        break
+    parser = simpleInputParser(currentInputFiles[index])
+    parser.modifyInternalDictionary(**Kwargs['SampledVars'])
+    temp = str(oriInputFiles[index][:])
+    newInputFiles = copy.copy(currentInputFiles)
+    newInputFiles[index] = os.path.join(os.path.split(temp)[0],
+           Kwargs['prefix']+"~"+os.path.split(temp)[1])
+    parser.writeNewInput(newInputFiles[index])
+    return newInputFiles
 \end{lstlisting} 
+\subsubsection{Method: \textit{finalizeCodeOutput(self, command, output, workingDir)}} 
+\label{subsubsec:finializeCodeOutput}
+The \textbf{finalizeCodeOutput} function is an optional method. If present, it is called 
+by RAVEN code at the end of each run. It can be used for those codes, that do not create CSV 
+files as output to convert the whatever output format into a CSV. RAVEN checks if a string is returned; 
+if so, RAVEN interprets that string as the new output file name (CSV).
+\\RAVEN is going to call this function passing in the following arguments:
+\begin{itemize}
+  \item \textbf{\textit{command}}, data type = string: the command used to run 
+                    the just ended job;
+  \item \textbf{\textit{output}}, data type = string,the Output name root;
+  \item  \textbf{\textit{workingDir}}, data type = string, current working directory.
+\end{itemize}
+For the example referred in the previous section, this method would implemented as follows:
+\newline
+\begin{lstlisting}[language=python]
+def finalizeCodeOutput(self, command, output, workingDir)
+    outfile = os.path.join(workingDir,output+'.o')
+    outputobj=convertOutputFileToCSV(outfile)
+ \end{lstlisting} 
 
 
-RAVEN expects, in your interface, to find few methods (that are going to be analyzed, in details, later on in this Presentation):
-
-RAVEN passes in these methods all  the information needed for perturbing and handling the input files of your code (for example, the variables that got sampled, etc.)
-
- 
