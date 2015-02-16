@@ -259,15 +259,15 @@ def find_crow(framework_dir):
   except:
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
-    pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","crow_modules")
-    if os.path.exists(pmoduleDir):
-      sys.path.append(pmoduleDir)
-    else:
-      pmoduleDir = os.path.join(ravenDir,"crow","crow_modules")
+    pmoduleDirs = [os.path.join(os.path.dirname(ravenDir),"crow","install"),
+                   os.path.join(ravenDir,"crow","install"),
+                   os.path.join(os.path.dirname(ravenDir),"crow","crow_modules"),
+                   os.path.join(ravenDir,"crow","crow_modules")]
+    for pmoduleDir in pmoduleDirs:
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
-    #print("pmoduleDir",pmoduleDir)
-    if not os.path.exists(pmoduleDir): raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
+        return
+    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+pmoduleDirs)
 
 def add_path(absolutepath):
   """ Add absolutepath path is in the python path. """
