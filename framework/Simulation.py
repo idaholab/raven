@@ -72,12 +72,15 @@ class SimulationMode:
 def createAndRunQSUB(simulation):
   """Generates a PBS qsub command to run the simulation"""
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-  batchSize = simulation.runInfoDict['batchSize']
+  #while true, this is not the number that we want to select
+  coresNeeded = simulation.runInfoDict['batchSize']*simulation.runInfoDict['NumMPI']
+  #batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
   jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub'
+  #Generate the qsub command needed to run input
   command = ["qsub","-N",jobName,"-l",
-             "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
+             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
