@@ -308,17 +308,3 @@ def find_interpolationND():
     except:
       import interpolationNDpy2
       return interpolationNDpy2
-    
-       
-      
-    
-    
-    
-  
-  
-  
-  
-  
-  
-
-
