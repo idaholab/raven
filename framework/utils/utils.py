@@ -277,26 +277,34 @@ def add_path(absolutepath):
 
 def find_distribution1D():
   """ find the crow distribution1D module and return it. """
-  try:
-    import crow_modules.distribution1Dpy2
-    return crow_modules.distribution1Dpy2
-  except:
-    if sys.version_info.major > 2:
+  if sys.version_info.major > 2:
+    try:
+      import crow_modules.distribution1Dpy3
+      return crow_modules.distribution1Dpy3
+    except:
       import distribution1Dpy3
       return distribution1Dpy3
-    else:
+  else:
+    try:
+      import crow_modules.distribution1Dpy2
+      return crow_modules.distribution1Dpy2
+    except:
       import distribution1Dpy2
       return distribution1Dpy2
 
 def find_interpolationND():
   """ find the crow interpolationND module and return it. """
-  try:
-    import crow_modules.interpolationNDpy2
-    return crow_modules.interpolationNDpy2
-  except:
-    if sys.version_info.major > 2:
+  if sys.version_info.major > 2:
+    try:
+      import crow_modules.interpolationNDpy3
+      return crow_modules.interpolationNDpy3
+    except:
       import interpolationNDpy3
       return interpolationNDpy3
-    else:
+  else:
+    try:
+      import crow_modules.interpolationNDpy2
+      return crow_modules.interpolationNDpy2
+    except:
       import interpolationNDpy2
       return interpolationNDpy2
