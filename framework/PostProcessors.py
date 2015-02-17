@@ -1943,9 +1943,6 @@ class TopologicalDecomposition(BasePostProcessor):
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
 
-    partitions = self.__amsc.GetPartitions(self.persistence)
-    print(partitions)
-
     print('========== Data Labels: ==========')
     line = 'Index'
     sep = ','
