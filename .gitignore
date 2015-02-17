@@ -60,3 +60,6 @@ tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
 #coverage
 tests/framework/.coverage
 tests/framework/htmlcov/
+
+# hpc
+node_*[0-9]
