@@ -1394,19 +1394,19 @@ class ExternalPostProcessor(BasePostProcessor):
       for key,replacements in outputDict['qualifiedNames'].iteritems():
         if key in requestedOutput:
           requestedOutput.remove(key)
-          for replacement in replacements:
-            requestedOutput.append(replacement)
+          requestedOutput.extend(replacements)
 
       ## Grab all data from the outputDict and anything else requested not
       ## present in the outputDict will be copied from the input data.
       ## TODO: User may want to specify which dataset the parameter comes from.
       ##       For now, we assume that if we find more than one an error will
       ##      occur.
-      dataLength = None
       ## FIXME: There is an issue that the data size should be determined before
       ##        entering this loop, otherwise if say a scalar is first added,
       ##        then dataLength will be 1 and everything longer will be placed
       ##        in the Metadata.
+      ##        How do we know what size the output data should be?
+      dataLength = None
       for key in requestedInput+requestedOutput:
         storeInOutput = True
         value = []
