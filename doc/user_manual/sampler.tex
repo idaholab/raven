@@ -70,13 +70,21 @@ From a practical point of view, these sampling strategies represent different wa
 \begin{itemize}
 \itemsep0em
 \item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
-\item \textbf{limit}, \textit{required integer attribute}, number of MonteCarlo samples needs to be generated;
-\item \textbf{initial\_seed}, \textit{optional integer attribute}, initial seeding of random number generator. \textit{Default = random seed};
-\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t, si, dajie). \textit{Default = False}; 
+%\item \textbf{limit}, \textit{required integer attribute}, number of MonteCarlo samples needs to be generated;
+%\item \textbf{initial\_seed}, \textit{optional integer attribute}, initial seeding of random number generator. \textit{Default = random seed};
+%\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t, si, dajie). \textit{Default = False}; 
 \end{itemize}
 \vspace{-5mm}
+
 In the \textbf{MonteCarlo} input block, the user needs to specify the variables need to be sampled. As already mentioned, these variables are inputted within consecutive xml blocks called $<variable>$:
 \begin{itemize}
+\item $<sampler\textunderscore init>$, xml node, required parameter. In this xml-node,the following xml-nodes need to be specified:
+  \begin{itemize}
+    \item \textbf{limit}, \textit{required string attribute}, number of MonteCarlo samples needs to be generated; 
+    \item \textbf{initial\textunderscore seed}, \textit{optional integer attribute}, initial seeding of random number generator
+    \item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t, si, dajie). \textit{Default = False}; 
+    \item \textbf{dist\textunderscore init}, \textit{optional xml node}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}). 
+  \end{itemize}
 \item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
 \begin{itemize}
   \item \textbf{name}, \textit{required string attribute}, user-defined name of this variable. 
@@ -93,7 +101,18 @@ Example:
 ---------------------------------------------------------
 <Samplers>
   ...
-  <MonteCarlo name='MCname' limit='10' initial_seed='200286' reseedAtEachIteration='false'> 
+  <MonteCarlo name='MCname'> 
+    <sampler_init>
+      <limit>10</limit>
+      <initial_seed>200286</initial_seed>
+      <reseedAtEachIteration>false</reseedAtEachIteration>
+      <dist_init>
+        <distribution name= 'ND_InverseWeight_P'>
+          <initial_grid_disc>10</initial_grid_disc>
+          <tolerance>0.2</tolerance>
+        </distribution>
+      </dist_init>
+    </sampler_init>
     <variable name='var1'> 
       <distribution>***</distribution> 	
     </variable> 

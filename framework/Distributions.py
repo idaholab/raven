@@ -1102,7 +1102,8 @@ class NDCartesianSpline(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
+    return self._distribution.InverseCdf(random())
+    #raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 class NDScatteredMS(NDimensionalDistributions):
   def __init__(self):

@@ -184,6 +184,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.limit = childChild.text
           elif childChild.tag == "initial_seed":
             self.initSeed = int(childChild.text)
+          elif childChild.tag == "reseedAtEachIteration":
+            if childChild.text.lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
           elif childChild.tag == "dist_init":
             for childChildChild in childChild:              
               NDdistData = {}
@@ -195,7 +197,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                 else:
                   raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
-          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: limit, initial_seed and dist_init!')  
+          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseedAtEachIteration and dist_init!')  
       else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')     
       
     
