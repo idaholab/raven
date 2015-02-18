@@ -55,7 +55,12 @@ tests/framework/PreconditionedDynamicEventTree/PreconditionedDETrunTest/
 
 # python
 *.pyc
+*~
 
 #coverage
 tests/framework/.coverage
 tests/framework/htmlcov/
+
+# hpc
+node_*[0-9]
+*.[oe][0-9][0-9][0-9][0-9][0-9]

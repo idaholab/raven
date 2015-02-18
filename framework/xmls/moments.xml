@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Simulation debug="False">
+    <RunInfo>
+        <WorkingDir>StochasticPolyTest</WorkingDir>
+        <Sequence>makeStochPolys,trainROM</Sequence>
+        <batchSize>1</batchSize>
+    </RunInfo>
+
+    <Distributions>
+        <Uniform name="UniDist">
+            <low>1</low>
+            <high>5</high>
+        </Uniform>
+        <Normal name="NormDist">
+            <mean>3</mean>
+            <sigma>2</sigma>
+        </Normal>
+        <Gamma name="GammaDist">
+            <low>0</low>
+            <alpha>2</alpha>
+        </Gamma>
+        <Beta name="BetaDist">
+            <low>0</low>
+            <high>1</high>
+            <alpha>2</alpha>
+            <beta>5</beta>
+        </Beta>
+        <Triangular name='TriDist'>
+            <min>1</min>
+            <max>5</max>
+            <apex>4</apex>
+        </Triangular>
+        <Exponential name='ExpDist'>
+            <lambda>1.5</lambda>
+        </Exponential>
+    </Distributions>
+
+    <Samplers>
+        <SparseGridCollocation name="USG" parallel="1">
+            <variable name="x1">
+                <distribution>UniDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>UniDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="UCSG" parallel="1">
+            <variable name="x1">
+                <distribution>UniDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>UniDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >UCROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="NSG" parallel="1">
+            <variable name="x1">
+                <distribution>NormDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>NormDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >NROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="GSG" parallel="1">
+            <variable name="x1">
+                <distribution>GammaDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>GammaDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >GROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="BSG" parallel="1">
+            <variable name="x1">
+                <distribution>BetaDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>BetaDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >BROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="TSG" parallel="1">
+            <variable name="x1">
+                <distribution>TriDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>TriDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >TROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="ESG" parallel="1">
+            <variable name="x1">
+                <distribution>ExpDist</distribution>
+            </variable>
+            <variable name="x2">
+                <distribution>ExpDist</distribution>
+            </variable>
+            <Assembler>
+                <ROM              class = 'Models' type = 'ROM'         >EROM</ROM>
+                <TargetEvaluation class = 'Datas'  type = 'TimePointSet'>solns</TargetEvaluation>
+            </Assembler>
+        </SparseGridCollocation>
+    </Samplers>
+
+    <Models>
+        <Dummy name="MyDummy" subType="" print="True"/>
+        <ExternalModel name='attenuation' subType='' ModuleToLoad = 'attenuation'>
+            <variable>x1</variable>
+            <variable>x2</variable>
+            <variable>ans</variable>
+        </ExternalModel>
+        <ExternalModel name='polynomial' subType='' ModuleToLoad = 'polynomial'>
+            <variable>x1</variable>
+            <variable>x2</variable>
+            <variable>ans</variable>
+        </ExternalModel>
+        <ROM name='UROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>4</PolynomialOrder>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='UCROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>3</PolynomialOrder>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='NROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>4</PolynomialOrder>
+            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Hermite' poly='Hermite' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='GROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>4</PolynomialOrder>
+            <Interpolation quad='Laguerre' poly='Laguerre' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Laguerre' poly='Laguerre' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='BROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>2</PolynomialOrder>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='TROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>4</PolynomialOrder>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='1'>x1</Interpolation>
+            <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='1'>x2</Interpolation>
+        </ROM>
+        <ROM name='EROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>24</PolynomialOrder>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='1'>x1</Interpolation>
+            <Interpolation quad='Legendre' poly='Legendre' weight='1' cdf='1'>x2</Interpolation>
+        </ROM>
+    </Models>
+
+    <Steps>
+        <MultiRun name='makeStochPolys' pauseAtEnd='False'>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>BSG</Sampler>
+            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
+            <Output  class='Datas'            type='TimePointSet'         >solns</Output>
+        </MultiRun>
+        <RomTrainer name='trainROM'>
+            <Input   class='Datas'    type='TimePointSet'>solns</Input>
+            <Output  class='Models'   type='ROM'         >BROM</Output>
+        </RomTrainer>
+    </Steps>
+
+    <Datas>
+        <TimePointSet name="dummyIN">
+            <Input>x1,x2</Input>
+            <Output>OutputPlaceHolder</Output>
+        </TimePointSet>
+        <TimePointSet name='solns'>
+            <Input>x1,x2</Input>
+            <Output>ans</Output>
+        </TimePointSet>
+    </Datas>
+
+</Simulation>
