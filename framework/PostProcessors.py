@@ -572,7 +572,10 @@ def log2(x):
 
 def process_data(dataPull, data, methodInfo):
   ret = {}
-  sorted_data = data.tolist()
+  try:
+    sorted_data = data.tolist()
+  except:
+    sorted_data = data
   sorted_data.sort()
   low = sorted_data[0]
   high = sorted_data[-1]

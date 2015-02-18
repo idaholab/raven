@@ -8,8 +8,11 @@
   </RunInfo>
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
-      <data>fullprint_history|inputs|pipe1_Area</data>
-      <data>fullprint_history|outputs|pump_mass_flow_rate</data>
+      <kind bin_method='sturges'>uniform_bins</kind>
+      <compare>
+        <data>fullprint_history|inputs|pipe1_Area</data>
+        <data>fullprint_history|outputs|pump_mass_flow_rate</data>
+      </compare>
     </PostProcessor>
   </Models>
   <Samplers>
