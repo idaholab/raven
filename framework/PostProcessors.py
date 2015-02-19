@@ -380,6 +380,7 @@ class ComparisonStatistics(BasePostProcessor):
         #print("dataPull",dataPull) #("result",self.dataDict[name].getParametersValues(kind))
         if len(rest) == 1:
           #print("dataPart",data[rest[0]])
+          #print(data.keys())
           found_datas.append(data[rest[0]])
       dataToProcess.append((dataPulls,found_datas,reference))
     #print("dataToProcess",dataToProcess)
@@ -540,14 +541,15 @@ def print_graphs(csv, functions):
   for i in range(len(pdfs)):
     pdf_area = simpson(pdfs[i],low_low,high_high,100000)
     print_csv('"pdf_area_'+names[i]+'"',pdf_area)
-  sum_function_diff = simpson(f_z, low_z, high_z, 1000)
-  first_moment_function_diff = first_moment_simpson(f_z, low_z,high_z, 1000)
-  variance_function_diff = simpson(lambda x:((x-first_moment_function_diff)**2)*f_z(x),low_z,high_z, 1000)
   print_csv('"cdf_area_difference"',cdf_area_difference)
   print_csv('"pdf_common_area"',pdf_common_area)
-  print_csv('"sum_function_diff"',sum_function_diff)
-  print_csv('"first_moment_function_diff"',first_moment_function_diff)
-  print_csv('"variance_function_diff"',variance_function_diff)
+  if False:
+    sum_function_diff = simpson(f_z, low_z, high_z, 1000)
+    first_moment_function_diff = first_moment_simpson(f_z, low_z,high_z, 1000)
+    variance_function_diff = simpson(lambda x:((x-first_moment_function_diff)**2)*f_z(x),low_z,high_z, 1000)
+    print_csv('"sum_function_diff"',sum_function_diff)
+    print_csv('"first_moment_function_diff"',first_moment_function_diff)
+    print_csv('"variance_function_diff"',variance_function_diff)
 
 
 def count_bins(sorted_data, bin_boundaries):
@@ -575,7 +577,7 @@ def process_data(dataPull, data, methodInfo):
   try:
     sorted_data = data.tolist()
   except:
-    sorted_data = data
+    sorted_data = list(data)
   sorted_data.sort()
   low = sorted_data[0]
   high = sorted_data[-1]
