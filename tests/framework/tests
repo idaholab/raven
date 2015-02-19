@@ -347,4 +347,10 @@
   test_interface_only = True
  [../]
 
+ [./test_comparison_statistics]
+   type = 'RavenFramework'
+   input = 'test_cc_stats.xml'
+   output = 'test_cc_stats/output.csv'
+ [../]
+
 []
