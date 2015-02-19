@@ -35,10 +35,6 @@ import SupervisedLearning
 #def error(*objs):
 #  print("ERROR: ", *objs, file=sys.stderr)
 
-sys.path.append('../src/postprocessors/')
-#from amsc import *
-
-
 '''
   ***************************************
   *  SPECIALIZED PostProcessor CLASSES  *
@@ -1906,23 +1902,6 @@ class TopologicalDecomposition(BasePostProcessor):
 
     names = self.params + [self.response]
 
-### NGL will perform a brute force search unless we give it a starting set,
-###  but I still need to figure out how to inject a pre-built graph into
-###  NGL. It may be easier just to write my own code for pruning edges.
-#    knnAlgorithm = neighbors.NearestNeighbors(n_neighbors=self.knn+1)
-#    knnAlgorithm.fit(inputData)
-#    distances,edges = knnAlgorithm.kneighbors(inputData)
-
-#    graph = []
-#    for row in xrange(0,edges.shape[0]):
-#      for col in xrange(0,edges.shape[1]):
-#        graph.append(row)
-#        graph.append(col)
-#    self.__amsc = AMSCFloat(vectorFloat(inputData.flatten()), \
-#                            vectorFloat(outputData), \
-#                            vectorString(names), \
-#                            graph,self.gradient)
-
     normedInputData = np.array(inputData)
     if self.normalization == 'feature':
       for d in xrange(0,self.dimensionCount):
@@ -1935,10 +1914,28 @@ class TopologicalDecomposition(BasePostProcessor):
         dSigma = np.std(normedInputData[:,d])
         normedInputData[:,d] = (normedInputData[:,d] - dMu) / (dSigma)
 
+    ## NGL will perform a brute force search unless we give it a starting set
+#    start = time.clock()
+    knnAlgorithm = neighbors.NearestNeighbors(n_neighbors=self.knn+1)
+    knnAlgorithm.fit(normedInputData)
+    distances,edges = knnAlgorithm.kneighbors(normedInputData)
+
+    edgesToPrune = []
+    pairs = []          # prevent duplicates with this guy
+    for e1 in xrange(0,edges.shape[0]):
+      for col in xrange(0,edges.shape[1]):
+        e2 = edges[e1,col]
+        if e1 != e2 and (e1,e2) not in pairs:
+          edgesToPrune.append(e1)
+          edgesToPrune.append(e2)
+          pairs.append((e1,e2))
+#    end = time.clock()
+#    print('Graph Preparation: %f s' % (end-start))
+
     self.__amsc = AMSCFloat(vectorFloat(normedInputData.flatten()), \
                             vectorFloat(outputData), \
-                            vectorString(names), \
-                            self.graph,self.gradient, self.knn,self.beta)
+                            vectorString(names), self.graph, self.gradient, \
+                            self.knn, self.beta, vectorInt(edgesToPrune))
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)

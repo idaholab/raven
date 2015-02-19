@@ -66,10 +66,14 @@ sa:: $(RAVEN_analyzer)
 
 ################################################################################
 # Swig for Approximate Morse-Smale Complex (AMSC)
-amsc:: _amsc.so
+# source files
+AMSC_srcfiles    := $(shell find $(RAVEN_DIR)/src/postprocessors/ -name "*.cpp" -not -name main.C)
+
+#amsc:: _amsc.so
+amsc:: $(RAVEN_DIR)/src/postprocessors/amsc.i $(AMSC_srcfiles)
 	@echo "Building "$@"..."
 	swig -c++ -python $(SWIG_PY_FLAGS)  -I$(RAVEN_DIR)/include/postprocessors/ $(RAVEN_DIR)/src/postprocessors/amsc.i
-	g++ -fPIC -shared $(RAVEN_DIR)/src/postprocessors/amsc_wrap.cxx -I$(RAVEN_DIR)/include/postprocessors -I/usr/include/python2.7 $(RAVEN_DIR)/src/postprocessors/AMSC.cpp $(RAVEN_DIR)/src/postprocessors/DenseVector.cpp $(RAVEN_DIR)/src/postprocessors/DenseMatrix.cpp $(RAVEN_DIR)/src/postprocessors/UnionFind.cpp -lpython2.7 -o $(RAVEN_DIR)/src/postprocessors/_amsc.so
+	g++ -fPIC -shared $(RAVEN_DIR)/src/postprocessors/amsc_wrap.cxx -I$(RAVEN_DIR)/include/postprocessors -I/usr/include/python2.7 $(AMSC_srcfiles) -lpython2.7 -o $(RAVEN_DIR)/src/postprocessors/_amsc.so
 ################################################################################
 
 # include RAVEN dep files
