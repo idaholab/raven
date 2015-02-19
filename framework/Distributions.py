@@ -1000,7 +1000,9 @@ class NDInverseWeight(NDimensionalDistributions):
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
       coordinate[i] = x[i]
+      print(coordinate[i])
       dxs[i]=dx[i]
+      print(dx[i])
     return self._distribution.cellIntegral(coordinate,dxs)
   
   def inverseMarginalDistribution (self, x, variable):
@@ -1025,7 +1027,7 @@ class NDInverseWeight(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    return self._distribution.InverseCdf(random())
+    return self._distribution.InverseCdf(random(),random())
     #raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 
@@ -1077,7 +1079,9 @@ class NDCartesianSpline(NDimensionalDistributions):
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
       coordinate[i] = x[i]
+      print(coordinate[i])
       dxs[i]=dx[i]
+      #print(dx[i])
     return self._distribution.cellIntegral(coordinate,dxs)
   
   def inverseMarginalDistribution (self, x, variable):
@@ -1102,7 +1106,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> untruncatedMode not yet implemented for ' + self.type)
 
   def rvs(self,*args):
-    return self._distribution.InverseCdf(random())
+    return self._distribution.InverseCdf(random(),random())
     #raise NotImplementedError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> rvs not yet implemented for ' + self.type)
 
 class NDScatteredMS(NDimensionalDistributions):

@@ -1061,6 +1061,7 @@ class Grid(Sampler):
     print('self.axisName' + str(self.axisName))
     print('self.gridInfo' + str(self.gridInfo))
     print('self.distDict' + str(self.distDict))
+    
              
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
@@ -1219,18 +1220,18 @@ class Grid(Sampler):
         if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           dist_name = self.variables2distributionsMapping[varName]['name']
           NDcoordinate=np.zeros(len(self.distributions2variablesMapping[dist_name]))  
-          dxs=np.zeros(len(self.distributions2variablesMapping[dist_name]))          
+          dxs=np.zeros(len(self.distributions2variablesMapping[dist_name]))   
+          print ('self.distributions2variablesMapping[dist_name] ' + str(self.distributions2variablesMapping[dist_name]))       
           for var in self.distributions2variablesMapping[dist_name]:
-            print('var: ' + str(var))
             variable = var.keys()[0]
             position = var.values()[0]
             NDcoordinate[position-1] = self.values[variable.strip().split(',')[0]] 
             if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: 
-              dxs[position-1] = (self.gridInfo[varName][2][self.gridCoordinate[i]+1] - self.gridInfo[varName][2][self.gridCoordinate[i]-1]) / 2.0
+              dxs[position-1] = (self.gridInfo[variable][2][self.gridCoordinate[i]+1] - self.gridInfo[variable][2][self.gridCoordinate[i]-1]) / 2.0
             if self.gridCoordinate[i] == 0:
-              dxs[position-1] = self.gridInfo[varName][2][self.gridCoordinate[i]+1] - self.gridInfo[varName][2][self.gridCoordinate[i]]
+              dxs[position-1] = self.gridInfo[variable][2][self.gridCoordinate[i]+1] - self.gridInfo[variable][2][self.gridCoordinate[i]]
             if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1:     
-              dxs[position-1] = self.gridInfo[varName][2][self.gridCoordinate[i]] - self.gridInfo[varName][2][self.gridCoordinate[i]-1]
+              dxs[position-1] = self.gridInfo[variable][2][self.gridCoordinate[i]] - self.gridInfo[variable][2][self.gridCoordinate[i]-1]  
           weight *= self.distDict[varName].cellIntegral(NDcoordinate,dxs)
         
       self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
