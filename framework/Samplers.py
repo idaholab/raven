@@ -1162,8 +1162,10 @@ class Grid(Sampler):
           if self.distDict[varName].returnDimensionality()==1:
             self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
           else:
-            location = self.variables2distributionsMapping[key]['dim']
-            self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location)
+            location = self.variables2distributionsMapping[varName]['dim']
+            print('location: ' + str(location))
+            self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
+            print('self.values[key]: ' + str(self.values[key]))
        
         elif self.gridInfo[varName][0]=='value':  
           self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
