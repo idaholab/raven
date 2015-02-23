@@ -182,7 +182,7 @@ class MPISimulationMode(SimulationMode):
     os.environ["MV2_ENABLE_AFFINITY"] = "0"
 
     # Create the mpiexec pre command
-    self.__simulation.runInfoDict['precommand'] = "mpiexec "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
+    self.__simulation.runInfoDict['precommand'] = "env; which mpiexec; taskset -p $$; taskset -p ffff $$; mpiexec -env MV2_SHOW_ENV_INFO 2 -env  MV2_SHOW_CPU_BINDING 1 "+nodeCommand+" -n "+str(numMPI)+" "+self.__simulation.runInfoDict['precommand']
     if(self.__simulation.runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
       self.__simulation.runInfoDict['postcommand'] = " --n-threads=%NUM_CPUS% "+self.__simulation.runInfoDict['postcommand']
