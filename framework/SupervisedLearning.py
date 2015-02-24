@@ -272,6 +272,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
 
     for key,val in kwargs.items():
+      #TODO doesn't need max poly order
       if key=='IndexSet': self.indexSetType = val
       if key=='PolynomialOrder': self.maxPolyOrder = val
       if key=='Interpolation':

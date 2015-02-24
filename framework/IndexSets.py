@@ -4,6 +4,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import numpy as np
 from itertools import product
+from operator import itemgetter
 import sys
 
 class IndexSet(object):
@@ -183,6 +184,14 @@ class HyperbolicCross(IndexSet):
       return tot<=target
     self.points = self.generateMultiIndex(len(distrList),rule)
 
+class CustomSet(IndexSet):
+  """This Index Set accepts a user-input set of poly order sets."""
+  def initialize(self,isetpts):
+    #TODO check consistency of isetpts
+    self.points=[]
+    for i,idx in isetpts:
+      self.points.append(tuple(idx))
+    self.points = sorted(self.points,key=itemgetter(*range(len(self.points[0]))))
 
 """
 Interface Dictionary (factory) (private)
