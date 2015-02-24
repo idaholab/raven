@@ -80,7 +80,7 @@ def createAndRunQSUB(simulation):
   ncpus = simulation.runInfoDict['NumThreads']
   jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub'
   #check invalid characters
-  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_')
+  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
   if any(char not in validChars for char in jobName):
     raise IOError(returnPrintTag('SIMULATION->QSUB:'),'JobName can only contain alphanumeric and "_", "-" characters! Received',jobName)
   #check jobName for length
