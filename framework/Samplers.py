@@ -2142,6 +2142,69 @@ class ResponseSurfaceDesign(Grid):
     for cnt, varName in enumerate(self.axisName): self.gridCoordinate[cnt] = self.mapping[varName].index(gridcoordinate[cnt])
     Grid.localGenerateInput(self,model, myInput)
 
+class AdaptiveSparseGrid(AdaptiveSampler):
+  '''WIP - talbpaul'''
+  def __init__(self):
+    self.type             = 'AdaptiveSparseGridSampler'
+    self.printTag         = returnPrintTag(self.type)
+    self.assemblerObjects = {}
+    self.ISs              = {} #dict, ISs[var], index set object for whole level
+    self.variance         = {} #dict, variance[var][level], value is a float equal to the ROM variance at that level
+    self.samplers         = {} #dicts, samplers[target][2][(1,1)], value is a sampler object (the sampler for a particular target)
+    self.SVLs             = {} #dicts, SVLs[target][2][(1,1)], value is an SVL object (the ROM for a particular target) -> assembled
+    self.converged        = [] #list of converged tuples
+    self.unconverged      = [] #list of unconverged tuples
+    self.possibleNew      = [] #list of potential new tuples
+    self.toRun            = [] #list of tuples to try still
+    self.tolerance        = None #float, minimum change in variance to be converged
+    self.solns            = None #TimePointSet of solutions -> assembled
+    self.ROM              = None #eventual final ROM object
+
+  def findNewPoints(self):
+    while len(self.unconverged)>0:
+      idx = self.unconverged.pop()
+      for v,varidx in idx:
+        new = list(idx)
+        new[v]+=1
+        new=tuple(new)
+        if new not in self.possibleNew:
+          self.possibleNew.append(new)
+
+  def checkNewPoints(self):
+    while len(self.possibleNew)>0:
+      idx = self.possibleNew.pop()
+      for v,varidx in idx:
+        old = list(idx)
+        old[v]-=1
+        old=tuple(old)
+        if old not in self.converged and old not in self.toRun:
+          self.toRun.append(old)
+
+  def firstRun(self):
+    N = len(self.quadDict) #TODO best way to get?
+    for t in self.targets:
+      isetpts=[tuple(np.zeros(N))]
+      indexSet = IndexSets.returnInstance('CustomSet')
+      indexSet.initialize(iset)
+      #TODO need to get Interpolation information from actual ROM
+      dummyROM = Models.ROM()
+      dummyROM.howManyTargets = 1
+      dummyROM.initalizationOptionDict['Target'] = t
+      SVL = SuperVisedLearning.GaussPolynomialRom(svlInitdict)
+      dummyROM.supervisedEngine[t] = SVL
+      svlInitDict={'IndexSet':indexSet, 'Interpolation':self.ROM.SVLs[t].itpDict[t]} #FIXME unsure how this will work
+      sampler = SparseGridCollocation()
+      sampler.assemblerDict['ROM']=dummyROM
+      #TODO bypass localInitialize in sparse grid sampler altogether?
+
+
+      self.ISs[t][0] = indexSet
+      self.samplers[0] = sampler
+      self.SVLs[t][0][tuple(np.zeros(N))] = SVL
+
+
+
+
 class SparseGridCollocation(Grid):
   def __init__(self):
     Grid.__init__(self)
@@ -2150,7 +2213,6 @@ class SparseGridCollocation(Grid):
     self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
-    self.adaptive       = False #TODO
     self.polyDict       = {}    #varName-indexed dict of polynomial types
     self.quadDict       = {}    #varName-indexed dict of quadrature types
     self.importanceDict = {}    #varName-indexed dict of importance weights
@@ -2160,55 +2222,21 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
 
-#    self.requiredAssObject = (True,(['TargetEvaluation','ROM'],['1','1']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
-    self.requiredAssObject = (True,(['ROM'],['1']))                  # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
+    self.requiredAssObject = (True,(['ROM'],['1']))
 
   def _localWhatDoINeed(self):
     gridDict = Grid._localWhatDoINeed(self)
     gridDict['internal'] = [(None,'jobHandler')]
     return gridDict
-#    needDict = {}
-#    needDict['Distributions'] = [] # Every sampler requires Distributions
-#    for dist in self.toBeSampled.values(): needDict['Distributions'].append((None,dist))
-#    needDict['internal'] = [(None,'jobHandler')]
-#    return needDict
-
 
   def _localGenerateAssembler(self,initDict):
- #   availableDist = initDict['Distributions']
- #   self._generateDistributions(availableDist)
     Grid._localGenerateAssembler(self, initDict)
-#    for key, value in self.assemblerObjects.items():
-#      if   key in 'TargetEvaluation': self.lastOutput = initDict[value[0]][value[2]]
-#      elif key in 'ROM'             : self.ROM        = initDict[value[0]][value[2]]
     self.jobHandler = initDict['internal']['jobHandler']
-
-#  def _readMoreXML(self,xmlNode):
-#    Grid._readMoreXML(self,xmlNode)
-#    self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
-#    self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
-    #assembler node -> to be changed when Sonnet gets it in the base class
-#    assemblerNode = xmlNode.find('Assembler')
-#    if assemblerNode==None: raise IOError(self.printTag+' ERROR: no Assembler data specified in input!')
-#    targEvalCounter = 0
-#    romCounter      = 0
-#    for subNode in xmlNode:
-#      if subNode.tag in ['TargetEvaluation','ROM']:
-#        if 'class' not in subNode.attrib.keys(): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> In adaptive sampler ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-#        self.assemblerObjects[subNode.tag] = [[subNode.attrib['class'],subNode.attrib['type'],subNode.text]]
-#        if 'TargetEvaluation' in subNode.tag: targEvalCounter+=1
-#        if 'ROM'              in subNode.tag: romCounter+=1
-#      else:
-#        raise IOError(self.printTag+' ERROR: unrecognized option in input for assembler: '+subNode.tag)
-#    if targEvalCounter != 1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> One TargetEvaluation object is required. Sampler '+self.name + ' got '+str(targEvalCounter) + '!')
-#    if romCounter      >  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one ROM object is required. Sampler '+self.name + ' got '+str(romCounter) + '!')
-#    if romCounter      <  1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No ROM object provided. Sampler received none!')
 
   def localInputAndChecks(self,xmlNode):
     self.doInParallel = xmlNode.attrib['parallel'].lower() in ['1','t','true','y','yes'] if 'parallel' in xmlNode.attrib.keys() else True
     self.writeOut = xmlNode.attrib['outfile'] if 'outfile' in xmlNode.attrib.keys() else None
     for child in xmlNode:
-#      if   child.tag=='Assembler'   :continue
       if child.tag == 'Distribution':
         varName = '<distribution>'+child.attrib['name']
       elif child.tag == 'variable':
@@ -2217,11 +2245,6 @@ class SparseGridCollocation(Grid):
 
   def localInitialize(self):
     for key in self.assemblerDict.keys():
-#      if 'TargetEvaluation' in key:
-#        indice = 0
-#        for value in self.assemblerDict[key]:
-#          self.lastOutput = self.assemblerDict[key][indice][3]
-#          indice += 1
       if 'ROM' in key:
         indice = 0
         for value in self.assemblerDict[key]:
@@ -2252,7 +2275,6 @@ class SparseGridCollocation(Grid):
       if v not in self.gridInfo.keys():
         self.gridInfo[v]={'poly':'DEFAULT','quad':'DEFAULT','weight':'1','cdf':'False'}
     #establish all the right names for the desired types
-    #FIXME this has grown gnarled, and should be simplified
     for varName,dat in self.gridInfo.items():
       #print('DEBUG dat',self.printTag,varName,dat)
       if dat['cdf'].lower() in ['t','true','y','yes','1']:
