@@ -80,7 +80,7 @@
         <ROM name='HCROM' subType='GaussPolynomialRom' debug="True">
             <Target>ans</Target>
             <Features>x1,x2</Features>
-            <IndexSet>TotalDegree</IndexSet>
+            <IndexSet>HyperbolicCross</IndexSet>
             <PolynomialOrder>4</PolynomialOrder>
             <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x1</Interpolation>
             <Interpolation quad='ClenshawCurtis' poly='Legendre' weight='1' cdf='False'>x2</Interpolation>
