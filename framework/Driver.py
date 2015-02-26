@@ -69,7 +69,7 @@ if __name__ == '__main__':
     tree = ET.parse(configFile)
     root = tree.getroot()
     if root.tag == 'Simulation' and [x.tag for x in root] == ["RunInfo"]:
-      simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]))
+      simulation.XMLread(root,runInfoSkip=set(["totNumCoresUsed"]),xmlFilename=configFile)
     else:
       print(returnPrintTag('DRIVER') +': ' +returnPrintPostTag('Warning') + '-> ',configFile,' should only have Simulation and inside it RunInfo')
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     #generate all the components of the simulation
 
     #Call the function to read and construct each single module of the simulation
-    simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]))
+    simulation.XMLread(root,runInfoSkip=set(["DefaultInputFile"]),xmlFilename=inputFile)
   # Initialize the simulation
   simulation.initialize()
   # Run the simulation
