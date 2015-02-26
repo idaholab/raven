@@ -5,7 +5,8 @@ BUILD_DIR=${BUILD_DIR:=$HOME/raven_libs/build}
 INSTALL_DIR=${INSTALL_DIR:=$HOME/raven_libs/pylibs}
 DOWNLOAD_DIR=${DOWNLOAD_DIR:=$BUILD_DIR/../downloads}
 PYTHON_CMD=${PYTHON_CMD:=python}
-export PATH=$INSTALL_DIR/bin:$PATH
+export PATH="$INSTALL_DIR/bin:$PATH"
+export PKG_CONFIG_PATH="$INSTALL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 JOBS=${JOBS:=1}
 OS_NAME=`uname -sr | sed 's/\..*//'`
 mkdir -p $BUILD_DIR
@@ -235,7 +236,7 @@ else
     fi
 fi
 
-if $PYTHON_CMD -c 'import matplotlib,sys; sys.exit(not matplotlib.__version__ > "1.3")'
+if $PYTHON_CMD -c 'import matplotlib,sys; sys.exit(not matplotlib.__version__ >= "1.4")'
 then
     echo matplotlib module already built
 else
@@ -277,7 +278,7 @@ fi
    #download_files befdcf1229163277439dccc00bd5be04685229e4 https://github.com/matplotlib/matplotlib/archive/v1.4.0rc1.tar.gz
    #tar -xzf $DOWNLOAD_DIR/v1.4.0rc1.tar.gz
    #cd matplotlib-1.4.0rc1
-   sed -i -e "s/default_libraries=\['png', 'z'\])/default_libraries=\['png', 'z'\], alt_exec='libpng-config --ldflags')/g" setupext.py
+   #sed -i -e "s/default_libraries=\['png', 'z'\])/default_libraries=\['png', 'z'\], alt_exec='libpng-config --ldflags')/g" setupext.py
    (unset CC CXX; $PYTHON_CMD setup.py install --prefix=$INSTALL_DIR)
 
 #matplotlib

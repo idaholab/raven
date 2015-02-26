@@ -1,9 +1,69 @@
 \section{Introduction}
-RAVEN  is a generic software framework to perform parametric and probabilistic analysis based on the response of complex system codes. The initial development was aimed to provide dynamic risk analysis capabilities to the Thermo-Hydraulic code RELAP-7, currently under development at the Idaho National Laboratory (INL). Although the initial goal has been fully accomplished, RAVEN is now a multi-purpose probabilistic and uncertainty quantification platform, capable to agnostically communicate with any system code. This agnosticism includes providing Application Programming Interfaces (APIs). These APIs are used to allow RAVEN to interact with any code as long as all the parameters that need to be perturbed are accessible by inputs files or via python interfaces. 
-RAVEN is capable of investigating the system response, and investigating the input space using Monte Carlo, Grid, or Latin Hyper Cube sampling schemes, but its strength is focused toward system feature discovery, such as limit surfaces, separating regions of the input space leading to system failure, using dynamic supervised learning techniques. 
-The development of RAVEN has started in 2012, when, within the Nuclear Energy Advanced Modeling and Simulation (NEAMS) program, the need to provide a modern risk evaluation framework became stronger. 
-RAVEN principal assignment is to provide the necessary software and algorithms in order to employ the concept developed by the Risk Informed Safety Margin Characterization (RISMC) program. RISMC is one of the pathways defined within the Light Water Reactor Sustainability (LWRS) program. In the RISMC approach, the goal is not just the individuation of the frequency of an event potentially leading to a system failure, but the closeness (or not) to key safety-related events. Hence, the approach is interested in identifying and increasing the safety margins related to those events. A safety margin is a numerical value quantifying the probability that a safety metric (e.g. for an important process such as peak pressure in a pipe) is exceeded under certain conditions.
-The initial development of RAVEN has been focused on providing dynamic risk assessment capability to RELAP-7, currently under develop-ment at the INL and, likely, future replacement of the RELAP5-3D  code.
-Most the capabilities that have been implemented having RELAP-7 as principal focus are easily deployable for other system codes. For this reason, several side activates are currently ongoing for coupling RAVEN with software such as RELAP5-3D, etc.
-The aim of this document is the explaination of the input requirements, focalizing on the input structure.
 
+% High-level RAVEN description
+RAVEN is a generic software framework to perform parametric and probabilistic
+analysis based on the response of complex system codes.
+%
+The initial development was aimed at providing dynamic risk analysis
+capabilities to the thermohydraulic code RELAP-7, currently under development
+at Idaho National Laboratory (INL).
+%
+Although the initial goal has been fully accomplished, RAVEN is now a
+multi-purpose probabilistic and uncertainty quantification platform, capable of
+agnostically communicating with any system code.
+
+% RAVEN's flexibility 
+The agnosticism of RAVEN is inherent in its provision of Application Programming
+Interfaces (APIs).
+%
+These APIs allow RAVEN to interact with any code as long as all the parameters
+that need to be perturbed are accessible by input files or via python
+interfaces. 
+%
+%RAVEN is capable of investigating the system response, and investigating the
+%input space using Monte Carlo, Grid, or Latin Hyper Cube sampling schemes, but
+%its strength is focused towards system feature discovery, such as limit
+%surfaces, separating regions of the input space leading to system failure, and
+%using dynamic supervised learning techniques. 
+RAVEN is capable of investigating system response and input space using various
+sampling schemes such as Monte Carlo, grid, or Latin hypercube. 
+%
+However, its strength lies in system feature discovery such as: constructing
+limit surfaces, separating regions of the input space leading to system failure,
+and using dynamic supervised learning techniques. 
+
+% Historical Context
+The development of RAVEN started in 2012, when, within the Nuclear Energy
+Advanced Modeling and Simulation (NEAMS) program, the need to provide a modern
+risk evaluation framework arose.
+%
+RAVEN's principal assignment is to provide the necessary software and algorithms
+in order to employ the concepts developed by the Risk Informed Safety Margin
+Characterization (RISMC) program.
+%
+RISMC is one of the pathways defined within the Light Water Reactor
+Sustainability (LWRS) program.
+
+% RISMC
+In the RISMC approach, the goal is not just to identify the frequency of an
+event potentially leading to a system failure, but the proximity (or lack
+thereof) to key safety-related events.
+%
+Hence, the approach is interested in identifying and increasing the safety
+margins related to those events.
+%
+A safety margin is a numerical value quantifying the probability that a safety
+metric (e.g. peak pressure in a pipe) is exceeded under certain conditions.
+
+% Conclusion
+The initial development of RAVEN has been focused on providing dynamic risk 
+assessment capability to RELAP-7, currently under development at INL.
+%
+Most of the capabilities implemented having RELAP-7 as a principal focus are
+easily deployable to other system codes.
+%
+For this reason, several side activates have been employed (e.g.  RELAP5-3D, any MOOSE-based App, etc.)
+or are currently ongoing for coupling RAVEN with several different software.
+%
+The aim of this document is to detail the input requirements for RAVEN focusing
+on the input structure.

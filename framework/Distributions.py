@@ -11,8 +11,10 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import sys
+import xml.etree.ElementTree as ET #used for creating Beta in Normal distribution
 import copy
 import numpy as np
+import scipy
 import scipy.special as polys
 from scipy.misc import factorial
 #External Modules End--------------------------------------------------------------------------------
@@ -50,13 +52,45 @@ class Distribution(BaseType):
   '''
   def __init__(self):
     BaseType.__init__(self)
-    self.upperBoundUsed = False  # True if the distribution is right truncated
-    self.lowerBoundUsed = False  # True if the distribution is left truncated
-    self.upperBound       = 0.0  # Right bound
-    self.lowerBound       = 0.0  # Left bound
-    self.__adjustmentType   = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
-    self.dimensionality   = None # Dimensionality of the distribution (>=1)
-    self.printTag         = returnPrintTag('DISTRIBUTIONS')
+    self.upperBoundUsed       = False  # True if the distribution is right truncated
+    self.lowerBoundUsed       = False  # True if the distribution is left truncated
+    self.hasInfiniteBound     = False  # True if the untruncated distribution has bounds of +- system max
+    self.upperBound           = 0.0  # Right bound
+    self.lowerBound           = 0.0  # Left bound
+    self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
+    self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
+    self.printTag             = returnPrintTag('DISTRIBUTIONS')
+    self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
+    self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
+    self.compatibleQuadrature = [] #list of compatible quadratures
+    self.convertToDistrDict   = {} #dict of methods keyed on quadrature types to convert points from quadrature measure and domain to distribution measure and domain
+    self.convertToQuadDict    = {} #dict of methods keyed on quadrature types to convert points from distribution measure and domain to quadrature measure and domain
+    self.measureNormDict     = {} #dict of methods keyed on quadrature types to provide scalar adjustment for measure transformation (from quad to distr)
+    self.convertToDistrDict['CDFLegendre'] = self.CDFconvertToDistr
+    self.convertToQuadDict ['CDFLegendre'] = self.CDFconvertToQuad
+    self.measureNormDict   ['CDFLegendre'] = self.CDFMeasureNorm
+    self.convertToDistrDict['CDFClenshawCurtis'] = self.CDFconvertToDistr
+    self.convertToQuadDict ['CDFClenshawCurtis'] = self.CDFconvertToQuad
+    self.measureNormDict   ['CDFClenshawCurtis'] = self.CDFMeasureNorm
+
+  def __getstate__(self):
+    pdict={}
+    self.addInitParams(pdict)
+    pdict['type']=self.type
+    return pdict
+
+  def __setstate__(self,pdict):
+    self.__init__()
+    self.upperBoundUsed   = pdict.pop('upperBoundUsed'  )
+    self.lowerBoundUsed   = pdict.pop('lowerBoundUsed'  )
+    self.hasInfiniteBound = pdict.pop('hasInfiniteBound')
+    self.upperBound       = pdict.pop('upperBound'      )
+    self.lowerBound       = pdict.pop('lowerBound'      )
+    self.__adjustmentType = pdict.pop('adjustmentType'  )
+    self.dimensionality   = pdict.pop('dimensionality'  )
+    self.type             = pdict.pop('type')
+    self._localSetState(pdict)
+    self.initializeDistribution()
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -89,12 +123,13 @@ class Distribution(BaseType):
     Function to get the input params that belong to this class
     @ In, tempDict, temporary dictionary
     '''
-    tempDict['upperBoundUsed'] = self.upperBoundUsed
-    tempDict['lowerBoundUsed'] = self.lowerBoundUsed
-    tempDict['upperBound'    ] = self.upperBound
-    tempDict['lowerBound'    ] = self.lowerBound
-    tempDict['adjustmentType'] = self.__adjustmentType
-    tempDict['dimensionality'] = self.dimensionality
+    tempDict['upperBoundUsed'  ] = self.upperBoundUsed
+    tempDict['lowerBoundUsed'  ] = self.lowerBoundUsed
+    tempDict['hasInfiniteBound'] = self.hasInfiniteBound
+    tempDict['upperBound'      ] = self.upperBound
+    tempDict['lowerBound'      ] = self.lowerBound
+    tempDict['adjustmentType'  ] = self.__adjustmentType
+    tempDict['dimensionality'  ] = self.dimensionality
 
   def rvsWithinCDFbounds(self,LowerBound,upperBound):
     '''
@@ -117,23 +152,82 @@ class Distribution(BaseType):
     CDFlower = self._distribution.Cdf(LowerBound)
     return self.rvsWithinCDFbounds(CDFlower,CDFupper)
 
-  def setQuad(self,quad,exp_order):
+  def convertToDistr(self,qtype,pts):
+    '''Converts points from the quadrature "qtype" standard domain to the distribution domain.
+    @ In qtype, string, type of quadrature to convert from
+    @ In pts, array of floats, points to convert
+    @ Out, array of floats, converted points
     '''
-    Function to set the quadrature rule
-    @ In, quad, object -> quadrature
-    @ In, exp_order, int -> expansion order
-    @ Out,         , None
+    return self.convertToDistrDict[qtype](pts)
+
+  def convertToQuad(self,qtype,pts):
+    '''Converts points from the distribution domain to the quadrature "qtype" standard domain.
+    @ In qtype, string, type of quadrature to convert to
+    @ In pts, array of floats, points to convert
+    @ Out, array of floats, converted points
     '''
-    self.__distQuad=quad
-    self.__exp_order=exp_order
+    return self.convertToQuadDict[qtype](pts)
 
-  def quad(self):
-    try: return self.__distQuad
-    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> No quadrature has been set for this distr. yet.')
+  def measureNorm(self,qtype):
+    '''Provides the integral/jacobian conversion factor between the distribution domain and the quadrature domain.
+    @ In qtype, string, type of quadrature to convert to
+    @ Out, float, conversion factor
+    '''
+    return self.measureNormDict[qtype]()
 
-  def polyOrder(self):
-    try: return self.__exp_order
-    except AttributeError: raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Quadrature has not been set for this distr. yet.')
+  def _convertDistrPointsToCdf(self,pts):
+    '''Converts points in the distribution domain to [0,1].
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
+    try: return self.cdf(pts.real)
+    except TypeError: return list(self.cdf(x) for x in pts)
+
+  def _convertCdfPointsToDistr(self,pts):
+    '''Converts points in [0,1] to the distribution domain.
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
+    try: return self.ppf(pts.real)
+    except TypeError: return list(self.ppf(x) for x in pts)
+
+  def _convertCdfPointsToStd(self,pts):
+    '''Converts points in [0,1] to [-1,1], the uniform distribution's STANDARD domain.
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
+    try: return 2.0*pts.real-1.0
+    except TypeError: return list(2.0*x-1.0 for x in pts)
+
+  def _convertStdPointsToCdf(self,pts):
+    '''Converts points in [-1,1] to [0,1] (CDF domain).
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
+    try: return 0.5*(pts.real+1.0)
+    except TypeError: return list(0.5*(x+1.0) for x in pts)
+
+  def CDFconvertToQuad(self,pts):
+    '''Converts all the way from distribution domain to [-1,1] quadrature domain.
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
+    return self._convertCdfPointsToStd(self._convertDistrPointsToCdf(pts))
+
+  def CDFconvertToDistr(self,pts):
+    '''Converts all the way from [-1,1] quadrature domain to distribution domain.
+    @ In pts, array of floats, points to convert
+    @ Out, float/array of floats, converted points
+    '''
+    return self._convertCdfPointsToDistr(self._convertStdPointsToCdf(pts))
+
+  def CDFMeasureNorm(self):
+    '''Integral norm/jacobian for [-1,1] Legendre quadrature.
+    @ In None, None
+    @ Out float, normalization factor
+    '''
+    return 1.0/2.0;
+
 
 def random():
   '''
@@ -262,16 +356,25 @@ class BoostDistribution(Distribution):
     '''
     if len(args) == 0: return self.ppf(random())
     else             : return [self.rvs() for _ in range(args[0])]
-#==============================================================\
-#    Distributions convenient for stochastic collocation
-#==============================================================\
+
 
 class Uniform(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.low = 0.0
     self.hi = 0.0
+    self.range = 0.0
     self.type = 'Uniform'
+    self.compatibleQuadrature.append('Legendre')
+    self.compatibleQuadrature.append('ClenshawCurtis')
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature = 'Legendre'
+    self.preferredPolynomials = 'Legendre'
+
+  def _localSetState(self,pdict):
+    self.low   = pdict.pop('low'  )
+    self.hi    = pdict.pop('hi'   )
+    self.range = pdict.pop('range')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -289,53 +392,51 @@ class Uniform(BoostDistribution):
     if hi_find != None: self.hi = float(hi_find.text)
     elif high_find != None: self.hi = float(high_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for uniform distribution')
-#    self.initializeDistribution() this call is done by the sampler each time a new step start
     self.range=self.hi-self.low
-    # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
       self.upperBound     = self.hi
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
-    #assign associated polynomial types
-    self.polynomial = polys.legendre
-    #define functions locally, then point to them
-    def norm(n):
-      '''Returns normalization constant for polynomial type, given the poly ordeir'''
-      return np.sqrt((2.*n+1.)/2.)
 
-    def standardToActualPoint(x): #standard -> actual
-      '''Given a [-1,1] point, converts to parameter value.'''
-      return x*self.range/2.+self._distribution.untrMean()
-
-    def actualToStandardPoint(x): #actual -> standard
-      '''Given a parameter value, converts to [-1,1] point.'''
-      return (x-self._distribution.untrMean())/(self.range/2.)
-
-    def standardToActualWeight(x): #standard -> actual
-      '''Given normal quadrature weight, returns adjusted weight.'''
-      return x/(self.range/2.)
-
-    def probNorm(x): #normalizes probability if total != 1
-      '''Returns the poly factor to scale by so that sum(probability)=1.'''
-      return self.range
-
-    # point to functions
-    self.poly_norm = norm
-    self.actual_point = standardToActualPoint
-    self.std_point = actualToStandardPoint
-    self.actual_weight = standardToActualWeight
-    self.probability_norm = probNorm
+  def stdProbabilityNorm(self):
+    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+    '''
+    return 0.5
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
     tempDict['low'] = self.low
     tempDict['hi'] = self.hi
+    tempDict['range'] = self.range
     # no other additional parameters required
 
   def initializeDistribution(self):
+    self.convertToDistrDict['Legendre']       = self.convertLegendreToUniform
+    self.convertToQuadDict ['Legendre']       = self.convertUniformToLegendre
+    self.measureNormDict   ['Legendre']       = self.stdProbabilityNorm
+    self.convertToDistrDict['ClenshawCurtis'] = self.convertLegendreToUniform
+    self.convertToQuadDict ['ClenshawCurtis'] = self.convertUniformToLegendre
+    self.measureNormDict   ['ClenshawCurtis'] = self.stdProbabilityNorm
     self._distribution = distribution1D.BasicUniformDistribution(self.low,self.low+self.range)
+
+  def convertUniformToLegendre(self,y):
+    '''Converts from distribution domain to standard Legendre [-1,1].
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
+    return (y-self.untruncatedMean())/(self.range/2.)
+
+  def convertLegendreToUniform(self,x):
+    '''Converts from standard Legendre [-1,1] to distribution domain.
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
+    return self.range/2.*x+self.untruncatedMean()
+
 
 
 class Normal(BoostDistribution):
@@ -343,14 +444,23 @@ class Normal(BoostDistribution):
     BoostDistribution.__init__(self)
     self.mean  = 0.0
     self.sigma = 0.0
+    self.hasInfiniteBound = True
     self.type = 'Normal'
+    self.compatibleQuadrature.append('Hermite')
+    self.compatibleQuadrature.append('CDF')
+    #THESE get set in initializeDistribution, since it depends on truncation
+    #self.preferredQuadrature  = 'Hermite'
+    #self.preferredPolynomials = 'Hermite'
+
+  def _localSetState(self,pdict):
+    self.mean  = pdict.pop('mean' )
+    self.sigma = pdict.pop('sigma')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['mu'] = self.mean
     retDict['sigma'] = self.sigma
     return retDict
-
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self, xmlNode)
@@ -360,7 +470,7 @@ class Normal(BoostDistribution):
     sigma_find = xmlNode.find('sigma')
     if sigma_find != None: self.sigma = float(sigma_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> sigma value needed for normal distribution')
-    self.initializeDistribution()
+    self.initializeDistribution() #FIXME no other distros have this...needed?
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
@@ -368,34 +478,19 @@ class Normal(BoostDistribution):
     tempDict['sigma'] = self.sigma
 
   def initializeDistribution(self):
+    self.convertToDistrDict['Hermite'] = self.convertHermiteToNormal
+    self.convertToQuadDict ['Hermite'] = self.convertNormalToHermite
+    self.measureNormDict   ['Hermite'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicNormalDistribution(self.mean,
                                                                   self.sigma)
-      self.polynomial = polys.hermitenorm
-      def norm(n):
-        return (np.sqrt(np.sqrt(2.*np.pi)*factorial(n)))**(-1)
-
-      def standardToActualPoint(x): #standard -> actual
-        return x*self.sigma**2/2.+self._distribution.untrMean()
-
-      def actualToStandardPoint(x): #actual -> standard
-        return (x-self._distribution.untrMean())/(self.sigma**2/2.)
-
-      def standardToActualWeight(x): #standard -> actual
-        return x/(self.sigma**2/2.)
-
-      def probNorm(_): #normalizes if total prob. != 1
-        return 1.0
-
-      self.poly_norm = norm
-      self.actual_point = standardToActualPoint
-      self.std_point = actualToStandardPoint
-      self.actual_weight = standardToActualWeight
-      self.probability_norm = probNorm
       self.lowerBound = -sys.float_info.max
       self.upperBound =  sys.float_info.max
+      self.preferredQuadrature  = 'Hermite'
+      self.preferredPolynomials = 'Hermite'
     else:
-      if self.debug: print('FIXME: this should be removed.... :special case distribution for stochastic colocation')
+      self.preferredQuadrature  = 'CDF'
+      self.preferredPolynomials = 'Legendre'
       if self.lowerBoundUsed == False:
         a = -sys.float_info.max
         self.lowerBound = a
@@ -408,6 +503,59 @@ class Normal(BoostDistribution):
                                                                   self.sigma,
                                                                   a,b)
 
+  def stdProbabilityNorm(self,std=False):
+    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+    '''
+    sv = str(scipy.__version__).split('.')
+    if int(sv[0])==0 and int(sv[1])<15:
+      return 1.0/np.sqrt(2.*np.pi)
+    else:
+      return 1.0/np.sqrt(np.pi/2.)
+
+  def convertNormalToHermite(self,y):
+    '''Converts from distribution domain to standard Hermite [-inf,inf].
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
+    return (y-self.untruncatedMean())/(self.sigma)
+
+  def convertHermiteToNormal(self,x):
+    '''Converts from standard Hermite [-inf,inf] to distribution domain.
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
+    return self.sigma*x+self.untruncatedMean()
+
+#  def _constructBeta(self,numStdDev=5):
+#    '''Using data from normal distribution and the number of standard deviations
+#    to include, constructs a Beta distribution with the same mean, variance, and
+#    skewness as the initial normal distribution.  Effectively simulates a truncated
+#    Gaussian.'''
+#    L = self.mean-numStdDev*self.sigma
+#    R = self.mean+numStdDev*self.sigma
+#    d = R-L
+#    a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
+#    b = a
+#    print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
+#    def createElement(tag,attrib={},text={}):
+#      element = ET.Element(tag,attrib)
+#      element.text = text
+#      return element
+#    betaElement = ET.Element("beta")
+#    betaElement.append(createElement("low"  ,text="%f" %L))
+#    betaElement.append(createElement("hi"   ,text="%f" %R))
+#    betaElement.append(createElement("alpha",text="%f" %a))
+#    betaElement.append(createElement("beta" ,text="%f" %b))
+#    beta = Beta()
+#    beta._readMoreXML(betaElement)
+#    beta.initializeDistribution()
+#    return beta
+
+
+
+
 class Gamma(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
@@ -415,6 +563,16 @@ class Gamma(BoostDistribution):
     self.alpha = 0.0
     self.beta = 1.0
     self.type = 'Gamma'
+    self.hasInfiniteBound = True
+    self.compatibleQuadrature.append('Laguerre')
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'Laguerre'
+    self.preferredPolynomials = 'Laguerre'
+
+  def _localSetState(self,pdict):
+    self.low   = pdict.pop('low'  )
+    self.alpha = pdict.pop('alpha')
+    self.beta  = pdict.pop('beta' )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -438,7 +596,7 @@ class Gamma(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
-    self.initializeDistribution()
+    self.initializeDistribution() #TODO this exists in a couple classes; does it really need to be here and not in Simulation? - No. - Andrea
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self,tempDict)
@@ -447,44 +605,50 @@ class Gamma(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
+    self.convertToDistrDict['Laguerre'] = self.convertLaguerreToGamma
+    self.convertToQuadDict ['Laguerre'] = self.convertGammaToLaguerre
+    self.measureNormDict   ['Laguerre'] = self.stdProbabilityNorm
     if (not self.upperBoundUsed): # and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low)
       #self.lowerBoundUsed = 0.0
       self.upperBound     = sys.float_info.max
+      self.preferredQuadrature  = 'Laguerre'
+      self.preferredPolynomials = 'Laguerre'
     else:
-      #if self.lowerBoundUsed == False:
-      #  a = 0.0
-      #  self.lowerBound = a
-      #else:a = self.lowerBound
-      a = self.lowerBound
-      #if self.upperBoundUsed == False:
-      #  b = sys.float_info.max
-      #  self.upperBound = b
-      #else:b = self.upperBound
-      b = self.upperBound
+      self.preferredQuadrature  = 'CDF'
+      self.preferredPolynomials = 'Legendre'
+      if self.lowerBoundUsed == False:
+        a = 0.0
+        self.lowerBound = a
+      else:a = self.lowerBound
+      if self.upperBoundUsed == False:
+        b = sys.float_info.max
+        self.upperBound = b
+      else:b = self.upperBound
       self._distribution = distribution1D.BasicGammaDistribution(self.alpha,1.0/self.beta,self.low,a,b)
 
-    self.polynomial = polys.genlaguerre
-    def norm(n):
-      return np.sqrt(factorial(n)/polys.gamma(n+self.alpha+1.0))
+  def convertGammaToLaguerre(self,y):
+    '''Converts from distribution domain to standard Laguerre [0,inf].
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
+    return (y-self.low)*(self.beta)
 
-    def standardToActualPoint(x): #standard -> actual
-      return x/self.alpha+self.alpha+self.low #TODO these correct? no beta used
+  def convertLaguerreToGamma(self,x):
+    '''Converts from standard Laguerre [0,inf] to distribution domain.
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
+    return x/self.beta+self.low
 
-    def actualToStandardPoint(x): #actual -> standard
-      return (x-self.low-self.alpha)*self.alpha
+  def stdProbabilityNorm(self):
+    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+    '''
+    #return self.beta**self.alpha/factorial(self.alpha-1.)
+    return 1./factorial(self.alpha-1)
 
-    def standardToActualWeight(x): #standard -> actual
-      return x
-
-    def probNorm(_): #normalizes probability if total != 1
-      return 1.0
-
-    self.poly_norm=norm
-    self.actual_point = standardToActualPoint
-    self.std_point = actualToStandardPoint
-    self.actual_weight = standardToActualWeight
-    self.probability_norm = probNorm
 
 class Beta(BoostDistribution):
   def __init__(self):
@@ -494,16 +658,25 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
-    if self.debug: print('FIXME: # TODO default to specific Beta distro?')
-    # TODO default to specific Beta distro?
+    self.hasInfiniteBound = True
+    self.compatibleQuadrature.append('Jacobi')
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'Jacobi'
+    self.preferredPolynomials = 'Jacobi'
+
+  def _localSetState(self,pdict):
+    self.low   = pdict.pop('low'  )
+    self.hi    = pdict.pop('hi'   )
+    self.alpha = pdict.pop('alpha')
+    self.beta  = pdict.pop('beta' )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['alpha'] = self.alpha
     retDict['beta'] = self.beta
     retDict['scale'] = self.hi-self.low
+    retDict['low'] = self.low
     return retDict
-
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self,xmlNode)
@@ -540,23 +713,50 @@ class Beta(BoostDistribution):
     tempDict['beta'] = self.beta
 
   def initializeDistribution(self):
-    #if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
-    #  self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low)
-    #else:
-    #  if self.lowerBoundUsed == False: a = 0.0
-    #  else:a = self.lowerBound
-    #  if self.upperBoundUsed == False: b = sys.float_info.max
-    #  else:b = self.upperBound
-    a = self.lowerBound
-    b = self.upperBound
-    self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b)
+    self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
+    self.convertToQuadDict ['Jacobi'] = self.convertBetaToJacobi
+    self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
+    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
+    else:
+      if self.lowerBoundUsed == False: a = 0.0
+      else:a = self.lowerBound
+      if self.upperBoundUsed == False: b = sys.float_info.max
+      else:b = self.upperBound
+      self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
+    self.preferredPolynomials = 'Jacobi'
+    self.compatibleQuadrature.append('Jacobi')
+    self.compatibleQuadrature.append('ClenshawCurtis')
 
-#==========================================================\
-#    other distributions
-#==========================================================\
+  def convertBetaToJacobi(self,y):
+    '''Converts from distribution domain to standard Beta [0,1].
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
+    u = 0.5*(self.hi+self.low)
+    s = 0.5*(self.hi-self.low)
+    return (y-u)/(s)
+
+  def convertJacobiToBeta(self,x):
+    '''Converts from standard Jacobi [0,1] to distribution domain.
+    @ In y, float/array of floats, points to convert
+    @ Out float/array of floats, converted points
+    '''
+    u = 0.5*(self.hi+self.low)
+    s = 0.5*(self.hi-self.low)
+    return s*x+u
+
+  def stdProbabilityNorm(self):
+    '''Returns the factor to scale error norm by so that norm(probability)=1.
+    @ In None, None
+    @ Out float, norm
+    '''
+    B = factorial(self.alpha-1)*factorial(self.beta-1)/factorial(self.alpha+self.beta-1)
+    norm = 1.0/(2**(self.alpha+self.beta-1)*B)
+    return norm
 
 
-# Add polynomials, shifting, zero-to-one to these!
+
 class Triangular(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
@@ -564,6 +764,14 @@ class Triangular(BoostDistribution):
     self.min  = 0.0
     self.max  = 0.0
     self.type = 'Triangular'
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.apex = pdict.pop('apex')
+    self.min  = pdict.pop('min' )
+    self.max  = pdict.pop('max' )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -605,11 +813,20 @@ class Triangular(BoostDistribution):
       raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Truncated triangular not yet implemented')
 
 
+
 class Poisson(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.mu  = 0.0
     self.type = 'Poisson'
+    self.hasInfiniteBound = True
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.mu = pdict.pop('mu')
+
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -642,7 +859,15 @@ class Binomial(BoostDistribution):
     self.n       = 0.0
     self.p       = 0.0
     self.type     = 'Binomial'
+    self.hasInfiniteBound = True
     self.disttype = 'Descrete'
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.n = pdict.pop('n')
+    self.p = pdict.pop('p')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -680,6 +905,12 @@ class Bernoulli(BoostDistribution):
     self.disttype = 'Descrete'
     self.lowerBound = 0.0
     self.upperBound = 1.0
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.p = pdict.pop('p')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -726,6 +957,14 @@ class Logistic(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
+    self.hasInfiniteBound = True
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.location = pdict.pop('location')
+    self.scale    = pdict.pop('scale'   )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -763,11 +1002,21 @@ class Exponential(BoostDistribution):
   def __init__(self):
     BoostDistribution.__init__(self)
     self.lambda_var = 1.0
+    self.low        = 0.0
     self.type = 'Exponential'
+    self.hasInfiniteBound = True
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.lambda_var = pdict.pop('lambda')
+    self.low        = pdict.pop('low'   )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
     retDict['lambda'] = self.lambda_var
+    retDict['low'] = self.low
     return retDict
 
   def _readMoreXML(self,xmlNode):
@@ -775,31 +1024,51 @@ class Exponential(BoostDistribution):
     lambda_find = xmlNode.find('lambda')
     if lambda_find != None: self.lambda_var = float(lambda_find.text)
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> lambda value needed for Exponential distribution')
+    low  = xmlNode.find('low')
+    if low != None:
+      self.low = float(low.text)
+    else:
+      self.low = 0.0
     # check if lower bound is set, otherwise default
-    #if not self.lowerBoundUsed:
-    #  self.lowerBoundUsed = True
-    #  self.lowerBound     = 0.0
+    if not self.lowerBoundUsed:
+      self.lowerBoundUsed = True
+      self.lowerBound     = self.low
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
     BoostDistribution.addInitParams(self, tempDict)
     tempDict['lambda'] = self.lambda_var
+    tempDict['low'] = self.low
 
   def initializeDistribution(self):
     if (self.lowerBoundUsed == False and self.upperBoundUsed == False):
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var)
+      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,self.low)
       self.lowerBound = 0.0
       self.upperBound = sys.float_info.max
     else:
       if self.lowerBoundUsed == False:
-        a = 0.0
+        a = self.low
         self.lowerBound = a
       else:a = self.lowerBound
       if self.upperBoundUsed == False:
         b = sys.float_info.max
         self.upperBound = b
       else:b = self.upperBound
-      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b)
+      self._distribution = distribution1D.BasicExponentialDistribution(self.lambda_var,a,b,self.low)
+
+  def convertDistrPointsToStd(self,y):
+    quad=self.quadratureSet()
+    if quad.type=='Laguerre':
+      return (y-self.low)*(self.lambda_var)
+    else:
+      return Distribution.convertDistrPointsToStd(self,y)
+
+  def convertStdPointsToDistr(self,x):
+    quad=self.quadratureSet()
+    if quad.type=='Laguerre':
+      return x/self.lambda_var+self.low
+    else:
+      return Distribution.convertStdPointsToDistr(self,x)
 
 
 class LogNormal(BoostDistribution):
@@ -808,6 +1077,14 @@ class LogNormal(BoostDistribution):
     self.mean = 1.0
     self.sigma = 1.0
     self.type = 'LogNormal'
+    self.hasInfiniteBound = True
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.mean  = pdict.pop('mean' )
+    self.sigma = pdict.pop('sigma')
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -853,6 +1130,14 @@ class Weibull(BoostDistribution):
     self.lambda_var = 1.0
     self.k = 1.0
     self.type = 'Weibull'
+    self.hasInfiniteBound = True
+    self.compatibleQuadrature.append('CDF')
+    self.preferredQuadrature  = 'CDF'
+    self.preferredPolynomials = 'CDF'
+
+  def _localSetState(self,pdict):
+    self.lambda_var = pdict.pop('lambda')
+    self.k          = pdict.pop('k'     )
 
   def getCrowDistDict(self):
     retDict = Distribution.getCrowDistDict(self)
@@ -893,6 +1178,7 @@ class Weibull(BoostDistribution):
         self.upperBound = b
       else:b = self.upperBound
       self._distribution = distribution1D.BasicWeibullDistribution(self.k,self.lambda_var,a,b)
+
 
 
 class NDimensionalDistributions(Distribution):

@@ -18,10 +18,11 @@ import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType, Assembler
+from BaseClasses import BaseType
+from Assembler import Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
-import Samplers
+#import Samplers
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -68,9 +69,22 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
   #the possible samplers
   validateDict['Sampler'].append(testDict.copy())
   validateDict['Sampler'][0]['class'       ] ='Samplers'
-  validateDict['Sampler'][0]['type'        ] = Samplers.knownTypes()
   validateDict['Sampler'][0]['required'    ] = False
   validateDict['Sampler'][0]['multiplicity'] = 1
+  #validateDict['Sampler'][0]['type'        ] = Samplers.knonwnTypes()
+  #FIXME this is a temporary statick list assignment to fix the circular references
+  #    generated in SamplingROM from inheriting both Model and Sampler (Issue #13 on the wiki)
+  #FIXME MORE this isn't an issue since we scrapped SamplingROM, but circular references
+  #    are still a potential issue
+  validateDict['Sampler'][0]['type'] = ['MonteCarlo',
+                                        'DynamicEventTree',
+                                        'LHS',
+                                        'Grid',
+                                        'Adaptive',
+                                        'AdaptiveDynamicEventTree',
+                                        'FactorialDesign',
+                                        'ResponseSurfaceDesign',
+                                        'SparseGridCollocation']
 
   @classmethod
   def generateValidateDict(cls):
@@ -211,10 +225,10 @@ class Dummy(Model):
     localInput = {}
     if type(dataIN)!=dict:
       for entries in dataIN.getParaKeys('inputs' ):
-        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(dataIN.getParam('input' ,entries)[length:])
+        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(np.array(dataIN.getParam('input' ,entries))[length:])
         else:                      localInput[entries] = None
       for entries in dataIN.getParaKeys('outputs'):
-        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(dataIN.getParam('output',entries)[length:])
+        if not dataIN.isItEmpty(): localInput[entries] = copy.copy(np.array(dataIN.getParam('output',entries))[length:])
         else:                      localInput[entries] = None
       #Now if an OutputPlaceHolder is used it is removed, this happens when the input data is not representing is internally manufactured
       if 'OutputPlaceHolder' in dataIN.getParaKeys('outputs'): localInput.pop('OutputPlaceHolder') # this remove the counter from the inputs to be placed among the outputs
@@ -283,10 +297,15 @@ class ROM(Dummy):
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      try: self.initializationOptionDict[child.tag] = int(child.text)
-      except ValueError:
-        try: self.initializationOptionDict[child.tag] = float(child.text)
-        except ValueError: self.initializationOptionDict[child.tag] = child.text
+      #FIXME is there anything that is a float that will raise an exception for int?
+      if child.attrib:
+        self.initializationOptionDict[child.tag]={'text':child.text}
+        self.initializationOptionDict[child.tag].update(child.attrib)
+      else:
+        try: self.initializationOptionDict[child.tag] = int(child.text)
+        except ValueError:
+          try: self.initializationOptionDict[child.tag] = float(child.text)
+          except ValueError: self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
     if not 'Target' in self.initializationOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
@@ -506,8 +525,10 @@ class Code(Model):
     self.workingDir         = ''   #location where the code is currently running
     self.outFileRoot        = ''   #root to be used to generate the sequence of output files
     self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
-    self.alias              = {}   #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
-                                   #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
+    self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
+    #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
+    #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
+    self.alias              = {}
     self.printTag = returnPrintTag('MODEL CODE')
 
   def _readMoreXML(self,xmlNode):
@@ -515,12 +536,13 @@ class Code(Model):
     !!!!generate also the code interface for the proper type of code!!!!'''
     Model._readMoreXML(self, xmlNode)
     for child in xmlNode:
-      if child.tag=='executable':
+      if child.tag =='executable':
         self.executable = str(child.text)
-      elif child.tag=='alias':
+      elif child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
         else: raise Exception (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
+      elif child.tag == 'flags': self.codeFlags = child.text
       else: raise Exception (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> unknown tag within the definition of the code model '+str(self.name))
     if self.executable == '': raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
@@ -573,10 +595,11 @@ class Code(Model):
   def run(self,inputFiles,jobHandler):
     '''append a run at the externalRunning list of the jobHandler'''
     self.currentInputFiles = inputFiles[0]
-    executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
+    executeCommand, self.outFileRoot = self.code.genCommand(self.currentInputFiles,self.executable, flags=self.codeFlags)
+    #executeCommand, self.outFileRoot = self.code.generateCommand(self.currentInputFiles,self.executable)
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
-    if self.currentInputFiles[0].endswith('.i'): index = 0
-    else: index = 1
+    for index, inputFile in enumerate(self.currentInputFiles):
+      if inputFile.endswith(('.i','.inp','.in')): break
     print(self.printTag+ ': ' +returnPrintPostTag('Message') + '-> job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
@@ -647,12 +670,6 @@ class PostProcessor(Model, Assembler):
     cls.validateDict['Input'  ][2]['type'        ] = ['TimePoint','TimePointSet','History','Histories']
     cls.validateDict['Input'  ][2]['required'    ] = False
     cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
-    from Distributions import _FrameworkToCrowDistNames
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][3]['class'       ] = 'Distributions'
-    cls.validateDict['Input'  ][3]['type'        ] = _FrameworkToCrowDistNames.keys()
-    cls.validateDict['Input'  ][3]['required'    ] = False
-    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'Files'
     cls.validateDict['Output' ][0]['type'        ] = ['']
@@ -761,6 +778,11 @@ __knownTypes                      = list(__interFaceDict.keys())
 for classType in __interFaceDict.values():
   classType.generateValidateDict()
   classType.specializeValidateDict()
+
+def addKnownTypes(newDict):
+  for name,value in newDict.items():
+    __interFaceDict[name]=value
+    __knownTypes.append(name)
 
 def knownTypes():
   return __knownTypes

@@ -13,6 +13,7 @@ import os,subprocess
 import math
 import sys
 import io
+import string
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -28,7 +29,6 @@ import OutStreamManager
 from JobHandler import JobHandler
 from utils import returnPrintTag,returnPrintPostTag,convertMultipleToBytes,stringsThatMeanTrue,stringsThatMeanFalse
 #Internal Modules End--------------------------------------------------------------------------------
-
 
 #----------------------------------------------------------------------------------------------------
 class SimulationMode:
@@ -73,12 +73,23 @@ class SimulationMode:
 def createAndRunQSUB(simulation):
   """Generates a PBS qsub command to run the simulation"""
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-  batchSize = simulation.runInfoDict['batchSize']
+  #while true, this is not the number that we want to select
+  coresNeeded = simulation.runInfoDict['batchSize']*simulation.runInfoDict['NumMPI']
+  #batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
+  jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub'
+  #check invalid characters
+  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+  if any(char not in validChars for char in jobName):
+    raise IOError(returnPrintTag('SIMULATION->QSUB:'),'JobName can only contain alphanumeric and "_", "-" characters! Received',jobName)
+  #check jobName for length
+  if len(jobName) > 15:
+    jobName = jobName[:10]+'-'+jobName[-4:]
+    print(returnPrintTag('SIMULATION->QSUB:'),'JobName is limited to 15 characters; truncating to',jobName)
   #Generate the qsub command needed to run input
-  command = ["qsub","-l",
-             "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
+  command = ["qsub","-N",jobName,"-l",
+             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
@@ -120,6 +131,7 @@ class PBSDSHSimulationMode(SimulationMode):
         print(self.printTag+": " +returnPrintPostTag('Warning') + " -> changing batchsize from",oldBatchsize,"to",newBatchsize)
       print(self.printTag+": Message -> Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
       #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
+      print('DEBUG precommand',self.printTag,self.__simulation.runInfoDict['precommand'])
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(self.__simulation.runInfoDict['logfileBuffer'])+" "+self.__simulation.runInfoDict['precommand']
       self.__simulation.runInfoDict['logfilePBS'] = 'out_%CURRENT_ID%'
       if(self.__simulation.runInfoDict['NumThreads'] > 1):
@@ -257,8 +269,8 @@ class Simulation(object):
   '''
 
   def __init__(self,frameworkDir,debug=False):
-    self.FIXME = False
-    self.debug= debug
+    self.FIXME          = False
+    self.debug          = debug
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
@@ -377,7 +389,7 @@ class Simulation(object):
       if child.tag in list(self.whichDict.keys()):
         if self.debug: print('\n' + self.printTag+': ' +returnPrintPostTag('Message') + '-> ' +2*'-'+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
-        if len(child.attrib.keys()) == 0: globalAttributes = None
+        if len(child.attrib.keys()) == 0: globalAttributes = {}
         else:
           globalAttributes = child.attrib
           if 'debug' in  globalAttributes.keys():
@@ -388,7 +400,7 @@ class Simulation(object):
           for childChild in child:
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
-              if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> ------Reading type '+str(childChild.tag)+' with name '+name)
+              if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag)
@@ -401,9 +413,16 @@ class Simulation(object):
       else: raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
+    # For StochasticPolynomials, the SamplingROM will act as both a Sampler and a Model, but is only initialized in the XML as a Sampler.
+    # Here, we add the SamplingROM to the Models dictionary under the same name so the step will be consistent and the user won't have to
+    # list it as a Model in the input.
+    for name,samplingROM in self.whichDict['Samplers'].items():
+      if samplingROM.type in ['StochasticPolynomials','AdaptiveStochasticPolynomials']:
+        self.whichDict['Models'][name] = samplingROM
+    # it's a ROM really.
 
   def initialize(self):
-    '''check/created working directory, check/set up the parallel environment'''
+    '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
     #check/generate the existence of the working directory
     #print(self.runInfoDict['WorkingDir'])
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
@@ -421,8 +440,7 @@ class Simulation(object):
     elif oldTotalNumCoresUsed > 1: #If 1, probably just default
       print(self.printTag+": " +returnPrintPostTag('Warning') + " -> overriding totalNumCoresUsed",oldTotalNumCoresUsed,"to", self.runInfoDict['totalNumCoresUsed'])
     #transform all files in absolute path
-    for key in self.filesDict.keys():
-      self.__createAbsPath(key)
+    for key in self.filesDict.keys(): self.__createAbsPath(key)
     #Let the mode handler do any modification here
     self.__modeHandler.modifySimulation()
     self.jobHandler.initialize(self.runInfoDict)
@@ -436,12 +454,15 @@ class Simulation(object):
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if name not in list(self.whichDict[myClass].keys()):
+        print('name:',name)
+        print('list:',list(self.whichDict[myClass].keys()))
         print(self.whichDict[myClass])
         raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       if myClass!= 'Files':  # check if object type is consistent
         objtype = self.whichDict[myClass][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
+          print('DEBUG',objtype)
           raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
 
 
@@ -456,6 +477,7 @@ class Simulation(object):
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
         else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
+      elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
@@ -543,10 +565,9 @@ class Simulation(object):
       stepInputDict['Output']          = []                         #set the Output to an empty list
       #fill the take a a step input dictionary just to recall: key= role played in the step b= Class, c= Type, d= user given name
       for [key,b,_,d] in stepInstance.parList:
-        if key == 'Input' or key == 'Output':                        #Only for input and output we allow more than one object passed to the step, so for those we build a list
-          stepInputDict[key].append(self.whichDict[b][d])
-        else:
-          stepInputDict[key] = self.whichDict[b][d]
+        #Only for input and output we allow more than one object passed to the step, so for those we build a list
+        if key == 'Input' or key == 'Output': stepInputDict[key].append(self.whichDict[b][d])
+        else: stepInputDict[key] = self.whichDict[b][d]
         if key == 'Input' and b == 'Files': self.__checkExistPath(d) #if the input is a file, check if it exists
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler

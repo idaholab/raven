@@ -29,8 +29,8 @@ class Node(object):
     '''
       Overload the representation of this object... We want to show the name and the number of branches!!!!
     '''
-    return "<Node %s at 0x%x containing %s branches>" % (repr(self.name), id(self), repr(str(len(self._branches))))
-  
+    return "<Node %s at 0x%x containing %s branches>" % (repr(self.name), id(self), repr(len(self._branches)))
+
   def copyNode(self):
     '''
       Method to copy this node and return it

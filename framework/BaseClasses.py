@@ -14,7 +14,7 @@ from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stri
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-from utils    import returnPrintTag
+#from utils    import returnPrintTag
 
 class BaseType(object):
   '''this is the base class for each general type used by the simulation'''
@@ -22,7 +22,7 @@ class BaseType(object):
     self.name             = ''      # name of this istance (alias)
     self.type             = ''      # specific type within this class
     self.debug            = False   #set up the debug status of the code
-    self.globalAttributes = None    #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
+    self.globalAttributes = {}      #this is a dictionary that contains parameters that are set at the level of the base classes defining the types
     self._knownAttribute  = []      #this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','debug']
     self.printTag         = returnPrintTag('BaseType')
@@ -49,6 +49,8 @@ class BaseType(object):
   def _readMoreXML(self,xmlNode):
     '''method to be overloaded to collect the additional input'''
     pass
+
+  #def _addOrModifyGlobalAttribute(self,name,value): self.globalAttributes[name] = value
 
   def whoAreYou(self):
     '''This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes'''
@@ -102,28 +104,28 @@ class BaseType(object):
 #
 #
 #
-class Assembler(metaclass_insert(abc.ABCMeta,object)):
-  '''
-  Assembler class is used as base class for all the objects that need, for initialization purposes,
-  to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
-  '''
-  @abc.abstractmethod
-  def whatDoINeed(self):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
-    be initialize. It is an abstract method -> It must be implemented in the derived class!
-    @ In , None, None
-    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
-    '''
-    pass
-  @abc.abstractmethod
-  def generateAssembler(self,initDict):
-    '''
-    This method is used mainly by the Simulation class at the Step construction stage.
-    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-    It is an abstract method -> It must be implemented in the derived class!
-    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
-    @ Out, None, None
-    '''
-    pass
+#class Assembler(metaclass_insert(abc.ABCMeta,object)):
+#  '''
+#  Assembler class is used as base class for all the objects that need, for initialization purposes,
+#  to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
+#  '''
+#  @abc.abstractmethod
+#  def whatDoINeed(self):
+#    '''
+#    This method is used mainly by the Simulation class at the Step construction stage.
+#    It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
+#    be initialize. It is an abstract method -> It must be implemented in the derived class!
+#    @ In , None, None
+#    @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
+#    '''
+#    pass
+#  @abc.abstractmethod
+#  def generateAssembler(self,initDict):
+#    '''
+#    This method is used mainly by the Simulation class at the Step construction stage.
+#    It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+#    It is an abstract method -> It must be implemented in the derived class!
+#    @ In , initDict, dictionary ({'mainClassName(e.g., DataBases):{specializedObjectName(e.g.,DataBaseForSystemCodeNamedWolf):ObjectInstance}'})
+#    @ Out, None, None
+#    '''
+#    pass
