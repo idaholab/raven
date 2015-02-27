@@ -14,10 +14,15 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 #External Modules--------------------end
-from utils import returnPrintTag, returnPrintPostTag, find_crow, add_contrib
+
+#warning: this needs to be before importing h5py
+os.environ["MV2_ENABLE_AFFINITY"]="0"
+
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
+sys.path.append(os.path.join(frameworkDir,'utils'))
+from utils import returnPrintTag, returnPrintPostTag, find_crow, add_path
 find_crow(frameworkDir)
-add_contrib(frameworkDir)
+add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
 #Internal Modules
@@ -40,8 +45,6 @@ def printStatement():
   WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS. This notice, including
   this sentence, must appear on any copies of this computer software.
   """)
-
-os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''
