@@ -19,7 +19,10 @@
 </Distributions>
 
 <Samplers>
-    <Grid name='RAVENmc6' initial_seed='1'>
+    <Grid name='RAVENmc6'>
+        <sampler_init>
+            <initial_seed>1</initial_seed>
+        </sampler_init>
         <Distribution name='Dummy1'>
             <distribution >zeroToOne</distribution>
             <grid type='CDF' construction='equal' upperBound='0.9' steps='15'>0.05</grid>

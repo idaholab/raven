@@ -27,7 +27,11 @@
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='3' initial_seed='200286'>
+  <MonteCarlo     name='RAVENmc3'>
+    <sampler_init>
+      <limit>3</limit>
+      <initial_seed>200286</initial_seed>
+    </sampler_init>
     <variable name='DeltaTimeScramToAux'>
       <distribution  >auxbackup</distribution>
     </variable>

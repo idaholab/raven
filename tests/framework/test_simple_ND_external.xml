@@ -71,7 +71,7 @@
             <distribution dim='2'>ND_CartesianSpline_P</distribution>
         </variable>
     </MonteCarlo>
-
+-->
     <LHS name='LHS_test'>
         <variable name='k0'>
             <distribution>k0_distrib</distribution>
@@ -89,8 +89,8 @@
             <grid name='name_grid1' construction='custom'>0.1 1.0 0.2</grid>
             <grid name='name_grid2' construction='equal' lowerBound='0.1' steps='3'>0.05</grid>
         </global_grid>
-    </LHS> -->
-
+    </LHS>
+<!--
     <Grid name='grid_CDF_SP'>
         <variable name='k0'>
             <distribution>k0_distrib</distribution>
@@ -119,7 +119,7 @@
             <grid type='CDF' construction='custom'>0.2 0.5</grid>
         </variable>
     </Grid>
- <!--
+
     <Grid name='grid_value_IW'>
         <variable name='k0'>
             <distribution>k0_distrib</distribution>

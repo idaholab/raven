@@ -34,6 +34,9 @@
 </Distributions>
 <Samplers>
     <LHS name='myLHS' initial_seed ='1'>
+      <sampler_init>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
       <variable name='VarTri1' >
         <distribution  >DistTri1</distribution>
         <grid         type='value'      construction='custom'>0.02 0.5 0.6 0.8</grid>
