@@ -274,15 +274,15 @@ def find_crow(framework_dir):
   except:
     ravenDir = os.path.dirname(framework_dir)
     #Add the module directory to the search path.
-    pmoduleDir = os.path.join(os.path.dirname(ravenDir),"crow","crow_modules")
-    if os.path.exists(pmoduleDir):
-      sys.path.append(pmoduleDir)
-    else:
-      pmoduleDir = os.path.join(ravenDir,"crow","crow_modules")
+    pmoduleDirs = [os.path.join(os.path.dirname(ravenDir),"crow","install"),
+                   os.path.join(ravenDir,"crow","install"),
+                   os.path.join(os.path.dirname(ravenDir),"crow","crow_modules"),
+                   os.path.join(ravenDir,"crow","crow_modules")]
+    for pmoduleDir in pmoduleDirs:
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
-    #print("pmoduleDir",pmoduleDir)
-    if not os.path.exists(pmoduleDir): raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be '+pmoduleDir)
+        return
+    raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> The directory "crow_modules" has not been found. It location is supposed to be one of '+pmoduleDirs)
 
 def add_path(absolutepath):
   """ Add absolutepath path is in the python path. """
@@ -295,26 +295,34 @@ def add_path_recursively(absoluteInitialPath):
 
 def find_distribution1D():
   """ find the crow distribution1D module and return it. """
-  try:
-    import crow_modules.distribution1Dpy2
-    return crow_modules.distribution1Dpy2
-  except:
-    if sys.version_info.major > 2:
+  if sys.version_info.major > 2:
+    try:
+      import crow_modules.distribution1Dpy3
+      return crow_modules.distribution1Dpy3
+    except:
       import distribution1Dpy3
       return distribution1Dpy3
-    else:
+  else:
+    try:
+      import crow_modules.distribution1Dpy2
+      return crow_modules.distribution1Dpy2
+    except:
       import distribution1Dpy2
       return distribution1Dpy2
 
 def find_interpolationND():
   """ find the crow interpolationND module and return it. """
-  try:
-    import crow_modules.interpolationNDpy2
-    return crow_modules.interpolationNDpy2
-  except:
-    if sys.version_info.major > 2:
+  if sys.version_info.major > 2:
+    try:
+      import crow_modules.interpolationNDpy3
+      return crow_modules.interpolationNDpy3
+    except:
       import interpolationNDpy3
       return interpolationNDpy3
-    else:
+  else:
+    try:
+      import crow_modules.interpolationNDpy2
+      return crow_modules.interpolationNDpy2
+    except:
       import interpolationNDpy2
       return interpolationNDpy2
