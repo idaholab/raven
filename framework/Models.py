@@ -374,6 +374,8 @@ class ROM(Dummy):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
+    print("hererrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"*100)
+    import time
     if type(trainingSet).__name__ == 'ROM':
       self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
@@ -381,10 +383,16 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:
+      print("here")
+       
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
+      print("here2")
       self.amITrained = True
       for instrom in self.SupervisedEngine.values():
+        print("instrom")
         instrom.train(self.trainingSet)
+        time.sleep(3)
+        print("instrom2")
         self.aimITrained = self.amITrained and instrom.amITrained
       if self.debug:print('FIXME: add self.amITrained to currentParamters')
 
@@ -794,11 +802,12 @@ class PostProcessor(Model, Assembler):
     #globs = dict(inspect.getmembers(self.interface))
     globs = dict(inspect.getmembers(PostProcessors))
     for key, value in globs.items():
-      if inspect.ismodule(value) or inspect.ismethod(value):
+      if inspect.ismodule(value) or inspect.isfunction(value): # inspect.ismethod(value):
         if key != value.__name__: 
           if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
           else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
         else: self.mods.append(str(key))
+
 #     for key, value in globs.items():
 #       if inspect.ismodule(value) and not key.startswith("_"): #(value) type(value).__name__ == "module": 
 #         self.globs[key] = str(value.__name__)
@@ -809,12 +818,8 @@ class PostProcessor(Model, Assembler):
 
   def run(self,Input,jobHandler):
     '''run calls the interface finalizer'''
-    if len(Input) > 0 :
-#      lumbdaToRun = lambda x: self.interface.run(x)
-      jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
-    else:
-#      lumbdaToRun = lambda x: self.interface.run(x)
-      jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
+    if len(Input) > 0 : jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
+    else: jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
 
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)

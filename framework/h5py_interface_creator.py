@@ -608,6 +608,8 @@ class hdf5Database(object):
     # Find the endgroup that coresponds to the given name
     for i in xrange(len(self.allGroupPaths)):
       list_str_w = self.allGroupPaths[i].split("/")
+      try: list_str_w.remove("")
+      except: pass
       if list_str_w[len(list_str_w)-1] == name:
         found = True
         path  = self.allGroupPaths[i]
@@ -636,13 +638,13 @@ class hdf5Database(object):
         # included in the construction of the full history.
         if self.parent_group_name != '/': back = len(list_path)-2
         else: back = len(list_path)-1
-        if back <= 0: back = 1
+        if back < 0: back = 0
         i=0
         #Question, should all the "" be removed, or just the first?
         try: list_path.remove("")
         except ValueError:  pass #Not found.
         # Find the paths for the completed history
-        while (i < back):
+        while (i <= back):
           path_w = ''
           for j in xrange(len(list_path) - i):
             if list_path[j] != "": path_w = path_w + "/" + list_path[j]

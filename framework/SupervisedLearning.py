@@ -613,13 +613,16 @@ class SciKitLearn(superVisedLearning):
     targetVals : array, shape = [n_samples]
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
+    print(self.ROM.__dict__)
+    print(self.ROM)
     if len(np.unique(targetVals))>1:
+      sys.stdout.flush()
       self.ROM.fit(featureVals,targetVals)
       #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
     else:
       self.myNumber = np.unique(targetVals)[0]
       self.evaluate = self._readdressEvaluate
-
+      
   def __confidenceLocal__(self,edict):
     if  'probability' in self.__class__.qualityEstType: return self.ROM.predict_proba(edict)
     else            : raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> the ROM '+str(self.name)+'has not the an method to evaluate the confidence of the prediction')

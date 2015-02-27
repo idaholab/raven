@@ -377,7 +377,7 @@ class PrintCSV(BasePostProcessor):
     runInfo['TempWorkingDir']     = self.workingDir
     try:                            os.mkdir(self.workingDir)
     except:                         print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
-    if type(inputs[-1]).__name__ == "HDF5" : self.inObj = inputs[-1]      # this should go in run return but if HDF5, it is not pickable
+    #if type(inputs[-1]).__name__ == "HDF5" : self.inObj = inputs[-1]      # this should go in run return but if HDF5, it is not pickable
 
   def _localReadMoreXML(self,xmlNode):
     """
@@ -520,7 +520,7 @@ class PrintCSV(BasePostProcessor):
      Function to finalize the filter => execute the filtering
      @ Out, None      : Print of the CSV file
     """
-    pass
+    return Input[-1]
 
 class BasicStatistics(BasePostProcessor):
   """
@@ -1026,10 +1026,12 @@ class LimitSurface(BasePostProcessor):
     #recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
     else                                                      : indexLast = -1
-    #index of last set of point tested and ready to perform the function evaluation
 
+    #index of last set of point tested and ready to perform the function evaluation
+# 
     indexEnd  = len(self.functionValue[self.axisName[0]])-1
     tempDict  = {}
+     
     if self.externalFunction.name in self.functionValue.keys():
       self.functionValue[self.externalFunction.name] = np.append( self.functionValue[self.externalFunction.name], np.zeros(indexEnd-indexLast))
     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
@@ -1044,6 +1046,7 @@ class LimitSurface(BasePostProcessor):
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
       raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
 
+# 
     #printing----------------------
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
@@ -1056,65 +1059,73 @@ class LimitSurface(BasePostProcessor):
     tempDict = {}
     for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
+    print("lupo")
+    print(self.ROM.__dict__)
+    print("lup2")
+    print(self.ROM.SupervisedEngine.values()[0].__dict__)
+    print("lup3")
     self.ROM.train(tempDict)
-    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
-    np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
-    self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
-    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
-    tempDict ={}
-    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
-    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
-    self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
-    self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Prediction performed')
-    #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-    toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
-    #printing----------------------
-    if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface:  Limit surface candidate points')
-      for coordinate in np.rollaxis(toBeTested,0):
-        myStr = ''
-        for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-    #printing----------------------
-    #check which one of the preselected points is really on the limit surface
-    listsurfPoint = []
-    myIdList      = np.zeros(self.nVar)
-    for coordinate in np.rollaxis(toBeTested,0):
-      myIdList[:] = coordinate
-      if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
-        for iVar in range(self.nVar):
-          if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
-            myIdList[iVar]+=1
-            if self.testMatrix[tuple(myIdList)]>=0:
-              listsurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar]-=1
-          if coordinate[iVar]>0:
-            myIdList[iVar]-=1
-            if self.testMatrix[tuple(myIdList)]>=0:
-              listsurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar]+=1
-    #printing----------------------
-    if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
-      for coordinate in listsurfPoint:
-        myStr = ''
-        for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-    #printing----------------------
-
-    #if the number of point on the limit surface is > than zero than save it
-    outputPlaceOrder = np.zeros(len(listsurfPoint))
-    if len(listsurfPoint)>0:
-      self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
-      for pointID, coordinate in enumerate(listsurfPoint):
-        self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
-        outputPlaceOrder[pointID] = pointID
-
-    return self.surfPoint,outputPlaceOrder
+    return -1
+    
+    
+#     print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
+#     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
+#     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
+#     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
+#     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
+#     tempDict ={}
+#     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
+#     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
+#     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
+#     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
+#     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Prediction performed')
+#     #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
+#     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
+#     #printing----------------------
+#     if self.debug:
+#       print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface:  Limit surface candidate points')
+#       for coordinate in np.rollaxis(toBeTested,0):
+#         myStr = ''
+#         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
+#         print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+#     #printing----------------------
+#     #check which one of the preselected points is really on the limit surface
+#     listsurfPoint = []
+#     myIdList      = np.zeros(self.nVar)
+#     for coordinate in np.rollaxis(toBeTested,0):
+#       myIdList[:] = coordinate
+#       if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
+#         for iVar in range(self.nVar):
+#           if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
+#             myIdList[iVar]+=1
+#             if self.testMatrix[tuple(myIdList)]>=0:
+#               listsurfPoint.append(copy.copy(coordinate))
+#               break
+#             myIdList[iVar]-=1
+#           if coordinate[iVar]>0:
+#             myIdList[iVar]-=1
+#             if self.testMatrix[tuple(myIdList)]>=0:
+#               listsurfPoint.append(copy.copy(coordinate))
+#               break
+#             myIdList[iVar]+=1
+#     #printing----------------------
+#     if self.debug:
+#       print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
+#       for coordinate in listsurfPoint:
+#         myStr = ''
+#         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
+#         print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+#     #printing----------------------
+# 
+#     #if the number of point on the limit surface is > than zero than save it
+#     outputPlaceOrder = np.zeros(len(listsurfPoint))
+#     if len(listsurfPoint)>0:
+#       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
+#       for pointID, coordinate in enumerate(listsurfPoint):
+#         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
+#         outputPlaceOrder[pointID] = pointID
+# 
+#     return self.surfPoint,outputPlaceOrder
 
 #
 #

@@ -264,7 +264,7 @@ class InternalRunner:
   def returnMetadata(self): return self.__metadata
 
   def start(self):
-    self.start_pp()
+    #self.start_pp()
     try: self.start_pp()
     except Exception as ae:
       print(returnPrintTag('JOB HADLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
