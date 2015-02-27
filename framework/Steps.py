@@ -12,7 +12,9 @@ if not 'xrange' in dir(__builtins__): xrange = range
 #External Modules------------------------------------------------------------------------------------
 import time
 import abc
-import pickle
+import cPickle as pickle
+#import pickle as cloudpickle
+from cloud.serialization import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -541,7 +543,7 @@ class IOStep(Step):
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         fileobj = open(outputs[i],'w+')
-        pickle.dump(inDictionary['Input'][i],fileobj)
+        cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.close()
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM

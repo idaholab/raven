@@ -19,18 +19,17 @@ def initialize(self,runInfoDict,inputFiles):
   self.cnt             = 0.0
   return
 
-def createNewInput(self,myInput,samplerType,**Kwargs):
-  return Kwargs['SampledVars']
+def createNewInput(self,myInput,samplerType,**Kwargs): return Kwargs['SampledVars']
 
 def run(self,Input):
   self.cnt += 1.0
   self.x0 = 1.0
   self.y0 = 1.0
   self.z0 = 1.0
-  self.x01  = copy.deepcopy(self.cnt)
-  self.x02 = copy.deepcopy(self.cnt)
-  self.z01  = copy.deepcopy(self.cnt)
-  self.z02 = 101.0 - copy.deepcopy(self.cnt)
+  self.x01  = copy.deepcopy(self.cnt+Input['x0'])
+  self.x02 = copy.deepcopy(self.cnt+Input['x0'])
+  self.z01  = copy.deepcopy(self.cnt+Input['x0'])
+  self.z02 = 101.0 - copy.deepcopy(self.cnt+Input['x0'])
   self.y01  = copy.deepcopy(Input['x0'])
   self.y02 = copy.deepcopy(Input['y0'])
   self.time[0]= 0

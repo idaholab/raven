@@ -4,6 +4,21 @@ import sys, os
 from scipy.interpolate import Rbf,griddata
 import copy
 
+class Object(object):pass
+
+def _unpickle_method(func_name, obj, cls):
+  for cls in cls.mro():
+    try: func = cls.__dict__[func_name]
+    except KeyError: pass
+    else: break
+  return func.__get__(obj, cls)
+
+def _pickle_method(method):
+  func_name = method.im_func.__name__
+  obj = method.im_self
+  cls = method.im_class
+  return _unpickle_method, (func_name, obj, cls)
+
 def getPrintTagLenght(): return 25
 
 def returnPrintTag(intag): return intag.ljust(getPrintTagLenght())[0:getPrintTagLenght()]
@@ -188,7 +203,7 @@ def metaclass_insert(metaclass,*base_classes):
   This function is based on the method used in Benjamin Peterson's six.py
   """
   namespace={}
-  return metaclass("NewMiddleMeta",base_classes,namespace)
+  return metaclass("Object",base_classes,namespace)
 
 def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
   """
@@ -274,6 +289,9 @@ def add_path(absolutepath):
   if not os.path.exists(absolutepath):
     raise IOError(returnPrintTag('UTILS') + ': '+returnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
+
+def add_path_recursively(absoluteInitialPath):
+  for dirr,_,_ in os.walk(absoluteInitialPath): add_path(dirr)
 
 def find_distribution1D():
   """ find the crow distribution1D module and return it. """

@@ -18,12 +18,16 @@ import subprocess
 import os
 import signal
 import copy
+import sys
 #import logging, logging.handlers
-import threading
+#import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import returnPrintTag, returnPrintPostTag
+# for internal parallel
+import pp
+import ppserver
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -172,50 +176,103 @@ class ExternalRunner:
 #
 class InternalRunner:
   #import multiprocessing as multip
-  def __init__(self,Input,functionToRun,identifier=None,metadata=None):
+  def __init__(self,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None):
     # we keep the command here, in order to have the hook for running exec code into internal models
-    self.command = "internal"
+    self.command  = "internal"
+    self.ppserver = ppserver
+    self.__thread = None
     if    identifier!=None:
       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
       else                : self.identifier =  str(identifier)
     else: self.identifier = 'generalOut'
-    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HADLER') + ": " +returnPrintPostTag('ERROR') + "-> The input for InternalRunner needs to be a tuple!!!!")
+    if type(Input) != tuple: raise IOError(returnPrintTag('JOB HANDLER') + ": " +returnPrintPostTag('ERROR') + "-> The input for InternalRunner needs to be a tuple!!!!")
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
     self.subque          = queue.Queue()
     self.functionToRun   = functionToRun
-    if len(Input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
-    else              : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
-    self.__thread.daemon = True
+    #if len(Input) == 1  : self.__thread   = ppserver.submit(lambda q,  arg : q.put(self.functionToRun(arg)), (self.subque,)+Input, (), tuple(sys.modules.keys()))
+    #else                : self.__thread   = ppserver.submit(lambda q,  *arg : q.put(self.functionToRun(arg)), (self.subque,)+Input, (), tuple(sys.modules.keys()))
+    #threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
+    #if len(Input) == 1  : self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
+    #else                : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
+    #self.__thread.daemon = True
     self.__runReturn     = None
     self.__hasBeenAdded  = False
-    self.__input         = copy.copy(Input[0])
+    self.__input         = copy.copy(Input)
     self.__metadata      = copy.copy(metadata)
+    self.__globals       = copy.copy(globs)
+    self.__frameworkMods = copy.copy(frameworkModules)
     self.retcode         = 0
 
+
+
+
+
+
+#     # we keep the command here, in order to have the hook for running exec code into internal models
+#     self.command = "internal"
+#     if    identifier!=None:
+#       if "~" in identifier: self.identifier =  str(identifier).split("~")[1]
+#       else                : self.identifier =  str(identifier)
+#     else: self.identifier = 'generalOut'
+#     if type(Input) != tuple: raise IOError(returnPrintTag('JOB HADLER') + ": " +returnPrintPostTag('ERROR') + "-> The input for InternalRunner needs to be a tuple!!!!")
+#     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
+#     self.subque          = queue.Queue()
+#     self.functionToRun   = functionToRun
+#     if len(Input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
+#     else              : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+Input)
+#     self.__thread.daemon = True
+#     self.__runReturn     = None
+#     self.__hasBeenAdded  = False
+#     self.__input         = copy.copy(Input[0])
+#     self.__metadata      = copy.copy(metadata)
+#     self.retcode         = 0
+
+
+
+  def start_pp(self):
+    #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
+    if self.__globals != None:
+      for key, mod in self.__globals.items():
+        if key != mod:  self.__frameworkMods.append(str("import "+ mod +" as "+key))
+#    print(self.__input)
+#    print(len(self.__input))
+    if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))))
+    else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))))
+#     if len(self.__input) == 1 : self.__thread = self.ppserver.submit(lambda arg : self.functionToRun(arg), args= self.__input, depfuncs=(), modules = tuple(list(set(mods))))
+#     else                         : self.__thread = self.ppserver.submit(lambda *arg : self.functionToRun(arg), args= tuple(self.__input), depfuncs=(), modules = tuple(list(set(mods))))
+    #if len(self.__input) == 1 : self.__thread = self.ppserver.submit(lambda arg  : self.functionToRun(arg), tuple(self.__input)) # tuple(sys.modules.keys()))
+    #else                      : self.__thread = self.ppserver.submit(lambda *arg : self.functionToRun(arg), tuple(self.__input))   
+
   def isDone(self):
-    return not self.__thread.is_alive()
+    if self.__thread == None: return True
+    else                    : return self.__thread.finished
 
   def getReturnCode(self): return self.retcode
 
   def returnEvaluation(self):
     if self.isDone():
       if not self.__hasBeenAdded:
-        self.__runReturn = self.subque.get(timeout=1)
+        #self.__runReturn = self.subque.get(timeout=1)()
+        self.__runReturn = self.__thread()
         self.__hasBeenAdded = True
-      return (self.__input,self.__runReturn)
+        if self.__runReturn == None: 
+          self.retcode = -1
+          return self.retcode
+      return (self.__input[0],self.__runReturn)
     else: return -1 #control return code
 
   def returnMetadata(self): return self.__metadata
 
   def start(self):
-    try: self.__thread.start()
+    self.start_pp()
+    try: self.start_pp()
     except Exception as ae:
       print(returnPrintTag('JOB HADLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
       self.retcode = -1
 
   def kill(self):
-    print(returnPrintTag('JOB HADLER')+": Terminating ",self.__thread.ident(), " Identifier " + self.identifier)
-    os.kill(self.__thread.ident(),signal.SIGTERM)
+    print(returnPrintTag('JOB HADLER')+": Terminating ",self.__thread.pid, " Identifier " + self.identifier)
+    os.kill(self.__thread.pid,signal.SIGTERM)
 
 class JobHandler:
   def __init__(self):
@@ -242,7 +299,16 @@ class JobHandler:
       self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+str(self.runInfoDict['NumThreads'])
     #initialize PBS
     self.__running = [None]*self.runInfoDict['batchSize']
-
+    # check if the list of unique nodes is present and, in case, initialize the socket
+    if len(self.runInfoDict['uniqueNodes']) > 0:
+      # initialize the socketing system
+      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      # create the servers in the reserved nodes
+      for nodeid in self.runInfoDict['uniqueNodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
+      # create the server handler 
+      self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['uniqueNodes'])) 
+    else: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))   
+      
   def addExternal(self,executeCommand,outputFile,workingDir,metadata=None):
     #probably something more for the PBS
     command = self.runInfoDict['precommand']
@@ -256,8 +322,8 @@ class JobHandler:
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
-  def addInternal(self,Input,functionToRun,identifier,metadata=None):
-    self.__queue.put(InternalRunner(Input,functionToRun,identifier,metadata))
+  def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
+    self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
@@ -299,11 +365,10 @@ class JobHandler:
             print(returnPrintTag('JOB HANDLER')+": Process Failed ",running,running.command," returncode",returncode)
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
-            outputFilename = running.getOutputFilename()
-            if os.path.exists(outputFilename):
-              print(open(outputFilename,"r").read())
-            else:
-              print(returnPrintTag('JOB HADLER')+" No output ",outputFilename)
+            if "External" in running.__class__.__name__: 
+              outputFilename = running.getOutputFilename()
+              if os.path.exists(outputFilename): print(open(outputFilename,"r").read())
+              else: print(returnPrintTag('JOB HADLER')+" No output ",outputFilename)
           else:
             if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
               print(returnPrintTag('JOB HANDLER') + ': Run "' +running.identifier+'" ended smoothly, removing log file!')

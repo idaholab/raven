@@ -39,7 +39,10 @@ import types
 import time
 import atexit
 import user
+#import dill as pickle
 import cPickle as pickle
+from cloud.serialization import cloudpickle
+#import pickle
 import pptransport
 import ppauto
 import ppcommon
@@ -416,7 +419,7 @@ class Server(object):
 
         for module in modules:
             if not isinstance(module, types.StringType):
-                raise TypeError("modules argument must be a list of strings")
+              raise TypeError("modules argument must be a list of strings." + "Got "+ type(module).__name__)
 
         tid = self.__gentid()
 
@@ -457,7 +460,7 @@ class Server(object):
                 depfuncs += (arg, )
 
         sfunc = self.__dumpsfunc((func, ) + depfuncs, modules)
-        sargs = pickle.dumps(args, self.__pickle_proto)
+        sargs = cloudpickle.dumps(args, self.__pickle_proto)
 
         self.__queue_lock.acquire()
         self.__queue.append((task, sfunc, sargs))
@@ -635,7 +638,7 @@ class Server(object):
         hashs = hash(funcs + modules)
         if hashs not in self.__sfuncHM:
             sources = [self.__get_source(func) for func in funcs]
-            self.__sfuncHM[hashs] = pickle.dumps(
+            self.__sfuncHM[hashs] = cloudpickle.dumps(
                     (funcs[0].func_name, sources, modules),
                     self.__pickle_proto)
         return self.__sfuncHM[hashs]

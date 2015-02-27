@@ -12,11 +12,12 @@ warnings.simplefilter('default',DeprecationWarning)
 #External Modules---------------------------------------------------------------------
 import numpy as np
 import scipy.special.orthogonal as quads
-from scipy.fftpack import ifft
-from scipy.misc import factorial
-from itertools import product
-from collections import OrderedDict as OrdDict
-from operator import itemgetter
+import scipy.fftpack as fftpack
+import scipy.misc as misc
+import itertools
+import collections #.OrderedDict as collections.OrderedDict
+import operator #.operator.itemgetter as operator.itemgetter
+import inspect
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
@@ -41,7 +42,13 @@ class SparseQuad(object):
     self.varNames = []   #array of names, in order of distDict.keys()
     self.N        = None #dimensionality of input space
     self.SG       = None #dict{ (point,point,point): weight}
-
+    self.mods     = []
+    for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
+      if inspect.ismodule(value) or inspect.ismethod(value):
+        if key != value.__name__: 
+          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
+          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+        else: self.mods.append(str(key))
   ##### OVERWRITTEN BUILTINS #####
   def __getitem__(self,n):
     '''Returns the point and weight for entry 'n'.
@@ -108,6 +115,7 @@ class SparseQuad(object):
     self.__init__()
     self.indexSet = pdict.pop('indexSet')
     self.distDict = pdict.pop('distDict')
+    self.quadDict = pdict.pop('quadDict') # it was missing. Andrea
     self.varNames = pdict.pop('names')
     points        = pdict.pop('points')
     weights       = pdict.pop('weights')
@@ -178,9 +186,9 @@ class SparseQuad(object):
     newlists = list(oldDict[name] for name in newNames)
     #sort new list
     newptwt = list( list(pt)+[wts[p]] for p,pt in enumerate(zip(*newlists)))
-    newptwt.sort(key=itemgetter(*range(len(newptwt[0]))))
+    newptwt.sort(key=operator.itemgetter(*range(len(newptwt[0]))))
     #recompile as ordered dict
-    newSG=OrdDict()
+    newSG=collections.OrderedDict()
     for combo in newptwt:
       newSG[tuple(combo[:-1])]=combo[-1] #weight is last entry
     self.oldsg.append(self.SG) #FIXME this could be expensive if not needed
@@ -231,6 +239,7 @@ class SparseQuad(object):
     self.varNames = self.distDict.keys()
     self.N        = len(self.varNames)
     #we know how this ends if it's tensor product index set
+
     if indexSet.type=='Tensor Product':
       self.c=[1]
       self.indexSet=[self.indexSet[-1]]
@@ -242,7 +251,7 @@ class SparseQuad(object):
       survive = np.nonzero(self.c!=0)
       self.c=self.c[survive]
       self.indexSet=self.indexSet[survive]
-    self.SG=OrdDict() #keys on points, values on weights
+    self.SG=collections.OrderedDict() #keys on points, values on weights
     if handler!=None: self.parallelSparseQuadGen(handler)
     else:
       for j,cof in enumerate(self.c):
@@ -251,7 +260,7 @@ class SparseQuad(object):
         new = self.tensorGrid((m,idx))
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
-          newwt=new[1][i]*self.c[j]
+          newwt=new[1][i]*cof
           if newpt in self.SG.keys():
             self.SG[newpt]+=newwt
           else:
@@ -279,20 +288,20 @@ class SparseQuad(object):
           new = job.returnEvaluation()[1]
           for i in range(len(new[0])):
             newpt = tuple(new[0][i])
-            newwt = new[1][i]*float(job.identifier)
+            newwt = new[1][i]*float(str(job.identifier).replace("_tensor", ""))
             if newpt in self.SG.keys():
               self.SG[newpt]+= newwt
             else:
               self.SG[newpt] = newwt
         else:
-          print(self.printTag+': Sparse quad generation',job.identifier,'failed...')
+          print(self.printTag+': Sparse quad generation (tensor)',job.identifier,'failed...')
       if j<numRunsNeeded-1:
         for k in range(min(numRunsNeeded-1-j,handler.howManyFreeSpots())):
           j+=1
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(cof))
+          handler.submitDict['Internal']((m,idx),self.tensorGrid,str(cof)+"_tensor",modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
@@ -334,7 +343,7 @@ class SparseQuad(object):
 #    #TODO FIXME or just remove me.
 #    print('WARNING: serialMakeCoeffs may be broken.  smarterMakeCoeffs is better.')
 #    self.c=np.zeros(len(self.indexSet))
-#    jIter = product([0,1],repeat=self.N) #all possible combinations in the sum
+#    jIter = itertools.product([0,1],repeat=self.N) #all possible combinations in the sum
 #    for jx in jIter: #from here down goes in the paralellized bit
 #      for i,ix in enumerate(self.indexSet):
 #        ix = np.array(ix)
@@ -372,22 +381,25 @@ class SparseQuad(object):
       finishedJobs = handler.getFinished()
       for job in finishedJobs:
         if job.getReturnCode() == 0:
-          self.c[int(job.identifier)]=job.returnEvaluation()[1]
+          self.c[int(str(job.identifier).replace("_makeSingleCoeff", ""))]=job.returnEvaluation()[1]
         else:
           print(self.printTag+': Sparse grid index',job.identifier,'failed...')
       if i<N-1: #load new inputs, up to 100 at a time
         for k in range(min(handler.howManyFreeSpots(),N-1-i)):
           i+=1
-          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),self.makeSingleCoeff,str(i))
+          handler.submitDict['Internal']((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,str(i)+"_makeSingleCoeff",modulesToImport = self.mods)
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:break
 
-  def makeSingleCoeff(self,arglist):
+  def makeSingleCoeff(self,N,i,idx,iSet):
     '''Batch-style algorithm to calculate a single coefficient
-    @ In arglist, tuple(int,int,tuple(int),IndexSet), required arguments
+    @ In N, tinteger, required arguments
+    @ In i, integer, required arguments
+    @ In idx, tuple(int), required arguments
+    @ In iSet, integer, required arguments
     @ Out, float, coefficient for subtensor i
     '''
-    N,i,idx,iSet = arglist
+    #N,i,idx,iSet = arglist
     c=1
     for j in range(i+1,N):
       jdx = iSet[j]
@@ -396,12 +408,13 @@ class SparseQuad(object):
         c += (-1)**sum(d)
     return c
 
-  def tensorGrid(self,args):
-    '''Creates a tensor product of quadrature points.
-    @ In args, tuple(int,tuple(int)), number points and index set point
+  def tensorGrid(self, m, idx):
+    '''Creates a tensor itertools.product of quadrature points.
+    @ In m, integer, number points
+    @ In idx, integer, index set point
     @ Out tuple(tuple(float),float), requisite points and weights
     '''
-    m,idx = args
+    #m,idx = args
     pointLists=[]
     weightLists=[]
     for n,distr in enumerate(self.distDict.values()):
@@ -413,8 +426,8 @@ class SparseQuad(object):
       pts = distr.convertToDistr(quad.type,pts)
       pointLists.append(pts)
       weightLists.append(wts)
-    points = list(product(*pointLists))
-    weights= list(product(*weightLists))
+    points = list(itertools.product(*pointLists))
+    weights= list(itertools.product(*weightLists))
     for k,wtset in enumerate(weights):
       weights[k]=np.product(wtset)
     #print('DEBUG idx',idx)
@@ -533,7 +546,7 @@ class ClenshawCurtis(QuadratureSet):
       C[::2,0] = 2/np.hstack((1,1-k*k))
       C[1,1]=-n
       V = np.vstack((C,np.flipud(C[1:n,:])))
-      F = np.real(ifft(V,n=None,axis=0))
+      F = np.real(fftpack.ifft(V,n=None,axis=0))
       x = F[0:n1,1]
       w = np.hstack((F[0,0],2*F[1:n,0],F[n,0]))
     return x,w
@@ -563,6 +576,23 @@ def GaussQuadRule(i):
   '''
   return i
 
+
+def makeSingleCoeff(N,i,idx,iSet):
+  '''Batch-style algorithm to calculate a single coefficient
+  @ In N, tinteger, required arguments
+  @ In i, integer, required arguments
+  @ In idx, tuple(int), required arguments
+  @ In iSet, integer, required arguments
+  @ Out, float, coefficient for subtensor i
+  '''
+  #N,i,idx,iSet = arglist
+  c=1
+  for j in range(i+1,N):
+    jdx = iSet[j]
+    d = jdx-idx
+    if all(np.logical_and(d>=0,d<=1)):
+      c += (-1)**sum(d)
+  return c
 
 '''
  Interface Dictionary (factory) (private)

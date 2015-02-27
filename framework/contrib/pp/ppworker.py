@@ -32,7 +32,9 @@ forums
 import sys
 import os
 import StringIO
+#import dill as pickle
 import cPickle as pickle
+from cloud.serialization import cloudpickle
 import pptransport
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"
@@ -49,7 +51,7 @@ def preprocess(msg):
             exec module
             globals().update(locals())
         except:
-            print "An error has occured during the module import"
+            print "An error has occured during the module import. Module " + module 
             sys.excepthook(*sys.exc_info())
     return fname, fobjs
 
@@ -84,7 +86,6 @@ class _WorkerProcess(object):
                         sys.excepthook(*sys.exc_info())
 
                 __args = pickle.loads(__sargs)
-            
                 __f = locals()[__fname]
                 try:
                     __result = __f(*__args)
@@ -93,7 +94,7 @@ class _WorkerProcess(object):
                     sys.excepthook(*sys.exc_info())
                     __result = None
 
-                __sresult = pickle.dumps((__result, self.sout.getvalue()),
+                __sresult = cloudpickle.dumps((__result, self.sout.getvalue()),
                         self.pickle_proto)
 
                 self.t.send(__sresult)
@@ -102,7 +103,7 @@ class _WorkerProcess(object):
             print "A fatal error has occured during the function execution"
             sys.excepthook(*sys.exc_info())
             __result = None
-            __sresult = pickle.dumps((__result, self.sout.getvalue()),
+            __sresult = cloudpickle.dumps((__result, self.sout.getvalue()),
                     self.pickle_proto)
             self.t.send(__sresult)
 

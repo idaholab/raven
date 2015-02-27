@@ -12,9 +12,15 @@ import os
 import copy
 import shutil
 import numpy as np
-from utils import metaclass_insert, returnPrintTag, returnPrintPostTag
 import abc
 import importlib
+import inspect
+import sys
+# to be removed
+from scipy import spatial
+# to be removed
+
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -23,10 +29,15 @@ from Assembler import Assembler
 import SupervisedLearning
 import PostProcessors #import returnFilterInterface
 #import Samplers
-from CustomCommandExecuter import execCommand
+import CustomCommandExecuter
+import utils
+#copy_reg.pickle(types.MethodType, utils._pickle_method, utils._unpickle_method)
+#copy_reg.pickle(np.int64, utils._pickle_method, utils._unpickle_method)
+#from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, Object
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Model(metaclass_insert(abc.ABCMeta,BaseType)):
+class Model(BaseType):
+#class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   '''
   A model is something that given an input will return an output reproducing some physical model
   it could as complex as a stand alone code, a reduced order model trained somehow or something
@@ -131,13 +142,23 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     BaseType.__init__(self)
     self.subType  = ''
     self.runQueue = []
-    self.printTag = returnPrintTag('MODEL')
+    self.printTag = utils.returnPrintTag('MODEL')
+    self.mods     = []
+    for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
+      if inspect.ismodule(value) or inspect.ismethod(value):
+        if key != value.__name__: 
+          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
+          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+        else: self.mods.append(str(key))
+#     for mod in sys.modules.keys(): 
+#       if not mod.startswith("_"): self.mods.append(str(mod.split(".")[0]))
+    self.globs    = {}
 
   def _readMoreXML(self,xmlNode):
     try: self.subType = xmlNode.attrib['subType']
     except KeyError:
-      print(self.printTag+": " +returnPrintPostTag('ERROR') + "-> Failed in Node: ",xmlNode)
-      raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> missed subType for the model '+self.name)
+      print(self.printTag+": " +utils.returnPrintPostTag('ERROR') + "-> Failed in Node: ",xmlNode)
+      raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> missed subType for the model '+self.name)
     del(xmlNode.attrib['subType'])
 
   def localInputAndChecks(self,xmlNode):
@@ -187,7 +208,7 @@ class Model(metaclass_insert(abc.ABCMeta,BaseType)):
     '''
     #if a addOutput is present in nameSpace of storeTo it is used
     if 'addOutput' in dir(storeTo): storeTo.addOutput(collectFrom)
-    else                          : raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The place where to store the output has not a addOutput method')
+    else                          : raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The place where to store the output has not a addOutput method')
 #
 #
 #
@@ -200,7 +221,9 @@ class Dummy(Model):
     Model.__init__(self)
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
-    self.printTag = returnPrintTag('MODEL DUMMY')
+    self.printTag = utils.returnPrintTag('MODEL DUMMY')
+    #self.globs['np'] = np.__name__
+    
   @classmethod
   def specializeValidateDict(cls):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
@@ -210,16 +233,16 @@ class Dummy(Model):
     cls.validateDict['Output'][0]['type'        ] = ['TimePoint','TimePointSet']
 
   def _manipulateInput(self,dataIn):
-    if len(dataIn)>1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one input is accepted by the model type '+self.type+' with name '+self.name)
+    if len(dataIn)>1: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Only one input is accepted by the model type '+self.type+' with name '+self.name)
     if type(dataIn[0])!=tuple: inRun = self._inputToInternal(dataIn[0]) #this might happen when a single run is used and the input it does not come from self.createNewInput
     else:                      inRun = dataIn[0][0]
     return inRun
 
   def _inputToInternal(self,dataIN,full=False):
     '''Transform it in the internal format the provided input. dataIN could be either a dictionary (then nothing to do) or one of the admitted data'''
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('FIXME') + '-> wondering if a dictionary compatibility should be kept')
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('FIXME') + '-> wondering if a dictionary compatibility should be kept')
     if  type(dataIN)!=dict:
-      if dataIN.type not in self.admittedData: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> type '+dataIN.type+' is not compatible with the ROM '+self.name)
+      if dataIN.type not in self.admittedData: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type '+dataIN.type+' is not compatible with the ROM '+self.name)
     if full==True:  length = 0
     if full==False: length = -1
     localInput = {}
@@ -241,13 +264,13 @@ class Dummy(Model):
     For a TimePoint all value are copied, for a TimePointSet only the last set of entry
     The copied values are returned as a dictionary back
     '''
-    if len(myInput)>1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Only one input is accepted by the model type '+self.type+' with name'+self.name)
+    if len(myInput)>1: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Only one input is accepted by the model type '+self.type+' with name'+self.name)
     inputDict = self._inputToInternal(myInput[0])
     #test if all sampled variables are in the inputs category of the data
     if set(list(Kwargs['SampledVars'].keys())+list(inputDict.keys())) != set(list(inputDict.keys())):
-      raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
+      raise IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> When trying to sample the input for the model '+self.name+' of type '+self.type+' the sampled variable are '+str(Kwargs['SampledVars'].keys())+' while the variable in the input are'+str(inputDict.keys()))
     for key in Kwargs['SampledVars'].keys(): inputDict[key] = np.atleast_1d(Kwargs['SampledVars'][key])
-    if None in inputDict.values(): raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
+    if None in inputDict.values(): raise IOError (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> While preparing the input for the model '+self.type+' with name '+self.name+' found an None input variable '+ str(inputDict.items()))
     #the inputs/outputs should not be store locally since they might be used as a part of a list of input for the parallel runs
     #same reason why it should not be used the value of the counter inside the class but the one returned from outside as a part of the input
     return [(inputDict)],copy.copy(Kwargs)
@@ -261,12 +284,16 @@ class Dummy(Model):
     '''
     #this set of test is performed to avoid that if used in a single run we come in with the wrong input structure since the self.createNewInput is not called
     inRun = self._manipulateInput(Input[0])
-    lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
-    jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
+    def lambdaReturnOut(inRun,prefix): return {'OutputPlaceHolder':np.atleast_1d(np.float(prefix))}
+    #lambdaReturnOut = lambda inRun: {'OutputPlaceHolder':np.atleast_1d(np.float(Input[1]['prefix']))}
+    jobHandler.submitDict['Internal']((inRun,Input[1]['prefix']),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1], modulesToImport = self.mods, globs = self.globs)
 
   def collectOutput(self,finishedJob,output):
-    if finishedJob.returnEvaluation() == -1: raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "-> No available Output to collect (Run probabably is not finished yet)")
-    exportDict = {'input_space_params':finishedJob.returnEvaluation()[0],'output_space_params':finishedJob.returnEvaluation()[1],'metadata':finishedJob.returnMetadata()}
+    if finishedJob.returnEvaluation() == -1: raise Exception(self.printTag+": " +utils.returnPrintPostTag('ERROR') + "-> No available Output to collect (Run probabably is not finished yet)")
+    evaluation = finishedJob.returnEvaluation()
+    if type(evaluation[1]).__name__ == "tuple": outputeval = evaluation[1][0]
+    else                                      : outputeval = evaluation[1]
+    exportDict = {'input_space_params':evaluation[0],'output_space_params':outputeval,'metadata':finishedJob.returnMetadata()}
     if output.type == 'HDF5': output.addGroupDatas({'group':self.name+str(finishedJob.identifier)},exportDict,False)
     else:
       for key in exportDict['input_space_params' ] :
@@ -292,7 +319,7 @@ class ROM(Dummy):
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.howManyTargets            = 0          # how many targets?
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
-    self.printTag = returnPrintTag('MODEL ROM')
+    self.printTag = utils.returnPrintTag('MODEL ROM')
 
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
@@ -308,13 +335,24 @@ class ROM(Dummy):
           except ValueError: self.initializationOptionDict[child.tag] = child.text
     #the ROM is instanced and initialized
     # check how many targets
-    if not 'Target' in self.initializationOptionDict.keys(): raise IOError(self.printTag + ': ' +returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
+    if not 'Target' in self.initializationOptionDict.keys(): raise IOError(self.printTag + ': ' +utils.returnPrintPostTag('ERROR') + '-> No Targets specified!!!')
     targets = self.initializationOptionDict['Target'].split(',')
     self.howManyTargets = len(targets)
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
-
+    globs = dict(inspect.getmembers(self.SupervisedEngine.values()[0]))
+    globs.update(dict(inspect.getmembers(SupervisedLearning)))
+    for key, value in globs.items():
+      if inspect.ismodule(value) or inspect.ismethod(value):
+        if key != value.__name__: 
+          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
+          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+        else: self.mods.append(str(key))
+  
+#     for key, value in globs.items():
+#       if type(value).__name__ == "module" or type(value).__name__ == "function": self.globs[key] = str(value.__name__)
+    
   def reset(self):
     '''
     Reset the ROM
@@ -371,16 +409,16 @@ class ROM(Dummy):
     inputToROM = self._inputToInternal(request)
     if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
     else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
+  
+  def __externalRun(self,inRun):
+    returnDict = {}
+    for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
+    return returnDict  
 
   def run(self,Input,jobHandler):
     '''This call run a ROM as a model'''
-    def lambdaReturnOut(inRun):
-      returnDict = {}
-      for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
-      return returnDict
     inRun = self._manipulateInput(Input[0])
-    #print(inRun)
-    jobHandler.submitDict['Internal']((inRun,),lambdaReturnOut,str(Input[1]['prefix']),metadata=Input[1])
+    jobHandler.submitDict['Internal']((inRun,),self.__externalRun,str(Input[1]['prefix']),metadata=Input[1],modulesToImport=self.mods, globs = self.globs)
 #
 #
 #
@@ -389,8 +427,7 @@ class ExternalModel(Dummy):
   @classmethod
   def specializeValidateDict(cls):
     #one data is needed for the input
-    print('FIXME: think about how to import the roles to allowed class for the external model. For the moment we have just all')
-
+    print('FIXME: think about how to import the roles to allowed class for the external model. For the moment we have just all')  
   def __init__(self):
     '''
     Constructor
@@ -398,13 +435,13 @@ class ExternalModel(Dummy):
     @ Out, None
     '''
     Dummy.__init__(self)
-    self.modelVariableValues      = {}                                                                                                        # dictionary of variable values for the external module imported at runtime
-    self.modelVariableType        = {}                                                                                                        # dictionary of variable types, used for consistency checks
-    self.__availableVariableTypes = ['float','bool','int','ndarray','float16','float32','float64','float128','int16','int32','int64','bool8'] # available data types
-    self.__availableVariableTypes = self.__availableVariableTypes + ['numpy.'+item for item in self.__availableVariableTypes]                 # as above
-    self.printTag                 = returnPrintTag('MODEL EXTERNAL')                                                                          # print tag
-    class Object(object):pass
-    self.initExtSelf              = Object()                                                                                                  # object used as "self" for external module imported at runtime
+    self.sim                      = None
+    self.modelVariableValues      = {}                                                                                                       # dictionary of variable values for the external module imported at runtime
+    self.modelVariableType        = {}                                                                                                       # dictionary of variable types, used for consistency checks
+    self._availableVariableTypes = ['float','bool','int','ndarray','float16','float32','float64','float128','int16','int32','int64','bool8'] # available data types
+    self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
+    self.printTag                 = utils.returnPrintTag('MODEL EXTERNAL')                                                                   # print tag
+    self.initExtSelf              = utils.Object()                                                                                           # object used as "self" for external module imported at runtime
 
   def initialize(self,runInfo,inputs,initDict=None):
     '''
@@ -415,6 +452,15 @@ class ExternalModel(Dummy):
     '''
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
+    globs = dict(inspect.getmembers(self.sim))
+    for key, value in globs.items():
+      if inspect.ismodule(value) or inspect.ismethod(value):
+        if key != value.__name__: 
+          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
+          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+        else: self.mods.append(str(key))
+#     for key, value in globs.items():
+#       if type(value).__name__ == "module" or type(value).__name__ == "function": self.globs[key] = str(value.__name__)
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''
@@ -427,7 +473,7 @@ class ExternalModel(Dummy):
     for key in Kwargs['SampledVars'].keys(): modelVariableValues[key] = Kwargs['SampledVars'][key]
     if 'createNewInput' in dir(self.sim):
       extCreateNewInput = self.sim.createNewInput(self,myInput,samplerType,**Kwargs)
-      if extCreateNewInput== None: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
+      if extCreateNewInput== None: raise Exception(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       return ([(extCreateNewInput)],copy.copy(Kwargs)),copy.copy(modelVariableValues)
     else: return Dummy.createNewInput(self, myInput,samplerType,**Kwargs),copy.copy(modelVariableValues)
 
@@ -443,45 +489,45 @@ class ExternalModel(Dummy):
         abspath = os.path.abspath(os.path.split(str(xmlNode.attrib['ModuleToLoad']))[0])
         if '~' in abspath:abspath = os.path.expanduser(abspath)
         if os.path.exists(abspath): os.sys.path.append(abspath)
-        else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> The path provided for the external model does not exist!!! Got: ' + abspath)
-    else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> ModuleToLoad not provided for module externalModule')
+        else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The path provided for the external model does not exist!!! Got: ' + abspath)
+    else: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> ModuleToLoad not provided for module externalModule')
     # load the external module and point it to self.sim
     self.sim=__import__(self.ModuleToLoad)
     # check if there are variables and, in case, load them
     for son in xmlNode:
       if son.tag=='variable':
-        if len(son.attrib.keys()) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
+        if len(son.attrib.keys()) > 0: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> the block '+son.tag+' named '+son.text+' should not have attributes!!!!!')
         self.modelVariableType[son.text] = None
     # check if there are other information that the external module wants to load
     if '_readMoreXML' in dir(self.sim): self.sim._readMoreXML(self,xmlNode)
 
-  def __externalRun(self, Input):
+  def __externalRun(self, Input, modelVariables):
     '''
     Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
     @ In, Input, list, list of the inputs needed for running the model
     '''
-    class Object(object):pass
-    externalSelf        = Object()
-    for key,value in self.initExtSelf.__dict__.items(): execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
+    externalSelf        = utils.Object()
+    #self.sim=__import__(self.ModuleToLoad)
+    for key,value in self.initExtSelf.__dict__.items(): CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
     modelVariableValues = {}
     for key in self.modelVariableType.keys(): modelVariableValues[key] = None
-    for key in Input[1].keys(): modelVariableValues[key] = copy.copy(Input[1][key])
+    for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
     if 'createNewInput' not in dir(self.sim):
-      for key in Input[0].keys(): modelVariableValues[key] = copy.copy(Input[0][key])
-      for key in self.modelVariableType.keys() : execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
-    self.sim.run(externalSelf, Input[0])
-    for key in self.modelVariableType.keys()   : execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
-    for key in self.initExtSelf.__dict__.keys(): execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
+      for key in Input.keys(): modelVariableValues[key] = copy.copy(Input[key])
+      for key in self.modelVariableType.keys() : CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
+    self.sim.run(externalSelf, Input)
+    for key in self.modelVariableType.keys()   : CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
+    for key in self.initExtSelf.__dict__.keys(): CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():
       errorfound = False
       for key in self.modelVariableType.keys():
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
-        if self.modelVariableType[key] not in self.__availableVariableTypes:
-          if not errorfound: print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unsupported type found. Available ones are: '+ str(self.__availableVariableTypes).replace('[','').replace(']', ''))
+        if self.modelVariableType[key] not in self._availableVariableTypes:
+          if not errorfound: print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Unsupported type found. Available ones are: '+ str(self._availableVariableTypes).replace('[','').replace(']', ''))
           errorfound = True
-          print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key])
-      if errorfound: raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Errors detected. See above!!')
-    return copy.copy(modelVariableValues)
+          print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key])
+      if errorfound: raise RuntimeError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Errors detected. See above!!')
+    return copy.copy(modelVariableValues),self
 
   def run(self,Input,jobHandler):
     '''
@@ -490,7 +536,7 @@ class ExternalModel(Dummy):
     @ In, jobHandler, jobHandler object, jobhandler instance
     '''
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
-    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1])
+    jobHandler.submitDict['Internal']((inRun,Input[1],),self.__externalRun,str(Input[0][1]['prefix']),metadata=Input[0][1], modulesToImport = self.mods, globs = self.globs)
 
   def collectOutput(self,finishedJob,output):
     '''
@@ -498,14 +544,17 @@ class ExternalModel(Dummy):
     @ In, finishedJob, InternalRunner object, instance of the run just finished
     @ In, output, "Datas" object, output where the results of the calculation needs to be stored
     '''
-    if finishedJob.returnEvaluation() == -1: raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "-> No available Output to collect (Run probabably is not finished yet)")
+    if finishedJob.returnEvaluation() == -1: raise Exception(self.printTag+": " +utils.returnPrintPostTag('ERROR') + "-> No available Output to collect (Run probabably is not finished yet)")
     def typeMatch(var,var_type_str):
       type_var = type(var)
       return type_var.__name__ == var_type_str or \
         type_var.__module__+"."+type_var.__name__ == var_type_str
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    for key in finishedJob.returnEvaluation()[1]:
-      if not (typeMatch(finishedJob.returnEvaluation()[1][key],self.modelVariableType[key])): raise RuntimeError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> type of variable '+ key + ' is ' + str(type(finishedJob.returnEvaluation()[1][key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
+    instanciatedSelf = finishedJob.returnEvaluation()[1][1]
+    outcomes         = finishedJob.returnEvaluation()[1][0]
+    for key in finishedJob.returnEvaluation()[1][0]:
+      if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])): 
+        raise RuntimeError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)
 #
 #
@@ -529,7 +578,7 @@ class Code(Model):
     #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
     #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
     self.alias              = {}
-    self.printTag = returnPrintTag('MODEL CODE')
+    self.printTag = utils.returnPrintTag('MODEL CODE')
 
   def _readMoreXML(self,xmlNode):
     '''extension of info to be read for the Code(model)
@@ -541,15 +590,15 @@ class Code(Model):
       elif child.tag =='alias':
         # the input would be <alias variable='internal_variable_name'>Material|Fuel|thermal_conductivity</alias>
         if 'variable' in child.attrib.keys(): self.alias[child.attrib['variable']] = child.text
-        else: raise Exception (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
+        else: raise Exception (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the attribute variable in the definition of one of the alias for code model '+str(self.name))
       elif child.tag == 'flags': self.codeFlags = child.text
-      else: raise Exception (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> unknown tag within the definition of the code model '+str(self.name))
-    if self.executable == '': raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not found the node <executable> in the body of the code model '+str(self.name))
+      else: raise Exception (self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> unknown tag within the definition of the code model '+str(self.name))
+    if self.executable == '': raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found the node <executable> in the body of the code model '+str(self.name))
     if '~' in self.executable: self.executable = os.path.expanduser(self.executable)
     abspath = os.path.abspath(self.executable)
     if os.path.exists(abspath):
       self.executable = abspath
-    else: print(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not found executable '+self.executable)
+    else: print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found executable '+self.executable)
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
 
   def addInitParams(self,tempDict):
@@ -572,10 +621,10 @@ class Code(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try: os.mkdir(self.workingDir)
-    except OSError: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except OSError: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     for inputFile in inputFiles: shutil.copy(inputFile,self.workingDir)
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> original input files copied in the current working dir: '+self.workingDir)
-    if self.debug: print(self.printTag+': ' +returnPrintPostTag('Message') + '-> files copied:')
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> original input files copied in the current working dir: '+self.workingDir)
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> files copied:')
     if self.debug: print(inputFiles)
     self.oriInputFiles = []
     for i in range(len(inputFiles)): self.oriInputFiles.append(os.path.join(self.workingDir,os.path.split(inputFiles[i])[1]))
@@ -600,7 +649,7 @@ class Code(Model):
     jobHandler.submitDict['External'](executeCommand,self.outFileRoot,jobHandler.runInfoDict['TempWorkingDir'],metadata=inputFiles[1])
     for index, inputFile in enumerate(self.currentInputFiles):
       if inputFile.endswith(('.i','.inp','.in')): break
-    print(self.printTag+ ': ' +returnPrintPostTag('Message') + '-> job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
+    print(self.printTag+ ': ' +utils.returnPrintPostTag('Message') + '-> job "'+ self.currentInputFiles[index].split('/')[-1].split('.')[-2] +'" submitted!')
 
   def collectOutput(self,finisishedjob,output):
     '''collect the output file in the output object'''
@@ -627,7 +676,7 @@ class Projector(Model):
 
   def __init__(self):
     Model.__init__(self)
-    self.printTag = returnPrintTag('MODEL PROJECTOR')
+    self.printTag = utils.returnPrintTag('MODEL PROJECTOR')
 
   def _readMoreXML(self,xmlNode):
     Model._readMoreXML(self, xmlNode)
@@ -645,7 +694,7 @@ class Projector(Model):
     self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     try:                   os.mkdir(self.workingDir)
-    except AttributeError: print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
+    except AttributeError: print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '-> current working dir '+self.workingDir+' already exists, this might imply deletion of present files')
     return
 
   def run(self,inObj,outObj):
@@ -705,7 +754,7 @@ class PostProcessor(Model, Assembler):
     self.input  = {}     # input source
     self.action = None   # action
     self.workingDir = ''
-    self.printTag = returnPrintTag('MODEL POSTPROCESSOR')
+    self.printTag = utils.returnPrintTag('MODEL POSTPROCESSOR')
 
   def whatDoINeed(self):
     '''
@@ -742,15 +791,30 @@ class PostProcessor(Model, Assembler):
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
+    #globs = dict(inspect.getmembers(self.interface))
+    globs = dict(inspect.getmembers(PostProcessors))
+    for key, value in globs.items():
+      if inspect.ismodule(value) or inspect.ismethod(value):
+        if key != value.__name__: 
+          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
+          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+        else: self.mods.append(str(key))
+#     for key, value in globs.items():
+#       if inspect.ismodule(value) and not key.startswith("_"): #(value) type(value).__name__ == "module": 
+#         self.globs[key] = str(value.__name__)
+#       if inspect.isfunction(value) and not key.startswith("_"):
+#         self.globs[key] = str(os.path.basename(inspect.getsourcefile(value)).replace(".py",""))
+
+
 
   def run(self,Input,jobHandler):
     '''run calls the interface finalizer'''
     if len(Input) > 0 :
-      lumbdaToRun = lambda x: self.interface.run(x)
-      jobHandler.submitDict['Internal'](((Input),),lumbdaToRun,str(0))
+#      lumbdaToRun = lambda x: self.interface.run(x)
+      jobHandler.submitDict['Internal']((Input,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
     else:
-      lumbdaToRun = lambda x: self.interface.run(x)
-      jobHandler.submitDict['Internal'](((None),),lumbdaToRun,str(0))
+#      lumbdaToRun = lambda x: self.interface.run(x)
+      jobHandler.submitDict['Internal']((None,),self.interface.run,str(0),modulesToImport = self.mods, globs = self.globs)
 
   def collectOutput(self,finishedjob,output):
     self.interface.collectOutput(finishedjob,output)
