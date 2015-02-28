@@ -25,6 +25,7 @@ import os
 #Internal Modules------------------------------------------------------------------------------------
 import Datas
 from utils import returnPrintTag, returnPrintPostTag, interpolateFunction
+from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
 # set a global variable for backend default setting
@@ -238,7 +239,7 @@ class OutStreamPlot(OutStreamManager):
         for i in range(len(self.xCoordinates [pltindex])):
           xsplit = self.__splitVariableNames('x', (pltindex,i))
           parame = self.sourceData[pltindex].getParam(xsplit[1],xsplit[2],nodeid='ending')
-          if type(parame) == np.ndarray: self.xValues[pltindex][1].append(np.asarray(parame))
+          if type(parame) in [np.ndarray,c1darray]: self.xValues[pltindex][1].append(np.asarray(parame))
           else:
             conarr = np.zeros(len(parame.keys()))
             index = 0
@@ -248,7 +249,7 @@ class OutStreamPlot(OutStreamManager):
           for i in range(len(self.yCoordinates [pltindex])):
             ysplit = self.__splitVariableNames('y', (pltindex,i))
             parame = self.sourceData[pltindex].getParam(ysplit[1],ysplit[2],nodeid='ending')
-            if type(parame) == np.ndarray: self.yValues[pltindex][1].append(np.asarray(parame))
+            if type(parame) in [np.ndarray,c1darray]: self.yValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
               index = 0
@@ -258,7 +259,7 @@ class OutStreamPlot(OutStreamManager):
           for i in range(len(self.zCoordinates [pltindex])):
             zsplit = self.__splitVariableNames('z', (pltindex,i))
             parame = self.sourceData[pltindex].getParam(zsplit[1],zsplit[2],nodeid='ending')
-            if type(parame) == np.ndarray: self.zValues[pltindex][1].append(np.asarray(parame))
+            if type(parame) in [np.ndarray,c1darray]: self.zValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
               for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
@@ -267,7 +268,7 @@ class OutStreamPlot(OutStreamManager):
           for i in range(len(self.colorMapCoordinates[pltindex])):
             zsplit = self.__splitVariableNames('colorMap', (pltindex,i))
             parame = self.sourceData[pltindex].getParam(zsplit[1],zsplit[2])
-            if type(parame) == np.ndarray: self.colorMapValues[pltindex][1].append(np.asarray(parame))
+            if type(parame) in [np.ndarray,c1darray]: self.colorMapValues[pltindex][1].append(np.asarray(parame))
             else:
               conarr = np.zeros(len(parame.keys()))
               for index in range(len(parame.values())): conarr[index] = parame.values()[index][0]
@@ -286,6 +287,7 @@ class OutStreamPlot(OutStreamManager):
           if self.colorMapCoordinates[pltindex] != None: self.colorMapValues[pltindex][cnt] = []
           for i in range(len(self.xCoordinates [pltindex])):
             xsplit = self.__splitVariableNames('x', (pltindex,i))
+            a = self.sourceData[pltindex].getParam(xsplit[1],cnt+1,nodeid='RecontructEnding')
             self.xValues[pltindex][cnt].append(np.asarray(self.sourceData[pltindex].getParam(xsplit[1],cnt+1,nodeid='RecontructEnding')[xsplit[2]]))
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltindex])):

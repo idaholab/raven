@@ -29,7 +29,6 @@ from JobHandler import JobHandler
 from utils import returnPrintTag,returnPrintPostTag,convertMultipleToBytes,stringsThatMeanTrue,stringsThatMeanFalse
 #Internal Modules End--------------------------------------------------------------------------------
 
-
 #----------------------------------------------------------------------------------------------------
 class SimulationMode:
   """SimulationMode allows changes to the how the simulation
@@ -73,12 +72,15 @@ class SimulationMode:
 def createAndRunQSUB(simulation):
   """Generates a PBS qsub command to run the simulation"""
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-  batchSize = simulation.runInfoDict['batchSize']
+  #while true, this is not the number that we want to select
+  coresNeeded = simulation.runInfoDict['batchSize']*simulation.runInfoDict['NumMPI']
+  #batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
+  jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub'
   #Generate the qsub command needed to run input
-  command = ["qsub","-l",
-             "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
+  command = ["qsub","-N",jobName,"-l",
+             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
@@ -120,6 +122,7 @@ class PBSDSHSimulationMode(SimulationMode):
         print(self.printTag+": " +returnPrintPostTag('Warning') + " -> changing batchsize from",oldBatchsize,"to",newBatchsize)
       print(self.printTag+": Message -> Using Nodefile to set batchSize:",self.__simulation.runInfoDict['batchSize'])
       #Add pbsdsh command to run.  pbsdsh runs a command remotely with pbs
+      print('DEBUG precommand',self.printTag,self.__simulation.runInfoDict['precommand'])
       self.__simulation.runInfoDict['precommand'] = "pbsdsh -v -n %INDEX1% -- %FRAMEWORK_DIR%/raven_remote.sh out_%CURRENT_ID% %WORKING_DIR% "+ str(self.__simulation.runInfoDict['logfileBuffer'])+" "+self.__simulation.runInfoDict['precommand']
       self.__simulation.runInfoDict['logfilePBS'] = 'out_%CURRENT_ID%'
       if(self.__simulation.runInfoDict['NumThreads'] > 1):
@@ -401,9 +404,16 @@ class Simulation(object):
       else: raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> the '+child.tag+' is not among the known simulation components '+ET.tostring(child))
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The step list: '+str(self.stepSequenceList)+' contains steps that have no bee declared: '+str(list(self.stepsDict.keys())))
+    # For StochasticPolynomials, the SamplingROM will act as both a Sampler and a Model, but is only initialized in the XML as a Sampler.
+    # Here, we add the SamplingROM to the Models dictionary under the same name so the step will be consistent and the user won't have to
+    # list it as a Model in the input.
+    for name,samplingROM in self.whichDict['Samplers'].items():
+      if samplingROM.type in ['StochasticPolynomials','AdaptiveStochasticPolynomials']:
+        self.whichDict['Models'][name] = samplingROM
+    # it's a ROM really.
 
   def initialize(self):
-    '''check/created working directory, check/set up the parallel environment'''
+    '''check/created working directory, check/set up the parallel environment, call step consistency checker'''
     #check/generate the existence of the working directory
     #print(self.runInfoDict['WorkingDir'])
     if not os.path.exists(self.runInfoDict['WorkingDir']): os.makedirs(self.runInfoDict['WorkingDir'])
@@ -435,12 +445,15 @@ class Simulation(object):
       if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
         raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
       if name not in list(self.whichDict[myClass].keys()):
+        print('name:',name)
+        print('list:',list(self.whichDict[myClass].keys()))
         print(self.whichDict[myClass])
         raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
       if myClass!= 'Files':  # check if object type is consistent
         objtype = self.whichDict[myClass][name].type
         if objectType != objtype.replace("OutStream",""):
           objtype = self.whichDict[myClass][name].type
+          print('DEBUG',objtype)
           raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + '-> In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
 
 
@@ -455,6 +468,7 @@ class Simulation(object):
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
         else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
+      elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
       elif element.tag == 'ThreadingCommand'  : self.runInfoDict['ThreadingCommand'  ] = element.text.strip()
