@@ -13,6 +13,7 @@ import os,subprocess
 import math
 import sys
 import io
+import string
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -72,12 +73,23 @@ class SimulationMode:
 def createAndRunQSUB(simulation):
   """Generates a PBS qsub command to run the simulation"""
   # Check if the simulation has been run in PBS mode and, in case, construct the proper command
-  batchSize = simulation.runInfoDict['batchSize']
+  #while true, this is not the number that we want to select
+  coresNeeded = simulation.runInfoDict['batchSize']*simulation.runInfoDict['NumMPI']
+  #batchSize = simulation.runInfoDict['batchSize']
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
   jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub'
+  #check invalid characters
+  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+  if any(char not in validChars for char in jobName):
+    raise IOError(returnPrintTag('SIMULATION->QSUB:'),'JobName can only contain alphanumeric and "_", "-" characters! Received',jobName)
+  #check jobName for length
+  if len(jobName) > 15:
+    jobName = jobName[:10]+'-'+jobName[-4:]
+    print(returnPrintTag('SIMULATION->QSUB:'),'JobName is limited to 15 characters; truncating to',jobName)
+  #Generate the qsub command needed to run input
   command = ["qsub","-N",jobName,"-l",
-             "select="+str(batchSize)+":ncpus="+str(ncpus)+":mpiprocs=1",
+             "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
              "-l","walltime="+simulation.runInfoDict["expectedTime"],
              "-l","place=free","-v",
              'COMMAND="python Driver.py '+
