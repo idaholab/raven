@@ -206,7 +206,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                   raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseedAtEachIteration and dist_init!')  
-      else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')     
+          
       
     
     # Creation of the self.distributions2variablesMapping dictionary: {'dist_name': ({'variable_name1': dim1}, {'variable_name2': dim2})}
@@ -1034,7 +1034,7 @@ class Grid(Sampler):
               constrType = childChild.attrib['construction']
               if constrType == 'custom':
                 tempList = [float(i) for i in childChild.text.split()]
-                tempList.sort()
+                tempList.sort() 
                 self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
                 if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
                 self.limit = len(tempList)*self.limit
@@ -1057,10 +1057,10 @@ class Grid(Sampler):
         lst[2] = self.globalGrid[self.gridInfo[variable][2]]
         self.gridInfo[variable] = tuple(lst)
     
-    print('self.globalGrid' + str(self.globalGrid))
-    print('self.axisName' + str(self.axisName))
-    print('self.gridInfo' + str(self.gridInfo))
-    print('self.distDict' + str(self.distDict))
+    #print('self.globalGrid' + str(self.globalGrid))
+    #print('self.axisName' + str(self.axisName))
+    #print('self.gridInfo' + str(self.gridInfo))
+    #print('self.distDict' + str(self.distDict))
     
              
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
@@ -1351,15 +1351,20 @@ class LHS(Grid):
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     weight = 1.0
+    
+    print('self.variables2distributionsMapping: ' + str(self.variables2distributionsMapping))
+    print('self.distributions2variablesMapping: ' + str(self.distributions2variablesMapping))
+    print('self.axisName: ' + str(self.axisName))
+    
     for varName in self.axisName:
-      '''
+
       if varName.dimensionality > 1:
-        if varname not been sampled
-          sample distribution
-        else
-          give sampled value to variable
+        if varname: #not been sampled
+          sample_distribution
+        else:
+          give #sampled value to variable
+      
       else:   # 1D variable   
-      '''
         upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
         lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
         j +=1
