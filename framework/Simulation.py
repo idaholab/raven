@@ -298,7 +298,7 @@ class Simulation(object):
     self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relative log file (if True)
     self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
     self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbsdsh and mpi
-    self.runInfoDict['uniqueNodes'       ] = []           # List of unique node IDs. Filled only in case RAVEN is run in a SMP machine 
+    self.runInfoDict['uniqueNodes'       ] = []           # List of unique node IDs. Filled only in case RAVEN is run in a SMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
 

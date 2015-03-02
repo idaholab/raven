@@ -45,7 +45,7 @@ class SparseQuad(object):
     self.mods     = []
     for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
       if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__: 
+        if key != value.__name__:
           if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
           else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
         else: self.mods.append(str(key))

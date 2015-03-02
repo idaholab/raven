@@ -899,7 +899,7 @@ class LimitSurface(BasePostProcessor):
     self.subGridTol        = 1.0e-4
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = utils.returnPrintTag('POSTPROCESSOR LIMITSURFACE')
-  
+
   def inputToInternal(self,currentInp):
     # each post processor knows how to handle the coming inputs. The BasicStatistics postprocessor accept all the input type (files (csv only), hdf5 and datas
     if type(currentInp) == list: currentInput = currentInp[-1]
@@ -985,7 +985,49 @@ class LimitSurface(BasePostProcessor):
     self.axisStepSize = {}
     for varName in self.parameters['targets']:
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
-  
+
+    print('Initiate training')
+    self.functionValue.update(self.inputs[indexes[0]].getParametersValues('input'))
+    self.functionValue.update(self.inputs[indexes[0]].getParametersValues('output'))
+    #recovery the index of the last function evaluation performed
+    if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
+    else                                                      : indexLast = -1
+
+    #index of last set of point tested and ready to perform the function evaluation
+#
+    indexEnd  = len(self.functionValue[self.axisName[0]])-1
+    tempDict  = {}
+
+    if self.externalFunction.name in self.functionValue.keys():
+      self.functionValue[self.externalFunction.name] = np.append( self.functionValue[self.externalFunction.name], np.zeros(indexEnd-indexLast))
+    else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
+
+    for myIndex in range(indexLast+1,indexEnd+1):
+      for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
+      #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
+      self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
+      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
+      if self.externalFunction.name in self.inputs[indexes[0]].getParaKeys('inputs'): self.inputs[indexes[0]].self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
+      if self.externalFunction.name in self.inputs[indexes[0]].getParaKeys('output'): self.inputs[indexes[0]].self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
+    if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
+      raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
+
+#
+    #printing----------------------
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
+    if self.debug:
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Already evaluated points and function values:')
+      keyList = list(self.functionValue.keys())
+      print(','.join(keyList))
+      for index in range(indexEnd+1):
+        print(','.join([str(self.functionValue[key][index]) for key in keyList]))
+    #printing----------------------
+    tempDict = {}
+    for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
+    tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
+    self.ROM.train(tempDict)
+    print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
   def _localReadMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -1020,112 +1062,110 @@ class LimitSurface(BasePostProcessor):
      @ Out, dictionary       : Dictionary with results
     """
     #Input  = self.inputToInternal(InputIn)
-    print('Initiate training')
-    self.functionValue.update(InputIn[-1].getParametersValues('input'))
-    self.functionValue.update(InputIn[-1].getParametersValues('output'))
-    #recovery the index of the last function evaluation performed
-    if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
-    else                                                      : indexLast = -1
-
-    #index of last set of point tested and ready to perform the function evaluation
-# 
-    indexEnd  = len(self.functionValue[self.axisName[0]])-1
-    tempDict  = {}
-     
-    if self.externalFunction.name in self.functionValue.keys():
-      self.functionValue[self.externalFunction.name] = np.append( self.functionValue[self.externalFunction.name], np.zeros(indexEnd-indexLast))
-    else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
-
-    for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-      #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
-      self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
-      if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
-      if self.externalFunction.name in InputIn[-1].getParaKeys('inputs'): InputIn[-1].self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
-      if self.externalFunction.name in InputIn[-1].getParaKeys('output'): InputIn[-1].self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
-    if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
-      raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
-
-# 
-    #printing----------------------
-    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
-    if self.debug:
-      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Already evaluated points and function values:')
-      keyList = list(self.functionValue.keys())
-      print(','.join(keyList))
-      for index in range(indexEnd+1):
-        print(','.join([str(self.functionValue[key][index]) for key in keyList]))
-    #printing----------------------
-    tempDict = {}
-    for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
-    tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
-    print("lupo")
-    print(self.ROM.__dict__)
-    print("lup2")
-    print(self.ROM.SupervisedEngine.values()[0].__dict__)
-    print("lup3")
-    self.ROM.train(tempDict)
-    return -1
-    
-    
+#     print('Initiate training')
+#     self.functionValue.update(InputIn[-1].getParametersValues('input'))
+#     self.functionValue.update(InputIn[-1].getParametersValues('output'))
+#     #recovery the index of the last function evaluation performed
+#     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
+#     else                                                      : indexLast = -1
+#
+#     #index of last set of point tested and ready to perform the function evaluation
+# #
+#     indexEnd  = len(self.functionValue[self.axisName[0]])-1
+#     tempDict  = {}
+#
+#     if self.externalFunction.name in self.functionValue.keys():
+#       self.functionValue[self.externalFunction.name] = np.append( self.functionValue[self.externalFunction.name], np.zeros(indexEnd-indexLast))
+#     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
+#
+#     for myIndex in range(indexLast+1,indexEnd+1):
+#       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
+#       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
+#       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
+#       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
+#       if self.externalFunction.name in InputIn[-1].getParaKeys('inputs'): InputIn[-1].self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
+#       if self.externalFunction.name in InputIn[-1].getParaKeys('output'): InputIn[-1].self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
+#     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
+#       raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
+#
+# #
+#     #printing----------------------
+#     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
+#     if self.debug:
+#       print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Already evaluated points and function values:')
+#       keyList = list(self.functionValue.keys())
+#       print(','.join(keyList))
+#       for index in range(indexEnd+1):
+#         print(','.join([str(self.functionValue[key][index]) for key in keyList]))
+#     #printing----------------------
+#     tempDict = {}
+#     for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
+#     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
+#     print("lupo")
+#     print(self.ROM.__dict__)
+#     print("lup2")
+#     print(self.ROM.SupervisedEngine.values()[0].__dict__)
+#     print("lup3")
+#     self.ROM.train(tempDict)
+#
 #     print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
 #     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
-#     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
-#     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
-#     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
-#     tempDict ={}
-#     for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
-#     self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
-#     self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
-#     self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
-#     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Prediction performed')
-#     #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-#     toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
-#     #printing----------------------
-#     if self.debug:
-#       print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface:  Limit surface candidate points')
-#       for coordinate in np.rollaxis(toBeTested,0):
-#         myStr = ''
-#         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-#         print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-#     #printing----------------------
-#     #check which one of the preselected points is really on the limit surface
-#     listsurfPoint = []
-#     myIdList      = np.zeros(self.nVar)
-#     for coordinate in np.rollaxis(toBeTested,0):
-#       myIdList[:] = coordinate
-#       if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
-#         for iVar in range(self.nVar):
-#           if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
-#             myIdList[iVar]+=1
-#             if self.testMatrix[tuple(myIdList)]>=0:
-#               listsurfPoint.append(copy.copy(coordinate))
-#               break
-#             myIdList[iVar]-=1
-#           if coordinate[iVar]>0:
-#             myIdList[iVar]-=1
-#             if self.testMatrix[tuple(myIdList)]>=0:
-#               listsurfPoint.append(copy.copy(coordinate))
-#               break
-#             myIdList[iVar]+=1
-#     #printing----------------------
-#     if self.debug:
-#       print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
-#       for coordinate in listsurfPoint:
-#         myStr = ''
-#         for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
-#         print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
-#     #printing----------------------
-# 
-#     #if the number of point on the limit surface is > than zero than save it
-#     outputPlaceOrder = np.zeros(len(listsurfPoint))
-#     if len(listsurfPoint)>0:
-#       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
-#       for pointID, coordinate in enumerate(listsurfPoint):
-#         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
-#         outputPlaceOrder[pointID] = pointID
-# 
-#     return self.surfPoint,outputPlaceOrder
+    np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
+    self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
+    self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
+    tempDict ={}
+    for  varId, varName in enumerate(self.axisName): tempDict[varName] = self.gridCoord[:,varId]
+    self.testMatrix[:]        = self.ROM.evaluate(tempDict)                      #get the prediction on the testing grid
+    self.testMatrix.shape     = self.gridShape                                   #bring back the grid structure
+    self.gridCoord.shape      = self.gridCoorShape                               #bring back the grid structure
+    if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Prediction performed')
+    #here next the points that are close to any change are detected by a gradient (it is a pre-screener)
+    toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix)),axis=0))))
+    #printing----------------------
+    if self.debug:
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface:  Limit surface candidate points')
+      for coordinate in np.rollaxis(toBeTested,0):
+        myStr = ''
+        for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
+        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+    #printing----------------------
+    #check which one of the preselected points is really on the limit surface
+    listsurfPoint = []
+    myIdList      = np.zeros(self.nVar)
+    for coordinate in np.rollaxis(toBeTested,0):
+      myIdList[:] = coordinate
+      if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
+        for iVar in range(self.nVar):
+          if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
+            myIdList[iVar]+=1
+            if self.testMatrix[tuple(myIdList)]>=0:
+              listsurfPoint.append(copy.copy(coordinate))
+              break
+            myIdList[iVar]-=1
+          if coordinate[iVar]>0:
+            myIdList[iVar]-=1
+            if self.testMatrix[tuple(myIdList)]>=0:
+              listsurfPoint.append(copy.copy(coordinate))
+              break
+            myIdList[iVar]+=1
+    #printing----------------------
+    if self.debug:
+      print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
+      for coordinate in listsurfPoint:
+        myStr = ''
+        for iVar, varnName in enumerate(self.axisName): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
+        print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
+    #printing----------------------
+
+    #if the number of point on the limit surface is > than zero than save it
+    outputPlaceOrder = np.zeros(len(listsurfPoint))
+    if len(listsurfPoint)>0:
+      self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
+      for pointID, coordinate in enumerate(listsurfPoint):
+        self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
+        outputPlaceOrder[pointID] = pointID
+
+    return self.surfPoint,outputPlaceOrder
 
 #
 #
@@ -1236,7 +1276,7 @@ class ExternalPostProcessor(BasePostProcessor):
 
       #Not sure if we need it, but keep a copy of every inputs metadata
       inputDict['metadata'] = metadata
-  
+
     if len(inputDict['targets'].keys()) == 0: raise IOError(self.errorString("No input variables have been found in the input objects!"))
     for interface in self.externalInterfaces:
       for method in self.methodsToRun:

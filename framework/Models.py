@@ -31,9 +31,6 @@ import PostProcessors #import returnFilterInterface
 #import Samplers
 import CustomCommandExecuter
 import utils
-#copy_reg.pickle(types.MethodType, utils._pickle_method, utils._unpickle_method)
-#copy_reg.pickle(np.int64, utils._pickle_method, utils._unpickle_method)
-#from utils import metaclass_insert, returnPrintTag, returnPrintPostTag, Object
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(BaseType):
@@ -146,11 +143,11 @@ class Model(BaseType):
     self.mods     = []
     for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
       if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__: 
+        if key != value.__name__:
           if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
           else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
         else: self.mods.append(str(key))
-#     for mod in sys.modules.keys(): 
+#     for mod in sys.modules.keys():
 #       if not mod.startswith("_"): self.mods.append(str(mod.split(".")[0]))
     self.globs    = {}
 
@@ -222,8 +219,7 @@ class Dummy(Model):
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
     self.printTag = utils.returnPrintTag('MODEL DUMMY')
-    #self.globs['np'] = np.__name__
-    
+
   @classmethod
   def specializeValidateDict(cls):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
@@ -321,6 +317,29 @@ class ROM(Dummy):
     self.SupervisedEngine          = {}         # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = utils.returnPrintTag('MODEL ROM')
 
+  def __getstate__(self):
+    """
+    Overwrite state (for pickle-ing)
+    we do not pickle the HDF5 (C++) instance
+    but only the info to re-load it
+    """
+    # capture what is normally pickled
+    state = self.__dict__.copy()
+    if not self.amITrained:
+      a = state.pop("SupervisedEngine")
+      del a
+    return state
+
+  def __setstate__(self, newstate):
+    self.__dict__.update(newstate)
+    if not self.amITrained:
+      targets = self.initializationOptionDict['Target'].split(',')
+      self.howManyTargets = len(targets)
+      self.SupervisedEngine = {}
+      for target in targets:
+        self.initializationOptionDict['Target'] = target
+        self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
+
   def _readMoreXML(self,xmlNode):
     Dummy._readMoreXML(self, xmlNode)
     for child in xmlNode:
@@ -345,14 +364,14 @@ class ROM(Dummy):
     globs.update(dict(inspect.getmembers(SupervisedLearning)))
     for key, value in globs.items():
       if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__: 
+        if key != value.__name__:
           if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
           else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
         else: self.mods.append(str(key))
-  
+
 #     for key, value in globs.items():
 #       if type(value).__name__ == "module" or type(value).__name__ == "function": self.globs[key] = str(value.__name__)
-    
+
   def reset(self):
     '''
     Reset the ROM
@@ -374,8 +393,6 @@ class ROM(Dummy):
     @in X : {array-like, sparse matrix}, shape = [n_samples, n_features] Training vector, where n_samples in the number of samples and n_features is the number of features.
     @in y : array-like, shape = [n_samples] Target vector relative to X class_weight : {dict, 'auto'}, optional Weights associated with classes. If not given, all classes
             are supposed to have weight one.'''
-    print("hererrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"*100)
-    import time
     if type(trainingSet).__name__ == 'ROM':
       self.howManyTargets           = copy.deepcopy(trainingSet.howManyTargets)
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
@@ -383,16 +400,10 @@ class ROM(Dummy):
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.SupervisedEngine         = copy.deepcopy(trainingSet.SupervisedEngine)
     else:
-      print("here")
-       
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet,full=True))
-      print("here2")
       self.amITrained = True
       for instrom in self.SupervisedEngine.values():
-        print("instrom")
         instrom.train(self.trainingSet)
-        time.sleep(3)
-        print("instrom2")
         self.aimITrained = self.amITrained and instrom.amITrained
       if self.debug:print('FIXME: add self.amITrained to currentParamters')
 
@@ -417,11 +428,11 @@ class ROM(Dummy):
     inputToROM = self._inputToInternal(request)
     if target != None: return self.SupervisedEngine[target].evaluate(inputToROM)
     else             : return self.SupervisedEngine.values()[0].evaluate(inputToROM)
-  
+
   def __externalRun(self,inRun):
     returnDict = {}
     for target in self.SupervisedEngine.keys(): returnDict[target] = self.evaluate(inRun,target)
-    return returnDict  
+    return returnDict
 
   def run(self,Input,jobHandler):
     '''This call run a ROM as a model'''
@@ -435,7 +446,7 @@ class ExternalModel(Dummy):
   @classmethod
   def specializeValidateDict(cls):
     #one data is needed for the input
-    print('FIXME: think about how to import the roles to allowed class for the external model. For the moment we have just all')  
+    print('FIXME: think about how to import the roles to allowed class for the external model. For the moment we have just all')
   def __init__(self):
     '''
     Constructor
@@ -463,7 +474,7 @@ class ExternalModel(Dummy):
     globs = dict(inspect.getmembers(self.sim))
     for key, value in globs.items():
       if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__: 
+        if key != value.__name__:
           if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
           else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
         else: self.mods.append(str(key))
@@ -561,7 +572,7 @@ class ExternalModel(Dummy):
     instanciatedSelf = finishedJob.returnEvaluation()[1][1]
     outcomes         = finishedJob.returnEvaluation()[1][0]
     for key in finishedJob.returnEvaluation()[1][0]:
-      if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])): 
+      if not (typeMatch(outcomes[key],instanciatedSelf.modelVariableType[key])):
         raise RuntimeError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + instanciatedSelf.modelVariableType[key] +')!!!')
     Dummy.collectOutput(self, finishedJob, output)
 #
@@ -802,14 +813,14 @@ class PostProcessor(Model, Assembler):
     #globs = dict(inspect.getmembers(self.interface))
     globs = dict(inspect.getmembers(PostProcessors))
     for key, value in globs.items():
-      if inspect.ismodule(value) or inspect.isfunction(value): # inspect.ismethod(value):
-        if key != value.__name__: 
+      if inspect.ismodule(value): # or inspect.isfunction(value): # inspect.ismethod(value):
+        if key != value.__name__:
           if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
           else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
         else: self.mods.append(str(key))
 
 #     for key, value in globs.items():
-#       if inspect.ismodule(value) and not key.startswith("_"): #(value) type(value).__name__ == "module": 
+#       if inspect.ismodule(value) and not key.startswith("_"): #(value) type(value).__name__ == "module":
 #         self.globs[key] = str(value.__name__)
 #       if inspect.isfunction(value) and not key.startswith("_"):
 #         self.globs[key] = str(os.path.basename(inspect.getsourcefile(value)).replace(".py",""))
@@ -827,7 +838,6 @@ class PostProcessor(Model, Assembler):
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''just for compatibility'''
     return self.interface.inputToInternal(self,myInput)
-
 
 '''
  Factory......
