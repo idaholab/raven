@@ -43,7 +43,8 @@ import imp
 #import threading
 
 #versioning:
-from .versioninfo import release_version
+from versioninfo import release_version
+#from .versioninfo import release_version
 __version__ = release_version
 
 import logging

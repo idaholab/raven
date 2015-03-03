@@ -46,7 +46,8 @@ _needsWrite = False
 
 genHidden = False #if true config will generate hidden variables
 
-from .util import configmanager
+#from .util import configmanager
+from util import configmanager
 
 def get_config_value(section, varname, default, comment=None, hidden=False):
     

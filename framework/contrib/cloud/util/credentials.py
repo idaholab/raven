@@ -11,7 +11,7 @@ import distutils
 import os
 
 from ConfigParser import RawConfigParser
-from .. import cloudconfig as cc
+import cloudconfig as cc
 import logging
 cloudLog = logging.getLogger('Cloud.credentials')
 
@@ -37,7 +37,7 @@ def save_keydef(key_def, api_key=None):
 def download_key_by_key(api_key, api_secretkey):
     """Download and cache key""" 
     api_key = int(api_key)       
-    from ..account import get_key_by_key
+    from account import get_key_by_key
     key_def = get_key_by_key(api_key, api_secretkey)
     cloudLog.debug('Saving key for api_key %s' % api_key)
     save_keydef(key_def, api_key)
@@ -46,7 +46,7 @@ def download_key_by_key(api_key, api_secretkey):
 def download_key_by_login(api_key, username, password):
     """Download and cache key by using PiCloud login information""" 
     api_key = int(api_key)       
-    from ..account import get_key
+    from account import get_key
     key_def = get_key(username, password, api_key)
     save_keydef(key_def, api_key)
     return key_def

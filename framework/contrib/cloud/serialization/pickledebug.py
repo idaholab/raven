@@ -33,11 +33,20 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-from . import xmlhandlers
-from .cloudpickle import CloudPickler
-from .. import util
-from ..util import islambda
-from .. import cloudconfig as cc
+import xmlhandlers
+from cloudpickle import CloudPickler
+import util
+from util import islambda
+import cloudconfig as cc
+# from .. import util
+# from ..util import islambda
+# from .. import cloudconfig as cc
+
+# from . import xmlhandlers
+# from .cloudpickle import CloudPickler
+# from .. import util
+# from ..util import islambda
+# from .. import cloudconfig as cc
 
 import logging
 cloudLog = logging.getLogger("Cloud.Transport")

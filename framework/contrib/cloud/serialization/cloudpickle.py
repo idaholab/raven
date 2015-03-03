@@ -72,8 +72,8 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
-from ..util import islambda
-from ..util import xrange_helper
+from util import islambda
+from util import xrange_helper
 
 #debug variables intended for developer use:
 printSerialization = False

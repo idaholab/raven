@@ -53,15 +53,20 @@ from .cloud import CloudException, CloudTimeoutError
 cloudLog = logging.getLogger('Cloud.bucket')
 
 # base implementation of bucket 
-from . import bucket as base_bucket
+import bucket as base_bucket
+#from . import bucket as base_bucket
 
 # auxilerary functions that don't directly touch website
-from .bucket import _compute_md5, _get_effective_obj_path, _putf, _ready_file_path, \
+# from .bucket import _compute_md5, _get_effective_obj_path, _putf, _ready_file_path, \
+#                     S3_URL, TruncatableList, builtin_list
+from bucket import _compute_md5, _get_effective_obj_path, _putf, _ready_file_path, \
                     S3_URL, TruncatableList, builtin_list
 
 # fallback to default implementations
-from .bucket import list, iterlist, remove_prefix, make_public, public_url_folder, \
+from bucket import list, iterlist, remove_prefix, make_public, public_url_folder, \
                     is_public, make_private, info, get_md5, _get_md5
+# from .bucket import list, iterlist, remove_prefix, make_public, public_url_folder, \
+#                     is_public, make_private, info, get_md5, _get_md5                    
 
 # Error codes used by bucket:
 filenametoolong = 491

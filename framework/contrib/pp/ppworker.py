@@ -34,7 +34,7 @@ import os
 import StringIO
 #import dill as pickle
 import cPickle as pickle
-from cloud.serialization import cloudpickle
+from serialization import cloudpickle
 import pptransport
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"

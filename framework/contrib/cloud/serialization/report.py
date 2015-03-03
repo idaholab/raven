@@ -27,12 +27,19 @@ import shutil
 import distutils
 import distutils.dir_util
 
-from . import pickledebug
-from .serializationhandlers import DebugSerializer
-from .. import cloudconfig as cc
-from ..cloudlog import cloudLog, purgeDays
-from ..util import fix_sudo_path
+import pickledebug
+from serializationhandlers import DebugSerializer
+import cloudconfig as cc
+from cloudlog import cloudLog, purgeDays
+from util import fix_sudo_path
 from pickledebug import DebugPicklingError 
+
+# from . import pickledebug
+# from .serializationhandlers import DebugSerializer
+# from .. import cloudconfig as cc
+# from ..cloudlog import cloudLog, purgeDays
+# from ..util import fix_sudo_path
+# from pickledebug import DebugPicklingError 
 
 class SerializationReport():
     c = """Path to save object serialization meta-data.

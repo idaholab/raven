@@ -14,7 +14,7 @@ import time
 import abc
 import cPickle as pickle
 #import pickle as cloudpickle
-from cloud.serialization import cloudpickle
+from serialization import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------

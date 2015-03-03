@@ -100,7 +100,7 @@ CHUNK_SIZE = 65536
 
 
 #PiCloud injection for gzip control
-from .. import cloudconfig as cc
+import cloudconfig as cc
 
 use_gzip = cc.transport_configurable('use_gzip',
                                      default=True,hidden=False,
@@ -116,7 +116,8 @@ e.g. proxy.example.com:3128 for anonymous  or username:password@proxy.example.co
 proxy_server = cc.transport_configurable('proxy_server',default='',comment = c) 
 
 #new:
-from .gzip_stream import GzipFile
+from gzip_stream import GzipFile
+#from .gzip_stream import GzipFile
 #from gzip import GzipFile
 
 

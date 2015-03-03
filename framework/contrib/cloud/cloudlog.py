@@ -25,8 +25,8 @@ import sys
 import logging
 
 
-from . import cloudconfig as cc
-from .util import fix_sudo_path
+import cloudconfig as cc
+from util import fix_sudo_path
 
 c = \
 """Filename where cloud log messages should be written.
@@ -104,7 +104,7 @@ def purge_old_logs(pid_log_dir, mylog):
     
     
 def init_pid_log(base_path, mylog):
-    from .util.cloghandler.cloghandler import ConcurrentRotatingFileHandler
+    from util.cloghandler.cloghandler import ConcurrentRotatingFileHandler
     from warnings import warn
     import errno
         
@@ -147,7 +147,7 @@ def _init_logging():
         
     if saveLog:              
                                   
-        from .util.cloghandler.cloghandler import ConcurrentRotatingFileHandler, concurrent_error
+        from util.cloghandler.cloghandler import ConcurrentRotatingFileHandler, concurrent_error
         path = os.path.expanduser(cc.baselocation)
         try:
             os.makedirs(path)

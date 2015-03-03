@@ -68,17 +68,27 @@ except ImportError: #If python version < 2.6, we need to use simplejson
 try:
     from itertools import izip_longest
 except ImportError: #python 2.5 lacks izip_longest
-    from .util import izip_longest 
+    #from .util import izip_longest
+    from util import izip_longest 
 from itertools import izip, chain
 
-from . import cloudconfig as cc
-from .cloudlog import cloudLog
-from . import serialization
+import cloudconfig as cc
+from cloudlog import cloudLog
+import serialization
 
-from .util import funcname, validate_func_arguments, fix_time_element 
-from .util.cache import JobCacheManager, JobFiniteDoubleCacheManager, \
+from util import funcname, validate_func_arguments, fix_time_element 
+from util.cache import JobCacheManager, JobFiniteDoubleCacheManager, \
     JobFiniteSizeCacheManager, JobAbstractCacheManager
-from .util.xrange_helper import filter_xrange_list, maybe_xrange_iter
+from util.xrange_helper import filter_xrange_list, maybe_xrange_iter
+
+# from . import cloudconfig as cc
+# from .cloudlog import cloudLog
+# from . import serialization
+# 
+# from .util import funcname, validate_func_arguments, fix_time_element 
+# from .util.cache import JobCacheManager, JobFiniteDoubleCacheManager, \
+#     JobFiniteSizeCacheManager, JobAbstractCacheManager
+# from .util.xrange_helper import filter_xrange_list, maybe_xrange_iter
 
 
 # set by the instantiation of a Cloud object

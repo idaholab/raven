@@ -68,11 +68,17 @@ from itertools import islice
 __httpConnection = None
 __url = None
 
-from .transport.adapter import SerializingAdapter
-from .transport.network import HttpConnection
-from .util import  min_args, max_args
-from .util.zip_packer import Packer
-from .cloud import CloudException, CloudTimeoutError
+# from .transport.adapter import SerializingAdapter
+# from .transport.network import HttpConnection
+# from .util import  min_args, max_args
+# from .util.zip_packer import Packer
+# from .cloud import CloudException, CloudTimeoutError
+# from cloud import _getcloudnetconnection, _getcloud
+from transport.adapter import SerializingAdapter
+from transport.network import HttpConnection
+from util import  min_args, max_args
+from util.zip_packer import Packer
+from cloud import CloudException, CloudTimeoutError
 from cloud import _getcloudnetconnection, _getcloud
 
 cloudLog = logging.getLogger('Cloud.bucket')
@@ -835,8 +841,8 @@ def mpsafe_get(obj_path, file_path=None, prefix=None, start_byte=0, end_byte=Non
     
     If timeout is reached, CloudTimeoutException is raised
     """
-    
-    from .util.cloghandler import portalocker
+    from util.cloghandler import portalocker
+    #from .util.cloghandler import portalocker
     
     file_path = _ready_file_path(file_path, obj_path)    
     

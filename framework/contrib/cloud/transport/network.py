@@ -34,11 +34,17 @@ import urllib2
 import threading
 from datetime import datetime
 
-from ..util import urllib2_file
-from ..util import credentials
-from ..cloud import CloudException
-from .. import cloudconfig as cc
-from .connection import CloudConnection
+from util import urllib2_file
+from util import credentials
+import cloud.CloudException as CloudException
+import cloudconfig as cc
+from connection import CloudConnection
+
+#from ..util import urllib2_file
+#from ..util import credentials
+#from ..cloud import CloudException
+#from .. import cloudconfig as cc
+#from .connection import CloudConnection
 
 import logging
 cloudLog = logging.getLogger('Cloud.HTTPConnection')
@@ -54,13 +60,16 @@ except ImportError: #If python version < 2.6, we need to use simplejson
 _decoder = JSONDecoder()    
     
 #xrange serialization:
-from ..util.xrange_helper import encode_maybe_xrange, decode_maybe_xrange, iterate_xrange_limit 
+from util.xrange_helper import encode_maybe_xrange, decode_maybe_xrange, iterate_xrange_limit
+#from ..util.xrange_helper import encode_maybe_xrange, decode_maybe_xrange, iterate_xrange_limit
 
 #zipping:
-from ..util.zip_packer import Packer
+from util.zip_packer import Packer
+#from ..util.zip_packer import Packer
 
 #version transport:
-from ..versioninfo import release_version
+from versioninfo import release_version
+#from ..versioninfo import release_version
 
 def unicode_container_to_str(data):
     """Recursively converts data from unicode to str.

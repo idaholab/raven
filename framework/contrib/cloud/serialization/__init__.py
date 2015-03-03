@@ -21,8 +21,8 @@ License along with this package; if not, see
 http://www.gnu.org/licenses/lgpl-2.1.html
 """
 
-from .serializationhandlers import Serializer, CloudSerializer, DebugSerializer, Deserializer
-from .report import SerializationReport
+from serializationhandlers import Serializer, CloudSerializer, DebugSerializer, Deserializer
+from report import SerializationReport
 
 try:
     import cPickle as pickle
