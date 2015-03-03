@@ -440,6 +440,30 @@ class ComparisonStatistics(BasePostProcessor):
         print("data_stats",data_stats)
         graph_data.append((data_stats, cdf_func, pdf_func,str(dataPull)))
       print_graphs(csv, graph_data)
+      for i in range(len(graph_data)):
+        data_stat = graph_data[i][0]
+        def delist(l):
+          if type(l).__name__ == 'list':
+            return '_'.join([delist(x) for x in l])
+          else:
+            return str(l)
+        new_filename = output[:-4]+"_"+delist(dataPulls)+"_"+str(i)+".csv"
+        #print("data_stat",type(data_stat),data_stat.__sizeof__,data_stat)
+        if type(data_stat).__name__ != 'dict':
+          assert(False)
+          continue
+        data_pairs = []
+        for key in sorted(data_stat.keys()):
+          value = data_stat[key]
+          if type(value).__name__ in ["int","float"]:
+            data_pairs.append((key,value))
+        extra_csv = open(new_filename,"w")
+        extra_csv.write(",".join(['"'+str(x[0])+'"' for x in data_pairs]))
+        extra_csv.write("\n")
+        extra_csv.write(",".join([str(x[1]) for x in data_pairs]))
+        extra_csv.write("\n")
+        extra_csv.close()
+        #print(new_filename,"data_pairs",data_pairs)
       print_csv()
 
 def normal(x,mu=0.0,sigma=1.0):
@@ -486,8 +510,9 @@ def print_graphs(csv, functions):
   The functions are a list of (data_stats_dict, cdf_function, pdf_function,name)
   """
 
-  means = [x[0]["mean"] for x in functions]
-  stddevs = [x[0]["stdev"] for x in functions]
+  data_stats = [x[0] for x in functions]
+  means = [x["mean"] for x in data_stats]
+  stddevs = [x["stdev"] for x in data_stats]
   cdfs = [x[1] for x in functions]
   pdfs = [x[2] for x in functions]
   names = [x[3] for x in functions]
@@ -495,7 +520,7 @@ def print_graphs(csv, functions):
   high = max([m + 3.0*s for m,s in zip(means,stddevs)])
   low_low = min([m - 5.0*s for m,s in zip(means,stddevs)])
   high_high = max([m + 5.0*s for m,s in zip(means,stddevs)])
-  min_bin_size = min([x[0]["min_bin_size"] for x in functions])
+  min_bin_size = min([x["min_bin_size"] for x in data_stats])
   print("Graph from ",low,"to",high)
   n = int(math.ceil((high-low)/min_bin_size))
   interval = (high - low)/n
@@ -541,8 +566,11 @@ def print_graphs(csv, functions):
   for i in range(len(pdfs)):
     pdf_area = simpson(pdfs[i],low_low,high_high,100000)
     print_csv('"pdf_area_'+names[i]+'"',pdf_area)
+    data_stats[i]["pdf_area"] = pdf_area
   print_csv('"cdf_area_difference"',cdf_area_difference)
   print_csv('"pdf_common_area"',pdf_common_area)
+  data_stats[0]["cdf_area_difference"] = cdf_area_difference
+  data_stats[0]["pdf_common_area"] = pdf_common_area
   if False:
     sum_function_diff = simpson(f_z, low_z, high_z, 1000)
     first_moment_function_diff = first_moment_simpson(f_z, low_z,high_z, 1000)
