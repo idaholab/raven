@@ -230,11 +230,14 @@ class InternalRunner:
 
   def start_pp(self):
     #the Input needs to be a tuple. The first entry is the actual input (what is going to be stored here), the others are other arg the function needs
-    if self.__globals != None:
-      for key, mod in self.__globals.items():
-        if key != mod:  self.__frameworkMods.append(str("import "+ mod +" as "+key))
+#     if self.__globals != None:
+#       for key, mod in self.__globals.items():
+#         if key != mod:  self.__frameworkMods.append(str("import "+ mod +" as "+key))
     if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))))
     else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))))
+    
+    
+    
 #     if len(self.__input) == 1 : self.__thread = self.ppserver.submit(lambda arg : self.functionToRun(arg), args= self.__input, depfuncs=(), modules = tuple(list(set(mods))))
 #     else                         : self.__thread = self.ppserver.submit(lambda *arg : self.functionToRun(arg), args= tuple(self.__input), depfuncs=(), modules = tuple(list(set(mods))))
     #if len(self.__input) == 1 : self.__thread = self.ppserver.submit(lambda arg  : self.functionToRun(arg), tuple(self.__input)) # tuple(sys.modules.keys()))
