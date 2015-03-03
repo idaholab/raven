@@ -67,9 +67,10 @@ sa:: $(RAVEN_analyzer)
 ################################################################################
 # Swig for Approximate Morse-Smale Complex (AMSC)
 # source files
-AMSC_srcfiles    := $(shell find $(RAVEN_DIR)/src/postprocessors/ -name "*.cpp" -not -name main.C)
+AMSC_srcfiles    := $(shell find $(RAVEN_DIR)/src/postprocessors -name "*.cpp" -not -name main.C)
 
-#amsc:: _amsc.so
+## The compiler should be a variable here (not hard-coded as g++, this was failing on a Macbook Pro because it was mixing clang++ and g++)
+## also the python libraries are incompatible on the Macbook, it is using a different version of python than what the command line uses
 amsc:: $(RAVEN_DIR)/src/postprocessors/amsc.i $(AMSC_srcfiles)
 	@echo "Building "$@"..."
 	swig -c++ -python $(SWIG_PY_FLAGS)  -I$(RAVEN_DIR)/include/postprocessors/ $(RAVEN_DIR)/src/postprocessors/amsc.i
