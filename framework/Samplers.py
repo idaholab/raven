@@ -1017,7 +1017,7 @@ class Grid(Sampler):
             else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')
     '''
-    # Modified xml reader to include ND distributions
+    
     for child in xmlNode:
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
@@ -1046,22 +1046,8 @@ class Grid(Sampler):
                 elif 'upperBound' in childChild.attrib.keys():
                   self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
                   self.gridInfo[varName][2].sort()
-                else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))        
-              
-              else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')  
-        
-    for variable in self.gridInfo.keys():
-      if self.gridInfo[variable][1] == 'global_grid':
-        #self.gridInfo[variable][2] = self.globalGrid[self.gridInfo[variable][2]]
-        lst=list(self.gridInfo[variable])
-        lst[2] = self.globalGrid[self.gridInfo[variable][2]]
-        self.gridInfo[variable] = tuple(lst)
-    
-    #print('self.globalGrid' + str(self.globalGrid))
-    #print('self.axisName' + str(self.axisName))
-    #print('self.gridInfo' + str(self.gridInfo))
-    #print('self.distDict' + str(self.distDict))
-    
+                else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))                      
+              else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')    
              
     if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
@@ -1223,8 +1209,7 @@ class Grid(Sampler):
         if self.variables2distributionsMapping[varName]['dim']==1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
           dist_name = self.variables2distributionsMapping[varName]['name']
           NDcoordinate=np.zeros(len(self.distributions2variablesMapping[dist_name]))  
-          dxs=np.zeros(len(self.distributions2variablesMapping[dist_name]))   
-          print ('self.distributions2variablesMapping[dist_name] ' + str(self.distributions2variablesMapping[dist_name]))       
+          dxs=np.zeros(len(self.distributions2variablesMapping[dist_name]))         
           for var in self.distributions2variablesMapping[dist_name]:
             variable = var.keys()[0]
             position = var.values()[0]
@@ -1255,13 +1240,7 @@ class LHS(Grid):
     self.globalGrid          = {}    # Dictionary for the global_grid. These grids are used only for LHS for ND distributions.
     
   def localInputAndChecks(self,xmlNode):
-    Grid.localInputAndChecks(self,xmlNode)
-    pointByVar  = [len(self.gridInfo[variable][2]) for variable in self.gridInfo.keys()]
-    if len(set(pointByVar))!=1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the latin Hyper Cube requires the same number of point in each dimension')
-    self.pointByVar = pointByVar[0]
-    self.inputInfo['upper'] = {}
-    self.inputInfo['lower'] = {}
-    self.limit = (self.pointByVar-1)
+    Grid.localInputAndChecks(self,xmlNode)      
 
     for child in xmlNode:
       if child.tag == "Distribution":
@@ -1289,7 +1268,23 @@ class LHS(Grid):
               else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))
            else:
              raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
-
+    
+    print('self.gridInfo: ' + str(self.gridInfo)) 
+    print('self.globalGrid: ' + str(self.globalGrid))    
+    for variable in self.gridInfo.keys():
+      if self.gridInfo[variable][1] == 'global_grid':
+        lst=list(self.gridInfo[variable])
+        lst[2] = self.globalGrid[self.gridInfo[variable][2]]
+        self.gridInfo[variable] = tuple(lst) 
+    print('self.gridInfo: ' + str(self.gridInfo))
+    
+    pointByVar  = [len(self.gridInfo[variable][2]) for variable in self.gridInfo.keys()]
+    if len(set(pointByVar))!=1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the latin Hyper Cube requires the same number of point in each dimension')
+    self.pointByVar = pointByVar[0]
+    self.inputInfo['upper'] = {}
+    self.inputInfo['lower'] = {}
+    self.limit = (self.pointByVar-1)
+    
   def localInitialize(self):
     '''
     the local initialize is used to generate test the box being within the distribution upper/lower bound
@@ -1358,13 +1353,18 @@ class LHS(Grid):
     
     for varName in self.axisName:
 
-      if varName.dimensionality > 1:
-        if varname: #not been sampled
-          sample_distribution
-        else:
-          give #sampled value to variable
-      
-      else:   # 1D variable   
+      if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+        upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
+        lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
+        j += 1
+        coordinate = lower + (upper-lower)*intervalFraction
+        gridCoordinate =  self.distDict[varName].ppf(coordinate)
+        for kkey in varName.strip().split(','):
+          self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+          self.inputInfo['distributionType'][kkey] = self.distDict[varName].type  
+        weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)          
+                              
+      elif self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable   
         upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
         lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
         j +=1
@@ -1390,9 +1390,14 @@ class LHS(Grid):
             self.inputInfo['upper'][kkey] = max(upper,lower)
             self.inputInfo['lower'][kkey] = min(upper,lower)
             self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-        if self.gridInfo[varName][0] =='CDF': weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
-        else: weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
-    
+        if self.gridInfo[varName][0] =='CDF': 
+          weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)
+        else: 
+          weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
+      
+      else:
+        raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> error in the generagtion of LHS sample')
+      
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight
     self.inputInfo['SamplerType'] = 'Stratified'     
