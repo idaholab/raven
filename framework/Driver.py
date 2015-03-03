@@ -14,6 +14,10 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 #External Modules--------------------end
+
+#warning: this needs to be before importing h5py
+os.environ["MV2_ENABLE_AFFINITY"]="0"
+
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
 from utils import returnPrintTag, returnPrintPostTag, find_crow, add_path
@@ -41,8 +45,6 @@ def printStatement():
   WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS. This notice, including
   this sentence, must appear on any copies of this computer software.
   """)
-
-os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 if __name__ == '__main__':
   '''This is the main driver for the RAVEN framework'''

@@ -1536,7 +1536,9 @@ class ExternalPostProcessor(BasePostProcessor):
           if param not in inputDict['targets']:
             raise IOError(self.errorString('variable \"' + param + '\" unknown.'
                                           + ' Please verify your external'
-                                          + ' script variables match the data'
+                                          + ' script ('
+                                          + interface.functionFile
+                                          + ') variables match the data'
                                           + ' available in your dataset.'))
 
     return inputDict
@@ -1572,7 +1574,7 @@ class ExternalPostProcessor(BasePostProcessor):
       @ Out, None
     """
     if finishedJob.returnEvaluation() == -1:
-      #TODO This does not feel right
+      ##TODO This does not feel right
       raise Exception(self.errorString('No available Output to collect (Run '
                                        + 'probably did not finish yet)'))
     inputList = finishedJob.returnEvaluation()[0]
@@ -1590,88 +1592,84 @@ class ExternalPostProcessor(BasePostProcessor):
     elif output.type == 'TimePointSet':
       requestedInput = output.getParaKeys('input')
       requestedOutput = output.getParaKeys('output')
+      ## The user can simply ask for a computation that may exist in multiple
+      ## interfaces, in that case, we will need to qualify their names for the
+      ## output. The names should already be qualified from the outputDict.
+      ## However, the user may have already qualified the name, so make sure and
+      ## test whether the unqualified name exists in the requestedOutput before
+      ## replacing it.
+      for key,replacements in outputDict['qualifiedNames'].iteritems():
+        if key in requestedOutput:
+          requestedOutput.remove(key)
+          requestedOutput.extend(replacements)
+
+      ## Grab all data from the outputDict and anything else requested not
+      ## present in the outputDict will be copied from the input data.
+      ## TODO: User may want to specify which dataset the parameter comes from.
+      ##       For now, we assume that if we find more than one an error will
+      ##      occur.
+      ## FIXME: There is an issue that the data size should be determined before
+      ##        entering this loop, otherwise if say a scalar is first added,
+      ##        then dataLength will be 1 and everything longer will be placed
+      ##        in the Metadata.
+      ##        How do we know what size the output data should be?
       dataLength = None
-      for inputData in inputList:
-        # Pass inputs from input data to output data
-        for key,value in inputData.getParametersValues('input').items():
+      for key in requestedInput+requestedOutput:
+        storeInOutput = True
+        value = []
+        if key in outputDict:
+          value = outputDict[key]
+        else:
+          foundCount = 0
           if key in requestedInput:
-            # We need the size to ensure the data size is consistent, but there
-            # is no guarantee the data is not scalar, so this check is necessary
-            myLength = 1
-            if hasattr(value, "__len__"):
-              myLength = len(value)
+            for inputData in inputList:
+              if key in inputData.getParametersValues('input').keys():
+                value = inputData.getParametersValues('input')[key]
+                foundCount += 1
+          else:
+            for inputData in inputList:
+                if key in inputData.getParametersValues('output').keys():
+                  value = inputData.getParametersValues('output')[key]
+                  foundCount += 1
 
-            if dataLength is None:
-              dataLength = myLength
-            elif dataLength != myLength:
-              dataLength = max(dataLength,myLength)
-              print(self.warningString('Data size is inconsistent. Currently '
-                                      + 'set to ' + str(dataLength) + '.'))
+          if foundCount == 0:
+            raise IOError(self.errorString(key + ' not found in the input '
+                                            + 'object or the computed output '
+                                            + 'object.'))
+          elif foundCount > 1:
+            raise IOError(self.errorString(key + ' is ambiguous since it occurs'
+                                            + ' in multiple input objects.'))
 
+        ## We need the size to ensure the data size is consistent, but there
+        ## is no guarantee the data is not scalar, so this check is necessary
+        myLength = 1
+        if not hasattr(value, "__iter__"):
+          value = [value]
+        myLength = len(value)
+
+        if dataLength is None:
+          dataLength = myLength
+        elif dataLength != myLength:
+          print(self.warningString('Requested output for ' + key + ' has a'
+                                    + ' non-conformant data size ('
+                                    + str(dataLength) + ' vs ' + str(myLength)
+                                    + '), it is being placed in the metadata.'))
+          storeInOutput = False
+
+        ## Finally, no matter what, place the requested data somewhere
+        ## accessible
+        if storeInOutput:
+          if key in requestedInput:
             for val in value:
               output.updateInputValue(key, val)
-
-        # Pass outputs from input data to output data
-        for key,value in inputData.getParametersValues('output').items():
-          if key in requestedOutput:
-            # We need the size to ensure the data size is consistent, but there
-            # is no guarantee the data is not scalar, so this check is necessary
-            myLength = 1
-            if hasattr(value, "__len__"):
-              myLength = len(value)
-
-            if dataLength is None:
-              dataLength = myLength
-            elif dataLength != myLength:
-              dataLength = max(dataLength,myLength)
-              print(self.warningString('Data size is inconsistent. Currently '
-                                      + 'set to ' + str(dataLength) + '.'))
-
+          else:
             for val in value:
-              output.updateOutputValue(key,val)
-
-      # Figure out where the computed data should go in the output data and put
-      # it there
-      for method,value in outputDict.iteritems():
-        storeInOutput = method in requestedOutput
-
-        # Because we are qualifying overloaded function names, we need to do
-        # some special checking to see if they requested this function without
-        # the qualifying interface name
-        if not storeInOutput:
-          tokens = method.split('.',1)
-          foundColumn = False
-          if len(tokens) > 1:
-            for interface in self.externalInterfaces:
-              if tokens[0] == interface.name and tokens[1] in requestedOutput:
-                foundColumn = True
-                break
-          if foundColumn:
-            storeInOutput = True
-
-        # If the user is trying to put this in the output file, verify that the
-        # data shape allows for that, if not then print a message and place it
-        # in the metadata
-        if storeInOutput:
-          # We need the size to ensure the data size is consistent, but there
-          # is no guarantee the data is not scalar, so this check is necessary
-          myLength = 1
-          if hasattr(value, "__len__"):
-            myLength = len(value)
-
-          if dataLength is None:
-            dataLength = myLength
-          elif dataLength != myLength:
-            print(self.warningString('Requested output for ' + method + ' has a'
-                                     + ' non-conformant data size, it is being'
-                                     + ' placed in the metadata.' ))
-            storeInOutput = False
-
-        # Finally, no matter what, place the computed data somewhere accessible
-        if storeInOutput:
-          output.updateOutputValue(method,[value])
+              output.updateOutputValue(key, val)
         else:
-          output.updateMetadata(method,[value])
+          if not hasattr(value, "__iter__"):
+            value = [value]
+          for val in value:
+            output.updateMetadata(key, val)
 
     else:
       raise IOError(errorString('Unknown output type: ' + str(output.type)))
@@ -1683,33 +1681,40 @@ class ExternalPostProcessor(BasePostProcessor):
      @ Out, dictionary       : Dictionary with results
     """
     Input  = self.inputToInternal(InputIn)
-    outputDict = {}
-
-    # This will map the name to its appropriate interface and method
-    # in the case of a function being defined in two separate files, we
-    # qualify the output by appending the name of the interface from which it
-    # originates
+    outputDict = {'qualifiedNames' : {}}
+    ## This will map the name to its appropriate interface and method
+    ## in the case of a function being defined in two separate files, we
+    ## qualify the output by appending the name of the interface from which it
+    ## originates
     methodMap = {}
 
-    # First check all the requested methods are available and if there are
-    # duplicates then qualify their names for the user
+    ## First check all the requested methods are available and if there are
+    ## duplicates then qualify their names for the user
     for method in self.methodsToRun:
       matchingInterfaces = []
       for interface in self.externalInterfaces:
         if method in interface.availableMethods():
           matchingInterfaces.append(interface)
 
+
       if len(matchingInterfaces) == 0:
         print(self.warningString(method + ' not found. I will skip it.'))
       elif len(matchingInterfaces) == 1:
         methodMap[method] = (matchingInterfaces[0],method)
       else:
+        outputDict['qualifiedNames'][method] = []
         for interface in matchingInterfaces:
           methodName = interface.name + '.' + method
           methodMap[methodName] = (interface,method)
+          outputDict['qualifiedNames'][method].append(methodName)
 
+    ## Evaluate the method and add it to the outputDict, also if the method
+    ## adjusts the input data, then you should update it as well.
     for methodName,(interface,method) in methodMap.iteritems():
       outputDict[methodName] = interface.evaluate(method,Input['targets'])
+      for target in Input['targets']:
+        if hasattr(interface,target):
+          outputDict[target] = getattr(interface, target)
 
     return outputDict
 
