@@ -100,6 +100,7 @@ clean::
           $(RAVEN_DIR)/control_modules/libdistribution1D.* \
           $(RAVEN_DIR)/control_modules/raventools.py \
           $(RAVEN_DIR)/control_modules/*.so*
+	@find $(RAVEN_DIR)/framework  -name '*.pyc' -exec rm '{}' \;
 
 clobber::
 	@rm -f $(RAVEN_DIR)/control_modules/_distribution1D.so \
