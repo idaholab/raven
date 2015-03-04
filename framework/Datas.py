@@ -1488,7 +1488,7 @@ class Histories(Data):
       if not type(sourceLoad) == type(""):
         if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
       else: lenMustHave += 1
-      
+
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
         if (self._dataContainer['inputs'][key].size) != 1:
