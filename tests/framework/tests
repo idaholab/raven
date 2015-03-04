@@ -83,6 +83,15 @@
   rel_err = 0.01
   required_executable = '../../RAVEN-%METHOD%'
  [../]
+ [./test_merge_2_databases]
+  type = 'RavenFramework'
+  input = 'test_merge_2_databases.xml '
+  output = 'test_merge_2_databases/MonteCarlo/out~1~ideal_pump.csv'
+  csv = 'test_merge_2_databases/timepointset_from_database_dump.csv test_merge_2_databases/timepointset_IN_database_dump.csv'
+  max_time = 500
+  rel_err = 0.01
+  required_executable = '../../RAVEN-%METHOD%'
+ [../]
 
  [./test_rom_trainer]
   type = 'RavenFramework'

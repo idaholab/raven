@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation debug="True">
 <RunInfo>
-    <WorkingDir>test_extract_data_s_from_hdf5</WorkingDir>
+    <WorkingDir>test_merge_2_databases</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>
     <batchSize>1</batchSize>
@@ -10,7 +10,7 @@
     <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>
+  <MonteCarlo     name='RAVENmc3'  limit='10' initial_seed='1'></MonteCarlo>
 </Samplers>
 <Steps>
     <MultiRun name='MonteCarlo'>
@@ -24,9 +24,20 @@
         <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='Datas'    type='Histories'>histories_from_database</Output>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Output  class='Datas'    type='Histories'>histories_from_database</Output>
+        
+        <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='Datas'    type='TimePoint'>timepoint_from_database</Output>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Output  class='Datas'    type='TimePoint'>timepoint_from_database</Output>
+        
+        <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='Datas'    type='History'>history_from_database</Output>
+        <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Output  class='Datas'    type='History'>history_from_database</Output>
+        
+        <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
+        <Output  class='Datas'    type='TimePointSet'>timepointset_from_database</Output>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_EXTRACT_STEP</Input>
         <Output  class='Datas'    type='TimePointSet'>timepointset_from_database</Output>
         <Output    class='OutStreamManager' type='Print'     >timepointset_from_database_dump</Output>
@@ -50,7 +61,7 @@
         <Output  class='Datas'    type='History'>history_IN_database</Output>
         <Input   class='DataBases' type='HDF5'   >MC_TEST_PUSH_STEP</Input>
         <Output  class='Datas'    type='TimePointSet'>timepointset_IN_database</Output>
-        <Output    class='OutStreamManager' type='Print'     >timepointset_IN_database_dump</Output>
+        <Output  class='OutStreamManager' type='Print'     >timepointset_IN_database_dump</Output>
     </IOStep>
 </Steps>
 <DataBases>
