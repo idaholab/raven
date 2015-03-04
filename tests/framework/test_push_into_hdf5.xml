@@ -4,7 +4,7 @@
     <WorkingDir>test_extract_data_s_from_hdf5</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 <Models>
     <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
