@@ -640,6 +640,29 @@ Example:
 </Samplers>
 \end{lstlisting}
 
+For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
+This is possible by defining a global_grid and associate such global grid to each variable belonging to the ND distribution as follows.
+
+\begin{lstlisting}[style=XML,morekeywords={ND,grid}]
+<Samplers>
+  ...
+  <LHS name='StratifiedName'> 
+        <variable name='x0'>
+            <distribution dim='1'>ND_InverseWeight_P</distribution>
+            <grid type='global_grid'>name_grid1</grid>
+        </variable>
+        <variable name='y0,z0'>
+            <distribution dim='2'>ND_InverseWeight_P</distribution>
+            <grid type='global_grid'>name_grid1</grid>
+        </variable>
+        <global_grid>
+            <grid name='name_grid1' construction='custom'>0.1 1.0 0.2</grid>
+        </global_grid>
+  </LHS>
+  ...
+</Samplers>
+\end{lstlisting}
+
 %%% Once-Through Samplers: Response Surface Design
 \subsubsection{Response Surface Design.}
 \label{subsubsubsec:RespSurfDOE}

@@ -144,9 +144,10 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     '''
     
     '''
-
     try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
     except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
+    
+    
     if 'reseedAtEachIteration' in xmlNode.attrib.keys():
       if xmlNode.attrib['reseedAtEachIteration'].lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
     for child in xmlNode:
@@ -207,7 +208,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseedAtEachIteration and dist_init!')  
           
-      
+    if self.initSeed == None:
+      self.initSeed = Distributions.randomIntegers(0,2**31)
     
     # Creation of the self.distributions2variablesMapping dictionary: {'dist_name': ({'variable_name1': dim1}, {'variable_name2': dim2})}
     for variable in self.variables2distributionsMapping.keys():
@@ -939,8 +941,6 @@ class MonteCarlo(Sampler):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
     
-    print('self.distDict' + str(self.distDict))
-    
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
@@ -1269,14 +1269,14 @@ class LHS(Grid):
            else:
              raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The Tag ' + str(childChild.tag) + 'is not allowed in global_grid')
     
-    print('self.gridInfo: ' + str(self.gridInfo)) 
-    print('self.globalGrid: ' + str(self.globalGrid))    
+    #print('self.gridInfo: ' + str(self.gridInfo)) 
+    #print('self.globalGrid: ' + str(self.globalGrid))    
     for variable in self.gridInfo.keys():
       if self.gridInfo[variable][1] == 'global_grid':
         lst=list(self.gridInfo[variable])
         lst[2] = self.globalGrid[self.gridInfo[variable][2]]
         self.gridInfo[variable] = tuple(lst) 
-    print('self.gridInfo: ' + str(self.gridInfo))
+    #print('self.gridInfo: ' + str(self.gridInfo))
     
     pointByVar  = [len(self.gridInfo[variable][2]) for variable in self.gridInfo.keys()]
     if len(set(pointByVar))!=1: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> the latin Hyper Cube requires the same number of point in each dimension')
@@ -1347,9 +1347,11 @@ class LHS(Grid):
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
     weight = 1.0
     
-    print('self.variables2distributionsMapping: ' + str(self.variables2distributionsMapping))
-    print('self.distributions2variablesMapping: ' + str(self.distributions2variablesMapping))
-    print('self.axisName: ' + str(self.axisName))
+    #print('self.variables2distributionsMapping: ' + str(self.variables2distributionsMapping))
+    #print('self.distributions2variablesMapping: ' + str(self.distributions2variablesMapping))
+    #print('self.axisName: ' + str(self.axisName))
+    #print('self.distDict: ' + str(self.distDict))
+    #print('self.inputInfo: ' + str(self.inputInfo))
     
     for varName in self.axisName:
 
@@ -1358,11 +1360,18 @@ class LHS(Grid):
         lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
         j += 1
         coordinate = lower + (upper-lower)*intervalFraction
-        gridCoordinate =  self.distDict[varName].ppf(coordinate)
-        for kkey in varName.strip().split(','):
-          self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-          self.inputInfo['distributionType'][kkey] = self.distDict[varName].type  
-        weight *= self.distDict[varName].cdf(ppfupper) - self.distDict[varName].cdf(ppflower)          
+        gridCoordinate =  self.distDict[varName].ppf(coordinate)     
+        distName = self.variables2distributionsMapping[varName]['name']
+        for distVarName in self.distributions2variablesMapping[distName]:             
+          for kkey in distVarName.keys()[0].strip().split(','):
+            self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+            self.inputInfo['distributionType'][kkey] = self.distDict[varName].type         
+            self.values[kkey] = np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
+            #self.inputInfo['upper'][kkey] = ppfupper
+            #self.inputInfo['lower'][kkey] = ppflower
+            self.inputInfo['SampledVarsPb'][varName] = coordinate
+          
+        weight *= upper - lower          
                               
       elif self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable   
         upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
@@ -1395,8 +1404,8 @@ class LHS(Grid):
         else: 
           weight *= self.distDict[varName].cdf(upper) - self.distDict[varName].cdf(lower)
       
-      else:
-        raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> error in the generagtion of LHS sample')
+      #else:
+      #  raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> error in the generagtion of LHS sample')
       
     self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight' ] = weight

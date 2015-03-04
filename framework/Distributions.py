@@ -1273,7 +1273,7 @@ class NDInverseWeight(NDimensionalDistributions):
     return self._distribution.Cdf(coordinate)
 
   def ppf(self,x):
-    return self._distribution.InverseCdf(x)
+    return self._distribution.InverseCdf(x,random())
     
   def pdf(self,x):
     coordinate = distribution1D.vectord_cxx(len(x))
@@ -1286,9 +1286,9 @@ class NDInverseWeight(NDimensionalDistributions):
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
       coordinate[i] = x[i]
-      print(coordinate[i])
+      #print(coordinate[i])
       dxs[i]=dx[i]
-      print(dx[i])
+      #print(dx[i])
     return self._distribution.cellIntegral(coordinate,dxs)
   
   def inverseMarginalDistribution (self, x, variable):
@@ -1365,7 +1365,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     dxs        = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
       coordinate[i] = x[i]
-      print(coordinate[i])
+      #print(coordinate[i])
       dxs[i]=dx[i]
       #print(dx[i])
     return self._distribution.cellIntegral(coordinate,dxs)

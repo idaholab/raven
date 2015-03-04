@@ -73,6 +73,9 @@
     </MonteCarlo>
 -->
     <LHS name='LHS_test'>
+        <sampler_init>
+            <initial_seed>1234</initial_seed>
+        </sampler_init>
         <variable name='k0'>
             <distribution>k0_distrib</distribution>
             <grid type='CDF' construction='custom'>0.5 1.0 0.0</grid>
