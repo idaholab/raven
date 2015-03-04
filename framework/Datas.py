@@ -765,6 +765,7 @@ class TimePoint(Data):
       @ Out, None
     '''
     self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
+    #The source is the last item we added, so use [-1]
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
@@ -935,6 +936,12 @@ class TimePointSet(Data):
     '''
       Here we perform the consistency check for the structured data TimePointSet
     '''
+    #The lenMustHave is a counter of the histories contained in the
+    #toLoadFromList list. Since this list can contain either CSVfiles
+    #and HDF5, we can not use "len(_toLoadFromList)" anymore. For
+    #example, if that list contains 10 csvs and 1 HDF5 (with 20
+    #histories), len(toLoadFromList) = 11 but the number of histories
+    #is actually 30.
     lenMustHave = 0
     try:   sourceType = self._toLoadFromList[-1].type
     except AttributeError:sourceType = None
