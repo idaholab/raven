@@ -218,7 +218,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       list_element={}
       list_element[variable] = dim
       if distName in self.distributions2variablesMapping.keys():
-        print('list_element: ' + str(list_element))
+        #print('list_element: ' + str(list_element))
         self.distributions2variablesMapping[distName].append(list_element)
       else:
         self.distributions2variablesMapping[distName]=[list_element]       
@@ -227,8 +227,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in self.variables2distributionsMapping.keys():
       self.variables2distributionsMapping[key]['totDim'] = len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
     
-    print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
-    print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
+    #print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
+    #print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
     
     self.localInputAndChecks(xmlNode)
 
@@ -1124,10 +1124,10 @@ class Grid(Sampler):
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Grid'
     '''
-    print('self.gridInfo: '       + str(self.gridInfo))
-    print('self.inputInfo: '      + str(self.inputInfo))
-    print('self.gridCoordinate: ' + str(self.gridCoordinate))    
-    print('self.axisName: '       + str(self.axisName))
+    #print('self.gridInfo: '       + str(self.gridInfo))
+    #print('self.inputInfo: '      + str(self.inputInfo))
+    #print('self.gridCoordinate: ' + str(self.gridCoordinate))    
+    #print('self.axisName: '       + str(self.axisName))
     
     weight = 1.0
     
@@ -1150,16 +1150,16 @@ class Grid(Sampler):
             self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
           else:
             location = self.variables2distributionsMapping[varName]['dim']
-            print('location: ' + str(location))
+            #print('location: ' + str(location))
             self.values[key] = self.distDict[varName].inverseMarginalDistribution(self.gridInfo[varName][2][self.gridCoordinate[i]],location-1)
-            print('self.values[key]: ' + str(self.values[key]))
+            #print('self.values[key]: ' + str(self.values[key]))
        
         elif self.gridInfo[varName][0]=='value':  
           self.values[key] = self.gridInfo[varName][2][self.gridCoordinate[i]]
         
         else: raise IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
       
-    print('self.values: ' + str(self.values))
+    #print('self.values: ' + str(self.values))
 
     remainder = self.counter - 1 #used to keep track as we get to smaller strides
     stride = self.limit+1 #How far apart in the 1D array is the current gridCoordinate

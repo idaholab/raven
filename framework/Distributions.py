@@ -1352,7 +1352,7 @@ class NDCartesianSpline(NDimensionalDistributions):
     return self._distribution.Cdf(coordinate)
 
   def ppf(self,x):
-    return self._distribution.InverseCdf(x)
+    return self._distribution.InverseCdf(x,random())
     
   def pdf(self,x):
     coordinate = distribution1D.vectord_cxx(len(x))
