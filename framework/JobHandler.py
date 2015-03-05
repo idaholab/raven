@@ -203,7 +203,7 @@ class InternalRunner:
       else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))))
     else:
       if len(self.__input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,self.__input[0]))
-      else                     : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,)+tuple(self.__input))
+      else                     : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.__input))
       self.__thread.daemon = True
       self.__thread.start()
 
@@ -219,7 +219,7 @@ class InternalRunner:
     if self.isDone():
       if not self.__hasBeenAdded:
         if self.ppserver != None: self.__runReturn = self.__thread()
-        else                    : self.__runReturn = self.subque.get(timeout=1)()
+        else                    : self.__runReturn = self.subque.get(timeout=1)
         self.__hasBeenAdded = True
         if self.__runReturn == None:
           self.retcode = -1

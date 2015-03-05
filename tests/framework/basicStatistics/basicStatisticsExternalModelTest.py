@@ -22,7 +22,7 @@ def initialize(self,runInfoDict,inputFiles):
 def createNewInput(self,myInput,samplerType,**Kwargs): return Kwargs['SampledVars']
 
 def run(self,Input):
-  self.cnt += 1.0
+  self.cnt = 1.0
   self.x0 = 1.0
   self.y0 = 1.0
   self.z0 = 1.0
