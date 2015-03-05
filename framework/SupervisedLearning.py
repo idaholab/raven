@@ -275,14 +275,18 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if key=='IndexSet': self.indexSetType = val
       if key=='PolynomialOrder': self.maxPolyOrder = val
       if key=='Interpolation':
+        print('DEBUG',key,val)
         var = val.pop('text')
         self.itpDict[var]={'poly'  :'DEFAULT',
                            'quad'  :'DEFAULT',
                            'weight':'1',
                            'cdf'   :'False'}
-        for atr in ['poly','quad','weight','cdf']:
-          if atr in val.keys(): self.itpDict[var][atr]=val[atr]
-          else: raise IOError(self.printTag+' Unrecognized option: '+child.attrib[atr])
+        for atrName,atrVal in val.items():
+          if atrName in ['poly','quad','weight','cdf']: self.itpDict[var][atrName]=atrVal
+          else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
+        #for atr in ['poly','quad','weight','cdf']:
+        #  if atr in val.keys(): self.itpDict[var][atr]=val[atr]
+        #  else: raise IOError(self.printTag+' Unrecognized option: '+attrib[atr])
 
     if not self.indexSetType:
       raise IOError(self.printTag+' No IndexSet specified!')
@@ -321,7 +325,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict={}
     #check consistency of featureVals
     if len(featureVals)!=len(self.sparseGrid):
-      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(needpts))+' points, but only '+str(len(havepts))+' provided!')
+      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(self.sparseGrid))+' points, but only '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
     self.sparseGrid._remap(self.features)
     #check equality of point space
