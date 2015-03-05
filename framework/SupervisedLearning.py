@@ -271,9 +271,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
 
-    print('DEBUG',kwargs)
     for key,val in kwargs.items():
-      print('DEBUG',key,val)
       if key=='IndexSet': self.indexSetType = val
       if key=='PolynomialOrder': self.maxPolyOrder = val
       if key=='Interpolation':
@@ -656,7 +654,6 @@ def addToInterfaceDict(newDict):
 
 def returnInstance(ROMclass,**kwargs):
   '''This function return an instance of the request model type'''
-  return __interfaceDict[ROMclass](**kwargs)
   try: return __interfaceDict[ROMclass](**kwargs)
   except KeyError: raise NameError('not known '+__base+' type '+str(ROMclass))
 
