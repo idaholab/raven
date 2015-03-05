@@ -271,18 +271,20 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict = None #dict{index set point, float}, polynomial combination coefficients for each combination
     self.itpDict       = {}   #dict{varName: dict{attribName:value} }
 
+    print('DEBUG',kwargs)
     for key,val in kwargs.items():
+      print('DEBUG',key,val)
       if key=='IndexSet': self.indexSetType = val
       if key=='PolynomialOrder': self.maxPolyOrder = val
       if key=='Interpolation':
-        var = val.pop('text')
-        self.itpDict[var]={'poly'  :'DEFAULT',
-                           'quad'  :'DEFAULT',
-                           'weight':'1',
-                           'cdf'   :'False'}
-        for atrName,atrVal in val.items():
-          if atrName in ['poly','quad','weight','cdf']: self.itpDict[var][atrName]=atrVal
-          else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
+        for var,val in val.items():
+          self.itpDict[var]={'poly'  :'DEFAULT',
+                             'quad'  :'DEFAULT',
+                             'weight':'1',
+                             'cdf'   :'False'}
+          for atrName,atrVal in val.items():
+            if atrName in ['poly','quad','weight','cdf']: self.itpDict[var][atrName]=atrVal
+            else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
         #for atr in ['poly','quad','weight','cdf']:
         #  if atr in val.keys(): self.itpDict[var][atr]=val[atr]
         #  else: raise IOError(self.printTag+' Unrecognized option: '+attrib[atr])
@@ -657,6 +659,7 @@ def addToInterfaceDict(newDict):
 
 def returnInstance(ROMclass,**kwargs):
   '''This function return an instance of the request model type'''
+  return __interfaceDict[ROMclass](**kwargs)
   try: return __interfaceDict[ROMclass](**kwargs)
   except KeyError: raise NameError('not known '+__base+' type '+str(ROMclass))
 
