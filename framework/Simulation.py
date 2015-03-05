@@ -379,7 +379,7 @@ class Simulation(object):
     '''assuming that the file in is already in the self.filesDict it checks the existence'''
     if not os.path.exists(self.filesDict[filein]): raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The file '+ filein +' has not been found')
 
-  def XMLread(self,xmlNode,runInfoSkip = set()):
+  def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
     if 'debug' in xmlNode.attrib.keys():
       if xmlNode.attrib['debug'].lower()   in stringsThatMeanTrue() : self.debug=True
@@ -387,7 +387,7 @@ class Simulation(object):
       else                                 : raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> Not understandable keyword to set up the debug level: '+str(xmlNode.attrib['debug']))
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: raise IOError('The run info node is mandatory')
-    self.__readRunInfo(runInfoNode,runInfoSkip)
+    self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
     for child in xmlNode:
       if child.tag in list(self.whichDict.keys()):
         if self.debug: print('\n' + self.printTag+': ' +returnPrintPostTag('Message') + '-> ' +2*'-'+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
@@ -470,7 +470,7 @@ class Simulation(object):
 
 
 
-  def __readRunInfo(self,xmlNode,runInfoSkip):
+  def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       if element.tag in runInfoSkip:
@@ -480,6 +480,12 @@ class Simulation(object):
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
         else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
+      elif element.tag == 'RelativeWorkingDir'  :
+        if xmlFilename == None:
+          raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + 'RelativeWorkingDir requested but xmlFilename is None.')
+        xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+        raw_relative_working_dir = element.text.strip()
+        self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,raw_relative_working_dir)
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
