@@ -285,9 +285,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
           for atrName,atrVal in val.items():
             if atrName in ['poly','quad','weight','cdf']: self.itpDict[var][atrName]=atrVal
             else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
-        #for atr in ['poly','quad','weight','cdf']:
-        #  if atr in val.keys(): self.itpDict[var][atr]=val[atr]
-        #  else: raise IOError(self.printTag+' Unrecognized option: '+attrib[atr])
 
     if not self.indexSetType:
       raise IOError(self.printTag+' No IndexSet specified!')
@@ -417,7 +414,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if val > 1e-14 or printZeros:
         data.append([idx,val])
     data.sort()
-    print('polyDict:')
+    print('polyDict for '+self.target+': ')
     for idx,val in data:
       print('    ',idx,val)
 
