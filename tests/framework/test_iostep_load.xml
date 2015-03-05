@@ -4,7 +4,7 @@
     <WorkingDir>test_iostep_load</WorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>test_read_in,test_rewrite</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <Models>
     <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
