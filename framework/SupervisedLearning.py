@@ -275,7 +275,6 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if key=='IndexSet': self.indexSetType = val
       if key=='PolynomialOrder': self.maxPolyOrder = val
       if key=='Interpolation':
-        print('DEBUG',key,val)
         var = val.pop('text')
         self.itpDict[var]={'poly'  :'DEFAULT',
                            'quad'  :'DEFAULT',
