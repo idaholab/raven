@@ -209,9 +209,9 @@ class InternalRunner:
 
   def isDone(self):
     if self.__thread == None: return True
-    else: 
+    else:
       if self.ppserver != None: return self.__thread.finished
-      else:                     return not self.__thread.is_alive() 
+      else:                     return not self.__thread.is_alive()
 
   def getReturnCode(self): return self.retcode
 
@@ -273,7 +273,7 @@ class JobHandler:
       for nodeid in self.runInfoDict['uniqueNodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
       # create the server handler
       self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['uniqueNodes']))
-    else: 
+    else:
       if self.runInfoDict['NumMPI'] !=1: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
       else                             : self.ppserver = None                                                        # we just use threading!
 
