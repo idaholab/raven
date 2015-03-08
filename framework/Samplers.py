@@ -35,6 +35,8 @@ import pyDOE as doe
 import Quadratures
 import OrthoPolynomials
 import IndexSets
+from utils import find_distribution1D
+distribution1D = find_distribution1D()
 #Internal Modules End--------------------------------------------------------------------------------
 
 #Internal Submodules---------------------------------------------------------------------------------
@@ -941,26 +943,36 @@ class MonteCarlo(Sampler):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
     
+    print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
+    print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
+    
+    print('self.distDict:' + str(self.distDict))
+    
     for key in self.distDict:
       # check if the key is a comma separated list of strings
       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
       #if key in self.ND_sampling_params.keys(): 
+
+      dim    = self.variables2distributionsMapping[key]['dim']
+      totDim = self.variables2distributionsMapping[key]['totDim']
+      dist   = self.variables2distributionsMapping[key]['name']
       
-      rvsnum = self.distDict[key].rvs() 
-      #for i in range(len(rvsnum)):    
-      #  print('rvsnum: ' + str(rvsnum[i]))
-      
-      for index, kkey in enumerate(key.strip().split(';')):
-        for kkkey in kkey.strip().split(','):
-          self.values[kkkey] = np.atleast_1d(rvsnum)[index]
-          print('kkkey: ' + str(kkkey) + '; self.values[kkkey]: ' + str(self.values[kkkey]))         
-          #TO BE FIXED: self.inputInfo['SampledVarsPb'][kkkey] = self.distDict[key].pdf(self.values[kkkey])
-      
-      #for kkey in key.strip().split(','):
-      #  self.values[kkey] = copy.deepcopy(rvsnum)
-      #  self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])
-      #self.values[key] = self.distDict[key].rvs()
-      #self.inputInfo['SampledVarsPb'][key] = self.distDict[key].cdf(self.values[key])
+      if dim == 1:      
+        rvsnum = self.distDict[key].rvs()
+        for var in self.distributions2variablesMapping[dist]:
+          varID  = var.keys()[0]
+          varDim = var[varID]
+          for kkey in varID.strip().split(','):
+            self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]                     
+            if totDim > 1 and dim == 1:
+              coordinate=[];
+              for i in range(totDim):
+                coordinate.append(np.atleast_1d(rvsnum)[i])
+              self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(coordinate)
+            elif totDim == 1:
+              self.inputInfo['SampledVarsPb'][kkey] = self.distDict[key].pdf(self.values[kkey])          
+            else:
+              self.inputInfo['SampledVarsPb'][kkey] = 1.0
     
     if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
       self.inputInfo['PointProbability'  ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())

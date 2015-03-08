@@ -52,11 +52,11 @@
 <Samplers>
     <MonteCarlo name='MC_external'>
         <sampler_init>
-            <limit>3</limit>
+            <limit>400</limit>
             <initial_seed>1234</initial_seed>
             <dist_init>
                 <distribution name= 'ND_CartesianSpline_P'>
-                    <initial_grid_disc>10</initial_grid_disc>
+                    <initial_grid_disc>5</initial_grid_disc>
                     <tolerance>0.2</tolerance>
                 </distribution>
             </dist_init>
@@ -78,24 +78,24 @@
         <Input   class='Files'              type=''               >lorentzAttractor.py</Input>
         <Model   class='Models'             type='ExternalModel'  >PythonModule</Model>
         <Sampler class='Samplers'           type='MonteCarlo'     >MC_external</Sampler>
-        <Output  class='Datas'              type='Histories'      >testPrintHistories</Output>
-        <Output  class='OutStreamManager'   type='Print'          >testPrintHistories_dump</Output>
+        <Output  class='Datas'              type='TimePointSet'   >testPrintTimePointSet</Output>
+        <Output  class='OutStreamManager'   type='Print'          >testPrintTimePointSet_dump</Output>
     </MultiRun >
 </Steps>
 
 <OutStreamManager>
-    <Print name='testPrintHistories_dump'>
+    <Print name='testPrintTimePointSet_dump'>
         <type>csv</type>
-        <source>testPrintHistories</source>
+        <source>testPrintTimePointSet</source>
     </Print>
 </OutStreamManager>
 
 
 <Datas>
-    <Histories name='testPrintHistories'>
+    <TimePointSet name='testPrintTimePointSet'>
         <Input>x0,y0,z0,k0</Input>
-        <Output>time,x,y,z,k</Output>
-    </Histories>
+        <Output>x,y,z,k</Output>
+    </TimePointSet>
 </Datas>
 
 </Simulation>

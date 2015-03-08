@@ -339,6 +339,13 @@
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
  [../]
 
+ [./ND_external_MC]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_MC.xml'
+  output = 'ND_test_MC/testPrintTimePointSet_dump.csv ND_test_MC/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_MC/testPrintTimePointSet_dump.csv ND_test_MC/testPrintTimePointSet_dump.csv'
+ [../]
+
  [./RELAP5interfaceTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface.xml'
