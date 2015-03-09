@@ -155,8 +155,8 @@
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
             <PolynomialOrder>2</PolynomialOrder>
-            <Interpolation quad='Laguerre' poly='Laguerre' weight='1' cdf='False'>x1</Interpolation>
-            <Interpolation quad='Laguerre' poly='Laguerre' weight='1' cdf='False'>x2</Interpolation>
+            <Interpolation quad='Laguerre' poly='Laguerre' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Laguerre' poly='Laguerre' weight='1' >x2</Interpolation>
         </ROM>
         <ROM name='BROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>

@@ -299,14 +299,18 @@ def find_distribution1D():
     try:
       import crow_modules.distribution1Dpy3
       return crow_modules.distribution1Dpy3
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import distribution1Dpy3
       return distribution1Dpy3
   else:
     try:
       import crow_modules.distribution1Dpy2
       return crow_modules.distribution1Dpy2
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import distribution1Dpy2
       return distribution1Dpy2
 
@@ -316,13 +320,17 @@ def find_interpolationND():
     try:
       import crow_modules.interpolationNDpy3
       return crow_modules.interpolationNDpy3
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import interpolationNDpy3
       return interpolationNDpy3
   else:
     try:
       import crow_modules.interpolationNDpy2
       return crow_modules.interpolationNDpy2
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import interpolationNDpy2
       return interpolationNDpy2
