@@ -943,10 +943,10 @@ class MonteCarlo(Sampler):
     '''set up self.inputInfo before being sent to the model'''
     # create values dictionary
     
-    print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
-    print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
+    #print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
+    #print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
     
-    print('self.distDict:' + str(self.distDict))
+    #print('self.distDict:' + str(self.distDict))
     
     for key in self.distDict:
       # check if the key is a comma separated list of strings
