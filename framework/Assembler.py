@@ -10,7 +10,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import abc
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
-from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stringsThatMeanFalse
+from utils    import returnPrintTag, metaclass_insert, stringsThatMeanTrue, stringsThatMeanFalse, returnPrintPostTag
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -23,8 +23,9 @@ class Assembler(object):
     self.type               = self.__class__.__name__  # type
     self.name               = self.__class__.__name__  # name
     self.assemblerObjects   = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    self.requiredAssObjects = (False,([],[]))          # tuple. first entry boolean flag. True if the XML parser must look for objects;
-                                                       # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
+    # tuple. first entry boolean flag. True if the XML parser must look for objects;
+    # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
+    self.requiredAssObjects = (False,([],[]))
     self.assemblerDict      = {}                       # {'class':[['subtype','name',instance]]}
     self.debug              = False
 
@@ -38,7 +39,7 @@ class Assembler(object):
     @ Out, needDict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
     """
     if '_localWhatDoINeed' in dir(self):
-       needDict = self._localWhatDoINeed()
+      needDict = self._localWhatDoINeed()
     else:
       needDict = {}
     for val in self.assemblerObjects.values():
@@ -60,7 +61,7 @@ class Assembler(object):
     for key, value in self.assemblerObjects.items():
       self.assemblerDict[key] =  []
       for interface in value:
-         self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
+        self.assemblerDict[key].append([interface[0],interface[1],interface[2],initDict[interface[0]][interface[2]]])
 
   def _readMoreXML(self,xmlNode):
     self.type = xmlNode.tag

@@ -1229,9 +1229,10 @@ class LimitSurface(BasePostProcessor):
     self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
     self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
     self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
-    self.ROM               = None
-    self.externalFunction  = None
-    self.subGridTol        = 1.0e-4
+    self.ROM               = None             #Pointer to a ROM
+    self.externalFunction  = None             #Pointer to an external Function
+    self.subGridTol        = 1.0e-4           #SubGrid tollerance
+    self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = utils.returnPrintTag('POSTPROCESSOR LIMITSURFACE')
 
@@ -1375,6 +1376,10 @@ class LimitSurface(BasePostProcessor):
     self.parameters['targets'] = child.text.split(',')
     child = xmlNode.find("tolerance")
     if child != None: self.subGridTol = float(child.text)
+    child = xmlNode.find("side")
+    if child != None: 
+      self.side = child.text.lower()
+      if self.side not in ["negative","positive","both"]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> Computation side can be positive, negative, both only !!!!')
 
   def collectOutput(self,finishedjob,output):
     #output
@@ -1465,25 +1470,34 @@ class LimitSurface(BasePostProcessor):
         print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
     #check which one of the preselected points is really on the limit surface
-    listsurfPoint = []
-    myIdList      = np.zeros(self.nVar)
-    for coordinate in np.rollaxis(toBeTested,0):
-      myIdList[:] = coordinate
-      if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
-        for iVar in range(self.nVar):
-          if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
-            myIdList[iVar]+=1
-            if self.testMatrix[tuple(myIdList)]>=0:
-              listsurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar]-=1
-          if coordinate[iVar]>0:
-            myIdList[iVar]-=1
-            if self.testMatrix[tuple(myIdList)]>=0:
-              listsurfPoint.append(copy.copy(coordinate))
-              break
-            myIdList[iVar]+=1
-    #printing----------------------
+    if self.side in ["negative","both"]:
+      #it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
+      listsurfPoint=self.__localLimitStateSearch__(toBeTested,-1)         
+      nNegPoints = len(listsurfPoint)
+    elif self.side in ["positive","both"]:
+      #it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
+      listsurfPoint.extend(self.__localLimitStateSearch__(toBeTested,1)) 
+    nTotPoints=len(listsurfPoint)
+
+#     listsurfPoint = []
+#     myIdList      = np.zeros(self.nVar)
+#     for coordinate in np.rollaxis(toBeTested,0):
+#       myIdList[:] = coordinate
+#       if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
+#         for iVar in range(self.nVar):
+#           if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
+#             myIdList[iVar]+=1
+#             if self.testMatrix[tuple(myIdList)]>=0:
+#               listsurfPoint.append(copy.copy(coordinate))
+#               break
+#             myIdList[iVar]-=1
+#           if coordinate[iVar]>0:
+#             myIdList[iVar]-=1
+#             if self.testMatrix[tuple(myIdList)]>=0:
+#               listsurfPoint.append(copy.copy(coordinate))
+#               break
+#             myIdList[iVar]+=1
+#     #printing----------------------
     if self.debug:
       print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
       for coordinate in listsurfPoint:
@@ -1493,13 +1507,14 @@ class LimitSurface(BasePostProcessor):
     #printing----------------------
 
     #if the number of point on the limit surface is > than zero than save it
+    
     outputPlaceOrder = np.zeros(len(listsurfPoint))
     if len(listsurfPoint)>0:
       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
       for pointID, coordinate in enumerate(listsurfPoint):
         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
-        outputPlaceOrder[pointID] = pointID
-
+      evaluations = np.concatenate((-np.ones(nNegPoints),np.ones(nTotPoints-nNegPoints)), axis=0)  
+      #outputPlaceOrder[pointID] = pointID
     return self.surfPoint,outputPlaceOrder
 
 #
@@ -1757,7 +1772,7 @@ class ExternalPostProcessor(BasePostProcessor):
             output.updateMetadata(key, val)
 
     else:
-      raise IOError(errorString('Unknown output type: ' + str(output.type)))
+      raise IOError(self.errorString('Unknown output type: ' + str(output.type)))
 
   def run(self, InputIn):
     """
