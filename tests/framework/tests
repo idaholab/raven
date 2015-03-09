@@ -341,11 +341,25 @@
   csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
  [../]
 
+ [./indexSetTest]
+  type = 'RavenFramework'
+  input = 'test_indexsets.xml'
+  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml'
+  csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv'
+ [../]
+
  [./stochPolyPickleTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_pickle.xml'
   output = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+ [../]
+
+ [./stochPolyInterpTest]
+  type = 'RavenFramework'
+  input = 'test_stochpoly_interp.xml'
+  output = 'StochasticPolyInterpTest/Ndump.xml'
+  csv = 'StochasticPolyInterpTest/Ndump.csv'
  [../]
 
  [./RELAP5interfaceTestNoExecutable]
