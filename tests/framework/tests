@@ -354,4 +354,25 @@
   test_interface_only = True
  [../]
 
+ [./ND_external_LHS]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_LHS.xml'
+  output = 'ND_test_LHS/testPrintTimePointSet_dump.csv ND_test_LHS/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_LHS/testPrintTimePointSet_dump.csv ND_test_LHS/testPrintTimePointSet_dump.csv'
+ [../]
+
+ [./ND_external_grid_value]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_grid_value.xml'
+  output = 'ND_test_grid_value/testPrintTimePointSet_dump.csv ND_test_grid_value/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_grid_value/testPrintTimePointSet_dump.csv ND_test_grid_value/testPrintTimePointSet_dump.csv'
+ [../]
+
+ [./ND_external_grid_cdf]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_grid_cdf.xml'
+  output = 'ND_test_grid_cdf/testPrintTimePointSet_dump.csv ND_test_grid_cdf/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_grid_cdf/testPrintTimePointSet_dump.csv ND_test_grid_cdf/testPrintTimePointSet_dump.csv'
+ [../]
+
 []
