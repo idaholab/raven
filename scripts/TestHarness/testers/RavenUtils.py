@@ -6,12 +6,26 @@ def inPython3():
 
 def checkForMissingModules():
   missing = []
-  to_try = ["numpy","h5py","scipy","sklearn","matplotlib"]
-  for i in to_try:
-    if inPython3():
-      result = subprocess.call(['python3','-c','import '+i])
+  too_old = []
+  to_try = [("numpy",'numpy.version.version',"1.7"),
+            ("h5py",'',''),
+            ("scipy",'scipy.__version__',"0.12"),
+            ("sklearn",'sklearn.__version__',"0.14"),
+            ("matplotlib",'matplotlib.__version__',"1.4")]
+  for i,fv,ev in to_try:
+    if len(fv) > 0:
+      check = ';import sys; sys.exit(not '+fv+' >= "'+ev+'")'
     else:
-      result = subprocess.call(['python','-c','import '+i])
+      check = ''
+    if inPython3():
+      python = 'python3'
+    else:
+      python = 'python'
+    result = subprocess.call([python,'-c','import '+i])
     if result != 0:
       missing.append(i)
-  return missing
+    else:
+      result = subprocess.call([python,'-c','import '+i+check])
+      if result != 0:
+        too_old.append(i+" should be at least version "+ev)
+  return missing,too_old
