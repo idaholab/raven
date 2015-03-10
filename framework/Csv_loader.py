@@ -230,7 +230,7 @@ class CsvLoader:
           inDict[key][i] = data[ints,ix]
           #inDict[key][i] = 1
         else:
-          raise Exception(self.printTag++": " +returnPrintPostTag('ERROR') + "-> the parameter " + str(key) + " has not been found")
+          raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "-> the parameter " + str(key) + " has not been found")
       # time end case
       if time_end:
         last_row = data[:,0].size - 1
@@ -249,7 +249,7 @@ class CsvLoader:
                 outDict[key] = np.zeros(len(filesin))
               outDict[key][i] = data[last_row,self.all_field_names.index(key)]
             else:
-              raise Exception(self.printTag++": " +returnPrintPostTag('ERROR') + "-> the parameter " + str(key) + " has not been found")
+              raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "-> the parameter " + str(key) + " has not been found")
       else:
 
         for i in data:
@@ -360,5 +360,5 @@ class CsvLoader:
           if key in self.all_field_names:
             outDict[key] = data[:,self.all_field_names.index(key)]
           else:
-            raise Exception(self.printTag++": " +returnPrintPostTag('ERROR') + "->  the parameter " + key + " has not been found")
+            raise Exception(self.printTag+": " +returnPrintPostTag('ERROR') + "->  the parameter " + key + " has not been found")
     return (inDict,outDict)

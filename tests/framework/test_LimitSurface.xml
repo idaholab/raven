@@ -4,7 +4,7 @@
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
     <Sequence>FirstMRun,ComputeLimitSurface</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>

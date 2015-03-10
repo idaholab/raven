@@ -4,7 +4,7 @@
     <WorkingDir>RELAP5interfaceTest</WorkingDir>
     <Files>snc01.i,tpfh2o</Files>
     <Sequence>testDummyStep</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
