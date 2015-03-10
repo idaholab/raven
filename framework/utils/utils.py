@@ -3,21 +3,20 @@ import bisect
 import sys, os
 from scipy.interpolate import Rbf,griddata
 import copy
+import inspect
 
 class Object(object):pass
 
-def _unpickle_method(func_name, obj, cls):
-  for cls in cls.mro():
-    try: func = cls.__dict__[func_name]
-    except KeyError: pass
-    else: break
-  return func.__get__(obj, cls)
-
-def _pickle_method(method):
-  func_name = method.im_func.__name__
-  obj = method.im_self
-  cls = method.im_class
-  return _unpickle_method, (func_name, obj, cls)
+def returnImportModuleString(obj):
+  mods = []
+  globs = dict(inspect.getmembers(obj))
+  for key, value in globs.items():
+    if inspect.ismodule(value) or inspect.ismethod(value):
+      if key != value.__name__:
+        if value.__name__.split(".")[-1] != key: mods.append(str('import ' + value.__name__ + ' as '+ key))
+        else                                   : mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+      else: mods.append(str(key))
+  return mods
 
 def getPrintTagLenght(): return 25
 

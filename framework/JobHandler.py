@@ -232,11 +232,11 @@ class InternalRunner:
   def start(self):
     try: self.start_pp()
     except Exception as ae:
-      print(returnPrintTag('JOB HADLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
+      print(returnPrintTag('JOB HANDLER')+"ERROR -> InternalRunner job "+self.identifier+" failed with error:"+ str(ae) +" !")
       self.retcode = -1
 
   def kill(self):
-    print(returnPrintTag('JOB HADLER')+": Terminating ",self.__thread.pid, " Identifier " + self.identifier)
+    print(returnPrintTag('JOB HANDLER')+": Terminating ",self.__thread.pid, " Identifier " + self.identifier)
     if self.ppserver != None: os.kill(self.__thread.tid,signal.SIGTERM)
     else: os.kill(self.__thread.pid,signal.SIGTERM)
 
@@ -333,10 +333,10 @@ class JobHandler:
             print(returnPrintTag('JOB HANDLER')+": Process Failed ",running,running.command," returncode",returncode)
             self.__numFailed += 1
             self.__failedJobs.append(running.identifier)
-            if "External" in running.__class__.__name__:
+            if type(running).__name__ == "External":
               outputFilename = running.getOutputFilename()
               if os.path.exists(outputFilename): print(open(outputFilename,"r").read())
-              else: print(returnPrintTag('JOB HADLER')+" No output ",outputFilename)
+              else: print(returnPrintTag('JOB HANDLER')+" No output ",outputFilename)
           else:
             if self.runInfoDict['delSucLogFiles'] and running.__class__.__name__ != 'InternalRunner':
               print(returnPrintTag('JOB HANDLER') + ': Run "' +running.identifier+'" ended smoothly, removing log file!')

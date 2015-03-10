@@ -744,7 +744,7 @@ class PrintCSV(BasePostProcessor):
         #  Loop over histories
         #  Retrieve the metadata (posion 1 of the history tuple)
         attributes = histories[key][1]
-        #  Construct the header in csv format (utils.first row of the file)
+        #  Construct the header in csv format (first row of the file)
         headers = b",".join([histories[key][1]['output_space_headers'][i] for i in
                              range(len(attributes['output_space_headers']))])
         #  Construct history name
