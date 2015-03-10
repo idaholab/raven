@@ -17,6 +17,7 @@ import numpy as np
 import scipy
 import scipy.special as polys
 from scipy.misc import factorial
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -399,6 +400,7 @@ class Uniform(BoostDistribution):
     if not self.lowerBoundUsed:
       self.lowerBoundUsed = True
       self.lowerBound     = self.low
+    self.initializeDistribution()
 
   def stdProbabilityNorm(self):
     '''Returns the factor to scale error norm by so that norm(probability)=1.

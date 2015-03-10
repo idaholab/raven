@@ -303,8 +303,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else                              :
       Distributions.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
-    for key in self.toBeSampled.keys():
-        self.distDict[key].initializeDistribution()   #now we can initialize the distributions
+    #for key in self.toBeSampled.keys():
+    #    self.distDict[key].initializeDistribution()   #now we can initialize the distributions
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
     else                      : self.localInitialize()
