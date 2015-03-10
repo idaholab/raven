@@ -455,10 +455,10 @@ class Server(object):
                     clshier = ppcommon.get_class_hierarchy(arg.__class__)
                     if functionToSkip != None:
                       tempclshier = []
-                      for clshierfun in clshier:
-                        for functskp in functionToSkip:
-                          if str(clshierfun) != str(functskp): # we use string in order to avoid baseclass identity!
-                            tempclshier.append(clshierfun)
+                      clshierstr = [str(elem) for elem in clshier] # we use string in order to avoid baseclass identity!
+                      functionToSkipSet = set([str(elem) for elem in functionToSkip])
+                      for cnt, clshierfun in enumerate(clshierstr):
+                        if clshierfun not in functionToSkipSet: tempclshier.append(clshier[cnt])                    
                       clshier = tempclshier
                     depfuncs += tuple(clshier) 
         # if there is a function in the arguments add this
