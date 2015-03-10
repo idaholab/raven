@@ -20,9 +20,9 @@ os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 frameworkDir = os.path.dirname(os.path.abspath(sys.argv[0]))
 sys.path.append(os.path.join(frameworkDir,'utils'))
-from utils import returnPrintTag, returnPrintPostTag, find_crow, add_path
+from utils import returnPrintTag, returnPrintPostTag, find_crow, add_path_recursively
 find_crow(frameworkDir)
-add_path(os.path.join(frameworkDir,'contrib'))
+add_path_recursively(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
 from Simulation import Simulation
 #Internal Modules

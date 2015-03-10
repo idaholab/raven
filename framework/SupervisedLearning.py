@@ -275,14 +275,14 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if key=='IndexSet': self.indexSetType = val
       if key=='PolynomialOrder': self.maxPolyOrder = val
       if key=='Interpolation':
-        var = val.pop('text')
-        self.itpDict[var]={'poly'  :'DEFAULT',
-                           'quad'  :'DEFAULT',
-                           'weight':'1',
-                           'cdf'   :'False'}
-        for atr in ['poly','quad','weight','cdf']:
-          if atr in val.keys(): self.itpDict[var][atr]=val[atr]
-          else: raise IOError(self.printTag+' Unrecognized option: '+child.attrib[atr])
+        for var,val in val.items():
+          self.itpDict[var]={'poly'  :'DEFAULT',
+                             'quad'  :'DEFAULT',
+                             'weight':'1',
+                             'cdf'   :'False'}
+          for atrName,atrVal in val.items():
+            if atrName in ['poly','quad','weight','cdf']: self.itpDict[var][atrName]=atrVal
+            else: raise IOError(self.printTag+' Unrecognized option: '+atrName)
 
     if not self.indexSetType:
       raise IOError(self.printTag+' No IndexSet specified!')
@@ -321,7 +321,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
     self.polyCoeffDict={}
     #check consistency of featureVals
     if len(featureVals)!=len(self.sparseGrid):
-      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(needpts))+' points, but only '+str(len(havepts))+' provided!')
+      raise IOError(self.printTag+' ERROR: ROM requires '+str(len(self.sparseGrid))+' points, but only '+str(len(featureVals))+' provided!')
     #the dimensions of featureVals might be reordered from sparseGrid, so fix it here
     self.sparseGrid._remap(self.features)
     #check equality of point space
@@ -412,7 +412,7 @@ class GaussPolynomialRom(NDinterpolatorRom):
       if val > 1e-14 or printZeros:
         data.append([idx,val])
     data.sort()
-    print('polyDict:')
+    print('polyDict for '+self.target+': ')
     for idx,val in data:
       print('    ',idx,val)
 
@@ -613,6 +613,8 @@ class SciKitLearn(superVisedLearning):
     targetVals : array, shape = [n_samples]
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
+    print(self.ROM.__dict__)
+    print(self.ROM)
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
       #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)
