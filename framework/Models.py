@@ -299,8 +299,12 @@ class ROM(Dummy):
     for child in xmlNode:
       #FIXME is there anything that is a float that will raise an exception for int?
       if child.attrib:
-        self.initializationOptionDict[child.tag]={'text':child.text}
-        self.initializationOptionDict[child.tag].update(child.attrib)
+        if child.tag not in self.initializationOptionDict.keys():
+          self.initializationOptionDict[child.tag]={}
+        #print('DEBUG ROM',child.tag,child.text)
+        #TODO this is hacked up to work for GaussPolynomialRoms right now
+        self.initializationOptionDict[child.tag][child.text]=child.attrib
+        #self.initializationOptionDict[child.tag].update(child.attrib)
       else:
         try: self.initializationOptionDict[child.tag] = int(child.text)
         except ValueError:

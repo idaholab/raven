@@ -2,38 +2,41 @@
 <Simulation debug="True">
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
-    <Files>ideal_pump.i,ideal_pump_control.py,foo.csv</Files>
+    <Files>ideal_pump.i,ideal_pump_control.py,output.csv</Files>
     <Sequence>test_read_in,test_stats_step</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
   <Models>
     <PostProcessor name="test_stats" subType="ComparisonStatistics">
-      <data>fullprint_history|inputs|pipe1_Area</data>
-      <data>fullprint_history|outputs|pump_mass_flow_rate</data>
+      <kind bin_method='sturges'>uniform_bins</kind>
+      <compare>
+        <data>fullprint_timepointset|outputs|normal1</data>
+        <reference mean="20" sigma="3.0" />
+      </compare>
+      <compare>
+        <data>fullprint_timepointset|outputs|normal2</data>
+        <!-- Note that normal2 actually is mean=20, sigma = 3.0 -->
+        <reference mean="30" sigma="5.0" />
+      </compare>
+      <compare>
+        <data>fullprint_timepointset|outputs|uniform1</data>
+        <data>fullprint_timepointset|outputs|uniform2p</data>
+      </compare>
     </PostProcessor>
   </Models>
   <Samplers>
     <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>
   </Samplers>
   <Steps>
-    <IOStep name='test_read_in' fromDirectory='../output_check'>
-      <Input  class='Datas'    type='Histories'>fullprint_histories</Input>
-      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
-      <Input  class='Datas'    type='TimePoint'>fullprint_timepoint</Input>
-      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
-      <Input  class='Datas'    type='History'>fullprint_history</Input>
-      <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
+    <IOStep name='test_read_in' fromDirectory='../input_for_test_cc'>
       <Input  class='Datas'  type='TimePointSet'>fullprint_timepointset</Input>
       <Output   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Output>
     </IOStep>
     <PostProcess name="test_stats_step">
-      <Input  class='Datas'  type='Histories'>fullprint_histories</Input>
-      <Input  class='Datas'  type='TimePoint'>fullprint_timepoint</Input>
-      <Input  class='Datas'  type='History'>fullprint_history</Input>
       <Input  class='Datas'  type='TimePointSet'>fullprint_timepointset</Input>
       <!-- <Input   class='DataBases' type='HDF5'   >MC_TEST_REWRITE</Input>-->
       <Model class='Models' type='PostProcessor'>test_stats</Model>
-      <Output class='Files' type=''>foo.csv</Output>
+      <Output class='Files' type=''>output.csv</Output>
     </PostProcess>
   </Steps>
   <DataBases>

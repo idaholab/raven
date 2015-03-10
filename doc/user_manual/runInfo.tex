@@ -28,6 +28,14 @@ where RAVEN looks for the files specified in the block \xmlNode{Files}.
 %
 \default{None}
 
+%%%%%% RELATIVE WORKING DIR
+\item \xmlNode{RelativeWorkingDir}, \xmlDesc{string, optional field}, specifies
+the relative (with respect to the location where the xml file is located)
+path to a directory that will store all the results of the calculations and
+where RAVEN looks for the files specified in the block \xmlNode{Files}.
+%
+\default{None}
+
 %%%%%% Files
 \item \xmlNode{Files}, \xmlDesc{comma separated string, required field}, lists
 the paths to any files required by the code.
@@ -47,7 +55,11 @@ Section~\ref{sec:steps}).
 
 %%%%%% JOBNAME 
 \item \xmlNode{JobName}, \xmlDesc{string, optional field}, specifies
-the name to use for the job when submitting to a pbs queue.
+the name to use for the job when submitting to a pbs queue.  Acceptable characters
+include alphanumerics as well as ``-'' and ``\_''.  If more than 15
+characters are provided, RAVEN will truncate it using a hyphen between the first
+10 and last 4 character, i.e., ``1234567890abcdefgh'' will be truncated to 
+``1234567890-efgh''.
 %
 \default{raven\_qsub}
 

@@ -115,7 +115,7 @@ class hdf5Database(object):
       if "EndGroup" in obj.attrs:
         self.allGroupEnds[name]  = obj.attrs["EndGroup"]
       else:
-        print(self.printTag+': ' +utils.returnPrintPostTag('Warning') + '->not found attribute EndGroup in group ' + name + '.Set True.')
+        print(self.printTag+': ' +returnPrintPostTag('Warning') + '->not found attribute EndGroup in group ' + name + '.Set True.')
         self.allGroupEnds[name]  = True
       if "rootname" in obj.attrs: self.parent_group_name = name
     return
