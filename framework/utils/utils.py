@@ -3,21 +3,23 @@ import bisect
 import sys, os
 from scipy.interpolate import Rbf,griddata
 import copy
+import inspect
 
 class Object(object):pass
 
-def _unpickle_method(func_name, obj, cls):
-  for cls in cls.mro():
-    try: func = cls.__dict__[func_name]
-    except KeyError: pass
-    else: break
-  return func.__get__(obj, cls)
-
-def _pickle_method(method):
-  func_name = method.im_func.__name__
-  obj = method.im_self
-  cls = method.im_class
-  return _unpickle_method, (func_name, obj, cls)
+def returnImportModuleString(obj,moduleOnly=False):
+  mods = []
+  globs = dict(inspect.getmembers(obj))
+  for key, value in globs.items():
+    if moduleOnly:
+      if not inspect.ismodule(value): continue
+    else:
+      if not (inspect.ismodule(value) or inspect.ismethod(value)): continue
+    if key != value.__name__:
+      if value.__name__.split(".")[-1] != key: mods.append(str('import ' + value.__name__ + ' as '+ key))
+      else                                   : mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
+    else: mods.append(str(key))
+  return mods
 
 def getPrintTagLenght(): return 25
 
@@ -193,6 +195,24 @@ def find_ge(a, x):
     if i != len(a): return a[i],i
     return None,None
 
+# def metaclass_insert__getstate__(self):
+#   """
+#   Overwrite state (for pickle-ing)
+#   we do not pickle the HDF5 (C++) instance
+#   but only the info to re-load it
+#   """
+#   # capture what is normally pickled
+#   state = self.__dict__.copy()
+#   # we pop the database instance and close it
+#   state.pop("database")
+#   self.database.closeDataBaseW()
+#   # what we return here will be stored in the pickle
+#   return state
+#
+# def metaclass_insert__setstate__(self, newstate):
+#   self.__dict__.update(newstate)
+#   self.exist    = True
+
 def metaclass_insert(metaclass,*base_classes):
   """This allows a metaclass to be inserted as a base class.
   Metaclasses substitute in as a type(name,bases,namespace) function,
@@ -203,7 +223,7 @@ def metaclass_insert(metaclass,*base_classes):
   This function is based on the method used in Benjamin Peterson's six.py
   """
   namespace={}
-  return metaclass("Object",base_classes,namespace)
+  return metaclass("NewMiddleClass",base_classes,namespace)
 
 def interpolateFunction(x,y,option,z = None,returnCoordinate=False):
   """
@@ -299,14 +319,18 @@ def find_distribution1D():
     try:
       import crow_modules.distribution1Dpy3
       return crow_modules.distribution1Dpy3
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import distribution1Dpy3
       return distribution1Dpy3
   else:
     try:
       import crow_modules.distribution1Dpy2
       return crow_modules.distribution1Dpy2
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import distribution1Dpy2
       return distribution1Dpy2
 
@@ -316,13 +340,17 @@ def find_interpolationND():
     try:
       import crow_modules.interpolationNDpy3
       return crow_modules.interpolationNDpy3
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import interpolationNDpy3
       return interpolationNDpy3
   else:
     try:
       import crow_modules.interpolationNDpy2
       return crow_modules.interpolationNDpy2
-    except:
+    except ImportError as ie:
+      if not str(ie).startswith("No module named"):
+        raise ie
       import interpolationNDpy2
       return interpolationNDpy2

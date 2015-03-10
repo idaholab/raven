@@ -33,8 +33,8 @@ import CustomCommandExecuter
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Model(BaseType):
-#class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+#class Model(BaseType):
+class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   '''
   A model is something that given an input will return an output reproducing some physical model
   it could as complex as a stand alone code, a reduced order model trained somehow or something
@@ -140,15 +140,7 @@ class Model(BaseType):
     self.subType  = ''
     self.runQueue = []
     self.printTag = utils.returnPrintTag('MODEL')
-    self.mods     = []
-    for key, value in dict(inspect.getmembers(inspect.getmodule(self))).items():
-      if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__:
-          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
-          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
-        else: self.mods.append(str(key))
-#     for mod in sys.modules.keys():
-#       if not mod.startswith("_"): self.mods.append(str(mod.split(".")[0]))
+    self.mods     = utils.returnImportModuleString(inspect.getmodule(self),True)
     self.globs    = {}
 
   def _readMoreXML(self,xmlNode):
@@ -345,8 +337,12 @@ class ROM(Dummy):
     for child in xmlNode:
       #FIXME is there anything that is a float that will raise an exception for int?
       if child.attrib:
-        self.initializationOptionDict[child.tag]={'text':child.text}
-        self.initializationOptionDict[child.tag].update(child.attrib)
+        if child.tag not in self.initializationOptionDict.keys():
+          self.initializationOptionDict[child.tag]={}
+        #print('DEBUG ROM',child.tag,child.text)
+        #TODO this is hacked up to work for GaussPolynomialRoms right now
+        self.initializationOptionDict[child.tag][child.text]=child.attrib
+        #self.initializationOptionDict[child.tag].update(child.attrib)
       else:
         try: self.initializationOptionDict[child.tag] = int(child.text)
         except ValueError:
@@ -360,17 +356,8 @@ class ROM(Dummy):
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
-    globs = dict(inspect.getmembers(self.SupervisedEngine.values()[0]))
-    globs.update(dict(inspect.getmembers(SupervisedLearning)))
-    for key, value in globs.items():
-      if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__:
-          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
-          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
-        else: self.mods.append(str(key))
-
-#     for key, value in globs.items():
-#       if type(value).__name__ == "module" or type(value).__name__ == "function": self.globs[key] = str(value.__name__)
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
 
   def reset(self):
     '''
@@ -471,15 +458,7 @@ class ExternalModel(Dummy):
     '''
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
-    globs = dict(inspect.getmembers(self.sim))
-    for key, value in globs.items():
-      if inspect.ismodule(value) or inspect.ismethod(value):
-        if key != value.__name__:
-          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
-          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
-        else: self.mods.append(str(key))
-#     for key, value in globs.items():
-#       if type(value).__name__ == "module" or type(value).__name__ == "function": self.globs[key] = str(value.__name__)
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''
@@ -810,22 +789,7 @@ class PostProcessor(Model, Assembler):
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    #globs = dict(inspect.getmembers(self.interface))
-    globs = dict(inspect.getmembers(PostProcessors))
-    for key, value in globs.items():
-      if inspect.ismodule(value): # or inspect.isfunction(value): # inspect.ismethod(value):
-        if key != value.__name__:
-          if value.__name__.split(".")[-1] != key: self.mods.append(str('import ' + value.__name__ + ' as '+ key))
-          else                                   : self.mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
-        else: self.mods.append(str(key))
-
-#     for key, value in globs.items():
-#       if inspect.ismodule(value) and not key.startswith("_"): #(value) type(value).__name__ == "module":
-#         self.globs[key] = str(value.__name__)
-#       if inspect.isfunction(value) and not key.startswith("_"):
-#         self.globs[key] = str(os.path.basename(inspect.getsourcefile(value)).replace(".py",""))
-
-
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors)))
 
   def run(self,Input,jobHandler):
     '''run calls the interface finalizer'''

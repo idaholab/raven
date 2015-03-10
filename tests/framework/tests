@@ -181,6 +181,7 @@
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../bison/bison-%METHOD%'
+  skip_if_env = BUILD_ROOT
   #There is a problem in debug mode (possibly in bison) but this
   # test often does not work in debug mode because of the problem.
   method = 'devel opt'
@@ -194,6 +195,7 @@
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../bison/bison-%METHOD%'
+  skip_if_env = BUILD_ROOT
  [../]
 
  [./testLHSFerret]
@@ -274,6 +276,7 @@
   output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
   csv = 'MCTestBison/CustomSampler/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~1~gap_perfect_transfer_test.csv'
   required_executable = '../../../bison/bison-%METHOD%'
+  skip_if_env = BUILD_ROOT
  [../]
 
  [./test_custom_mode]
@@ -341,11 +344,25 @@
   csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
  [../]
 
+ [./indexSetTest]
+  type = 'RavenFramework'
+  input = 'test_indexsets.xml'
+  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml'
+  csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv'
+ [../]
+
  [./stochPolyPickleTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_pickle.xml'
   output = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+ [../]
+
+ [./stochPolyInterpTest]
+  type = 'RavenFramework'
+  input = 'test_stochpoly_interp.xml'
+  output = 'StochasticPolyInterpTest/Ndump.xml'
+  csv = 'StochasticPolyInterpTest/Ndump.csv'
  [../]
 
  [./RELAP5interfaceTestNoExecutable]
