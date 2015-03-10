@@ -33,8 +33,8 @@ import CustomCommandExecuter
 import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Model(BaseType):
-#class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+#class Model(BaseType):
+class Model(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   '''
   A model is something that given an input will return an output reproducing some physical model
   it could as complex as a stand alone code, a reduced order model trained somehow or something
@@ -140,7 +140,7 @@ class Model(BaseType):
     self.subType  = ''
     self.runQueue = []
     self.printTag = utils.returnPrintTag('MODEL')
-    self.mods     = utils.returnImportModuleString(self)
+    self.mods     = utils.returnImportModuleString(inspect.getmodule(self),True)
     self.globs    = {}
 
   def _readMoreXML(self,xmlNode):
@@ -356,8 +356,8 @@ class ROM(Dummy):
     for target in targets:
       self.initializationOptionDict['Target'] = target
       self.SupervisedEngine[target] =  SupervisedLearning.returnInstance(self.subType,**self.initializationOptionDict)
-    self.mods = utils.returnImportModuleString(self.SupervisedEngine.values()[0])
-    self.mods.extend(utils.returnImportModuleString(SupervisedLearning))
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.SupervisedEngine.values()[0])))
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning)))
 
   def reset(self):
     '''
@@ -458,7 +458,7 @@ class ExternalModel(Dummy):
     '''
     if 'initialize' in dir(self.sim): self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
-    self.mods     = utils.returnImportModuleString(self.sim)
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
 
   def createNewInput(self,myInput,samplerType,**Kwargs):
     '''
@@ -789,7 +789,7 @@ class PostProcessor(Model, Assembler):
        directory with the starting input files'''
     self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    self.mods = utils.returnImportModuleString(PostProcessors)
+    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(PostProcessors)))
 
   def run(self,Input,jobHandler):
     '''run calls the interface finalizer'''

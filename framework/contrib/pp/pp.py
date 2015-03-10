@@ -380,7 +380,7 @@ class Server(object):
                 % (self.__ncpus, ))
 
     def submit(self, func, args=(), depfuncs=(), modules=(),
-            callback=None, callbackargs=(), group='default', globals=None):
+            callback=None, callbackargs=(), group='default', globals=None, functionToSkip = None):
         """Submits function to the execution queue
 
             func - function to be executed
@@ -395,6 +395,7 @@ class Server(object):
             jobs in a given group to finish
             globals - dictionary from which all modules, functions and classes
             will be imported, for instance: globals=globals()
+            functionToSkip - list of functions that need to be skipped from pickling
         """
 
         # perform some checks for frequent mistakes
@@ -451,8 +452,15 @@ class Server(object):
                     or str(type(arg))[:6] == "<class":
                 # do not include source for imported modules
                 if ppcommon.is_not_imported(arg, modules):
-                    depfuncs += tuple(ppcommon.get_class_hierarchy(arg.__class__))
-
+                    clshier = ppcommon.get_class_hierarchy(arg.__class__)
+                    if functionToSkip != None:
+                      tempclshier = []
+                      for clshierfun in clshier:
+                        for functskp in functionToSkip:
+                          if str(clshierfun) != str(functskp): # we use string in order to avoid baseclass identity!
+                            tempclshier.append(clshierfun)
+                      clshier = tempclshier
+                    depfuncs += tuple(clshier) 
         # if there is a function in the arguments add this
         # function to dependancies
         for arg in args:

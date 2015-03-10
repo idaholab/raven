@@ -19,12 +19,14 @@ import os
 import signal
 import copy
 import sys
+import abc
 #import logging, logging.handlers
 import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import returnPrintTag, returnPrintPostTag
+from utils import returnPrintTag, returnPrintPostTag, metaclass_insert
+from BaseClasses import BaseType
 # for internal parallel
 import pp
 import ppserver
@@ -176,7 +178,7 @@ class ExternalRunner:
 #
 class InternalRunner:
   #import multiprocessing as multip
-  def __init__(self,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None):
+  def __init__(self,ppserver, Input,functionToRun, frameworkModules = [], identifier=None,metadata=None, globs = None, functionToSkip = None):
     # we keep the command here, in order to have the hook for running exec code into internal models
     self.command  = "internal"
     self.ppserver = ppserver
@@ -195,12 +197,13 @@ class InternalRunner:
     self.__metadata      = copy.copy(metadata)
     self.__globals       = copy.copy(globs)
     self.__frameworkMods = copy.copy(frameworkModules)
+    self._functionToSkip = functionToSkip
     self.retcode         = 0
 
   def start_pp(self):
     if self.ppserver != None:
-      if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))))
-      else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))))
+      if len(self.__input) == 1: self.__thread = self.ppserver.submit(self.functionToRun, args= (self.__input[0],), depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
+      else                     : self.__thread = self.ppserver.submit(self.functionToRun, args= self.__input, depfuncs=(), modules = tuple(list(set(self.__frameworkMods))),functionToSkip=self._functionToSkip)
     else:
       if len(self.__input) == 1: self.__thread = threading.Thread(target = lambda q,  arg : q.put(self.functionToRun(arg)), name = self.identifier, args=(self.subque,self.__input[0]))
       else                     : self.__thread = threading.Thread(target = lambda q, *arg : q.put(self.functionToRun(*arg)), name = self.identifier, args=(self.subque,)+tuple(self.__input))
@@ -291,7 +294,7 @@ class JobHandler:
     if self.howManyFreeSpots()>0: self.addRuns()
 
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
-    self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs))
+    self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[metaclass_insert(abc.ABCMeta,BaseType)]))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
 
