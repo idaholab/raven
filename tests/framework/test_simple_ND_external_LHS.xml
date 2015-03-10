@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation>
 <RunInfo>
-    <WorkingDir>/Users/mandd/projects/raven/tests/framework/ND_test_LHS</WorkingDir>
+    <WorkingDir>ND_test_LHS</WorkingDir>
     <Files>lorentzAttractor.py,TriangularExponential2D_scattered.txt,TriangularExponential2D_cartesian.txt,covMatrix.txt</Files>
     <Sequence>FirstMRun</Sequence>
     <batchSize>1</batchSize>

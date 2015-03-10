@@ -704,7 +704,7 @@ upWeibull.initializeDistribution()
 #InverseWeight
 
 ndInverseWeightElement = ET.Element("NDInverseWeight")
-ndInverseWeightElement.append(createElement("working_dir", text="../tests/framework/ND_test_Grid_cdf/"))
+ndInverseWeightElement.append(createElement("working_dir", text="ND_test_Grid_cdf/"))
 ndInverseWeightElement.append(createElement("p", text="0.5"))
 #ndInverseWeightElement.append(createElementWithAttribute("data_filename", text="2DgaussianScatteredPDF.txt","type",text="PDF"))
 filenode = createElement("data_filename", text="2DgaussianScatteredPDF.txt")
@@ -743,7 +743,7 @@ ndCartesianSplineElement = ET.Element("NDCartesianSpline")
 filenode = createElement("data_filename", text="2DgaussianCartesianPDF.txt")
 filenode.set("type","PDF")
 ndCartesianSplineElement(filenode)
-ndCartesianSplineElement.append(createElement("working_dir", text="../tests/framework/ND_test_Grid_cdf/"))
+ndCartesianSplineElement.append(createElement("working_dir", text="framework/ND_test_Grid_cdf/"))
 
 ndCartesianSpline = Distributions.NDCartesianSpline()
 ndCartesianSpline._readMoreXML(ndCartesianSplineElement)
