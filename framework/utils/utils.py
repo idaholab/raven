@@ -14,7 +14,7 @@ def returnImportModuleString(obj,moduleOnly=False):
     if moduleOnly:
       if not inspect.ismodule(value): continue
     else:
-      if not (inspect.ismodule(value) or inspect.ismethod(value)): continue 
+      if not (inspect.ismodule(value) or inspect.ismethod(value)): continue
     if key != value.__name__:
       if value.__name__.split(".")[-1] != key: mods.append(str('import ' + value.__name__ + ' as '+ key))
       else                                   : mods.append(str('from ' + '.'.join(value.__name__.split(".")[:-1]) + ' import '+ key))
@@ -208,7 +208,7 @@ def find_ge(a, x):
 #   self.database.closeDataBaseW()
 #   # what we return here will be stored in the pickle
 #   return state
-# 
+#
 # def metaclass_insert__setstate__(self, newstate):
 #   self.__dict__.update(newstate)
 #   self.exist    = True
