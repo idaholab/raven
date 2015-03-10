@@ -229,8 +229,8 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     for key in self.variables2distributionsMapping.keys():
       self.variables2distributionsMapping[key]['totDim'] = len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
     
-    #print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
-    #print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
+    print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
+    print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
     
     self.localInputAndChecks(xmlNode)
 
@@ -1033,35 +1033,35 @@ class Grid(Sampler):
     for child in xmlNode:
       if child.tag == "Distribution":
         #Add <distribution> to name so we know it is not a direct variable
-        varName = "<distribution>"+child.attrib['name']
-                 
+        varName = "<distribution>"+child.attrib['name']               
       elif child.tag == "variable":
         varName = child.attrib['name']
-        for childChild in child:
-          if childChild.tag =='grid':
-            self.axisName.append(varName)
-            if childChild.attrib['type'] == 'global_grid':
-              self.gridInfo[varName] = ('CDF','global_grid',childChild.text)
-            else:
-              constrType = childChild.attrib['construction']
-              if constrType == 'custom':
-                tempList = [float(i) for i in childChild.text.split()]
-                tempList.sort() 
-                self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
-                if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
-                self.limit = len(tempList)*self.limit
-              elif constrType == 'equal':
-                self.limit = self.limit*(int(childChild.attrib['steps'])+1)
-                if   'lowerBound' in childChild.attrib.keys():
-                  self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-                  self.gridInfo[varName][2].sort()
-                elif 'upperBound' in childChild.attrib.keys():
-                  self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
-                  self.gridInfo[varName][2].sort()
-                else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))                      
-              else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')    
-             
-    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
+      for childChild in child:
+        if (childChild.tag =='grid' and child.tag == "variable") or (childChild.tag =='grid' and child.tag == "Distribution"):
+          self.axisName.append(varName)
+          if childChild.attrib['type'] == 'global_grid':
+            self.gridInfo[varName] = ('CDF','global_grid',childChild.text)
+          else:
+            constrType = childChild.attrib['construction']
+            if constrType == 'custom':
+              tempList = [float(i) for i in childChild.text.split()]
+              tempList.sort() 
+              self.gridInfo[varName] = (childChild.attrib['type'],constrType,tempList)
+              if self.gridInfo[varName][0]!='value' and self.gridInfo[varName][0]!='CDF': raise IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '->The type of grid is neither value nor CDF')
+              self.limit = len(tempList)*self.limit
+            elif constrType == 'equal':
+              self.limit = self.limit*(int(childChild.attrib['steps'])+1)
+              if   'lowerBound' in childChild.attrib.keys():
+                self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['lowerBound']) + float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+                self.gridInfo[varName][2].sort()
+              elif 'upperBound' in childChild.attrib.keys():
+                self.gridInfo[varName] = (childChild.attrib['type'], constrType, [float(childChild.attrib['upperBound']) - float(childChild.text)*i for i in range(int(childChild.attrib['steps'])+1)])
+                self.gridInfo[varName][2].sort()
+              else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> no upper or lower bound has been declared for '+str(child.tag)+' in sampler '+str(self.name))                      
+            else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> not specified the grid construction type')    
+            
+    if len(self.toBeSampled.keys()) != len(self.gridInfo.keys()): 
+      raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> inconsistency between number of variables and grid specification')
     self.gridCoordinate = [None]*len(self.axisName)
 
   def localAddInitParams(self,tempDict):
@@ -1187,7 +1187,8 @@ class Grid(Sampler):
         self.inputInfo['distributionName'][key] = self.toBeSampled[varName]
         self.inputInfo['distributionType'][key] = self.distDict[varName].type
         
-        if self.variables2distributionsMapping[varName]['totDim']==1:
+        print('varName ' + str(varName))
+        if ("<distribution>" in varName) or  (self.variables2distributionsMapping[varName]['totDim']==1):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])        
         else:
           dist_name = self.variables2distributionsMapping[varName]['name']
@@ -1201,7 +1202,7 @@ class Grid(Sampler):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(NDcoordinate)
       
       # 1D variable
-      if self.variables2distributionsMapping[varName]['totDim']==1:  
+      if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):  
         if self.gridInfo[varName][0]=='CDF':
           if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: 
             weight *= self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[key]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
@@ -1366,26 +1367,28 @@ class LHS(Grid):
     #print('self.inputInfo: ' + str(self.inputInfo))
     
     for varName in self.axisName:
-
-      if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
-        upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
-        lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
-        j += 1
-        coordinate = lower + (upper-lower)*intervalFraction
-        gridCoordinate =  self.distDict[varName].ppf(coordinate)     
-        distName = self.variables2distributionsMapping[varName]['name']
-        for distVarName in self.distributions2variablesMapping[distName]:             
-          for kkey in distVarName.keys()[0].strip().split(','):
-            self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-            self.inputInfo['distributionType'][kkey] = self.distDict[varName].type         
-            self.values[kkey] = np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
-            #self.inputInfo['upper'][kkey] = ppfupper
-            #self.inputInfo['lower'][kkey] = ppflower
-            self.inputInfo['SampledVarsPb'][varName] = coordinate
-          
-        weight *= upper - lower          
+      
+      if not "<distribution>" in varName:
+        if self.variables2distributionsMapping[varName]['totDim']>1 and self.variables2distributionsMapping[varName]['dim'] == 1:    # to avoid double count of weight for ND distribution; I need to count only one variable instaed of N
+          upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
+          lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
+          j += 1
+          intervalFraction = Distributions.random()
+          coordinate = lower + (upper-lower)*intervalFraction
+          gridCoordinate =  self.distDict[varName].ppf(coordinate)     
+          distName = self.variables2distributionsMapping[varName]['name']
+          for distVarName in self.distributions2variablesMapping[distName]:             
+            for kkey in distVarName.keys()[0].strip().split(','):
+              self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+              self.inputInfo['distributionType'][kkey] = self.distDict[varName].type         
+              self.values[kkey] = np.atleast_1d(gridCoordinate)[distVarName.values()[0]-1]
+              #self.inputInfo['upper'][kkey] = ppfupper
+              #self.inputInfo['lower'][kkey] = ppflower
+              self.inputInfo['SampledVarsPb'][varName] = coordinate
+            
+          weight *= upper - lower          
                               
-      elif self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable   
+      if ("<distribution>" in varName) or self.variables2distributionsMapping[varName]['totDim']==1:   # 1D variable 
         upper = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]+1]
         lower = self.gridInfo[varName][2][self.sampledCoordinate[self.counter-2][j]  ]
         j +=1
