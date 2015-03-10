@@ -613,6 +613,8 @@ class SciKitLearn(superVisedLearning):
     targetVals : array, shape = [n_samples]
     """
     #If all the target values are the same no training is needed and the moreover the self.evaluate could be re-addressed to this value
+    print(self.ROM.__dict__)
+    print(self.ROM)
     if len(np.unique(targetVals))>1:
       self.ROM.fit(featureVals,targetVals)
       #self.evaluate = lambda edict : self.__class__.evaluate(self,edict)

@@ -3,7 +3,7 @@ Created on NO NEED TO KNOW
 
 @author: alfoa
 '''
-import numpy as np
+import numpy
 import math
 
 def __residuumSign(self):
