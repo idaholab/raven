@@ -527,30 +527,30 @@ class Normal(BoostDistribution):
     '''
     return self.sigma*x+self.untruncatedMean()
 
-#  def _constructBeta(self,numStdDev=5):
-#    '''Using data from normal distribution and the number of standard deviations
-#    to include, constructs a Beta distribution with the same mean, variance, and
-#    skewness as the initial normal distribution.  Effectively simulates a truncated
-#    Gaussian.'''
-#    L = self.mean-numStdDev*self.sigma
-#    R = self.mean+numStdDev*self.sigma
-#    d = R-L
-#    a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
-#    b = a
-#    print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
-#    def createElement(tag,attrib={},text={}):
-#      element = ET.Element(tag,attrib)
-#      element.text = text
-#      return element
-#    betaElement = ET.Element("beta")
-#    betaElement.append(createElement("low"  ,text="%f" %L))
-#    betaElement.append(createElement("hi"   ,text="%f" %R))
-#    betaElement.append(createElement("alpha",text="%f" %a))
-#    betaElement.append(createElement("beta" ,text="%f" %b))
-#    beta = Beta()
-#    beta._readMoreXML(betaElement)
-#    beta.initializeDistribution()
-#    return beta
+  def _constructBeta(self,numStdDev=5):
+    '''Using data from normal distribution and the number of standard deviations
+    to include, constructs a Beta distribution with the same mean, variance, and
+    skewness as the initial normal distribution.  Effectively simulates a truncated
+    Gaussian.'''
+    L = self.mean-numStdDev*self.sigma
+    R = self.mean+numStdDev*self.sigma
+    d = R-L
+    a = d*d/8./(self.sigma*self.sigma) - 0.5 #comes from forcing equivalent total variance
+    b = a
+    print('L %f, R %f, d %f, ab %f, u %f' %(L,R,d,a,0.5*(L+R)))
+    def createElement(tag,attrib={},text={}):
+      element = ET.Element(tag,attrib)
+      element.text = text
+      return element
+    betaElement = ET.Element("beta")
+    betaElement.append(createElement("low"  ,text="%f" %L))
+    betaElement.append(createElement("hi"   ,text="%f" %R))
+    betaElement.append(createElement("alpha",text="%f" %a))
+    betaElement.append(createElement("beta" ,text="%f" %b))
+    beta = Beta()
+    beta._readMoreXML(betaElement)
+    beta.initializeDistribution()
+    return beta
 
 
 
@@ -679,22 +679,45 @@ class Beta(BoostDistribution):
 
   def _readMoreXML(self,xmlNode):
     BoostDistribution._readMoreXML(self,xmlNode)
+    #find location/scale parameters
+    numstd_find = xmlNode.find('numStdDev')
     low_find = xmlNode.find('low')
-    if low_find != None: self.low = float(low_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> low value needed for Beta distribution')
     hi_find = xmlNode.find('hi')
-    #high_find = xmlNode.find('high')
-    if hi_find != None: self.hi = float(hi_find.text)
-    #elif high_find != None: self.hi = float(high_find.text)
-    else:
-        if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text)
-        else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
+    if hi_find == None: hi_find = xmlNode.find('high')
+    if numstd_find != None: numStdDev = float(numstd_find.text)
+    if low_find    != None: self.low  = float(low_find.text)
+    if hi_find     != None: self.hi   = float(hi_find.text)
+    #find shape parameters
     alpha_find = xmlNode.find('alpha')
-    if alpha_find != None: self.alpha = float(alpha_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> alpha value needed for Beta distribution')
     beta_find = xmlNode.find('beta')
-    if beta_find != None: self.beta = float(beta_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> beta value needed for Beta distribution')
+    mu_find = xmlNode.find('mean')
+    sig_find = xmlNode.find('sigma')
+    musig = (mu_find != None and sig_find != None)
+    albet = (alpha_find != None and beta_find != None)
+    if albet and musig: #can't specify both...
+      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'Both (mean and sigma) and (alpha and beta) are specified! Choose only one set.')
+    elif not musig and not albet: #...but have to specify one
+      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'Choose either (mean and sigma) or (alpha and beta) in input.')
+    #set up construction
+    if albet: #typical beta construction
+      self.alpha = float(alpha_find.text)
+      self.beta = float(beta_find.text)
+      if numstd_find != None: IOError(self.printTag+': '+returnPrintPostTag('WARNING') + 'Construction of Beta distribution with alpha and beta does not use "numStdDev" keyword.  Ignoring...')
+      if low_find == None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> low value needed for Beta distribution')
+      if hi_find == None and xmlNode.find('high')==None: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
+    elif musig: #mimic a truncated normal
+      self.mu = float(mu_find.text)
+      self.sigma = float(sig_find.text)
+      if (low_find == None and hi_find == None) and numstd_find != None:
+        self.low = self.mu - numStdDev*self.sigma
+        self.hi  = self.mu + numStdDev*self.sigma
+      elif (low_find != None and hi_find != None) and numstd_find == None:
+        pass
+      else:
+        raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'-> Specify either (hi and low) or numStdDev for truncated-norma-like beta!')
+      d = self.hi-self.low                              #force equivalent mean
+      self.alpha = d*d/8./(self.sigma*self.sigma) - 0.5 #force equivalent variance
+      self.beta = self.alpha                            #force equivalent skewness
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -715,6 +738,9 @@ class Beta(BoostDistribution):
     self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
     self.convertToQuadDict ['Jacobi'] = self.convertBetaToJacobi
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
+    self.preferredPolynomials = 'Jacobi'
+    self.compatibleQuadrature.append('Jacobi')
+    self.compatibleQuadrature.append('ClenshawCurtis')
     if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
     else:
@@ -723,9 +749,6 @@ class Beta(BoostDistribution):
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
-    self.preferredPolynomials = 'Jacobi'
-    self.compatibleQuadrature.append('Jacobi')
-    self.compatibleQuadrature.append('ClenshawCurtis')
 
   def convertBetaToJacobi(self,y):
     '''Converts from distribution domain to standard Beta [0,1].

@@ -332,6 +332,30 @@ checkAnswer("shifted beta ppf(0.9)",beta.ppf(0.9),4.44442844652)
 
 print(beta.rvs(5),beta.rvs())
 
+#Test Truncated-Normal-Like Beta
+mean=1.0
+sigma=2.0
+betaElement = ET.Element("beta")
+betaElement.append(createElement("numStdDev",text="5.0"))
+betaElement.append(createElement("mean",text="%f" %mean))
+betaElement.append(createElement("sigma",text="%f" %sigma))
+
+beta = Distributions.Beta()
+beta._readMoreXML(betaElement)
+beta.initializeDistribution()
+
+checkCrowDist("truncnormal beta",beta,{'scale': 20.0, 'beta': 12.0, 'low':-9.0, 'xMax': 11.0, 'xMin': -9.0, 'alpha': 12.0, 'type': 'BetaDistribution'})
+
+checkAnswer("truncnormal beta cdf(-9.0)",beta.cdf(-9.0),0)
+checkAnswer("truncnormal beta cdf(-4.0)",beta.cdf(-4.0),0.0046468487152)
+checkAnswer("truncnormal beta cdf( 1.0)",beta.cdf( 1.0),0.5)
+checkAnswer("truncnormal beta cdf( 4.0)",beta.cdf( 4.0),0.931758584104)
+checkAnswer("truncnormal beta cdf( 9.0)",beta.cdf( 9.0),0.999999532423)
+
+checkAnswer("truncnormal ppf(0.1)",beta.ppf(0.1),-1.59767602774)
+checkAnswer("truncnormal ppf(0.5)",beta.ppf(0.5),1.0)
+checkAnswer("truncnormal ppf(0.9)",beta.ppf(0.9),3.59767602774)
+
 #Test Triangular
 
 triangularElement = ET.Element("triangular")
