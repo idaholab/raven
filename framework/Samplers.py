@@ -165,6 +165,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
           if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
     '''
+    Assembler._readMoreXML(self,xmlNode)
     
     for child in xmlNode:
       prefix = ""
@@ -173,7 +174,6 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           if childChild.tag =='distribution':
             prefix = "<distribution>"
             tobesampled = childChild.text
-            if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
         self.toBeSampled[prefix+child.attrib['name']] = tobesampled    
       elif child.tag == 'variable':
         for childChild in child:
@@ -213,21 +213,30 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31)
     
+    print('====> self.variables2distributionsMapping ' + str(self.variables2distributionsMapping))
     # Creation of the self.distributions2variablesMapping dictionary: {'dist_name': ({'variable_name1': dim1}, {'variable_name2': dim2})}
     for variable in self.variables2distributionsMapping.keys():
       distName = self.variables2distributionsMapping[variable]['name']
       dim      = self.variables2distributionsMapping[variable]['dim']
       list_element={}
       list_element[variable] = dim
-      if distName in self.distributions2variablesMapping.keys():
-        #print('list_element: ' + str(list_element))
+      if (distName in self.distributions2variablesMapping.keys()):
         self.distributions2variablesMapping[distName].append(list_element)
       else:
         self.distributions2variablesMapping[distName]=[list_element]       
         
+    print('====> self.distributions2variablesMapping ' + str(self.distributions2variablesMapping))
     
     for key in self.variables2distributionsMapping.keys():
-      self.variables2distributionsMapping[key]['totDim'] = len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
+      dist = self.variables2distributionsMapping[key]['name']
+      maxDim=1
+      list = self.distributions2variablesMapping[dist]
+      for var in list:
+        print(var)
+        if var.values()[0] > maxDim:
+          maxDim = var.values()[0]   
+      print(str(key) +': ' + str(maxDim))       
+      self.variables2distributionsMapping[key]['totDim'] = maxDim #len(self.distributions2variablesMapping[self.variables2distributionsMapping[key]['name']])
     
     print("self.distributions2variablesMapping: " + str(self.distributions2variablesMapping))
     print("self.variables2distributionsMapping: " + str(self.variables2distributionsMapping))
@@ -1136,10 +1145,12 @@ class Grid(Sampler):
     self.inputInfo['ProbabilityWeight'] = weight
     self.inputInfo['SamplerType'] = 'Grid'
     '''
-    #print('self.gridInfo: '       + str(self.gridInfo))
-    #print('self.inputInfo: '      + str(self.inputInfo))
-    #print('self.gridCoordinate: ' + str(self.gridCoordinate))    
-    #print('self.axisName: '       + str(self.axisName))
+    print('self.gridInfo: '       + str(self.gridInfo))
+    print('self.inputInfo: '      + str(self.inputInfo))
+    print('self.gridCoordinate: ' + str(self.gridCoordinate))    
+    print('self.axisName: '       + str(self.axisName))
+    print('self.variables2distributionsMapping: '       + str(self.variables2distributionsMapping))
+    print('self.distributions2variablesMapping: '       + str(self.distributions2variablesMapping))
     
     weight = 1.0
     
@@ -1188,13 +1199,14 @@ class Grid(Sampler):
         self.inputInfo['distributionType'][key] = self.distDict[varName].type
         
         print('varName ' + str(varName))
-        if ("<distribution>" in varName) or  (self.variables2distributionsMapping[varName]['totDim']==1):
+        if ("<distribution>" in varName) or (self.variables2distributionsMapping[varName]['totDim']==1):
           self.inputInfo['SampledVarsPb'][key] = self.distDict[varName].pdf(self.values[key])        
         else:
           dist_name = self.variables2distributionsMapping[varName]['name']
           #NDcoordinate=np.zeros(len(self.distributions2variablesMapping[dist_name]))   
           NDcoordinate=[]
-          for i in range(len(self.distributions2variablesMapping[dist_name])):NDcoordinate.append(0)         
+          for i in range(len(self.distributions2variablesMapping[dist_name])):
+            NDcoordinate.append(0)         
           for var in self.distributions2variablesMapping[dist_name]:
             variable = var.keys()[0]
             position = var.values()[0]

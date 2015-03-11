@@ -43,8 +43,8 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'Exponential':'ExponentialDistribution',
                               'LogNormal':'LogNormalDistribution',
                               'Weibull':'WeibullDistribution',
-                              'NDInverseWeight': 'InverseWeightDistribution',
-                              'NDCartesianSpline': 'NDsplineDistribution' }
+                              'NDInverseWeight': 'NDInverseWeightDistribution',
+                              'NDCartesianSpline': 'NDCartesianSplineDistribution' }
 
 
 class Distribution(BaseType):
@@ -228,6 +228,9 @@ class Distribution(BaseType):
     @ Out float, normalization factor
     '''
     return 1.0/2.0;
+  
+  def returnDimensionality(self):
+    return self.dimensionality
 
 
 def random():
@@ -1264,9 +1267,9 @@ class NDInverseWeight(NDimensionalDistributions):
   def initializeDistribution(self):
     print('====== BasicMultiDimensional InverseWeight initialize Distribution ======')
     if self.function_type == 'CDF':
-      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.data_filename, self.p,True)
+      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.data_filename), self.p,True)
     else:
-      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(self.data_filename, self.p,False)
+      self._distribution = distribution1D.BasicMultiDimensionalInverseWeight(str(self.data_filename), self.p,False)
 
   def cdf(self,x):
     coordinate = distribution1D.vectord_cxx(len(x))
@@ -1343,9 +1346,9 @@ class NDCartesianSpline(NDimensionalDistributions):
   def initializeDistribution(self):
     print('====== BasicMultiDimensional NDCartesianSpline initialize Distribution ======')
     if self.function_type == 'CDF':
-      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(self.data_filename,True)
+      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.data_filename),True)
     else:
-      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(self.data_filename,False)
+      self._distribution = distribution1D.BasicMultiDimensionalCartesianSpline(str(self.data_filename),False)
 
   def cdf(self,x):
     coordinate = distribution1D.vectord_cxx(len(x))
