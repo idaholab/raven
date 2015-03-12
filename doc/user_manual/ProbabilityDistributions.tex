@@ -86,6 +86,16 @@ The distribution domain can be changed, specifying new boundaries, to fit the
 user's needs.
 %
 Its support is $x \in (0, 1)$.
+%
+The user can specify a \distname{Beta} distribution in two ways.  The standard
+is to provide the parameters \xmlNode{low}, \xmlNode{high}, \xmlNode{alpha},
+and \xmlNode{beta}.  Alternatively, to approximate a normal 
+distribution that falls to 0 at the endpoints, the user may provide 
+the parameters \xmlNode{low}, \xmlNode{high}, and \xmlNode{peakFactor}. The
+peak factor is a value between 0 and 1 that determines the peakedness of the
+distribution.  At 0 it is dome-like ($\alpha=\beta=4$) and at 1 it is very
+strongly peaked around the mean ($\alpha=\beta=100$).  A reasonable approximation
+to a Gaussian normal is a peak factor of 0.5.
 
 \specBlock{a}{Beta}
 %
@@ -99,12 +109,18 @@ Its support is $x \in (0, 1)$.
 \subnodesIntro
 \begin{itemize}
   \item \xmlNode{alpha}, \xmlDesc{float, required parameter}, first shape
-  parameter.
+  parameter.  If specified, \xmlNode{beta} must also be specified and
+  \xmlNode{peakFactor} must not be specified.
   %
   \item \xmlNode{beta}, \xmlDesc{float, required parameter}, second shape
-  parameter.
+  parameter.  If specified, \xmlNode{alpha} must also be specified and
+  \xmlNode{peakFactor} must not be specified.
   %
-  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
+  \item \xmlNode{peakFactor}, \xmlDesc{float, optional parameter}, alternative
+  to specifying \xmlNode{alpha} and \xmlNode{beta}.  Acceptable values range from
+  0 to 1.
+  %
+  \item \xmlNode{low}, \xmlDesc{float, required parameter}, lower domain
   boundary.
   %
   \item \xmlNode{high}, \xmlDesc{float, required parameter}, upper domain

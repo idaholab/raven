@@ -2,13 +2,13 @@
 <Simulation debug="False">
     <RunInfo>
         <WorkingDir>StochasticPolyTest</WorkingDir>
-        <Sequence><!--Umake,Utrain,Utest,Uprint,
+        <Sequence>Umake,Utrain,Utest,Uprint,
                   Nmake,Ntrain,Ntest,Nprint,
-                  Gmake,Gtrain,Gtest,Gprint,-->
+                  Gmake,Gtrain,Gtest,Gprint,
                   Bmake,Btrain,Btest,Bprint,
-                  <!--Tmake,Ttrain,Ttest,Tprint,
+                  Tmake,Ttrain,Ttest,Tprint,
                   Emake,Etrain,Etest,Eprint,
-                  UCmake,UCtrain,UCtest,UCprint,-->
+                  UCmake,UCtrain,UCtest,UCprint,
                   BNmake,BNtrain,BNtest,BNprint
         </Sequence>
         <batchSize>1</batchSize>
