@@ -689,12 +689,21 @@ class Beta(BoostDistribution):
     else:
         if xmlNode.find('high') != None: self.hi = float(xmlNode.find('high').text)
         else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> hi or high value needed for Beta distribution')
+    #TWO OPTIONS: alpha and beta or peaking factor
     alpha_find = xmlNode.find('alpha')
-    if alpha_find != None: self.alpha = float(alpha_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> alpha value needed for Beta distribution')
     beta_find = xmlNode.find('beta')
-    if beta_find != None: self.beta = float(beta_find.text)
-    else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> beta value needed for Beta distribution')
+    peak_find = xmlNode.find('peakFactor')
+    if alpha_find != None and beta_find != None and peak_find == None:
+      self.alpha = float(alpha_find.text)
+      self.beta  = float(beta_find.text)
+    elif (alpha_find == None and beta_find == None) and peak_find != None:
+      peakFactor = float(peak_find.text)
+      if not 0 <= peakFactor <= 1: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'peakFactor must be from 0 to 1, inclusive!')
+      #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99 
+      self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
+      self.beta = self.alpha
+    else:
+      raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'Either provide (alpha and beta) or peakFactor!')
     # check if lower or upper bounds are set, otherwise default
     if not self.upperBoundUsed:
       self.upperBoundUsed = True
@@ -715,7 +724,7 @@ class Beta(BoostDistribution):
     self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
     self.convertToQuadDict ['Jacobi'] = self.convertBetaToJacobi
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
-    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
+    if (not self.upperBoundUsed) and (not self.lowerBoundUsed): #TODO I don't think this case can ever be called.
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
     else:
       if self.lowerBoundUsed == False: a = 0.0
