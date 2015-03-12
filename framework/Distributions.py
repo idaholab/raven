@@ -699,7 +699,7 @@ class Beta(BoostDistribution):
     elif (alpha_find == None and beta_find == None) and peak_find != None:
       peakFactor = float(peak_find.text)
       if not 0 <= peakFactor <= 1: raise IOError(self.printTag+': '+returnPrintPostTag('ERROR')+'peakFactor must be from 0 to 1, inclusive!')
-      #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99 
+      #this empirical formula is used to make it so factor->alpha: 0->1, 0.5~7.5, 1->99
       self.alpha = 0.5*23.818**(5.*peakFactor/3.) + 0.5
       self.beta = self.alpha
     else:
