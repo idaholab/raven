@@ -333,28 +333,31 @@ checkAnswer("shifted beta ppf(0.9)",beta.ppf(0.9),4.44442844652)
 print(beta.rvs(5),beta.rvs())
 
 #Test Truncated-Normal-Like Beta
-mean=1.0
-sigma=2.0
-betaElement = ET.Element("beta")
-betaElement.append(createElement("numStdDev",text="5.0"))
-betaElement.append(createElement("mean",text="%f" %mean))
-betaElement.append(createElement("sigma",text="%f" %sigma))
+print('DEBUG testing truncnorm beta')
+betanElement = ET.Element("beta")
+betanElement.append(createElement("low",text="1.0"))
+betanElement.append(createElement("hi",text="5.0"))
+betanElement.append(createElement("peakFactor",text="0.5"))
 
-beta = Distributions.Beta()
-beta._readMoreXML(betaElement)
-beta.initializeDistribution()
+betan = Distributions.Beta()
+betan._readMoreXML(betanElement)
 
-checkCrowDist("truncnormal beta",beta,{'scale': 20.0, 'beta': 12.0, 'low':-9.0, 'xMax': 11.0, 'xMin': -9.0, 'alpha': 12.0, 'type': 'BetaDistribution'})
+checkCrowDist("truncnormal beta",betan,{'scale': 4.0, 'beta': 7.520872400521023, 'low':1.0, 'xMax': 5.0, 'xMin': 1.0, 'alpha': 7.520872400521023, 'type': 'BetaDistribution'})
 
-checkAnswer("truncnormal beta cdf(-9.0)",beta.cdf(-9.0),0)
-checkAnswer("truncnormal beta cdf(-4.0)",beta.cdf(-4.0),0.0046468487152)
-checkAnswer("truncnormal beta cdf( 1.0)",beta.cdf( 1.0),0.5)
-checkAnswer("truncnormal beta cdf( 4.0)",beta.cdf( 4.0),0.931758584104)
-checkAnswer("truncnormal beta cdf( 9.0)",beta.cdf( 9.0),0.999999532423)
+#for i in range(6):
+#  print('DEBUG',i,betan.pdf(i))
 
-checkAnswer("truncnormal ppf(0.1)",beta.ppf(0.1),-1.59767602774)
-checkAnswer("truncnormal ppf(0.5)",beta.ppf(0.5),1.0)
-checkAnswer("truncnormal ppf(0.9)",beta.ppf(0.9),3.59767602774)
+checkAnswer("truncnormal beta cdf(1.0)",betan.cdf(1.0),0)
+checkAnswer("truncnormal beta cdf(2.0)",betan.cdf(2.0),0.020339936921)
+checkAnswer("truncnormal beta cdf(3.0)",betan.cdf(3.0),0.5)
+checkAnswer("truncnormal beta cdf(4.0)",betan.cdf(4.0),0.979660063079)
+checkAnswer("truncnormal beta cdf(5.0)",betan.cdf(5.0),1)
+
+checkAnswer("truncnormal ppf(0.1)",betan.ppf(0.1),2.34668338772)
+checkAnswer("truncnormal ppf(0.5)",betan.ppf(0.5),3.0)
+checkAnswer("truncnormal ppf(0.9)",betan.ppf(0.9),3.65331661228)
+
+print(betan.rvs(5),betan.rvs())
 
 #Test Triangular
 
