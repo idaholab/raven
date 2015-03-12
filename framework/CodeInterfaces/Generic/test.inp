@@ -1,0 +1,12 @@
+#############################################
+#                                           #
+#  Dummy Input File for Dummy Python Module #
+#                                           #
+#############################################
+
+name = 'dummy'
+xval = 6
+yval = $RAVEN-y$
+zval = 12
+scale = 2
+offset = 1
