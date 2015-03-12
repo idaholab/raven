@@ -333,7 +333,6 @@ checkAnswer("shifted beta ppf(0.9)",beta.ppf(0.9),4.44442844652)
 print(beta.rvs(5),beta.rvs())
 
 #Test Truncated-Normal-Like Beta
-print('DEBUG testing truncnorm beta')
 betanElement = ET.Element("beta")
 betanElement.append(createElement("low",text="1.0"))
 betanElement.append(createElement("hi",text="5.0"))

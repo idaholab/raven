@@ -2,13 +2,14 @@
 <Simulation debug="False">
     <RunInfo>
         <WorkingDir>StochasticPolyTest</WorkingDir>
-        <Sequence>Umake,Utrain,Utest,Uprint,
+        <Sequence><!--Umake,Utrain,Utest,Uprint,
                   Nmake,Ntrain,Ntest,Nprint,
-                  Gmake,Gtrain,Gtest,Gprint,
+                  Gmake,Gtrain,Gtest,Gprint,-->
                   Bmake,Btrain,Btest,Bprint,
-                  Tmake,Ttrain,Ttest,Tprint,
+                  <!--Tmake,Ttrain,Ttest,Tprint,
                   Emake,Etrain,Etest,Eprint,
-                  UCmake,UCtrain,UCtest,UCprint
+                  UCmake,UCtrain,UCtest,UCprint,-->
+                  BNmake,BNtrain,BNtest,BNprint
         </Sequence>
         <batchSize>1</batchSize>
     </RunInfo>
@@ -32,6 +33,11 @@
             <alpha>2</alpha>
             <beta>5</beta>
         </Beta>
+        <Beta name="BetaNorm">
+            <peakFactor>0.5</peakFactor>
+            <low>0</low>
+            <hi>1</hi>
+        </Beta>
         <Triangular name='TriDist'>
             <min>1</min>
             <max>5</max>
@@ -44,73 +50,51 @@
 
     <Samplers>
         <SparseGridCollocation name="USG" parallel="1">
-            <variable name="x1">
-                <distribution>UniDist</distribution>
-            </variable>
-            <variable name="x2">
-                <distribution>UniDist</distribution>
-            </variable>
-            <ROM              class = 'Models' type = 'ROM'         >UROM</ROM>
+            <variable name="x1"><distribution>UniDist</distribution></variable>
+            <variable name="x2"><distribution>UniDist</distribution></variable>
+            <ROM class = 'Models' type = 'ROM'>UROM</ROM>
         </SparseGridCollocation>
 
         <SparseGridCollocation name="UCSG" parallel="1">
-            <variable name="x1">
-                <distribution>UniDist</distribution>
-            </variable>
-            <variable name="x2">
-                <distribution>UniDist</distribution>
-            </variable>
-            <ROM              class = 'Models' type = 'ROM'         >UCROM</ROM>
+            <variable name="x1"><distribution>UniDist</distribution></variable>
+            <variable name="x2"><distribution>UniDist</distribution></variable>
+            <ROM class = 'Models' type = 'ROM'>UCROM</ROM>
         </SparseGridCollocation>
 
         <SparseGridCollocation name="NSG" parallel="1">
-            <variable name="x1">
-                <distribution>NormDist</distribution>
-            </variable>
-            <variable name="x2">
-                <distribution>NormDist</distribution>
-            </variable>
-            <ROM              class = 'Models' type = 'ROM'         >NROM</ROM>
+            <variable name="x1"><distribution>NormDist</distribution></variable>
+            <variable name="x2"><distribution>NormDist</distribution></variable>
+            <ROM  class = 'Models' type = 'ROM'>NROM</ROM>
         </SparseGridCollocation>
 
         <SparseGridCollocation name="GSG" parallel="1">
-            <variable name="x1">
-                <distribution>GammaDist</distribution>
-            </variable>
-            <variable name="x2">
-                <distribution>GammaDist</distribution>
-            </variable>
-            <ROM              class = 'Models' type = 'ROM'         >GROM</ROM>
+            <variable name="x1"><distribution>GammaDist</distribution></variable>
+            <variable name="x2"><distribution>GammaDist</distribution></variable>
+            <ROM class = 'Models' type = 'ROM'>GROM</ROM>
         </SparseGridCollocation>
 
         <SparseGridCollocation name="BSG" parallel="1">
-            <variable name="x1">
-                <distribution>BetaDist</distribution>
-            </variable>
-            <variable name="x2">
-                <distribution>BetaDist</distribution>
-            </variable>
-            <ROM              class = 'Models' type = 'ROM'         >BROM</ROM>
+            <variable name="x1"><distribution>BetaDist</distribution></variable>
+            <variable name="x2"><distribution>BetaDist</distribution></variable>
+            <ROM class = 'Models' type = 'ROM'>BROM</ROM>
+        </SparseGridCollocation>
+
+        <SparseGridCollocation name="BNSG" parallel="1">
+            <variable name="x1"><distribution>BetaNorm</distribution></variable>
+            <variable name="x2"><distribution>BetaNorm</distribution></variable>
+            <ROM class = 'Models' type = 'ROM'>BNROM</ROM>
         </SparseGridCollocation>
 
         <SparseGridCollocation name="TSG" parallel="1">
-            <variable name="x1">
-                <distribution>TriDist</distribution>
-            </variable>
-            <variable name="x2">
-                <distribution>TriDist</distribution>
-            </variable>
-            <ROM              class = 'Models' type = 'ROM'         >TROM</ROM>
+            <variable name="x1"><distribution>TriDist</distribution></variable>
+            <variable name="x2"><distribution>TriDist</distribution></variable>
+            <ROM class = 'Models' type = 'ROM'>TROM</ROM>
         </SparseGridCollocation>
 
         <SparseGridCollocation name="ESG" parallel="1">
-            <variable name="x1">
-                <distribution>ExpDist</distribution>
-            </variable>
-            <variable name="x2">
-                <distribution>ExpDist</distribution>
-            </variable>
-            <ROM              class = 'Models' type = 'ROM'         >EROM</ROM>
+            <variable name="x1"><distribution>ExpDist</distribution></variable>
+            <variable name="x2"><distribution>ExpDist</distribution></variable>
+            <ROM class = 'Models' type = 'ROM'>EROM</ROM>
         </SparseGridCollocation>
     </Samplers>
 
@@ -159,6 +143,14 @@
             <Interpolation quad='Laguerre' poly='Laguerre' weight='1' >x2</Interpolation>
         </ROM>
         <ROM name='BROM' subType='GaussPolynomialRom'>
+            <Target>ans</Target>
+            <Features>x1,x2</Features>
+            <IndexSet>TensorProduct</IndexSet>
+            <PolynomialOrder>2</PolynomialOrder>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x1</Interpolation>
+            <Interpolation quad='Jacobi' poly='Jacobi' weight='1' cdf='False'>x2</Interpolation>
+        </ROM>
+        <ROM name='BNROM' subType='GaussPolynomialRom'>
             <Target>ans</Target>
             <Features>x1,x2</Features>
             <IndexSet>TensorProduct</IndexSet>
@@ -290,6 +282,27 @@
             <Output  class='OutStreamManager' type='Print'                >Bdump</Output>
         </OutStreamStep>
 
+        <MultiRun name='BNmake' pauseAtEnd='False'>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>BNSG</Sampler>
+            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Model   class='Models'           type='ExternalModel'        >polynomial</Model>
+            <Output  class='Datas'            type='TimePointSet'         >BNsolns</Output>
+        </MultiRun>
+        <RomTrainer name='BNtrain'>
+            <Input   class='Datas'            type='TimePointSet'         >BNsolns</Input>
+            <Output  class='Models'           type='ROM'                  >BNROM</Output>
+        </RomTrainer>
+        <MultiRun name='BNtest' pauseAtEnd='False'>
+            <Sampler class='Samplers'         type='SparseGridCollocation'>BNSG</Sampler>
+            <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
+            <Model   class='Models'           type='ROM'                  >BNROM</Model>
+            <Output  class='Datas'            type='TimePointSet'         >BNtests</Output>
+        </MultiRun>
+        <OutStreamStep name='BNprint'>
+            <Input   class='Datas'            type='TimePointSet'         >BNtests</Input>
+            <Output  class='OutStreamManager' type='Print'                >BNdump</Output>
+        </OutStreamStep>
+
         <MultiRun name='Tmake' pauseAtEnd='False'>
             <Sampler class='Samplers'         type='SparseGridCollocation'>TSG</Sampler>
             <Input   class='Datas'            type='TimePointSet'         >dummyIN</Input>
@@ -379,6 +392,14 @@
             <Input>x1,x2</Input>
             <Output>ans</Output>
         </TimePointSet>
+        <TimePointSet name='BNtests'>
+            <Input>x1,x2</Input>
+            <Output>ans</Output>
+        </TimePointSet>
+        <TimePointSet name='BNsolns'>
+            <Input>x1,x2</Input>
+            <Output>ans</Output>
+        </TimePointSet>
         <TimePointSet name='Ttests'>
             <Input>x1,x2</Input>
             <Output>ans</Output>
@@ -417,6 +438,10 @@
         <Print name='Bdump'>
             <type>csv</type>
             <source>Btests</source>
+        </Print>
+        <Print name='BNdump'>
+            <type>csv</type>
+            <source>BNtests</source>
         </Print>
         <Print name='Tdump'>
             <type>csv</type>
