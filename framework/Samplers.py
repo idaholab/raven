@@ -35,6 +35,7 @@ import pyDOE as doe
 import Quadratures
 import OrthoPolynomials
 import IndexSets
+import PostProcessors
 #Internal Modules End--------------------------------------------------------------------------------
 
 #Internal Submodules---------------------------------------------------------------------------------
@@ -342,8 +343,10 @@ class AdaptiveSampler(Sampler):
     self.nVar             = 0                #this is the number of the variable sampled
     self.surfPoint        = None             #coordinate of the points considered on the limit surface
     self.hangingPoints    = []               #list of the points already submitted for evaluation for which the result is not yet available
+    # postprocessor to compute the limit surface
+    self.limitSurfacePP   = PostProcessors.returnInstance("LimitSurface")
     self.printTag         = returnPrintTag('SAMPLER ADAPTIVE')
-
+    
     self.requiredAssObject = (True,(['TargetEvaluation','ROM','Function'],['n','n','-n']))       # tuple. first entry boolean flag. True if the XML parser must look for assembler objects;
 
 #  def _localGenerateAssembler(self,initDict):
@@ -457,21 +460,26 @@ class AdaptiveSampler(Sampler):
           self.ROM = self.assemblerDict[key][indice][3]
           indice += 1
 #
-    if self.ROM==None:
-      mySrting= ','.join(list(self.distDict.keys()))
-      self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
-    self.ROM.reset()
+    # initialize LimitSurface PP 
+    self.limitSurfacePP._initFromDict({"parameters":self.distDict.keys(),"tolerance":self.subGridTol,"side":"both"})
+    self.limitSurfacePP.assemblerDict = self.assemblerDict
+    self.limitSurfacePP.initialize({'WorkingDir':None},[self.lastOutput],{})
+#     
+#     
+#     if self.ROM==None:
+#       mySrting= ','.join(list(self.distDict.keys()))
+#       self.ROM = SupervisedLearning.returnInstance('SciKitLearn',**{'SKLtype':'neighbors|KNeighborsClassifier','Features':mySrting,'Target':self.goalFunction.name})
+#     self.ROM.reset()
 
     self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "Datas" type "TimePointSet"
     if type(solutionExport).__name__ != "TimePointSet": raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> solutionExport type is not a TimePointSet. Got '+ type(solutionExport).__name__+'!')
-    self.surfPoint         = None             #coordinate of the points considered on the limit surface
-    self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
-    self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
-    self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
-    self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    self.surfPoint         = None
+    #self.surfPoint         = None             #coordinate of the points considered on the limit surface
+    #self.testMatrix        = None             #This is the n-dimensional matrix representing the testing grid
+    #self.oldTestMatrix     = None             #This is the test matrix to use to store the old evaluation of the function
+    #self.functionValue     = {}               #This a dictionary that contains np vectors with the value for each variable and for the goal function
+    #self.persistenceMatrix = None             #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     if self.goalFunction.name not in self.solutionExport.getParaKeys('output'): raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Goal function name does not match solution export data output.')
     self._endJobRunnable   = 1
     #build a lambda function to masquerade the ROM <-> cKDTree presence
@@ -627,6 +635,7 @@ class AdaptiveSampler(Sampler):
         for iVar, varnName in enumerate([key.replace('<distribution>','') for key in self.axisName]): myStr +=  varnName+': '+str(coordinate[iVar])+'      '
         print(myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
+    self.surfPoint, evaluations = self.limitSurfacePP.run()
     listsurfPoint=self.__localLimitStateSearch__(toBeTested,-1)         #it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
     nNegPoints=len(listsurfPoint)
     listsurfPoint.extend(self.__localLimitStateSearch__(toBeTested,1))  #it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM

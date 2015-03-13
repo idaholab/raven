@@ -253,8 +253,8 @@
  [./testLimitSurfacePostProcessor]
   type = 'RavenFramework'
   input = 'test_LimitSurface.xml'
-  output = 'limitSurface/LimitSurface_dump.csv'
-  csv = 'limitSurface/LimitSurface_dump.csv'
+  output = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
+  csv = 'limitSurface/LimitSurfaceNegative_dump.csv limitSurface/LimitSurfacePositiveNegative_dump.csv limitSurface/LimitSurfacePositive_dump.csv'
   max_time = 300
   rel_err = 0.0001
   #skip = ‘need to be fixed’

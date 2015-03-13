@@ -1,7 +1,7 @@
 import numpy as np
 import bisect
 import sys, os
-from scipy.interpolate import Rbf,griddata
+from scipy.interpolate import Rbf, griddata
 import copy
 import inspect
 

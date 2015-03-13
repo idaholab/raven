@@ -1232,6 +1232,7 @@ class LimitSurface(BasePostProcessor):
     self.ROM               = None             #Pointer to a ROM
     self.externalFunction  = None             #Pointer to an external Function
     self.subGridTol        = 1.0e-4           #SubGrid tollerance
+    self.gridVectors       = {}
     self.lsSide            = "negative"       # Limit surface side to compute the LS for (negative,positive,both)
     self.requiredAssObject = (True,(['ROM','Function'],[-1,1]))
     self.printTag = utils.returnPrintTag('POSTPROCESSOR LIMITSURFACE')
@@ -1258,7 +1259,7 @@ class LimitSurface(BasePostProcessor):
     # to be added
     return inputDict
 
-  def initialize(self, runInfo, inputs, initDict):
+  def _initializeLSpp(self, runInfo, inputs, initDict):
     BasePostProcessor.initialize(self, runInfo, inputs, initDict)
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
@@ -1267,42 +1268,42 @@ class LimitSurface(BasePostProcessor):
     else: self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()
     self.__workingDir = runInfo['WorkingDir']
-    indexes = [-1,-1]
+    self.indexes = -1
     for index,inp in enumerate(self.inputs):
       if type(inp) in [str,bytes,unicode]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor only accepts Data(s) as inputs!')
-      if inp.type in ['TimePointSet','TimePoint']: indexes[0] = index
-    if indexes[0] == -1: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
+      if inp.type in ['TimePointSet','TimePoint']: self.indexes = index
+    if self.indexes == -1: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor needs a TimePoint or TimePointSet as INPUT!!!!!!')
     else:
       # check if parameters are contained in the data
-      inpKeys = self.inputs[indexes[0]].getParaKeys("inputs")
-      outKeys = self.inputs[indexes[0]].getParaKeys("outputs")
+      inpKeys = self.inputs[self.indexes].getParaKeys("inputs")
+      outKeys = self.inputs[self.indexes].getParaKeys("outputs")
       self.paramType ={}
       for param in self.parameters['targets']:
-        if param not in inpKeys+outKeys: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[indexes[0]].name +' !')
+        if param not in inpKeys+outKeys: raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> LimitSurface PostProcessor: The param '+ param+' not contained in Data '+self.inputs[self.indexes].name +' !')
         if param in inpKeys: self.paramType[param] = 'inputs'
         else:                self.paramType[param] = 'outputs'
     self.nVar        = len(self.parameters['targets'])         #Total number of variables
     stepLenght        = self.subGridTol**(1./float(self.nVar)) #build the step size in 0-1 range such as the differential volume is equal to the tolerance
     self.axisName     = []                                     #this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
-    self.gridVectors  = {}
     #here we build lambda function to return the coordinate of the grid point depending if the tolerance is on probability or on volume
-    stepParam = lambda x: [stepLenght*(max(self.inputs[indexes[0]].getParam(self.paramType[x],x))-min(self.inputs[indexes[0]].getParam(self.paramType[x],x))),
-                                       min(self.inputs[indexes[0]].getParam(self.paramType[x],x)),
-                                       max(self.inputs[indexes[0]].getParam(self.paramType[x],x))]
+    stepParam = lambda x: [stepLenght*(max(self.inputs[self.indexes].getParam(self.paramType[x],x))-min(self.inputs[self.indexes].getParam(self.paramType[x],x))),
+                                       min(self.inputs[self.indexes].getParam(self.paramType[x],x)),
+                                       max(self.inputs[self.indexes].getParam(self.paramType[x],x))]
 
     #moving forward building all the information set
     pointByVar = [None]*self.nVar                              #list storing the number of point by cooridnate
-    #building the grid point coordinates
+    #building the grid point coordinates 
     for varId, varName in enumerate(self.parameters['targets']):
       self.axisName.append(varName)
-      [myStepLenght, start, end]  = stepParam(varName)
-      if start == end:
-        start = start - 0.001*start
-        end   = end   + 0.001*end
-        myStepLenght = stepLenght*(end - start)
-      stepLenght
-      start                      += 0.5*myStepLenght
-      self.gridVectors[varName]   = np.arange(start,end,myStepLenght)
+      if len(self.gridVectors.keys()) == 0:
+        [myStepLenght, start, end]  = stepParam(varName)
+        if start == end:
+          start = start - 0.001*start
+          end   = end   + 0.001*end
+          myStepLenght = stepLenght*(end - start)
+        stepLenght
+        start                      += 0.5*myStepLenght
+        self.gridVectors[varName]   = np.arange(start,end,myStepLenght)
       pointByVar[varId]           = np.shape(self.gridVectors[varName])[0]
     self.gridShape                = tuple   (pointByVar)          #tuple of the grid shape
     self.testGridLenght           = np.prod (pointByVar)          #total number of point on the grid
@@ -1322,18 +1323,17 @@ class LimitSurface(BasePostProcessor):
     for varName in self.parameters['targets']:
       self.axisStepSize[varName] = np.asarray([self.gridVectors[varName][myIndex+1]-self.gridVectors[varName][myIndex] for myIndex in range(len(self.gridVectors[varName])-1)])
 
+  def _initializeLSppROM(self, inp):
     print('Initiate training')
-    self.functionValue.update(self.inputs[indexes[0]].getParametersValues('input'))
-    self.functionValue.update(self.inputs[indexes[0]].getParametersValues('output'))
+    self.functionValue.update(inp.getParametersValues('input'))
+    self.functionValue.update(inp.getParametersValues('output'))
     #recovery the index of the last function evaluation performed
     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
     else                                                      : indexLast = -1
 
     #index of last set of point tested and ready to perform the function evaluation
-#
     indexEnd  = len(self.functionValue[self.axisName[0]])-1
     tempDict  = {}
-
     if self.externalFunction.name in self.functionValue.keys():
       self.functionValue[self.externalFunction.name] = np.append( self.functionValue[self.externalFunction.name], np.zeros(indexEnd-indexLast))
     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
@@ -1343,12 +1343,11 @@ class LimitSurface(BasePostProcessor):
       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
-      if self.externalFunction.name in self.inputs[indexes[0]].getParaKeys('inputs'): self.inputs[indexes[0]].self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
-      if self.externalFunction.name in self.inputs[indexes[0]].getParaKeys('output'): self.inputs[indexes[0]].self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
+      if self.externalFunction.name in inp.getParaKeys('inputs'): inp.self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
+      if self.externalFunction.name in inp.getParaKeys('output'): inp.self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
       raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
 
-#
     #printing----------------------
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
     if self.debug:
@@ -1364,6 +1363,20 @@ class LimitSurface(BasePostProcessor):
     self.ROM.train(tempDict)
     print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
+
+  def initialize(self, runInfo, inputs, initDict):
+    self._initializeLSpp(runInfo, inputs, initDict)
+    self._initializeLSppROM(self.inputs[self.indexes])
+  
+  def _initFromDict(self,dictIn):
+    if "parameters" not in dictIn.keys(): raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> No Parameters specified in XML input!!!!')
+    if type(dictIn["parameters"]) == list: self.parameters['targets'] = dictIn["parameters"]
+    else                                 : self.parameters['targets'] = dictIn["parameters"].split(",")
+    if "tolerance" in dictIn.keys(): self.subGridTol = float(dictIn["tolerance"])
+    if "side" in dictIn.keys(): self.lsSide = dictIn["side"]
+    if self.lsSide not in ["negative","positive","both"]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> Computation side can be positive, negative, both only !!!!')
+    if "gridVector" in dictIn.keys(): self.gridVectors = dictIn["gridVector"]
+
   def _localReadMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -1371,15 +1384,9 @@ class LimitSurface(BasePostProcessor):
       @ In, xmlNode    : Xml element node
       @ Out, None
     """
-    child = xmlNode.find("parameters")
-    if child == None: raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> No Parameters specified in XML input!!!!')
-    self.parameters['targets'] = child.text.split(',')
-    child = xmlNode.find("tolerance")
-    if child != None: self.subGridTol = float(child.text)
-    child = xmlNode.find("side")
-    if child != None: 
-      self.side = child.text.lower()
-      if self.side not in ["negative","positive","both"]: raise IOError(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> Computation side can be positive, negative, both only !!!!')
+    initDict = {}
+    for child in xmlNode: initDict[child.tag] = child.text.lower()
+    self._initFromDict(initDict)
 
   def collectOutput(self,finishedjob,output):
     #output
@@ -1392,64 +1399,16 @@ class LimitSurface(BasePostProcessor):
           if varName == self.axisName[varIndex]:
             output.removeInputValue(varName)
             for value in limitSurf[0][:,varIndex]: output.updateInputValue(varName,copy.copy(value))
-      output.removeOutputValue('OutputPlaceOrder')
-      for value in limitSurf[1]: output.updateOutputValue('OutputPlaceOrder',copy.copy(value))
+      output.removeOutputValue(self.externalFunction.name)
+      for value in limitSurf[1]: output.updateOutputValue(self.externalFunction.name,copy.copy(value))
 
-  def run(self, InputIn): # inObj,workingDir=None):
+  def run(self, InputIn = None): # inObj,workingDir=None):
     """
      Function to finalize the filter => execute the filtering
      @ In , dictionary       : dictionary of data to process
      @ Out, dictionary       : Dictionary with results
     """
-    #Input  = self.inputToInternal(InputIn)
-#     print('Initiate training')
-#     self.functionValue.update(InputIn[-1].getParametersValues('input'))
-#     self.functionValue.update(InputIn[-1].getParametersValues('output'))
-#     #recovery the index of the last function evaluation performed
-#     if self.externalFunction.name in self.functionValue.keys(): indexLast = len(self.functionValue[self.externalFunction.name])-1
-#     else                                                      : indexLast = -1
-#
-#     #index of last set of point tested and ready to perform the function evaluation
-# #
-#     indexEnd  = len(self.functionValue[self.axisName[0]])-1
-#     tempDict  = {}
-#
-#     if self.externalFunction.name in self.functionValue.keys():
-#       self.functionValue[self.externalFunction.name] = np.append( self.functionValue[self.externalFunction.name], np.zeros(indexEnd-indexLast))
-#     else: self.functionValue[self.externalFunction.name] = np.zeros(indexEnd+1)
-#
-#     for myIndex in range(indexLast+1,indexEnd+1):
-#       for key, value in self.functionValue.items(): tempDict[key] = value[myIndex]
-#       #self.hangingPoints= self.hangingPoints[    ~(self.hangingPoints==np.array([tempDict[varName] for varName in self.axisName])).all(axis=1)     ][:]
-#       self.functionValue[self.externalFunction.name][myIndex] =  self.externalFunction.evaluate('residuumSign',tempDict)
-#       if abs(self.functionValue[self.externalFunction.name][myIndex]) != 1.0: raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: the function evaluation of the residuumSign method needs to return a 1 or -1!')
-#       if self.externalFunction.name in InputIn[-1].getParaKeys('inputs'): InputIn[-1].self.updateInputValue (self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
-#       if self.externalFunction.name in InputIn[-1].getParaKeys('output'): InputIn[-1].self.updateOutputValue(self.externalFunction.name,self.functionValue[self.externalFunction.name][myIndex])
-#     if np.sum(self.functionValue[self.externalFunction.name]) == float(len(self.functionValue[self.externalFunction.name])) or np.sum(self.functionValue[self.externalFunction.name]) == -float(len(self.functionValue[self.externalFunction.name])):
-#       raise Exception(self.printTag+': ' +utils.returnPrintPostTag("ERROR") + '-> LimitSurface: all the Function evaluations brought to the same result (No Limit Surface has been crossed...). Increase or change the data set!')
-#
-# #
-#     #printing----------------------
-#     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Mapping of the goal function evaluation performed')
-#     if self.debug:
-#       print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Already evaluated points and function values:')
-#       keyList = list(self.functionValue.keys())
-#       print(','.join(keyList))
-#       for index in range(indexEnd+1):
-#         print(','.join([str(self.functionValue[key][index]) for key in keyList]))
-#     #printing----------------------
-#     tempDict = {}
-#     for name in self.axisName: tempDict[name] = np.asarray(self.functionValue[name])
-#     tempDict[self.externalFunction.name] = self.functionValue[self.externalFunction.name]
-#     print("lupo")
-#     print(self.ROM.__dict__)
-#     print("lup2")
-#     print(self.ROM.SupervisedEngine.values()[0].__dict__)
-#     print("lup3")
-#     self.ROM.train(tempDict)
-#
-#     print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training performed')
-#     if self.debug: print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Training finished')
+    if InputIn != None: self.initialize({'WorkingDir':self.__workingDir},[InputIn],{})
     np.copyto(self.oldTestMatrix,self.testMatrix)                                #copy the old solution for convergence check
     self.testMatrix.shape     = (self.testGridLenght)                            #rearrange the grid matrix such as is an array of values
     self.gridCoord.shape      = (self.testGridLenght,self.nVar)                  #rearrange the grid coordinate matrix such as is an array of coordinate values
@@ -1470,33 +1429,19 @@ class LimitSurface(BasePostProcessor):
         print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: ' + myStr+'  value: '+str(self.testMatrix[tuple(coordinate)]))
     #printing----------------------
     #check which one of the preselected points is really on the limit surface
-    if self.side in ["negative","both"]:
+    nNegPoints = 0
+    nPosPoints = 0
+    listsurfPointNegative = []
+    listsurfPointPositive = []
+    if self.lsSide in ["negative","both"]:
       #it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
-      listsurfPoint=self.__localLimitStateSearch__(toBeTested,-1)         
-      nNegPoints = len(listsurfPoint)
-    elif self.side in ["positive","both"]:
+      listsurfPointNegative=self.__localLimitStateSearch__(toBeTested,-1)         
+      nNegPoints = len(listsurfPointNegative)
+    if self.lsSide in ["positive","both"]:
       #it returns the list of points belonging to the limit state surface and resulting in a positive response by the ROM
-      listsurfPoint.extend(self.__localLimitStateSearch__(toBeTested,1)) 
-    nTotPoints=len(listsurfPoint)
-
-#     listsurfPoint = []
-#     myIdList      = np.zeros(self.nVar)
-#     for coordinate in np.rollaxis(toBeTested,0):
-#       myIdList[:] = coordinate
-#       if int(self.testMatrix[tuple(coordinate)])<0: #we seek the frontier sitting on the -1 side
-#         for iVar in range(self.nVar):
-#           if coordinate[iVar]+1<self.gridShape[iVar]: #coordinate range from 0 to n-1 while shape is equal to n
-#             myIdList[iVar]+=1
-#             if self.testMatrix[tuple(myIdList)]>=0:
-#               listsurfPoint.append(copy.copy(coordinate))
-#               break
-#             myIdList[iVar]-=1
-#           if coordinate[iVar]>0:
-#             myIdList[iVar]-=1
-#             if self.testMatrix[tuple(myIdList)]>=0:
-#               listsurfPoint.append(copy.copy(coordinate))
-#               break
-#             myIdList[iVar]+=1
+      listsurfPointPositive= self.__localLimitStateSearch__(toBeTested,1)
+      nPosPoints = len(listsurfPointPositive)
+    listsurfPoint = listsurfPointNegative + listsurfPointPositive
 #     #printing----------------------
     if self.debug:
       print(self.printTag+': ' +utils.returnPrintPostTag('Message') + '-> LimitSurface: Limit surface points:')
@@ -1507,16 +1452,37 @@ class LimitSurface(BasePostProcessor):
     #printing----------------------
 
     #if the number of point on the limit surface is > than zero than save it
-    
-    outputPlaceOrder = np.zeros(len(listsurfPoint))
     if len(listsurfPoint)>0:
       self.surfPoint = np.ndarray((len(listsurfPoint),self.nVar))
       for pointID, coordinate in enumerate(listsurfPoint):
         self.surfPoint[pointID,:] = self.gridCoord[tuple(coordinate)]
-      evaluations = np.concatenate((-np.ones(nNegPoints),np.ones(nTotPoints-nNegPoints)), axis=0)  
+      evaluations = np.concatenate((-np.ones(nNegPoints),np.ones(nPosPoints)), axis=0)  
       #outputPlaceOrder[pointID] = pointID
-    return self.surfPoint,outputPlaceOrder
+    return self.surfPoint,evaluations
 
+  def __localLimitStateSearch__(self,toBeTested,sign):
+    '''
+    It returns the list of points belonging to the limit state surface and resulting in positive or negative responses by the ROM, depending on whether ''sign'' equals either -1 or 1, respectively.
+    '''
+    listsurfPoint=[]
+    myIdList= np.zeros(self.nVar)
+    for coordinate in np.rollaxis(toBeTested,0):
+      myIdList[:]=coordinate
+      if self.testMatrix[tuple(coordinate)]*sign>0:
+        for iVar in range(self.nVar):
+          if coordinate[iVar]+1<self.gridShape[iVar]:
+            myIdList[iVar]+=1
+            if self.testMatrix[tuple(myIdList)]*sign<=0:
+              listsurfPoint.append(copy.copy(coordinate))
+              break
+            myIdList[iVar]-=1
+            if coordinate[iVar]>0:
+              myIdList[iVar]-=1
+              if self.testMatrix[tuple(myIdList)]*sign<=0:
+                listsurfPoint.append(copy.copy(coordinate))
+                break
+              myIdList[iVar]+=1
+    return listsurfPoint
 #
 #
 #
