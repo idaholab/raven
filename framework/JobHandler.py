@@ -275,7 +275,9 @@ class JobHandler:
       # create the servers in the reserved nodes
       for nodeid in self.runInfoDict['uniqueNodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
       # create the server handler
-      self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['uniqueNodes']))
+      ppservers=("*",)
+      self.ppserver     = pp.Server(ppservers=ppservers)
+      #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['uniqueNodes']))
     else:
       if self.runInfoDict['NumMPI'] !=1: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
       else                             : self.ppserver = None                                                        # we just use threading!
