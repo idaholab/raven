@@ -245,20 +245,21 @@ class InternalRunner:
 
 class JobHandler:
   def __init__(self):
-    self.runInfoDict       = {}
-    self.mpiCommand        = ''
-    self.threadingCommand  = ''
-    self.submitDict = {}
+    self.runInfoDict            = {}
+    self.mpiCommand             = ''
+    self.threadingCommand       = ''
+    self.initParallelPython     = False
+    self.submitDict             = {}
     self.submitDict['External'] = self.addExternal
     self.submitDict['Internal'] = self.addInternal
     self.externalRunning        = []
     self.internalRunning        = []
-    self.__running = []
-    self.__queue = queue.Queue()
-    self.__nextId = 0
-    self.__numSubmitted = 0
-    self.__numFailed = 0
-    self.__failedJobs = []
+    self.__running              = []
+    self.__queue                = queue.Queue()
+    self.__nextId               = 0
+    self.__numSubmitted         = 0
+    self.__numFailed            = 0
+    self.__failedJobs           = []
 
   def initialize(self,runInfoDict):
     self.runInfoDict = runInfoDict
@@ -268,19 +269,24 @@ class JobHandler:
       self.threadingCommand = self.runInfoDict['ThreadingCommand'] +' '+str(self.runInfoDict['NumThreads'])
     #initialize PBS
     self.__running = [None]*self.runInfoDict['batchSize']
+
+  def __initializeParallelPython(self):
     # check if the list of unique nodes is present and, in case, initialize the socket
     if len(self.runInfoDict['uniqueNodes']) > 0:
       # initialize the socketing system
-      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py -a")
+      #ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py -a")
+      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
       # create the servers in the reserved nodes
-      for nodeid in self.runInfoDict['uniqueNodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
+      for nodeid in self.runInfoDict['uniqueNodes']: subprocess.call(['ssh ', nodeid, ppserverScript])
+      #for nodeid in self.runInfoDict['uniqueNodes']: subprocess.Popen('ssh '+nodeid+' '+ ppserverScript , shell=True) #,env=localenv)
       # create the server handler
-      ppservers=("*",)
+      #ppservers=("*",)
+      ppservers = tuple(self.runInfoDict['uniqueNodes'])
       self.ppserver     = pp.Server(ppservers=ppservers)
       #self.ppserver     = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']), ppservers=tuple(self.runInfoDict['uniqueNodes']))
     else:
-      if self.runInfoDict['NumMPI'] !=1: self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed'])) # we use the parallel python
-      else                             : self.ppserver = None                                                        # we just use threading!
+      if self.runInfoDict['NumMPI'] !=1: self.ppserver = pp.Server() # we use the parallel python
+      else                             : self.ppserver = None        # we just use threading!
 
   def addExternal(self,executeCommand,outputFile,workingDir,metadata=None):
     #probably something more for the PBS
@@ -296,6 +302,8 @@ class JobHandler:
     if self.howManyFreeSpots()>0: self.addRuns()
 
   def addInternal(self,Input,functionToRun,identifier,metadata=None, modulesToImport = [], globs = None):
+    #internal serve is initialized only in case an internal calc is requested
+    if not self.initParallelPython: self.__initializeParallelPython()
     self.__queue.put(InternalRunner(self.ppserver, Input, functionToRun, modulesToImport, identifier, metadata, globs, functionToSkip=[metaclass_insert(abc.ABCMeta,BaseType)]))
     self.__numSubmitted += 1
     if self.howManyFreeSpots()>0: self.addRuns()
