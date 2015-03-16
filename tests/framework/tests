@@ -391,15 +391,15 @@
  [./ND_external_grid_value]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_grid_value.xml'
-  output = 'ND_test_grid_value/testPrintTimePointSet_dump.csv ND_test_grid_value/testPrintTimePointSet_dump.csv'
-  csv = 'ND_test_grid_value/testPrintTimePointSet_dump.csv ND_test_grid_value/testPrintTimePointSet_dump.csv'
+  output = 'ND_test_Grid_value/testPrintTimePointSet_dump.csv ND_test_Grid_value/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_Grid_value/testPrintTimePointSet_dump.csv ND_test_Grid_value/testPrintTimePointSet_dump.csv'
  [../]
 
  [./ND_external_grid_cdf]
   type = 'RavenFramework'
   input = 'test_simple_ND_external_grid_cdf.xml'
-  output = 'ND_test_grid_cdf/testPrintTimePointSet_dump.csv ND_test_grid_cdf/testPrintTimePointSet_dump.csv'
-  csv = 'ND_test_grid_cdf/testPrintTimePointSet_dump.csv ND_test_grid_cdf/testPrintTimePointSet_dump.csv'
+  output = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
 
  [./test_comparison_statistics]
    type = 'RavenFramework'
