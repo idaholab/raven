@@ -51,7 +51,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
-    self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8,c1darray]
+    # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't
+    #   have some type or another (ie. Windows doesn't have np.float128, but does have np.float96)
+    self.metatype = []
+    for typeString in ["float","bool","int","np.ndarray","np.float16","np.float32","np.float64","np.float96","np.float128",
+                       "np.int16","np.int32","np.int64","np.bool8"]:
+      try:
+        self.metatype.append(eval(typeString))  # eval turns the string into the internal type
+      except AttributeError:
+        # Catches the type not being defined somewhere
+        pass
     self.type = self.__class__.__name__
     self.printTag  = utils.returnPrintTag('DATAS')
 
