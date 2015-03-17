@@ -1,14 +1,16 @@
 #############################################
 #                                           #
-#  Dummy Input File for Dummy Python Module #
+#  Dummy Input File for Proj Python Module  #
 #                                           #
 #############################################
 
-name = 'dummy'
-xval = 3.14159
-yval = 4
-zval = 2.99792358
-yredund = 4
-xyz = 3.14159 4 2.99792358
-scale = 2
-offset = 1
+m = 0.145
+r = 0.0336
+C = 0.5
+rho = 1.2
+v = 50.0
+ang = 45.0
+g = 9.81
+y = 1.
+dt = 1e-4
+tol = 1e-10

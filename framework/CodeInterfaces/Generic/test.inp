@@ -4,9 +4,11 @@
 #                                           #
 #############################################
 
-name = 'dummy'
-xval = 6
-yval = $RAVEN-y$
-zval = 12
+name = $RAVEN-name:'dummy'$
+xval = $RAVEN-x:1$
+yval = $RAVEN-y:2$
+zval = $RAVEN-z:3$
+yredund = $RAVEN-y:4$
+xyz = $RAVEN-x$ $RAVEN-y$ $RAVEN-z$
 scale = 2
 offset = 1

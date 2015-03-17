@@ -1,0 +1,16 @@
+#############################################
+#                                           #
+#  Dummy Input File for Proj Python Module  #
+#                                           #
+#############################################
+
+m = $RAVEN-mass:0.145$
+r = $RAVEN-radius:0.0336$
+C = $RAVEN-drag:0.5$
+rho = $RAVEN-air_dens:1.2$
+v = $RAVEN-velocity:50.0$
+ang = $RAVEN-angle:45.0$
+g = $RAVEN-gravity_accel:9.81$
+y = $RAVEN-init_y:1.$
+dt = $RAVEN-dt:1e-4$
+tol = $RAVEN-tol:1e-12$
