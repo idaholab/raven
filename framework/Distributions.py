@@ -724,16 +724,14 @@ class Beta(BoostDistribution):
     self.convertToDistrDict['Jacobi'] = self.convertJacobiToBeta
     self.convertToQuadDict ['Jacobi'] = self.convertBetaToJacobi
     self.measureNormDict   ['Jacobi'] = self.stdProbabilityNorm
-    #start redundant
-    if (not self.upperBoundUsed) and (not self.lowerBoundUsed): #FIXME I don't think this case can ever be called.
+    #this "if" section can only be called if distribution not generated using readMoreXML
+    if (not self.upperBoundUsed) and (not self.lowerBoundUsed):
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,self.low)
     else:
-      #this set of if-else also seems redundant, since it's taken care of in ReadMoreXML
       if self.lowerBoundUsed == False: a = 0.0
       else:a = self.lowerBound
       if self.upperBoundUsed == False: b = sys.float_info.max
       else:b = self.upperBound
-      #end redundant
       self._distribution = distribution1D.BasicBetaDistribution(self.alpha,self.beta,self.hi-self.low,a,b,self.low)
     self.preferredPolynomials = 'Jacobi'
     self.compatibleQuadrature.append('Jacobi')
