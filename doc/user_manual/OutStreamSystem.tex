@@ -1169,7 +1169,9 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   array column stride (step size).
   %
   \default{1}
-  \item \cmapDescription{jet}
+  \item \cmapDescription{None}
+  %
+  If not defined the surface plot is in solid color (default color is blue) or the color can be defined in \xmlNode{kwarg}
   \item \xmlNode{antialiased}, \xmlDesc{boolean, optional field}, determines
   whether or not the rendering should be antialiased.
   %
