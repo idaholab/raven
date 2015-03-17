@@ -1202,10 +1202,6 @@ class NDimensionalDistributions(Distribution):
     Distribution._readMoreXML(self, xmlNode)
     working_dir = xmlNode.find('working_dir')
     if working_dir != None: self.working_dir = working_dir.text
-<<<<<<< HEAD
-    
-=======
-
     '''
     data_filename = xmlNode.find('data_filename')
     if data_filename != None: self.data_filename = self.working_dir+data_filename.text
@@ -1217,8 +1213,6 @@ class NDimensionalDistributions(Distribution):
       self.function_type = function_type.upper()
       if self.function_type not in ['CDF','PDF']:  raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <function_type> parameter needs to be either CDF or PDF in MultiDimensional Distributions!!!!')
     '''
-
->>>>>>> fa27cc02f790fc09f314c950ffe0914fad6b3b09
   def addInitParams(self,tempDict):
     Distribution.addInitParams(self, tempDict)
     tempDict['function_type'] = self.function_type
@@ -1233,20 +1227,10 @@ class NDimensionalDistributions(Distribution):
         self.RNGtolerance = dictParam['tolerance']
       elif key == 'initial_grid_disc':
         self.RNGInitDisc  = dictParam['initial_grid_disc']
-<<<<<<< HEAD
-    
     self._distribution.updateRNGparameter(self.RNGtolerance,self.RNGInitDisc)
   ######
   
   def getDimensionality(self):
-=======
-
-    print('python distributions: updateRNGParam')
-    self._distribution.updateRNGparameter(self.RNGtolerance,self.RNGInitDisc)
-  ######
-
-  def returnDimensionality(self):
->>>>>>> fa27cc02f790fc09f314c950ffe0914fad6b3b09
     return  self._distribution.returnDimensionality()
 
 class NDInverseWeight(NDimensionalDistributions):
