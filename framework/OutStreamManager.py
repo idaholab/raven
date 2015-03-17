@@ -546,7 +546,9 @@ class OutStreamPlot(OutStreamManager):
         elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: raise IOError(self.printTag+': ERROR -> surface interpolation unknown. Available are :' + str(self.interpAvail))
         if 'epsilon' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['smooth'] = '0.0'
-        if 'cmap' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['cmap'] = 'None'
+        if 'cmap' not in self.options['plotSettings']['plot'][pltindex].keys():
+            if self.outStreamTypes[pltindex] == 'surface': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'None'
+            else:                                          self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
         elif self.options['plotSettings']['plot'][pltindex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))
         if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] = 'nearest'
         elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: raise IOError(self.printTag+': ERROR -> surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))

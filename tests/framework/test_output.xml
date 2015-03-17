@@ -465,6 +465,7 @@
             <z>TimePointSets|Output|pump_mass_flow_rate</z>
             <y>TimePointSets|Input|pipe1_Dh</y>
             <colorMap>TimePointSets|Output|pump_mass_flow_rate</colorMap>
+	    <cmap>jet</cmap>
             <interpolationType>nearest</interpolationType>
             <kwargs>
                 <color>green</color>
