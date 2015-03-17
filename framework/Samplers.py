@@ -906,14 +906,14 @@ class MonteCarlo(Sampler):
     self.printTag = returnPrintTag('SAMPLER MONTECARLO')
 
   def localInputAndChecks(self,xmlNode):
-    '''
-    if 'limit' in xmlNode.attrib.keys():
-      try: self.limit = int(xmlNode.attrib['limit'])
-      except ValueError:
-        IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
-    else:
-      raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
-    '''
+
+#     if 'limit' in xmlNode.attrib.keys():
+#       try: self.limit = int(xmlNode.attrib['limit'])
+#       except ValueError:
+#         IOError (self.printTag+': ' +returnPrintPostTag('ERROR') + '-> reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute limit with value '+xmlNode.attrib['limit'])
+#     else:
+#       raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
+
     
     if self.limit == None:
       raise IOError(' Monte Carlo sampling needs the attribute limit (number of samplings)')
