@@ -37,8 +37,6 @@ def checkAnswer(comment,value,expected):
 
 def checkCrowDist(comment,dist,expected_crow_dist):
   crow_dist = dist.getCrowDistDict()
-  print('====>crow_dist ' +str(crow_dist))
-  print('====>expected_crow_dist' +str(expected_crow_dist))
   if crow_dist != expected_crow_dist:
     print(comment,'\n',crow_dist,'\n',expected_crow_dist)
     results["fail"] += 1

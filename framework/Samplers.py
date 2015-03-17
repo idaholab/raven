@@ -107,9 +107,9 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
     
     ######
-    self.variables2distributionsMapping = {}
-    self.distributions2variablesMapping = {}
-    self.ND_sampling_params             = {}
+    self.variables2distributionsMapping = {}                       # for each variable 'varName'  , the following informations are included:  'varName': {'dim': 1, 'totDim': 2, 'name': 'distName'} ; dim = dimension of the variable; totDim = total dimensionality of its associated distribution 
+    self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
+    self.ND_sampling_params             = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initial_grid_disc' and 'tolerance')
     ###### 
     
     self.assemblerObjects  = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
@@ -145,26 +145,6 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     In case of a code the syntax is specified by the code interface itself
     '''
     
-    '''
-    try            : self.initSeed = int(xmlNode.attrib['initial_seed'])
-    except KeyError: self.initSeed = Distributions.randomIntegers(0,2**31)
-    
-    
-    if 'reseedAtEachIteration' in xmlNode.attrib.keys():
-      if xmlNode.attrib['reseedAtEachIteration'].lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
-    for child in xmlNode:
-      for childChild in child:
-        if childChild.tag =='distribution':
-          if child.tag == 'Distribution':
-            self.toBeSampled["<distribution>"+child.attrib['name']] = childChild.text
-          elif child.tag == 'variable': 
-            self.toBeSampled[child.attrib['name']] = childChild.text
-            ###
-            self.variables2distributionsMapping[childChild.text] = child.attrib['name']
-            ###
-          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: Distribution and variable!')
-          if len(list(childChild.attrib.keys())) > 0: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown attributes for distribution node '+childChild.text+'. Got '+str(childChild.attrib.keys()).replace('[', '').replace(']',''))
-    '''
     Assembler._readMoreXML(self,xmlNode)
     
     for child in xmlNode:
@@ -195,7 +175,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             self.limit = childChild.text
           elif childChild.tag == "initial_seed":
             self.initSeed = int(childChild.text)
-          elif childChild.tag == "reseedAtEachIteration":
+          elif childChild.tag == "reseed_at_each_iteration":
             if childChild.text.lower() in stringsThatMeanTrue(): self.reseedAtEachIteration = True
           elif childChild.tag == "dist_init":
             for childChildChild in childChild:              
@@ -208,7 +188,7 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                 else:
                   raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+childChildChildChild.tag+' .Available are: initial_grid_disc and tolerance!')
               self.ND_sampling_params[childChildChild.attrib['name']] = NDdistData
-          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseedAtEachIteration and dist_init!')  
+          else: raise IOError(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> Unknown tag '+child.tag+' .Available are: limit, initial_seed, reseed_at_each_iteration and dist_init!')  
           
     if self.initSeed == None:
       self.initSeed = Distributions.randomIntegers(0,2**31)
@@ -312,13 +292,12 @@ class Sampler(metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None : self.localInitialize(solutionExport=solutionExport)
     else                      : self.localInitialize()
-    
-    for distrib in self.ND_sampling_params:
-      for dist in self.distributions2variablesMapping:     
-        if dist == distrib:
-          params = self.ND_sampling_params[distrib]
-          temp = self.distributions2variablesMapping[distrib][0].keys()[0]
-          self.distDict[temp].updateRNGParam(params)
+          
+    for distrib in self.ND_sampling_params: 
+      if distrib in self.distributions2variablesMapping: 
+        params = self.ND_sampling_params[distrib] 
+        temp = self.distributions2variablesMapping[distrib][0].keys()[0] 
+        self.distDict[temp].updateRNGParam(params)
 
   def localInitialize(self):
     '''
@@ -1105,41 +1084,41 @@ class Grid(Sampler):
     #self.inputInfo['distributionInfo'] = {}
     self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
     self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
-    '''
-    weight = 1.0
-    for i in range(len(self.gridCoordinate)):
-      varName = self.axisName[i]
-      if not self.externalgGridCoord:
-        stride = stride // len(self.gridInfo[varName][2])
-        #index is the index into the array self.gridInfo[varName][2]
-        index, remainder = divmod(remainder, stride )
-        self.gridCoordinate[i] = index
-        
-      # check if the varName is a comma separated list of strings
-      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-      for kkey in varName.strip().split(','):
-        self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
-        self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
-        if self.gridInfo[varName][0]=='CDF':
-          self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-        elif self.gridInfo[varName][0]=='value':
-          self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
-          self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
-        else: raise IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
-      
-      if self.gridInfo[varName][0]=='CDF':
-        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
-        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
-      else:
-        if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
-        if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0)
-        if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
-    self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    self.inputInfo['ProbabilityWeight'] = weight
-    self.inputInfo['SamplerType'] = 'Grid'
-    '''
+    
+#     weight = 1.0
+#     for i in range(len(self.gridCoordinate)):
+#       varName = self.axisName[i]
+#       if not self.externalgGridCoord:
+#         stride = stride // len(self.gridInfo[varName][2])
+#         #index is the index into the array self.gridInfo[varName][2]
+#         index, remainder = divmod(remainder, stride )
+#         self.gridCoordinate[i] = index
+#         
+#       # check if the varName is a comma separated list of strings
+#       # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
+#       for kkey in varName.strip().split(','):
+#         self.inputInfo['distributionName'][kkey] = self.toBeSampled[varName]
+#         self.inputInfo['distributionType'][kkey] = self.distDict[varName].type
+#         if self.gridInfo[varName][0]=='CDF':
+#           self.values[kkey] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
+#           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+#         elif self.gridInfo[varName][0]=='value':
+#           self.values[kkey] = self.gridInfo[varName][2][self.gridCoordinate[i]]
+#           self.inputInfo['SampledVarsPb'][kkey] = self.distDict[varName].pdf(self.values[kkey])
+#         else: raise IOError (self.gridInfo[varName][0]+' is not know as value keyword for type. Sampler: '+self.name)
+#       
+#       if self.gridInfo[varName][0]=='CDF':
+#         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+#         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]+1]))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(0))/2.0)
+#         if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(1))/2.0) - self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]-1]))/2.0)
+#       else:
+#         if self.gridCoordinate[i] != 0 and self.gridCoordinate[i] < len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+#         if self.gridCoordinate[i] == 0: weight *= self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]+1])/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].lowerBound)/2.0)
+#         if self.gridCoordinate[i] == len(self.gridInfo[varName][2])-1: weight *= self.distDict[varName].cdf((self.values[kkey]+self.distDict[varName].upperBound)/2.0) -self.distDict[varName].cdf((self.values[kkey]+self.gridInfo[varName][2][self.gridCoordinate[i]-1])/2.0)
+#     self.inputInfo['PointProbability' ] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
+#     self.inputInfo['ProbabilityWeight'] = weight
+#     self.inputInfo['SamplerType'] = 'Grid'
+    
     #print('self.gridInfo: '       + str(self.gridInfo))
     #print('self.inputInfo: '      + str(self.inputInfo))
     #print('self.gridCoordinate: ' + str(self.gridCoordinate))    
@@ -1164,7 +1143,7 @@ class Grid(Sampler):
         self.inputInfo['distributionType'][key] = self.distDict[varName].type
 
         if self.gridInfo[varName][0]=='CDF':
-          if self.distDict[varName].returnDimensionality()==1:
+          if self.distDict[varName].getDimensionality()==1:
             self.values[key] = self.distDict[varName].ppf(self.gridInfo[varName][2][self.gridCoordinate[i]])
           else:
             location = self.variables2distributionsMapping[varName]['dim']

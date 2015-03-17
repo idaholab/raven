@@ -42,7 +42,7 @@
       <sampler_init>
         <limit>3</limit>
         <initial_seed>1234</initial_seed>
-        <reseedAtEachIteration>True</reseedAtEachIteration>
+        <reseed_at_each_iteration>True</reseed_at_each_iteration>
       </sampler_init>
       <variable name='x0' >
         <distribution  >x0_distrib</distribution>
