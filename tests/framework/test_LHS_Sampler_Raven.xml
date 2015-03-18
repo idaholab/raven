@@ -57,7 +57,10 @@
   </Distributions>
 
   <Samplers>
-    <LHS name='myLHS' initial_seed='1'>
+    <LHS name='myLHS'>
+      <sampler_init>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
       <variable name='Components|pipe|Tw'>
         <distribution >Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='0.02' steps='3'>0.3</grid>

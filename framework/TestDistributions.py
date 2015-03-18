@@ -702,38 +702,30 @@ upWeibull.initializeDistribution()
 #Testing N-Dimensional Distributions
 
 #InverseWeight
-
 ndInverseWeightElement = ET.Element("NDInverseWeight")
-ndInverseWeightElement.append(createElement("data_filename", text="ND_data.dat"))
+ndInverseWeightElement.append(createElement("working_dir", text="ND_test_Grid_cdf/"))
 ndInverseWeightElement.append(createElement("p", text="0.5"))
+filenode = createElement("data_filename", text="2DgaussianScatteredPDF.txt")
+filenode.set("type","PDF")
+ndInverseWeightElement.append(filenode)
 
-ndInverseWeight = Distributions.NDInverseWeight()
-ndInverseWeight._readMoreXML(ndInverseWeightElement)
-ndInverseWeight.initializeDistribution()
+ET.dump(ndInverseWeightElement)
 
-ndInverseWeight.addInitParams({})
+ndInverseWeight_test = Distributions.NDInverseWeight()
+ndInverseWeight_test._readMoreXML(ndInverseWeightElement)
+ndInverseWeight_test.initializeDistribution()
 
-checkCrowDist("NDInverseWeight",ndInverseWeight,{'type': 'NDInverseWeightDistribution'})
+ndInverseWeight_test.addInitParams({})
 
-#Scattered MS
-
-ndScatteredMSElement = ET.Element("NDScatteredMS")
-ndScatteredMSElement.append(createElement("data_filename", text="ND_data.dat"))
-ndScatteredMSElement.append(createElement("precision", text="1"))
-ndScatteredMSElement.append(createElement("p", text="0.5"))
-
-ndScatteredMS = Distributions.NDScatteredMS()
-ndScatteredMS._readMoreXML(ndScatteredMSElement)
-ndScatteredMS.initializeDistribution()
-
-ndScatteredMS.addInitParams({})
-
-checkCrowDist("NDScatteredMS",ndScatteredMS,{'type': 'NDScatteredMSDistribution'})
+checkCrowDist("NDInverseWeight",ndInverseWeight_test,{'type': 'NDInverseWeightDistribution'})
 
 #Cartesian Spline
 
 ndCartesianSplineElement = ET.Element("NDCartesianSpline")
-ndCartesianSplineElement.append(createElement("data_filename", text="ND_data.dat"))
+filenode = createElement("data_filename", text="2DgaussianCartesianPDF.txt")
+filenode.set("type","PDF")
+ndCartesianSplineElement.append(filenode)
+ndCartesianSplineElement.append(createElement("working_dir", text="ND_test_Grid_cdf/"))
 
 ndCartesianSpline = Distributions.NDCartesianSpline()
 ndCartesianSpline._readMoreXML(ndCartesianSplineElement)
@@ -742,7 +734,6 @@ ndCartesianSpline.initializeDistribution()
 ndCartesianSpline.addInitParams({})
 
 checkCrowDist("NDCartesianSpline",ndCartesianSpline,{'type': 'NDCartesianSplineDistribution'})
-
 
 
 print(results)
