@@ -166,6 +166,7 @@ class OutStreamPlot(OutStreamManager):
     self.interpAvail = ['nearest','linear','cubic','multiquadric','inverse','gaussian','Rbflinear','Rbfcubic','quintic','thin_plate']
     # actual plot
     self.actPlot = None
+    self.actcm = None
   #####################
   #  PRIVATE METHODS  #
   #####################
@@ -546,9 +547,8 @@ class OutStreamPlot(OutStreamManager):
         elif self.options['plotSettings']['plot'][pltindex]['interpolationType'] not in self.interpAvail: raise IOError(self.printTag+': ERROR -> surface interpolation unknown. Available are :' + str(self.interpAvail))
         if 'epsilon' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['epsilon'] = '2'
         if 'smooth' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['smooth'] = '0.0'
-        if 'cmap' not in self.options['plotSettings']['plot'][pltindex].keys():
-            if self.outStreamTypes[pltindex] == 'surface': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'None'
-            else:                                          self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
+        if 'cmap' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['cmap'] = 'None'
+#            else:             self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
         elif self.options['plotSettings']['plot'][pltindex]['cmap'] is not 'None' and self.options['plotSettings']['plot'][pltindex]['cmap'] not in self.mpl.cm.datad.keys(): raise('ERROR. The colorMap you specified does not exist... Available are ' + str(self.mpl.cm.datad.keys()))
         if 'interpolationTypeBackUp' not in self.options['plotSettings']['plot'][pltindex].keys(): self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] = 'nearest'
         elif self.options['plotSettings']['plot'][pltindex]['interpolationTypeBackUp'] not in self.interpAvail: raise IOError(self.printTag+': ERROR -> surface interpolation (BackUp) unknown. Available are :' + str(self.interpAvail))
@@ -666,28 +666,56 @@ class OutStreamPlot(OutStreamManager):
             for y_index in range(len(self.yValues[pltindex][key])):
               if self.dim == 2:
                 if self.colorMapCoordinates[pltindex] != None:
+                  if self.actcm: first = False
+                  else         : first = True
                   self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                  self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
-                  m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                  m.set_array(self.colorMapValues[pltindex][key])
-                  actcm = self.fig.colorbar(m)
-                  actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                  if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                      if first:
+                          m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
+                          m.set_array(self.colorMapValues[pltindex][key])
+                          self.actcm = self.fig.colorbar(m)
+                          self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                      else:
+                          self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                          self.actcm.draw_all()
+                  else:
+                      if first:
+                          self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                          m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                          m.set_array(self.colorMapValues[pltindex][key])
+                          self.actcm = self.fig.colorbar(m)
+                          self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                      else:
+                          self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                          self.actcm.draw_all()
                 else:
                   self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=(self.options['plotSettings']['plot'][pltindex]['c']),marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
               elif self.dim == 3:
                 for z_index in range(len(self.zValues[pltindex][key])):
                   if self.colorMapCoordinates[pltindex] != None:
-                    if self.actPlot: first = False
-                    else           : first = True
-                    self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                    if first:
-                      m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                      m.set_array(self.colorMapValues[pltindex][key])
-                      self.actcm = self.fig.colorbar(m)
-                      self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                    if self.actcm: first = False
+                    else         : first = True
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                        if first:
+                            m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
+                            m.set_array(self.colorMapValues[pltindex][key])
+                            self.actcm = self.fig.colorbar(m)
+                            self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                        else:
+                            self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                            self.actcm.draw_all()
                     else:
-                      self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
-                      self.actcm.draw_all()
+                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=self.colorMapValues[pltindex][key],marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                        if first:
+                            self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                            m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                            m.set_array(self.colorMapValues[pltindex][key])
+                            self.actcm = self.fig.colorbar(m)
+                            self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                        else:
+                            self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                            self.actcm.draw_all()
                   else:
                     self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],rasterized= True,s=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['s']),c=(self.options['plotSettings']['plot'][pltindex]['c']),marker=(self.options['plotSettings']['plot'][pltindex]['marker']),alpha=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['alpha']),linewidths=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidths']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
       #################
@@ -703,30 +731,57 @@ class OutStreamPlot(OutStreamManager):
                 xi,yi = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],returnCoordinate=True)
                 if self.colorMapCoordinates[pltindex] != None:
                   # if a color map has been added, we use a scattered plot instead...
-                  self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],marker='_')
-                  self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
-                  m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                  m.set_array(self.colorMapValues[pltindex][key])
-                  actcm = self.fig.colorbar(m)
-                  actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                  if self.actcm: first = False
+                  else         : first = True
+                  self.actPlot = self.plt.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],c=self.colorMapValues[pltindex][key],**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                  if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                      if first:
+                          m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
+                          m.set_array(self.colorMapValues[pltindex][key])
+                          self.actcm = self.fig.colorbar(m)
+                          self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                      else:
+                          self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                          self.actcm.draw_all()
+                  else:
+                      if first:
+                          self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                          m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                          m.set_array(self.colorMapValues[pltindex][key])
+                          self.actcm = self.fig.colorbar(m)
+                          self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                      else:
+                          self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                          self.actcm.draw_all()
                 else: self.actPlot = self.plt.plot(xi,yi,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
               elif self.dim == 3:
                 for z_index in range(len(self.zValues[pltindex][key])):
                   if self.zValues[pltindex][key][z_index].size <= 3: return
                   if self.colorMapCoordinates[pltindex] != None:
                     # if a color map has been added, we use a scattered plot instead...
-                    if self.actPlot: first = False
-                    else           : first = True
-                    self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],c=self.colorMapValues[pltindex][key],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),marker='_')
-                    if first:
-                      #self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
-                      m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                      m.set_array(self.colorMapValues[pltindex][key])
-                      self.actcm = self.fig.colorbar(m)
-                      self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                    if self.actcm: first = False
+                    else         : first = True
+                    self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],c=self.colorMapValues[pltindex][key],marker='_')
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                        if first:
+                            m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
+                            m.set_array(self.colorMapValues[pltindex][key])
+                            self.actcm = self.fig.colorbar(m)
+                            self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                        else:
+                            self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                            self.actcm.draw_all()
                     else:
-                      self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
-                      self.actcm.draw_all()
+                        self.actPlot = self.plt3D.scatter(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],c=self.colorMapValues[pltindex][key],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),marker='_')
+                        if first:
+                        #self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                            m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                            m.set_array(self.colorMapValues[pltindex][key])
+                            self.actcm = self.fig.colorbar(m)
+                            self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                        else:
+                            self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                            self.actcm.draw_all()
                   else: self.actPlot = self.plt3D.plot(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.zValues[pltindex][key][z_index],**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
       ##################
       # HISTOGRAM PLOT #
@@ -815,8 +870,12 @@ class OutStreamPlot(OutStreamManager):
                 for z_index in range(len(self.colorMapValues[pltindex][key])):
                   if self.colorMapValues[pltindex][key][z_index].size <= 3: return
                   xig, yig, Ci = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.colorMapValues[pltindex][key][z_index],returnCoordinate=True)
-                  self.actPlot = self.plt.pcolormesh(xig,yig,ma.masked_where(np.isnan(Ci),Ci),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']), **self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                  m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                  if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                      self.actPlot = self.plt.pcolormesh(xig,yig,ma.masked_where(np.isnan(Ci),Ci), **self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                      m = self.mpl.cm.ScalarMappable(norm=self.actPlot.norm)
+                  else:
+                      self.actPlot = self.plt.pcolormesh(xig,yig,ma.masked_where(np.isnan(Ci),Ci),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']), **self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                      m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
                   m.set_array(ma.masked_where(np.isnan(Ci),Ci))
                   actcm = self.fig.colorbar(m)
                   actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
@@ -843,29 +902,26 @@ class OutStreamPlot(OutStreamManager):
                   if self.colorMapCoordinates[pltindex] != None: xig, yig, Ci = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.colorMapValues[pltindex][key][z_index],returnCoordinate=True)
                   xig, yig, zi = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.zValues[pltindex][key][z_index],returnCoordinate=True)
                   if self.colorMapCoordinates[pltindex] != None:
-                    if self.actPlot: first = False
-                    else           : first = True
+                    if self.actcm: first = False
+                    else         : first = True
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
+                    self.actPlot = self.plt3D.plot_surface(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),facecolors=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])(ma.masked_where(np.isnan(Ci),Ci)),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    if first:
+                        self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                        m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                        m.set_array(self.colorMapValues[pltindex][key])
+                        self.actcm = self.fig.colorbar(m)
+                        self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                    else:
+                        self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                        self.actcm.draw_all()
+                  else:
                     if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
                         self.actPlot = self.plt3D.plot_surface(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                         if 'color' in self.options['plotSettings']['plot'][pltindex].get('attributes',{}).keys():
                             self.actPlot.set_color = self.options['plotSettings']['plot'][pltindex].get('attributes',{})['color']
                         else:
                             self.actPlot.set_color = 'blue'
-                    else:
-                        self.actPlot = self.plt3D.plot_surface(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),facecolors=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])(ma.masked_where(np.isnan(Ci),Ci)),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                        if first:
-                            self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
-                            m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                            m.set_array(self.colorMapValues[pltindex][key])
-                            self.actcm = self.fig.colorbar(m)
-                            self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
-                        else:
-                            self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
-                            self.actcm.draw_all()
-                  else:
-                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
-                        self.actPlot = self.plt3D.plot_surface(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                        self.actPlot.set_color = self.options['plotSettings']['plot'][pltindex].get('attributes',{})['color']
                     else:
                         self.actPlot = self.plt3D.plot_surface(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),linewidth= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['linewidth']),antialiased=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['antialiased']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
       ########################
@@ -893,12 +949,24 @@ class OutStreamPlot(OutStreamManager):
                     zs[sindex]=self.zValues[pltindex][key][z_index][metricIndeces[sindex]]
                   if self.zValues[pltindex][key][z_index].size <= 3: return
                   if self.colorMapCoordinates[pltindex] != None:
+                    if self.actcm: first = False
+                    else         : first = True
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
                     self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                    m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                    m.set_array(self.colorMapValues[pltindex][key])
-                    self.actcm = self.fig.colorbar(m)
-                    self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
-                  else: self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    if first:
+                        self.actPlot.cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap'])
+                        m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                        m.set_array(self.colorMapValues[pltindex][key])
+                        self.actcm = self.fig.colorbar(m)
+                        self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                    else:
+                        self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                        self.actcm.draw_all()
+                  else:
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                      self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    else:
+                      self.actPlot = self.plt3D.plot_trisurf(xs,ys,zs, color = self.options['plotSettings']['plot'][pltindex]['color'],cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),shade= ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['shade']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
       ########################
       #    WIREFRAME  PLOT   #
       ########################
@@ -917,18 +985,29 @@ class OutStreamPlot(OutStreamManager):
                   if self.colorMapCoordinates[pltindex] != None: xig, yig, Ci = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.colorMapValues[pltindex][key][z_index],returnCoordinate=True)
                   xig, yig, zi = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.zValues[pltindex][key][z_index],returnCoordinate=True)
                   if self.colorMapCoordinates[pltindex] != None:
-                    if self.actPlot: first = False
-                    else           : first = True
+                    print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> Currently, ax.plot_wireframe() in MatPlotLib version: '+self.mpl.__version__+' does not support a colormap! Wireframe plotted on a surface plot...')
+                    if self.actcm: first = False
+                    else         : first = True
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
                     self.actPlot = self.plt3D.plot_wireframe(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                    self.actPlot = self.plt3D.plot_surface(xig,yig,ma.masked_where(np.isnan(zi),zi),alpha=0.4, rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                     if first:
-                      m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
-                      m.set_array(self.colorMapValues[pltindex][key])
-                      self.actcm = self.fig.colorbar(m)
-                      self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                        m = self.mpl.cm.ScalarMappable(cmap=self.actPlot.cmap, norm=self.actPlot.norm)
+                        m.set_array(self.colorMapValues[pltindex][key])
+                        self.actcm = self.fig.colorbar(m)
+                        self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
                     else:
-                      self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
-                      self.actcm.draw_all()
-                  else: self.actPlot = self.plt3D.plot_wireframe(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                        self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                        self.actcm.draw_all()
+                  else:
+                    if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                        self.actPlot = self.plt3D.plot_wireframe(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                        if 'color' in self.options['plotSettings']['plot'][pltindex].get('attributes',{}).keys():
+                            self.actPlot.set_color = self.options['plotSettings']['plot'][pltindex].get('attributes',{})['color']
+                        else:
+                            self.actPlot.set_color = 'blue'
+                    else:
+                        self.actPlot = self.plt3D.plot_wireframe(xig,yig,ma.masked_where(np.isnan(zi),zi), rstride = ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['rstride']), cstride=ast.literal_eval(self.options['plotSettings']['plot'][pltindex]['cstride']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
 
       ########################
       #     CONTOUR   PLOT   #
@@ -944,13 +1023,28 @@ class OutStreamPlot(OutStreamManager):
             for x_index in range(len(self.xValues[pltindex][key])):
               for y_index in range(len(self.yValues[pltindex][key])):
                 for z_index in range(len(self.colorMapValues[pltindex][key])):
+                  if self.actcm: first = False
+                  else         : first = True
                   xig, yig, Ci = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.colorMapValues[pltindex][key][z_index],returnCoordinate=True)
                   if self.outStreamTypes[pltindex] == 'contour':
-                    self.actPlot = self.plt.contour(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                      if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                          if 'color' in self.options['plotSettings']['plot'][pltindex].get('attributes',{}).keys():
+                              color = self.options['plotSettings']['plot'][pltindex].get('attributes',{})['color']
+                          else:
+                              color = 'blue'
+                          self.actPlot = self.plt.contour(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,colors=color,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                      else:
+                          self.actPlot = self.plt.contour(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   else:
-                    self.actPlot = self.plt.contourf(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
-                  self.plt.clabel(self.actPlot, inline=1, fontsize=10)
-                  self.plt.colorbar(self.actPlot, shrink=0.8, extend='both')
+                      if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
+                      self.actPlot = self.plt.contourf(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                  self.plt.clabel(self.actPlot,inline=1, fontsize=10)
+                  if first:
+                      self.actcm = self.plt.colorbar(self.actPlot, shrink=0.8, extend='both')
+                      self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                  else:
+                      self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                      self.actcm.draw_all()
         elif self.dim == 3:
           print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
           return
@@ -967,13 +1061,28 @@ class OutStreamPlot(OutStreamManager):
             for x_index in range(len(self.xValues[pltindex][key])):
               for y_index in range(len(self.yValues[pltindex][key])):
                 for z_index in range(len(self.colorMapValues[pltindex][key])):
+                  if self.actcm: first = False
+                  else         : first = True
                   xig, yig, Ci = interpolateFunction(self.xValues[pltindex][key][x_index],self.yValues[pltindex][key][y_index],self.options['plotSettings']['plot'][pltindex],z = self.colorMapValues[pltindex][key][z_index],returnCoordinate=True)
                   if self.outStreamTypes[pltindex] == 'contour3D':
-                    self.actPlot = self.plt3D.contour3D(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,extend3d=ext3D, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                      if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None':
+                          if 'color' in self.options['plotSettings']['plot'][pltindex].get('attributes',{}).keys():
+                              color = self.options['plotSettings']['plot'][pltindex].get('attributes',{})['color']
+                          else:
+                              color = 'blue'
+                          self.actPlot = self.plt3D.contour3D(xig,yig,ma.masked_where(np.isnan(Ci),Ci), nbins,colors=color,extend3d=ext3D,**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                      else:
+                          self.actPlot = self.plt3D.contour3D(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,extend3d=ext3D, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   else:
-                    self.actPlot = self.plt3D.contourf3D(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,extend3d=ext3D, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
+                      if self.options['plotSettings']['plot'][pltindex]['cmap'] == 'None': self.options['plotSettings']['plot'][pltindex]['cmap'] = 'jet'
+                      self.actPlot = self.plt3D.contourf3D(xig,yig,ma.masked_where(np.isnan(Ci),Ci),nbins,extend3d=ext3D, cmap=self.mpl.cm.get_cmap(name=self.options['plotSettings']['plot'][pltindex]['cmap']),**self.options['plotSettings']['plot'][pltindex].get('attributes',{}))
                   self.plt.clabel(self.actPlot, inline=1, fontsize=10)
-                  self.plt.colorbar(self.actPlot, shrink=0.8, extend='both')
+                  if first:
+                      self.actcm = self.plt.colorbar(self.actPlot, shrink=0.8, extend='both')
+                      self.actcm.set_label(self.colorMapCoordinates[pltindex][0].split('|')[-1].replace(')',''))
+                  else:
+                      self.actcm.set_clim(vmin=min(self.colorMapValues[pltindex][key][-1]),vmax=max(self.colorMapValues[pltindex][key][-1]))
+                      self.actcm.draw_all()
       else:
         # Let's try to "write" the code for the plot on the fly
         print(self.printTag+': ' +returnPrintPostTag('Warning') + '-> Try to create a not-predifined plot of type ' + self.outStreamTypes[pltindex] +'. If it does not work check manual and/or relavite matplotlib method specification.')
