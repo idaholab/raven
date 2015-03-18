@@ -15,6 +15,7 @@ class RavenFramework(Tester):
     params.addParam('csv','',"List of csv files to check")
     params.addParam('rel_err','','Relative Error for csv files')
     params.addParam('required_executable','','Skip test if this executable is not found')
+    params.addParam('skip_if_env','','Skip test if this environmental variable is defined')
     params.addParam('test_interface_only','False','Test the interface only (without running the driven code')
     return params
 
@@ -35,9 +36,12 @@ class RavenFramework(Tester):
     self.specs['scale_refine'] = False
 
   def checkRunnable(self, option):
-    missing = RavenUtils.checkForMissingModules()
+    missing,too_old = RavenUtils.checkForMissingModules()
     if len(missing) > 0:
       return (False,'skipped (Missing python modules: '+" ".join(missing)+
+              " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
+    if len(too_old) > 0:
+      return (False,'skipped (Old version python modules: '+" ".join(too_old)+
               " PYTHONPATH="+os.environ.get("PYTHONPATH","")+')')
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
@@ -48,6 +52,10 @@ class RavenFramework(Tester):
         return (False,'skipped (Failing executable: "'+self.required_executable+'")')
     except:
       return (False,'skipped (Error when trying executable: "'+self.required_executable+'")')
+    if len(self.specs['skip_if_env']) > 0:
+      env_var = self.specs['skip_if_env']
+      if env_var in os.environ:
+        return (False,'skipped (found environmental variable "'+env_var+'")')
     return (True, '')
 
   def prepare(self):

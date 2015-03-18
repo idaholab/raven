@@ -29,7 +29,7 @@ from cached_ndarray import c1darray
 #Internal Modules End--------------------------------------------------------------------------------
 
 # set a global variable for backend default setting
-if platform.system() == 'Windwos': disAvail = True
+if platform.system() == 'Windows': disAvail = True
 else:
   if os.getenv('DISPLAY'): disAvail = True
   else:                    disAvail = False

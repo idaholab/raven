@@ -27,7 +27,10 @@
   </Distributions>
 
   <Samplers>
-    <Grid name='myGrid' initial_seed='1'>
+    <Grid name='myGrid'>
+      <sampler_init>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
       <variable name='Components|pipe|Tw'>
         <distribution >Gauss1</distribution>
         <grid type='value' construction='equal' lowerBound='300' steps='1'>3</grid>

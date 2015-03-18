@@ -51,7 +51,16 @@ class Data(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self.metaExclXml                     = ['probability']            # list of metadata keys that are excluded from xml outputter, and included in the CSV one
     self.notAllowedInputs  = []                                       # this is a list of keyword that are not allowed as Inputs
     self.notAllowedOutputs = []                                       # this is a list of keyword that are not allowed as Outputs
-    self.metatype  = [float,bool,int,np.ndarray,np.float16,np.float32,np.float64,np.float128,np.int16,np.int32,np.int64,np.bool8,c1darray]
+    # This is a list of metadata types that are CSV-compatible...we build the list this way to catch when a python implementation doesn't
+    #   have some type or another (ie. Windows doesn't have np.float128, but does have np.float96)
+    self.metatype = []
+    for typeString in ["float","bool","int","np.ndarray","np.float16","np.float32","np.float64","np.float96","np.float128",
+                       "np.int16","np.int32","np.int64","np.bool8"]:
+      try:
+        self.metatype.append(eval(typeString))  # eval turns the string into the internal type
+      except AttributeError:
+        # Catches the type not being defined somewhere
+        pass
     self.type = self.__class__.__name__
     self.printTag  = utils.returnPrintTag('DATAS')
 
@@ -765,7 +774,8 @@ class TimePoint(Data):
       @ Out, None
     '''
     self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    try: sourceType = self._toLoadFromList[0].type
+    #The source is the last item we added, so use [-1]
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       if(not self._dataParameters['history']): raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> DATAS     : ERROR: In order to create a TimePoint data, history name must be provided')
@@ -925,16 +935,22 @@ class TimePointSet(Data):
     if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'TimePoint'
     # store the type into the _dataParameters dictionary
     else:                                   self._dataParameters['type'] = self.type
-    try: sourceType = self._toLoadFromList[0].type
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
-      self._dataParameters['histories'] = self._toLoadFromList[0].getEndingGroupNames()
+      self._dataParameters['histories'] = self._toLoadFromList[-1].getEndingGroupNames()
       self._dataParameters['filter'   ] = 'whole'
 
   def checkConsistency(self):
     '''
       Here we perform the consistency check for the structured data TimePointSet
     '''
+    #The lenMustHave is a counter of the histories contained in the
+    #toLoadFromList list. Since this list can contain either CSVfiles
+    #and HDF5, we can not use "len(_toLoadFromList)" anymore. For
+    #example, if that list contains 10 csvs and 1 HDF5 (with 20
+    #histories), len(toLoadFromList) = 11 but the number of histories
+    #is actually 30.
     lenMustHave = 0
     try:   sourceType = self._toLoadFromList[-1].type
     except AttributeError:sourceType = None
@@ -945,13 +961,13 @@ class TimePointSet(Data):
       else: lenMustHave += 1
 
     if('HDF5' == sourceType):
-      eg = self._toLoadFromList[0].getEndingGroupNames()
+      #eg = self._toLoadFromList[-1].getEndingGroupNames()
       for key in self._dataContainer['inputs'].keys():
-        if (self._dataContainer['inputs'][key].size) != len(eg):
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
+        if (self._dataContainer['inputs'][key].size) != lenMustHave:
+          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The input parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['inputs'][key].size))
       for key in self._dataContainer['outputs'].keys():
-        if (self._dataContainer['outputs'][key].size) != len(eg):
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(len(eg)) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
+        if (self._dataContainer['outputs'][key].size) != lenMustHave:
+          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for TimePointSet ' + self.name + '!! It should be an array of size ' + str(lenMustHave) + '.Actual size is ' + str(self._dataContainer['outputs'][key].size))
     else:
       if self._dataParameters['hierarchical']:
         for key in self._dataContainer['inputs'].keys():
@@ -1274,7 +1290,7 @@ class History(Data):
       This function adds in the _dataParameters dict the options needed for reading and constructing this class
     '''
     self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    try: sourceType = self._toLoadFromList[0].type
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       if(not self._dataParameters['history']): raise IOError(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> In order to create a History data, history name must be provided')
@@ -1470,7 +1486,7 @@ class Histories(Data):
     '''
     if self._dataParameters['hierarchical']: self._dataParameters['type'] = 'History'
     else: self._dataParameters['type'] = self.type # store the type into the _dataParameters dictionary
-    try: sourceType = self._toLoadFromList[0].type
+    try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
     if('HDF5' == sourceType):
       self._dataParameters['filter'   ] = 'whole'
@@ -1483,6 +1499,11 @@ class Histories(Data):
     '''
     try: sourceType = self._toLoadFromList[-1].type
     except AttributeError: sourceType = None
+    lenMustHave = 0
+    for sourceLoad in self._toLoadFromList:
+      if not type(sourceLoad) == type(""):
+        if('HDF5' == sourceLoad.type):  lenMustHave = lenMustHave + len(sourceLoad.getEndingGroupNames())
+      else: lenMustHave += 1
 
     if self._dataParameters['hierarchical']:
       for key in self._dataContainer['inputs'].keys():
@@ -1493,9 +1514,9 @@ class Histories(Data):
           raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> The output parameter value, for key ' + key + ' has not a consistent shape for History in Histories ' + self.name + '!! It should be an 1D array since we are in hierarchical mode.' + '.Actual dimension is ' + str(self._dataContainer['outputs'][key].ndim))
     else:
       if('HDF5' == sourceType):
-        eg = self._toLoadFromList[0].getEndingGroupNames()
-        if(len(eg) != len(self._dataContainer['inputs'].keys())):
-          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(eg)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
+        #eg = self._toLoadFromList[-1].getEndingGroupNames()
+        if(lenMustHave != len(self._dataContainer['inputs'].keys())):
+          raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(lenMustHave) + ' !=' + str(len(self._dataContainer['inputs'].keys())))
       else:
         if(len(self._toLoadFromList) != len(self._dataContainer['inputs'].keys())):
           raise NotConsistentData(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> Number of Histories contained in Histories data ' + self.name + ' != number of loading sources!!! ' + str(len(self._toLoadFromList)) + ' !=' + str(len(self._dataContainer['inputs'].keys())))

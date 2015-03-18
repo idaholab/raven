@@ -13,6 +13,7 @@ import os,subprocess
 import math
 import sys
 import io
+import string
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -78,6 +79,14 @@ def createAndRunQSUB(simulation):
   frameworkDir = simulation.runInfoDict["FrameworkDir"]
   ncpus = simulation.runInfoDict['NumThreads']
   jobName = simulation.runInfoDict['JobName'] if 'JobName' in simulation.runInfoDict.keys() else 'raven_qsub'
+  #check invalid characters
+  validChars = set(string.ascii_letters).union(set(string.digits)).union(set('-_'))
+  if any(char not in validChars for char in jobName):
+    raise IOError(returnPrintTag('SIMULATION->QSUB:'),'JobName can only contain alphanumeric and "_", "-" characters! Received',jobName)
+  #check jobName for length
+  if len(jobName) > 15:
+    jobName = jobName[:10]+'-'+jobName[-4:]
+    print(returnPrintTag('SIMULATION->QSUB:'),'JobName is limited to 15 characters; truncating to',jobName)
   #Generate the qsub command needed to run input
   command = ["qsub","-N",jobName,"-l",
              "select="+str(coresNeeded)+":ncpus="+str(ncpus)+":mpiprocs=1",
@@ -114,6 +123,7 @@ class PBSDSHSimulationMode(SimulationMode):
       #Figure out number of nodes and use for batchsize
       nodefile = os.environ["PBS_NODEFILE"]
       lines = open(nodefile,"r").readlines()
+      self.__simulation.runInfoDict['uniqueNodes'] = list(set(lines))
       oldBatchsize =  self.__simulation.runInfoDict['batchSize']
       newBatchsize = len(lines) #the batchsize is just the number of nodes
       # of which there are one per line in the nodefile
@@ -147,6 +157,7 @@ class MPISimulationMode(SimulationMode):
       else:
         nodefile = self.__nodefile
       lines = open(nodefile,"r").readlines()
+      self.__simulation.runInfoDict['uniqueNodes'] = list(set(lines))
       numMPI = self.__simulation.runInfoDict['NumMPI']
       oldBatchsize = self.__simulation.runInfoDict['batchSize']
       #the batchsize is just the number of nodes of which there is one
@@ -287,6 +298,7 @@ class Simulation(object):
     self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relative log file (if True)
     self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
     self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only modes supported are pbsdsh and mpi
+    self.runInfoDict['uniqueNodes'       ] = []           # List of unique node IDs. Filled only in case RAVEN is run in a SMP machine
     self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
 
@@ -367,7 +379,7 @@ class Simulation(object):
     '''assuming that the file in is already in the self.filesDict it checks the existence'''
     if not os.path.exists(self.filesDict[filein]): raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> The file '+ filein +' has not been found')
 
-  def XMLread(self,xmlNode,runInfoSkip = set()):
+  def XMLread(self,xmlNode,runInfoSkip = set(),xmlFilename=None):
     '''parses the xml input file, instances the classes need to represent all objects in the simulation'''
     if 'debug' in xmlNode.attrib.keys():
       if xmlNode.attrib['debug'].lower()   in stringsThatMeanTrue() : self.debug=True
@@ -375,7 +387,7 @@ class Simulation(object):
       else                                 : raise IOError(self.printTag+': ' + returnPrintPostTag('ERROR') + '-> Not understandable keyword to set up the debug level: '+str(xmlNode.attrib['debug']))
     try:    runInfoNode = xmlNode.find('RunInfo')
     except: raise IOError('The run info node is mandatory')
-    self.__readRunInfo(runInfoNode,runInfoSkip)
+    self.__readRunInfo(runInfoNode,runInfoSkip,xmlFilename)
     for child in xmlNode:
       if child.tag in list(self.whichDict.keys()):
         if self.debug: print('\n' + self.printTag+': ' +returnPrintPostTag('Message') + '-> ' +2*'-'+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
@@ -458,7 +470,7 @@ class Simulation(object):
 
 
 
-  def __readRunInfo(self,xmlNode,runInfoSkip):
+  def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     '''reads the xml input file for the RunInfo block'''
     for element in xmlNode:
       if element.tag in runInfoSkip:
@@ -468,6 +480,12 @@ class Simulation(object):
         if '~' in temp_name : temp_name = os.path.expanduser(temp_name)
         if os.path.isabs(temp_name):            self.runInfoDict['WorkingDir'        ] = temp_name
         else:                                   self.runInfoDict['WorkingDir'        ] = os.path.abspath(temp_name)
+      elif element.tag == 'RelativeWorkingDir'  :
+        if xmlFilename == None:
+          raise IOError (self.printTag+': ' + returnPrintPostTag('ERROR') + 'RelativeWorkingDir requested but xmlFilename is None.')
+        xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+        raw_relative_working_dir = element.text.strip()
+        self.runInfoDict['WorkingDir'] = os.path.join(xmlDirectory,raw_relative_working_dir)
       elif element.tag == 'JobName'           : self.runInfoDict['JobName'           ] = element.text.strip()
       elif element.tag == 'ParallelCommand'   : self.runInfoDict['ParallelCommand'   ] = element.text.strip()
       elif element.tag == 'queueingSoftware'  : self.runInfoDict['queueingSoftware'  ] = element.text.strip()
