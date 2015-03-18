@@ -43,7 +43,10 @@
 
 <Samplers>
   <DynamicEventTree name='PreconditionedDET_test' print_end_xml="True">
-      <PreconditionerSampler type='MonteCarlo' limit='2'>
+      <PreconditionerSampler type='MonteCarlo'>
+          <sampler_init>
+              <limit>2</limit>
+          </sampler_init>
           <variable name='Auxiliary|testMCpreconditioned1|initial_value' >
               <distribution>testPreconditionerMonteCarloDist1</distribution>
           </variable>
