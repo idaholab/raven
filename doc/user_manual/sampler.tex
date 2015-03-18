@@ -525,24 +525,7 @@ Example:
  \begin{itemize}
     \item \distributionDescription
  \end{itemize} \end{itemize}
-Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).  %\senrs{No TimePointSet anymore}It also needs access to the TimePointSet where solutions are being stored, so it knows when to inform the ROM.  \talbpaul{I wonder if this could be done after Sampler is initiated instead of waiting until the sampling is done...} Both the TimePointSet and the ROM are specified through an Assembler tag: 
-%\begin{itemize}
-%   \item \xmlNode{Assembler}, \xmlDesc{xml node, required field} This xml node contains a ``list'' of objects that are required for the functionality of the Sparse Grid Collocation sampler. The objects must be listed with a rigorous syntax that, except for the xml node tag, is common among all the objects.  
-%Each of these sub-nodes  must contain 2 attributes that are used to map those within the simulation framework:
-%   \begin{itemize}
-%     \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main ``class'' of the listed object.
-%        %
-%        It can be \xmlString{Models} or \xmlString{Datas} for this sampler.
-%      \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object identifier or sub-type.
-%        %
-%        It can be \xmlString{ROM} or \xmlString{TimePointSet} for this sampler.
-%    \end{itemize}
-%The \textbf{Sparse Grid Collocation} approach requires the following object types in the \xmlNode{Assembler}:
-%   \begin{itemize}
-%     \item \xmlNode{ROM}, \xmlDesc{string, optional  field} The body of this xml node must contain the name of a ROM defined in the \xmlNode{Models} block (see section \ref{subsec:models_ROM}), and is restricted to ROM objects compatible with stochastic collocation for generalized polynomial chaos (GaussPolynomialRom and LagrangePolynomialRom, for example);
-%        \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field} The target evaluation object represents the container where the system evaluations are stored. From a practical point of view, this xml node must contain the name of a Data defined in the \xmlNode{Datas} block (see section \ref{sec:Datas}). Sparse grid collocation accepts a \textbf{Datas} object of type \textbf{TimePointSet} only. \nb The provided  \textbf{Datas} object's output should contain as output the solutions from the \textbf{Model}'s evaluation of this \textbf{Sampler}'s points.
-%    \end{itemize}    
-%\end{itemize}
+Because of the tight coupling between the Sampler and the ROM in stochastic collocation for generalized polynomial chaos, the Sampler needs access to the ROM via the assembler do determine the polynomials, quadratures, and importance weights to use in each dimension (see \ref{subsubsec:GaussPolynomialRom}).  
 \begin{itemize}
 
   % Assembler Objects
@@ -552,7 +535,6 @@ Because of the tight coupling between the Sampler and the ROM in stochastic coll
 \footnotesize
 \begin{lstlisting}[style=XML]
 Example:
----------------------------------------------------------
 <Samplers>
   ...
   <SparseGridCollocation name="mySG" parallel="0">
@@ -566,7 +548,6 @@ Example:
   </SparseGridCollocation>
   ...
 </Samplers>
----------------------------------------------------------
 \end{lstlisting}
  \normalsize
  
