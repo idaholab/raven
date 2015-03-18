@@ -375,7 +375,7 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
   \begin{itemize}
     \item \textbf{limit}, \textit{required string attribute}, number of MonteCarlo samples needs to be generated; 
     \item \textbf{initial\textunderscore seed}, \textit{optional integer attribute}, initial seeding of random number generator
-    \item \textbf{reseed_at_each_iteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t, si, dajie). \textit{Default = False}; 
+    \item \textbf{reseed\_at\_each\_iteration}, \textit{optional boolean/string attribute (case insensitive)}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False}; 
     \item \textbf{dist\textunderscore init}, \textit{optional xml node}, in this node the user specifies the initialization of the random number generator function for each N-Dimensional Probability Distributions (see Section~\ref{subsec:NdDist}). 
   \end{itemize}
 \item $<variable>$, xml node, required parameter. This xml-node needs to contain the attribute:
@@ -641,7 +641,7 @@ Example:
 \end{lstlisting}
 
 For N-dimensional  (ND) distributions, when the sampling is performed on a grid on a CDF  the user it is required to specify the same CDF grid for all the dimensions of the ND distribution.
-This is possible by defining a global_grid and associate such global grid to each variable belonging to the ND distribution as follows.
+This is possible by defining a global\_grid and associate such global grid to each variable belonging to the ND distribution as follows.
 
 \begin{lstlisting}[style=XML,morekeywords={ND,grid}]
 <Samplers>
