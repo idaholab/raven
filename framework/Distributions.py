@@ -44,7 +44,7 @@ _FrameworkToCrowDistNames = {'Uniform':'UniformDistribution',
                               'LogNormal':'LogNormalDistribution',
                               'Weibull':'WeibullDistribution',
                               'NDInverseWeight': 'NDInverseWeightDistribution',
-                              'NDCartesianSpline': 'NDCartesianSplineDistribution', 
+                              'NDCartesianSpline': 'NDCartesianSplineDistribution',
                               'MultivariateNormal' : 'MultivariateNormalDistribution'}
 
 
@@ -230,7 +230,7 @@ class Distribution(BaseType):
     '''
     return 1.0/2.0;
 
-  
+
   def getDimensionality(self):
     return self.dimensionality
 
@@ -1229,7 +1229,7 @@ class NDimensionalDistributions(Distribution):
         self.RNGInitDisc  = dictParam['initial_grid_disc']
     self._distribution.updateRNGparameter(self.RNGtolerance,self.RNGInitDisc)
   ######
-  
+
   def getDimensionality(self):
     return  self._distribution.returnDimensionality()
 
@@ -1460,11 +1460,11 @@ class MultivariateNormal(NDimensionalDistributions):
     data_filename = xmlNode.find('data_filename')
     if data_filename != None: self.data_filename = self.working_dir+data_filename.text
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <data_filename> parameter needed for MultivariateNormal Distributions!!!!')
-        
+
     mu = xmlNode.find('mu')
     if data_filename != None: self.mu = [float(i) for i in mu.text.split()]
     else: raise Exception(self.printTag+': ' +returnPrintPostTag('ERROR') + '-> <mu> parameter needed for MultivariateNormal Distributions!!!!')
-    
+
     self.initializeDistribution()
 
   def addInitParams(self,tempDict):
@@ -1485,13 +1485,13 @@ class MultivariateNormal(NDimensionalDistributions):
 
   def ppf(self,x):
     return self._distribution.InverseCdf(x,random())
-    
+
   def pdf(self,x):
     coordinate = distribution1D.vectord_cxx(len(x))
     for i in range(len(x)):
       coordinate[i] = x[i]
     return self._distribution.Pdf(coordinate)
-  
+
   def cellIntegral(self,x,dx):
     coordinate = distribution1D.vectord_cxx(len(x))
     dxs        = distribution1D.vectord_cxx(len(x))
@@ -1499,7 +1499,7 @@ class MultivariateNormal(NDimensionalDistributions):
       coordinate[i] = x[i]
       dxs[i]=dx[i]
     return self._distribution.cellIntegral(coordinate,dxs)
-  
+
   def inverseMarginalDistribution (self, x, variable):
     if (x>0.0) and (x<1.0):
       return self._distribution.inverseMarginal(x, variable)
@@ -1523,7 +1523,7 @@ class MultivariateNormal(NDimensionalDistributions):
 
   def rvs(self,*args):
     return self._distribution.InverseCdf(random(),random())
-  
+
 
 __base                        = 'Distribution'
 __interFaceDict               = {}
