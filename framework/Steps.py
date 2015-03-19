@@ -91,7 +91,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     if 'sleepTime' in xmlNode.attrib.keys():
       try: self.sleepTime = float(xmlNode.attrib['sleepTime'])
       except: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
-    for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
+    for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.text])
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys():
       if   xmlNode.attrib['pauseAtEnd'].lower() in stringsThatMeanTrue(): self.pauseEndStep = True
@@ -114,7 +114,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     tempDict['Sleep time'  ] = str(self.sleepTime)
     tempDict['Initial seed'] = str(self.initSeed)
     for List in self.parList:
-      tempDict[List[0]] = 'Class: '+str(List[1])+' Type: '+str(List[2])+'  Global name: '+str(List[3])
+      tempDict[List[0]] = 'Class: '+str(List[1]) +'  Global name: '+str(List[3])
     self._localAddInitParams(tempDict)
 
   @abc.abstractmethod
@@ -206,7 +206,6 @@ class SingleRun(Step):
   def _localInitializeStep(self,inDictionary):
     '''this is the initialization for a generic step performing runs '''
     #Model initialization
-    modelInitDict={}
     if inDictionary['Model'].type=='StochasticPolynomials':
       inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],{},what='Model')
     else:

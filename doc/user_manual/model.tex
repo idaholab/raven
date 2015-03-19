@@ -40,7 +40,7 @@
 
   \xmlNode{PostProcessor \xmlAttr{subType}=\xmlString{#2}/}.
   
-  In addition, several sub-nodes are available:
+   Several sub-nodes are available:
 }
 
 \newcommand{\skltype}[2]
@@ -4082,7 +4082,7 @@ At present only the ``equal'' grid type is available.
   distributions of the ``controllable'' and ''non-controllable'' variables.
   %
   These are \textbf{Assembler Objects}, each of these nodes must contain 2
-  attributes that are used to map those within the simulation framework:
+  attributes that are used to identify those within the simulation framework:
 	\begin{itemize}
     \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
     ``class'' the listed object is from.
@@ -4158,7 +4158,7 @@ zones that determine a change in the status of the system (Limit Surface).
   lists the parameters that define the uncertain domain and from which the LS
   needs to be computed.
   \item \xmlNode{tolerance}, \xmlDesc{float, optional field}, sets the absolute
-  value of the convergence tolerance.
+  value (in CDF) of the convergence tolerance.
   %
   This value defines the coarseness of the evaluation grid.
   %
@@ -4239,7 +4239,8 @@ Section~\ref{sec:functions} for more details).
 
 \begin{itemize}
   \item \xmlNode{method}, \xmlAttr{comma separated string, required field},
-  lists the method names of an external Function that will be computed.
+  lists the method names of an external Function that will be computed (each
+  returning a post-processing value).
   \item \xmlNode{Assembler}, \xmlAttr{xml node, required field}, contains a 
   ``list'' of Functions where the \textit{methods} listed above are defined.
   %
@@ -4299,14 +4300,14 @@ The following is a list of acceptable sub-nodes:
     \item Beta Skeleton
     \item Relaxed Beta Skeleton
     \item Approximate KNN
-    \item Delaunay \textit{(disabled)}
+    %\item Delaunay \textit{(disabled)}
   \end{itemize}
   \default{Beta Skeleton}
   \item \xmlNode{gradient}, \xmlDesc{string, optional field}, specifies the 
   method used for estimating the gradient, available options are:
   \begin{itemize}
     \item Steepest
-    \item MaxFlow \textit{(disabled)}
+    %\item MaxFlow \textit{(disabled)}
   \end{itemize}
   \default{Steepest}
   \item \xmlNode{beta}, \xmlDesc{float, optional field}, is only used when the
@@ -4346,63 +4347,12 @@ The following is a list of acceptable sub-nodes:
   ...
 <Simulation>
 \end{lstlisting}
-%%%%% PP External %%%%%%%
-\paragraph{External.}
-\label{External}
-The \textbf{External} post-processor will execute an arbitrary python function
-defined externally using the \textit{Functions} interface (see 
-Section~\ref{sec:functions} for more details).
-\\In order to use the \textit{External} post-processor, the user needs to set 
-the \textit{subType} attribute to be ``External'': 
-\textit{$<$PostProcessor subType=``External''$>$}. 
-The following sub-nodes need to be specified:
-\begin{itemize}
-\item $<method>$ \textbf{\textit{, comma separated string, required field.}}.
-List of method names of an external Function that will be computed.
-\item $<Assembler>$\textbf{\textit{, xml node, required field.}} This xml node
-contains a ``list'' of Functions where the \textit{methods} listed above are
-defined. The objects must be listed with a rigorous syntax that, except for the
-xml node tag, is common among all the objects. 
-Each of these sub-nodes must contain 2 attributes that are used to map them
-within the simulation framework:
-   \begin{itemize}
-     \item \textbf{class}, \textit{required string attribute}, it is the main
-           ``class'' the listed object is from, the only acceptable class for
-           this post-processor is \textit{Functions};
-     \item \textbf{type},  \textit{required string attribute}, it is the object
-           identifier or sub-type, the only acceptable type for this 
-           post-processor is \textit{External}.
-    \end{itemize}
-\end{itemize}
-\textbf{Example:}
-\begin{lstlisting}[style=XML]
-----------------------------------------------
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="externalPP" subType='External' debug='True'>
-      <method>Delta,Sum</method>
-      <Assembler>
-        <Function class='Functions' type='External'>operators</Function> 
-          <!--Here, you can add a Function defined in the
-              Functions block. This should be present or
-              else RAVEN will not know where to find the
-              defined methods.
-            -->
-      </Assembler>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-----------------------------------------------
-\end{lstlisting}
+
 %%%%% PP PrintCSV %%%%%%%
-\paragraph{PrintCSV}
-\label{PrintCSV}
-TO BE MOVED TO STEP ``IOSTEP''
+%\paragraph{PrintCSV}
+%\label{PrintCSV}
+%TO BE MOVED TO STEP ``IOSTEP''
 %%%%% PP LoadCsvIntoInternalObject %%%%%%%
-\paragraph{LoadCsvIntoInternalObject}
-\label{LoadCsvIntoInternalObject}
-TO BE MOVED TO STEP ``IOSTEP''
+%\paragraph{LoadCsvIntoInternalObject}
+%\label{LoadCsvIntoInternalObject}
+%TO BE MOVED TO STEP ``IOSTEP''

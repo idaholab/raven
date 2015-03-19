@@ -35,7 +35,7 @@ syntax of the application the developer wants to couple. Indeed, RAVEN task
  passed through.
 \\This means that the developer needs to code a Python-compatible parser of
  the system code input (a module that is able to read and modify the input of 
- the particular code needs to be coupled).
+ the code that needs to be coupled).
 \\ For example, let's suppose the input syntax of the code the developer needs 
 to couple is as follows:
 \begin{lstlisting}[language=python]
@@ -44,7 +44,7 @@ to couple is as follows:
   kewword3 =  aValue3
   kewword4 =  aValue4
 \end{lstlisting} 
-The Python input parser would be as simple as:
+The Python input parser would be:
 \begin{lstlisting}[language=python]
 class simpleInputParser():
   def __init__(self,filename):
