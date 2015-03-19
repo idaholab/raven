@@ -28,6 +28,14 @@ where RAVEN looks for the files specified in the block \xmlNode{Files}.
 %
 \default{None}
 
+%%%%%% RELATIVE WORKING DIR
+\item \xmlNode{RelativeWorkingDir}, \xmlDesc{string, optional field}, specifies
+the relative (with respect to the location where the xml file is located)
+path to a directory that will store all the results of the calculations and
+where RAVEN looks for the files specified in the block \xmlNode{Files}.
+%
+\default{None}
+
 %%%%%% Files
 \item \xmlNode{Files}, \xmlDesc{comma separated string, required field}, lists
 the paths to any files required by the code.
@@ -47,7 +55,11 @@ Section~\ref{sec:steps}).
 
 %%%%%% JOBNAME 
 \item \xmlNode{JobName}, \xmlDesc{string, optional field}, specifies
-the name to use for the job when submitting to a pbs queue.
+the name to use for the job when submitting to a pbs queue.  Acceptable characters
+include alphanumerics as well as ``-'' and ``\_''.  If more than 15
+characters are provided, RAVEN will truncate it using a hyphen between the first
+10 and last 4 character, i.e., ``1234567890abcdefgh'' will be truncated to 
+``1234567890-efgh''.
 %
 \default{raven\_qsub}
 
@@ -72,6 +84,9 @@ software.
 For example, if RAVEN is driving a code named ``FOO,'' and this code has MPI
 support, this block specifies how many MPI CPUs each instance of FOO should use
 (e.g. ``\texttt{mpiexec FOO -np N}'' where \texttt{N} is the number of CPUs).
+\\ In addition, this flag activates the parallel execution of internal Models (e.g. ROMs, 
+ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
+are run using a multi-threading approach (i.e. single processor, multiple threads equal to the batchsize)
 %
 \default{1 (or None when the driven code does not have MPI support)}
 
@@ -156,6 +171,9 @@ RAVEN currently supports two pre-defined ``modes'':
              to utilize the reserved resources (CPUs and nodes) to distribute
              the jobs, but will not generate a \texttt{qsub} command.
          \end{itemize}
+         In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
+         ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
+           are run using a multi-threading approach (i.e. master processor, multiple parallel threads)
     \item \textbf{mpi}: this ``mode'' uses \texttt{mpiexec} to distribute the 
       running program; more information regarding this protocol can be found
       in~\cite{MPI}.  
@@ -202,6 +220,9 @@ RAVEN currently supports two pre-defined ``modes'':
                   \texttt{PBS\_NODEFILE}.
            \end{itemize}
          \end{itemize}
+         In addition, this flag activates the remote (PBS) execution of internal Models (e.g. ROMs,
+         ExternalModels, PostProcessors, etc.). If this node is not present, the internal Models
+           are run using a multi-threading approach (i.e. master processor, multiple parallel threads)
    \end{itemize}
 
 %Both methods can submit a qsub command or can be run from an already submitted interactive qsub command:
@@ -328,7 +349,7 @@ block.
 This means that all the keywords defined here will be overridden by any values
 specified in the actual RAVEN input file.
 %
-\\ In section ~ref{subsec:runinfoModes}, it has been explained how RAVEN can
+\\ In section ~\ref{subsec:runinfoModes}, it is explained how RAVEN can
 handle the queue and parallel systems.
 %
 If the currently available ``modes'' are not suitable for the user's system

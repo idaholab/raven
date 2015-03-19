@@ -1,6 +1,6 @@
-\section{Advanced Users: How to couple a new code.  \\ \vspace{2 mm} {\small }}
+\section{Advanced Users: How to couple a new code}
 \label{sec:newCodeCoupling}
-\begin{figure}{h}
+\begin{figure}
 \centering
 \includegraphics[width=1.0\textwidth]{pics/CodeInterfaceLocation.png}
 \caption{Code Interface Location.}
@@ -157,7 +157,8 @@ class NewCode(CodeInterfaceBase):
   def generateCommand(self, inputFiles, executable, flags = None)
   def createNewInput(self, currentInputFiles, oriInputFiles,
                                 samplerType, **Kwargs)                           
-  def finalizeCodeOutput(self, command, output, workingDir):
+  def finalizeCodeOutput(self, command, output, workingDir)
+  def getInputExtension(self)
 \end{lstlisting} 
 In the following sub-sections all the methods are fully explained, providing examples
  (referring to the simple code used as example for the previous sections)
@@ -184,10 +185,10 @@ For the example referred in the previous section, this method would be implement
   def generateCommand(self,inputFiles,executable,flags=None):
     found = False
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.endswith(('.i','.inp','.in')):
+      if inputFile.endswith(self.getInputExtension()):
         found = True
         break
-    if not found: raise Exception(``NEWER CODE INTERFACE ERROR ->
+    if not found: raise Exception(``NEWER CODE ERROR ->
                       None of the input files has one of the
                       following extensions ".i", ".inp"!'')
     outputfile = 'out~'+
@@ -226,7 +227,7 @@ For the example referred in the previous section, this method would implemented 
   def createNewInput(self,currentInputFiles,
         oriInputFiles,samplerType,**Kwargs):
     for index, inputFile in enumerate(inputFiles):
-      if inputFile.endswith(('.i','.inp','.in')):
+      if inputFile.endswith(self.getInputExtension()):
         break
     parser = simpleInputParser(currentInputFiles[index])
     parser.modifyInternalDictionary(**Kwargs['SampledVars'])
@@ -237,6 +238,20 @@ For the example referred in the previous section, this method would implemented 
     parser.writeNewInput(newInputFiles[index])
     return newInputFiles
 \end{lstlisting} 
+\subsubsection{Method: \textit{getInputExtension(self, command, output, workingDir)}} 
+\label{subsubsec:getInputExtension}
+The \textbf{getInputExtension} function is an optional method. If present, it is called 
+by RAVEN code at run time.  This function can be considered an utility method, since its
+main goal is to return a tuple of strings, where the developer can place all the input extensions
+the code interface needs to support (i.e. the extensions of the input(s) the code interface
+is going to ``perturb''). If this method is not implemented, the default extensions are  \textbf{(``.i'',' ``.inp'', ``.in'')}.
+This function does not accept any input argument.
+For the example referred in the previous section, this method would implemented as follows:
+\newline
+\begin{lstlisting}[language=python]
+def getInputExtension(self):
+    return (``.i'',``.input'')
+ \end{lstlisting} 
 \subsubsection{Method: \textit{finalizeCodeOutput(self, command, output, workingDir)}} 
 \label{subsubsec:finializeCodeOutput}
 The \textbf{finalizeCodeOutput} function is an optional method. If present, it is called 
@@ -257,5 +272,6 @@ def finalizeCodeOutput(self, command, output, workingDir)
     outfile = os.path.join(workingDir,output+'.o')
     outputobj=convertOutputFileToCSV(outfile)
  \end{lstlisting} 
+ 
 
 

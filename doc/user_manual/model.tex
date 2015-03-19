@@ -1,4 +1,4 @@
-\section{Models \\ \vspace{2 mm} {\small }}
+\section{Models}
 \label{sec:models}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -611,7 +611,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-In RAVEN, \textbf{Models} are crucial entities.
+In RAVEN, \textbf{Models} are important entities.
 %
 A model is an object that employs a mathematical representation of a
 phenomenon, either of a physical or other nature (e.g. statistical operators,
@@ -3745,7 +3745,7 @@ that are generally needed to create a new input:
   perturbed by the sampler are reported.
 \end{itemize}
 \nb If the ``Step'' that is using this Model has as input(s) an object of main
-class type ``Datas'' (see section \ref{datas}), the internal ``createNewInput''
+class type ``Datas'' (see Section~\ref{sec:Datas}), the internal ``createNewInput''
 method is going to convert it in a dictionary of values.
 %
 
@@ -3937,15 +3937,118 @@ to compute many of the most important statistical quantities.
       <methodsToRun>failureProbability</methodsToRun>
     </PostProcessor>
     ...
-  <Models>
+  </Models>
   ...
-<Simulation>
+</Simulation>
 \end{lstlisting}
 
 %%%%% PP ComparisonStatistics %%%%%%%
 \paragraph{ComparisonStatistics}
 \label{ComparisonStatistics}
-\TODO{To be finalized}
+The \textbf{ComparisonStatistics} post-processor computes statistics
+for comparing two different datas.  This is an experimental
+post-processor, and it will definitely change as it is further
+developed.
+
+There are two nodes that are used in the post-processor.
+
+\begin{itemize}
+\item \xmlNode{kind}: specifies information to use for comparing the
+  data that is provided.  This takes either uniform\_bins which makes
+  the bin width uniform or equal\_probability which makes the number
+  of counts in each bin equal.  It can take the following attributes:
+  \begin{itemize}
+  \item \textbf{num\_bins} which takes a number that directly
+    specifies the number of bins
+  \item \textbf{bin\_method} which takes a string that specifies the
+    method used to calculate the number of bins.  This can be either
+    square-root or sturges.
+  \end{itemize}
+\item \xmlNode{compare}: specifies the data to use for comparison.
+  This can either be a normal distribution or a datas:
+  \begin{itemize}
+  \item \xmlNode{data}: This will specify the data that is used.  The
+    different parts are separated by $|$'s.
+  \item \xmlNode{reference}: Specifies that a normal distribution will
+    be used. It takes two attributes.
+    \begin{itemize}
+    \item \textbf{mean} is the mean of the normal distribution
+    \item \textbf{sigma} is the standard deviation of the normal
+      distribution.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+The \textbf{ComparisonStatistics} post-processor generates a variety
+of data.  First for each data provided, it calculates bin boundaries,
+and counts the numbers of data points in each bin.  From the numbers
+in each bin, it creates a cdf function numerically, and from the cdf
+takes the derivative to generate a pdf.  It also calculates statistics
+of the data such as mean and standard deviation.
+
+The post-processor uses the generated pdf and cdf function to
+calculate various statistics.  The first is the cdf area difference which is:
+\begin{equation}
+  cdf\_area\_difference = \int_{-\infty}^{\infty}{\|CDF_a(x)-CDF_b(x)\|dx}
+\end{equation}
+This given an idea about how far apart the two pieces of data are, and
+it will have units of $x$.
+
+The common area between the two pdfs is calculated.  If there is
+perfect overlap, this will be 1.0, if there is no overlap, this will
+be 0.0.  The formula used is:
+\begin{equation}
+  pdf\_common\_area = \int_{-\infty}^{\infty}{\min(PDF_a(x),PDF_b(x))}dx
+\end{equation}
+
+The difference pdf between the two pdfs is calculated.  This is calculated as:
+\begin{equation}
+  f_Z(z) = \int_{-\infty}^{\infty}f_X(x)f_Y(x-z)dx
+\end{equation}
+This produces a pdf that contains information about the difference
+between the two pdfs.  The mean can be calculated as:
+\begin{equation}
+  \bar{z} = \int_{-\infty}^{\infty}{z f_Z(z)dz}
+\end{equation}
+The mean can be used to get an signed difference between the pdfs,
+which shows how their means compare.
+
+The variance of the difference pdf can be calculated as:
+\begin{equation}
+  var = \int_{-\infty}^{\infty}{(z-\bar{z})^2 f_Z(z)dz}
+\end{equation}
+
+
+\textbf{Example:}
+----------------------------------------------
+\begin{lstlisting}[style=XML]
+<Simulation>
+   ...
+   <Models>
+      ...
+      <PostProcessor name="stat_stuff" subType="ComparisonStatistics">
+      <kind bin_method='sturges'>uniform_bins</kind>
+      <compare>
+        <data>OriData|Output|tsin_TEMPERATURE</data>
+        <reference mean="410.0" sigma="2.0" />
+      </compare>
+      <compare>
+        <data>OriData|Output|tsin_TEMPERATURE</data>
+        <data>OriData|Output|tsout_TEMPERATURE</data>
+      </compare>
+      </PostProcessor>
+      <PostProcessor name="stat_stuff2" subType="ComparisonStatistics">
+        <kind num_bins="6">equal_probability</kind>
+        <compare>
+          <data>OriData|Output|tsin_TEMPERATURE</data>
+        </compare>
+      </PostProcessor>
+      ...
+   </Models>
+   ...
+</Simulation>
+----------------------------------------------
+\end{lstlisting}
 
 %%%%% PP SafestPoint %%%%%%%
 \paragraph{SafestPoint}

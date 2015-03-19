@@ -1,5 +1,5 @@
 
-import numpy as np
+import numpy
 import copy
 #import pylab as pyl
 #import random

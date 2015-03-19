@@ -5,7 +5,7 @@
     <WorkingDir>LHStestBison</WorkingDir>
     <Files>gap_perfect_transfer_test.i,gap_perfect_transfer_test.e</Files>
     <Sequence>myLHS</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
@@ -29,7 +29,10 @@
     </Triangular>
 </Distributions>
 <Samplers>
-    <LHS name='myLHS' initial_seed ='1'>
+    <LHS name='myLHS'>
+      <sampler_init>
+        <initial_seed>1</initial_seed>
+      </sampler_init>
       <variable name='Materials|heat1|thermal_conductivity' >
         <distribution >DistTri1</distribution>
         <grid         type='value'      construction='custom'>0.02 0.5 0.6 0.8</grid>

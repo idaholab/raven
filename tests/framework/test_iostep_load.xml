@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Simulation debug="True">
   <RunInfo>
-    <WorkingDir>test_iostep_load</WorkingDir>
+    <RelativeWorkingDir>test_iostep_load</RelativeWorkingDir>
     <Files>ideal_pump.i,ideal_pump_control.py</Files>
     <Sequence>test_read_in,test_rewrite</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
   <Models>
     <Code name='MyRAVEN' subType='RAVEN'><executable>%FRAMEWORK_DIR%/../RAVEN-%METHOD%</executable></Code>
   </Models>
   <Samplers>
-    <MonteCarlo     name='RAVENmc3'  limit='1' initial_seed='1'></MonteCarlo>
+    <MonteCarlo     name='RAVENmc3'>
+        <sampler_init>
+            <limit>1</limit>
+            <initial_seed>1</initial_seed>
+        </sampler_init>
+    </MonteCarlo>
   </Samplers>
   <Steps>
     <IOStep name='test_read_in' fromDirectory='../output_check'>
