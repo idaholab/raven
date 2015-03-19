@@ -1,0 +1,17 @@
+\documentclass{article}
+\begin{document}
+
+validation metrics - mathematical operators that compute the difference between the experimentally measured results and the simulation results.  V\&V in SC, pg 469 (See also page 473)
+
+type 1 error: model builder's risk.  The error of rejecting the model when the model is actually correct (such as because of comparison with incorrect data) V\&V in SC, pg 481
+
+type 2 error: model user's risk.  The error of accepting validity of the model when the model is actually invalid.  V\&V in SC, pg 482
+
+
+Comparison of mean values.  V\&V in SC, pg 485.  $L_1$ or $L_2$ vector norms usually used:
+
+\begin{equation}
+  \| S - E \|_p = \left(\frac{1}{N}\sum^N_{i=1} | S(x_i) - E(x_i)|^p \right)^\frac{1}{p}
+\end{equation}
+
+\end{document}
