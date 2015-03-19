@@ -254,9 +254,9 @@ of view.
 The samplers, that are available in RAVEN, can be categorized into three main
 classes:
 \begin{itemize}
-\item \textbf{Once-through} (see Section~/ref{subsec:onceThroughSamplers})
-\item \textbf{Dynamic Event Tree (DET)} (see Section~/ref{subsec:DETSamplers})
-\item \textbf{Adaptive} (see Section~/ref{subsec:AdaptSamplers})
+\item \textbf{Once-through} (see Section~\ref{subsec:onceThroughSamplers})
+\item \textbf{Dynamic Event Tree (DET)} (see Section~\ref{subsec:DETSamplers})
+\item \textbf{Adaptive} (see Section~\ref{subsec:AdaptSamplers})
 \end{itemize}
 Before analyzing each sampler in detail, it is important to mention that each
 type has a similar syntax to input the variables to be ``sampled''.
@@ -320,7 +320,7 @@ Example XML block:
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Once-Through Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Once-through Samplers.}
+\subsection{Once-through Samplers}
 \label{subsec:onceThroughSamplers}
 The once-through sampler category collects all the strategies that perform the
 sampling of the input space without exploiting, through dynamic learning
@@ -347,7 +347,7 @@ In the following paragraphs, the input requirements and a small explanation of
 the different sampling methodologies are reported.
 
 %%% Once-Through Samplers: MonteCarlo
-\subsubsection{Monte Carlo.}
+\subsubsection{Monte Carlo}
 \label{subsubsubsec:MC}
 The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
 widely used approaches to perform exploration of the input space.
@@ -429,7 +429,7 @@ Example:
 \end{lstlisting}
 
 %%% Once-Through Samplers: Grid
-\subsubsection{Grid.}
+\subsubsection{Grid}
 \label{subsubsubsec:Grid}
 The \textbf{Grid} sampling approach is probably the simplest exploration
 approach that can be employed to explore an uncertain domain.
@@ -508,7 +508,7 @@ Example:
 \end{lstlisting}
 
 %%% Once-Through Samplers: Sparse Grid Collocation
-\subsubsection{Sparse Grid Collocation.}
+\subsubsection{Sparse Grid Collocation}
 %\talbpaul{Work in progress.}
 %\senrs{Assembler section updated}
 \label{subsubsubsec:SparseGridCollocation}
@@ -516,7 +516,8 @@ Example:
 \begin{itemize}
 \itemsep0em
 \item \nameDescription
-\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid. \talbpaul{Is this what we want?} \default{True}
+\item \xmlAttr{parallel}, \xmlDesc{optional string attribute}, option to disable parallel construction of the sparse grid.  Because of increasing computational expense with increasing input space dimension, RAVEN will default to parallel construction of the sparse grid. 
+%\talbpaul{Is this what we want?} \default{True}
 \end{itemize}
 \variableIntro{SparseGridCollocation}
 \begin{itemize}
@@ -571,7 +572,7 @@ Example:
  \normalsize
  
 %%% Once-Through Samplers: Stratified
-\subsubsection{Stratified.}
+\subsubsection{Stratified}
 \label{subsubsubsec:Stratified}
 The \textbf{Stratified} sampling approach is a method for the exploration of the
 input space that consists of dividing the uncertain domain into subgroups before
@@ -664,7 +665,7 @@ This is possible by defining a global\_grid and associate such global grid to ea
 \end{lstlisting}
 
 %%% Once-Through Samplers: Response Surface Design
-\subsubsection{Response Surface Design.}
+\subsubsection{Response Surface Design}
 \label{subsubsubsec:RespSurfDOE}
 The \textbf{Response Surface Design}, or Response Surface Modeling (RSM), 
 approach is one of the most common Design of Experiment (DOE) methodologies
@@ -861,7 +862,7 @@ Example:
 \end{lstlisting}
 
 %%% Once-Through Samplers: Factorial Design
-\subsubsection{Factorial Design.}
+\subsubsection{Factorial Design}
 \label{subsubsubsec:FactorialDOE}
 The \textbf{Factorial Design} method is an important method to determine the
 effects of multiple variables on a response.
@@ -1043,7 +1044,7 @@ Example:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Dynamic Event Tree Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Dynamic Event Tree (DET) Samplers.}
+\subsection{Dynamic Event Tree (DET) Samplers}
 \label{subsec:DETSamplers}
 The \textbf{Dynamic Event Tree} methodologies are designed to take the timing of
 events explicitly into account, which can become very important especially when
@@ -1072,7 +1073,7 @@ For this reason, its input requirements are reported in the Adaptive Samplers'
 section (\ref{subsec:AdaptSamplers}).
 
 %%%%%%%%% Dynamic Event Tree Samplers: Dynamic Event Tree
-\subsubsection{Dynamic Event Tree.}
+\subsubsection{Dynamic Event Tree}
 \label{subsubsubsec:DET}
 The \textbf{Dynamic Event Tree} sampling approach is a sampling strategy that is
 designed to take the timing of events, in transient/accident scenarios,
@@ -1160,7 +1161,7 @@ Example:
 \end{lstlisting}
 
 %%%%%%%%% Dynamic Event Tree Samplers: Hybrid Dynamic Event Tree
-\subsubsection{Hybrid Dynamic Event Tree.}
+\subsubsection{Hybrid Dynamic Event Tree}
 \label{subsubsubsec:HDET}
 The \textbf{Hybrid Dynamic Event Tree} sampling approach is a sampling strategy
 that represents an evolution of the Dynamic Event Tree method for the
@@ -1339,7 +1340,7 @@ Example:
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Adaptive Samplers %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Adaptive Samplers.}
+\subsection{Adaptive Samplers}
 \label{subsec:AdaptSamplers}
 The Adaptive Samplers' family provides the possibility to perform smart sampling
 (also known as adaptive sampling) as an alternative to classical “once-through”
@@ -1411,7 +1412,7 @@ In the following paragraphs, the input requirements and a small explanation of
 the different sampling methods are reported.
 
 %%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
-\subsubsection{Adaptive Sampler.}
+\subsubsection{Adaptive Sampler}
 \label{subsubsubsec:AdaptiveSampling}
 The \textbf{Adaptive Sampler} approach is an advanced methodology that employs
 a smart sampling around transition zones that determine a change in the status
@@ -1487,7 +1488,7 @@ def __residuumSign(self):
 \end{lstlisting}
 
 %%% Adaptive Samplers: Adaptive Sampling for Limit Surface search
-\subsubsection{Adaptive Dynamic Event Tree.}
+\subsubsection{Adaptive Dynamic Event Tree}
 \label{subsubsubsec:ADET}
 The \textbf{Adaptive Dynamic Event Tree} approach is an advanced methodology 
 employing a smart sampling around transition zones that determine a change in
