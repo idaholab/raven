@@ -1,4 +1,4 @@
-\section{Steps  \\ \vspace{2 mm} {\small }}
+\section{Steps}
 \label{sec:steps}
 The core of the RAVEN calculation flow is employed in the \textbf{Step} system.
 %
@@ -10,11 +10,11 @@ A sequence of different \textbf{Steps} represents the calculation flow and core
 of the analysis the user wants to perform. 
 %
 
-Before analyzing each \textbf{Step} type, it is worth some time to briefly
-explain how a general \textbf{Step} entity is organized and the concept of a
-``role'' in its definition.
+Before analyzing each \textbf{Step} type, it is worth to 1) 
+explain how a general \textbf{Step} entity is organized, and 2) introduce the concept of step
+``role'' .
 %
-In the following example, a general example of a \textbf{Step} is reported:
+In the following example, a general example of a \textbf{Step} is shown below:
 \begin{lstlisting}[style=XML,morekeywords={class}]
 <Simulation>
   ...
@@ -31,7 +31,7 @@ In the following example, a general example of a \textbf{Step} is reported:
   ...
 </Simulation>
 \end{lstlisting}
-As made evident above, independently of the type, each \textbf{Step} consists of
+As shown above each \textbf{Step} consists of
 a list of entities organized into ``Roles.'' 
 %
 Each role represents a behavior the entity (object) will assume during the
@@ -64,15 +64,23 @@ Depending on the \textbf{Step} type, different combinations of these roles can
 be used.
 For this reason, it is important to analyze each \textbf{Step} type in details.
 
+The available steps are the following
+\begin{itemize}
+\item SingleRun (see Section~\ref{subsec:stepSingleRun})
+\item MultiRun(see Section~\ref{subsec:stepMultiRun})
+\item IOStep(see Section~\ref{subsec:stepIOStep})
+\item RomTrainer(see Section~\ref{subsec:stepRomTrainer})
+\item PostProcess(see Section~\ref{subsec:stepPostProcess})
+\end{itemize}
+
+
 %%%%%%%%%%%%%%%%%%%%
  %%%%% SINGLERUN %%%%%
 %%%%%%%%%%%%%%%%%%%%
 \subsection{SingleRun}
 \label{subsec:stepSingleRun}
 The \textbf{SingleRun} is the simplest step the user can use to assemble a
-calculation flow.
-%
-It is aimed to perform a single action, employed by a \textbf{Model}.
+calculation flow: perform a single action of a \textbf{Model}.
 %
 For example, it can be used to run a single job (Code Model) and collect the
 outcome(s) in a ``\textbf{Datas}'' object of type \textbf{TimePoint} or 
@@ -184,7 +192,7 @@ Example:
 The \textbf{MultiRun} step allows the user to assemble the calculation flow of
 an analysis that requires multiple ``runs'' of the same model.
 %
-This step is generally used when the input (space) of the model needs to be
+This step is used, for example, when the input (space) of the model needs to be
 perturbed by a particular sampling strategy.
 %
 
@@ -200,7 +208,7 @@ this Step.
 \nb As with other objects, this name can be used to reference this specific
 entity in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
-(True values = True, yes, y, t, si, dajie), the code will pause at the end of
+(True values = True, yes, y, t), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or
 more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
 For example, it can be used when an \textbf{OutStreamManager} of type
@@ -250,8 +258,8 @@ This XML node recognizes the following attributes:
     type.
     This attribute needs to specify the object type within the \texttt{Models}
     object class.
-    For example, the \xmlAttr{type} attribute might be \xmlString{Code},'' 
-    \xmlString{ROM},'' etc.
+    For example, the \xmlAttr{type} attribute might be \xmlString{Code}, 
+    \xmlString{ROM}, etc.
 \end{itemize}
 \item \xmlNode{Sampler}, \xmlDesc{string, required parameter} names an entity
 defined elsewhere in the input file to be used as a sampler.
@@ -380,7 +388,7 @@ This XML node can accept the following attributes:
     this specific entity in the \xmlNode{RunInfo} block, under the 
     \xmlNode{Sequence} node.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
-  (True values = True, yes, y, t, si, dajie), the code will pause at the end of
+  (True values = True, yes, y, t), the code will pause at the end of
   the step, waiting for a user signal to continue. This is used in case one or
   more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
   For example, it can be used when an \textbf{OutStreamManager} of type

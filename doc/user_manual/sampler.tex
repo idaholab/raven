@@ -1,4 +1,4 @@
-\section{Samplers  \\ \vspace{2 mm} {\small }}
+\section{Samplers}
 \label{sec:Samplers}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -254,9 +254,9 @@ of view.
 The samplers, that are available in RAVEN, can be categorized into three main
 classes:
 \begin{itemize}
-\item \textbf{Once-through}
-\item \textbf{Dynamic Event Tree (DET)}
-\item \textbf{Adaptive}
+\item \textbf{Once-through} (see Section~/ref{subsec:onceThroughSamplers})
+\item \textbf{Dynamic Event Tree (DET)} (see Section~/ref{subsec:DETSamplers})
+\item \textbf{Adaptive} (see Section~/ref{subsec:AdaptSamplers})
 \end{itemize}
 Before analyzing each sampler in detail, it is important to mention that each
 type has a similar syntax to input the variables to be ``sampled''.
@@ -329,7 +329,7 @@ previously performed (adaptive sampling) and the common system evolution
 (patterns) that different sampled calculations can generate in the phase space
 (dynamic event tree).
 %
-In the RAVEN framework, five different and well-known “once-through” samplers
+In the RAVEN framework, five different “once-through” samplers
 are available:
 \begin{itemize}
 \item \textbf{Monte Carlo (MC)}
@@ -352,7 +352,7 @@ the different sampling methodologies are reported.
 The \textbf{Monte-Carlo} sampling approach is one of the most well-known and
 widely used approaches to perform exploration of the input space.
 %
-The main idea behind it is the random perturbation of the input space according
+The main idea behind MonteCarlo sampling is to  randomly perturbate of the input space according
 to uniform or parameter-based probability density functions.
 %
 
@@ -365,7 +365,7 @@ to uniform or parameter-based probability density functions.
 \item \textbf{name}, \textit{required string attribute}, user-defined name of this Sampler. N.B. As for the other objects, this is the name that can be used to refer to this specific entity from other input blocks (xml);
 %\item \textbf{limit}, \textit{required integer attribute}, number of MonteCarlo samples needs to be generated;
 %\item \textbf{initial\_seed}, \textit{optional integer attribute}, initial seeding of random number generator. \textit{Default = random seed};
-%\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t, si, dajie). \textit{Default = False}; 
+%\item \textbf{reseedAtEachIteration}, \textit{optional boolean/string attribute}, perform a re-seeding for each sample generated (True values = True, yes, y, t). \textit{Default = False}; 
 \end{itemize}
 \vspace{-5mm}
 
@@ -388,7 +388,7 @@ In the \textbf{MonteCarlo} input block, the user needs to specify the variables 
 %   \default{random seed}.
 % \item \xmlAttr{reseedAtEachIteration}, \xmlDesc{optional boolean/string
 %   attribute}, perform a re-seeding for each sample generated
-%   (True values = True, yes, y, t, si, dajie).
+%   (True values = True, yes, y, t).
 %   \default{False}.
 % \end{itemize}
 % \vspace{-5mm}
