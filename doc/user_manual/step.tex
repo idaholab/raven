@@ -1,13 +1,12 @@
 \section{Steps  \\ \vspace{2 mm} {\small }}
 \label{sec:steps}
-The core of the RAVEN calculation flow is employed in the \textbf{Step} system.
+The core of the RAVEN calculation flow is the \textbf{Step} system.
 %
 The \textbf{Step} is in charge of assembling different entities in RAVEN (e.g.
 Samplers, Models, DataBases, etc.) in order to perform a task defined by the
 kind of step being used.
 %
-A sequence of different \textbf{Steps} represents the calculation flow and core
-of the analysis the user wants to perform. 
+A sequence of different \textbf{Steps} represents the calculation flow.
 %
 
 Before analyzing each \textbf{Step} type, it is worth some time to briefly
@@ -42,23 +41,24 @@ In RAVEN, several different roles are available:
 \item \textbf{Input} represents the input of the \textbf{Step}.
 The allowable input objects depend on the type of \textbf{Model} in the
 \textbf{Step}.
-\item \textbf{Output} defines how to represent the results of an action
+\item \textbf{Output} defines where to collect the results of an action
 performed by the \textbf{Model}.
 It is generally one of the following types: \textbf{Datas}, \textbf{DataBases}, 
 or \textbf{OutStreamManager}.
 \item \textbf{Model} represents a physical or mathematical system or behavior.
-The object used in this role defines the compatibility of the different
-\textbf{Inputs} and \textbf{Outputs} listed in this step.
-\item \textbf{Sampler} defines a sampling strategy to be performed.
-\item \textbf{Function} is an extremely important role.
-For example, when performing adaptive sampling it can be used to represent the
-metric of the transition regions.
-Also, it can be used to collapse information coming from a \textbf{Model}.
+The object used in this role defines the allowable types of
+\textbf{Inputs} and \textbf{Outputs} usable in this step.
+\item \textbf{Sampler} defines the sampling strategy to be used to probe the model.
+\item \textbf{Function} is an extremely important role. It introduces the capability to
+perform pre or post processing of Model \textbf{Inputs} and \textbf{Outputs}. Its specific
+behavior depends on the \textbf{Step} is using it.
 %\item \textbf{Function.} The Function role is extremely important, for example, when performing Adaptive Sampling to represent the metric of the transition regions. This role is the role used, for example, to collapse information coming from a Model.
 \item \textbf{ROM} defines an acceleration Reduced Order Model to use for a 
 \textbf{Step}.
 \item \textbf{SolutionExport} represents the container of the eventual output
-of a Sampler.
+of a Sampler. For the moment, it is only used  when a \textbf{Step} is employing the 
+search of the Limit Surface (LS), through the class of Adaptive \textbf{Samplers}). In this case, it 
+contains the coordinates of the LS in the input space. 
 \end{itemize}
 Depending on the \textbf{Step} type, different combinations of these roles can
 be used.
@@ -87,10 +87,12 @@ This XML node has the following definable attributes:
 \begin{itemize}
 \itemsep0em
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
-this \textbf{Step}. \nb This name can be used to reference this specific entity
-in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node.
-\item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
-(True values = True, yes, y, t, si, dajie), the code will pause at the end of
+this \textbf{Step}. \nb This name is used to reference this specific entity
+in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name 
+of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
+going to be performed.
+\item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
+(True values = True, yes, y, t), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or
 more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
 For example, it can be used when an \textbf{OutStreamManager} of type
@@ -105,7 +107,7 @@ needed for the different allowable roles.
 This step accepts the following roles:
 \begin{itemize}
 \item \xmlNode{Input}, \xmlDesc{string, required parameter}, names an entity
-(defined elsewhere in the input) that will be used as input for the model
+(defined elsewhere in the RAVEN input) that will be used as input for the model
 specified in this step.
 This XML node accepts the following attributes:
 \begin{itemize}
@@ -197,8 +199,10 @@ This XML node recognizes the following list of attributes:
 \itemsep0em
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
 this Step. 
-\nb As with other objects, this name can be used to reference this specific
-entity in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node.
+\nb As with other objects, this name is used to reference this specific entity
+in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name 
+of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
+going to be performed.
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
 (True values = True, yes, y, t, si, dajie), the code will pause at the end of
 the step, waiting for a user signal to continue. This is used in case one or
@@ -238,7 +242,7 @@ This XML node accepts the following attributes:
 \end{itemize}
 \nb The \xmlAttr{class} and, consequently, the \xmlAttr{type} usable for this
 role depend on the particular \xmlNode{Model} being used.
-In addition, the user can specify as many \xmlNode{Input} nodes as needed.
+The user can specify as many \xmlNode{Input} nodes as needed.
 \item \xmlNode{Model}, \xmlDesc{string, required parameter} names an entity 
 defined elsewhere in the input that will be used as the model for this step.
 This XML node recognizes the following attributes:
@@ -379,8 +383,8 @@ This XML node can accept the following attributes:
   \nb As for the other objects, this is the name that can be used to refer to
     this specific entity in the \xmlNode{RunInfo} block, under the 
     \xmlNode{Sequence} node.
-\item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
-  (True values = True, yes, y, t, si, dajie), the code will pause at the end of
+\item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
+  (True values = True, yes, y), the code will pause at the end of
   the step, waiting for a user signal to continue. This is used in case one or
   more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
   For example, it can be used when an \textbf{OutStreamManager} of type
@@ -441,7 +445,8 @@ This step assumes a 1-to-1 mapping (e.g. first \xmlNode{Input} is going to be
 used for the first \xmlNode{Output}, etc.).
 \\
 \nb This 1-to-1 mapping is not present when \xmlNode{Output} nodes are of
-\xmlAttr{class}\\\xmlString{OutStreamManager}.
+\xmlAttr{class}\\\xmlString{OutStreamManager}, since  \textbf{OutStreamManager}
+objects are already linked to a Data object in the relative RAVEN input block.
 
 In this case, the user needs to provide in the \xmlNode{Input} nodes, all of the 
 ``Datas'' objects linked to the OutStreamManager objects (see the example 
@@ -485,8 +490,8 @@ below):
 </Steps>
 \end{lstlisting}
 %
-Example to evaluate the response of a physical system, respect the variations of two parameters (x1,x2),
- in a Python program by the implementing of the Pickle module: 
+Example of how to use a ROM exported by RAVEN using the IOStep, 
+where (x1,x2) are the input variable names for which the ROM has been trained: 
 %
 Example Python Function:
 \begin{lstlisting}[language=python]
@@ -584,7 +589,7 @@ Example:
 The \textbf{PostProcess} step is used to post-process data or manipulate RAVEN
 entities.
 %
-It is aimed at performing a single action that is actually employed by a
+It is aimed at performing a single action that is employed by a
 \textbf{Model} of type \textbf{PostProcessor}.
 %
 
@@ -597,11 +602,11 @@ This XML node specifies the following attributes:
 \itemsep0em
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
   this Step. 
-  \nb As for the other objects, this is the name that can be used to refer to
+  \nb As for the other objects, this is the name that is used to refer to
   this specific entity in the \xmlNode{RunInfo} block under the 
   \xmlNode{Sequence} node.
-\item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute}, if True
-  (True values = True, yes, y, t, si, dajie), the code will pause at the end of
+\item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
+  (True values = True, yes, y, t), the code will pause at the end of
   the step, waiting for a user signal to continue. This is used in case one or
   more of the \textbf{Outputs} are of type \textbf{OutStreamManager}.
   For example, it can be used when an \textbf{OutStreamManager} of type
