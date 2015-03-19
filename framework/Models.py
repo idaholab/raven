@@ -598,6 +598,7 @@ class Code(Model):
       self.executable = abspath
     else: print(self.printTag+': ' +utils.returnPrintPostTag('ERROR') + '-> not found executable '+self.executable)
     self.code = Code.CodeInterfaces.returnCodeInterface(self.subType)
+    self.code.readMoreXML(xmlNode)
 
   def addInitParams(self,tempDict):
     '''extension of addInitParams for the Code(model)'''
@@ -637,6 +638,7 @@ class Code(Model):
     else: index = 1
     Kwargs['outfile'] = 'out~'+os.path.split(currentInput[index])[1].split('.')[0]
     if len(self.alias.keys()) != 0: Kwargs['alias']   = self.alias
+    print('DEBUG currentInput',self.printTag,currentInput,self.oriInputFiles)
     return (self.code.createNewInput(currentInput,self.oriInputFiles,samplerType,**Kwargs),Kwargs)
 
   def run(self,inputFiles,jobHandler):

@@ -39,6 +39,12 @@ class CodeInterfaceBase(metaclass_insert(abc.ABCMeta,object)):
     if os.environ['RAVENinterfaceCheck'].lower() in stringsThatMeanTrue(): return '',outputfileroot
     return subcodeCommand,outputfileroot
 
+  def readMoreXML(self,xmlNode):
+    self._readMoreXML(xmlNode)
+
+  def _readMoreXML(self,xmlNode):
+    pass #afaik, this is only used in GenericCodeInterface currently.
+
   @abc.abstractmethod
   def generateCommand(self,inputFiles,executable,flags=None):
     """
