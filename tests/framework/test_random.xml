@@ -4,7 +4,7 @@
 <RunInfo>
     <WorkingDir>RandomTest</WorkingDir>
     <Sequence>Sampler1,Sampler2,Sampler3,Sampler4,Sampler5</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
@@ -19,27 +19,42 @@
 </Distributions>
 
 <Samplers>
-  <MonteCarlo name='MC1' limit='3' >
+  <MonteCarlo name='MC1'>
+    <sampler_init>
+      <limit>3</limit>
+    </sampler_init>
     <variable name='simple_var'>
       <distribution >simple</distribution>
     </variable>
   </MonteCarlo>
-  <MonteCarlo name='MC2' limit='3' >
+  <MonteCarlo name='MC2'>
+    <sampler_init>
+      <limit>3</limit>
+    </sampler_init>
     <variable name='simple_var'>
       <distribution >simple</distribution>
     </variable>
   </MonteCarlo>
-  <MonteCarlo name='MC3' limit='3' >
+  <MonteCarlo name='MC3'>
+    <sampler_init>
+      <limit>3</limit>
+    </sampler_init>
     <variable name='simple_var'>
       <distribution  >simple</distribution>
     </variable>
   </MonteCarlo>
-  <MonteCarlo name='MC4' limit='3' >
+  <MonteCarlo name='MC4'>
+    <sampler_init>
+      <limit>3</limit>
+    </sampler_init>
     <variable name='simple_var'>
       <distribution >simple</distribution>
     </variable>
   </MonteCarlo>
-  <MonteCarlo name='MC5' limit='3' >
+  <MonteCarlo name='MC5'>
+    <sampler_init>
+      <limit>3</limit>
+    </sampler_init>
     <variable name='simple_var'>
       <distribution  >simple</distribution>
     </variable>

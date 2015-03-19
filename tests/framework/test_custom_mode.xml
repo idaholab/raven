@@ -52,7 +52,11 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo     name='RAVENmc6'  limit='2' />
+    <MonteCarlo     name='RAVENmc6'>
+        <sampler_init>
+            <limit>2</limit>
+        </sampler_init>
+    </MonteCarlo>
 </Samplers>
 <Steps>
     <MultiRun name='FirstMRun' re-seeding='1'>

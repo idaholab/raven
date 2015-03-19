@@ -4,7 +4,7 @@
     <WorkingDir>limitSurface</WorkingDir>
     <Files>limitSurfaceTestExternalModel.py,goalFunctionTest.py</Files>
     <Sequence>FirstMRun,ComputeLimitSurface</Sequence>
-    <batchSize>8</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 
 <Models>
@@ -52,7 +52,10 @@
 </Distributions>
 
 <Samplers>
-    <MonteCarlo name='MC_external'  limit='150' >
+    <MonteCarlo name='MC_external'>
+      <sampler_init>
+        <limit>150</limit>
+      </sampler_init>
       <variable name='x0' >
         <distribution >x0_distrib</distribution>
       </variable>

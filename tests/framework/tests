@@ -83,6 +83,15 @@
   rel_err = 0.01
   required_executable = '../../RAVEN-%METHOD%'
  [../]
+ [./test_merge_2_databases]
+  type = 'RavenFramework'
+  input = 'test_merge_2_databases.xml '
+  output = 'test_merge_2_databases/MonteCarlo/out~1~ideal_pump.csv'
+  csv = 'test_merge_2_databases/timepointset_from_database_dump.csv test_merge_2_databases/timepointset_IN_database_dump.csv'
+  max_time = 500
+  rel_err = 0.01
+  required_executable = '../../RAVEN-%METHOD%'
+ [../]
 
  [./test_rom_trainer]
   type = 'RavenFramework'
@@ -172,6 +181,7 @@
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../bison/bison-%METHOD%'
+  skip_if_env = BUILD_ROOT
   #There is a problem in debug mode (possibly in bison) but this
   # test often does not work in debug mode because of the problem.
   method = 'devel opt'
@@ -185,6 +195,7 @@
   max_time = 500
   rel_err = 0.001
   required_executable = '../../../bison/bison-%METHOD%'
+  skip_if_env = BUILD_ROOT
  [../]
 
  [./testLHSFerret]
@@ -265,6 +276,7 @@
   output = 'MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test'
   csv = 'MCTestBison/CustomSampler/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/out~1~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~3~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/out~1~gap_perfect_transfer_test.csv'
   required_executable = '../../../bison/bison-%METHOD%'
+  skip_if_env = BUILD_ROOT
  [../]
 
  [./test_custom_mode]
@@ -332,11 +344,32 @@
   csv = 'StochasticPolyTest/Udump.csv StochasticPolyTest/UCdump.csv StochasticPolyTest/Ndump.csv StochasticPolyTest/Gdump.csv StochasticPolyTest/Bdump.csv StochasticPolyTest/Tdump.csv StochasticPolyTest/Edump.csv'
  [../]
 
+ [./indexSetTest]
+  type = 'RavenFramework'
+  input = 'test_indexsets.xml'
+  output = 'IndexSetTest/TPdump.xml IndexSetTest/TDdump.xml IndexSetTest/HCdump.xml'
+  csv = 'IndexSetTest/TPdump.csv IndexSetTest/TDdump.csv IndexSetTest/HCdump.csv'
+ [../]
+
  [./stochPolyPickleTest]
   type = 'RavenFramework'
   input = 'test_stochpoly_pickle.xml'
   output = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
   csv = 'StochasticPolyPickleTest/Udump.csv StochasticPolyPickleTest/pdump.csv'
+ [../]
+
+ [./ND_external_MC]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_MC.xml'
+  output = 'ND_test_MC/testPrintTimePointSet_dump.csv ND_test_MC/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_MC/testPrintTimePointSet_dump.csv ND_test_MC/testPrintTimePointSet_dump.csv'
+ [../]
+
+ [./stochPolyInterpTest]
+  type = 'RavenFramework'
+  input = 'test_stochpoly_interp.xml'
+  output = 'StochasticPolyInterpTest/Ndump.xml'
+  csv = 'StochasticPolyInterpTest/Ndump.csv'
  [../]
 
  [./RELAP5interfaceTestNoExecutable]
@@ -345,6 +378,34 @@
   output = 'RELAP5interfaceTest/testDummyStep/1~snc01.i RELAP5interfaceTest/testDummyStep/2~snc01.i RELAP5interfaceTest/testDummyStep/3~snc01.i RELAP5interfaceTest/testDummyStep/4~snc01.i RELAP5interfaceTest/testDummyStep/5~snc01.i RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
   csv = 'RELAP5interfaceTest/testDummyStep/out~1~snc01.csv RELAP5interfaceTest/testDummyStep/out~2~snc01.csv RELAP5interfaceTest/testDummyStep/out~3~snc01.csv RELAP5interfaceTest/testDummyStep/out~4~snc01.csv RELAP5interfaceTest/testDummyStep/out~5~snc01.csv'
   test_interface_only = True
+ [../]
+
+
+ [./ND_external_LHS]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_LHS.xml'
+  output = 'ND_test_LHS/testPrintTimePointSet_dump.csv ND_test_LHS/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_LHS/testPrintTimePointSet_dump.csv ND_test_LHS/testPrintTimePointSet_dump.csv'
+ [../]
+
+ [./ND_external_grid_value]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_grid_value.xml'
+  output = 'ND_test_Grid_value/testPrintTimePointSet_dump.csv ND_test_Grid_value/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_Grid_value/testPrintTimePointSet_dump.csv ND_test_Grid_value/testPrintTimePointSet_dump.csv'
+ [../]
+
+ [./ND_external_grid_cdf]
+  type = 'RavenFramework'
+  input = 'test_simple_ND_external_grid_cdf.xml'
+  output = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
+  csv = 'ND_test_Grid_cdf/testPrintTimePointSet_dump.csv ND_test_Grid_cdf/testPrintTimePointSet_dump.csv'
+
+ [./test_comparison_statistics]
+   type = 'RavenFramework'
+   input = 'test_cc_stats.xml'
+   output = 'test_cc_stats/output.csv'
+   csv = 'test_cc_stats/output_fullprint_timepointset_outputs_normal1_0.csv test_cc_stats/output_fullprint_timepointset_outputs_normal1_1.csv test_cc_stats/output_fullprint_timepointset_outputs_normal2_0.csv test_cc_stats/output_fullprint_timepointset_outputs_normal2_1.csv test_cc_stats/output_fullprint_timepointset_outputs_uniform1_fullprint_timepointset_outputs_uniform2p_0.csv test_cc_stats/output_fullprint_timepointset_outputs_uniform1_fullprint_timepointset_outputs_uniform2p_1.csv'
  [../]
 
 []

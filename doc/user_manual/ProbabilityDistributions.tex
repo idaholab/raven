@@ -604,12 +604,128 @@ Example:
 %%%%%% N-Dimensional Probability distributions
 \subsection{N-Dimensional Probability Distributions}
 \label{subsec:NdDist}
-We have the multivariate normal distributions and 3 different types of
-user-input $N$D distributions.
-%
-These types depend on the type of interpolation scheme requested by the user.
-%
-The input requirements are explained in the following:
+The group of $N$-Dimensional distributions allow the user to model stochastic dependences between parameters. Thus instead of using $N$ distributions for $N$ parameters, the user can define a single distribution lying in a $N$-Dimensional space.
+The following $N$-Dimensional Probability Distributions are available within RAVEN:
+\begin{itemize}
+\item NDInverseWeight: ND Inverse Weight interpolation distribution (see Section~\ref{NDInverseWeight})
+\item NDCartesianSpline: ND spline interpolation distribution (see Section~\ref{NDCartesianSpline})
+\end{itemize}
+For both distributions, the user provides the sampled values of either CDF or PDF of the distribution. The sampled values can be scattered distributed (for NDInverseWeight) or over a cartesian grid (for NDCartesianSpline).
 
-\alfoa{Diego I choose you!}
+The user can initialize, for each $N$-Dimensional distribution, the parameters of the random number generator function:
+\begin{itemize}
+\item initial\textunderscore grid\textunderscore disc 
+\item tolerance
+\end{itemize}
+in the $<dist\textunderscore init>$ block defined in sampler block $<sampler\textunderscore init>$ (see Section~\ref{sec:Samplers}). 
 
+\paragraph{NDInverseWeight Distribution}
+\label{NDInverseWeight}
+
+The specifications of this distribution must be defined within the xml block $<NDInverseWeight>$.  In RAVEN the NDInverseWeight distribution can be initialized through the following keywords:
+\begin{itemize}
+\item $<p>$, float, required parameter, power parameter. Greater values of p assign greater influence to values closest to the interpolated point.
+\item $<data\textunderscore filename   type='...' >$, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item $<working\textunderscore dir>$, string, folder location of the data file
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+----------------------------
+Example:
+----------------------------
+<Distributions>
+  ...
+  <NDInverseWeight name='...'>
+        <p>...</p>
+        <data_filename type='...'>...</data_filename>
+        <working_dir></working_dir>
+  </NDInverseWeight>
+  ...
+</Distributions>
+----------------------------
+\end{lstlisting}
+
+Each data entry contained in data\textunderscore filename is listed row by row and must be listed as follows:
+\begin{itemize}
+\item number of dimensions
+\item number of sampled points
+\item ND coordinate of each sampled point
+\item value of each sampled point
+\end{itemize}
+
+As an example, the following shows the data entries contained in data\textunderscore filename for a 3-dimensional data set that contained two sampled CDF values: ([0.0,0.0,0.0], 0.1) and ([1.0, 1.0,0.0], 0.8)
+
+\begin{lstlisting}
+----------------------------
+Example: scattered data file
+----------------------------
+3
+2
+0.0
+0.0
+0.0
+1.0
+1.0
+0.0
+0.1
+0.8
+----------------------------
+\end{lstlisting}
+
+\paragraph{NDCartesianSpline Distribution}
+\label{NDCartesianSpline}
+The specifications of this distribution must be defined within the xml block $<NDCartesianSpline>$.  In RAVEN NDCartesianSpline distribution can be initialized through the following keywords:
+\begin{itemize}
+\item $<data_filename   type='...' >$, string,  name of the data file containing scattered values (file type .txt). The type attribute indicate if the data in indicated file is PDF or CDF. 
+\item $<working_dir>$, string, folder location of the data file
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+----------------------------
+Example:
+----------------------------
+<Distributions>
+  ...
+  <NDCartesianSpline name='...'>
+        <data_filename type='...'>...</data_filename>
+        <working_dir></working_dir>
+  </NDCartesianSpline>
+  ...
+</Distributions>
+----------------------------
+\end{lstlisting}
+
+Each data entry contained in data \textunderscore filename is listed row by row and must be listed as follows:
+\begin{itemize}
+\item number of dimensions
+\item number of discretization for each dimension
+\item discretization values for each dimension
+\item value of each sampled point
+\end{itemize}
+
+As an example, the following shows the data entries contained in data \textunderscore filename for a 2-dimensional CDF data set on the following grid $(x,y)$:
+\begin{itemize}
+\item first dimension (x): -0.5, 0.5
+\item first dimension (y): 1.0 2.0 3.0
+\end{itemize}
+
+\begin{lstlisting}
+----------------------------
+Example: scattered data file
+----------------------------
+2
+2
+3
+-0.5
+0.5
+1.0 
+2.0 
+3.0
+CDF value of (-0.5,1.0)
+CDF value of (+0.5,1.0)
+CDF value of (-0.5,2.0)
+CDF value of (+0.5,2.0)
+CDF value of (-0.5,3.0)
+CDF value of (+0.5,3.0)
+----------------------------
+\end{lstlisting}

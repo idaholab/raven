@@ -10,3 +10,4 @@ AdaptiveDET/AdaptiveDETrunTest/
 coverage_html_report
 testDistrDump.pk
 StochasticPolyPickleTest
+test_merge_2_databases/MonteCarlo/

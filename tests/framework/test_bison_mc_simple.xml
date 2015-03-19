@@ -37,7 +37,10 @@
 </Distributions>
 
 <Samplers>
-  <MonteCarlo name='Bison1' limit='3'>
+  <MonteCarlo name='Bison1'>
+      <sampler_init>
+          <limit>3</limit>
+      </sampler_init>
       <variable name='tc_heat1' >
           <distribution>FlatHeat1</distribution>
       </variable>
@@ -46,7 +49,11 @@
       </variable>
   </MonteCarlo>
   <!-- Sampler noalias -->
-  <MonteCarlo name='Bison_sampler_noalias' limit='3' initial_seed='22'>
+  <MonteCarlo name='Bison_sampler_noalias'>
+        <sampler_init>
+            <limit>3</limit>
+            <initial_seed>22</initial_seed>
+        </sampler_init>
         <variable name='Materials|heat1|thermal_conductivity' >
             <distribution>FlatHeat1</distribution>
         </variable>

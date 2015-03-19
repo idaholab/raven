@@ -4,7 +4,7 @@
     <WorkingDir>test_rom_trainer</WorkingDir>
     <Files>TMI_PRA_trans_MC_control.py,TMI.i,TMI_steady_restart/1863.rd-0,TMI_steady_restart/1863.xdr,TMI_steady_restart/1863.xdr.0000,TMI_steady_restart/1863_mesh.cpr</Files>
     <Sequence>MC_for_rom_trainer,test_extract_for_rom_trainer,test_rom_trainer,rom_MC,test_rom_trainer_nd_interp,rom_MC_nd_interpolator</Sequence>
-    <batchSize>3</batchSize>
+    <batchSize>1</batchSize>
 </RunInfo>
 <Distributions>
     <Uniform name='auxbackup'>
@@ -32,7 +32,10 @@
     </ROM>
 </Models>
 <Samplers>
-  <MonteCarlo     name='RAVENmc3'  limit='3'>
+  <MonteCarlo     name='RAVENmc3'>
+    <sampler_init>
+      <limit>3</limit>
+    </sampler_init>
     <variable name='DeltaTimeScramToAux'>
       <distribution  >auxbackup</distribution>
     </variable>
@@ -40,9 +43,16 @@
       <distribution >DG1backup</distribution>
     </variable>
   </MonteCarlo>
-  <MonteCarlo     name='RAVENmcCode3'  limit='3'>
+  <MonteCarlo     name='RAVENmcCode3'>
+      <sampler_init>
+          <limit>3</limit>
+      </sampler_init>
   </MonteCarlo>
-    <MonteCarlo     name='RAVENmcND'  limit='3' initial_seed='200286'>
+    <MonteCarlo     name='RAVENmcND'>
+        <sampler_init>
+            <limit>3</limit>
+            <initial_seed>200286</initial_seed>
+        </sampler_init>
         <variable name='DeltaTimeScramToAux'>
             <distribution  >auxbackup</distribution>
         </variable>

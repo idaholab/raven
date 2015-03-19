@@ -96,7 +96,28 @@ class HDF5(DateBase):
     self.exist    = False
     self.built    = False
     self.type     = 'HDF5'
+    self.file_name = ""
     self.printTag = returnPrintTag('DATABASE HDF5')
+
+
+  def __getstate__(self):
+    """
+    Overwrite state (for pickle-ing)
+    we do not pickle the HDF5 (C++) instance
+    but only the info to re-load it
+    """
+    # capture what is normally pickled
+    state = self.__dict__.copy()
+    # we pop the database instance and close it
+    state.pop("database")
+    self.database.closeDataBaseW()
+    # what we return here will be stored in the pickle
+    return state
+
+  def __setstate__(self, newstate):
+    self.__dict__.update(newstate)
+    self.database = h5Data(self.name,self.databaseDir,self.file_name)
+    self.exist    = True
 
   def _readMoreXML(self,xmlNode):
     '''
@@ -114,12 +135,13 @@ class HDF5(DateBase):
     # if yes, we assume the user wants to load the data from there
     # or update it
     try:
-      file_name = xmlNode.attrib['filename']
-      self.database = h5Data(self.name,self.databaseDir,file_name)
+      self.file_name = xmlNode.attrib['filename']
+      self.database = h5Data(self.name,self.databaseDir,self.file_name)
       self.exist    = True
     except KeyError:
-      self.database = h5Data(self.name,self.databaseDir)
-      self.exist    = False
+      self.file_name = self.name+".h5"
+      self.database  = h5Data(self.name,self.databaseDir)
+      self.exist     = False
 
   def addInitParams(self,tempDict):
     '''
