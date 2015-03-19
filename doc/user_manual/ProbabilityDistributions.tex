@@ -18,9 +18,9 @@
 \newcommand{\attrIntro}{This XML node accepts one attribute:}
 \newcommand{\attrsIntro}{This XML node accepts the following attributes:}
 \newcommand{\subnodeIntro}{This distribution can be initialized with the
-  following child:}
+  following child node:}
 \newcommand{\subnodesIntro}{This distribution can be initialized with the
-  following children:}
+  following children nodes:}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %\maljdan{Do we want to provide the equations of each distribution?}
@@ -29,7 +29,7 @@
 RAVEN provides support for several probability distributions.
 %
 Currently, the user can choose among all of the most important 1-dimensional
-distributions and $N$-dimensional ones, either custom or multivariate.
+distributions and $N$-dimensional ones, either custom or multidimensional normal.
 
 The user will specify the probability distributions, that need to be used during
 the simulation, within the \xmlNode{Distributions} XML block:
@@ -52,7 +52,7 @@ distributions are reported.
 This sub-section is organized in two different parts: 1) continuous 1-D
 distributions and 2) discrete 1-D distributions.
 %
-These two chapters cover all the requirements for using the different
+These two paragraphs cover all the requirements for using the different
 distribution entities.
 %
 %%%%%% paragraph 1-Dimensional Continuous Distributions.
@@ -78,7 +78,7 @@ commented.
 %%%%%% Beta
 \paragraph{Beta Distribution}
 \label{Beta}
-The \distname{Beta} distribution is defined on the
+The \distname{Beta} distribution is defined, by default, on the
 interval $[0,1]$ parameterized by two positive shape parameters, denoted by
 $\alpha$ and $\beta$, that appear as exponents of the random variable.
 %
@@ -104,11 +104,11 @@ Its support is $x \in (0, 1)$.
   \item \xmlNode{beta}, \xmlDesc{float, required parameter}, second shape
   parameter.
   %
-  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
-  boundary.
+  \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain,
+  boundary.  \default{0.0}
   %
-  \item \xmlNode{high}, \xmlDesc{float, required parameter}, upper domain
-  boundary.
+  \item \xmlNode{high}, \xmlDesc{float, optional parameter}, upper domain,
+  boundary. \default{1.0}
   %
 \end{itemize}
 
@@ -129,11 +129,7 @@ Example:
 %%%%%% Exponential
 \paragraph{Exponential Distribution}
 \label{Exponential}
-The \distname{Exponential} distribution can be
-used to model the time between independent events happening at a constant
-average time.
-%
-Its support is $x \in [0, +\infty)$.
+The \distname{Exponential} distribution support is $x \in [0, +\infty)$.
 
 \specBlock{an}{Exponential}
 %
@@ -188,7 +184,7 @@ Its support is $x \in (0,+\infty)$.
   \item \xmlNode{beta}, \xmlDesc{float, required parameter}, 1/scale or the
   inverse scale parameter;
   \item \xmlNode{low}, \xmlDesc{float, optional parameter}, lower domain
-  boundary.
+  boundary. \default{0.0}
   %
 \end{itemize}
 
@@ -209,7 +205,7 @@ Example:
 \paragraph{Logistic Distribution}
 \label{Logistic}
 The \distname{Logistic} distribution is similar to the
-normal distribution with a CDF that is an instance of a logistic function.
+normal distribution with a CDF that is an instance of a logistic function ($Cdf(x) = \frac{1}{1+e^{-\frac{(x-location)}{scale})}}$).
 %
 It resembles the normal distribution in shape but has heavier tails (higher
 kurtosis).
@@ -233,7 +229,7 @@ Its support is $x \in (-\infty,+\infty)$.
   %
   \item \xmlNode{scale}, \xmlDesc{float, required parameter}, scale parameter
   that
-  is proportional to the standard deviation.
+  is proportional to the standard deviation ($\sigma ^{2}=\frac{1}{3}\pi^{2}scale^{2} $).
   %
 \end{itemize}
 
@@ -291,7 +287,7 @@ Example:
 %%%%%% Normal
 \paragraph{Normal Distribution}
 \label{Normal}
-The \distname{Normal} distribution (or Gaussian) is an extremely
+The \distname{Normal} distribution is an extremely
 useful continuous distribution.
 %
 Its utility is due to the central limit theorem, which states that, under mild
@@ -346,7 +342,7 @@ Like the uniform distribution, upper and lower limits are ``known,'' but a
 %
 It has been recommended as a ``proxy'' for the beta distribution.
 %
-Its support is $lower \le x \le upper$.
+Its support is $min \le x \le max$.
 
 \specBlock{a}{Triangular}
 %
