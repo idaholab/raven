@@ -886,7 +886,12 @@ are reported.
     that is indistinguishable from an array of values to be colormapped.
     %
     \xmlNode{c} can be a 2D array in which the rows are RGB or RGBA.
-    \item \xmlNode{marker}, \xmlDesc{string, optional field}, specifies the type
+     %
+    \nb \xmlNode{colorMap} will  overwrite \xmlNode{c}.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}. 
+    If no \xmlNode{cmap} is given then the default color set of  ``matplotlib.pyplot.scatter'' method in~\cite{MatPlotLib} is used.
+    If \xmlNode{colorMap} is not defined then the plot is in solid color (default \textit{blue}) as defined with \xmlNode{color} in \xmlNode{kwargs}.
+  %
+   \item \xmlNode{marker}, \xmlDesc{string, optional field}, specifies the type
     of marker to use.
     %
     \default{o}
@@ -927,6 +932,7 @@ are reported.
     \item \interpolationDescription{linear}
     \item \interpXYDescription{x}
     \item \interpXYDescription{y} (only 3D line plot).
+    \nb If \xmlNode{colorMap} is used then a \textbf{scatter plot} will be plotted.
   \end{itemize}
 
 \subsubsection{2D \& 3D Histogram plot}
@@ -1137,6 +1143,9 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   \default{5}
   \item \interpolationDescription{linear}
   \item \interpXYDescription{x}
+  \item \xmlNode{colorMap} vector is the array to visualize.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}. 
+  If no \xmlNode{cmap} is given then the plot is in solid color (default \textit{blue}) as defined with \xmlNode{color} in \xmlNode{kwargs}.
+  %
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
 
@@ -1168,7 +1177,12 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   array column stride (step size).
   %
   \default{1}
-  \item \cmapDescription{jet}
+  \item \cmapDescription{None}
+  %
+   \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given. 
+  In such a case, if no \xmlNode{cmap} is given, then the default color set of  ``matplotlib.pyplot.surface'' method in~\cite{MatPlotLib} is used.
+  If \xmlNode{colorMap} and \xmlNode{cmap} are both not defined then the plot is in solid color (\textit{default blue}) as defined with \xmlNode{color} in   \xmlNode{kwargs}.
+  %
   \item \xmlNode{antialiased}, \xmlDesc{boolean, optional field}, determines
   whether or not the rendering should be antialiased.
   %
@@ -1199,7 +1213,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
-  ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+  ``matplotlib.pyplot.surface'' method in~\cite{MatPlotLib}.
   %
 \end{itemize}
 
@@ -1214,7 +1228,13 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   column stride (step size).
   %
   \default{1}
-  \item \cmapDescription{jet}
+  \item \cmapDescription{None}
+  %
+  \senrs {\xmlNode{cmap} is not applicable in the current version of MatPlotLib (1.4.0) for wireframe plots. 
+  However, if the colorMap option is set then a surface plot is plotted with a transparency of 0.4 on top of wireframe to give a visual colormap.}
+  \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given. 
+  In such a case, if no \xmlNode{cmap} is given, then the default color set of  ``matplotlib.pyplot.surface'' method in~\cite{MatPlotLib} is used.
+  If \xmlNode{colorMap} and \xmlNode{cmap} are both not defined then the plot is in solid color (\textit{default blue}) as defined with \xmlNode{color} in   \xmlNode{kwargs}.
   \item \interpolationDescription{linear}
   \item \interpXYDescription{x}
   \item \interpXYDescription{y}
@@ -1234,7 +1254,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
-  ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+  ``matplotlib.pyplot.wireframe'' method in~\cite{MatPlotLib}.
   %
 \end{itemize}
 
@@ -1249,7 +1269,10 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   to apply shading or not.
   %
   \default{False}
-  \item \cmapDescription{jet}
+  \item \cmapDescription{None}
+  \nb If \xmlNode{colorMap} is defined then the plot will always use a color set even if no \xmlNode{cmap} is given. 
+  In such a case, if no \xmlNode{cmap} is given, then the default color set of  ``matplotlib.pyplot.trisurface'' method in~\cite{MatPlotLib} is used.
+  If \xmlNode{colorMap} and \xmlNode{cmap} are both not defined then the plot is in solid color (\textit{default blue}) as defined with \xmlNode{color} in   \xmlNode{kwargs}.
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
 
@@ -1266,7 +1289,7 @@ In order to customize the plot, the user can define the following XML sub-nodes:
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
-  ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+  ``matplotlib.pyplot.trisurface'' method in~\cite{MatPlotLib}.
   %
 \end{itemize}
 
@@ -1284,6 +1307,9 @@ nodes:
   \item \interpolationDescription{linear}
   \item \interpXYDescription{x}
   \item \interpXYDescription{y}
+  \item \xmlNode{colorMap} vector is the array to visualize.  If \xmlNode{colorMap} is defined then the color set used can be defined by \xmlNode{cmap}. 
+  If no \xmlNode{cmap} is given then the plot is in solid color (default \textit{blue}) as defined with \xmlNode{color} in \xmlNode{kwargs}.
+  %
   \item \xmlNode{kwargs}, within this block the user can specify optional
   parameters with the following format:
 
@@ -1300,7 +1326,7 @@ nodes:
   \xmlNode{param2}\texttt{[56,67]}\xmlNode{/param2} into a list, etc.).
   %
   For reference regarding the available kwargs, see
-  ``matplotlib.pyplot.contour'' method in~\cite{MatPlotLib}.
+  ``matplotlib.pyplot.contour3d'' method in~\cite{MatPlotLib}.
   %
 \end{itemize}
 
