@@ -862,23 +862,24 @@ In the \xmlNode{ROM} input block, the following XML sub-nodes are required,
 independent of the \xmlAttr{subType} specified:
 %
 \begin{itemize}
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
-  specifies the names of the features of this ROM.
+%  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field},
+%  specifies the names of the features of this ROM.
+%  %
+%  \nb These parameters will be requested for the training of this object (see
+%  Section~\ref{subsec:stepRomTrainer}).
+%  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
+%  contains a comma separated list of the targets of this ROM.
+%  %
+%  The parameters listed here represent the figures of merit this ROM is supposed
+%  to predict.
+%  %
+%  \nb These parameters are going to be requested for the training of this object
+%  (see Section~\ref{subsec:stepRomTrainer}).
   %
-  \nb These parameters will be requested for the training of this object (see
-  Section~\ref{subsec:stepRomTrainer}.
-  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field},
-  contains a comma separated list of the targets of this ROM.
-  %
-  The parameters listed here represent the figures of merit this ROM is supposed
-  to predict.
-  %
-  \nb These parameters are going to be requested for the training of this object
-  (see Section~\ref{subsec:stepRomTrainer}).
-  %
-   \item $<Features>$ \textbf{\textit{, comma separated string, required field.}}. In this node, the user needs to specify the names of the features of this ROM. NB. These parameters are going to be requested for the training of this object (see section \ref{subsec:stepTraining};
+   \item $<Features>$ \textbf{\textit{, comma separated string, required field.}}. In this node, the user needs to specify the names of the features of this ROM. NB. These parameters are going to be requested for the training of this object (see Section~\ref{subsec:stepRomTrainer};
     \item $<Target>$ \textbf{\textit{, comma separated string, required field.}}. This XML node contains a comma separated list of the targets of this ROM. By Instance, these parameters are the Figure of Merits this ROM is supposed to predict.
-    \\NB. These parameters are going to be requested for the training of this object (see section \ref{subsec:stepTraining}.
+    \\NB. These parameters are going to be requested for the training of this
+    object (see Section \ref{subsec:stepRomTrainer}.
     \item $<NormalizeData>$ \textbf{\textit{, boolean, optional field.}}. This XML node controls the normalization of data used for training the ROM. If True, the Training set is going to be normalized with respect to Average and Standard Deviation of the data set; no normalization is applied if this field is False. \textit{Default =  True}.
 \end{itemize}
 
@@ -931,7 +932,7 @@ Thus, it can only be trained from the outcomes of a grid sampling strategy.
 
 %%%%% ROM Model - GaussPolynomialRom  %%%%%%% 
 \subsubsection{GaussPolynomialRom}
-\talbpaul{Work in progress.}
+%\talbpaul{Work in progress.}
 \label{subsubsec:GaussPolynomialRom}
 The GaussPolynomialRom sub-type contains a single ROM type, based on a 
 characteristic Gaussian polynomial fitting scheme: generalized polynomial chaos
@@ -1085,13 +1086,8 @@ below).
   ...
 </Simulation>
 \end{lstlisting}
-%%%%% ROM Model - MicroSphere  %%%%%%%
-\subsubsection{MicroSphere}
-\label{subsubsec:microSphere}
-Not yet functional.
-%
-Its validity for prediction still needs to be assessed.
-%
+
+
 %%%%% ROM Model - SciKitLearn  %%%%%%%
 \subsubsection{SciKitLearn}
 \label{subsubsec:SciKitLearn}
@@ -1509,7 +1505,7 @@ regressor}{linear\_model|LassoLarsCV}
 
 The \textit{Lasso model fit with Lars using BIC or AIC for model selection} is
 a Lasso model fit with Lars using BIC or AIC for model selection.
-\maljdan{redundant}
+%\maljdan{redundant}
 The optimization objective for Lasso is:
 $(1 / (2 * n\_samples)) * ||y - Xw||^2_2 + alpha * ||w||_1$
 AIC is the Akaike information criterion and BIC is the Bayes information
@@ -2508,7 +2504,7 @@ using only the Gram matrix, X.T * X, and the product, X.T * y.
   If not None, overrides n\_nonzero\_coefs.
   %
   \item \xmlNode{norms\_squared}, \xmlDesc{array-like, shape(n\_targets)},
-  \maljdan{needs description}
+  %f\maljdan{needs description}
   %
 \end{itemize}
 
@@ -2782,8 +2778,8 @@ At prediction time, the classifiers are used to project new points in the class
 space and the class closest to the points is chosen.
 %
 The main advantage of these strategies is that the number of classifiers used
-can be controlled by the user, either for compressing the model ($0 < code_size
-< 1$) or for making the model more robust to errors ($code_size > 1$).
+can be controlled by the user, either for compressing the model ($0 < code\_
+size < 1$) or for making the model more robust to errors ($code\_ size > 1$).
 
 \skltype{Error-Correcting Output-Code multiclass classifier}{multiClass|OutputCodeClassifier}
 \begin{itemize}
@@ -3627,7 +3623,7 @@ Example XML:
        <variable>outcome</variable>
        <!--
           here we define other XML nodes RAVEN does not read automatically.
-          We need to implement, in the external module ``AnExtModule'' the readMoreXML method
+          We need to implement, in the external module 'AnExtModule' the readMoreXML method
         -->
         <newNodeWeNeedToRead>
             whatNeedsToBeRead
@@ -3646,11 +3642,13 @@ def _readMoreXML(self,xmlNode):
   # <newNodeWeNeedToRead> is unknown (in the RAVEN framework)
   # we have to read it on our own
   # get the node
-  ourNode = xmlNode.find(``newNodeWeNeedToRead'')
+  ourNode = xmlNode.find('newNodeWeNeedToRead')
   # get the information in the node
   self.ourNewVariable = ourNode.text
   # end function
 \end{lstlisting}
+
+
 \subsubsection{Method: \texttt{def initialize}}
 \label{subsubsec:externalInitialize}
 The \textbf{initialize} method can be implemented in the \textbf{External Model}
@@ -3716,6 +3714,8 @@ def initialize(self,runInfo,inputs):
   self.rho   = 28.0
   # end function
 \end{lstlisting}
+
+
 \subsubsection{Method: \texttt{def createNewInput}}
 \label{subsubsec:externalcreateNewInput}
 
@@ -3753,11 +3753,11 @@ Here we present an example:
 def createNewInput(self,inputs,samplerType,**Kwargs):
   # in here the actual createNewInput of the
   # model is implemented
-  if samplerType == ``MonteCarlo'':
-    avariable = inputs[``something'']*inputs[``something2'']
+  if samplerType == 'MonteCarlo':
+    avariable = inputs['something']*inputs['something2']
   else:
-    avariable = inputs[``something'']/inputs[``something2'']
-  return avariable*Kwargs[``SampledVars''][``aSampledVar'']
+    avariable = inputs['something']/inputs['something2']
+  return avariable*Kwargs['SampledVars']['aSampledVar']
 \end{lstlisting}
 
 \subsubsection{Method: \texttt{def run}}
