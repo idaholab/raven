@@ -1,4 +1,3 @@
-
 Framework README
 
 -- Command Replacement Strings --
@@ -18,7 +17,6 @@ can be used.
 %FRAMEWORK_DIR% - Expands to the full path of the framework directory (raven/framework)
 %WORKING_DIR% - Expands to the working directory where the input is
 %BASE_WORKING_DIR% - Expands to the base working directory given in RunInfo.  This will likely be a parent of WORKING_DIR
-
 %METHOD% - Expands to the environmental variable $METHOD
 %NUM_CPUS% - Expands to the number of cpus to use per single batch.  This is ParallelProcNumb in the XML file.
 
@@ -171,5 +169,3 @@ overridden by values in the input file. Example:
   <DefaultInputFile>test.xml</DefaultInputFile>
 </RunInfo>
 </Simulation>
-
-
