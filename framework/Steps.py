@@ -91,7 +91,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     if 'sleepTime' in xmlNode.attrib.keys():
       try: self.sleepTime = float(xmlNode.attrib['sleepTime'])
       except: raise IOError (printString.format(self.type,self.name,xmlNode.attrib['sleepTime'],'sleepTime'))
-    for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.text])
+    for child in xmlNode                      : self.parList.append([child.tag,child.attrib['class'],child.attrib['type'],child.text])
     self.pauseEndStep = False
     if 'pauseAtEnd' in xmlNode.attrib.keys():
       if   xmlNode.attrib['pauseAtEnd'].lower() in stringsThatMeanTrue(): self.pauseEndStep = True
