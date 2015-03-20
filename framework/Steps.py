@@ -114,7 +114,7 @@ class Step(metaclass_insert(abc.ABCMeta,BaseType)):
     tempDict['Sleep time'  ] = str(self.sleepTime)
     tempDict['Initial seed'] = str(self.initSeed)
     for List in self.parList:
-      tempDict[List[0]] = 'Class: '+str(List[1]) +'  Global name: '+str(List[3])
+      tempDict[List[0]] = 'Class: '+str(List[1]) +' Type: '+str(List[2]) + '  Global name: '+str(List[3])
     self._localAddInitParams(tempDict)
 
   @abc.abstractmethod
